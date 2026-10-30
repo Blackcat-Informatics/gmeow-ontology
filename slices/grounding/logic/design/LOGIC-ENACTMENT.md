@@ -22,7 +22,9 @@
 Three things are routinely collapsed into one word, and every durable-execution defect this layer
 exists to prevent is a consequence of that collapse. A **prescription** is what is to be done: a
 normative artifact that says nothing about whether it was done, is immutable once versioned, and is
-content-addressed so that an approval or an audit can name *exactly* the text that was authorized.
+content-addressed by default so that an approval or an audit can name *exactly* the text that was
+authorized. An explicitly selected immutable IRI identity contract is described below; it does
+not discharge independently selected content-addressed admission requirements.
 An **enactment** is one occurrence of doing it: a descriptive record bound to exactly one
 prescription version and exactly one closed input snapshot, immutable in its bindings and extended
 only by an append-only journal. A **commitment** is what became true outside the graph as a result:
@@ -91,13 +93,15 @@ action from*, rather than an unrepresentable hole.
 
 Every minted term states what makes two instances the same, because an operational record whose
 identity is undecided is a record two writers will duplicate and no reader can join on. The rule
-throughout: **content-addressed identity for immutable artifacts, occurrence identity for
-occurrences, and tuple identity for reified relations.** A digest is reused from `gmeow:contentDigest`
-and `gmeow:versionFingerprint`; the kernel mints no digest property of its own.
+throughout: **content-addressed identity by default for immutable artifacts, occurrence identity
+for occurrences, and tuple identity for reified relations.** The prescription seam uses
+`logic:prescriptionDigest` and its run-pinned witness `logic:enactedPrescriptionDigest`.
+An explicitly selected immutable IRI contract changes only the prescription version's identity
+contract, not any other artifact's identity or admission evidence.
 
 | Term | Identity criterion — two instances are the same exactly when… | Explicitly NOT identified by |
 | --- | --- | --- |
-| `logic:PrescriptionVersion` | their `gmeow:contentDigest` over the canonical rendering of the versioned `logic:Plan` is equal **and** they name the same `logic:prescriptionOf` plan | the version label, the authoring time, or the author |
+| `logic:PrescriptionVersion` | under the default contract, their `logic:prescriptionDigest` over frozen plan content is equal and they name the same `logic:prescriptionOf` plan; under explicitly selected immutable IRI identity, the external owner's immutable retained version has that IRI | the version label, the authoring time, the author, or an unrecorded assumption that a missing digest selects another mode |
 | `logic:InputSnapshot` | their content digest over the closed, order-independent input set is equal | the query or generator that produced the set |
 | `logic:Enactment` | they are the same occurrence — an occurrence is identified by its IRI, minted once and never reused | the (prescription version, input snapshot) pair; two enactments may legitimately share both, and conflating them destroys the repeat distinction |
 | `logic:EnactmentCohort` | they group the same prescription version and the same generation/schedule anchor | the count or membership of enactments, which grows |
@@ -154,6 +158,63 @@ invisible to the provider and therefore cannot be reconciled against. And an **a
 is identified by its recomputed goal, not by its citations: `explain::assert_faithful` verifies only
 that cited IRIs appear in the trace, so a forgery citing entirely real IRIs passes it. Recomputation
 is what makes the criterion unforgeable.
+
+## Explicit prescription identity contracts
+
+`logic:prescriptionIdentityMode` selects the identity contract on a prescription
+version. Omitting the selector retains the existing content-addressed requirement.
+Explicit `logic:ContentAddressedPrescriptionIdentity` has the same requirement.
+Only explicit `logic:ImmutableIriPrescriptionIdentity` admits a version without a
+prescription digest. The selector is bounded to one declared mode on each version;
+an unknown value or two conflicting selections does not define another mode.
+
+The IRI contract requires an external owner to preserve immutable resolution of
+that version IRI, durable retention of historical versions and revision only by
+minting a successor. It does not compare bytes, compute a substitute hash or detect
+in-place edits. An IRI node-kind check establishes none of those external storage
+properties. The contract states who must maintain them; it is not a runtime
+verification certificate.
+
+`PrescriptionVersionIsContentAddressedConstraint` keeps its digest obligation
+unless that explicit mode is selected. The digest-bearing
+`PrescriptionVersionImmutabilityConstraint` still compares a supplied current
+digest with the independent value a run froze at pin time.
+`CapturedPrescriptionDigestPresenceConstraint` additionally requires a current
+prescription digest whenever a run has captured one, regardless of identity mode.
+It checks presence only; the existing immutability law owns the value comparison.
+Removing the current digest cannot make that comparison vacuous, and a different
+current value produces the existing immutability finding without a second mismatch
+finding from the presence law. A fresh IRI-only version with no captured digest
+remains admitted by its explicit identity contract. This selection changes
+no checkpoint descriptor, restore identity, snapshot digest, intent digest,
+approval binding or other selected operation's admission requirements. A caller
+requesting any such operation must supply its original mandatory evidence.
+
+## Explicit per-record exclusion accounting
+
+An ordinary ContextAssembly retains the existing aggregate exclusion-reason law.
+An explicitly typed `logic:PerRecordExclusionAssembly` instead requires a
+`logic:AssemblyExclusion` reifier for every `logic:assemblyExcluded` membership,
+with that membership's own language-bearing `logic:assemblyExclusionReason`.
+One aggregate reason cannot explain several individual exclusions in this mode,
+and an additional aggregate reason is not required.
+
+The generic reason property's domain admits either the assembly's aggregate report
+or an individual exclusion reifier. Domain-facing properties can specialize it
+through the canonical subproperty relation, so one authored reason supplies both
+readings without duplicating independent truth. The grounding owner does not
+depend on a recall-specific vocabulary.
+
+The reification obligation uses the existing schema declaration form:
+`rdf:Statement`, `rdf:subject` naming the subject class, `rdf:predicate` naming
+the membership property, and the reifier class as its type. The native validation
+derivation consumes that declaration into required reification and a reference to
+the reifier class's canonical shape. The declaration is schema metadata; it is
+not an actual exclusion and carries no invented explanation. Actual exclusion
+records use native RDF 1.2 `rdf:reifies` triple terms and their actual reasons.
+The reifier shape has its own required reason path; merely omitting the type on a
+reasonless reifier does not satisfy it. Language-presence integrity conditions
+also distinguish actual native reifiers from the schema declarations.
 
 ## The seven orthogonal axes
 
@@ -511,7 +572,7 @@ indistinguishable that consumers must distinguish.
 | Candidate term | Verdict | Identity criterion forcing the mint, or the reason for reuse |
 | --- | --- | --- |
 | `WorkCluster` | **MINT** `gmeow:WorkCluster` (domain binding, not the kernel) | Identified by its continuing goal plus the standpoint that holds it — a *domain* identity binding a `gmeow:Goal`, a `gmeow:Norm`, and a `gmeow:EventSchedule`. It cannot live in `logic:`, which takes no axiom edge into `gmeow:`. The kernel-side continuing structure it needs is already covered by `logic:PrescriptionVersion` + supersession, so the kernel mints no cluster class of its own. |
-| `WorkPlanVersion` | **MINT** `logic:PrescriptionVersion` | Identified by the content digest of the versioned plan plus its `logic:prescriptionOf` target. `logic:Plan` has IRI identity and is mutable-by-revision; a version is content-addressed and immutable. Two different identity criteria, therefore two terms. Named domain-neutrally: a curriculum version and a SCADA recipe version are the same construct. |
+| `WorkPlanVersion` | **MINT** `logic:PrescriptionVersion` | Identified by the selected version identity contract plus its `logic:prescriptionOf` target. Content addressing remains the default; explicit immutable IRI identity requires external immutable resolution and retention. A version is distinct from the continuing plan under either contract. Named domain-neutrally: a curriculum version and a SCADA recipe version are the same construct. |
 | `WorkRun` | **MINT** `logic:Enactment` (the candidate name is not minted) | Identified as an occurrence, not by its (version, snapshot) pair — because a repeat legitimately shares both. `logic:TransactionOutcome` records one program run's success under executional entailment and is identified by (program, start state); it is a *verdict*, not a durable resumable occurrence with a journal, checkpoints, and a continuation kind. The candidate name is rejected under the generality obligations: a curriculum enrolment and a SCADA control session are not "work runs". |
 | `PlanExecution` | **MINT** `logic:Enactment` (the candidate name is not minted; it is the same term as the row above) | The same identity criterion, reached from the other direction. The "execution" spelling is rejected because it is already taken by a hand-authored process-model surface that this kernel **supersedes and removes** rather than retains beside it: keeping a second execution class as a projection surface would be a second source of truth by construction, and lossy compatibility for consumers belongs in generated projections, never in the canon. One occurrence class, one name. |
 | `PlanRefinementEpisode` | **MINT** `logic:RefinementEpisode` | Identified by (refined step, served goal, world snapshot, vantage, decision time). Nothing existing reifies a *bounded, attributed act of deciding how to decompose*; `logic:refinesGoal` is a standing relation between goals with no episode, no budget, and no closed candidate roster. |
@@ -540,7 +601,7 @@ indistinguishable that consumers must distinguish.
 | `logic:ClosureEntry` | **REUSE** | Certifies the refinement candidate roster as closed, rather than a bespoke "isClosed" boolean. |
 | `logic:BudgetBoundedResource` / `logic:BudgetExhausted` / `logic:resourceExhausted` / `logic:consumedBudget` | **REUSE** | Every budget in the kernel. `logic:DeadlineConsumption` is the one mint here, because a deadline is consumed against an **attributed clock** and the existing budget terms carry no clock attribution. |
 | `logic:Correspondence` with its `get`/`put` legs | **REUSE** | `logic:ContinuationRevise` **is** a `put`; checkpoint-restore **is** `get∘put`. The lens laws replace what would otherwise be ad-hoc revision constraints. |
-| `gmeow:contentDigest` / `gmeow:versionFingerprint` | **REUSE** | The kernel mints **no** digest property. |
+| `logic:prescriptionDigest` / `logic:enactedPrescriptionDigest` | **REUSE** | Frozen prescription content and the independently recorded run-pinned witness; neither is replaced by an IRI identity selection. |
 | `gmeow:supersededBy` and the supersession quartet | **REUSE** | The only revision path for a prescription version, and the mechanism by which a superseded goal evaluation stays auditable. |
 | `gmeow:CapabilityGap` | **REUSE**, disjoint | Retained for what it means; explicitly disjoint from the operational gap. |
 

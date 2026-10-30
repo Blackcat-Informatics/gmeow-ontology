@@ -236,3 +236,413 @@ msgstr "范围：该记录仅承载关于 gmeow:segmentIndex 的一项完整性�
 msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:segmentType 的一项完整性义务，别无其他。它不是 gmeow:segmentType 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+# Source reference blocks and apparatus.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source Content Block"
+msgstr "来源内容块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An atomic structural unit within one source division under the source's declared segmentation. It inherits ContentSegment identity; indivisibility constrains retrieval cuts rather than forbidding internal text, media or table-cell structure."
+msgstr "来源所声明分段中某一划分内的原子结构单元。它继承 ContentSegment 的身份；不可分割性约束检索切分，而不禁止内部文本、媒体或表格单元格结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlock|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:ContentBlock ."
+msgstr "保留此来源含义：ex:record a gmeow:ContentBlock ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block of division"
+msgstr "块所属划分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immediate source division containing a ContentBlock. It specializes segmentOf without inheriting its transitivity, so the direct container remains distinct from all structural ancestors."
+msgstr "包含 ContentBlock 的直接来源划分。此关系特化 segmentOf，但不继承其传递性，因此直接容器区别于所有结构祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:blockOf ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:blockOf ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "volume"
+msgstr "卷"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One structural volume in a larger work or release. This segment classification does not identify a published manifestation or physical copy."
+msgstr "较大作品或发行中的一个结构性卷。此片段分类不等同于已出版的载体表现形或实体副本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVolume|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeVolume ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeVolume ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "heading"
+msgstr "标题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source heading that names or introduces a division or topic, treated as one structural segment."
+msgstr "来源中命名或引入划分或主题的标题，作为一个结构片段处理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeHeading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeHeading ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeHeading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verse"
+msgstr "诗句"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated verse unit, such as a poetic line or stanza, whose boundary is supplied rather than inferred from typography alone."
+msgstr "来源指定的诗歌单元，例如诗行或诗节；其边界由来源给出，而非仅从排版推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeVerse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeVerse ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeVerse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dialogue"
+msgstr "对话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated unit of spoken dialogue. Speaker attribution is separate from this structural classification."
+msgstr "来源指定的口头对话单元。说话者归属区别于此结构分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeDialogue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeDialogue ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeDialogue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stage direction"
+msgstr "舞台指示"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A dramatic direction about action, delivery or staging, distinct from a character's spoken dialogue."
+msgstr "涉及动作、表达或舞台安排的戏剧指示，区别于角色说出的对话。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeStageDirection|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeStageDirection ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeStageDirection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "code listing"
+msgstr "代码清单"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A displayed source-code listing retained as document content. Classification does not execute it or resolve its programming language."
+msgstr "作为文档内容保留的显示源代码清单。此分类不执行代码，也不解析其编程语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeCodeListing|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeCodeListing ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeCodeListing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equation display"
+msgstr "公式显示"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated mathematical display, retaining its original notation without asserting a parsed expression or a true equality."
+msgstr "来源指定的数学显示内容，保留其原始记法，而不声称已有解析表达式或真实等式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEquation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeEquation ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeEquation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "table"
+msgstr "表格"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A documentary table arranging source cells by rows and columns. It is not thereby a mathematical matrix of scalars."
+msgstr "按行列排列来源单元格的文档表格。它不会因此成为标量的数学矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeTable|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeTable ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeTable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "figure"
+msgstr "插图"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source figure unit, which may contain a media artifact and adjacent caption while remaining distinct from the media file itself."
+msgstr "来源中的插图单元，可包含媒体制品和相邻说明文字，同时保持区别于媒体文件本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFigure|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeFigure ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeFigure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formal exposition block"
+msgstr "形式论述块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated unit of formal exposition whose printed role is carried separately by formalKind. Its layout alone establishes no mathematical truth."
+msgstr "来源指定的形式论述单元，其印刷角色由 formalKind 单独承载。仅凭版式不能确立数学真理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeFormalBlock|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeFormalBlock ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeFormalBlock ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "epigraph"
+msgstr "题辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated introductory quotation or motto associated with a work or division."
+msgstr "来源指定、与作品或划分相关联的引导性引文或格言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeEpigraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeEpigraph ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeEpigraph ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quotation block"
+msgstr "引文块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated block of quoted material. The classification does not invent an author, quotation target or endorsement."
+msgstr "来源指定的引用材料块。此分类不虚构作者、引文目标或认可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/segmentTypeQuotation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeQuotation ."
+msgstr "保留此来源含义：ex:block gmeow:segmentType gmeow:segmentTypeQuotation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source block containment acyclicity"
+msgstr "来源块容纳关系无环性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source block cannot reach itself through a nonempty chain of immediate block containers. The obligation preserves structural identity without executing a chunker."
+msgstr "来源块不能通过非空的直接块容器链到达自身。此义务保留结构身份，而不执行检索分块器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockContainerAcyclicConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:ContentBlockContainerAcyclicConstraint logic:formalizes gmeow:blockOf ."
+msgstr "保留此支配定律：gmeow:ContentBlockContainerAcyclicConstraint logic:formalizes gmeow:blockOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source block position uniqueness"
+msgstr "来源块位置唯一性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one immediate source division, one structural index identifies one ContentBlock. Duplicate indices are rejected as conflicting records rather than merged by identity."
+msgstr "在同一直接来源划分内，一个结构索引标识一个 ContentBlock。重复索引作为冲突记录被拒绝，而非通过身份合并。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentBlockPositionUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:ContentBlockPositionUniquenessConstraint logic:formalizes gmeow:blockOf ."
+msgstr "保留此支配定律：gmeow:ContentBlockPositionUniquenessConstraint logic:formalizes gmeow:blockOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A caption for a media object or structural content segment, displayed alongside the content. Non-functional; a caption does not make a segment a MediaObject."
+msgstr "为媒体对象或结构内容片段提供、在内容旁显示的说明文字。此属性非函数性；说明文字不会使片段成为 MediaObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for short descriptive text displayed alongside media or a structural figure, table or other content segment; localized captions coexist."
+msgstr "用于在媒体、结构性插图、表格或其他内容片段旁显示的简短描述文本；本地化说明文字可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original literal with its language and direction. The schema profile uses schema:caption for actual MediaObjects and an explicitly lossy description for structural segments."
+msgstr "附加原始字面量及其语言和书写方向。schema 配置对实际 MediaObject 使用 schema:caption，对结构片段使用明确有损的描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "caption"
+msgstr "说明文字"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid it for the full verbatim transcript of audio/video (use gmeow:transcript) and avoid it for the work's title (use gmeow:hasTitle / gmeow:title)."
+msgstr "避免用于音视频的完整逐字转录（使用 gmeow:transcript），也避免用于作品标题（使用 gmeow:hasTitle / gmeow:title）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2004/02/skos/core#example"
+msgid "A structural segment carries a displayed caption: ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
+msgstr "结构片段承载显示的说明文字：ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."

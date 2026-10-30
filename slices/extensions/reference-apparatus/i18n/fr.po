@@ -1,0 +1,894 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Source reference blocks and apparatus.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Documentary Table Cell"
+msgstr "Cellule de tableau documentaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source cell located by one table, row and column under that table's explicit index origin. It is an InformationObject, not a scalar MatrixEntry."
+msgstr "Une cellule source située par un tableau, une ligne et une colonne selon l’origine d’index explicite du tableau. C’est un InformationObject, pas une MatrixEntry scalaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:TableCell ."
+msgstr "Conserver ce sens source : ex:record a gmeow:TableCell ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Printed Formal Block Kind"
+msgstr "Type imprimé de bloc formel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for the source's printed exposition role. A theorem, proof or algorithm label records document apparatus, never successful verification."
+msgstr "Un vocabulaire ouvert de valeurs de qualité pour le rôle d’exposé imprimé de la source. Un libellé de théorème, preuve ou algorithme consigne l’appareil documentaire, jamais une vérification réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:FormalBlockKind ."
+msgstr "Conserver ce sens source : ex:record a gmeow:FormalBlockKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source speaker"
+msgstr "locuteur source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Entity explicitly identified as speaking this source block. A fictional character may be the speaker without becoming a Person."
+msgstr "L’Entity explicitement identifiée comme prononçant ce bloc source. Un personnage fictif peut être le locuteur sans devenir une Person."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:speaker ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:speaker ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "programming language as recorded"
+msgstr "langage de programmation tel que consigné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's exact programming-language name or code for a listing. It is an opaque string, not the software slice's Project-to-Language relation."
+msgstr "Le nom ou code exact de langage de programmation fourni par la source pour un extrait de code. C’est une chaîne opaque, pas la relation de Project à Language de la tranche software."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:programmingLanguageAsRecorded \"source wording\" ."
+msgstr "Conserver ce sens source : ex:record gmeow:programmingLanguageAsRecorded \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equation source text"
+msgstr "texte source de l’équation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source spelling of a mathematical display, before parsing, normalization or notation conversion. A matching retained language surface preserves that spelling; the string itself is not a computable expression AST."
+msgstr "La graphie source exacte d’un affichage mathématique, avant analyse, normalisation ou conversion de notation. Une surface linguistique conservée correspondante préserve cette graphie ; la chaîne elle-même n’est pas un AST d’expression calculable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:equationSource \"source wording\" ."
+msgstr "Conserver ce sens source : ex:record gmeow:equationSource \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notation as recorded"
+msgstr "notation telle que consignée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's exact notation name or code. The spelling alone neither identifies a MathematicalNotation convention nor proves a rendering preserves meaning."
+msgstr "Le nom ou code exact de notation fourni par la source. La graphie seule n’identifie pas une convention MathematicalNotation et ne prouve pas qu’un rendu préserve le sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:sourceNotation \"source wording\" ."
+msgstr "Conserver ce sens source : ex:record gmeow:sourceNotation \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source table cell"
+msgstr "cellule du tableau source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained documentary cell of this table block. Row and column identities are scoped by this exact table, not shared globally across tables."
+msgstr "Une cellule documentaire conservée de ce bloc tableau. Les identités de ligne et colonne sont bornées par ce tableau exact, sans partage global entre tableaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cell ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:cell ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cell of source table"
+msgstr "cellule du tableau source associé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact table block containing this documentary cell. It is the inverse of cell and supplies the coordinate scope."
+msgstr "Le bloc tableau exact contenant cette cellule documentaire. C’est l’inverse de cell, qui fournit le périmètre des coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellOf ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:cellOf ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell row"
+msgstr "ligne de la cellule source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source row index of a documentary cell under its table's explicit tableIndexOrigin. It is not a matrix coordinate or an implicit zero-based conversion."
+msgstr "L’index de ligne source d’une cellule documentaire selon le tableIndexOrigin explicite de son tableau. Ce n’est ni une coordonnée de matrice ni une conversion implicite en base zéro."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellRow 0 ."
+msgstr "Conserver ce sens source : ex:record gmeow:cellRow 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell column"
+msgstr "colonne de la cellule source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source column index of a documentary cell under its table's explicit tableIndexOrigin. Identical indices in distinct tables do not identify the same cell."
+msgstr "L’index de colonne source d’une cellule documentaire selon le tableIndexOrigin explicite de son tableau. Des index identiques dans des tableaux distincts n’identifient pas la même cellule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellColumn 0 ."
+msgstr "Conserver ce sens source : ex:record gmeow:cellColumn 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source table index origin"
+msgstr "origine d’index du tableau source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit integer origin shared by this source table's row and column indices. Missing origin stays missing; consumers must not silently assume zero or one."
+msgstr "L’origine entière explicite partagée par les index de ligne et de colonne de ce tableau source. Une origine manquante reste manquante ; les consommateurs ne doivent pas supposer silencieusement zéro ou un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:tableIndexOrigin 0 ."
+msgstr "Conserver ce sens source : ex:record gmeow:tableIndexOrigin 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell text"
+msgstr "texte de la cellule source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original textual content of a documentary cell, including an explicitly empty string. Preserve language and direction when supplied; absence is not an invented empty value."
+msgstr "Le contenu textuel original d’une cellule documentaire, y compris une chaîne explicitement vide. Conserver la langue et la direction lorsqu’elles sont fournies ; une absence n’est pas une valeur vide inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellText \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:cellText \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source alternative text"
+msgstr "texte alternatif source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's alternative description for perceiving a block's content. It is distinct from a displayed caption and does not type a figure block as a media file."
+msgstr "La description alternative fournie par la source pour percevoir le contenu d’un bloc. Elle est distincte d’une légende affichée et ne type pas un bloc figure comme fichier média."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:altText \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:altText \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed formal kind"
+msgstr "type formel imprimé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-attributed printed role of a block, drawn from FormalBlockKind. It is distinct from theory-scoped mathematical statement roles and formal proof status."
+msgstr "Le rôle imprimé attribué par la source à un bloc, issu de FormalBlockKind. Il est distinct des rôles d’énoncés mathématiques bornés par une théorie et du statut de preuve formelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:formalKind ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:formalKind ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formal label as recorded"
+msgstr "libellé formel tel que consigné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original identifier or heading for formal apparatus, such as a numbered theorem label. It names the printed item without certifying its conclusion."
+msgstr "L’identifiant ou titre original fourni par la source pour l’appareil formel, tel qu’un libellé de théorème numéroté. Il nomme l’élément imprimé sans certifier sa conclusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:formalLabel \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:formalLabel \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source definition target"
+msgstr "cible de définition source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Concept this block explicitly presents as defined in the source. A documentary definition does not automatically create a MathematicalDefinition or a formal equivalence."
+msgstr "Le Concept que ce bloc présente explicitement comme défini dans la source. Une définition documentaire ne crée pas automatiquement une MathematicalDefinition ni une équivalence formelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:defines ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:defines ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source proof target"
+msgstr "cible de preuve source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact target for which this block presents a source-reported argument or proof. The target may be a documentary item or supplied mathematical statement; this link is not math:provesStatement and certifies no formal proof."
+msgstr "La cible exacte pour laquelle ce bloc présente un argument ou une preuve rapportés par la source. La cible peut être un élément documentaire ou un énoncé mathématique fourni ; ce lien n’est pas math:provesStatement et ne certifie aucune preuve formelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:proves ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:proves ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "retained block surface"
+msgstr "surface de bloc conservée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual language SurfaceForm retained for this block, with its sign system, encoding and anchoring contracts. It preserves a supplied surface rather than inventing an analysis from a language name."
+msgstr "Une SurfaceForm linguistique réelle conservée pour ce bloc, avec ses contrats de système de signes, d’encodage et d’ancrage. Elle préserve une surface fournie plutôt que d’inventer une analyse à partir d’un nom de langue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:blockSurface ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:blockSurface ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied block rendering"
+msgstr "rendu de bloc fourni"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit language Rendering whose form is retained by this block. Follow renderedContent to the actual supplied mathematical expression, statement, proof or other content; the block itself is not coerced into that content's sort."
+msgstr "Un Rendering linguistique explicite dont la forme est conservée par ce bloc. Suivre renderedContent vers l’expression, l’énoncé, la preuve mathématique ou l’autre contenu réellement fourni ; le bloc lui-même n’est pas forcé dans le genre de ce contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:blockRendering ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:blockRendering ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "definition"
+msgstr "définition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed unit introducing or fixing a term's meaning, without automatically asserting a formal equivalence."
+msgstr "Une unité imprimée introduisant ou fixant le sens d’un terme, sans affirmer automatiquement une équivalence formelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindDefinition ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindDefinition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "theorem"
+msgstr "théorème"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source labels as a theorem. Its mathematical status requires the separate theory and warrant structures."
+msgstr "Une unité que la source nomme théorème. Son statut mathématique exige les structures distinctes de théorie et de justification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindTheorem ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindTheorem ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lemma"
+msgstr "lemme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source labels as an auxiliary result. The printed label alone establishes no derivation."
+msgstr "Une unité que la source nomme résultat auxiliaire. Le seul libellé imprimé n’établit aucune dérivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindLemma ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindLemma ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "corollary"
+msgstr "corollaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit presented as following from another result, retaining that source classification without proving the dependency."
+msgstr "Une unité présentée comme découlant d’un autre résultat, conservant cette classification source sans prouver la dépendance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindCorollary ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindCorollary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proof"
+msgstr "preuve"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed argument or derivation the source presents as a proof. It is not thereby a checked math:Proof or a verification result."
+msgstr "Un argument ou une dérivation imprimés que la source présente comme preuve. Ce n’est pas pour autant une math:Proof vérifiée ni un résultat de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindProof ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindProof ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "algorithm"
+msgstr "algorithme"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed procedure or pseudocode description. The source classification does not execute it or establish its correctness."
+msgstr "Une procédure imprimée ou une description en pseudocode. La classification source ne l’exécute pas et n’établit pas sa correction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindAlgorithm ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindAlgorithm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "example"
+msgstr "exemple"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A worked or illustrative instance designated as an example by the source, rather than a universal law."
+msgstr "Une instance détaillée ou illustrative désignée comme exemple par la source, plutôt qu’une loi universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExample ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindExample ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exercise"
+msgstr "exercice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated task for the reader. Its presence does not assert an attempted or completed solution."
+msgstr "Une tâche destinée au lecteur et désignée par la source. Sa présence n’affirme aucune solution tentée ou achevée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExercise ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindExercise ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution"
+msgstr "solution"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source presents as an answer to a task, without certifying correctness or inventing a missing task link."
+msgstr "Une unité que la source présente comme réponse à une tâche, sans certifier sa correction ni inventer un lien de tâche manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindSolution ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindSolution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "note"
+msgstr "remarque"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated explanatory or supplementary formal note, distinct from a proof or theorem status."
+msgstr "Une remarque formelle explicative ou complémentaire désignée par la source, distincte d’un statut de preuve ou théorème."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "Utiliser pour conserver cette partie explicite de la structure ou de l’appareil source avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "Éviter d’inférer une exécution, une identité, une vérité formelle ou une vérification réussie de la seule présentation documentaire ou formulation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "Préserver l’identité de la source et l’attribution de l’énoncé exact ; expliciter les informations non résolues ou manquantes sans valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindNote ."
+msgstr "Conserver ce sens source : ex:block gmeow:formalKind gmeow:formalKindNote ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary cell table scope"
+msgstr "portée de tableau de la cellule documentaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A documentary cell belongs to a block explicitly classified as a table. The link does not classify either resource as a mathematical matrix."
+msgstr "Une cellule documentaire appartient à un bloc explicitement classifié comme tableau. Le lien ne classifie aucune des deux ressources comme matrice mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellTableKindConstraint logic:formalizes gmeow:cellOf ."
+msgstr "Conserver cette loi de référence : gmeow:TableCellTableKindConstraint logic:formalizes gmeow:cellOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary cell index origin"
+msgstr "origine d’index de la cellule documentaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied cell coordinate pair has its table's explicit index origin, and neither coordinate precedes that origin. The source indices are not silently rebased."
+msgstr "Chaque paire fournie de coordonnées de cellule possède l’origine d’index explicite de son tableau, et aucune coordonnée ne précède cette origine. Les index sources ne sont pas remis en base silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellIndexOriginConstraint logic:formalizes gmeow:cellOf ."
+msgstr "Conserver cette loi de référence : gmeow:TableCellIndexOriginConstraint logic:formalizes gmeow:cellOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary table coordinate uniqueness"
+msgstr "unicité des coordonnées du tableau documentaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one source table, a row and column pair identifies one documentary cell. The same coordinates in another table remain a different scope."
+msgstr "Dans un tableau source, une paire de ligne et colonne identifie une seule cellule documentaire. Les mêmes coordonnées dans un autre tableau restent un périmètre distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellCoordinateUniquenessConstraint logic:formalizes gmeow:cell ."
+msgstr "Conserver cette loi de référence : gmeow:TableCellCoordinateUniquenessConstraint logic:formalizes gmeow:cell ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed formal block kind presence"
+msgstr "présence du type imprimé de bloc formel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A block classified as formal exposition retains at least one source-attributed printed formal kind. The vocabulary remains open and the kind establishes no theorem or proof status."
+msgstr "Un bloc classifié comme exposé formel conserve au moins un type formel imprimé attribué par la source. Le vocabulaire reste ouvert et ce type n’établit aucun statut de théorème ou preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:FormalBlockKindPresentConstraint logic:formalizes gmeow:formalKind ."
+msgstr "Conserver cette loi de référence : gmeow:FormalBlockKindPresentConstraint logic:formalizes gmeow:formalKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equation source surface retention"
+msgstr "conservation de la surface source de l’équation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied equation-source string has a retained language surface carrying that exact text. Retention does not parse the string or certify mathematical meaning."
+msgstr "Chaque chaîne source d’équation fournie possède une surface linguistique conservée portant ce texte exact. La conservation n’analyse pas la chaîne et ne certifie aucun sens mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EquationSourceSurfaceConstraint logic:formalizes gmeow:equationSource ."
+msgstr "Conserver cette loi de référence : gmeow:EquationSourceSurfaceConstraint logic:formalizes gmeow:equationSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block rendering form retention"
+msgstr "conservation de la forme de rendu du bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied block rendering names its actual content and a form retained as a block surface. Content keeps its own sort; a documentary block is not converted into an expression, statement or proof."
+msgstr "Chaque rendu de bloc fourni nomme son contenu réel et une forme conservée comme surface de bloc. Le contenu garde son propre genre ; un bloc documentaire n’est pas converti en expression, énoncé ou preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’inventaire source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "Éviter de prétendre que cette obligation exécute un producteur, un analyseur, un vérificateur de preuve ou un moteur de rendu de tableau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "Conserver les preuves sources exactes lorsqu’une structure fournie viole l’obligation ; ne jamais la réparer avec des valeurs par défaut inventées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:BlockRenderingSurfaceConstraint logic:formalizes gmeow:blockRendering ."
+msgstr "Conserver cette loi de référence : gmeow:BlockRenderingSurfaceConstraint logic:formalizes gmeow:blockRendering ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference apparatus"
+msgstr "appareil de référence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-preserving technical apparatus for reference-work blocks, documentary table cells and explicit language and mathematical renderings."
+msgstr "Appareil technique préservant la source pour les blocs d’œuvres de référence, les cellules de tableaux documentaires et les rendus linguistiques et mathématiques explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://purl.org/dc/terms/title"
+msgid "GMEOW Reference Apparatus Module"
+msgstr "Module GMEOW de l’appareil de référence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Katamari reference-work import and other attributed document consumers retaining source apparatus without fabricated parsing, execution or proof certification."
+msgstr "Import d’œuvres de référence Katamari et autres consommateurs de documents attribués conservant l’appareil source sans analyse, exécution ni certification de preuve fabriquées."
+
+# Structural-caption mapping instance owned by reference apparatus.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structural caption to schema description"
+msgstr "légende structurelle vers une description schema"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The schema profile retains a structural segment's caption as a description, with an explicit loss of its caption role rather than media-file classification."
+msgstr "Le profil schema conserve la légende d’un segment structurel comme description, avec une perte explicite de son rôle de légende plutôt qu’une classification de fichier média."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structural content caption must survive the schema profile."
+msgstr "Utiliser lorsqu’une légende de contenu structurel doit survivre au profil schema."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid projecting a structural caption as evidence that its bearer is a MediaObject."
+msgstr "Éviter de projeter une légende structurelle comme preuve que son porteur est un MediaObject."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original GMEOW caption and its structural subject; disclose the role lost in the description view."
+msgstr "Conserver la légende GMEOW originale et son sujet structurel ; déclarer le rôle perdu dans la vue descriptive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#example"
+msgid "A structural caption remains documentary: ex:figure gmeow:caption \"A bridge plan.\"@en ."
+msgstr "Une légende structurelle reste documentaire : ex:figure gmeow:caption \"A bridge plan.\"@en ."

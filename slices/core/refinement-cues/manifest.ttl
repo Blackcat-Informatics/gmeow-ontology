@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/refinement-cues>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "refinement cues"@x-gmeow-english ;
+    skos:definition "Attributed premise-dependence readings and immutable reviewed cue versions grounded in existing prompts, refinements, version lineages and provenance."@x-gmeow-english ;
+    dcterms:title "GMEOW Refinement Cues Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/lang>,
+        <https://blackcatinformatics.ca/gmeow/slices/language>,
+        <https://blackcatinformatics.ca/gmeow/slices/messaging>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/observations>,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference>,
+        <https://blackcatinformatics.ca/gmeow/slices/versions>,
+        <https://blackcatinformatics.ca/gmeow/slices/sources>,
+        <https://blackcatinformatics.ca/gmeow/slices/events>,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> .

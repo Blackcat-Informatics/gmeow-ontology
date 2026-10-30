@@ -2068,7 +2068,7 @@ gmeow:qualityDimensionProjection
     a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "projection"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for maximal projection — whether a slice ships the projection-source surfaces its content requires (SHACL shapes for its structural constraints, a mappings file for its external links), the sources from which lossy projections and their loss-ledger entries derive (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for pure validation projection and required mapping sources: canonical logic: constraints generate validation views instead of maintaining a parallel authored shape surface, and external links have their mapping source. This dimension does not certify content survival or loss-ledger completeness (Principles 4/7/17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionTesting
@@ -2214,13 +2214,13 @@ gmeow:axisMaximalProjection
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Projection"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (OWL Restriction / OWL disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The axis for pure validation projection and required mapping sources. A slice carrying restriction or class-disjointness constraints earns validation credit when it has no parallel authored shapes.ttl; its canonical logic: constraints belong in module.ttl and project to generated/shapes/*. A slice whose own terms link to external vocabularies must supply mappings/equivalences.ttl. This axis checks those authoring-surface and mapping-file obligations, not content survival across SSSOM/EDOAL/FnO or loss-ledger completeness (Principles 4/7/17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalProjection gmeow:axisProducer \"projection_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as content-survival verification (it checks source-file presence, not that every triple survives a projection) and avoid conflating a projection source with its source mappings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source-surface checks as proof that every triple survives projection. Absence of an authored shapes.ttl earns the constraint projection credit; it does not itself prove the migration equivalence required before deleting legacy validation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor checks that a slice declaring structural constraints ships shapes.ttl and a slice linking out ships mappings/equivalences.ttl, naming each missing projection-source file as advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure whether a slice ships the SHACL-shape and mapping projection sources its content requires."@x-gmeow-english ;
+    gmeow:howToUse "The advisor recognizes restriction and disjointness constraints in logic: or their OWL views, credits the validation obligation when shapes.ttl is absent, and reports any authored shapes.ttl as migration debt. It also checks mappings/equivalences.ttl when the slice's own terms link out. Preserve legacy validation until its equivalent generated projection is proved."@x-gmeow-english ;
+    gmeow:useWhen "Use to assess whether validation avoids a parallel authored shape surface and the slice supplies its required mapping projection source."@x-gmeow-english ;
     gmeow:axisProducer "projection_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
     gmeow:axisContextScope gmeow:scopeDepsClosure ;
@@ -2229,18 +2229,18 @@ gmeow:axisMaximalProjection
         gmeow:thrProjectionLinked ,
         gmeow:thrProjectionExemplified ,
         gmeow:thrProjectionMaximal ;
-    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (OWL Restriction / OWL disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Author validation in canonical logic: axioms or logic:Constraint records in module.ttl and derive generated/shapes/*. Prove equivalent coverage before retiring legacy authored shapes.ttl. Supply mappings/equivalences.ttl when the slice's own terms link to external vocabularies (Principles 4/7/17)."@x-gmeow-english .
 
 gmeow:axisShapeMigration
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Shape Migration"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice's hand-authored shapes.ttl validation shapes are GROUNDED — every sh:NodeShape / sh:PropertyShape carries a logic:formalizes back-reference, the same criterion the blanket projection-purity gate enforces. A validation shape is a generated lossy projection of the logic: canon (Principle 17), never a hand-authored second source of truth; an un-backed authored shape is migration debt. It is NOT projection-source presence (axisMaximalProjection checks that a shapes.ttl EXISTS; this checks that the shapes it holds are backed) and it is NOT the reasoner's own grounding of classes."@x-gmeow-english ;
+    skos:definition "The historical axis measuring the fraction of typed sh:NodeShape / sh:PropertyShape blocks in a legacy authored shapes.ttl that carry a logic:formalizes back-reference. This presence-only measure does not prove projection equivalence or authorize deletion. Validation belongs in canonical logic: sources and shapes are generated views (Principle 17). Unlike axisMaximalProjection, which credits a constraint-bearing slice when the parallel authored file is absent, this axis measures the retained legacy inventory; it is not the foundation grounding of domain classes."@x-gmeow-english ;
     skos:example "gmeow:axisShapeMigration gmeow:axisProducer \"shape_migration_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as shapes.ttl presence (a slice with NO shapes.ttl scores a vacuous 1.0 — it has nothing to migrate) and avoid conflating a logic:formalizes-backed residue shape with an un-backed hand-authored second source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor parses the slice's shapes.ttl, counts the sh:NodeShape / sh:PropertyShape blocks, and names every one lacking logic:formalizes as a migration target — migrate its obligation into module.ttl so the projector reproduces it (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never OWL cardinality), then delete the block; or back a genuine ValidationOnly residue with logic:formalizes."@x-gmeow-english ;
+    gmeow:howToUse "The advisor counts typed legacy shape blocks and reports those without a logic:formalizes back-reference. Author their obligations as EL-safe logic: axioms or logic:Constraint records in module.ttl, with explicit closure entries for required closed-world paths. Prove that the generated projection reproduces each check before retiring its authored block; a back-reference alone is not equivalence evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to measure how much of a slice's hand-authored validation-shape surface still needs migrating into the logic: canon."@x-gmeow-english ;
     gmeow:axisProducer "shape_migration_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
@@ -2250,7 +2250,7 @@ gmeow:axisShapeMigration
         gmeow:thrShapeMigrationLinked ,
         gmeow:thrShapeMigrationExemplified ,
         gmeow:thrShapeMigrationMaximal ;
-    gmeow:axisAdviceTemplate "Migrate each hand-authored sh:NodeShape lacking logic:formalizes: author its cardinality / class / datatype obligation in module.ttl (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never the out-of-fragment OWL cardinality) so the projector reproduces it and the block is deleted, or back a genuine ValidationOnly residue (exactly-N cardinality, node-level sh:or, cross-node sh:sparql) with logic:formalizes naming its canonical logic: source (Principle 17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Migrate each unbacked legacy validation shape to canonical logic: axioms or a logic:Constraint in module.ttl, using explicit closure for required paths. Prove equivalent generated validation before deleting the authored block. Unsupported legacy conditions must remain explicitly recorded as projection loss, not silently discarded (Principle 17)."@x-gmeow-english .
 
 gmeow:axisOptimalTesting
     a gmeow:QualityAxis ;

@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/generation-settings>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "generation settings"@x-gmeow-english ;
+    skos:definition "Typed generation parameters and open requested settings profiles for existing model invocations, preserving intent separately from actual supplied settings."@x-gmeow-english ;
+    dcterms:title "GMEOW Generation Settings Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Agent memory adapters and generation archives retaining per-run parameters and requested profiles with existing invocation provenance."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/logic> .

@@ -1,0 +1,642 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echoes premise of"
+msgstr "reprend la prémisse de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."
+msgstr "Relie une réponse au Prompt concret dont un raffineur lit la réponse comme reprenant simplement la prémisse. Cette lecture attribuée de dépendance n’affirme ni fausseté ni contradiction et ne compte pas la réponse comme soutien indépendant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."
+msgstr "Utiliser lorsqu’un raffineur identifie une réponse comme reprenant la prémisse de son prompt plutôt que comme ajoutant des preuves indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."
+msgstr "Éviter d’inférer que la prémisse est fausse, que la réponse la contredit ou qu’une lecture de reprise est une affirmation de l’auteur de la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."
+msgstr "Conserver accordingTo sur l’énoncé RDF 1.2 ou sa réification et relier l’observationResult sélectionné d’un Refinement à cette lecture attribuée. Garder distincts la réponse originale et le Prompt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+msgstr "Attribuer la lecture de dépendance : ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Lexicon"
+msgstr "Lexique d’indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed release of named Cue declarations used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; an empty release is legal and its cues never define a text's meaning."
+msgstr "Une version immuable et révisée de déclarations Cue nommées servant de preuves à une règle de lecture. Elle conserve l’identité de version, l’empreinte du contenu, la dérivation source et la provenance responsable de la révision ; une version vide est légale et ses indices ne définissent jamais le sens d’un texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."
+msgstr "Utiliser pour exposer l’inventaire exact d’indices révisés employé par une règle de lecture gérée par le consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."
+msgstr "Éviter de modifier une version publiée, de traiter les correspondances d’indices comme des sens ou diagnostics, ou de rédiger à la main des glossaires de traduction générés comme listes d’indices."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."
+msgstr "Nommer une lignée versionOf distincte, conserver versionLabel et contentDigest, citer les sources via wasDerivedFrom, attribuer l’auteur avec wasAttributedTo et citer la révision terminée via cueReview. Les changements créent une nouvelle version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."
+msgstr "Identifier une version révisée : ex:cuesV1 a gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review"
+msgstr "révision des indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."
+msgstr "L’activité terminée de validation de la révision pour cette version exacte de CueLexicon, conservant le responsable via wasAssociatedWith et l’instant de validation via eventTime. La révision est une provenance responsable, non une approbation universelle ou une certification de sûreté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain who signed off the exact cue version and when."
+msgstr "Utiliser pour conserver qui a validé la version exacte d’indices et quand."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."
+msgstr "Éviter un nom de réviseur sans son activité, la réutilisation d’une révision pour des octets modifiés ou l’interprétation de la révision comme garantie de toute lecture ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."
+msgstr "Relier la version immuable à son Activity de validation terminée ; consigner l’Agent réviseur avec wasAssociatedWith et la date-heure réelle avec eventTime."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+msgstr "Conserver la révision responsable : ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review evidence constraint"
+msgstr "contrainte de preuve de révision des indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."
+msgstr "Chaque cueReview fourni pointe vers une activité de validation terminée avec une association de réviseur responsable et un instant de validation consigné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "Utiliser pour vérifier le contrat intrinsèque de provenance ou de langue de la version d’indices fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "Éviter de traiter cette loi de cohérence comme une révision exécutée, une vérification d’empreinte ou une garantie d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "Lire la formule réalisée sur l’enregistrement réellement fourni et conserver les valeurs originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+msgstr "Conserver la loi applicable : gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue lexicon version identity constraint"
+msgstr "contrainte d’identité de version du lexique d’indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A released CueLexicon version is distinct from the lineage entity it versions."
+msgstr "Une version publiée de CueLexicon est distincte de l’entité de lignée dont elle est une version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "Utiliser pour vérifier le contrat intrinsèque de provenance ou de langue de la version d’indices fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "Éviter de traiter cette loi de cohérence comme une révision exécutée, une vérification d’empreinte ou une garantie d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "Lire la formule réalisée sur l’enregistrement réellement fourni et conserver les valeurs originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "Conserver la loi applicable : gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement cues"
+msgstr "indices de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Attributed premise-dependence readings and immutable reviewed cue versions grounded in existing prompts, refinements, version lineages and provenance."
+msgstr "Lectures attribuées de dépendance aux prémisses et versions immuables d’indices révisés ancrées dans les prompts, raffinements, lignées de versions et provenances existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Cues Module"
+msgstr "Module GMEOW des indices de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."
+msgstr "Raffineurs d’enregistrements gérés par les consommateurs conservant les constatations de reprise de prémisse et l’inventaire exact de mots ou d’expressions révisés utilisés comme indices."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue"
+msgstr "Indice textuel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared textual signal used as evidence for or against one named reading. A cue retains its phrases or patterns, judge guidance, reading scope and evidence polarity; its presence is never the meaning of a text or a verdict about its author."
+msgstr "Un signal textuel déclaré servant de preuve pour ou contre une lecture nommée. Un indice conserve ses expressions ou motifs, ses consignes de jugement, sa portée de lecture et sa polarité probante ; sa présence n’est jamais le sens du texte ni un verdict sur son auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Phrase and pattern alternatives may coexist. Their detected matches form a union, retaining one occurrence for each identical cue, source literal and original half-open code-point span. Empty reviewed lexicons remain legal."
+msgstr "Les expressions et motifs peuvent coexister. Leurs correspondances détectées forment une union, avec une seule occurrence pour chaque même indice, littéral source et intervalle original de points de code semi-ouvert. Les lexiques révisés vides restent permis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared signal: ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "Un indice déclaré : ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has cue"
+msgstr "contient un indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an immutable reviewed CueLexicon release to a declared Cue resource in its payload. Membership carries no ordering, priority or independent endorsement."
+msgstr "Relie une version immuable et révisée de CueLexicon à une ressource Cue déclarée dans sa charge utile. L’appartenance ne confère ni ordre, ni priorité, ni approbation indépendante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and not required: an empty reviewed release has no cues. Distinct releases can cite the same unchanged cue resource without sharing release identity."
+msgstr "Multivaluée et non obligatoire : une version révisée vide ne contient aucun indice. Des versions distinctes peuvent citer la même ressource indice inchangée sans partager leur identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cuesV1 gmeow:hasCue ex:blocked ."
+msgstr "ex:cuesV1 gmeow:hasCue ex:blocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "detection guidance"
+msgstr "consignes de détection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Language-bearing instructions a person or model follows to judge reported and missed matches of this cue. These instructions are an evaluation rubric; the detector does not execute them."
+msgstr "Instructions portant une langue qu’une personne ou un modèle suit pour juger les correspondances signalées ou manquées de cet indice. Ce sont des critères d’évaluation ; le détecteur ne les exécute pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required for a Cue. Multiple language realizations may coexist without a preferred language."
+msgstr "Obligatoire pour un Cue. Plusieurs réalisations linguistiques peuvent coexister sans langue privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:detectionGuidance \"Count inability to proceed, not quoted sample instructions.\"@en ."
+msgstr "ex:blocked gmeow:detectionGuidance \"Compter une incapacité à poursuivre, pas des instructions citées en exemple.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue phrase"
+msgstr "expression indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A whole contiguous sequence of source word tokens matched without case distinctions. Tokens are maximal runs of Unicode 16.0.0 Letter or Decimal_Number characters and U+0027 apostrophe, reading U+2019 as U+0027 for comparison only. Compare tokens under Unicode 16.0.0 simple C/S case-fold equivalence, without other normalization."
+msgstr "Une séquence entière et contiguë de mots sources comparée sans distinction de casse. Les mots sont des suites maximales de caractères Letter ou Decimal_Number d’Unicode 16.0.0 et de l’apostrophe U+0027 ; U+2019 vaut U+0027 pour la comparaison seulement. Comparer selon l’équivalence de casse simple C/S d’Unicode 16.0.0, sans autre normalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Separators may differ because comparison is over tokens. Keep the source interval from the first token's start to the last token's end, including intervening separators. This declared matching contract is not executed by ontology validation."
+msgstr "Les séparateurs peuvent différer puisque la comparaison porte sur les mots. Conserver l’intervalle source du début du premier mot à la fin du dernier, séparateurs intermédiaires compris. La validation ontologique n’exécute pas ce contrat de correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePhrase \"cannot continue\"@en ."
+msgstr "ex:blocked gmeow:cuePhrase \"ne peut pas continuer\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue pattern"
+msgstr "motif indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A regex alternative for this cue, carried in the lang-owned gmeow:linearRegex datatype. It searches the original literal under that dialect's explicit flags and returns leftmost-first, non-overlapping, nonempty spans."
+msgstr "Une alternative d’expression régulière pour cet indice, portée par le type gmeow:linearRegex appartenant à lang. Elle parcourt le littéral original avec les indicateurs explicites du dialecte et renvoie des intervalles non vides, sans chevauchement, selon le choix gauche-premier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Patterns and phrases are alternatives, not mutual guards. Pattern syntax, zero-width rejection and execution require a conforming matcher; a typed literal alone is not proof that those checks ran."
+msgstr "Motifs et expressions sont des alternatives, pas des conditions mutuelles. La syntaxe, le refus des intervalles de largeur nulle et l’exécution exigent un moteur conforme ; un littéral typé ne prouve pas ces contrôles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+msgstr "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads words of"
+msgstr "indice lisant les propos de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Agent whose attributed words this cue is permitted to read. Multiple named agents form an allowed set; absence of this property imposes no speaker restriction."
+msgstr "Un Agent dont cet indice peut lire les propos attribués. Plusieurs agents nommés forment un ensemble autorisé ; l’absence de cette propriété n’impose aucune restriction de locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Selection controls which source words are read, not who authored the cue or whether the named agent holds the proposed reading."
+msgstr "La sélection détermine les propos lus, pas l’auteur de l’indice ni l’adhésion de l’agent nommé à la lecture proposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+msgstr "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads field"
+msgstr "champ lu par l’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A property IRI identifying a source literal field this cue reads. Multiple fields form an allowed set; absence imposes no field restriction. The object names the property rather than its value."
+msgstr "Un IRI de propriété désignant un champ littéral source lu par cet indice. Plusieurs champs forment un ensemble autorisé ; l’absence n’impose aucune restriction de champ. L’objet nomme la propriété et non sa valeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No single global domain or range is asserted on the named source property by this selection. Schema metadata and speaker attribution remain separate."
+msgstr "Cette sélection n’impose aucun domaine ou portée globale à la propriété source nommée. Métadonnées de schéma et attribution du locuteur restent distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsField gmeow:description ."
+msgstr "ex:blocked gmeow:cueReadsField gmeow:description ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence for"
+msgstr "indice en faveur de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading for which a counted match of this cue is evidence. This is an evidence direction, never assertion of that reading or a verdict about the speaker."
+msgstr "La ressource nommant la lecture en faveur de laquelle une correspondance comptée constitue un indice. C’est une direction probante, jamais l’affirmation de cette lecture ni un verdict sur le locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One cue selects exactly one of the two evidence relations. Distinct cues may give opposing evidence without one deleting the other."
+msgstr "Un indice choisit exactement une des deux relations probantes. Des indices distincts peuvent fournir des preuves opposées sans s’effacer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence against"
+msgstr "indice à l’encontre de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading against which a counted match of this cue is evidence. Counterevidence neither asserts the reading's negation nor erases supporting evidence."
+msgstr "La ressource nommant la lecture à l’encontre de laquelle une correspondance comptée constitue un indice. Une preuve contraire n’affirme pas la négation de la lecture et n’efface pas les preuves favorables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Evidence polarity and detection negation are independent: suppressing a match does not reverse its declared evidence direction."
+msgstr "Polarité probante et négation de détection sont indépendantes : supprimer une correspondance n’inverse pas sa direction probante déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+msgstr "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue example"
+msgstr "exemple d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is present, supplied for a judge's understanding rather than as a reported detector result."
+msgstr "Un texte synthétique portant une langue dans lequel cet indice est présent, fourni pour éclairer le juge plutôt que comme résultat de détection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An example is source documentation, not an executed evaluation or a claim about a real speaker."
+msgstr "Un exemple est une documentation source, pas une évaluation exécutée ni une affirmation sur un locuteur réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueExample \"I cannot continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueExample \"Il ne peut pas continuer avec cette méthode.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue counterexample"
+msgstr "contre-exemple d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is absent, documenting a boundary a judge must retain."
+msgstr "Un texte synthétique portant une langue dans lequel cet indice est absent, documentant une limite que le juge doit conserver."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A counterexample is not evidence against the named reading; it illustrates cue absence only."
+msgstr "Un contre-exemple n’est pas une preuve contre la lecture nommée ; il illustre seulement l’absence d’indice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueCounterExample \"I can continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueCounterExample \"Il peut continuer avec cette méthode.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Negation"
+msgstr "Négation d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared suppression rule connecting a cue to exactly one negating Cue and one scope. A detected negating match in that scope suppresses a target match without deleting it or asserting a negative fact about a speaker."
+msgstr "Une règle de suppression déclarée reliant un indice à exactement un Cue négateur et une portée. Une correspondance négatrice détectée dans cette portée supprime une correspondance cible sans l’effacer ni affirmer un fait négatif sur un locuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Suppression uses detected matches before suppression. It does not recursively withdraw a suppressor because that suppressor is itself suppressed. Multiple applicable rules retain every suppression reason; no priority is inferred."
+msgstr "La suppression utilise les correspondances détectées avant suppression. Elle ne retire pas récursivement un suppresseur qui est lui-même supprimé. Plusieurs règles applicables conservent chaque motif ; aucune priorité n’est inférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negated by"
+msgstr "suppression par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a target Cue to one of its declared suppression rules. Multiple rules are independent alternatives; any applicable detected negator suppresses the target occurrence."
+msgstr "Relie un Cue cible à une de ses règles de suppression déclarées. Plusieurs règles sont des alternatives indépendantes ; tout négateur détecté applicable supprime l’occurrence cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is cue-to-rule membership, not a link to a suppressing match and not an assertion that any suppression happened."
+msgstr "Il s’agit de l’appartenance indice-vers-règle, pas d’un lien vers une correspondance suppressive ni de l’affirmation qu’une suppression a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:negatedBy ex:notBlocked ."
+msgstr "ex:blocked gmeow:negatedBy ex:notBlocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negating cue"
+msgstr "indice négateur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one Cue whose detected occurrence can suppress a target under this negation rule. Detection alone supplies the suppressor; its evidence polarity and own suppression status do not reverse this role."
+msgstr "Le Cue unique dont une occurrence détectée peut supprimer une cible selon cette règle. La détection seule fournit le suppresseur ; sa polarité probante et sa propre suppression n’inversent pas ce rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one per rule. The rule's target cue remains linked through negatedBy and is not inferred from evidence polarity."
+msgstr "Exactement un par règle. L’indice cible reste relié par negatedBy et n’est pas inféré de la polarité probante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negatingCue ex:not ."
+msgstr "ex:notBlocked gmeow:negatingCue ex:not ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Negation Scope"
+msgstr "portée de négation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."
+msgstr "Le vocabulaire fermé de cinq portées de suppression : même phrase, même partie de message, même message, même tour source ou fenêtre symétrique de mots."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."
+msgstr "L’absence de regroupement source ou de capacité de segmentation rend l’évaluation non prise en charge ; elle ne prouve jamais l’absence de négateur applicable. La portée ne crée pas d’identité de message, de partie ou de tour."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation scope"
+msgstr "portée de négation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one member of NegationScope controlling where a detected negating match suppresses a target match."
+msgstr "L’unique membre de NegationScope déterminant où une correspondance négatrice détectée supprime une correspondance cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."
+msgstr "Les portées de phrase et de mots comparent les intervalles originaux d’un même littéral source exact. Les portées de partie, message et tour comparent des identités de regroupement source explicites et peuvent couvrir plusieurs champs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation word window"
+msgstr "fenêtre de mots négatrice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive maximum number of intervening word tokens between a target span and a detected negating span in one source literal. The comparison is symmetric and inclusive: distance less than or equal to this value qualifies; overlapping or adjacent spans have distance zero."
+msgstr "Le nombre positif maximal de mots intercalés entre un intervalle cible et un intervalle négateur détecté dans un même littéral source. La comparaison est symétrique et inclusive : une distance inférieure ou égale convient ; des intervalles superposés ou adjacents ont une distance nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same Unicode 16.0.0 word definition used by cuePhrase supplies the count. Punctuation creates no extra word, and a gap containing no whole word has distance zero."
+msgstr "La définition des mots d’Unicode 16.0.0 utilisée par cuePhrase fournit le compte. La ponctuation n’ajoute aucun mot ; un espace sans mot entier a une distance nulle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same sentence"
+msgstr "même phrase"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both complete original match spans lie inside one default UAX 29 sentence segment of the same source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "Les deux intervalles originaux complets appartiennent à un même segment de phrase UAX 29 par défaut du même littéral source, selon Unicode 17.0.0."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A span crossing a sentence boundary does not satisfy same-sentence scope. Sentence segmentation is a declared execution requirement, not an inference from punctuation alone."
+msgstr "Un intervalle traversant une limite de phrase ne satisfait pas cette portée. La segmentation est une exigence d’exécution déclarée, pas une inférence tirée de la seule ponctuation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message part"
+msgstr "même partie de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:BodyPart. Literal or field equality alone does not establish part membership."
+msgstr "Les deux correspondances appartiennent au même gmeow:BodyPart source explicitement identifié. L’égalité de littéral ou de champ ne suffit pas à établir cette appartenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain actual part identities and message hasBodyPart membership. Do not infer parts by splitting on line breaks."
+msgstr "Conserver les identités réelles des parties et l’appartenance hasBodyPart du message. Ne pas déduire les parties des sauts de ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message"
+msgstr "même message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:Message, whether in one or several of its retained parts or fields."
+msgstr "Les deux correspondances appartiennent au même gmeow:Message source explicitement identifié, dans une ou plusieurs parties ou champs conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A shared thread, sender, timestamp or reply chain does not establish message identity."
+msgstr "Un fil, expéditeur, horodatage ou chaînage de réponses commun ne suffit pas à établir l’identité de message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same source turn"
+msgstr "même tour source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches share one explicitly supplied source turn identity. Turn membership is a source claim; this scope does not derive a turn from a conversation thread or message order."
+msgstr "Les deux correspondances partagent une identité de tour explicitement fournie par la source. Cette appartenance est une affirmation source ; la portée ne déduit aucun tour d’un fil ou de l’ordre des messages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader must retain the exact source turn identity and membership evidence. Missing turn identity is unsupported evaluation, not a default message-sized turn."
+msgstr "Le lecteur doit conserver l’identité exacte du tour source et ses preuves d’appartenance. Sans cette identité, l’évaluation n’est pas prise en charge ; aucun tour réduit au message n’est supposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "within word window"
+msgstr "dans la fenêtre de mots"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both matches lie in one exact source literal and their symmetric intervening-word distance is at most the rule's positive negationWindow."
+msgstr "Les deux correspondances se trouvent dans un même littéral source exact et leur distance symétrique en mots intercalés est au plus égale à negationWindow, positif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The window is inclusive and has no implicit left-only or right-only direction. Its unit is the cuePhrase word definition, not UAX 29 word segmentation."
+msgstr "La fenêtre est inclusive, sans direction implicite vers la gauche ou la droite seulement. Son unité est le mot défini par cuePhrase, pas la segmentation de mots UAX 29."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text alternatives"
+msgstr "alternatives textuelles d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue declares at least one cuePhrase or cuePattern; both may coexist."
+msgstr "Chaque Cue déclare au moins une cuePhrase ou un cuePattern ; les deux peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "Cette condition de déclaration n’exécute ni comparaison d’expressions, ni recherche régulière, ni segmentation de phrases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence choice"
+msgstr "choix de preuve de l’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue selects exactly one of cueEvidenceFor and cueEvidenceAgainst. A class-local maximum separately bounds its chosen target."
+msgstr "Chaque Cue choisit exactement une relation entre cueEvidenceFor et cueEvidenceAgainst. Un maximum local à la classe borne séparément la cible choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "Cette condition de déclaration n’exécute ni comparaison d’expressions, ni recherche régulière, ni segmentation de phrases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "word-window value required"
+msgstr "valeur de fenêtre requise"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation selecting negationWithinWords must supply a negationWindow. The datatype and at-most-one bound apply separately."
+msgstr "Une CueNegation sélectionnant negationWithinWords doit fournir negationWindow. Le type et la borne d’au plus un s’appliquent séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "Cette condition de déclaration n’exécute ni comparaison d’expressions, ni recherche régulière, ni segmentation de phrases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+msgstr "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text language constraint"
+msgstr "contrainte de langue des textes d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied phrase, guidance, example and counterexample retains a nonempty language tag, including the base direction of a directional language string."
+msgstr "Chaque expression, consigne, exemple et contre-exemple fourni conserve une étiquette de langue non vide, y compris la direction de base d’une chaîne linguistique directionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The constraint preserves tagged source values; it does not normalize text or infer a language resource from a tag."
+msgstr "La contrainte préserve les valeurs sources étiquetées ; elle ne normalise pas le texte et ne déduit aucune ressource langue d’une étiquette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue field property constraint"
+msgstr "contrainte de propriété du champ d’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every cueReadsField value is an IRI naming a declared object, datatype or annotation property, or an RDF property. This names the field without applying it as a predicate in the declaration."
+msgstr "Chaque valeur de cueReadsField est un IRI nommant une propriété objet, de données, d’annotation ou RDF déclarée. Elle nomme le champ sans l’appliquer comme prédicat dans la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Field declarations must be supplied for validation; their absence is not repaired by guessing a property kind."
+msgstr "Les déclarations des champs doivent être fournies pour validation ; leur absence n’est pas réparée en devinant un genre de propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+msgstr "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "window scope constraint"
+msgstr "contrainte de portée de fenêtre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied negationWindow belongs to a CueNegation whose scope is negationWithinWords; other scopes must not carry a window."
+msgstr "Chaque negationWindow fourni appartient à une CueNegation dont la portée est negationWithinWords ; les autres portées ne doivent pas porter de fenêtre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with conditional requiredness and positive-integer typing, this gives exactly one window only when word-window scope is selected."
+msgstr "Avec l’obligation conditionnelle et le type entier positif, cette contrainte donne exactement une fenêtre seulement lorsque la portée par mots est choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+msgstr "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueLexicon closed record"
+msgstr "CueLexicon : enregistrement fermé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "Un enregistrement CueLexicon ne porte que ses champs déclarés et les prédicats de type, d’étiquettes, de description, d’attribution et de provenance explicitement admis. Les prédicats inconnus violent la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "La fermeture des prédicats vérifie les champs fournis, séparément de la fermeture des chemins requis et des contraintes de valeurs finies. Elle n’interdit pas des métadonnées sur un réificateur RDF 1.2 distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue closed record"
+msgstr "Cue : enregistrement fermé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "Un enregistrement Cue ne porte que ses champs déclarés et les prédicats de type, d’étiquettes, de description, d’attribution et de provenance explicitement admis. Les prédicats inconnus violent la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "La fermeture des prédicats vérifie les champs fournis, séparément de la fermeture des chemins requis et des contraintes de valeurs finies. Elle n’interdit pas des métadonnées sur un réificateur RDF 1.2 distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueNegation closed record"
+msgstr "CueNegation : enregistrement fermé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "Un enregistrement CueNegation ne porte que ses champs déclarés et les prédicats de type, d’étiquettes, de description, d’attribution et de provenance explicitement admis. Les prédicats inconnus violent la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "La fermeture des prédicats vérifie les champs fournis, séparément de la fermeture des chemins requis et des contraintes de valeurs finies. Elle n’interdit pas des métadonnées sur un réificateur RDF 1.2 distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
+msgstr "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."

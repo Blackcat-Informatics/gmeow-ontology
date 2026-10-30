@@ -1,0 +1,537 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:echoesPremiseOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:InformationObject ;
+    logic:range gmeow:Prompt ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "echoes premise of"@x-gmeow-english ;
+    skos:definition "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."@x-gmeow-english ;
+    gmeow:useWhen "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."@x-gmeow-english ;
+    gmeow:howToUse "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."@x-gmeow-english ;
+    skos:example "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."@x-gmeow-english .
+
+gmeow:CueLexicon
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue Lexicon"@x-gmeow-english ;
+    skos:definition "An immutable, reviewed release of named Cue declarations used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; an empty release is legal and its cues never define a text's meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."@x-gmeow-english ;
+    gmeow:howToUse "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."@x-gmeow-english ;
+    skos:example "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."@x-gmeow-english .
+
+gmeow:cueReview
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueLexicon ;
+    logic:range gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue review"@x-gmeow-english ;
+    skos:definition "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain who signed off the exact cue version and when."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."@x-gmeow-english ;
+    gmeow:howToUse "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."@x-gmeow-english ;
+    skos:example "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."@x-gmeow-english .
+
+gmeow:CueLexicon logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueReview ; logic:allValuesFrom gmeow:Activity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasCue ; logic:allValuesFrom gmeow:Cue ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueLexicon ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cueReview" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:CueReviewEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue review evidence constraint"@x-gmeow-english ;
+    skos:definition "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic provenance or language contract of the supplied cue version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."@x-gmeow-english ;
+    logic:formalizes gmeow:cueReview ;
+    logic:message "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "review" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:cueReview ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "review" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reviewer" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "reviewer" ] ], [ a logic:Formula ; logic:relation gmeow:eventTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ] ] ] ] ] .
+
+gmeow:CueLexiconVersionIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue lexicon version identity constraint"@x-gmeow-english ;
+    skos:definition "A released CueLexicon version is distinct from the lineage entity it versions."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic provenance or language contract of the supplied cue version."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."@x-gmeow-english ;
+    logic:formalizes gmeow:CueLexicon ;
+    logic:message "A released CueLexicon version is distinct from the lineage entity it versions." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueLexicon ] ], [ a logic:Formula ; logic:relation gmeow:versionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ] .
+
+# Declared textual cues and independently addressable suppression rules.
+
+gmeow:Cue
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Cue"@x-gmeow-english ;
+    skos:definition "A declared textual signal used as evidence for or against one named reading. A cue retains its phrases or patterns, judge guidance, reading scope and evidence polarity; its presence is never the meaning of a text or a verdict about its author."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the exact signal a reviewed cue release makes available to a reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a detected or suppressed signal as a diagnosis, truth claim or independent corroboration."@x-gmeow-english ;
+    gmeow:howToUse "Link it from hasCue; retain detectionGuidance, at least one phrase or pattern and exactly one evidence polarity. Use writtenInLanguage for language resources and preserve literal language and direction."@x-gmeow-english ;
+    skos:scopeNote "Phrase and pattern alternatives may coexist. Their detected matches form a union, retaining one occurrence for each identical cue, source literal and original half-open code-point span. Empty reviewed lexicons remain legal."@x-gmeow-english ;
+    skos:example "A declared signal: ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."@x-gmeow-english .
+
+gmeow:hasCue
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:CueLexicon ;
+    logic:range gmeow:Cue ;
+    rdfs:label "has cue"@x-gmeow-english ;
+    skos:definition "Relates an immutable reviewed CueLexicon release to a declared Cue resource in its payload. Membership carries no ordering, priority or independent endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate the exact cue declarations included in a reviewed release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the version's source, digest, authorship or review with bare membership."@x-gmeow-english ;
+    gmeow:howToUse "Attach every supplied cue resource; changes to its released declaration require a new lexicon release and digest."@x-gmeow-english ;
+    skos:scopeNote "Multi-valued and not required: an empty reviewed release has no cues. Distinct releases can cite the same unchanged cue resource without sharing release identity."@x-gmeow-english ;
+    skos:example "ex:cuesV1 gmeow:hasCue ex:blocked ."@x-gmeow-english .
+
+gmeow:detectionGuidance
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:label "detection guidance"@x-gmeow-english ;
+    skos:definition "Language-bearing instructions a person or model follows to judge reported and missed matches of this cue. These instructions are an evaluation rubric; the detector does not execute them."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the judge's interpretation criteria explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating prose guidance as an executable matcher or as evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied language and any RDF 1.2 base direction; record synthetic positive and negative examples separately."@x-gmeow-english ;
+    skos:scopeNote "Required for a Cue. Multiple language realizations may coexist without a preferred language."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:detectionGuidance \"Count inability to proceed, not quoted sample instructions.\"@en ."@x-gmeow-english .
+
+gmeow:cuePhrase
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:label "cue phrase"@x-gmeow-english ;
+    skos:definition "A whole contiguous sequence of source word tokens matched without case distinctions. Tokens are maximal runs of Unicode 16.0.0 Letter or Decimal_Number characters and U+0027 apostrophe, reading U+2019 as U+0027 for comparison only. Compare tokens under Unicode 16.0.0 simple C/S case-fold equivalence, without other normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare a complete phrase alternative with retained source language and direction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stemming, substring matching, locale-specific casing, full F case folding or changing the retained source bytes."@x-gmeow-english ;
+    gmeow:howToUse "Tokenize the phrase and candidate text under the declared word rule; compare equal-length contiguous token sequences. A phrase with no word token is malformed."@x-gmeow-english ;
+    skos:scopeNote "Separators may differ because comparison is over tokens. Keep the source interval from the first token's start to the last token's end, including intervening separators. This declared matching contract is not executed by ontology validation."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cuePhrase \"cannot continue\"@en ."@x-gmeow-english .
+
+gmeow:cuePattern
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range gmeow:linearRegex ;
+    rdfs:label "cue pattern"@x-gmeow-english ;
+    skos:definition "A regex alternative for this cue, carried in the lang-owned gmeow:linearRegex datatype. It searches the original literal under that dialect's explicit flags and returns leftmost-first, non-overlapping, nonempty spans."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare a pattern whose exact dialect is retained in the literal datatype."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding implicit case folding, apostrophe replacement or phrase tokenization to regex input."@x-gmeow-english ;
+    gmeow:howToUse "Supply a typed pattern; retain its original lexical form and convert any engine byte offsets to original Unicode code-point offsets."@x-gmeow-english ;
+    skos:scopeNote "Patterns and phrases are alternatives, not mutual guards. Pattern syntax, zero-width rejection and execution require a conforming matcher; a typed literal alone is not proof that those checks ran."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."@x-gmeow-english .
+
+gmeow:cueReadsWordsOf
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range gmeow:Agent ;
+    rdfs:label "cue reads words of"@x-gmeow-english ;
+    skos:definition "An Agent whose attributed words this cue is permitted to read. Multiple named agents form an allowed set; absence of this property imposes no speaker restriction."@x-gmeow-english ;
+    gmeow:useWhen "Use when a signal is applicable only to words attributed to specified agents."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the speaker from the detector, reviewer, record owner or quoted text alone."@x-gmeow-english ;
+    gmeow:howToUse "Compare retained word attribution with the declared agent identities before counting; retain unavailable attribution as an explicit evaluation limit."@x-gmeow-english ;
+    skos:scopeNote "Selection controls which source words are read, not who authored the cue or whether the named agent holds the proposed reading."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."@x-gmeow-english .
+
+gmeow:cueReadsField
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    rdfs:label "cue reads field"@x-gmeow-english ;
+    skos:definition "A property IRI identifying a source literal field this cue reads. Multiple fields form an allowed set; absence imposes no field restriction. The object names the property rather than its value."@x-gmeow-english ;
+    gmeow:useWhen "Use to restrict a cue to declared literal-bearing fields."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading every literal on a record when a field restriction is present."@x-gmeow-english ;
+    gmeow:howToUse "Name the source property IRI and retain the selected literal's complete identity if the field is multi-valued."@x-gmeow-english ;
+    skos:scopeNote "No single global domain or range is asserted on the named source property by this selection. Schema metadata and speaker attribution remain separate."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cueReadsField gmeow:description ."@x-gmeow-english .
+
+gmeow:cueEvidenceFor
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range logic:Thing ;
+    rdfs:label "cue evidence for"@x-gmeow-english ;
+    skos:definition "The resource naming the reading for which a counted match of this cue is evidence. This is an evidence direction, never assertion of that reading or a verdict about the speaker."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the supporting direction of a cue's evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining this property with cueEvidenceAgainst on one cue."@x-gmeow-english ;
+    gmeow:howToUse "Name exactly one reading target through this property or cueEvidenceAgainst."@x-gmeow-english ;
+    skos:scopeNote "One cue selects exactly one of the two evidence relations. Distinct cues may give opposing evidence without one deleting the other."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."@x-gmeow-english .
+
+gmeow:cueEvidenceAgainst
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range logic:Thing ;
+    rdfs:label "cue evidence against"@x-gmeow-english ;
+    skos:definition "The resource naming the reading against which a counted match of this cue is evidence. Counterevidence neither asserts the reading's negation nor erases supporting evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare counterevidence toward a named reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a negative evidence direction as cue suppression or a falsehood judgment."@x-gmeow-english ;
+    gmeow:howToUse "Name exactly one reading target through this property or cueEvidenceFor."@x-gmeow-english ;
+    skos:scopeNote "Evidence polarity and detection negation are independent: suppressing a match does not reverse its declared evidence direction."@x-gmeow-english ;
+    skos:example "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."@x-gmeow-english .
+
+gmeow:cueExample
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:label "cue example"@x-gmeow-english ;
+    skos:definition "A synthetic language-bearing text in which this cue is present, supplied for a judge's understanding rather than as a reported detector result."@x-gmeow-english ;
+    gmeow:useWhen "Use to document a synthetic boundary of the cue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting illustrative text for a recorded match or judgment."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied text, language and any base direction."@x-gmeow-english ;
+    skos:scopeNote "An example is source documentation, not an executed evaluation or a claim about a real speaker."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cueExample \"I cannot continue with this approach.\"@en ."@x-gmeow-english .
+
+gmeow:cueCounterExample
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:label "cue counterexample"@x-gmeow-english ;
+    skos:definition "A synthetic language-bearing text in which this cue is absent, documenting a boundary a judge must retain."@x-gmeow-english ;
+    gmeow:useWhen "Use to document a synthetic boundary of the cue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting illustrative text for a recorded match or judgment."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact supplied text, language and any base direction."@x-gmeow-english ;
+    skos:scopeNote "A counterexample is not evidence against the named reading; it illustrates cue absence only."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:cueCounterExample \"I can continue with this approach.\"@en ."@x-gmeow-english .
+
+gmeow:CueNegation
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Cue Negation"@x-gmeow-english ;
+    skos:definition "A declared suppression rule connecting a cue to exactly one negating Cue and one scope. A detected negating match in that scope suppresses a target match without deleting it or asserting a negative fact about a speaker."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare an independently addressable detection-suppression condition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating suppression as evidence polarity, logical negation or a reason to discard a reported match."@x-gmeow-english ;
+    gmeow:howToUse "Attach with negatedBy and name one negatingCue and negationScope; supply negationWindow only for the word-window scope."@x-gmeow-english ;
+    skos:scopeNote "Suppression uses detected matches before suppression. It does not recursively withdraw a suppressor because that suppressor is itself suppressed. Multiple applicable rules retain every suppression reason; no priority is inferred."@x-gmeow-english ;
+    skos:example "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."@x-gmeow-english .
+
+gmeow:negatedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Cue ;
+    logic:range gmeow:CueNegation ;
+    rdfs:label "negated by"@x-gmeow-english ;
+    skos:definition "Relates a target Cue to one of its declared suppression rules. Multiple rules are independent alternatives; any applicable detected negator suppresses the target occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to name every suppression rule attached to a cue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid embedding unrecorded negation heuristics in the evidence direction."@x-gmeow-english ;
+    gmeow:howToUse "Retain the rule identity on every suppressed occurrence so it remains reportable."@x-gmeow-english ;
+    skos:scopeNote "This is cue-to-rule membership, not a link to a suppressing match and not an assertion that any suppression happened."@x-gmeow-english ;
+    skos:example "ex:blocked gmeow:negatedBy ex:notBlocked ."@x-gmeow-english .
+
+gmeow:negatingCue
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:CueNegation ;
+    logic:range gmeow:Cue ;
+    rdfs:label "negating cue"@x-gmeow-english ;
+    skos:definition "The exactly-one Cue whose detected occurrence can suppress a target under this negation rule. Detection alone supplies the suppressor; its evidence polarity and own suppression status do not reverse this role."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the signal required by a suppression rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the negating cue as the reading's logical complement."@x-gmeow-english ;
+    gmeow:howToUse "Name one Cue; keep distinct negator declarations independently addressable."@x-gmeow-english ;
+    skos:scopeNote "Exactly one per rule. The rule's target cue remains linked through negatedBy and is not inferred from evidence polarity."@x-gmeow-english ;
+    skos:example "ex:notBlocked gmeow:negatingCue ex:not ."@x-gmeow-english .
+
+gmeow:NegationScope
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Negation Scope"@x-gmeow-english ;
+    skos:definition "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the exact comparison boundary of a negation rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding local scope values or equating a conversation thread with one source turn."@x-gmeow-english ;
+    gmeow:howToUse "Select one seeded scope and retain the source identities needed to evaluate it."@x-gmeow-english ;
+    skos:scopeNote "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."@x-gmeow-english ;
+    skos:example "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."@x-gmeow-english .
+
+gmeow:negationScope
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:CueNegation ;
+    logic:range gmeow:NegationScope ;
+    rdfs:label "negation scope"@x-gmeow-english ;
+    skos:definition "The exactly-one member of NegationScope controlling where a detected negating match suppresses a target match."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the suppression rule's declared scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a scope from textual proximity or from an absent window value."@x-gmeow-english ;
+    gmeow:howToUse "Name a declared scope; for negationWithinWords also record one positive negationWindow."@x-gmeow-english ;
+    skos:scopeNote "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."@x-gmeow-english ;
+    skos:example "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."@x-gmeow-english .
+
+gmeow:negationWindow
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:CueNegation ;
+    logic:range xsd:positiveInteger ;
+    rdfs:label "negation word window"@x-gmeow-english ;
+    skos:definition "The positive maximum number of intervening word tokens between a target span and a detected negating span in one source literal. The comparison is symmetric and inclusive: distance less than or equal to this value qualifies; overlapping or adjacent spans have distance zero."@x-gmeow-english ;
+    gmeow:useWhen "Use only with the negationWithinWords scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid counting bytes, punctuation, graphemes or tokens partly covered by either match as intervening words."@x-gmeow-english ;
+    gmeow:howToUse "Count whole cuePhrase word tokens entirely between the two original spans; record exactly one positive value for the word-window scope and none for other scopes."@x-gmeow-english ;
+    skos:scopeNote "The same Unicode 16.0.0 word definition used by cuePhrase supplies the count. Punctuation creates no extra word, and a gap containing no whole word has distance zero."@x-gmeow-english ;
+    skos:example "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."@x-gmeow-english .
+
+gmeow:negationSameSentence
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "same sentence"@x-gmeow-english ;
+    skos:definition "Both complete original match spans lie inside one default UAX 29 sentence segment of the same source literal, using Unicode 17.0.0 sentence boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared scope of a cue negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring unavailable source grouping or treating the scope value as an executed suppression."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
+    skos:scopeNote "A span crossing a sentence boundary does not satisfy same-sentence scope. Sentence segmentation is a declared execution requirement, not an inference from punctuation alone."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationSameSentence ."@x-gmeow-english .
+
+gmeow:negationSameMessagePart
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "same message part"@x-gmeow-english ;
+    skos:definition "The two matches belong to the same explicitly identified source gmeow:BodyPart. Literal or field equality alone does not establish part membership."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared scope of a cue negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring unavailable source grouping or treating the scope value as an executed suppression."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
+    skos:scopeNote "Retain actual part identities and message hasBodyPart membership. Do not infer parts by splitting on line breaks."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."@x-gmeow-english .
+
+gmeow:negationSameMessage
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "same message"@x-gmeow-english ;
+    skos:definition "The two matches belong to the same explicitly identified source gmeow:Message, whether in one or several of its retained parts or fields."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared scope of a cue negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring unavailable source grouping or treating the scope value as an executed suppression."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
+    skos:scopeNote "A shared thread, sender, timestamp or reply chain does not establish message identity."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationSameMessage ."@x-gmeow-english .
+
+gmeow:negationSameTurn
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "same source turn"@x-gmeow-english ;
+    skos:definition "The two matches share one explicitly supplied source turn identity. Turn membership is a source claim; this scope does not derive a turn from a conversation thread or message order."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared scope of a cue negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring unavailable source grouping or treating the scope value as an executed suppression."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
+    skos:scopeNote "The reader must retain the exact source turn identity and membership evidence. Missing turn identity is unsupported evaluation, not a default message-sized turn."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationSameTurn ."@x-gmeow-english .
+
+gmeow:negationWithinWords
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "within word window"@x-gmeow-english ;
+    skos:definition "Both matches lie in one exact source literal and their symmetric intervening-word distance is at most the rule's positive negationWindow."@x-gmeow-english ;
+    gmeow:useWhen "Use as the declared scope of a cue negation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring unavailable source grouping or treating the scope value as an executed suppression."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
+    skos:scopeNote "The window is inclusive and has no implicit left-only or right-only direction. Its unit is the cuePhrase word definition, not UAX 29 word segmentation."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationWithinWords ."@x-gmeow-english .
+
+gmeow:CueTextChoiceConstraint
+    a logic:DisjunctiveRequirednessConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue text alternatives"@x-gmeow-english ;
+    skos:definition "Every Cue declares at least one cuePhrase or cuePattern; both may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce this intrinsic declaration contract before a matcher is selected."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a successful declaration check as an executed detection, suppression or review."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical constraint against the supplied record; preserve the offending source values."@x-gmeow-english ;
+    skos:scopeNote "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."@x-gmeow-english ;
+    skos:example "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."@x-gmeow-english ;
+    logic:formalizes gmeow:Cue ; logic:onClass gmeow:Cue ; logic:anyOf gmeow:cuePhrase, gmeow:cuePattern .
+
+gmeow:CueEvidenceChoiceConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue evidence choice"@x-gmeow-english ;
+    skos:definition "Every Cue selects exactly one of cueEvidenceFor and cueEvidenceAgainst. A class-local maximum separately bounds its chosen target."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce this intrinsic declaration contract before a matcher is selected."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a successful declaration check as an executed detection, suppression or review."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical constraint against the supplied record; preserve the offending source values."@x-gmeow-english ;
+    skos:scopeNote "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."@x-gmeow-english ;
+    skos:example "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."@x-gmeow-english ;
+    logic:formalizes gmeow:Cue ; logic:onClass gmeow:Cue ; logic:choicePredicate gmeow:cueEvidenceFor, gmeow:cueEvidenceAgainst ; logic:choiceMode "exactly-one" .
+
+gmeow:CueNegationWindowRequiredConstraint
+    a logic:GuardedImplicationConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "word-window value required"@x-gmeow-english ;
+    skos:definition "A CueNegation selecting negationWithinWords must supply a negationWindow. The datatype and at-most-one bound apply separately."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce this intrinsic declaration contract before a matcher is selected."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a successful declaration check as an executed detection, suppression or review."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical constraint against the supplied record; preserve the offending source values."@x-gmeow-english ;
+    skos:scopeNote "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."@x-gmeow-english ;
+    skos:example "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."@x-gmeow-english ;
+    logic:formalizes gmeow:negationWindow ; logic:onClass gmeow:CueNegation ; logic:trigger gmeow:negationScope ; logic:triggerValue gmeow:negationWithinWords ; logic:requires gmeow:negationWindow .
+
+gmeow:CueTextLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue text language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied phrase, guidance, example and counterexample retains a nonempty language tag, including the base direction of a directional language string."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "The constraint preserves tagged source values; it does not normalize text or infer a language resource from a tag."@x-gmeow-english ;
+    skos:example "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."@x-gmeow-english ;
+    logic:formalizes gmeow:Cue ; logic:message "Every supplied phrase, guidance, example and counterexample retains a nonempty language tag, including the base direction of a directional language string." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Cue ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:cuePhrase ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:relation gmeow:detectionGuidance ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:relation gmeow:cueExample ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:relation gmeow:cueCounterExample ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] ] ] .
+
+gmeow:CueFieldPropertyConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cue field property constraint"@x-gmeow-english ;
+    skos:definition "Every cueReadsField value is an IRI naming a declared object, datatype or annotation property, or an RDF property. This names the field without applying it as a predicate in the declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "Field declarations must be supplied for validation; their absence is not repaired by guessing a property kind."@x-gmeow-english ;
+    skos:example "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."@x-gmeow-english ;
+    logic:formalizes gmeow:cueReadsField ; logic:message "Every cueReadsField value is an IRI naming a declared object, datatype or annotation property, or an RDF property. This names the field without applying it as a predicate in the declaration." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "field" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:cueReadsField ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "field" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] ], [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:ObjectProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:DatatypeProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri logic:AnnotationProperty ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ], [ logic:termIndex 1 ; logic:termIri rdf:Property ] ] ] ] ] ] .
+
+gmeow:CueNegationWindowScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "window scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied negationWindow belongs to a CueNegation whose scope is negationWithinWords; other scopes must not carry a window."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "Together with conditional requiredness and positive-integer typing, this gives exactly one window only when word-window scope is selected."@x-gmeow-english ;
+    skos:example "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."@x-gmeow-english ;
+    logic:formalizes gmeow:negationWindow ; logic:message "Every supplied negationWindow belongs to a CueNegation whose scope is negationWithinWords; other scopes must not carry a window." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "window" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:negationWindow ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "window" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:negationScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:negationWithinWords ] ] ] ] .
+
+gmeow:CueLexiconClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "CueLexicon closed record"@x-gmeow-english ;
+    skos:definition "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
+    skos:example "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."@x-gmeow-english ;
+    logic:formalizes gmeow:CueLexicon ; logic:message "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueLexicon ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:cueReview ], [ logic:termIndex 12 ; logic:termIri gmeow:hasCue ], [ logic:termIndex 13 ; logic:termIri gmeow:supersedes ], [ logic:termIndex 14 ; logic:termIri gmeow:writtenInLanguage ] ] ] ] ] ] ] ] .
+
+gmeow:CueClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Cue closed record"@x-gmeow-english ;
+    skos:definition "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
+    skos:example "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."@x-gmeow-english ;
+    logic:formalizes gmeow:Cue ; logic:message "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Cue ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:writtenInLanguage ], [ logic:termIndex 12 ; logic:termIri gmeow:detectionGuidance ], [ logic:termIndex 13 ; logic:termIri gmeow:cuePhrase ], [ logic:termIndex 14 ; logic:termIri gmeow:cuePattern ], [ logic:termIndex 15 ; logic:termIri gmeow:cueReadsWordsOf ], [ logic:termIndex 16 ; logic:termIri gmeow:cueReadsField ], [ logic:termIndex 17 ; logic:termIri gmeow:cueEvidenceFor ], [ logic:termIndex 18 ; logic:termIri gmeow:cueEvidenceAgainst ], [ logic:termIndex 19 ; logic:termIri gmeow:cueExample ], [ logic:termIndex 20 ; logic:termIri gmeow:cueCounterExample ], [ logic:termIndex 21 ; logic:termIri gmeow:negatedBy ] ] ] ] ] ] ] ] .
+
+gmeow:CueNegationClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "CueNegation closed record"@x-gmeow-english ;
+    skos:definition "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied cue declaration's intrinsic contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating declaration validity as executed detection, review or evidence about a speaker."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
+    skos:example "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."@x-gmeow-english ;
+    logic:formalizes gmeow:CueNegation ; logic:message "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueNegation ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:negatingCue ], [ logic:termIndex 9 ; logic:termIri gmeow:negationScope ], [ logic:termIndex 10 ; logic:termIri gmeow:negationWindow ] ] ] ] ] ] ] ] .
+
+# Intrinsic field types and required paths; matching remains an execution boundary.
+gmeow:NegationScope logic:equivalentClass [ a logic:Enumeration ; logic:oneOf ( gmeow:negationSameSentence gmeow:negationSameMessagePart gmeow:negationSameMessage gmeow:negationSameTurn gmeow:negationWithinWords ) ] .
+gmeow:Cue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:detectionGuidance ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cuePhrase ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cuePattern ; logic:allValuesFrom gmeow:linearRegex ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueReadsWordsOf ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueEvidenceFor ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueEvidenceAgainst ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueExample ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueCounterExample ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:negatedBy ; logic:allValuesFrom gmeow:CueNegation ] .
+gmeow:CueNegation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:negatingCue ; logic:allValuesFrom gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:negationScope ; logic:allValuesFrom gmeow:NegationScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:negationWindow ; logic:allValuesFrom xsd:positiveInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Cue ; logic:closureKey "https://blackcatinformatics.ca/gmeow/detectionGuidance" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueNegation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/negatingCue" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CueNegation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/negationScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CueNegation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:negationWindow ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
+
+# Owner-class maxima; requiredness remains with choices and closed-world paths.
+gmeow:Cue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:cueEvidenceFor ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueEvidenceAgainst ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:CueNegation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:negatingCue ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Cue ],
+    [ a logic:Restriction ; logic:onProperty gmeow:negationScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:NegationScope ] .

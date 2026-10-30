@@ -77,14 +77,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Asserts on the canonical carrier that gmeow:intensityBasis is functional: a derived intensity is the norm OF exactly one vector observation — the single declared basis it is computed from — so it cannot be the norm of two vectors at once without ceasing to be one intensity."
 msgstr "在规范载体上断言 gmeow:intensityBasis 是函数性的:一个派生强度恰好是某一个向量观测值的范数——即计算它所依据的那个单一声明基准——因此它不能同时是两个向量的范数,否则就不再是一个单一的强度。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "labelSetDecision is functional"
-msgstr "labelSetDecision 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:labelSetDecision 是函数式的:一个已注册的标签集恰好携带一种决策结构——argmax 互斥式或独立阈值式——因为一个同时既是单标签又是多标签的集合,会使其互斥性、进而使第二个标签越界是否构成违规都变得不可判定。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "metricGram is functional"
 msgstr "metricGram 具有函数性"
@@ -101,22 +93,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Asserts on the canonical carrier that gmeow:metricProfile is functional: a derived intensity is computed under exactly one declared scale-normalization profile for the whole vector, so a second metric profile would leave the normalization of that one intensity ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "在规范载体上断言 gmeow:metricProfile 是函数式的:一个派生强度是在整个向量恰好一个已声明的量表归一化画像下计算得出的,因此第二个度量画像会使该强度的归一化变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelIdentifier is functional"
-msgstr "modelIdentifier 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."
-msgstr "在规范载体上断言 gmeow:modelIdentifier 是函数式的:一次推理运行恰好执行一个被锁定的模型仓库标识,因此一次运行若指名两个模型标识,就无法标识出单一的可复现执行。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelRevision is functional"
-msgstr "modelRevision 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."
-msgstr "在规范载体上断言 gmeow:modelRevision 是函数式的:一次运行恰好锁定一个模型修订版本/提交——这是其可复现身份中最易漂移的坐标——因此同一次运行上的两个修订版本将指向两个不同的模型,而不是一次执行。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "normFunction is functional"
 msgstr "normFunction 具有函数性"
@@ -124,14 +100,6 @@ msgstr "normFunction 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:normFunction is functional: a derived intensity is computed under exactly one declared math:Norm — a single Gram-induced ‖x‖=√(xᵀGx) — so two norms on one intensity would yield two incompatible magnitudes for the same reading. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "在规范载体上断言 gmeow:normFunction 是函数式的:一个派生强度是在恰好一个已声明的 math:Norm 下计算的——单一的由 Gram 矩阵导出的 ‖x‖=√(xᵀGx)——因此同一强度上的两个范数会为同一读数得出两个不相容的量值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "producedBy is functional"
-msgstr "producedBy 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is generated by exactly one inference run — its single provenance source (prov:wasGeneratedBy) — so it cannot be attributed to two producing runs."
-msgstr "在规范载体上断言 gmeow:producedBy 是函数性的:一个分类器输出恰好由一次推理运行生成——其唯一的来源出处(prov:wasGeneratedBy)——因此它不能归因于两次生成运行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "profileMidpoint is functional"
@@ -180,14 +148,6 @@ msgstr "prototypeFor 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/prototypeForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:prototypeFor is functional: a gmeow:AffectPrototype names exactly one gmeow:EmotionType — the single emotion it is the typical signature of — since a prototype's identity is carried by that one type link, not by a stored classification verdict."
 msgstr "在规范载体上断言 gmeow:prototypeFor 是函数性的:一个 gmeow:AffectPrototype 恰好指向一个 gmeow:EmotionType——它是该唯一情绪的典型特征——因为原型的身份由这唯一的类型链接承载,而不是由存储的分类判定承载。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "scoreSemantics is functional"
-msgstr "scoreSemantics 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."
-msgstr "在规范载体上断言 gmeow:scoreSemantics 是函数性的:一个分类器分数恰好具有一种声明的含义——sigmoid、softmax 概率、校准概率、logit 或间隔(margin)——因为同一个数字若同时是其中两种,就会变得无法解释。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sparseAxisCompletion is functional"
@@ -341,22 +301,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 msgstr "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:labelSetDecision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-msgstr "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:metricGram names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:metricGram 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
@@ -389,38 +333,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 msgstr "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:modelIdentifier 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-msgstr "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:modelRevision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-msgstr "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:normFunction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:normFunction 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
@@ -436,22 +348,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:n
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
 msgstr "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:producedBy 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
-msgstr "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:profileMidpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -532,22 +428,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:p
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
 msgstr "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:scoreSemantics 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
-msgstr "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:sparseAxisCompletion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -645,10 +525,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Scope: this record carries ONE integrity obligation about gmeow:intensityBasis and nothing else. It is not a definition of gmeow:intensityBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:intensityBasis 的一项完整性义务，别无其他。它不是 gmeow:intensityBasis 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:labelSetDecision 的一项完整性义务，别无其他。它不是 gmeow:labelSetDecision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricGram and nothing else. It is not a definition of gmeow:metricGram (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:metricGram 的一项完整性义务，别无其他。它不是 gmeow:metricGram 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
@@ -657,21 +533,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricProfile and nothing else. It is not a definition of gmeow:metricProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:metricProfile 的一项完整性义务，别无其他。它不是 gmeow:metricProfile 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:modelIdentifier 的一项完整性义务，别无其他。它不是 gmeow:modelIdentifier 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:modelRevision 的一项完整性义务，别无其他。它不是 gmeow:modelRevision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:normFunction and nothing else. It is not a definition of gmeow:normFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:normFunction 的一项完整性义务，别无其他。它不是 gmeow:normFunction 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:producedBy 的一项完整性义务，别无其他。它不是 gmeow:producedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileMidpoint and nothing else. It is not a definition of gmeow:profileMidpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -692,10 +556,6 @@ msgstr "范围：该记录仅承载关于 gmeow:profileRangeMin 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileTransform and nothing else. It is not a definition of gmeow:profileTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:profileTransform 的一项完整性义务，别无其他。它不是 gmeow:profileTransform 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:scoreSemantics 的一项完整性义务，别无其他。它不是 gmeow:scoreSemantics 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:sparseAxisCompletion and nothing else. It is not a definition of gmeow:sparseAxisCompletion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -768,3 +628,26 @@ msgstr "通过 Emotion 或 ArcSample 归属这种感受，并另行记录实际�
 msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."
 msgstr "用于记录体验或叙事解读中察觉并纠正自身判断的情绪时刻。"
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Label"
+msgstr "情感分类器标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact affect-classifier label identity specializing ClassifierLabel. It belongs to an AffectLabelSet and remains distinct from EmotionType; reviewed affect correspondences never replace the original identity."
+msgstr "特化自 ClassifierLabel 的确切情感分类器标签标识。它属于 AffectLabelSet，且有别于 EmotionType；经审查的情感对应关系绝不替代原始标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Output"
+msgstr "情感分类器输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-specialized ClassifierOutput whose emitted label is an AffectClassifierLabel. It inherits the general run, target, score and semantics contract and may support an AffectiveClaim. It never directly entails inner affect; calibrated probability is not automatically epistemic confidence."
+msgstr "情感特化的 ClassifierOutput，其输出标签为 AffectClassifierLabel。它继承通用的运行、目标、分数及语义契约，并可支持 AffectiveClaim。它绝不直接蕴含内在情感；校准概率不会自动成为认知置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Label Set"
+msgstr "情感标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-classifier label vocabulary specializing ClassifierLabelSet. A registered static set used by the affect producer declares labelSetDecision; a run-scoped zero-shot candidate set may legitimately lack that rule. Neither form defines canonical emotion categories."
+msgstr "特化自 ClassifierLabelSet 的情感分类器标签词表。情感生产器使用的已注册静态集合声明 labelSetDecision；运行范围的零样本候选集可合法地缺少此规则。两者都不定义规范情绪类别。"

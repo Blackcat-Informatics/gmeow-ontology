@@ -18,8 +18,8 @@ msgid "authorIdentityString is functional"
 msgstr "authorIdentityString 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."
-msgstr "在规范载体上断言 gmeow:authorIdentityString 是函数性的:一个 AuthorIdentity 恰好记录一条原始字节串——即提交对象中出现的那唯一一行『Name <email>』,是一条不可变的历史断言,永远不会被重新记录。"
+msgid "Asserts that authorIdentityString is functional: one AuthorIdentity carries exactly one recorded raw identity byte string from a version-control object header. The same characteristic preserves historical author, committer and tagger identities."
+msgstr "断言 authorIdentityString 具有函数性：一个 AuthorIdentity 恰好承载一个版本控制对象头字段记录的原始身份字节串。相同特征保留作者、提交者及标签创建者的历史身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/buildConfigUriFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "buildConfigUri is functional"
@@ -136,10 +136,6 @@ msgstr "在规范载体上断言 gmeow:treeEntryName 是函数性的:一个树�
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "treeEntryObject is functional"
 msgstr "treeEntryObject 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:treeEntryObject 是函数性的:一个树条目恰好指向一个内容寻址对象——即树中那一行所命名的唯一 Blob 或 SourceTree。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityStringFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:authorIdentityString names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -464,3 +460,1214 @@ msgstr "范围：该记录仅承载关于 gmeow:treeEntryObject 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/software|skos:scopeNote"
 msgid "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."
 msgstr "普通修订通过显示抑制保留被替代记录。独立授权的受治理删除只移除选定命名对象，包括遗忘请求本身，不保留删除回执，也不沿引用级联删除。未选中引用可以悬空并返回“已不存在”。接续保留早期事实时间有效性；纠正仅在纠正立场下拒绝早先声明。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from AnnotatedTag alone."
+msgstr "避免仅从 AnnotatedTag 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit AnnotatedTag value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 AnnotatedTag 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Annotated Tag in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留附注标签。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Annotated Tag"
+msgstr "附注标签"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A content-addressed Git tag object with its own bytes, target and recorded tag name. It is a SourceNode artifact, distinct from a mutable tag ref, a release event and a folksonomy Tag."
+msgstr "具有自身字节、目标及记录标签名的内容寻址 Git 标签对象。它是 SourceNode 制品，区别于可变标签引用、发布事件及民间分类 Tag。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:AnnotatedTag explicitly."
+msgstr "来源记录显式命名 gmeow:AnnotatedTag。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from Checkout alone."
+msgstr "避免仅从 Checkout 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit Checkout value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 Checkout 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Checkout in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留检出视图。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Checkout"
+msgstr "检出视图"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observed checkout working view scoped to a repository and recording time. It is an information snapshot, not a committed tree object or an instruction to run Git."
+msgstr "以仓库及记录时间限定范围的观察所得检出工作视图。它是信息快照，而非已提交树对象或运行 Git 的指令。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Checkout|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:Checkout explicitly."
+msgstr "来源记录显式命名 gmeow:Checkout。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from CommitParentOccurrence alone."
+msgstr "避免仅从 CommitParentOccurrence 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit CommitParentOccurrence value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 CommitParentOccurrence 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Commit Parent Occurrence in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留提交父出现项。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Commit Parent Occurrence"
+msgstr "提交父出现项"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An RDF 1.2 reifier of one parentCommit assertion at one position in a declared parent sequence. The reified tuple alone identifies child and parent; entryOrdinal supplies its zero-based position."
+msgstr "声明父序列中某位置的一个 parentCommit 断言的 RDF 1.2 具体化者。仅被具体化元组标识子及父提交；entryOrdinal 提供从零开始的位置。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:CommitParentOccurrence explicitly."
+msgstr "来源记录显式命名 gmeow:CommitParentOccurrence。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from CommitParentSequence alone."
+msgstr "避免仅从 CommitParentSequence 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit CommitParentSequence value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 CommitParentSequence 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Commit Parent Sequence in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留提交父序列。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Commit Parent Sequence"
+msgstr "提交父序列"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly scoped ordered roster of parent occurrences for one commit. Its occurrence identities preserve repeated parent targets and octopus merges; the consumer relates the actual reified tuples to the owning commit."
+msgstr "一个提交的显式限定范围的父出现项有序清单。出现项身份保留重复父目标及多父合并；使用方将实际被具体化元组关联至所属提交。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitParentSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:CommitParentSequence explicitly."
+msgstr "来源记录显式命名 gmeow:CommitParentSequence。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from GitObjectFormat alone."
+msgstr "避免仅从 GitObjectFormat 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit GitObjectFormat value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 GitObjectFormat 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Git Object Format in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留Git 对象格式。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git Object Format"
+msgstr "Git 对象格式"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary naming a Git repository’s object hashing format. It describes object identifiers, not a signature algorithm or verification result."
+msgstr "命名 Git 仓库对象哈希格式的开放词汇。描述对象标识符，而非签名算法或验证结果。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitObjectFormat|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:GitObjectFormat explicitly."
+msgstr "来源记录显式命名 gmeow:GitObjectFormat。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from TagRef alone."
+msgstr "避免仅从 TagRef 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit TagRef value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 TagRef 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Tag Ref in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留标签引用。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tag Ref"
+msgstr "标签引用"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A version-control tag reference, distinct from the immutable annotated tag object it may target and from a folksonomy Tag."
+msgstr "版本控制标签引用，区别于其可能指向的不可变附注标签对象及民间分类 Tag。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TagRef|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:TagRef explicitly."
+msgstr "来源记录显式命名 gmeow:TagRef。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from TreePathOccurrence alone."
+msgstr "避免仅从 TreePathOccurrence 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit TreePathOccurrence value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 TreePathOccurrence 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Tree Path Occurrence in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留树路径出现项。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tree Path Occurrence"
+msgstr "树路径出现项"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence identified by a root SourceTree and the exact repository-relative path bytes under that root. Its terminal TreeEntry may also occur through another path when a subtree is reused."
+msgstr "由根 SourceTree 及该根下确切仓库相对路径字节标识的出现项。复用子树时，同一终端 TreeEntry 可通过另一路径出现。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:TreePathOccurrence explicitly."
+msgstr "来源记录显式命名 gmeow:TreePathOccurrence。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from WorkingTreeEntry alone."
+msgstr "避免仅从 WorkingTreeEntry 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit WorkingTreeEntry value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 WorkingTreeEntry 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Working Tree Entry in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留工作树条目。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Working Tree Entry"
+msgstr "工作树条目"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A repository-relative entry in one observed checkout. Dirty and untracked entries are represented without requiring a committed TreeEntry, Blob or content digest."
+msgstr "一个观察所得检出视图中的仓库相对条目。修改及未跟踪条目无需已提交 TreeEntry、Blob 或内容摘要即可表示。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorkingTreeEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:WorkingTreeEntry explicitly."
+msgstr "来源记录显式命名 gmeow:WorkingTreeEntry。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from checkedOutCommit alone."
+msgstr "避免仅从 checkedOutCommit 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit checkedOutCommit value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 checkedOutCommit 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain checked-out commit in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留已检出提交。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checked-out commit"
+msgstr "已检出提交"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The checked-out commit when observed and available. Absence remains unknown and also permits an unborn checkout without inventing a commit."
+msgstr "观察到且可用时的已检出提交。缺失保持未知，也允许尚无提交的检出视图，无需虚构提交。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkedOutCommit|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:checkedOutCommit explicitly."
+msgstr "来源记录显式命名 gmeow:checkedOutCommit。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from checkoutRepository alone."
+msgstr "避免仅从 checkoutRepository 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit checkoutRepository value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 checkoutRepository 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain checkout repository in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留检出仓库。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkout repository"
+msgstr "检出仓库"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repository whose working view this checkout observation records."
+msgstr "该检出观察记录其工作视图的仓库。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/checkoutRepository|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:checkoutRepository explicitly."
+msgstr "来源记录显式命名 gmeow:checkoutRepository。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from commitParentSequence alone."
+msgstr "避免仅从 commitParentSequence 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit commitParentSequence value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 commitParentSequence 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain commit parent sequence in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留提交父序列。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commit parent sequence"
+msgstr "提交父序列"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared parent-order roster for this commit, without replacing its unordered parentCommit provenance edges."
+msgstr "该提交显式声明的父顺序清单，不替换无序 parentCommit 溯源边。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitParentSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:commitParentSequence explicitly."
+msgstr "来源记录显式命名 gmeow:commitParentSequence。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from entryInTree alone."
+msgstr "避免仅从 entryInTree 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit entryInTree value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 entryInTree 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain entry in tree in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留条目所属树。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry in tree"
+msgstr "条目所属树"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immediate committed tree whose entry this TreeEntry is. This owner participates in entry identity and is distinct from a path occurrence’s root tree."
+msgstr "该 TreeEntry 作为条目所属的直接已提交树。此所属者参与条目身份，区别于路径出现项的根树。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryInTree|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:entryInTree explicitly."
+msgstr "来源记录显式命名 gmeow:entryInTree。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from gitObjectFormatSha1 alone."
+msgstr "避免仅从 gitObjectFormatSha1 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit gitObjectFormatSha1 value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 gitObjectFormatSha1 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Git SHA-1 object format in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留Git SHA-1 对象格式。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git SHA-1 object format"
+msgstr "Git SHA-1 对象格式"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Git object format using SHA-1 object identifiers. This value makes no claim that a signature was produced or verified."
+msgstr "使用 SHA-1 对象标识符的 Git 对象格式。此值不声称生成或验证了签名。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha1|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:gitObjectFormatSha1 explicitly."
+msgstr "来源记录显式命名 gmeow:gitObjectFormatSha1。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from gitObjectFormatSha256 alone."
+msgstr "避免仅从 gitObjectFormatSha256 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit gitObjectFormatSha256 value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 gitObjectFormatSha256 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Git SHA-256 object format in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留Git SHA-256 对象格式。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git SHA-256 object format"
+msgstr "Git SHA-256 对象格式"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Git object format using SHA-256 object identifiers, distinct from an RSA-SHA256 signature scheme."
+msgstr "使用 SHA-256 对象标识符的 Git 对象格式，区别于 RSA-SHA256 签名方案。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gitObjectFormatSha256|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:gitObjectFormatSha256 explicitly."
+msgstr "来源记录显式命名 gmeow:gitObjectFormatSha256。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from holdsObject alone."
+msgstr "避免仅从 holdsObject 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit holdsObject value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 holdsObject 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain holds object in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留持有对象。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "holds object"
+msgstr "持有对象"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A repository holds this Blob, SourceTree, Commit or AnnotatedTag in the reported scope. Holdings are nonfunctional and do not assert ownership, reachability or an exhaustive object inventory."
+msgstr "仓库在报告范围内持有此 Blob、SourceTree、Commit 或 AnnotatedTag。此非函数关系不声明所有权、可达性或完整对象清单。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/holdsObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:holdsObject explicitly."
+msgstr "来源记录显式命名 gmeow:holdsObject。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from inCheckout alone."
+msgstr "避免仅从 inCheckout 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit inCheckout value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 inCheckout 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain in checkout in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留所属检出视图。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in checkout"
+msgstr "所属检出视图"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The observed checkout containing this working entry. This relation does not type the entry as a committed TreeEntry."
+msgstr "包含该工作条目的观察所得检出视图。此关系不将条目归类为已提交 TreeEntry。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inCheckout|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:inCheckout explicitly."
+msgstr "来源记录显式命名 gmeow:inCheckout。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from objectFormat alone."
+msgstr "避免仅从 objectFormat 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit objectFormat value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 objectFormat 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain Git object format in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留Git 对象格式。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git object format"
+msgstr "Git 对象格式"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The repository’s selected Git object format. A Git repository selects exactly one format; other version-control systems acquire no new required format field."
+msgstr "仓库选择的 Git 对象格式。Git 仓库恰选择一个格式；其他版本控制系统不新增必需格式字段。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/objectFormat|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:objectFormat explicitly."
+msgstr "来源记录显式命名 gmeow:objectFormat。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from parentOccurrence alone."
+msgstr "避免仅从 parentOccurrence 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit parentOccurrence value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 parentOccurrence 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain parent occurrence in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留父出现项。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parent occurrence"
+msgstr "父出现项"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One separately identified occurrence in a commit’s parent sequence. Two positions may reify the same child-parent tuple without becoming one occurrence."
+msgstr "提交父序列中一个单独标识的出现项。两个位置可具体化同一子父元组，而不成为同一个出现项。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/parentOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:parentOccurrence explicitly."
+msgstr "来源记录显式命名 gmeow:parentOccurrence。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from pathEntry alone."
+msgstr "避免仅从 pathEntry 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit pathEntry value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 pathEntry 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain terminal path entry in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留终端路径条目。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "terminal path entry"
+msgstr "终端路径条目"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The committed TreeEntry reached at this exact path from this root. The same entry identity can be reached through distinct paths under a shared root."
+msgstr "从该根经此确切路径到达的已提交 TreeEntry。同一条目身份可经共享根下的不同路径到达。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/pathEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:pathEntry explicitly."
+msgstr "来源记录显式命名 gmeow:pathEntry。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from refTarget alone."
+msgstr "避免仅从 refTarget 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit refTarget value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 refTarget 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain reference target in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留引用目标。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference target"
+msgstr "引用目标"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An observed immediate Git object target of a Ref. It admits blobs, trees, commits and annotated tags without claiming that every reference points directly to a commit."
+msgstr "观察到的 Ref 直接 Git 对象目标。允许 blob、树、提交及附注标签，不声称每个引用都直接指向提交。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:refTarget explicitly."
+msgstr "来源记录显式命名 gmeow:refTarget。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from releaseRef alone."
+msgstr "避免仅从 releaseRef 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit releaseRef value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 releaseRef 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain release reference in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留发布引用。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "release reference"
+msgstr "发布引用"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A VCS tag reference associated with a release event. It does not change releaseTag’s folksonomy range or identify the release with a tag object."
+msgstr "与发布事件关联的版本控制标签引用。不改变 releaseTag 的民间分类值域，也不将发布事件等同于标签对象。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseRef|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:releaseRef explicitly."
+msgstr "来源记录显式命名 gmeow:releaseRef。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from repositoryPath alone."
+msgstr "避免仅从 repositoryPath 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit repositoryPath value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 repositoryPath 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain repository-relative path in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留仓库相对路径。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repository-relative path"
+msgstr "仓库相对路径"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact repository-relative path bytes, carried as a UTF-8 xsd:string or as xsd:hexBinary for byte-preserving representation. No case, Unicode, separator or dot-segment normalization is permitted."
+msgstr "确切仓库相对路径字节，以 UTF-8 xsd:string 或保留字节的 xsd:hexBinary 承载。不允许大小写、Unicode、分隔符或点段归一化。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repositoryPath|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:repositoryPath explicitly."
+msgstr "来源记录显式命名 gmeow:repositoryPath。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from rootTree alone."
+msgstr "避免仅从 rootTree 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit rootTree value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 rootTree 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain path root tree in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留路径根树。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "path root tree"
+msgstr "路径根树"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The committed root tree defining this occurrence’s path frame, not merely the immediate tree containing its terminal entry."
+msgstr "定义该出现项路径参考框架的已提交根树，而非仅直接包含终端条目的树。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rootTree|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:rootTree explicitly."
+msgstr "来源记录显式命名 gmeow:rootTree。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from tagName alone."
+msgstr "避免仅从 tagName 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit tagName value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 tagName 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain recorded tag name in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留记录的标签名。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded tag name"
+msgstr "记录的标签名"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The tag object’s exact recorded name bytes, retained without trimming, case folding or Unicode normalization."
+msgstr "标签对象记录的确切名称字节，不裁剪空白、不折叠大小写、不归一化 Unicode。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagName|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:tagName explicitly."
+msgstr "来源记录显式命名 gmeow:tagName。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from tagTarget alone."
+msgstr "避免仅从 tagTarget 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit tagTarget value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 tagTarget 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain annotated tag target in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留附注标签目标。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "annotated tag target"
+msgstr "附注标签目标"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immediate object named by an annotated tag. It may be a blob, tree, commit or another tag; it is not silently peeled to a commit."
+msgstr "附注标签命名的直接对象，可为 blob、树、提交或另一标签；不会被暗中剥离为提交。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:tagTarget explicitly."
+msgstr "来源记录显式命名 gmeow:tagTarget。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from taggerIdentity alone."
+msgstr "避免仅从 taggerIdentity 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit taggerIdentity value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 taggerIdentity 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain tagger identity in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留标签创建者身份。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagger identity"
+msgstr "标签创建者身份"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded historical identity of the tagger, when present, using AuthorIdentity independently of a currently canonical agent."
+msgstr "存在时记录的标签创建者历史身份，使用 AuthorIdentity，独立于当前规范化智能体。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:taggerIdentity explicitly."
+msgstr "来源记录显式命名 gmeow:taggerIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from taggerTime alone."
+msgstr "避免仅从 taggerTime 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit taggerTime value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 taggerTime 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain tagger time in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留标签创建时间。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagger time"
+msgstr "标签创建时间"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded tagger timestamp, when present, distinct from commit author time, committer time and this record’s observation time."
+msgstr "存在时记录的标签创建者时间戳，区别于提交作者时间、提交者时间及该记录观察时间。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/taggerTime|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:taggerTime explicitly."
+msgstr "来源记录显式命名 gmeow:taggerTime。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring object completeness, ownership or successful Git execution from untracked alone."
+msgstr "避免仅从 untracked 推断对象完备性、所有权或 Git 执行成功。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit untracked value with its source and observation scope."
+msgstr "连同来源及观察范围保留显式 untracked 值。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain untracked in an attributed repository description."
+msgstr "用于在带有归属的仓库描述中保留未跟踪。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "untracked"
+msgstr "未跟踪"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit report that this working entry is untracked. Absence is unknown; false does not assert committed-tree membership or a clean working file."
+msgstr "显式报告该工作条目未被跟踪。缺失为未知；假不表示属于已提交树或工作文件干净。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/untracked|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record names gmeow:untracked explicitly."
+msgstr "来源记录显式命名 gmeow:untracked。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating GitRepositoryHasObjectFormatConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 GitRepositoryHasObjectFormatConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply GitRepositoryHasObjectFormatConstraint to the explicitly scoped source records."
+msgstr "将 GitRepositoryHasObjectFormatConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve Git repository object format presence constraint."
+msgstr "用于保持Git 仓库对象格式存在性约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git repository object format presence constraint"
+msgstr "Git 仓库对象格式存在性约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A repository classified as Git explicitly names its selected object format; non-Git repositories gain no required field."
+msgstr "归类为 Git 的仓库显式命名其所选对象格式；非 Git 仓库不新增必需字段。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasObjectFormatConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:GitRepositoryHasObjectFormatConstraint."
+msgstr "来源记录受 gmeow:GitRepositoryHasObjectFormatConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating GitRepositoryHasOneObjectFormatConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 GitRepositoryHasOneObjectFormatConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply GitRepositoryHasOneObjectFormatConstraint to the explicitly scoped source records."
+msgstr "将 GitRepositoryHasOneObjectFormatConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve Git repository object format uniqueness constraint."
+msgstr "用于保持Git 仓库对象格式唯一性约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Git repository object format uniqueness constraint"
+msgstr "Git 仓库对象格式唯一性约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One Git repository selects one object format; conflicting selections do not define a mixed format."
+msgstr "一个 Git 仓库选择一个对象格式；冲突选择不定义混合格式。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GitRepositoryHasOneObjectFormatConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:GitRepositoryHasOneObjectFormatConstraint."
+msgstr "来源记录受 gmeow:GitRepositoryHasOneObjectFormatConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ParentOccurrenceHasReifiedTupleConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 ParentOccurrenceHasReifiedTupleConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ParentOccurrenceHasReifiedTupleConstraint to the explicitly scoped source records."
+msgstr "将 ParentOccurrenceHasReifiedTupleConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve parent occurrence reified tuple constraint."
+msgstr "用于保持父出现项被具体化元组约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parent occurrence reified tuple constraint"
+msgstr "父出现项被具体化元组约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every listed parent occurrence is an actual RDF 1.2 reifier. The consumer reads child and parent from that tuple and checks the owning commit scope."
+msgstr "每个列出的父出现项均为实际 RDF 1.2 具体化者。使用方从该元组读取子及父提交，并检查所属提交范围。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceHasReifiedTupleConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:ParentOccurrenceHasReifiedTupleConstraint."
+msgstr "来源记录受 gmeow:ParentOccurrenceHasReifiedTupleConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ParentOccurrenceSequenceScopeConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 ParentOccurrenceSequenceScopeConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ParentOccurrenceSequenceScopeConstraint to the explicitly scoped source records."
+msgstr "将 ParentOccurrenceSequenceScopeConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve parent occurrence sequence scope constraint."
+msgstr "用于保持父出现项序列范围约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parent occurrence sequence scope constraint"
+msgstr "父出现项序列范围约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One occurrence identity belongs to one sequence; repeated targets or another recorded sequence use distinct occurrence identities."
+msgstr "一个出现项身份属于一个序列；重复目标或另一记录序列使用不同出现项身份。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOccurrenceSequenceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:ParentOccurrenceSequenceScopeConstraint."
+msgstr "来源记录受 gmeow:ParentOccurrenceSequenceScopeConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ParentOrdinalUniqueInSequenceConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 ParentOrdinalUniqueInSequenceConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ParentOrdinalUniqueInSequenceConstraint to the explicitly scoped source records."
+msgstr "将 ParentOrdinalUniqueInSequenceConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve parent ordinal uniqueness in sequence constraint."
+msgstr "用于保持父序列内序号唯一性约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parent ordinal uniqueness in sequence constraint"
+msgstr "父序列内序号唯一性约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two different occurrence records in one parent sequence cannot claim the same ordinal. Equal parent targets at different positions remain permitted."
+msgstr "同一父序列中两个不同出现项记录不能声称相同序号。不同位置仍允许相同父目标。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentOrdinalUniqueInSequenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:ParentOrdinalUniqueInSequenceConstraint."
+msgstr "来源记录受 gmeow:ParentOrdinalUniqueInSequenceConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ParentSequenceCommitScopeConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 ParentSequenceCommitScopeConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ParentSequenceCommitScopeConstraint to the explicitly scoped source records."
+msgstr "将 ParentSequenceCommitScopeConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve parent sequence commit scope constraint."
+msgstr "用于保持父序列提交范围约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "parent sequence commit scope constraint"
+msgstr "父序列提交范围约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One recorded parent sequence belongs to one commit. Its occurrence tuple scope is interpreted against that commit by the consumer."
+msgstr "一个记录的父序列属于一个提交。使用方相对于该提交解释其出现项元组范围。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ParentSequenceCommitScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:ParentSequenceCommitScopeConstraint."
+msgstr "来源记录受 gmeow:ParentSequenceCommitScopeConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating TaggerIdentityHasTimeConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 TaggerIdentityHasTimeConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply TaggerIdentityHasTimeConstraint to the explicitly scoped source records."
+msgstr "将 TaggerIdentityHasTimeConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve tagger identity timestamp constraint."
+msgstr "用于保持标签创建者身份时间戳约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagger identity timestamp constraint"
+msgstr "标签创建者身份时间戳约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported tagger identity retains its corresponding tagger timestamp; tags with no tagger header acquire no invented identity or time."
+msgstr "报告的标签创建者身份保留其对应时间戳；没有创建者头字段的标签不获得虚构身份或时间。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerIdentityHasTimeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:TaggerIdentityHasTimeConstraint."
+msgstr "来源记录受 gmeow:TaggerIdentityHasTimeConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating TaggerTimeHasIdentityConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 TaggerTimeHasIdentityConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply TaggerTimeHasIdentityConstraint to the explicitly scoped source records."
+msgstr "将 TaggerTimeHasIdentityConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve tagger timestamp identity constraint."
+msgstr "用于保持标签创建时间戳身份约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tagger timestamp identity constraint"
+msgstr "标签创建时间戳身份约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reported tagger timestamp retains the historical identity whose header supplied it; it is not a commit author-time statement."
+msgstr "报告的标签创建时间戳保留提供该头字段的历史身份；它不是提交作者时间断言。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TaggerTimeHasIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:TaggerTimeHasIdentityConstraint."
+msgstr "来源记录受 gmeow:TaggerTimeHasIdentityConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating TreePathEntryHasImmediateOwnerConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 TreePathEntryHasImmediateOwnerConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply TreePathEntryHasImmediateOwnerConstraint to the explicitly scoped source records."
+msgstr "将 TreePathEntryHasImmediateOwnerConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve tree path entry immediate owner constraint."
+msgstr "用于保持树路径条目直接所属者约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree path entry immediate owner constraint"
+msgstr "树路径条目直接所属者约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A terminal entry selected by a path occurrence names its immediate containing tree. That tree need not equal the path root."
+msgstr "路径出现项选择的终端条目命名其直接包含树。该树不必等于路径根。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathEntryHasImmediateOwnerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:TreePathEntryHasImmediateOwnerConstraint."
+msgstr "来源记录受 gmeow:TreePathEntryHasImmediateOwnerConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating TreePathSameLiteralHasSameEntryConstraint as a traversal, hashing or Git execution certificate."
+msgstr "避免将 TreePathSameLiteralHasSameEntryConstraint 视为遍历、哈希或 Git 执行证书。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply TreePathSameLiteralHasSameEntryConstraint to the explicitly scoped source records."
+msgstr "将 TreePathSameLiteralHasSameEntryConstraint 应用于显式限定范围的来源记录。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve same represented tree path terminal constraint."
+msgstr "用于保持同一表示树路径终端约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same represented tree path terminal constraint"
+msgstr "同一表示树路径终端约束"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one root tree, identical represented path literals name the same terminal entry. Cross-encoding byte identity and actual traversal remain consumer obligations."
+msgstr "在同一根树下，表示相同的路径字面量命名同一终端条目。跨编码字节身份及实际遍历仍由使用方负责。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreePathSameLiteralHasSameEntryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:TreePathSameLiteralHasSameEntryConstraint."
+msgstr "来源记录受 gmeow:TreePathSameLiteralHasSameEntryConstraint 约束。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AuthorIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded author, committer or tagger identity in a version-control object, retaining its historical raw bytes independently of the currently canonical agent. Superseded identities remain retained rather than rewritten."
+msgstr "版本控制对象中记录的作者、提交者或标签创建者身份，独立于当前规范化智能体保留历史原始字节。被取代身份予以保留而不被重写。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Ref|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A version-control reference to an object, including commit, tree, blob or annotated tag targets. It is distinct from the immutable object it names; observed target claims retain their own provenance and scope."
+msgstr "指向对象的版本控制引用，包括提交、树、blob 或附注标签目标。它区别于所命名的不可变对象；观察所得目标主张保留其自身溯源及范围。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The folksonomy Tag associated with a release, retaining the existing tag classification surface. Use releaseRef for a VCS tag reference; this property neither names an AnnotatedTag object nor changes the sort of existing Tag values."
+msgstr "与发布关联的民间分类 Tag，保留现有标签分类表面。版本控制标签引用使用 releaseRef；此属性既不命名 AnnotatedTag 对象，也不改变现有 Tag 值的种类。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/authorIdentityString|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The raw author, committer or tagger identity bytes recorded in a version-control object header, typically Name <email>, preserved independently of canonical agent resolution."
+msgstr "版本控制对象头字段中记录的原始作者、提交者或标签创建者身份字节，通常为 Name <email>，独立于规范化智能体解析予以保留。"
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tree Entry"
+msgstr "树条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named pointer within a source tree, carrying a name, Git mode and content-addressed target. Regular files, executable files and symlinks target a Blob; directories target a SourceTree; gitlinks target a Commit. AnnotatedTag is never a tree-entry target. Entry identity belongs to its containing tree."
+msgstr "源树中的命名指针，带有名称、Git 模式和内容寻址目标。普通文件、可执行文件和符号链接指向 Blob；目录指向 SourceTree；gitlink 指向 Commit。AnnotatedTag 绝不是树条目目标。条目标识归属于其所在树。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree entry object"
+msgstr "树条目对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single content-addressed target of a tree entry: Blob for regular files, executables and symlinks; SourceTree for directories; Commit for gitlinks. AnnotatedTag is excluded, and Commit retains its Activity/Event sort."
+msgstr "树条目的唯一内容寻址目标：普通文件、可执行文件和符号链接使用 Blob；目录使用 SourceTree；gitlink 使用 Commit。排除 AnnotatedTag，Commit 保留其 Activity/Event 类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree entry mode"
+msgstr "树条目模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryObjectFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: one tree entry names exactly one target, a Blob, SourceTree or gitlink Commit according to its recorded mode. The characteristic fixes target multiplicity; the class and mode laws govern target kind."
+msgstr "在规范载体上断言 gmeow:treeEntryObject 具有函数性：一个树条目恰好指定一个目标，按其记录模式为 Blob、SourceTree 或 gitlink Commit。此特征规定目标数量；类及模式定律规定目标类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryDirectoryTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree directory target constraint"
+msgstr "树目录目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryDirectoryTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with directory mode 040000 or 40000 targets a SourceTree."
+msgstr "目录模式为 040000 或 40000 的树条目指向 SourceTree。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryBlobTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree blob target constraint"
+msgstr "树 blob 目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryBlobTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob."
+msgstr "普通文件、可执行文件或符号链接模式为 100644、100755 或 120000 的树条目指向 Blob。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryGitlinkTargetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tree gitlink target constraint"
+msgstr "树 gitlink 目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TreeEntryGitlinkTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit’s Event sort."
+msgstr "gitlink 模式为 160000 的树条目指向 Commit，并保留提交的 Event 类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."
+msgstr "树条目记录的八进制 Git 模式字符串，保留其拼写和前导零。模式 100644、100755 和 120000 要求 Blob 目标；目录写法 040000 和 40000 要求 SourceTree；gitlink 模式 160000 要求 Commit。具有函数性：每个条目一个模式。这些类别约束不解析或验证对象字节。"

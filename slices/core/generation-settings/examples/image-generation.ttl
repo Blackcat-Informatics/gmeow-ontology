@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/generation-settings/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:illustrator a gmeow:SoftwareAgent ;
+    rdfs:label "Archive illustration model"@en .
+
+ex:instruction a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Paint a copper observatory beneath a violet evening sky." .
+
+# The request is creative; the separately recorded numbers are those supplied
+# for this invocation. The step setting does not certify completed computation.
+ex:run a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:illustrator ;
+    gmeow:hasPrompt ex:instruction ;
+    gmeow:eventTime "2026-10-30T18:00:00Z"^^xsd:dateTime ;
+    gmeow:modelMode gmeow:modelModeCreative ;
+    gmeow:generationSeed 42 ;
+    gmeow:generationSteps "30"^^xsd:nonNegativeInteger ;
+    gmeow:guidanceScale 7.5 ;
+    gmeow:samplerName "Euler  ancestral" .
+
+# Preserve the supplied sampler name's two spaces. Output provenance uses the
+# existing reverse link; recording a seed does not assert reproducibility.
+ex:illustration a gmeow:InformationObject ;
+    rdfs:label "Observatory illustration"@en ;
+    gmeow:wasGeneratedBy ex:run ;
+    gmeow:wasAttributedTo ex:illustrator .

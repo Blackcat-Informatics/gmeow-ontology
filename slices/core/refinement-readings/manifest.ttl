@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/refinement-readings>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "refinement readings"@x-gmeow-english ;
+    skos:definition "Scoped relational findings, attributed milestone annotations and reading-limit aggregates preserving source evidence and actual query-loss identities."@x-gmeow-english ;
+    dcterms:title "GMEOW Refinement Readings Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Consumer-owned record refiners and recall adapters exposing scoped findings as process readings rather than subject assertions."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/observations>,
+        <https://blackcatinformatics.ca/gmeow/slices/query-context>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal>,
+        <https://blackcatinformatics.ca/gmeow/slices/places>,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference>,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> .

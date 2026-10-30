@@ -1,0 +1,138 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:generationSeed
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "generation seed"@x-gmeow-english ;
+    skos:definition "The integer seed from which the sampler of one generative model invocation was started. A seed alone does not guarantee reproducibility."@x-gmeow-english ;
+    gmeow:useWhen "Record the seed actually supplied to the model sampler."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid random draws that did not seed a model and claims that matching seeds alone reproduce an output."@x-gmeow-english ;
+    gmeow:howToUse "Assert generationSeed on the ModelInvocation using an xsd:integer literal."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:generationSeed 42 ."@x-gmeow-english .
+
+gmeow:generationSteps
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "generation steps"@x-gmeow-english ;
+    skos:definition "The nonnegative number of denoising or sampling steps one generative model invocation was given, rather than a count of steps actually completed."@x-gmeow-english ;
+    gmeow:useWhen "Record the sampling or denoising step setting given to this run."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid agent step budgets and interpreting the configured number as evidence of completed computation."@x-gmeow-english ;
+    gmeow:howToUse "Assert generationSteps on the ModelInvocation using an xsd:nonNegativeInteger literal."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:generationSteps \"30\"^^xsd:nonNegativeInteger ."@x-gmeow-english .
+
+gmeow:guidanceScale
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:decimal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "guidance scale"@x-gmeow-english ;
+    skos:definition "The decimal classifier-free guidance scale one generative model invocation was given. Its interpretation depends on the model and serving engine."@x-gmeow-english ;
+    gmeow:useWhen "Record the classifier-free guidance parameter supplied for this invocation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confidence scores, guidance rubrics and model-independent quality rankings."@x-gmeow-english ;
+    gmeow:howToUse "Assert guidanceScale on the ModelInvocation using an xsd:decimal literal."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:guidanceScale 7.5 ."@x-gmeow-english .
+
+gmeow:samplerName
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "sampler name"@x-gmeow-english ;
+    skos:definition "The exact sampler name supplied by the engine for one generative model invocation, retained verbatim as a string including its whitespace."@x-gmeow-english ;
+    gmeow:useWhen "Retain the engine’s exact sampler designation for this run."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming the model itself or normalizing case, spacing or punctuation in the engine’s name."@x-gmeow-english ;
+    gmeow:howToUse "Assert samplerName on the ModelInvocation using an xsd:string literal."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."@x-gmeow-english .
+
+gmeow:ModelMode
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model Mode"@x-gmeow-english ;
+    skos:definition "An open value vocabulary of requested model settings profiles. A profile expresses the caller’s intent without imposing universal numerical parameters or asserting fulfillment."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a named settings profile requested by a caller."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the seed profiles as an exhaustive list or equating a requested profile with measured output quality."@x-gmeow-english ;
+    gmeow:howToUse "Mint an additional ModelMode individual when the serving layer has a distinct requested profile; keep actual parameters on the invocation."@x-gmeow-english ;
+    skos:example "Record this setting: ex:localProfile a gmeow:ModelMode ."@x-gmeow-english .
+
+gmeow:modelMode
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ModelInvocation ;
+    logic:range gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "model mode"@x-gmeow-english ;
+    skos:definition "The named settings profile requested for a model invocation, kept separate from the numerical parameters actually supplied by its serving layer."@x-gmeow-english ;
+    gmeow:useWhen "Record the caller’s requested profile alongside the actual run parameters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a model alias, inferring fulfillment or deriving numerical parameters from the profile alone."@x-gmeow-english ;
+    gmeow:howToUse "Assert modelMode on the ModelInvocation using a ModelMode resource."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."@x-gmeow-english .
+
+gmeow:modelModeDeepThinking
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "deep thinking mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for long-form reasoning when no caller is waiting for an immediate reply. It does not promise a particular duration, reasoning quality or parameter setting."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests extended deliberation without an immediate response requirement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this value as evidence that a model performed extended reasoning."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeDeepThinking with modelMode and record actual parameters independently."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:modelMode gmeow:modelModeDeepThinking ."@x-gmeow-english .
+
+gmeow:modelModeCreative
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creative mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for invention with room to explore alternatives. Its numerical realization is model-family and serving-layer specific."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests inventive exploration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming a universal temperature or claiming that the output is creative merely from this request."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeCreative with modelMode and record actual parameters independently."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."@x-gmeow-english .
+
+gmeow:modelModeExtremelyCreative
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "extremely creative mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for the widest creative range offered by the serving layer. It specifies no universal numerical maximum or output guarantee."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests the serving layer’s broadest creative profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this profile as a cross-model maximum or a measured creativity score."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeExtremelyCreative with modelMode and record actual parameters independently."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:modelMode gmeow:modelModeExtremelyCreative ."@x-gmeow-english .
+
+gmeow:modelModeNarrative
+    a gmeow:ModelMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "narrative mode"@x-gmeow-english ;
+    skos:definition "A requested settings profile for prose that weaves supplied material together. It does not assert factuality, successful synthesis or a fixed sampling configuration."@x-gmeow-english ;
+    gmeow:useWhen "Use when the caller requests narrative integration of given material."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a narrative request as evidence that the generated prose is true or complete."@x-gmeow-english ;
+    gmeow:howToUse "Link the invocation to gmeow:modelModeNarrative with modelMode and record actual parameters independently."@x-gmeow-english ;
+    skos:example "Record this setting: ex:run gmeow:modelMode gmeow:modelModeNarrative ."@x-gmeow-english .
+
+# Range restrictions apply only to supplied values; no presence or uniqueness requirement.
+gmeow:ModelInvocation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:generationSeed ; logic:allValuesFrom xsd:integer ],
+    [ a logic:Restriction ; logic:onProperty gmeow:generationSteps ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:guidanceScale ; logic:allValuesFrom xsd:decimal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:samplerName ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:modelMode ; logic:allValuesFrom gmeow:ModelMode ] .

@@ -1,0 +1,266 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation seed"
+msgstr "生成种子"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer seed from which the sampler of one generative model invocation was started. A seed alone does not guarantee reproducibility."
+msgstr "一次生成模型调用的采样器启动时使用的整数种子。仅有种子不能保证可复现性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the seed actually supplied to the model sampler."
+msgstr "记录实际提供给模型采样器的种子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid random draws that did not seed a model and claims that matching seeds alone reproduce an output."
+msgstr "避免用于未作为模型种子的随机抽样，也避免声称相同种子本身即可复现输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert generationSeed on the ModelInvocation using an xsd:integer literal."
+msgstr "在 ModelInvocation 上使用 xsd:integer 字面量声明 generationSeed。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:generationSeed 42 ."
+msgstr "记录此设置：ex:run gmeow:generationSeed 42 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation steps"
+msgstr "生成步数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative number of denoising or sampling steps one generative model invocation was given, rather than a count of steps actually completed."
+msgstr "分配给一次生成模型调用的非负去噪或采样步数，而非实际完成的步数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the sampling or denoising step setting given to this run."
+msgstr "记录提供给本次运行的采样或去噪步数设置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid agent step budgets and interpreting the configured number as evidence of completed computation."
+msgstr "避免用于智能体步数预算，也避免将配置数量解释为已完成计算的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert generationSteps on the ModelInvocation using an xsd:nonNegativeInteger literal."
+msgstr "在 ModelInvocation 上使用 xsd:nonNegativeInteger 字面量声明 generationSteps。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:generationSteps \"30\"^^xsd:nonNegativeInteger ."
+msgstr "记录此设置：ex:run gmeow:generationSteps \"30\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance scale"
+msgstr "引导尺度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The decimal classifier-free guidance scale one generative model invocation was given. Its interpretation depends on the model and serving engine."
+msgstr "提供给一次生成模型调用的十进制无分类器引导尺度。其解释取决于模型和服务引擎。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the classifier-free guidance parameter supplied for this invocation."
+msgstr "记录为本次调用提供的无分类器引导参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confidence scores, guidance rubrics and model-independent quality rankings."
+msgstr "避免用于置信度评分、指导量规或不依赖模型的质量排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert guidanceScale on the ModelInvocation using an xsd:decimal literal."
+msgstr "在 ModelInvocation 上使用 xsd:decimal 字面量声明 guidanceScale。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:guidanceScale 7.5 ."
+msgstr "记录此设置：ex:run gmeow:guidanceScale 7.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampler name"
+msgstr "采样器名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact sampler name supplied by the engine for one generative model invocation, retained verbatim as a string including its whitespace."
+msgstr "引擎为一次生成模型调用提供的确切采样器名称，以字符串原样保留，包括空白。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Retain the engine’s exact sampler designation for this run."
+msgstr "保留引擎对本次运行采样器的确切命名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid naming the model itself or normalizing case, spacing or punctuation in the engine’s name."
+msgstr "避免用于命名模型本身，也避免规范化引擎名称中的大小写、空白或标点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert samplerName on the ModelInvocation using an xsd:string literal."
+msgstr "在 ModelInvocation 上使用 xsd:string 字面量声明 samplerName。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."
+msgstr "记录此设置：ex:run gmeow:samplerName \"Euler  ancestral\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Mode"
+msgstr "模型模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary of requested model settings profiles. A profile expresses the caller’s intent without imposing universal numerical parameters or asserting fulfillment."
+msgstr "用于所请求模型设置配置的开放值词汇表。配置表达调用者意图，不规定通用数值参数，也不声明请求已实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a named settings profile requested by a caller."
+msgstr "用于分类调用者请求的具名设置配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the seed profiles as an exhaustive list or equating a requested profile with measured output quality."
+msgstr "避免将初始配置视为穷尽列表，也避免将请求的配置等同于测得的输出质量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint an additional ModelMode individual when the serving layer has a distinct requested profile; keep actual parameters on the invocation."
+msgstr "服务层具有不同的请求配置时，可创建额外的 ModelMode 个体；将实际参数保留在调用上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:localProfile a gmeow:ModelMode ."
+msgstr "记录此设置：ex:localProfile a gmeow:ModelMode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model mode"
+msgstr "模型模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The named settings profile requested for a model invocation, kept separate from the numerical parameters actually supplied by its serving layer."
+msgstr "为模型调用请求的具名设置配置，与其服务层实际提供的数值参数分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the caller’s requested profile alongside the actual run parameters."
+msgstr "在实际运行参数之外记录调用者请求的配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a model alias, inferring fulfillment or deriving numerical parameters from the profile alone."
+msgstr "避免以模型别名替代，也避免仅从配置推断实现情况或推导数值参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert modelMode on the ModelInvocation using a ModelMode resource."
+msgstr "在 ModelInvocation 上使用 ModelMode 资源声明 modelMode。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."
+msgstr "记录此设置：ex:run gmeow:modelMode gmeow:modelModeCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deep thinking mode"
+msgstr "深入思考模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for long-form reasoning when no caller is waiting for an immediate reply. It does not promise a particular duration, reasoning quality or parameter setting."
+msgstr "一种请求的设置配置，用于调用者无需等待即时回复时的长篇推理。不承诺特定时长、推理质量或参数设置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests extended deliberation without an immediate response requirement."
+msgstr "用于调用者请求充分思考且不要求即时响应时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value as evidence that a model performed extended reasoning."
+msgstr "避免将此值作为模型已进行深入推理的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeDeepThinking with modelMode and record actual parameters independently."
+msgstr "通过 modelMode 将调用关联到 gmeow:modelModeDeepThinking，并分别记录实际参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeDeepThinking ."
+msgstr "记录此设置：ex:run gmeow:modelMode gmeow:modelModeDeepThinking ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creative mode"
+msgstr "创意模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for invention with room to explore alternatives. Its numerical realization is model-family and serving-layer specific."
+msgstr "一种请求的设置配置，用于允许探索其他可能性的创造活动。其数值实现取决于模型族和服务层。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests inventive exploration."
+msgstr "用于调用者请求创造性探索时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a universal temperature or claiming that the output is creative merely from this request."
+msgstr "避免假设通用温度，也避免仅依据该请求便声称输出富有创意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeCreative with modelMode and record actual parameters independently."
+msgstr "通过 modelMode 将调用关联到 gmeow:modelModeCreative，并分别记录实际参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."
+msgstr "记录此设置：ex:run gmeow:modelMode gmeow:modelModeCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extremely creative mode"
+msgstr "极具创意模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for the widest creative range offered by the serving layer. It specifies no universal numerical maximum or output guarantee."
+msgstr "一种请求的设置配置，用于服务层提供的最广创意范围。不规定通用数值上限，也不保证输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests the serving layer’s broadest creative profile."
+msgstr "用于调用者请求服务层最广泛的创意配置时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this profile as a cross-model maximum or a measured creativity score."
+msgstr "避免将此配置解释为跨模型最大值或测得的创意评分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeExtremelyCreative with modelMode and record actual parameters independently."
+msgstr "通过 modelMode 将调用关联到 gmeow:modelModeExtremelyCreative，并分别记录实际参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeExtremelyCreative ."
+msgstr "记录此设置：ex:run gmeow:modelMode gmeow:modelModeExtremelyCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrative mode"
+msgstr "叙事模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for prose that weaves supplied material together. It does not assert factuality, successful synthesis or a fixed sampling configuration."
+msgstr "一种请求的设置配置，用于将所提供材料编织成文。不声明事实准确性、成功综合或固定采样配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests narrative integration of given material."
+msgstr "用于调用者请求将给定材料整合为叙事时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a narrative request as evidence that the generated prose is true or complete."
+msgstr "避免将叙事请求视为生成文字真实或完整的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeNarrative with modelMode and record actual parameters independently."
+msgstr "通过 modelMode 将调用关联到 gmeow:modelModeNarrative，并分别记录实际参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeNarrative ."
+msgstr "记录此设置：ex:run gmeow:modelMode gmeow:modelModeNarrative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation settings"
+msgstr "生成设置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typed generation parameters and open requested settings profiles for existing model invocations, preserving intent separately from actual supplied settings."
+msgstr "为现有模型调用提供类型化生成参数和开放的请求设置配置，将意图与实际提供的设置分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://purl.org/dc/terms/title"
+msgid "GMEOW Generation Settings Module"
+msgstr "GMEOW 生成设置模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory adapters and generation archives retaining per-run parameters and requested profiles with existing invocation provenance."
+msgstr "通过现有调用溯源保留每次运行参数和请求配置的智能体记忆适配器及生成档案。"

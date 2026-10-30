@@ -282,3 +282,28 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## General classifier evidence
+
+`ClassifierOutput` records an attributed score for an exact external
+`ClassifierLabel` in a `ClassifierLabelSet`, including genre and zero-shot
+classification. Shared run provenance and score/decision vocabulary are owned
+here; affect retains its class specializations and affect-only laws.
+`ModelInferenceRun` is an enduring execution record compatible with the
+observation vantage contract. See [the contract and example](design/CLASSIFIER-EVIDENCE.md)
+for candidate-set scope, calibration and the separate execution-activity boundary.
+
+## Contract-bound chunkings and summary carriers
+
+`Chunking` records one segmentation of an exact source revision under an
+identified rules artifact. `ChunkingMember` selects actual chunks with scoped
+ordinals. `BlockExtent` places atomic ContentBlocks in the same whole-source
+coordinate frame as the chunks, enabling intrinsic no-split and coverage laws.
+Selected source and contract digests identify those artifacts’ own bytes;
+overlap and exhaustive coverage follow the declared contract without defaults.
+
+A retrieved summary’s `chunkOf` names the carrier containing its text, while
+`wasDerivedFrom` names the summarized division. A generated summary is not a cut
+of its original division. Summary and Chunk can share a node when both meanings
+hold; separate summary and retrieval-chunk nodes are also valid. CommunitySummary
+keeps its GraphRAG community meaning. See [the contract and ordinary scenes](design/CHUNKING.md).

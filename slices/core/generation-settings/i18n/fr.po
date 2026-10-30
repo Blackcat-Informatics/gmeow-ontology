@@ -1,0 +1,266 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation seed"
+msgstr "graine de génération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer seed from which the sampler of one generative model invocation was started. A seed alone does not guarantee reproducibility."
+msgstr "La graine entière ayant initialisé l’échantillonneur d’un appel de modèle génératif. Une graine seule ne garantit pas la reproductibilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the seed actually supplied to the model sampler."
+msgstr "Consigner la graine effectivement fournie à l’échantillonneur du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid random draws that did not seed a model and claims that matching seeds alone reproduce an output."
+msgstr "Éviter les tirages aléatoires n’ayant pas initialisé un modèle et les affirmations selon lesquelles des graines identiques suffisent à reproduire un résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert generationSeed on the ModelInvocation using an xsd:integer literal."
+msgstr "Renseigner generationSeed sur le ModelInvocation avec un littéral xsd:integer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSeed|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:generationSeed 42 ."
+msgstr "Consigner ce réglage : ex:run gmeow:generationSeed 42 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation steps"
+msgstr "étapes de génération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative number of denoising or sampling steps one generative model invocation was given, rather than a count of steps actually completed."
+msgstr "Le nombre non négatif d’étapes de débruitage ou d’échantillonnage attribué à un appel de modèle génératif, et non le nombre d’étapes effectivement terminées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the sampling or denoising step setting given to this run."
+msgstr "Consigner le nombre d’étapes d’échantillonnage ou de débruitage donné à cette exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid agent step budgets and interpreting the configured number as evidence of completed computation."
+msgstr "Éviter les budgets d’étapes d’agent et l’interprétation du nombre configuré comme preuve d’un calcul terminé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert generationSteps on the ModelInvocation using an xsd:nonNegativeInteger literal."
+msgstr "Renseigner generationSteps sur le ModelInvocation avec un littéral xsd:nonNegativeInteger."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationSteps|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:generationSteps \"30\"^^xsd:nonNegativeInteger ."
+msgstr "Consigner ce réglage : ex:run gmeow:generationSteps \"30\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "guidance scale"
+msgstr "échelle de guidage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The decimal classifier-free guidance scale one generative model invocation was given. Its interpretation depends on the model and serving engine."
+msgstr "L’échelle décimale de guidage sans classificateur donnée à un appel de modèle génératif. Son interprétation dépend du modèle et du moteur de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the classifier-free guidance parameter supplied for this invocation."
+msgstr "Consigner le paramètre de guidage sans classificateur fourni pour cet appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confidence scores, guidance rubrics and model-independent quality rankings."
+msgstr "Éviter les scores de confiance, les grilles de guidage et les classements de qualité indépendants du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert guidanceScale on the ModelInvocation using an xsd:decimal literal."
+msgstr "Renseigner guidanceScale sur le ModelInvocation avec un littéral xsd:decimal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/guidanceScale|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:guidanceScale 7.5 ."
+msgstr "Consigner ce réglage : ex:run gmeow:guidanceScale 7.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sampler name"
+msgstr "nom de l’échantillonneur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact sampler name supplied by the engine for one generative model invocation, retained verbatim as a string including its whitespace."
+msgstr "Le nom exact de l’échantillonneur fourni par le moteur pour un appel de modèle génératif, conservé tel quel sous forme de chaîne, espaces compris."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Retain the engine’s exact sampler designation for this run."
+msgstr "Conserver la désignation exacte de l’échantillonneur du moteur pour cette exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid naming the model itself or normalizing case, spacing or punctuation in the engine’s name."
+msgstr "Éviter de nommer le modèle lui-même ou de normaliser la casse, les espaces ou la ponctuation du nom du moteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert samplerName on the ModelInvocation using an xsd:string literal."
+msgstr "Renseigner samplerName sur le ModelInvocation avec un littéral xsd:string."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."
+msgstr "Consigner ce réglage : ex:run gmeow:samplerName \"Euler  ancestral\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Mode"
+msgstr "Mode du modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary of requested model settings profiles. A profile expresses the caller’s intent without imposing universal numerical parameters or asserting fulfillment."
+msgstr "Un vocabulaire ouvert de valeurs pour les profils de réglages de modèle demandés. Un profil exprime l’intention de l’appelant sans imposer de paramètres numériques universels ni affirmer sa réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a named settings profile requested by a caller."
+msgstr "Utiliser pour classer un profil de réglages nommé demandé par un appelant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the seed profiles as an exhaustive list or equating a requested profile with measured output quality."
+msgstr "Éviter de traiter les profils initiaux comme une liste exhaustive ou d’assimiler un profil demandé à une qualité de sortie mesurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint an additional ModelMode individual when the serving layer has a distinct requested profile; keep actual parameters on the invocation."
+msgstr "Créer un individu ModelMode supplémentaire lorsque la couche de service possède un profil demandé distinct ; conserver les paramètres réels sur l’appel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:localProfile a gmeow:ModelMode ."
+msgstr "Consigner ce réglage : ex:localProfile a gmeow:ModelMode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model mode"
+msgstr "mode du modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The named settings profile requested for a model invocation, kept separate from the numerical parameters actually supplied by its serving layer."
+msgstr "Le profil de réglages nommé demandé pour un appel de modèle, conservé séparément des paramètres numériques effectivement fournis par sa couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Record the caller’s requested profile alongside the actual run parameters."
+msgstr "Consigner le profil demandé par l’appelant à côté des paramètres réels de l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a model alias, inferring fulfillment or deriving numerical parameters from the profile alone."
+msgstr "Éviter de substituer un alias de modèle, d’inférer la réalisation ou de déduire des paramètres numériques du seul profil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert modelMode on the ModelInvocation using a ModelMode resource."
+msgstr "Renseigner modelMode sur le ModelInvocation avec une ressource ModelMode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."
+msgstr "Consigner ce réglage : ex:run gmeow:modelMode gmeow:modelModeCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deep thinking mode"
+msgstr "mode de réflexion approfondie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for long-form reasoning when no caller is waiting for an immediate reply. It does not promise a particular duration, reasoning quality or parameter setting."
+msgstr "Un profil de réglages demandé pour un raisonnement long lorsque l’appelant n’attend pas de réponse immédiate. Il ne promet ni durée, ni qualité de raisonnement, ni réglage de paramètres particuliers."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests extended deliberation without an immediate response requirement."
+msgstr "Utiliser lorsque l’appelant demande une délibération approfondie sans exigence de réponse immédiate."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this value as evidence that a model performed extended reasoning."
+msgstr "Éviter d’utiliser cette valeur comme preuve qu’un modèle a effectué un raisonnement approfondi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeDeepThinking with modelMode and record actual parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeDeepThinking avec modelMode et consigner séparément les paramètres réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeDeepThinking|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeDeepThinking ."
+msgstr "Consigner ce réglage : ex:run gmeow:modelMode gmeow:modelModeDeepThinking ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creative mode"
+msgstr "mode créatif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for invention with room to explore alternatives. Its numerical realization is model-family and serving-layer specific."
+msgstr "Un profil de réglages demandé pour l’invention laissant place à l’exploration d’alternatives. Sa réalisation numérique dépend de la famille de modèles et de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests inventive exploration."
+msgstr "Utiliser lorsque l’appelant demande une exploration inventive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a universal temperature or claiming that the output is creative merely from this request."
+msgstr "Éviter de supposer une température universelle ou d’affirmer que le résultat est créatif sur la seule base de cette demande."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeCreative with modelMode and record actual parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeCreative avec modelMode et consigner séparément les paramètres réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeCreative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeCreative ."
+msgstr "Consigner ce réglage : ex:run gmeow:modelMode gmeow:modelModeCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extremely creative mode"
+msgstr "mode extrêmement créatif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for the widest creative range offered by the serving layer. It specifies no universal numerical maximum or output guarantee."
+msgstr "Un profil de réglages demandé pour la plage créative la plus large proposée par la couche de service. Il ne spécifie aucun maximum numérique universel ni aucune garantie de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests the serving layer’s broadest creative profile."
+msgstr "Utiliser lorsque l’appelant demande le profil créatif le plus large de la couche de service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this profile as a cross-model maximum or a measured creativity score."
+msgstr "Éviter d’interpréter ce profil comme un maximum commun aux modèles ou un score de créativité mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeExtremelyCreative with modelMode and record actual parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeExtremelyCreative avec modelMode et consigner séparément les paramètres réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeExtremelyCreative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeExtremelyCreative ."
+msgstr "Consigner ce réglage : ex:run gmeow:modelMode gmeow:modelModeExtremelyCreative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "narrative mode"
+msgstr "mode narratif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested settings profile for prose that weaves supplied material together. It does not assert factuality, successful synthesis or a fixed sampling configuration."
+msgstr "Un profil de réglages demandé pour une prose reliant les éléments fournis. Il n’affirme ni factualité, ni synthèse réussie, ni configuration d’échantillonnage fixe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the caller requests narrative integration of given material."
+msgstr "Utiliser lorsque l’appelant demande une intégration narrative des éléments fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a narrative request as evidence that the generated prose is true or complete."
+msgstr "Éviter de traiter une demande narrative comme preuve que la prose générée est vraie ou complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the invocation to gmeow:modelModeNarrative with modelMode and record actual parameters independently."
+msgstr "Relier l’appel à gmeow:modelModeNarrative avec modelMode et consigner séparément les paramètres réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelModeNarrative|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record this setting: ex:run gmeow:modelMode gmeow:modelModeNarrative ."
+msgstr "Consigner ce réglage : ex:run gmeow:modelMode gmeow:modelModeNarrative ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generation settings"
+msgstr "réglages de génération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Typed generation parameters and open requested settings profiles for existing model invocations, preserving intent separately from actual supplied settings."
+msgstr "Paramètres de génération typés et profils ouverts de réglages demandés pour les appels de modèle existants, conservant l’intention séparément des réglages effectivement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|http://purl.org/dc/terms/title"
+msgid "GMEOW Generation Settings Module"
+msgstr "Module GMEOW des réglages de génération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory adapters and generation archives retaining per-run parameters and requested profiles with existing invocation provenance."
+msgstr "Adaptateurs de mémoire d’agent et archives de génération conservant les paramètres de chaque exécution et les profils demandés avec la provenance existante des appels."

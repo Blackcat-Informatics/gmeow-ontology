@@ -2818,6 +2818,11 @@ logic:assessmentWhole
 logic:asymmetricProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when an asserted relation in one direction excludes the reverse relation between the same two individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using asymmetry as a synonym for a relation that simply lacks a known reverse edge; absence of evidence is weaker than exclusion."@x-gmeow-english ;
+    gmeow:howToUse "Declare a separate owning-slice characteristic record for asymmetry and retain it in canonical reasoning even when an external projection cannot express the combination."@x-gmeow-english ;
+    skos:scopeNote "Asymmetry prohibits a reverse edge and therefore also prohibits a self-edge. It imposes no existence requirement. The current OWL grounding projections omit this carrier characteristic; the canonical claim remains stronger than those views."@x-gmeow-english ;
+    skos:example "For an asymmetric P, P(a,b) excludes P(b,a). Declaring P transitive as well allows a strict ordering in the canonical model without promising that the OWL view retains both characteristics."@x-gmeow-english ;
     rdfs:label "asymmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for asymmetry: a property P such that P(a,b) entails ¬P(b,a). The logic: analogue of OWL AsymmetricProperty, minted standalone so it can co-occur with logic:transitiveProperty on the same property — the transitive ∧ asymmetric combination OWL 2 DL bars for decidability but logic: keeps and reasons over (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -3155,6 +3160,11 @@ logic:invokesPathShape
 logic:irreflexiveProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when no individual may bear the selected relation to itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming irreflexivity also forbids all two-way relations between distinct individuals; that is a separate asymmetry requirement."@x-gmeow-english ;
+    gmeow:howToUse "Attach this sort to the property through its owning-slice characteristic record, then state any independent transitivity or asymmetry characteristic separately."@x-gmeow-english ;
+    skos:scopeNote "Irreflexivity excludes P(a,a) while leaving relations between distinct individuals to other axioms. It requires no relation instances. The current OWL grounding projections omit this carrier characteristic rather than preserving it for every property."@x-gmeow-english ;
+    skos:example "An irreflexive P rejects P(a,a); P(a,b) together with P(b,a) is not excluded by irreflexivity alone when a and b are distinct."@x-gmeow-english ;
     rdfs:label "irreflexive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of OWL IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -3500,6 +3510,11 @@ logic:temporalPartOf
 logic:transitiveProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when a relation must compose through a shared intermediate individual within the same interpreted scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing transitivity merely because a relation often occurs in chains; immediate succession need not hold between the chain's endpoints."@x-gmeow-english ;
+    gmeow:howToUse "Author an owning-slice characteristic record naming the relation and this sort, and distinguish any additional asymmetry or irreflexivity obligations."@x-gmeow-english ;
+    skos:scopeNote "Transitivity adds the endpoint relation from two composable edges; it does not reverse either edge or require any edge to exist. The characteristic is retained by the current OWL DL and OWL EL grounding projections."@x-gmeow-english ;
+    skos:example "For a transitive relation P, P(a,b) and P(b,c) entail P(a,c). The same premises do not establish P(c,a) unless another law supplies that direction."@x-gmeow-english ;
     rdfs:label "transitive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for transitivity: a property P such that P(a,b) ∧ P(b,c) entails P(a,c). The logic: analogue of OWL TransitiveProperty, minted standalone so logic: can combine it with logic:asymmetricProperty — a combination OWL 2 DL forbids globally (criticism 7) but logic: reasons over fully."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -4900,17 +4915,18 @@ logic:EventUniversalOccurrentAdvice
 # ── Abductive repair schemas (constructive "what to ADD" advice) ────────────────────
 # Where an advisory logic:Constraint DETECTS an anti-pattern ("you could improve X"), a
 # logic:AbductiveSchema is CONSTRUCTIVE: it names, for a modeling discipline whose declared
-# structure is under-satisfied, the minimal addition that would complete the model, and it
-# supplies the warrant TARGET the native conjecture engine tests against. Every mediation /
-# completeness discipline already IS an abductive schema — its declared-but-unsatisfied
-# structure names the hypothesis space — so a schema marks a discipline as constructively
+# structure is under-satisfied, candidate additions toward completing that structure, and it
+# supplies the completeness TARGET the advice producer reads. The discipline's declared
+# structure names the hypothesis space; a schema marks the discipline as constructively
 # repairable and pairs it with a repair STRATEGY (how the candidate addition is read off the
 # graph) and a logic:completenessFormula (the discipline-SATISFIED condition for a subject,
-# authored here as a first-class logic:Formula so the warrant is a proof, never hardcoded
-# prose). The abductive producer instantiates the completeness formula at a gap subject,
-# assumes the candidate addition in an ISOLATED scenario world, and emits the "add X"
-# recommendation only when the native engine corroborates that the addition completes the
-# discipline in a consistent world. The completeness formula is deliberately schema-owned,
+# authored here as a first-class logic:Formula, not hardcoded prose). The producer reads
+# a gap subject's supplied types and relations. For supported conjunctive cases it warrants
+# each missing relation separately by fresh-witness construction; for supported sortal cases
+# it filters the offered types through supplied type and disjointness information. It runs
+# no reasoner per candidate and never mutates the input graph. Caller-supplied closure can
+# enrich the input; asserted-only input remains asserted-only. A single conjunct's suggestion
+# need not complete the entire discipline. The formula is deliberately schema-owned,
 # not reached through a discipline's logic:integrity, because foundation-lowering disciplines
 # (relator mediation, measurement-frame completeness) carry no integrity formula — schema
 # ownership makes the warrant reachable for every marked discipline uniformly.
@@ -4918,13 +4934,23 @@ logic:EventUniversalOccurrentAdvice
 logic:AbductiveSchema
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to declare constructive repair advice for a subject whose modeled structure leaves a named completeness condition unsatisfied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a repair suggestion as an asserted fact, an authorization to edit, or a constraint that rejects the live graph."@x-gmeow-english ;
+    gmeow:howToUse "Name the governed term, select a supported repair strategy, and attach the schema-owned completeness formula; inspect each returned addition and its warrant before applying it."@x-gmeow-english ;
+    skos:scopeNote "The schema supplies advisory candidate structure. Its completeness formula is a target read by the advice producer, not a free-standing axiom, and producing advice does not mutate the supplied graph. Candidate subjects must carry gmeow:graphBoxRole gmeow:boxABox."@x-gmeow-english ;
+    skos:example "A schema for an incomplete commitment names logic:StrategyRelatumCompletion and a formula describing its required relata; the resulting missing-party suggestion remains advice until deliberately applied."@x-gmeow-english ;
     rdfs:label "abductive repair schema"@x-gmeow-english ;
-    skos:definition "A constructive-advice carrier: it marks a modeling discipline as abductively repairable and supplies the machinery for deriving the minimal 'what to ADD' addition that completes an under-specified subject. It logic:formalizes the governed term, names its repair mechanism with logic:repairStrategy (how the candidate addition is read off the declared structure), optionally back-links the discipline it repairs with logic:repairsDiscipline, and carries a logic:completenessFormula — the discipline-satisfied condition, authored as a first-class logic:Formula so the abductive suggestion is warranted by a native conjecture-engine corroboration rather than by hand-authored prose. Unlike a logic:Constraint it neither gates nor projects to a shape surface; it is consumed by the abductive advice producer, which instantiates the completeness formula at a gap subject and tests a candidate addition in an isolated scenario world."@x-gmeow-english ;
+    skos:definition "A constructive-advice carrier marking a modeling discipline as repairable through candidate additions. It logic:formalizes the governed term, selects a supported logic:repairStrategy, may identify the repaired discipline through logic:repairsDiscipline, and carries a schema-owned logic:completenessFormula. The advice producer reads that formula to identify gaps and proposed additions without mutating the input graph or running a reasoner per candidate. For the supported conjunctive cases it warrants each missing relation separately by fresh-witness construction; for the supported sortal case it filters candidate types using the supplied type and disjointness information. A suggestion remains advisory and does not assert completion of every obligation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:AbductiveRepairStrategy
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to classify the supported way a schema derives additions from its completeness structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a strategy value and assuming that naming it implements a new repair mechanism."@x-gmeow-english ;
+    gmeow:howToUse "Choose the existing relatum, chain, sortal, or frame strategy that matches the schema's formula structure; keep domain-specific guards and required relations in the formula."@x-gmeow-english ;
+    skos:scopeNote "A strategy names candidate derivation, not a confidence level or permission to repair. The existing strategies distinguish missing relation targets from candidate sortal types."@x-gmeow-english ;
+    skos:example "Two schemas may both choose logic:StrategyFrameDeclaration while their formulas require different predicates: gmeow:hasReferenceFrame for an expression and logic:referenceFrame for a unit-bearing value."@x-gmeow-english ;
     rdfs:label "abductive repair strategy"@x-gmeow-english ;
     skos:definition "The closed value class naming HOW a logic:AbductiveSchema reads its candidate addition off the governed subject's declared-but-unsatisfied structure. Its individuals — logic:StrategyRelatumCompletion, logic:StrategyChainCompletion, logic:StrategySortalSpecialization and logic:StrategyFrameDeclaration — each stand for one derivation of the minimal addition, so registering a further discipline of an existing kind is a data mark (a new logic:AbductiveSchema naming an existing strategy), never new engine code."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -4932,6 +4958,11 @@ logic:AbductiveRepairStrategy
 logic:StrategyRelatumCompletion
     a logic:AbductiveRepairStrategy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when each absent participant or goal relation is a separately actionable addition to a relator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting one missing-relatum suggestion as proof that every other required relatum is already present."@x-gmeow-english ;
+    gmeow:howToUse "Read the required relations from the completeness conjunction and keep each fresh-witness candidate paired with the warrant for that one conjunct."@x-gmeow-english ;
+    skos:scopeNote "Each absent relation yields its own fresh-witness candidate. A warrant for one added relatum is narrower than satisfaction of the full conjunction when other relata remain absent."@x-gmeow-english ;
+    skos:example "A commitment lacking both gmeow:commitmentBeneficiary and gmeow:intentionGoal can receive two separate suggestions; adding the beneficiary alone leaves the goal requirement unsatisfied."@x-gmeow-english ;
     rdfs:label "relatum completion"@x-gmeow-english ;
     skos:definition "The repair strategy for an under-mediated relator: the candidate additions are the relator's declared logic:mediates targets that the subject does not yet fill — 'add the missing relatum' (for a Commitment, the second party via gmeow:committedAgent or gmeow:commitmentBeneficiary)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -4939,6 +4970,11 @@ logic:StrategyRelatumCompletion
 logic:StrategyChainCompletion
     a logic:AbductiveRepairStrategy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to suggest the missing relation that connects an otherwise detached subject to its declared realization chain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a suggested chain link as reconstruction of every upstream work, expression, and manifestation."@x-gmeow-english ;
+    gmeow:howToUse "Use the chain schema's guard and consequent to identify the absent link; review the proposed target witness before recording a real relation."@x-gmeow-english ;
+    skos:scopeNote "The strategy derives the missing link named by the schema formula. Its fresh target witness identifies a proposed addition, not an independently established bibliographic resource."@x-gmeow-english ;
+    skos:example "For an isolated gmeow:Item, a proposed gmeow:exemplifies relation supplies the next link; it does not also establish the manifestation's expression or work."@x-gmeow-english ;
     rdfs:label "chain completion"@x-gmeow-english ;
     skos:definition "The repair strategy for an incomplete realization chain: the candidate addition is the next missing link along a declared chain of predicates — for a bare gmeow:Item, the gmeow:exemplifies link to a gmeow:Manifestation the Item must exemplify."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -4946,13 +4982,23 @@ logic:StrategyChainCompletion
 logic:StrategySortalSpecialization
     a logic:AbductiveRepairStrategy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to offer a more specific top-sortal type when the subject's supplied assertions discriminate among the schema's candidates."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting silence as proof that a bare entity already has an adequate sortal; a wholly unconstrained candidate menu is suppressed."@x-gmeow-english ;
+    gmeow:howToUse "Compare the subject's supplied types with the offered sortals' disjointness sets, then present the remaining candidates only when at least one offered sortal is refuted."@x-gmeow-english ;
+    skos:scopeNote "Candidate filtering reads the supplied type and disjointness information. It neither selects a unique surviving sortal nor invents entailed user types when the caller supplies asserted data only."@x-gmeow-english ;
+    skos:example "If supplied types refute gmeow:PhysicalObject among the offered sortals, advice may retain compatible alternatives; if no offered sortal is refuted, the undifferentiated menu is withheld."@x-gmeow-english ;
     rdfs:label "sortal specialization"@x-gmeow-english ;
-    skos:definition "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."@x-gmeow-english ;
+    skos:definition "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — filtered using the subject's supplied types and the candidates' class-disjointness information. Advice retains non-refuted candidates only when at least one offered candidate is refuted; this screen does not certify consistency with arbitrary other assertions."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:StrategyFrameDeclaration
     a logic:AbductiveRepairStrategy ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when a schema's completeness condition requires an absent frame relation on an expression or unit-bearing value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming that a fresh proposed frame witness establishes a language, notation, calibration, or coordinate system."@x-gmeow-english ;
+    gmeow:howToUse "Take the required frame predicate from the schema formula and review the frame's intended interpretation before replacing a proposal with an asserted declaration."@x-gmeow-english ;
+    skos:scopeNote "The strategy is shared by distinct frame disciplines; the completeness formula determines which frame predicate is missing. A frame proposal is not evidence that the value has already been interpreted in that frame."@x-gmeow-english ;
+    skos:example "An expression may need gmeow:hasReferenceFrame, while a value with logic:unit may need logic:referenceFrame; using one strategy does not make these relations interchangeable."@x-gmeow-english ;
     rdfs:label "frame declaration"@x-gmeow-english ;
     skos:definition "The repair strategy for a subject that requires a reference frame it lacks: the candidate addition is a declared gmeow:hasReferenceFrame value — 'declare a reference frame F' — for a gmeow:Expression whose realizing language or notation is left implicit (the required-frame discipline, Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -4960,12 +5006,22 @@ logic:StrategyFrameDeclaration
 logic:repairsDiscipline
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to record which modeling discipline a constructive repair schema addresses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid following this provenance link as a substitute for the schema's completeness formula or assuming the linked discipline has an integrity formula."@x-gmeow-english ;
+    gmeow:howToUse "Link the schema to the discipline or violation term it repairs and keep the candidate's completeness target on logic:completenessFormula."@x-gmeow-english ;
+    skos:scopeNote "This link explains the repair's disciplinary provenance. It neither imports the discipline's constraints nor makes a candidate addition satisfy all obligations of that discipline."@x-gmeow-english ;
+    skos:example "In Turtle, logic:MeasurementFrameAbductiveSchema logic:repairsDiscipline logic:MeasurementFrameMissing . records the missing-frame discipline; the schema still supplies its own completeness target."@x-gmeow-english ;
     rdfs:label "repairs discipline"@x-gmeow-english ;
     skos:definition "Back-links a logic:AbductiveSchema to the modeling discipline (a logic:Discipline, a logic:Constraint, or a foundation-lowering violation term) whose under-satisfaction the schema constructively repairs. Provenance only: the completeness warrant lives on the schema's own logic:completenessFormula, not on the discipline, so a discipline that carries no logic:integrity is still fully repairable."@x-gmeow-english .
 
 logic:repairStrategy
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use on a schema to select the supported candidate-derivation mechanism appropriate to its declared completeness structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the strategy link as the repair itself or as an instruction to assert every possible candidate."@x-gmeow-english ;
+    gmeow:howToUse "Point to one of the existing strategy individuals and make the formula's guard and consequent express the actual subject and missing structure."@x-gmeow-english ;
+    skos:scopeNote "The strategy link selects how candidates are read from a schema. It does not replace the guard, the completeness consequent, or the individual warrant attached to a suggestion."@x-gmeow-english ;
+    skos:example "In Turtle, logic:WemiChainAbductiveSchema logic:repairStrategy logic:StrategyChainCompletion . chooses chain completion; the schema's formula identifies gmeow:exemplifies as the required relation."@x-gmeow-english ;
     rdfs:label "repair strategy"@x-gmeow-english ;
     rdfs:range logic:AbductiveRepairStrategy ;
     skos:definition "Names, on a logic:AbductiveSchema, the logic:AbductiveRepairStrategy by which the abductive producer reads the candidate addition off the governed subject's declared structure — the single knob that lets a further discipline of an existing kind be registered as data rather than code."@x-gmeow-english .
@@ -4973,18 +5029,28 @@ logic:repairStrategy
 logic:completenessFormula
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to attach a schema-owned formula describing the condition that the modeled subject should satisfy after repair."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the formula as a live-model axiom or confusing satisfaction of one repaired conjunct with satisfaction of an entire multi-part target."@x-gmeow-english ;
+    gmeow:howToUse "Bind the subject through the formula's this variable, declare the guard and consequent explicitly, and let the advice producer read the supported conjunctive or disjunctive structure."@x-gmeow-english ;
+    skos:scopeNote "The formula is an advisory target reached through its schema. Current candidate warranting uses fresh-witness construction for missing relations or disjointness filtering for sortals; this link does not itself request a separate reasoning run."@x-gmeow-english ;
+    skos:example "In Turtle, logic:ReferenceFrameAbductiveSchema logic:completenessFormula logic:referenceFrameComplete . identifies the expression-frame target without asserting that every expression already has a frame."@x-gmeow-english ;
     rdfs:label "completeness formula"@x-gmeow-english ;
     rdfs:range logic:Formula ;
-    skos:definition "The discipline-SATISFIED condition a logic:AbductiveSchema carries: a first-class logic:Formula over one free subject variable (\"this\") that holds exactly when the governed subject is no longer under-specified for the discipline. The abductive producer instantiates it at a gap subject and asks the native conjecture engine whether a candidate addition makes it hold in a consistent scenario world; a corroboration is the warrant for the emitted 'add X' recommendation. Reached only through this property (never asserted as a free-standing axiom), so authoring the completeness condition never changes what the reasoner entails about the live model."@x-gmeow-english .
+    skos:definition "Relates a logic:AbductiveSchema to its discipline-satisfied target, authored as a logic:Formula over the subject variable this. The formula supplies the guard and the conjunctive missing-relation or disjunctive sortal structure consumed by the advice producer. Current warranting constructs a fresh witness for each missing relation in the supported conjunctive cases or filters supported sortal candidates through supplied type and disjointness information; it does not run a conjecture engine for each addition. A per-conjunct suggestion need not satisfy the whole target when other conjuncts remain missing. Reaching this formula through the schema does not assert it as a free-standing axiom or change the live model."@x-gmeow-english .
 
-# The four abductive schemas — one per canonical case. Each logic:formalizes the governed term
+# The five abductive schemas — one per canonical case. Each logic:formalizes the governed term
 # and carries a schema-owned logic:completenessFormula instantiated at the gap subject.
 
 logic:RelatorMediationAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to advise which declared participant or goal relation is missing from a commitment individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid collapsing several missing relata into one suggestion whose warrant would imply that the whole commitment is complete."@x-gmeow-english ;
+    gmeow:howToUse "Inspect committedAgent, commitmentBeneficiary, and intentionGoal independently; present each missing relation's fresh-witness candidate with its own warrant."@x-gmeow-english ;
+    skos:scopeNote "The schema's whole-subject target conjoins all three commitment relata. Current advice warrants each missing relation separately, so a suggested beneficiary does not prove that a committed agent or intention goal is present."@x-gmeow-english ;
+    skos:example "For a commitment with gmeow:committedAgent but neither gmeow:commitmentBeneficiary nor gmeow:intentionGoal, the schema can propose one addition for each absent predicate while leaving the original graph intact."@x-gmeow-english ;
     rdfs:label "relator-mediation abductive schema"@x-gmeow-english ;
-    skos:definition "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for an under-mediated gmeow:Commitment relator. Each absent relation among gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal yields its own candidate addition with a fresh witness, warranted separately by construction for that missing conjunct in the supported strategy. This is not a per-candidate reasoner run or a claim that the other relata are present. The schema's full completeness target requires all three relations, so a commitment missing several relata can receive several independent suggestions without any single suggestion completing the entire target."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Commitment ;
     logic:repairsDiscipline logic:RelComp ;
@@ -5008,6 +5074,11 @@ logic:relatorHasGoal a logic:Formula ; logic:relation gmeow:intentionGoal ;
 logic:ReferenceFrameAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use for an expression individual whose realizing language or notation is left without a declared reference frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this expression schema to infer a measurement frame merely because a numeric value is present."@x-gmeow-english ;
+    gmeow:howToUse "Match the Expression type guard and inspect gmeow:hasReferenceFrame; review a proposed frame witness against the expression's actual language or notation."@x-gmeow-english ;
+    skos:scopeNote "The guard is expression typing and the required relation is gmeow:hasReferenceFrame. Advice identifies an absent declaration; it does not identify the correct language or notation from the expression's bytes."@x-gmeow-english ;
+    skos:example "An individual typed gmeow:Expression with no supplied gmeow:hasReferenceFrame relation can receive a frame-declaration proposal; choosing a specific notation still requires evidence about that expression."@x-gmeow-english ;
     rdfs:label "reference-frame abductive schema"@x-gmeow-english ;
     skos:definition "The constructive-repair schema for a gmeow:Expression that leaves its realizing language or notation implicit: the required reference frame (Principle 11) is the candidate addition, and the completeness formula holds when the Expression declares a gmeow:hasReferenceFrame value — 'declare a reference frame F for this expression'."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -5027,6 +5098,11 @@ logic:referenceFrameCons a logic:Formula ; logic:relation gmeow:hasReferenceFram
 logic:MeasurementFrameAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when a subject carries a unit but leaves the measurement's reference frame undeclared."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid limiting the schema to a particular measurement class or treating the unit alone as a complete frame declaration."@x-gmeow-english ;
+    gmeow:howToUse "Match presence of logic:unit, check the supplied graph for logic:referenceFrame, and review the proposed frame independently of the unit."@x-gmeow-english ;
+    skos:scopeNote "The guard is presence of an IRI-valued property, not measurement-class membership: logic:unit activates the missing-frame check. The proposed logic:referenceFrame relation supplies a declaration target without establishing calibration or a measured outcome."@x-gmeow-english ;
+    skos:example "In Turtle, ex:reading logic:unit ex:metre . supplies the guard even without a measurement type; absence of logic:referenceFrame can then yield a separate frame proposal."@x-gmeow-english ;
     rdfs:label "measurement-frame abductive schema"@x-gmeow-english ;
     skos:definition "The constructive-repair schema for a measurement that is expressed in a unit but leaves the reference frame it is read in implicit: a value bearing a logic:unit but no logic:referenceFrame is the logic:MeasurementFrameMissing violation (Principle 11 — a value asserted without its frame is ill-formed), so the required reference frame is the candidate addition and the completeness formula holds once the measurement declares a logic:referenceFrame value — 'declare a reference frame F for this unit-bearing value'. The guard is the property-presence of logic:unit (the IRI-valued witness that a framed value exists), not a class type, so a unit-bearing subject of any measurement class is caught."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -5047,8 +5123,13 @@ logic:measurementFrameCons a logic:Formula ; logic:relation logic:referenceFrame
 logic:BareEntitySortalAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to offer discriminating top-sortal specializations for an under-specified entity individual."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the general bare-entity advice guard with this schema's finite candidate list; the two serve different coverage requirements."@x-gmeow-english ;
+    gmeow:howToUse "Read the offered sortals from besSortalCandidateForall, compare them against the subject's supplied type information, and retain only compatible candidates after a genuine discrimination."@x-gmeow-english ;
+    skos:scopeNote "The schema's explicit candidate formula supports actionable alternatives, while the separate advice guard recognizes specializations beyond that enumeration. An unfiltered menu is suppressed and no surviving alternative is automatically asserted."@x-gmeow-english ;
+    skos:example "A bare gmeow:Entity whose supplied types exclude one offered top sortal can receive compatible alternatives; a subject typed only gmeow:Entity receives no undifferentiated four-way menu."@x-gmeow-english ;
     rdfs:label "bare-entity sortal abductive schema"@x-gmeow-english ;
-    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The engine keeps only the specializations consistent with the subject's other assertions."@x-gmeow-english ;
+    skos:definition "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The producer screens specializations using the subject's supplied types and class-disjointness information, and emits non-refuted alternatives only when at least one offered candidate is refuted. This discriminating-choice screen is not a general consistency proof."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Entity ;
     logic:repairsDiscipline gmeow:BareEntitySortalAdviceConstraint ;
@@ -5058,6 +5139,11 @@ logic:BareEntitySortalAbductiveSchema
 logic:WemiChainAbductiveSchema
     a logic:AbductiveSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to identify an item individual missing the manifestation link required by its realization-chain target."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the candidate manifestation witness as a catalogued edition or claiming that one link completes every WEMI level."@x-gmeow-english ;
+    gmeow:howToUse "Match the Item guard, check gmeow:exemplifies in the supplied graph, and review the suggested manifestation target before asserting the link."@x-gmeow-english ;
+    skos:scopeNote "The authored target checks the item's gmeow:exemplifies relation. A fresh witness fills the proposed relation for advice purposes; it does not establish the target's bibliographic identity or the rest of the realization chain."@x-gmeow-english ;
+    skos:example "An individual typed gmeow:Item without gmeow:exemplifies may receive a manifestation-link suggestion; the user still identifies the actual manifestation and any expression or work relations separately."@x-gmeow-english ;
     rdfs:label "WEMI-chain abductive schema"@x-gmeow-english ;
     skos:definition "The constructive-repair schema for a gmeow:Item that hangs off no gmeow:Manifestation: the candidate addition is a gmeow:exemplifies link to a Manifestation — 'this Item needs a Manifestation it exemplifies' — and the completeness formula holds when the Item exemplifies some Manifestation, completing the realization chain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -5091,6 +5177,11 @@ logic:wemiChainCons a logic:Formula ; logic:relation gmeow:exemplifies ;
 logic:symmetricProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when every relation instance entails its counterpart with subject and object exchanged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating bidirectional implication as transitivity or as a requirement that every individual participate in the relation."@x-gmeow-english ;
+    gmeow:howToUse "Name the relation in an owning-slice characteristic record with this sort and review the target projection's loss before relying on reverse-edge entailments outside the canonical model."@x-gmeow-english ;
+    skos:scopeNote "Symmetry reverses an existing edge without identifying its endpoints or requiring a self-edge. The current OWL DL projection retains this characteristic, while the OWL EL projection omits it."@x-gmeow-english ;
+    skos:example "For symmetric P, P(a,b) entails P(b,a). Combining symmetry with irreflexivity can describe a two-way opposition between distinct individuals without allowing P(a,a)."@x-gmeow-english ;
     rdfs:label "symmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for symmetry: a property P such that P(a,b) entails P(b,a). The logic: analogue of OWL SymmetricProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others and reasoned over natively — including together with logic:irreflexiveProperty, for a constitutive-opposition relation that holds both ways but never of a thing and itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -5098,6 +5189,11 @@ logic:symmetricProperty
 logic:functionalProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to require at most one target value for each source individual under the selected property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading functionality as required presence, inverse uniqueness, or an automatic error merely because two target IRIs have different spellings."@x-gmeow-english ;
+    gmeow:howToUse "Author the functional characteristic through the property's owning-slice record; state any required presence or explicit target distinction independently."@x-gmeow-english ;
+    skos:scopeNote "Functionality constrains targets sharing one source: P(a,b) and P(a,c) entail b = c. It requires no value and does not identify different sources sharing a target. Native carrier reasoning derives resource equality; the OWL DL view retains functionality and the OWL EL view drops it."@x-gmeow-english ;
+    skos:example "With functional P, P(a,b) and P(a,c) can identify b with c rather than reject the graph solely for using two names. P(a,b) and P(d,b) do not imply a = d."@x-gmeow-english ;
     rdfs:label "functional property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for functionality: a property P such that P(a,b) ∧ P(a,c) entails b = c. The logic: analogue of OWL FunctionalProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others; functionality is already lifted into the foundation chase for the relator-mediation count, so a functional carrier records the characteristic centrally rather than adding a second enforcement path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -5105,14 +5201,24 @@ logic:functionalProperty
 logic:PropertyCharacteristicAssertion
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to carry one property's declared characteristic as canonical data owned by the slice that owns the property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the characteristic as a hand-authored OWL declaration or treating the record as the property's definition."@x-gmeow-english ;
+    gmeow:howToUse "Supply the characterized property, one supported characteristic sort and a formalizes link; keep semantic annotations on the property and derive external views from the record."@x-gmeow-english ;
+    skos:scopeNote "The record connects a property to a characteristic, with ownership following the property rather than a central list of all slice properties. Projection support is characteristic-dependent: canonical ownership does not promise that every OWL profile preserves the law."@x-gmeow-english ;
+    skos:example "A carrier containing logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . declares forward at-most-one receipt binding. It neither supplies a receipt's preparation step nor restricts a step to one receipt."@x-gmeow-english ;
     rdfs:label "property characteristic assertion"@x-gmeow-english ;
-    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "A canonical record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the slice owning the property authors the characteristic record, and the OWL-facing declaration is derived from it rather than hand-authored as a second source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:characterizes
     a logic:ObjectProperty ;
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to identify the property whose behavior a characteristic assertion constrains."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking to a property value, an example subject, or the characteristic marker itself instead of the governed property."@x-gmeow-english ;
+    gmeow:howToUse "Place the governed property IRI on the assertion record and pair it with characteristicSort on that same record; preserve the formalizes link to the property's semantic description."@x-gmeow-english ;
+    skos:scopeNote "This relation selects the governed predicate, not the subject or object of one predicate instance. Its target and the characteristic-sort target form the carrier read by native reasoning and projection consumers."@x-gmeow-english ;
+    skos:example "In Turtle, ex:carrier logic:characterizes logic:lensGoverns . identifies the predicate whose targets are constrained; ex:carrier still needs the appropriate logic:characteristicSort declaration."@x-gmeow-english ;
     rdfs:label "characterizes"@x-gmeow-english ;
     skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -5121,6 +5227,11 @@ logic:characteristicSort
     a logic:ObjectProperty ;
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to select which supported relational law a property-characteristic record asserts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a prose label or the property itself as the characteristic-sort value, or assuming every characteristic survives the selected projection."@x-gmeow-english ;
+    gmeow:howToUse "Point to the canonical characteristic marker on the same record that characterizes the property; use separate records when asserting independent characteristics."@x-gmeow-english ;
+    skos:scopeNote "The marker determines the law, while logic:characterizes determines its property. Selecting functionality asserts forward at-most-one behavior; selecting symmetry asserts reverse edges. Neither selection supplies relation instances."@x-gmeow-english ;
+    skos:example "In Turtle, ex:carrier logic:characteristicSort logic:functionalProperty . selects functionality. With logic:characterizes logic:lawGovernsAxis on the same record, the bound runs from one law to its axis, not from one axis to all its laws."@x-gmeow-english ;
     rdfs:label "characteristic sort"@x-gmeow-english ;
     skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -5145,7 +5256,7 @@ logic:actionResourceFunctionality
     logic:characterizes logic:actionResource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:actionResource ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:actionResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:actionResource names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:actionResource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:actionResource and nothing else. It is not a definition of logic:actionResource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5160,7 +5271,7 @@ logic:antecedentFunctionality
     logic:characterizes logic:antecedent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:antecedent ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:antecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:antecedent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:antecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:antecedent and nothing else. It is not a definition of logic:antecedent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5175,7 +5286,7 @@ logic:candidateCategoryFunctionality
     logic:characterizes logic:candidateCategory ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateCategory ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateCategory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateCategory names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateCategory, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateCategory and nothing else. It is not a definition of logic:candidateCategory (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5190,7 +5301,7 @@ logic:candidateContractFunctionality
     logic:characterizes logic:candidateContract ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateContract ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateContract names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateContract, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateContract and nothing else. It is not a definition of logic:candidateContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5205,7 +5316,7 @@ logic:candidateExtractionProvenanceFunctionality
     logic:characterizes logic:candidateExtractionProvenance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateExtractionProvenance ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateExtractionProvenance and nothing else. It is not a definition of logic:candidateExtractionProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5220,7 +5331,7 @@ logic:candidateFormalizesFunctionality
     logic:characterizes logic:candidateFormalizes ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateFormalizes ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateFormalizes names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateFormalizes names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateFormalizes, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateFormalizes and nothing else. It is not a definition of logic:candidateFormalizes (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5235,7 +5346,7 @@ logic:candidateLifecycleFunctionality
     logic:characterizes logic:candidateLifecycle ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateLifecycle ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateLifecycle names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateLifecycle names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateLifecycle, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateLifecycle and nothing else. It is not a definition of logic:candidateLifecycle (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5250,7 +5361,7 @@ logic:candidateProjectionBehaviorFunctionality
     logic:characterizes logic:candidateProjectionBehavior ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateProjectionBehavior ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateProjectionBehavior, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateProjectionBehavior and nothing else. It is not a definition of logic:candidateProjectionBehavior (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5265,7 +5376,7 @@ logic:candidateScopeFunctionality
     logic:characterizes logic:candidateScope ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateScope ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateScope and nothing else. It is not a definition of logic:candidateScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5280,7 +5391,7 @@ logic:candidateSemanticRiskFunctionality
     logic:characterizes logic:candidateSemanticRisk ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSemanticRisk ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSemanticRisk, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSemanticRisk and nothing else. It is not a definition of logic:candidateSemanticRisk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5295,7 +5406,7 @@ logic:candidateSourceFieldFunctionality
     logic:characterizes logic:candidateSourceField ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceField ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSourceField and nothing else. It is not a definition of logic:candidateSourceField (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5310,7 +5421,7 @@ logic:candidateSourceHashFunctionality
     logic:characterizes logic:candidateSourceHash ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceHash ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceHash names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceHash, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSourceHash and nothing else. It is not a definition of logic:candidateSourceHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5325,7 +5436,7 @@ logic:conjectureFormulaFunctionality
     logic:characterizes logic:conjectureFormula ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureFormula ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureFormula names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureFormula names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureFormula, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureFormula and nothing else. It is not a definition of logic:conjectureFormula (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5340,7 +5451,7 @@ logic:conjectureLifecycleStateFunctionality
     logic:characterizes logic:conjectureLifecycleState ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureLifecycleState ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureLifecycleState, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureLifecycleState and nothing else. It is not a definition of logic:conjectureLifecycleState (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5355,7 +5466,7 @@ logic:conjectureStandpointFunctionality
     logic:characterizes logic:conjectureStandpoint ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureStandpoint ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureStandpoint names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureStandpoint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureStandpoint and nothing else. It is not a definition of logic:conjectureStandpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5370,7 +5481,7 @@ logic:consequentFunctionality
     logic:characterizes logic:consequent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:consequent ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:consequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:consequent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:consequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:consequent and nothing else. It is not a definition of logic:consequent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5385,7 +5496,7 @@ logic:effectFunctionality
     logic:characterizes logic:effect ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:effect ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:effect names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:effect names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:effect, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:effect and nothing else. It is not a definition of logic:effect (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5400,7 +5511,7 @@ logic:evaluationModeFunctionality
     logic:characterizes logic:evaluationMode ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:evaluationMode ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:evaluationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:evaluationMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:evaluationMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:evaluationMode and nothing else. It is not a definition of logic:evaluationMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5415,7 +5526,7 @@ logic:existsFunctionality
     logic:characterizes logic:exists ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:exists ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:exists names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:exists names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:exists, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:exists and nothing else. It is not a definition of logic:exists (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5430,7 +5541,7 @@ logic:feasibilityStatusFunctionality
     logic:characterizes logic:feasibilityStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:feasibilityStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:feasibilityStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:feasibilityStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:feasibilityStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:feasibilityStatus and nothing else. It is not a definition of logic:feasibilityStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5445,7 +5556,7 @@ logic:forallFunctionality
     logic:characterizes logic:forall ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:forall ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:forall names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:forall names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:forall, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:forall and nothing else. It is not a definition of logic:forall (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5460,7 +5571,7 @@ logic:freshnessHorizonFunctionality
     logic:characterizes logic:freshnessHorizon ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessHorizon ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessHorizon names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessHorizon names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessHorizon, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessHorizon and nothing else. It is not a definition of logic:freshnessHorizon (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5475,7 +5586,7 @@ logic:freshnessWindowEndFunctionality
     logic:characterizes logic:freshnessWindowEnd ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowEnd ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowEnd, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessWindowEnd and nothing else. It is not a definition of logic:freshnessWindowEnd (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5490,7 +5601,7 @@ logic:freshnessWindowStartFunctionality
     logic:characterizes logic:freshnessWindowStart ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowStart ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowStart names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowStart, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessWindowStart and nothing else. It is not a definition of logic:freshnessWindowStart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5505,7 +5616,7 @@ logic:functionSymbolFunctionality
     logic:characterizes logic:functionSymbol ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:functionSymbol ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:functionSymbol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:functionSymbol names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:functionSymbol, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:functionSymbol and nothing else. It is not a definition of logic:functionSymbol (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5520,7 +5631,7 @@ logic:goalEvaluationStatusFunctionality
     logic:characterizes logic:goalEvaluationStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:goalEvaluationStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:goalEvaluationStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:goalEvaluationStatus and nothing else. It is not a definition of logic:goalEvaluationStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5535,7 +5646,7 @@ logic:guardsPreconditionFunctionality
     logic:characterizes logic:guardsPrecondition ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:guardsPrecondition ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:guardsPrecondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:guardsPrecondition names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:guardsPrecondition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:guardsPrecondition and nothing else. It is not a definition of logic:guardsPrecondition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5550,7 +5661,7 @@ logic:invariantFunctionality
     logic:characterizes logic:invariant ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:invariant ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:invariant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:invariant names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:invariant, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:invariant and nothing else. It is not a definition of logic:invariant (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5565,7 +5676,7 @@ logic:lifecycleStatusFunctionality
     logic:characterizes logic:lifecycleStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:lifecycleStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:lifecycleStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:lifecycleStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:lifecycleStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:lifecycleStatus and nothing else. It is not a definition of logic:lifecycleStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5580,7 +5691,7 @@ logic:notFunctionality
     logic:characterizes logic:not ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:not ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:not names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:not names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:not, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:not and nothing else. It is not a definition of logic:not (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5595,7 +5706,7 @@ logic:objectiveValueFunctionality
     logic:characterizes logic:objectiveValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:objectiveValue ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:objectiveValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:objectiveValue names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:objectiveValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:objectiveValue and nothing else. It is not a definition of logic:objectiveValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5610,7 +5721,7 @@ logic:obligationForbiddenPredicateFunctionality
     logic:characterizes logic:obligationForbiddenPredicate ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:obligationForbiddenPredicate ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:obligationForbiddenPredicate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:obligationForbiddenPredicate and nothing else. It is not a definition of logic:obligationForbiddenPredicate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5625,7 +5736,7 @@ logic:observationFunctionality
     logic:characterizes logic:observation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:observation ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:observation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:observation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:observation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:observation and nothing else. It is not a definition of logic:observation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5640,7 +5751,7 @@ logic:overAccessibilityFunctionality
     logic:characterizes logic:overAccessibility ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:overAccessibility ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:overAccessibility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:overAccessibility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:overAccessibility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5655,7 +5766,7 @@ logic:planGoalFunctionality
     logic:characterizes logic:planGoal ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:planGoal ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planGoal names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planGoal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:planGoal and nothing else. It is not a definition of logic:planGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5670,7 +5781,7 @@ logic:planSuccessModeFunctionality
     logic:characterizes logic:planSuccessMode ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:planSuccessMode ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planSuccessMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planSuccessMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planSuccessMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:planSuccessMode and nothing else. It is not a definition of logic:planSuccessMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5685,7 +5796,7 @@ logic:programQueryFunctionality
     logic:characterizes logic:programQuery ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:programQuery ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:programQuery names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:programQuery names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:programQuery, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:programQuery and nothing else. It is not a definition of logic:programQuery (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5700,7 +5811,7 @@ logic:recoveryTransformFunctionality
     logic:characterizes logic:recoveryTransform ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:recoveryTransform ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:recoveryTransform names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:recoveryTransform names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:recoveryTransform, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:recoveryTransform and nothing else. It is not a definition of logic:recoveryTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5715,7 +5826,7 @@ logic:relationFunctionality
     logic:characterizes logic:relation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:relation ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:relation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:relation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:relation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:relation and nothing else. It is not a definition of logic:relation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5730,7 +5841,7 @@ logic:satisfactionDegreeFunctionality
     logic:characterizes logic:satisfactionDegree ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:satisfactionDegree ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionDegree names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:satisfactionDegree and nothing else. It is not a definition of logic:satisfactionDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5745,7 +5856,7 @@ logic:satisfactionStatusFunctionality
     logic:characterizes logic:satisfactionStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:satisfactionStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:satisfactionStatus and nothing else. It is not a definition of logic:satisfactionStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5760,7 +5871,7 @@ logic:termApplicationFunctionality
     logic:characterizes logic:termApplication ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termApplication ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termApplication names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termApplication names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termApplication, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termApplication and nothing else. It is not a definition of logic:termApplication (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5775,7 +5886,7 @@ logic:termIndexFunctionality
     logic:characterizes logic:termIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIndex ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIndex names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termIndex and nothing else. It is not a definition of logic:termIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5790,7 +5901,7 @@ logic:termIriFunctionality
     logic:characterizes logic:termIri ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIri ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIri names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIri, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termIri and nothing else. It is not a definition of logic:termIri (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5805,7 +5916,7 @@ logic:termLiteralFunctionality
     logic:characterizes logic:termLiteral ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteral ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteral names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteral names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteral, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termLiteral and nothing else. It is not a definition of logic:termLiteral (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5820,7 +5931,7 @@ logic:termLiteralDatatypeFunctionality
     logic:characterizes logic:termLiteralDatatype ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteralDatatype ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteralDatatype names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteralDatatype names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteralDatatype, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termLiteralDatatype and nothing else. It is not a definition of logic:termLiteralDatatype (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5835,7 +5946,7 @@ logic:termSequenceMarkerFunctionality
     logic:characterizes logic:termSequenceMarker ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termSequenceMarker ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termSequenceMarker names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termSequenceMarker names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termSequenceMarker, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termSequenceMarker and nothing else. It is not a definition of logic:termSequenceMarker (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5850,7 +5961,7 @@ logic:termVariableFunctionality
     logic:characterizes logic:termVariable ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termVariable ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termVariable names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termVariable names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termVariable, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termVariable and nothing else. It is not a definition of logic:termVariable (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5865,7 +5976,7 @@ logic:utilityFunctionality
     logic:characterizes logic:utility ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:utility ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:utility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:utility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:utility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:utility and nothing else. It is not a definition of logic:utility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5880,7 +5991,7 @@ logic:verdictProvenanceFunctionality
     logic:characterizes logic:verdictProvenance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:verdictProvenance ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:verdictProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:verdictProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:verdictProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:verdictProvenance and nothing else. It is not a definition of logic:verdictProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5895,7 +6006,7 @@ logic:witnessIndividualFunctionality
     logic:characterizes logic:witnessIndividual ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:witnessIndividual ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessIndividual names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessIndividual names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessIndividual, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:witnessIndividual and nothing else. It is not a definition of logic:witnessIndividual (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5910,7 +6021,7 @@ logic:witnessWorldFunctionality
     logic:characterizes logic:witnessWorld ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:witnessWorld ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessWorld names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessWorld, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:witnessWorld and nothing else. It is not a definition of logic:witnessWorld (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5925,7 +6036,7 @@ logic:demonstratedByCompetencyFunctionality
     logic:characterizes gmeow:demonstratedByCompetency ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByCompetency ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByCompetency, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByCompetency and nothing else. It is not a definition of gmeow:demonstratedByCompetency (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5940,7 +6051,7 @@ logic:demonstratedByExampleFunctionality
     logic:characterizes gmeow:demonstratedByExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByExample ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByExample and nothing else. It is not a definition of gmeow:demonstratedByExample (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5955,7 +6066,7 @@ logic:demonstratedByProducerFunctionality
     logic:characterizes gmeow:demonstratedByProducer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByProducer ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByProducer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByProducer and nothing else. It is not a definition of gmeow:demonstratedByProducer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5970,7 +6081,7 @@ logic:guardedByCounterExampleFunctionality
     logic:characterizes gmeow:guardedByCounterExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:guardedByCounterExample ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:guardedByCounterExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:guardedByCounterExample and nothing else. It is not a definition of gmeow:guardedByCounterExample (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -6931,7 +7042,7 @@ logic:adviceSourceFieldFunctionality
     logic:characterizes logic:adviceSourceField ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:adviceSourceField ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:adviceSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:adviceSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:adviceSourceField and nothing else. It is not a definition of logic:adviceSourceField (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -9132,11 +9243,11 @@ logic:PrescriptionVersion
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Prescription Version"@x-gmeow-english ;
-    skos:definition "An immutable, content-addressed version of a logic:Plan — the prescription an enactment runs against. Exactly one logic:prescriptionOf names the plan it versions. A revision never mutates a version: it mints a new one and supersedes the old, so a landed enactment's prescription can always be recovered exactly as it was executed. Typed APART from logic:Plan, which is the continuing program identity across revisions: a version is one frozen state of that program."@x-gmeow-english ;
+    skos:definition "An immutable version of one logic:Plan. Its default identity contract requires a content address. Explicit ImmutableIriPrescriptionIdentity instead selects externally maintained immutable IRI identity with durable retention and supersession; it provides no digest comparison or detection of changed bytes. A revision always mints a new version."@x-gmeow-english ;
     skos:example "ex:adrReviewV3 a logic:PrescriptionVersion ; logic:prescriptionOf ex:adrReviewPlan ."@x-gmeow-english ;
     gmeow:useWhen "Use whenever a plan can be revised while earlier runs against it must stay reproducible — a versioned curriculum, a revised control recipe, a workflow definition under change control."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mutating a landed version in place, and avoid minting one per enactment (many enactments share one version)."@x-gmeow-english ;
-    gmeow:howToUse "Content-address the plan's frozen form, bind logic:prescriptionOf, and record revision by minting a successor and superseding the predecessor."@x-gmeow-english ;
+    gmeow:howToUse "Bind prescriptionOf and retain a content digest by default. Select ImmutableIriPrescriptionIdentity explicitly only when an external owner guarantees immutable IRI resolution and durable historical retention."@x-gmeow-english ;
     skos:scopeNote "A revision never mutates a version: it mints a new one and supersedes the old, so an enactment that pinned the old version keeps running exactly what it started with. Mutation in place would silently rewrite history."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -9160,12 +9271,12 @@ logic:prescriptionDigest
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "prescription digest"@x-gmeow-english ;
-    skos:definition "The algorithm-prefixed content address of a logic:PrescriptionVersion's frozen form. It is the value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot silently satisfy an authorization issued for its predecessor. Not functional: several digest algorithms may coexist over one version."@x-gmeow-english ;
+    skos:definition "An algorithm-prefixed content address of a prescription version’s frozen form. Required by the default content-identity contract; optional under explicitly selected immutable IRI identity. A supplied digest remains available to digest-bearing admission and pin comparisons; IRI identity supplies no substitute hash."@x-gmeow-english ;
     skos:example "ex:reviewV4 logic:prescriptionDigest \"b3:4c8a03…\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to content-address a prescription version, which is how its immutability is enforced."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a mutability flag in place of a digest: a flag can be set wrongly, whereas an unmatched digest cannot lie."@x-gmeow-english ;
+    gmeow:useWhen "Use for the content identity contract or any digest-bearing operation that requires a version content witness."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting an immutable IRI contract as evidence of digest equality or changed-byte detection."@x-gmeow-english ;
     gmeow:howToUse "Address the version's bytes, so revising it in place becomes detectable rather than silent."@x-gmeow-english ;
-    skos:scopeNote "The value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot satisfy either. One digest serving both checks is what keeps the two from drifting apart."@x-gmeow-english ;
+    skos:scopeNote "Selecting IRI identity does not relax an independently selected checkpoint, approval or other content-addressed admission contract."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:InputSnapshot
@@ -10324,12 +10435,12 @@ logic:lawGovernsAxis
     rdfs:domain logic:AxisTransitionLaw ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "law governs axis"@x-gmeow-english ;
-    skos:definition "Relates a logic:AxisTransitionLaw to the closed value class whose transitions it governs. Range a lifecycle axis value class (stated in prose). Functional: one law per axis, so the admitted relation is unambiguous. Two laws over one axis cannot be reconciled — a transition admitted by one and refused by the other leaves no principled way to decide."@x-gmeow-english ;
-    skos:scopeNote "Functional by design: one law per axis, so the admitted relation is unambiguous. Two laws over one axis would leave a transition admitted by one and refused by the other with no principled way to decide."@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisTransitionLaw to the closed lifecycle value class whose transitions it governs. Each law record names at most one axis. Distinct laws may govern the same axis in different declared scopes or versions; sharing an axis neither merges those laws nor selects which one applies."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one axis per law. This property imposes no inverse uniqueness and does not prove that distinct laws agree."@x-gmeow-english ;
     skos:example "ex:step-law logic:lawGovernsAxis logic:StepState ."@x-gmeow-english ;
     gmeow:useWhen "Use to declare which closed value class an axis transition law governs."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid authoring a second law for an axis to cover a special case: fold the case into the one law's formula so the admitted relation stays single-valued."@x-gmeow-english ;
-    gmeow:howToUse "Name the axis value class, and let the certificates range over exactly the values that class closes over."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading one axis per law as one law per axis, or combining distinct laws without identifying the applicable scope and law version."@x-gmeow-english ;
+    gmeow:howToUse "Name the axis value class and retain the selected law's identity and version when interpreting its admitted transitions or certificate evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:lawAdmits
@@ -10763,12 +10874,12 @@ logic:receiptOfPreparation
     rdfs:range logic:PreparationStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "receipt of preparation"@x-gmeow-english ;
-    skos:definition "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. The relation cannot be multi-valued, because two receipts for one step would leave that question unanswerable."@x-gmeow-english ;
+    skos:definition "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Each receipt names at most one preparation step. Distinct receipts may record the same step across repeated runs; their source and enactment context determine which completion they evidence. This relation does not select a receipt for resumption or license reusing an earlier run's completion."@x-gmeow-english ;
     skos:example "ex:stagingReceipt logic:receiptOfPreparation ex:stageFiles ."@x-gmeow-english ;
     gmeow:useWhen "Use to evidence that a preparation activity actually completed."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring preparation from the absence of an error; a preparation that silently did nothing looks identical."@x-gmeow-english ;
-    gmeow:howToUse "Bind the receipt to the preparation step, so readiness is evidenced rather than assumed."@x-gmeow-english ;
-    skos:scopeNote "Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. Two receipts for one step would leave that question unanswerable."@x-gmeow-english ;
+    gmeow:howToUse "Bind each receipt to its preparation step and preserve the source and enactment context needed to decide whether that completion applies to the run being resumed."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one step per receipt. No inverse uniqueness or cross-run reuse follows; separate receipts remain distinct evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:PinnedExecutableSubgraph
@@ -13143,12 +13254,12 @@ logic:lensGoverns
     rdfs:range logic:Plan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "lens governs"@x-gmeow-english ;
-    skos:definition "Relates a logic:RevisionLens to the plan whose revision and restore it governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."@x-gmeow-english ;
-    skos:scopeNote "Points at the plan whose revision and restore the lens governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."@x-gmeow-english ;
+    skos:definition "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Each lens names at most one plan, so its law evidence has a specific subject. Distinct lenses may govern the same plan; this property does not select between them or merge their identities."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one plan per lens. A shared plan does not identify its lenses or make their revision and restore results interchangeable."@x-gmeow-english ;
     skos:example "ex:lens-1 logic:lensGoverns ex:protocol-v3 ."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a revision lens to the plan whose revision and restore behaviour it governs."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid sharing one lens across unrelated plans: the laws are checked per plan, and a shared lens would report one plan's result for another."@x-gmeow-english ;
-    gmeow:howToUse "Attach one lens per plan and record both law results on it, so revision behaviour is auditable plan by plan."@x-gmeow-english ;
+    gmeow:howToUse "Bind one plan on each lens, retain each lens's own law evidence, and identify the selected lens when interpreting a revision or restore."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:lensPutGetHolds
@@ -14332,11 +14443,11 @@ logic:assemblyExcluded
 
 logic:assemblyExclusionReason
     a logic:DatatypeProperty ;
-    rdfs:domain logic:ContextAssembly ;
+    logic:domain [ a logic:Class ; logic:unionOf ( logic:ContextAssembly logic:AssemblyExclusion ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "assembly exclusion reason"@x-gmeow-english ;
-    skos:definition "Why material available to the assembly was not surfaced — a budget, a relevance filter, a policy. Recording it distinguishes a deliberate omission from an accidental one."@x-gmeow-english ;
+    skos:definition "Why available material was withheld. On a ContextAssembly this is its aggregate report; on an AssemblyExclusion reifier it explains that particular assemblyExcluded assertion. Explicit per-record accounting requires a reason on each reifier rather than one shared aggregate reason."@x-gmeow-english ;
     skos:example "ex:week13Context logic:assemblyExclusionReason \"superseded by revision 4\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use to say why something was withheld."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an unexplained exclusion; it is indistinguishable from an oversight."@x-gmeow-english ;
@@ -14444,17 +14555,20 @@ logic:ContextAssemblyRecordsExclusionsConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an assembly that withholds material says why"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."@x-gmeow-english ;
+    skos:definition "An assembly using aggregate exclusion accounting must retain an aggregate reason. Explicit PerRecordExclusionAssembly instead requires a reason on each excluded assertion’s reifier through its canonical reification obligation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:ContextAssembly binding logic:assemblyExcluded must record a logic:assemblyExclusionReason; a deliberate omission with no stated grounds is indistinguishable from an accidental one." ;
+    logic:message "Aggregate exclusion accounting requires an assembly reason; explicit per-record accounting requires a reason for every excluded assertion." ;
     logic:integrity logic:careXForall .
 logic:careXForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:careXImpl .
 logic:careXImpl a logic:Formula ; logic:antecedent logic:careXGuard ; logic:consequent logic:careXCons .
-logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded .
+logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded , logic:careXUsesAggregate .
+logic:careXUsesAggregate a logic:Formula ; logic:not logic:careXPerRecord .
+logic:careXPerRecord a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PerRecordExclusionAssembly ] .
 logic:careXIsAssembly a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
 logic:careXExcluded a logic:Formula ; logic:relation logic:assemblyExcluded ;
@@ -14673,18 +14787,22 @@ logic:PrescriptionVersionIsContentAddressedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a prescription version is content-addressed"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Content-addressing is the PRECONDITION of immutability, not immutability itself: an unaddressed version cannot be shown to be the one an enactment ran, so nothing downstream can detect a revision in place. Whether a version actually stayed put is logic:PrescriptionVersionImmutabilityConstraint, which compares the address against what a run recorded."@x-gmeow-english ;
+    skos:definition "A prescription version requires a digest unless it explicitly selects ImmutableIriPrescriptionIdentity. Absence of a mode retains the content-addressed default; the IRI contract does not claim digest verification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:PrescriptionVersion must carry logic:prescriptionDigest; without a content address, revising a version in place is undetectable." ;
+    logic:message "A prescription version requires a digest unless immutable IRI identity is explicitly selected; absence retains the content-addressed default." ;
     logic:integrity logic:pviForall .
 logic:pviForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:pviImpl .
 logic:pviImpl a logic:Formula ; logic:antecedent logic:pviGuard ; logic:consequent logic:pviCons .
-logic:pviGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+logic:pviGuard a logic:Formula ; logic:and logic:pviVersionType , logic:pviNeedsContentIdentity .
+logic:pviVersionType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ] .
+logic:pviNeedsContentIdentity a logic:Formula ; logic:not logic:pviIriSelection .
+logic:pviIriSelection a logic:Formula ; logic:relation logic:prescriptionIdentityMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ImmutableIriPrescriptionIdentity ] .
 logic:pviCons a logic:Formula ; logic:relation logic:prescriptionDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
 
@@ -24218,3 +24336,232 @@ logic:projectionBindingContent a logic:DatatypeProperty ;
     gmeow:howToUse "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     logic:range rdf:JSON .
+
+logic:PrescriptionIdentityMode
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Prescription Identity Mode"@x-gmeow-english ;
+    skos:definition "The selected identity contract of an immutable prescription version. Absence retains content-addressed identity; selecting IRI identity changes no independent operation’s requirements."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Prescription Identity Mode explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring PrescriptionIdentityMode from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit PrescriptionIdentityMode contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:PrescriptionIdentityMode."@x-gmeow-english .
+
+logic:prescriptionIdentityMode
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prescription identity mode"@x-gmeow-english ;
+    skos:definition "An explicit identity contract selection on a prescription version, never inferred from a missing digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare prescription identity mode explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring prescriptionIdentityMode from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit prescriptionIdentityMode contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:prescriptionIdentityMode."@x-gmeow-english .
+
+logic:ContentAddressedPrescriptionIdentity
+    a logic:PrescriptionIdentityMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "content-addressed prescription identity"@x-gmeow-english ;
+    skos:definition "The default contract requires a digest of frozen prescription content. Selecting it explicitly preserves the same digest obligation as omitting the selector."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare content-addressed prescription identity explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ContentAddressedPrescriptionIdentity from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit ContentAddressedPrescriptionIdentity contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:ContentAddressedPrescriptionIdentity."@x-gmeow-english .
+
+logic:ImmutableIriPrescriptionIdentity
+    a logic:PrescriptionIdentityMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "immutable IRI prescription identity"@x-gmeow-english ;
+    skos:definition "An explicitly selected contract under which an external owner preserves one immutable version per resolvable IRI, retains historical versions durably and revises only by supersession. It provides no hash comparison or changed-byte detection."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare immutable IRI prescription identity explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ImmutableIriPrescriptionIdentity from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit ImmutableIriPrescriptionIdentity contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:ImmutableIriPrescriptionIdentity."@x-gmeow-english .
+
+logic:PerRecordExclusionAssembly
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Per-Record Exclusion Assembly"@x-gmeow-english ;
+    skos:definition "An explicit ContextAssembly profile requiring an identified reason-bearing reifier for every assemblyExcluded assertion. It does not additionally require an aggregate reason."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Per-Record Exclusion Assembly explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring PerRecordExclusionAssembly from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit PerRecordExclusionAssembly contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:PerRecordExclusionAssembly."@x-gmeow-english .
+
+logic:AssemblyExclusion
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Assembly Exclusion"@x-gmeow-english ;
+    skos:definition "An RDF 1.2 reifier of one assemblyExcluded assertion. Its reason concerns exactly that excluded membership and does not explain other memberships by default."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Assembly Exclusion explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring AssemblyExclusion from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit AssemblyExclusion contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:AssemblyExclusion."@x-gmeow-english .
+
+logic:prescriptionIdentityMode logic:domain logic:PrescriptionVersion ; logic:range logic:PrescriptionIdentityMode .
+logic:PrescriptionVersion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:prescriptionIdentityMode ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( logic:ContentAddressedPrescriptionIdentity logic:ImmutableIriPrescriptionIdentity ) ] ],
+    [ a logic:Restriction ; logic:onProperty logic:prescriptionIdentityMode ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+logic:PerRecordExclusionAssembly logic:subClassOf logic:ContextAssembly .
+logic:AssemblyExclusion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:assemblyExclusionReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass logic:AssemblyExclusion ; logic:closureKey "https://blackcatinformatics.ca/logic/assemblyExclusionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Schema-level authoring of the RDF 1.2 reifier obligation, consumed by native derivation.
+logic:perRecordExclusionReificationObligation a rdf:Statement , logic:AssemblyExclusion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "per-record exclusion reification obligation"@x-gmeow-english ;
+    skos:definition "Every exclusion of an explicitly selected PerRecordExclusionAssembly has a reifier conforming to AssemblyExclusion; its own reason is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdf:subject logic:PerRecordExclusionAssembly ;
+    rdf:predicate logic:assemblyExcluded ;
+    rdf:object logic:Thing .
+
+logic:AssemblyExclusionHasOwnReasonConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an excluded assertion carries its own reason"@x-gmeow-english ;
+    skos:definition "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an excluded assertion carries its own reason."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating AssemblyExclusionHasOwnReasonConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply AssemblyExclusionHasOwnReasonConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:AssemblyExclusionHasOwnReasonConstraint."@x-gmeow-english ;
+    logic:formalizes logic:assemblyExclusionReason ;
+    logic:message "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AssemblyExclusion ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reason" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:assemblyExclusionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ] , [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reason" ] ] ] ] ] ] .
+
+logic:AssemblyExclusionReasonLanguageConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an excluded assertion preserves reason language"@x-gmeow-english ;
+    skos:definition "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an excluded assertion preserves reason language."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating AssemblyExclusionReasonLanguageConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply AssemblyExclusionReasonLanguageConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:AssemblyExclusionReasonLanguageConstraint."@x-gmeow-english ;
+    logic:formalizes logic:assemblyExclusionReason ;
+    logic:message "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] , [ logic:termIndex 2 ; logic:termVariable "reason" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AssemblyExclusion ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] , [ a logic:Formula ; logic:relation logic:assemblyExclusionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reason" ] ] ] ] .
+
+logic:ImmutableIriPrescriptionIsNamedConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an immutable IRI prescription has an IRI"@x-gmeow-english ;
+    skos:definition "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an immutable IRI prescription has an IRI."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ImmutableIriPrescriptionIsNamedConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ImmutableIriPrescriptionIsNamedConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:ImmutableIriPrescriptionIsNamedConstraint."@x-gmeow-english ;
+    logic:formalizes logic:ImmutableIriPrescriptionIdentity ;
+    logic:message "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:prescriptionIdentityMode ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ImmutableIriPrescriptionIdentity ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ] ] ] .
+
+logic:perRecordExclusionReificationObligation
+    gmeow:useWhen "Use when the per-record assembly profile requires every excluded membership to have its own reason-bearing reifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding an invented instance reason to this schema declaration."@x-gmeow-english ;
+    gmeow:howToUse "Declare the subject class, predicate and constrained reifier class; actual exclusions use native rdf:reifies statements."@x-gmeow-english ;
+    skos:example "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."@x-gmeow-english .
+
+logic:CapturedPrescriptionDigestPresenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "a captured prescription digest requires a current digest"@x-gmeow-english ;
+    skos:definition "A prescription version whose enactment captured a digest must retain a current prescriptionDigest under every identity mode. This law checks presence only; PrescriptionVersionImmutabilityConstraint separately compares the current value with the captured witness."@x-gmeow-english ;
+    gmeow:useWhen "Use when an enactment recorded enactedPrescriptionDigest and absence of the version’s current digest would otherwise bypass the comparison law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the immutability law’s mismatch finding here; a present but different digest is that law’s comparison failure."@x-gmeow-english ;
+    gmeow:howToUse "Join the pinned version and captured digest, then require some current prescriptionDigest without a mode or current-digest guard. Let the existing immutability law require the matching value."@x-gmeow-english ;
+    skos:example "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."@x-gmeow-english ;
+    logic:formalizes logic:enactedPrescriptionDigest ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A prescription version with a captured enactment digest requires a current prescriptionDigest under every identity mode; the existing immutability law compares its value." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                 [ logic:termIndex 1 ; logic:termVariable "run" ],
+                                 [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ;
+                logic:and [
+                    a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                   [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ]
+                ], [
+                    a logic:Formula ;
+                    logic:relation logic:enactsPrescriptionVersion ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "this" ]
+                ], [
+                    a logic:Formula ;
+                    logic:relation logic:enactedPrescriptionDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "digest" ]
+                ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "current" ] ;
+                logic:exists [
+                    a logic:Formula ;
+                    logic:relation logic:prescriptionDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "current" ]
+                ]
+            ]
+        ]
+    ] .
+
+# Forward single-valued bindings; a shared target does not identify its sources.
+logic:receiptOfPreparationFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receiptOfPreparation is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:receiptOfPreparation binds each logic:PreparationReceipt to at most one logic:PreparationStep. This forward functionality does not require a step to be present and does not limit how many receipts may record the same preparation step."@x-gmeow-english ;
+    logic:characterizes logic:receiptOfPreparation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:receiptOfPreparation ;
+    gmeow:useWhen "Use to enforce the forward at-most-one preparation-step binding while retaining separate receipt evidence for repeated runs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this assertion to choose a receipt for resumption or to treat evidence from an earlier run as completion of the current run."@x-gmeow-english ;
+    gmeow:howToUse "Assert the characteristic through logic:characterizes and logic:characteristicSort; retain each receipt's source and enactment context when deciding which completion it evidences."@x-gmeow-english ;
+    skos:scopeNote "The bound concerns targets of one receipt, not receipt identity across runs. Two targets of one receipt may be equated by functional reasoning; different receipts sharing a step are not thereby equated, selected for resumption, or licensed for cross-run reuse."@x-gmeow-english ;
+    skos:example "In Turtle, ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . describes two receipts for one step; functionality does not entail that ex:receiptA and ex:receiptB are identical."@x-gmeow-english .
+
+logic:lawGovernsAxisFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lawGovernsAxis is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:lawGovernsAxis binds each logic:AxisTransitionLaw to at most one closed lifecycle value class. Functionality caps the axes named by one law; it does not require an axis binding or restrict an axis to one law."@x-gmeow-english ;
+    logic:characterizes logic:lawGovernsAxis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:lawGovernsAxis ;
+    gmeow:useWhen "Use to keep one axis transition law from naming multiple distinct lifecycle axes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring one law per axis, agreement between law versions, or authority to combine their admitted transitions."@x-gmeow-english ;
+    gmeow:howToUse "Carry the functional characteristic on logic:lawGovernsAxis and preserve the governing law's scope and version when interpreting transitions and certificate evidence."@x-gmeow-english ;
+    skos:scopeNote "Distinct scoped or versioned laws may govern the same axis without being equated. Functional reasoning may equate two axis targets named by one law, but sharing an axis neither selects the applicable law nor proves agreement between laws."@x-gmeow-english ;
+    skos:example "In Turtle, ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . permits separate law versions for the same axis; the selected scope and version still determine which transitions apply."@x-gmeow-english .
+
+logic:lensGovernsFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lensGoverns is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:lensGoverns binds each logic:RevisionLens to at most one logic:Plan, keeping that lens's revision and restore evidence attached to a single plan. This characteristic does not require a plan binding and permits distinct lenses to govern the same plan."@x-gmeow-english ;
+    logic:characterizes logic:lensGoverns ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:lensGoverns ;
+    gmeow:useWhen "Use to preserve the single-plan subject of a revision lens's law evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a shared plan to merge lens identities, choose a lens, or substitute one lens's revision and restore results for another's."@x-gmeow-english ;
+    gmeow:howToUse "Bind the characteristic to logic:lensGoverns, keep each lens's law evidence separately identified, and name the selected lens when interpreting a revision or restore."@x-gmeow-english ;
+    skos:scopeNote "The bound applies from lens to plan. Functional reasoning may equate two plan targets of one lens; distinct lenses sharing a plan are not thereby equated, selected, or certified to have interchangeable revision and restore results."@x-gmeow-english ;
+    skos:example "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."@x-gmeow-english .

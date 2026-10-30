@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/query-program/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# An archive combines two available rankings. A separate unavailable vector
+# family contributes its original loss record, not an invented empty ranking.
+ex:archiveQuery a gmeow:QueryProgramGraph ;
+    gmeow:queryAdmissionContract gmeow:queryStratifiedFeedbackContract ;
+    gmeow:queryGraphNode ex:lexical, ex:secondary, ex:vector, ex:choice,
+        ex:unavailable, ex:fusion, ex:merge, ex:answerSink, ex:ledgerSink, ex:auditSink ;
+    gmeow:queryGraphSink ex:answerSink, ex:ledgerSink, ex:auditSink ;
+    gmeow:queryGraphEdge ex:fusionMerge, ex:mergeAnswer, ex:mergeLedger, ex:mergeAudit .
+
+ex:dataset a gmeow:InformationObject .
+ex:frame a gmeow:InformationObject .
+ex:noParameters a gmeow:InformationObject .
+ex:rowDescriptor a gmeow:InformationObject .
+
+ex:lexical a gmeow:SparqlSelectionLeaf ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    gmeow:selectionText "PREFIX ex: <https://example.org/query-program/> SELECT ?item WHERE { ?item a ex:ArchiveRecord }" ;
+    gmeow:selectionLanguage gmeow:querySparqlSelect ;
+    gmeow:selectionNodeKind logic:Query ;
+    gmeow:selectionDataset ex:dataset ; gmeow:selectionContext ex:frame ;
+    gmeow:selectionInput ex:noParameters ; gmeow:selectionOutput ex:rowDescriptor .
+
+ex:secondary a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+ex:vector a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+ex:unavailable a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 .
+
+# Explicit not-evaluated is comparable. It selects the ordinary matching branch.
+ex:choice a gmeow:QueryVerdictChoice ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    gmeow:choiceAnswer ex:vectorAnswer ;
+    gmeow:choiceAxis gmeow:queryInformationState ;
+    gmeow:choiceExpectedValue logic:InfoNotEvaluated ;
+    logic:leftOperand ex:lexical ; logic:rightOperand ex:vector ;
+    gmeow:choiceUnknownBranch ex:unavailable .
+ex:choiceOccurrence a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:choice ;
+    gmeow:querySelectedBranch ex:lexical .
+
+ex:reader a gmeow:Agent .
+ex:vectorIndex a gmeow:InformationObject .
+ex:lockedLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:vectorIndex ;
+    gmeow:lossCause gmeow:lossVaultLocked ;
+    gmeow:lossAcceptedBy ex:reader .
+ex:vectorLedger a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:lockedLoss .
+ex:vectorAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:vector ; gmeow:queryLossLedger ex:vectorLedger ;
+    gmeow:queryInformationState logic:InfoNotEvaluated .
+ex:emptyLedger a gmeow:QueryLossLedger .
+
+ex:firstList a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:lexical ; gmeow:queryLossLedger ex:emptyLedger ;
+    gmeow:queryCandidate ex:recordA, ex:recordB ;
+    gmeow:rankedQueryEntry ex:firstA, ex:firstB .
+ex:secondList a gmeow:RankedQueryList ;
+    gmeow:queryAnswerFor ex:secondary ; gmeow:queryLossLedger ex:emptyLedger ;
+    gmeow:queryCandidate ex:recordA ; gmeow:rankedQueryEntry ex:secondA .
+ex:firstA a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:recordA ;
+    gmeow:queryInputRank "1"^^xsd:positiveInteger ; gmeow:queryTieKey "record-a" .
+ex:firstB a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:recordB ;
+    gmeow:queryInputRank "2"^^xsd:positiveInteger ; gmeow:queryTieKey "record-b" .
+ex:secondA a gmeow:RankedQueryEntry ;
+    gmeow:rankedEntryCandidate ex:recordA ;
+    gmeow:queryInputRank "1"^^xsd:positiveInteger ; gmeow:queryTieKey "record-a" .
+
+# S=10, k=0: the three per-list contributions are 10, 5 and 10.
+ex:fusion a gmeow:ReciprocalRankFusion ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 1 ;
+    gmeow:fusionInput ex:firstList, ex:secondList ;
+    gmeow:fusionOutput ex:fusedAnswer ;
+    gmeow:fusionScale "10"^^xsd:positiveInteger ;
+    gmeow:fusionRankOffset "0"^^xsd:nonNegativeInteger ;
+    gmeow:fusionContribution ex:contributionFirstA, ex:contributionFirstB, ex:contributionSecondA ;
+    gmeow:fusionScore ex:scoreA, ex:scoreB .
+ex:contributionFirstA a gmeow:FusionContribution ;
+    gmeow:contributionEntry ex:firstA ; gmeow:contributionValue "10"^^xsd:nonNegativeInteger .
+ex:contributionFirstB a gmeow:FusionContribution ;
+    gmeow:contributionEntry ex:firstB ; gmeow:contributionValue "5"^^xsd:nonNegativeInteger .
+ex:contributionSecondA a gmeow:FusionContribution ;
+    gmeow:contributionEntry ex:secondA ; gmeow:contributionValue "10"^^xsd:nonNegativeInteger .
+ex:fusedAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:fusion ; gmeow:queryLossLedger ex:emptyLedger ;
+    gmeow:queryCandidate ex:recordA, ex:recordB .
+
+ex:scoreA a gmeow:QueryFusionScore ;
+    gmeow:scoreCandidate ex:recordA ; gmeow:fusionScoreValue "20"^^xsd:nonNegativeInteger ;
+    gmeow:fusionTieOrder "0"^^xsd:nonNegativeInteger ;
+    gmeow:scoreFoldStep ex:a0, ex:a1, ex:a2 ; gmeow:scoreFinalStep ex:a2 .
+ex:a0 a gmeow:QueryScoreFoldStep ;
+    gmeow:scoreStepIndex "0"^^xsd:nonNegativeInteger ; gmeow:scoreStepTotal "0"^^xsd:nonNegativeInteger .
+ex:a1 a gmeow:QueryScoreFoldStep ;
+    gmeow:scoreStepIndex "1"^^xsd:nonNegativeInteger ; gmeow:scoreStepTotal "10"^^xsd:nonNegativeInteger ;
+    gmeow:scorePreviousStep ex:a0 ; gmeow:scoreStepContribution ex:contributionFirstA .
+ex:a2 a gmeow:QueryScoreFoldStep ;
+    gmeow:scoreStepIndex "2"^^xsd:nonNegativeInteger ; gmeow:scoreStepTotal "20"^^xsd:nonNegativeInteger ;
+    gmeow:scorePreviousStep ex:a1 ; gmeow:scoreStepContribution ex:contributionSecondA .
+ex:scoreB a gmeow:QueryFusionScore ;
+    gmeow:scoreCandidate ex:recordB ; gmeow:fusionScoreValue "5"^^xsd:nonNegativeInteger ;
+    gmeow:fusionTieOrder "1"^^xsd:nonNegativeInteger ;
+    gmeow:scoreFoldStep ex:b0, ex:b1 ; gmeow:scoreFinalStep ex:b1 .
+ex:b0 a gmeow:QueryScoreFoldStep ;
+    gmeow:scoreStepIndex "0"^^xsd:nonNegativeInteger ; gmeow:scoreStepTotal "0"^^xsd:nonNegativeInteger .
+ex:b1 a gmeow:QueryScoreFoldStep ;
+    gmeow:scoreStepIndex "1"^^xsd:nonNegativeInteger ; gmeow:scoreStepTotal "5"^^xsd:nonNegativeInteger ;
+    gmeow:scorePreviousStep ex:b0 ; gmeow:scoreStepContribution ex:contributionFirstB .
+
+# The output refers to the exact original loss, retaining its acknowledgement.
+ex:merge a gmeow:QueryLedgerMerge ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 1 ;
+    gmeow:mergeAnswerInput ex:fusedAnswer, ex:vectorAnswer ;
+    gmeow:mergeAnswerOutput ex:mergedAnswer ; logic:dataflowConsumes ex:fusion .
+ex:mergedAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:merge ; gmeow:queryLossLedger ex:mergedLedger ;
+    gmeow:queryCandidate ex:recordA, ex:recordB .
+ex:mergedLedger a gmeow:QueryLossLedger ; gmeow:ledgerLoss ex:lockedLoss .
+
+# Distinct external outputs remain terminal and have no downstream consumers.
+ex:answerSink a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+ex:ledgerSink a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+ex:auditSink a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful true ; gmeow:queryNodeStratum 2 ; logic:dataflowConsumes ex:merge .
+ex:fusionMerge a logic:DataFlowEdge ;
+    logic:flowFrom ex:fusion ; logic:flowTo ex:merge ; gmeow:queryEdgeMonotone true .
+ex:mergeAnswer a logic:DataFlowEdge ;
+    logic:flowFrom ex:merge ; logic:flowTo ex:answerSink ; gmeow:queryEdgeMonotone true .
+ex:mergeLedger a logic:DataFlowEdge ;
+    logic:flowFrom ex:merge ; logic:flowTo ex:ledgerSink ; gmeow:queryEdgeMonotone true .
+ex:mergeAudit a logic:DataFlowEdge ;
+    logic:flowFrom ex:merge ; logic:flowTo ex:auditSink ; gmeow:queryEdgeMonotone true .

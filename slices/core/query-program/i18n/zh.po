@@ -1,0 +1,2641 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Program Graph"
+msgstr "查询程序图"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite, explicitly bounded graph describing a consumer-owned query operation and its nodes. Its declaration requests no native execution."
+msgstr "描述消费者自有查询操作及其节点的有限显式有界图。声明它不请求原生执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query program graph with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询程序图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryProgramGraph ."
+msgstr "ex:record a gmeow:QueryProgramGraph ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Program Node"
+msgstr "查询程序节点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One operation description in a query graph, with explicit effect classification and dependency stratum. It is not an execution occurrence."
+msgstr "查询图中的一个操作描述，具有明确的效果分类及依赖层级。它不是执行出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query program node with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询程序节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryProgramNode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryProgramNode ."
+msgstr "ex:record a gmeow:QueryProgramNode ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ranked Query List"
+msgstr "有序查询列表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed query answer carrying source-ranked candidate entries. Ranks are the source-supplied positive integers; equal ranks remain tied and are never renumbered by serialization order."
+msgstr "承载来源排序候选项的归属查询答案。名次是来源提供的正整数；相同名次保持并列，绝不按序列化顺序重编号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked query list with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序查询列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryList|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:RankedQueryList ."
+msgstr "ex:record a gmeow:RankedQueryList ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ranked Query Entry"
+msgstr "有序查询条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One candidate occurrence in one ranked list, retaining its rank and a unique source-scoped tie key. Repeated candidate identities within a list are forbidden."
+msgstr "单个有序列表中的候选项出现，保留名次及来源作用域内唯一的并列排序键。同一候选身份不能在列表中重复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked query entry with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序查询条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedQueryEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:RankedQueryEntry ."
+msgstr "ex:record a gmeow:RankedQueryEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fixed-Point Reciprocal Rank Fusion"
+msgstr "定点倒数排名融合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description combining selected ranked lists by integer-quantized reciprocal ranks, preserving every per-list contribution. Quantization rounds down before summation."
+msgstr "通过整数化倒数名次合并选定有序列表的查询节点描述，保留每个列表的贡献。先向下量化，再求和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fixed-point reciprocal rank fusion with explicit source bindings."
+msgstr "用于以明确来源绑定描述定点倒数排名融合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReciprocalRankFusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:ReciprocalRankFusion ."
+msgstr "ex:record a gmeow:ReciprocalRankFusion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Contribution"
+msgstr "查询融合贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative integer contribution of exactly one selected ranked entry to one fusion occurrence. It is a retrieval score, never epistemic confidence."
+msgstr "一个选定有序条目对单次融合的非负整数贡献。它是检索分数，不是认识置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion contribution with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:FusionContribution ."
+msgstr "ex:record a gmeow:FusionContribution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Fusion Score"
+msgstr "查询融合分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A candidate score for one fusion, with a finite complete fold over that candidate’s contributions. Equal scores remain tied."
+msgstr "单次融合中某候选项的分数，具有覆盖该候选贡献的完整有限折叠。相同分数保持并列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion score with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryFusionScore ."
+msgstr "ex:record a gmeow:QueryFusionScore ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Score Fold Step"
+msgstr "查询分数折叠步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A numbered partial sum within one candidate score. Step zero is zero; each successor adds exactly one previously unused contribution."
+msgstr "单个候选分数中的编号部分和。第零步为零；每个后继步骤加入一个此前未使用的贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score fold step with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数折叠步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryScoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryScoreFoldStep ."
+msgstr "ex:record a gmeow:QueryScoreFoldStep ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Ledger Merge"
+msgstr "查询账本合并"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description taking the identity-preserving union of candidates and loss records from selected answers. It does not repair or waive any loss."
+msgstr "对选定答案的候选项及损失记录作保持身份的并集的查询节点描述。它不修复或豁免损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query ledger merge with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询账本合并。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLedgerMerge|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryLedgerMerge ."
+msgstr "ex:record a gmeow:QueryLedgerMerge ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Verdict Choice"
+msgstr "查询判定选择"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description comparing a bound answer-axis value with an expected value. Missing or unknown values select an explicit unknown branch."
+msgstr "将已绑定答案轴值与预期值比较的查询节点描述。缺失或未知值选择明确的未知分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query verdict choice with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询判定选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryVerdictChoice|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryVerdictChoice ."
+msgstr "ex:record a gmeow:QueryVerdictChoice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Node Execution"
+msgstr "查询节点执行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer-reported occurrence of executing a query node. Selected branches and measured iteration outcomes belong to occurrences, not reusable operation descriptions."
+msgstr "消费者报告的查询节点执行出现。所选分支及测得的迭代结果属于出现，而非可复用操作描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query node execution with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询节点执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryNodeExecution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryNodeExecution ."
+msgstr "ex:record a gmeow:QueryNodeExecution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Convergent Query Iteration"
+msgstr "收敛查询迭代"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query-node description of finite monotone set expansion to equality, under a stratified feedback contract. The body is a pure query node; convergence is separate from a budget stop."
+msgstr "在分层反馈契约下进行有限单调集合扩展直至相等的查询节点描述。循环体是纯查询节点；收敛区别于预算停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for convergent query iteration with explicit source bindings."
+msgstr "用于以明确来源绑定描述收敛查询迭代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConvergentQueryIteration|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:ConvergentQueryIteration ."
+msgstr "ex:record a gmeow:ConvergentQueryIteration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Iteration State"
+msgstr "查询迭代状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite candidate set after a measured number of body executions in one iteration run. State zero is the seed before any body execution."
+msgstr "单次迭代运行中，执行指定次数循环体后的有限候选集合。状态零是在执行循环体前的种子。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration state with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryIterationState ."
+msgstr "ex:record a gmeow:QueryIterationState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL Selection Leaf"
+msgstr "SPARQL选择叶节点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query node describing a well-formed SPARQL SELECT over a declared dataset and context, with explicit input and output descriptors. It authorizes no update or external effect."
+msgstr "描述针对明确数据集及上下文的良构SPARQL SELECT的查询节点，具有明确输入及输出描述。它不授权更新或外部效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection leaf with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择叶节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SparqlSelectionLeaf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:SparqlSelectionLeaf ."
+msgstr "ex:record a gmeow:SparqlSelectionLeaf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query graph node"
+msgstr "查询图节点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A node explicitly inside this finite graph. Membership bounds every dependency and sink obligation."
+msgstr "明确属于此有限图的节点。成员关系限定每个依赖及输出义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph node with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphNode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryGraphNode ex:value ."
+msgstr "ex:record gmeow:queryGraphNode ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query graph edge"
+msgstr "查询图边"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified dataflow edge in this graph; flowFrom is producer and flowTo is consumer."
+msgstr "此图中具体化的数据流边；flowFrom为生产者，flowTo为消费者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph edge with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphEdge|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryGraphEdge ex:value ."
+msgstr "ex:record gmeow:queryGraphEdge ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query node has effects"
+msgstr "查询节点具有效果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Explicit classification of whether the node performs external effects. False is required evidence of purity, not a default."
+msgstr "明确分类节点是否执行外部效果。false是声明的纯度证据，而非默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query node has effects with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询节点具有效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeEffectful|http://www.w3.org/2004/02/skos/core#example"
+msgid "Explicit classification of whether the node performs external effects. False is required evidence of purity, not a default. Example declaration: gmeow:queryNodeEffectful rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "明确分类节点是否执行外部效果。false是声明的纯度证据，而非默认值。 声明示例：gmeow:queryNodeEffectful rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query graph sink"
+msgstr "查询图汇点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A designated terminal node of this graph. Several sinks are allowed; every effectful node must be one."
+msgstr "此图指定的终端节点。允许多个汇点；每个具有效果的节点都必须是汇点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph sink with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图汇点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryGraphSink|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryGraphSink ex:value ."
+msgstr "ex:record gmeow:queryGraphSink ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query node stratum"
+msgstr "查询节点层级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative dependency stratum of this node within its graph. Strata are not time or execution order."
+msgstr "此节点在其图中的非负依赖层级。层级不是时间或执行次序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query node stratum with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询节点层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryNodeStratum|http://www.w3.org/2004/02/skos/core#example"
+msgid "The nonnegative dependency stratum of this node within its graph. Strata are not time or execution order. Example declaration: gmeow:queryNodeStratum rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "此节点在其图中的非负依赖层级。层级不是时间或执行次序。 声明示例：gmeow:queryNodeStratum rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query edge is monotone"
+msgstr "查询边单调"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "True identifies positive monotone dataflow; false identifies a negative or nonmonotone dependency requiring a strictly lower producer stratum."
+msgstr "true标识正向单调数据流；false标识要求生产者严格处于较低层级的否定或非单调依赖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query edge is monotone with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询边单调。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEdgeMonotone|http://www.w3.org/2004/02/skos/core#example"
+msgid "True identifies positive monotone dataflow; false identifies a negative or nonmonotone dependency requiring a strictly lower producer stratum. Example declaration: gmeow:queryEdgeMonotone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "true标识正向单调数据流；false标识要求生产者严格处于较低层级的否定或非单调依赖。 声明示例：gmeow:queryEdgeMonotone rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query answer candidate"
+msgstr "查询答案候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A candidate identity retained by an answer, state or declared finite universe. Membership does not assert truth or confidence."
+msgstr "答案、状态或声明的有限全集保留的候选身份。成员关系不表示真实或置信。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query answer candidate with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询答案候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryCandidate ex:value ."
+msgstr "ex:record gmeow:queryCandidate ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ranked query entry"
+msgstr "有序查询条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An entry in this ranked list; each candidate occurs at most once in the list."
+msgstr "此有序列表中的条目；每个候选项在列表中至多出现一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked query entry with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序查询条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedQueryEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:rankedQueryEntry ex:value ."
+msgstr "ex:record gmeow:rankedQueryEntry ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ranked entry candidate"
+msgstr "有序条目候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact candidate identified by a ranked entry."
+msgstr "有序条目标识的确切候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked entry candidate with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序条目候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rankedEntryCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:rankedEntryCandidate ex:value ."
+msgstr "ex:record gmeow:rankedEntryCandidate ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query input rank"
+msgstr "查询输入名次"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied positive rank used unchanged in reciprocal fusion. Equal ranks remain tied; omitted earlier rows do not renumber retained ranks."
+msgstr "来源提供的正名次，原样用于倒数融合。同名次保持并列；省略之前的行不重编号保留名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query input rank with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询输入名次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInputRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source-supplied positive rank used unchanged in reciprocal fusion. Equal ranks remain tied; omitted earlier rows do not renumber retained ranks. Example declaration: gmeow:queryInputRank rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "来源提供的正名次，原样用于倒数融合。同名次保持并列；省略之前的行不重编号保留名次。 声明示例：gmeow:queryInputRank rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query tie ordering key"
+msgstr "查询并列排序键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unique source-supplied string within its input list; codepoint order supplies deterministic ordering only among equal ranks. It is not a global candidate key."
+msgstr "输入列表内来源提供的唯一字符串；码点序仅确定同名次的稳定顺序。它不是全局候选键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query tie ordering key with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询并列排序键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryTieKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "A unique source-supplied string within its input list; codepoint order supplies deterministic ordering only among equal ranks. It is not a global candidate key. Example declaration: gmeow:queryTieKey rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "输入列表内来源提供的唯一字符串；码点序仅确定同名次的稳定顺序。它不是全局候选键。 声明示例：gmeow:queryTieKey rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion input"
+msgstr "查询融合输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One selected ranked-list occurrence; an unavailable family is a loss, not an invented empty input."
+msgstr "一个选定有序列表出现；不可用检索族是损失，而非虚构空输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion input with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:fusionInput ex:value ."
+msgstr "ex:record gmeow:fusionInput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion output"
+msgstr "查询融合输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer containing exactly the union of selected input candidates."
+msgstr "恰好包含选定输入候选项并集的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion output with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:fusionOutput ex:value ."
+msgstr "ex:record gmeow:fusionOutput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion contribution"
+msgstr "查询融合贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A per-entry contribution included in this fusion; no selected entry may be omitted or counted twice."
+msgstr "此融合包含的逐条目贡献；不得遗漏或重复计算选定条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion contribution with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:fusionContribution ex:value ."
+msgstr "ex:record gmeow:fusionContribution ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion score"
+msgstr "查询融合分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete candidate score within this fusion."
+msgstr "此融合内完整的候选项分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion score with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScore|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:fusionScore ex:value ."
+msgstr "ex:record gmeow:fusionScore ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion integer scale"
+msgstr "查询融合整数尺度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Positive fixed-point scale S, applied before downward quantization of each reciprocal contribution."
+msgstr "正定点尺度S，在对各倒数贡献向下量化前应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion integer scale with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合整数尺度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScale|http://www.w3.org/2004/02/skos/core#example"
+msgid "Positive fixed-point scale S, applied before downward quantization of each reciprocal contribution. Example declaration: gmeow:fusionScale rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "正定点尺度S，在对各倒数贡献向下量化前应用。 声明示例：gmeow:fusionScale rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion rank offset"
+msgstr "查询融合名次偏移"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Nonnegative offset k in the denominator k plus rank; it is not an iteration bound."
+msgstr "分母k加名次中的非负偏移k；它不是迭代上限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion rank offset with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合名次偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionRankOffset|http://www.w3.org/2004/02/skos/core#example"
+msgid "Nonnegative offset k in the denominator k plus rank; it is not an iteration bound. Example declaration: gmeow:fusionRankOffset rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "分母k加名次中的非负偏移k；它不是迭代上限。 声明示例：gmeow:fusionRankOffset rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion contribution entry"
+msgstr "融合贡献条目"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected input entry responsible for this contribution."
+msgstr "产生此贡献的选定输入条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion contribution entry with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合贡献条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contributionEntry ex:value ."
+msgstr "ex:record gmeow:contributionEntry ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion integer contribution"
+msgstr "融合整数贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The integer q satisfying q times (k plus rank) no greater than S, and S strictly below (q plus one) times that denominator."
+msgstr "整数q，满足q乘以k加名次不大于S，而S严格小于q加一乘以该分母。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion integer contribution with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合整数贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contributionValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The integer q satisfying q times (k plus rank) no greater than S, and S strictly below (q plus one) times that denominator. Example declaration: gmeow:contributionValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "整数q，满足q乘以k加名次不大于S，而S严格小于q加一乘以该分母。 声明示例：gmeow:contributionValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fusion score candidate"
+msgstr "融合分数候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Candidate whose complete contribution fold this score records."
+msgstr "此分数记录完整贡献折叠的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion score candidate with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合分数候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:scoreCandidate ex:value ."
+msgstr "ex:record gmeow:scoreCandidate ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion score value"
+msgstr "查询融合分数值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Nonnegative integer sum of the quantized contributions. Equal values remain tied; fusionTieOrder supplies their stable display order without changing scores."
+msgstr "量化贡献的非负整数和。同值保持并列；fusionTieOrder提供稳定显示顺序，不改变分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion score value with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合分数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionScoreValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "Nonnegative integer sum of the quantized contributions. Equal values remain tied; fusionTieOrder supplies their stable display order without changing scores. Example declaration: gmeow:fusionScoreValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "量化贡献的非负整数和。同值保持并列；fusionTieOrder提供稳定显示顺序，不改变分数。 声明示例：gmeow:fusionScoreValue rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score fold step"
+msgstr "查询分数折叠步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial-sum step belonging to this score’s complete finite fold."
+msgstr "此分数完整有限折叠中的部分和步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score fold step with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数折叠步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFoldStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:scoreFoldStep ex:value ."
+msgstr "ex:record gmeow:scoreFoldStep ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score final step"
+msgstr "查询分数最终步骤"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Final step of this score’s fold; its total equals the score value."
+msgstr "此分数折叠的最终步骤；其总和等于分数值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score final step with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数最终步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreFinalStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:scoreFinalStep ex:value ."
+msgstr "ex:record gmeow:scoreFinalStep ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score step index"
+msgstr "查询分数步骤索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Zero-based position in a finite score fold."
+msgstr "有限分数折叠中从零开始的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score step index with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数步骤索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "Zero-based position in a finite score fold. Example declaration: gmeow:scoreStepIndex rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "有限分数折叠中从零开始的位置。 声明示例：gmeow:scoreStepIndex rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score partial total"
+msgstr "查询分数部分总和"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Integer partial sum at this fold position, starting with zero."
+msgstr "此折叠位置的整数部分和，从零开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score partial total with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数部分总和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepTotal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Integer partial sum at this fold position, starting with zero. Example declaration: gmeow:scoreStepTotal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "此折叠位置的整数部分和，从零开始。 声明示例：gmeow:scoreStepTotal rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score previous step"
+msgstr "查询分数前一步"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The immediately preceding step of the same candidate’s score fold."
+msgstr "同一候选分数折叠的紧邻前一步。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score previous step with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数前一步。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scorePreviousStep|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:scorePreviousStep ex:value ."
+msgstr "ex:record gmeow:scorePreviousStep ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query score step contribution"
+msgstr "查询分数步骤贡献"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one fusion contribution added at this nonzero fold step."
+msgstr "在此非零折叠步骤加入的单个融合贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score step contribution with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数步骤贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreStepContribution|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:scoreStepContribution ex:value ."
+msgstr "ex:record gmeow:scoreStepContribution ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query merge answer input"
+msgstr "查询合并答案输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An answer whose candidates and original loss identities are included in the merge."
+msgstr "候选项及原始损失身份被包含在合并中的答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query merge answer input with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询合并答案输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:mergeAnswerInput ex:value ."
+msgstr "ex:record gmeow:mergeAnswerInput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query merge answer output"
+msgstr "查询合并答案输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer holding the exact candidate and loss unions, without merging different loss records by their labels."
+msgstr "承载确切候选项及损失并集的答案，不按标签合并不同损失记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query merge answer output with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询合并答案输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mergeAnswerOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:mergeAnswerOutput ex:value ."
+msgstr "ex:record gmeow:mergeAnswerOutput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice inspected answer"
+msgstr "查询选择检查答案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The attributed answer whose bound axis is inspected."
+msgstr "检查其已绑定轴值的归属答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice inspected answer with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择检查答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:choiceAnswer ex:value ."
+msgstr "ex:record gmeow:choiceAnswer ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice answer axis"
+msgstr "查询选择答案轴"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual predicate queryInformationState or queryCompletenessStatus, never an untyped string naming an axis."
+msgstr "实际谓词queryInformationState或queryCompletenessStatus，而非未定型轴名称字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice answer axis with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择答案轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceAxis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:choiceAxis ex:value ."
+msgstr "ex:record gmeow:choiceAxis ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice expected value"
+msgstr "查询选择预期值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit known value of the selected axis. Unknown values route to the unknown branch instead of matching or failing silently."
+msgstr "选定轴的明确已知值。未知值进入未知分支，而非静默匹配或不匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice expected value with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择预期值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceExpectedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:choiceExpectedValue ex:value ."
+msgstr "ex:record gmeow:choiceExpectedValue ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query choice unknown branch"
+msgstr "查询选择未知分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The branch selected for absent information, InfoUndetermined or CompletenessUnknown. InfoNotEvaluated is an explicit comparable value."
+msgstr "在信息缺失、InfoUndetermined或CompletenessUnknown时所选分支。InfoNotEvaluated是明确可比较值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice unknown branch with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择未知分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/choiceUnknownBranch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:choiceUnknownBranch ex:value ."
+msgstr "ex:record gmeow:choiceUnknownBranch ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "executed query node"
+msgstr "执行的查询节点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reusable query-node description realized by this consumer-reported occurrence."
+msgstr "此次消费者报告的出现所实现的可复用查询节点描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for executed query node with explicit source bindings."
+msgstr "用于以明确来源绑定描述执行的查询节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executesQueryNode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:executesQueryNode ex:value ."
+msgstr "ex:record gmeow:executesQueryNode ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query execution selected branch"
+msgstr "查询执行所选分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The branch actually selected by a verdict-choice execution; it must agree with the bound answer or explicit unknown case."
+msgstr "判定选择执行实际选中的分支；必须符合已绑定答案或明确未知情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query execution selected branch with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询执行所选分支。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySelectedBranch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:querySelectedBranch ex:value ."
+msgstr "ex:record gmeow:querySelectedBranch ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration universe"
+msgstr "查询迭代全集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Finite candidate-set descriptor bounding this iteration. Its declared membership is complete for this operation."
+msgstr "限定此迭代的有限候选集合描述。其声明成员对本操作完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration universe with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代全集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/iterationUniverse|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:iterationUniverse ex:value ."
+msgstr "ex:record gmeow:iterationUniverse ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query convergence criterion"
+msgstr "查询收敛准则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected finite monotone set-equality criterion. Selection declares semantics, not a proof that a run converged."
+msgstr "选定的有限单调集合相等准则。选择声明语义，不证明运行已收敛。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query convergence criterion with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询收敛准则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryConvergenceCriterion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryConvergenceCriterion ex:value ."
+msgstr "ex:record gmeow:queryConvergenceCriterion ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query execution iteration state"
+msgstr "查询执行迭代状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A measured state of this iteration execution, including seed zero and the final completed state."
+msgstr "此迭代执行的实测状态，包括种子零及最终完成状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query execution iteration state with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询执行迭代状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryIterationState ex:value ."
+msgstr "ex:record gmeow:queryIterationState ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query completed iteration count"
+msgstr "查询已完成迭代次数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Number of completed body executions; a partially executed next pass does not increment it."
+msgstr "已完成循环体执行的次数；未完成的下一轮不增加此计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query completed iteration count with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询已完成迭代次数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Number of completed body executions; a partially executed next pass does not increment it. Example declaration: gmeow:queryIterationCount rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "已完成循环体执行的次数；未完成的下一轮不增加此计数。 声明示例：gmeow:queryIterationCount rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration state index"
+msgstr "查询迭代状态索引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Number of body executions completed before this state was recorded."
+msgstr "记录此状态前已完成的循环体执行次数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration state index with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代状态索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStateIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "Number of body executions completed before this state was recorded. Example declaration: gmeow:queryStateIndex rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "记录此状态前已完成的循环体执行次数。 声明示例：gmeow:queryStateIndex rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query final iteration state"
+msgstr "查询最终迭代状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "State after the measured completed count; it is retained even when the run stopped without convergence."
+msgstr "实测完成次数后的状态；即使运行未收敛而停止，也保留此状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query final iteration state with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询最终迭代状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationFinalState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryIterationFinalState ex:value ."
+msgstr "ex:record gmeow:queryIterationFinalState ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration termination"
+msgstr "查询迭代终止方式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Explicit termination distinction: convergence, exhausted budget, or unfinished evaluation. No missing outcome implies convergence."
+msgstr "明确区分收敛、预算耗尽或未完成评估。结果缺失不表示收敛。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration termination with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代终止方式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationTermination|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryIterationTermination ex:value ."
+msgstr "ex:record gmeow:queryIterationTermination ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection dataset"
+msgstr "SPARQL选择数据集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact dataset descriptor selected for the query; no implicit ambient dataset is substituted."
+msgstr "查询选定的确切数据集描述；不以隐含环境数据集替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection dataset with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择数据集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionDataset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionDataset ex:value ."
+msgstr "ex:record gmeow:selectionDataset ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection context"
+msgstr "SPARQL选择上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit world or frame in which the selection is interpreted."
+msgstr "解释此选择的明确世界或框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection context with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionContext ex:value ."
+msgstr "ex:record gmeow:selectionContext ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection input descriptor"
+msgstr "SPARQL选择输入描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binding and parameter descriptor, including an explicitly empty input when there are no parameters."
+msgstr "绑定及参数描述；没有参数时保留明确的空输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection input descriptor with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择输入描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionInput ex:value ."
+msgstr "ex:record gmeow:selectionInput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection output descriptor"
+msgstr "SPARQL选择输出描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared binding-row output descriptor, not evidence that an execution already produced rows."
+msgstr "声明的绑定行输出描述，不证明执行已产生行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection output descriptor with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择输出描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionOutput ex:value ."
+msgstr "ex:record gmeow:selectionOutput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection node kind"
+msgstr "SPARQL选择节点种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The IR tag logic:Query, a NodeKind individual. This attachment does not install a native query frontend."
+msgstr "IR标签logic:Query，是NodeKind个体。此关联不安装原生查询前端。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection node kind with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择节点种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionNodeKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionNodeKind ex:value ."
+msgstr "ex:record gmeow:selectionNodeKind ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection text"
+msgstr "SPARQL选择文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verbatim well-formed SELECT text with its PREFIX and BASE declarations. The consumer must admit the text as selection-only before execution; declaring this leaf does not parse it."
+msgstr "原样保留的良构SELECT文本，包含PREFIX及BASE声明。执行前消费者必须接纳其为仅选择文本；声明此叶节点不解析文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection text with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Verbatim well-formed SELECT text with its PREFIX and BASE declarations. The consumer must admit the text as selection-only before execution; declaring this leaf does not parse it. Example declaration: gmeow:selectionText rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "原样保留的良构SELECT文本，包含PREFIX及BASE声明。执行前消费者必须接纳其为仅选择文本；声明此叶节点不解析文本。 声明示例：gmeow:selectionText rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection language"
+msgstr "SPARQL选择语言"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected SPARQL SELECT language contract, excluding updates, SERVICE calls and other external effects."
+msgstr "明确选定的SPARQL SELECT语言契约，排除更新、SERVICE调用及其他外部效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection language with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionLanguage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:selectionLanguage ex:value ."
+msgstr "ex:record gmeow:selectionLanguage ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "effective enactment agent"
+msgstr "执行的有效行动者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent whose effective authority an enactment ran under. This is not its recorder, tool or provider by default, and the assertion is not an authorization certificate."
+msgstr "执行在其有效权限下运行的Agent。它默认不是记录者、工具或提供方；此断言不是授权证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for effective enactment agent with explicit source bindings."
+msgstr "用于以明确来源绑定描述执行的有效行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveEnactmentAgent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:effectiveEnactmentAgent ex:value ."
+msgstr "ex:record gmeow:effectiveEnactmentAgent ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finite query set equality"
+msgstr "查询有限集合相等"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Convergence means unchanged membership after a completed monotone body execution over the declared finite universe."
+msgstr "收敛表示在声明有限全集上完成单调循环体执行后，成员关系不再变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for finite query set equality with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询有限集合相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryFiniteSetEquality|http://www.w3.org/2004/02/skos/core#example"
+msgid "Convergence means unchanged membership after a completed monotone body execution over the declared finite universe. Example declaration: gmeow:queryFiniteSetEquality rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "收敛表示在声明有限全集上完成单调循环体执行后，成员关系不再变化。 声明示例：gmeow:queryFiniteSetEquality rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration converged"
+msgstr "查询迭代已收敛"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed body pass left candidate membership unchanged."
+msgstr "已完成的一轮循环体执行未改变候选成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration converged with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代已收敛。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationConverged|http://www.w3.org/2004/02/skos/core#example"
+msgid "A completed body pass left candidate membership unchanged. Example declaration: gmeow:queryIterationConverged rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "已完成的一轮循环体执行未改变候选成员关系。 声明示例：gmeow:queryIterationConverged rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration budget stopped"
+msgstr "查询迭代因预算停止"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared budget stopped evaluation; convergence has not been certified by this outcome."
+msgstr "声明预算使评估停止；此结果不确认收敛。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration budget stopped with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代因预算停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationBudgetStopped|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared budget stopped evaluation; convergence has not been certified by this outcome. Example declaration: gmeow:queryIterationBudgetStopped rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "声明预算使评估停止；此结果不确认收敛。 声明示例：gmeow:queryIterationBudgetStopped rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query iteration unfinished"
+msgstr "查询迭代未完成"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Evaluation remains unfinished for a reason other than a recorded budget stop; no fixed point is claimed."
+msgstr "评估因预算停止以外原因仍未完成；不声称固定点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration unfinished with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代未完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryIterationUnfinished|http://www.w3.org/2004/02/skos/core#example"
+msgid "Evaluation remains unfinished for a reason other than a recorded budget stop; no fixed point is claimed. Example declaration: gmeow:queryIterationUnfinished rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "评估因预算停止以外原因仍未完成；不声称固定点。 声明示例：gmeow:queryIterationUnfinished rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query SPARQL selection language"
+msgstr "查询SPARQL选择语言契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A pure SPARQL 1.2 SELECT contract: no UPDATE or SERVICE, all relative names resolved by text BASE, and explicit selected dataset and context."
+msgstr "纯SPARQL 1.2 SELECT契约：不含UPDATE或SERVICE，相对名称由文本BASE解析，明确选定数据集及上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query sparql selection language with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询SPARQL选择语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/querySparqlSelect|http://www.w3.org/2004/02/skos/core#example"
+msgid "A pure SPARQL 1.2 SELECT contract: no UPDATE or SERVICE, all relative names resolved by text BASE, and explicit selected dataset and context. Example declaration: gmeow:querySparqlSelect rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "纯SPARQL 1.2 SELECT契约：不含UPDATE或SERVICE，相对名称由文本BASE解析，明确选定数据集及上下文。 声明示例：gmeow:querySparqlSelect rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stratified query feedback resource policy"
+msgstr "查询分层反馈资源策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer execution discipline requiring finite monotone feedback, strata-respecting dependencies and effect-confined terminal sinks. It requests no native execution by declaration."
+msgstr "要求有限单调反馈、符合分层的依赖及效果限于终端汇点的消费者执行纪律。声明本身不请求原生执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for stratified query feedback resource policy with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分层反馈资源策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackResource|http://www.w3.org/2004/02/skos/core#example"
+msgid "A consumer execution discipline requiring finite monotone feedback, strata-respecting dependencies and effect-confined terminal sinks. It requests no native execution by declaration. Example declaration: gmeow:queryStratifiedFeedbackResource rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "要求有限单调反馈、符合分层的依赖及效果限于终端汇点的消费者执行纪律。声明本身不请求原生执行。 声明示例：gmeow:queryStratifiedFeedbackResource rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stratified query feedback contract"
+msgstr "查询分层反馈契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared reasoning contract selecting the consumer feedback discipline, separate from the acyclic DAG and build pipeline serializer contracts."
+msgstr "选择消费者反馈纪律的声明推理契约，区别于无环DAG及构建流水线序列化契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for stratified query feedback contract with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分层反馈契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryStratifiedFeedbackContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared reasoning contract selecting the consumer feedback discipline, separate from the acyclic DAG and build pipeline serializer contracts. Example declaration: gmeow:queryStratifiedFeedbackContract rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "选择消费者反馈纪律的声明推理契约，区别于无环DAG及构建流水线序列化契约。 声明示例：gmeow:queryStratifiedFeedbackContract rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query admission contract"
+msgstr "查询接纳契约"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly selected consumer admission contract for a graph or feedback description, not evidence that execution occurred."
+msgstr "为图或反馈描述明确选定的消费者接纳契约，不是已执行证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query admission contract with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询接纳契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAdmissionContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryAdmissionContract ex:value ."
+msgstr "ex:record gmeow:queryAdmissionContract ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query fusion stable tie order"
+msgstr "查询融合稳定并列顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-stable nonnegative ordinal, unique within the fusion output. Equal-score candidates are displayed in ascending ordinal without changing their equal scores."
+msgstr "在来源中稳定、融合输出内唯一的非负序号。同分候选项按序号升序显示，不改变相等分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query fusion stable tie order with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询融合稳定并列顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fusionTieOrder|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-stable nonnegative ordinal, unique within the fusion output. Equal-score candidates are displayed in ascending ordinal without changing their equal scores. Example declaration: gmeow:fusionTieOrder rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "在来源中稳定、融合输出内唯一的非负序号。同分候选项按序号升序显示，不改变相等分数。 声明示例：gmeow:fusionTieOrder rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query graph edge scope constraint"
+msgstr "查询图边作用域约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every graph edge retains endpoints inside that graph and explicit monotonicity, and agrees with consumer-to-producer dataflow."
+msgstr "每条图边保留图内端点及明确单调性，并符合从消费者到生产者的数据流。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph edge scope constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图边作用域约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphEdgeScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every graph edge retains endpoints inside that graph and explicit monotonicity, and agrees with consumer-to-producer dataflow. Example declaration: gmeow:QueryGraphEdgeScopeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每条图边保留图内端点及明确单调性，并符合从消费者到生产者的数据流。 声明示例：gmeow:QueryGraphEdgeScopeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query dependency edge constraint"
+msgstr "查询依赖边约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every declared dependency of a graph node has a classified edge inside the same graph."
+msgstr "图节点声明的每个依赖都在同一图中具有分类边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query dependency edge constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询依赖边约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyEdgeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every declared dependency of a graph node has a classified edge inside the same graph. Example declaration: gmeow:QueryDependencyEdgeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "图节点声明的每个依赖都在同一图中具有分类边。 声明示例：gmeow:QueryDependencyEdgeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query edge classification constraint"
+msgstr "查询边分类约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A graph edge has exactly one boolean monotonicity classification."
+msgstr "图边恰好具有一个布尔单调性分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query edge classification constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询边分类约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEdgeClassificationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A graph edge has exactly one boolean monotonicity classification. Example declaration: gmeow:QueryEdgeClassificationConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "图边恰好具有一个布尔单调性分类。 声明示例：gmeow:QueryEdgeClassificationConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query dependency strata constraint"
+msgstr "查询依赖层级约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Positive producers are in the same or a lower stratum; negative or nonmonotone producers are strictly lower."
+msgstr "正向生产者处于同层或更低层级；否定或非单调生产者必须严格较低。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query dependency strata constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询依赖层级约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryDependencyStrataConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Positive producers are in the same or a lower stratum; negative or nonmonotone producers are strictly lower. Example declaration: gmeow:QueryDependencyStrataConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "正向生产者处于同层或更低层级；否定或非单调生产者必须严格较低。 声明示例：gmeow:QueryDependencyStrataConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query effect sink constraint"
+msgstr "查询效果汇点约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every effectful graph node is a designated sink; every designated sink is inside the graph and has no downstream graph consumer."
+msgstr "每个具有效果的图节点都是指定汇点；每个汇点位于图内且没有图内下游消费者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query effect sink constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询效果汇点约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryEffectSinkConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every effectful graph node is a designated sink; every designated sink is inside the graph and has no downstream graph consumer. Example declaration: gmeow:QueryEffectSinkConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个具有效果的图节点都是指定汇点；每个汇点位于图内且没有图内下游消费者。 声明示例：gmeow:QueryEffectSinkConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query graph contract constraint"
+msgstr "查询图契约约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A query graph selects the stratified feedback admission contract."
+msgstr "查询图选择分层反馈接纳契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph contract constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图契约约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A query graph selects the stratified feedback admission contract. Example declaration: gmeow:QueryGraphContractConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "查询图选择分层反馈接纳契约。 声明示例：gmeow:QueryGraphContractConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ranked entry identity constraint"
+msgstr "有序条目身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ranked list has one entry per candidate and one entry per tie key."
+msgstr "有序列表对每个候选及每个并列键各有一个条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked entry identity constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序条目身份约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A ranked list has one entry per candidate and one entry per tie key. Example declaration: gmeow:RankedEntryIdentityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "有序列表对每个候选及每个并列键各有一个条目。 声明示例：gmeow:RankedEntryIdentityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ranked list membership constraint"
+msgstr "有序列表成员约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Ranked-list candidate membership is exactly its entry identities."
+msgstr "有序列表候选成员恰好是其条目中的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked list membership constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序列表成员约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedListMembershipConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Ranked-list candidate membership is exactly its entry identities. Example declaration: gmeow:RankedListMembershipConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "有序列表候选成员恰好是其条目中的身份。 声明示例：gmeow:RankedListMembershipConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fusion candidate union constraint"
+msgstr "融合候选并集约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Fusion output contains exactly the candidates of selected input lists."
+msgstr "融合输出恰好包含选定输入列表的候选项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion candidate union constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合候选并集约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionCandidateUnionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Fusion output contains exactly the candidates of selected input lists. Example declaration: gmeow:FusionCandidateUnionConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "融合输出恰好包含选定输入列表的候选项。 声明示例：gmeow:FusionCandidateUnionConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fusion contribution coverage constraint"
+msgstr "融合贡献覆盖约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each selected entry has exactly one contribution in that fusion, and every contribution names a selected entry."
+msgstr "每个选定条目在该融合中恰有一个贡献，每个贡献都指向选定条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion contribution coverage constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合贡献覆盖约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionContributionCoverageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each selected entry has exactly one contribution in that fusion, and every contribution names a selected entry. Example declaration: gmeow:FusionContributionCoverageConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个选定条目在该融合中恰有一个贡献，每个贡献都指向选定条目。 声明示例：gmeow:FusionContributionCoverageConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fusion reciprocal quantization law"
+msgstr "融合倒数量化定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each integer contribution is the downward quantization of scale divided by offset plus input rank."
+msgstr "每个整数贡献是尺度除以偏移加输入名次后向下量化的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion reciprocal quantization law with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合倒数量化定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionQuantizationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each integer contribution is the downward quantization of scale divided by offset plus input rank. Example declaration: gmeow:FusionQuantizationLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个整数贡献是尺度除以偏移加输入名次后向下量化的结果。 声明示例：gmeow:FusionQuantizationLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fusion score coverage constraint"
+msgstr "融合分数覆盖约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each output candidate has exactly one score record and every score names an output candidate."
+msgstr "每个输出候选恰有一个分数记录，每个分数都指向输出候选。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion score coverage constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合分数覆盖约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionScoreCoverageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each output candidate has exactly one score record and every score names an output candidate. Example declaration: gmeow:FusionScoreCoverageConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个输出候选恰有一个分数记录，每个分数都指向输出候选。 声明示例：gmeow:FusionScoreCoverageConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fusion stable tie-order constraint"
+msgstr "融合稳定并列顺序约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Distinct scores in one fusion have different stable tie ordinals. Equal numeric scores remain tied in relevance and are displayed by this declared ordinal."
+msgstr "一次融合中不同分数记录具有不同稳定并列序号。同分相关性仍并列，按此声明序号显示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for fusion stable tie-order constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述融合稳定并列顺序约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FusionStableTieOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Distinct scores in one fusion have different stable tie ordinals. Equal numeric scores remain tied in relevance and are displayed by this declared ordinal. Example declaration: gmeow:FusionStableTieOrderConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "一次融合中不同分数记录具有不同稳定并列序号。同分相关性仍并列，按此声明序号显示。 声明示例：gmeow:FusionStableTieOrderConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query score fold base constraint"
+msgstr "查询分数折叠基步约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each score retains a zero step with total zero and no previous step or contribution."
+msgstr "每个分数保留总和为零且无前一步或贡献的零步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score fold base constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数折叠基步约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldBaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each score retains a zero step with total zero and no previous step or contribution. Example declaration: gmeow:ScoreFoldBaseConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个分数保留总和为零且无前一步或贡献的零步骤。 声明示例：gmeow:ScoreFoldBaseConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query score finite-fold law"
+msgstr "查询分数有限折叠定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each positive step extends the same score’s previous index by one and adds its contribution exactly once."
+msgstr "每个正索引步骤将同一分数的前一步索引加一，并加入一次其贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score finite-fold law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数有限折叠定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldStepLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each positive step extends the same score’s previous index by one and adds its contribution exactly once. Example declaration: gmeow:ScoreFoldStepLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个正索引步骤将同一分数的前一步索引加一，并加入一次其贡献。 声明示例：gmeow:ScoreFoldStepLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query score fold index uniqueness"
+msgstr "查询分数折叠索引唯一性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Steps with the same numeric index in one score are the same step."
+msgstr "同一分数中数值索引相同的步骤为同一步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score fold index uniqueness with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数折叠索引唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Steps with the same numeric index in one score are the same step. Example declaration: gmeow:ScoreFoldIndexUniquenessConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "同一分数中数值索引相同的步骤为同一步骤。 声明示例：gmeow:ScoreFoldIndexUniquenessConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query score final-fold constraint"
+msgstr "查询分数最终折叠约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The final step belongs to the fold, equals the score total, and bounds every retained step index."
+msgstr "最终步骤属于折叠、等于分数总和，并限定所有保留步骤的索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score final-fold constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数最终折叠约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldFinalConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The final step belongs to the fold, equals the score total, and bounds every retained step index. Example declaration: gmeow:ScoreFoldFinalConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "最终步骤属于折叠、等于分数总和，并限定所有保留步骤的索引。 声明示例：gmeow:ScoreFoldFinalConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query score contribution fold bijection"
+msgstr "查询分数贡献折叠双射"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A score fold uses every matching input contribution once, with no unrelated contribution."
+msgstr "分数折叠使用每个匹配输入贡献一次，且不含无关贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query score contribution fold bijection with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询分数贡献折叠双射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreFoldContributionBijectionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A score fold uses every matching input contribution once, with no unrelated contribution. Example declaration: gmeow:ScoreFoldContributionBijectionConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "分数折叠使用每个匹配输入贡献一次，且不含无关贡献。 声明示例：gmeow:ScoreFoldContributionBijectionConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query merge candidate union law"
+msgstr "查询合并候选并集定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Merge output candidate identities are exactly the union of input candidate identities."
+msgstr "合并输出候选身份恰好是输入候选身份的并集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query merge candidate union law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询合并候选并集定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeCandidateUnionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Merge output candidate identities are exactly the union of input candidate identities. Example declaration: gmeow:QueryMergeCandidateUnionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "合并输出候选身份恰好是输入候选身份的并集。 声明示例：gmeow:QueryMergeCandidateUnionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query merge loss identity union law"
+msgstr "查询合并损失身份并集定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The output carries exactly the original input loss nodes; their causes, constraints and acceptance attribution are not rewritten."
+msgstr "输出恰好保留原始输入损失节点；不重写其原因、约束及接受归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query merge loss identity union law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询合并损失身份并集定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryMergeLossUnionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "The output carries exactly the original input loss nodes; their causes, constraints and acceptance attribution are not rewritten. Example declaration: gmeow:QueryMergeLossUnionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "输出恰好保留原始输入损失节点；不重写其原因、约束及接受归属。 声明示例：gmeow:QueryMergeLossUnionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query choice axis constraint"
+msgstr "查询选择轴约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Choice compares a known value from the selected answer axis; information and completeness values are not coerced."
+msgstr "选择比较选定答案轴的已知值；不强制转换信息及完整性值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice axis constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择轴约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceAxisConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Choice compares a known value from the selected answer axis; information and completeness values are not coerced. Example declaration: gmeow:QueryChoiceAxisConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "选择比较选定答案轴的已知值；不强制转换信息及完整性值。 声明示例：gmeow:QueryChoiceAxisConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query choice selected-branch law"
+msgstr "查询选择所选分支定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false."
+msgstr "选择执行保留匹配、不匹配或明确未知分支，绝不将缺失判定视为false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query choice selected-branch law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询选择所选分支定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryChoiceSelectionLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A choice execution retains the matching, nonmatching or explicit unknown branch, never treating an absent verdict as false. Example declaration: gmeow:QueryChoiceSelectionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "选择执行保留匹配、不匹配或明确未知分支，绝不将缺失判定视为false。 声明示例：gmeow:QueryChoiceSelectionLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query feedback purity constraint"
+msgstr "查询反馈纯度约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A feedback description selects finite set equality and the stratified contract; its body is explicitly pure."
+msgstr "反馈描述选择有限集合相等及分层契约；循环体明确为纯。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query feedback purity constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询反馈纯度约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackPurityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A feedback description selects finite set equality and the stratified contract; its body is explicitly pure. Example declaration: gmeow:QueryFeedbackPurityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "反馈描述选择有限集合相等及分层契约；循环体明确为纯。 声明示例：gmeow:QueryFeedbackPurityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration run bindings constraint"
+msgstr "查询迭代运行绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded loop execution retains seed state zero, count, final state and explicit termination; every state index is at most the count."
+msgstr "循环执行记录保留零种子、次数、最终状态及明确终止方式；每个状态索引至多等于次数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration run bindings constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代运行绑定约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationRunBindingsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A recorded loop execution retains seed state zero, count, final state and explicit termination; every state index is at most the count. Example declaration: gmeow:QueryIterationRunBindingsConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "循环执行记录保留零种子、次数、最终状态及明确终止方式；每个状态索引至多等于次数。 声明示例：gmeow:QueryIterationRunBindingsConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration state identity constraint"
+msgstr "查询迭代状态身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "States at the same numeric index of one execution are the same retained state."
+msgstr "同次执行中数值索引相同的状态是同一保留状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration state identity constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代状态身份约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationStateIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "States at the same numeric index of one execution are the same retained state. Example declaration: gmeow:QueryIterationStateIdentityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "同次执行中数值索引相同的状态是同一保留状态。 声明示例：gmeow:QueryIterationStateIdentityConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration predecessor constraint"
+msgstr "查询迭代前驱约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every positive iteration-state index has the immediately preceding retained state."
+msgstr "每个正迭代状态索引都具有紧邻的前一保留状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration predecessor constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代前驱约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every positive iteration-state index has the immediately preceding retained state. Example declaration: gmeow:QueryIterationPredecessorConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个正迭代状态索引都具有紧邻的前一保留状态。 声明示例：gmeow:QueryIterationPredecessorConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration finite-universe constraint"
+msgstr "查询迭代有限全集约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every recorded state member belongs to the iteration’s explicitly bounded finite universe."
+msgstr "每个记录状态成员都属于迭代显式有界有限全集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration finite-universe constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代有限全集约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationUniverseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every recorded state member belongs to the iteration’s explicitly bounded finite universe. Example declaration: gmeow:QueryIterationUniverseConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个记录状态成员都属于迭代显式有界有限全集。 声明示例：gmeow:QueryIterationUniverseConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration monotonicity law"
+msgstr "查询迭代单调性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Candidate membership never shrinks between consecutive completed states."
+msgstr "相邻已完成状态间候选成员关系绝不缩减。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration monotonicity law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代单调性定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationMonotonicityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Candidate membership never shrinks between consecutive completed states. Example declaration: gmeow:QueryIterationMonotonicityLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "相邻已完成状态间候选成员关系绝不缩减。 声明示例：gmeow:QueryIterationMonotonicityLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration convergence law"
+msgstr "查询迭代收敛定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Converged termination requires at least one completed pass and equal membership of the last two states. Budget and unfinished outcomes do not certify equality."
+msgstr "收敛终止要求至少完成一轮且最后两个状态成员相等。预算及未完成结果不确认相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration convergence law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代收敛定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationConvergenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "Converged termination requires at least one completed pass and equal membership of the last two states. Budget and unfinished outcomes do not certify equality. Example declaration: gmeow:QueryIterationConvergenceLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "收敛终止要求至少完成一轮且最后两个状态成员相等。预算及未完成结果不确认相等。 声明示例：gmeow:QueryIterationConvergenceLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SPARQL selection boundary constraint"
+msgstr "SPARQL选择边界约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selection leaf declares Query kind and the pure SPARQL SELECT language contract, and is explicitly non-effectful."
+msgstr "选择叶节点声明Query种类及纯SPARQL SELECT语言契约，并明确不产生效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for sparql selection boundary constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述SPARQL选择边界约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuerySelectionBoundaryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selection leaf declares Query kind and the pure SPARQL SELECT language contract, and is explicitly non-effectful. Example declaration: gmeow:QuerySelectionBoundaryConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "选择叶节点声明Query种类及纯SPARQL SELECT语言契约，并明确不产生效果。 声明示例：gmeow:QuerySelectionBoundaryConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query execution input"
+msgstr "查询执行输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual input information object consumed by this query-node execution."
+msgstr "此查询节点执行实际消耗的输入信息对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query execution input with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询执行输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryExecutionInput|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryExecutionInput ex:value ."
+msgstr "ex:record gmeow:queryExecutionInput ex:value ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query graph operand scope constraint"
+msgstr "查询图操作数作用域约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Choice branches and iteration bodies of graph nodes remain inside the same graph and its effect admission boundary."
+msgstr "图节点的选择分支及迭代体保持在同一图及其效果接纳边界内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query graph operand scope constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询图操作数作用域约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryGraphOperandScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Choice branches and iteration bodies of graph nodes remain inside the same graph and its effect admission boundary. Example declaration: gmeow:QueryGraphOperandScopeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "图节点的选择分支及迭代体保持在同一图及其效果接纳边界内。 声明示例：gmeow:QueryGraphOperandScopeConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration body evidence constraint"
+msgstr "查询迭代体证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each positive state records an actual execution of the selected body from its previous retained state."
+msgstr "每个正索引状态记录一次从前一保留状态运行选定循环体的实际执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration body evidence constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代体证据约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Each positive state records an actual execution of the selected body from its previous retained state. Example declaration: gmeow:QueryIterationBodyEvidenceConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个正索引状态记录一次从前一保留状态运行选定循环体的实际执行。 声明示例：gmeow:QueryIterationBodyEvidenceConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query feedback extensionality law"
+msgstr "查询反馈外延性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected feedback body is an extensional set transformer: equal candidate input sets yield equal candidate output sets."
+msgstr "选定反馈体是外延集合变换：相等候选输入集产生相等候选输出集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query feedback extensionality law with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询反馈外延性定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFeedbackExtensionalityLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "A selected feedback body is an extensional set transformer: equal candidate input sets yield equal candidate output sets. Example declaration: gmeow:QueryFeedbackExtensionalityLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "选定反馈体是外延集合变换：相等候选输入集产生相等候选输出集。 声明示例：gmeow:QueryFeedbackExtensionalityLaw rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ranked entry owner constraint"
+msgstr "有序条目所属列表约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ranked entry belongs to exactly one ranked-list occurrence; reusing a candidate in another list requires another entry."
+msgstr "每个有序条目恰好属于一个有序列表出现；在另一列表复用候选项需要另一条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for ranked entry owner constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述有序条目所属列表约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RankedEntryOwnerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Every ranked entry belongs to exactly one ranked-list occurrence; reusing a candidate in another list requires another entry. Example declaration: gmeow:RankedEntryOwnerConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "每个有序条目恰好属于一个有序列表出现；在另一列表复用候选项需要另一条目。 声明示例：gmeow:RankedEntryOwnerConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query iteration distinct-pass constraint"
+msgstr "查询迭代不同轮次约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One body execution cannot witness two positive state indices within the same measured iteration run."
+msgstr "同一实测迭代运行内，一次循环体执行不能证明两个正状态索引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for query iteration distinct-pass constraint with explicit source bindings."
+msgstr "用于以明确来源绑定描述查询迭代不同轮次约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, authorization or completeness from a declaration alone."
+msgstr "避免仅从声明推断执行、授权或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."
+msgstr "保留选定图、身份及来源证据；应用本模块的规范义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryIterationDistinctPassConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "One body execution cannot witness two positive state indices within the same measured iteration run. Example declaration: gmeow:QueryIterationDistinctPassConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+msgstr "同一实测迭代运行内，一次循环体执行不能证明两个正状态索引。 声明示例：gmeow:QueryIterationDistinctPassConstraint rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-program|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query program"
+msgstr "查询程序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-program|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Canonical descriptions and evidence records for consumer-owned query graphs, fusion, loss-preserving merge, verdict choice and stratified feedback."
+msgstr "消费者自有查询图、融合、保留损失的合并、判定选择及分层反馈的规范描述与证据记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-program|http://purl.org/dc/terms/title"
+msgid "GMEOW Query Program Module"
+msgstr "GMEOW查询程序模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-program|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Governed query stores and memory retrieval adapters describing their program graphs and source-reported outcomes."
+msgstr "描述其程序图及来源报告结果的受治理查询存储和记忆检索适配器。"

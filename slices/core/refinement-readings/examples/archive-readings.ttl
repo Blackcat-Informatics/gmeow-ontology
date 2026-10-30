@@ -1,0 +1,84 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/refinement-readings/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:processLineage a gmeow:SoftwareAgent .
+ex:refinerV2 a gmeow:SoftwareAgent ; gmeow:versionOf ex:processLineage ;
+    rdfs:label "Archive relation reader, version two"@en .
+ex:writer a gmeow:Agent .
+ex:archive a gmeow:InformationObject .
+ex:conversation a gmeow:InformationObject .
+ex:earlyRecord a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:assertedAt "2026-03-01T09:00:00Z"^^xsd:dateTime .
+ex:laterRecord a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:assertedAt "2026-04-01T09:00:00Z"^^xsd:dateTime .
+ex:undatedRecord a gmeow:InformationObject ; gmeow:wasAttributedTo ex:writer .
+
+# This scope covers two offered records, not the entire archive.
+ex:orderedScope a gmeow:ReadingScope ;
+    gmeow:scopeRecord ex:earlyRecord, ex:laterRecord ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ;
+    gmeow:wasAttributedTo ex:refinerV2 .
+ex:first a gmeow:FirstOccurrence ;
+    gmeow:observedFeature ex:earlyRecord ; gmeow:vantage ex:refinerV2 ;
+    gmeow:readingScope ex:orderedScope ;
+    gmeow:relationPredicate gmeow:wasAttributedTo ; gmeow:relationVault ex:archive ;
+    gmeow:relatedThing ex:writer ; gmeow:relationIn ex:conversation ;
+    gmeow:relationAt "2026-03-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:observedAt "2026-10-30T18:00:00Z"^^xsd:dateTime ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:findingSummary "Earliest attributed record among the two offered records."@en .
+ex:occasion a gmeow:RelationOccasion ;
+    gmeow:observedFeature ex:laterRecord ; gmeow:vantage ex:refinerV2 ;
+    gmeow:readingScope ex:orderedScope ;
+    gmeow:relationPredicate gmeow:wasAttributedTo ; gmeow:relationVault ex:archive ;
+    gmeow:relatedThing ex:writer ; gmeow:relationIn ex:conversation ;
+    gmeow:relationAt "2026-04-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:refinementOutcome gmeow:refinementResolved .
+
+# A wider offered input includes a record this selected refiner cannot order.
+# The first reading above is not extended to this wider scope.
+ex:widerScope a gmeow:ReadingScope ;
+    gmeow:scopeRecord ex:earlyRecord, ex:laterRecord, ex:undatedRecord ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:missingTimeLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:undatedRecord ; gmeow:lossCause gmeow:limitNoAssertionTime .
+ex:limit a gmeow:ReadingLimit ;
+    gmeow:wasAttributedTo ex:refinerV2 ; gmeow:readingScope ex:widerScope ;
+    gmeow:relationPredicate gmeow:wasAttributedTo ; gmeow:relationVault ex:archive ;
+    gmeow:limitReason gmeow:limitNoAssertionTime ;
+    gmeow:limitCount "1"^^xsd:nonNegativeInteger ; gmeow:ledgerLoss ex:missingTimeLoss .
+ex:recallRequest a gmeow:InformationObject .
+ex:recallAnswer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:recallRequest ; gmeow:queryLossLedger ex:limit .
+ex:zeroLimit a gmeow:ReadingLimit ;
+    gmeow:wasAttributedTo ex:refinerV2 ; gmeow:readingScope ex:orderedScope ;
+    gmeow:relationPredicate gmeow:wasAttributedTo ; gmeow:relationVault ex:archive ;
+    gmeow:limitReason gmeow:limitNoAssertionTime ;
+    gmeow:limitCount "0"^^xsd:nonNegativeInteger .
+
+# This separate source names a recipient only by a literal and supplies only
+# an assertion month. The reader preserves both instead of minting an identity
+# or padding the month to a date-time.
+ex:namedRecord a gmeow:InformationObject ; ex:recipientName "Visitor"@en ;
+    dcterms:description "The source supplies assertion month 2026-08."@en .
+ex:nameScope a gmeow:ReadingScope ; gmeow:scopeRecord ex:namedRecord ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:namedOccasion a gmeow:RelationOccasion ;
+    gmeow:observedFeature ex:namedRecord ; gmeow:vantage ex:refinerV2 ;
+    gmeow:readingScope ex:nameScope ;
+    gmeow:relationPredicate ex:recipientName ; gmeow:relationVault ex:archive ;
+    gmeow:relatedName "Visitor"@en ; gmeow:relationAt "2026-08"^^xsd:gYearMonth ;
+    gmeow:refinementOutcome gmeow:refinementResolved .
+
+# The process's annotation is separate from the source and its writer.
+ex:milestoneLocalKind a gmeow:MilestoneKind ; rdfs:label "First archive contribution"@en .
+ex:milestone a gmeow:Milestone ; gmeow:wasAttributedTo ex:refinerV2 ;
+    gmeow:milestoneKind ex:milestoneLocalKind ; gmeow:milestoneOf ex:earlyRecord .

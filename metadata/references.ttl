@@ -13618,3 +13618,100 @@ repo:README.md a gmeow:CreativeWork ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/trust/docs.md> ;
     gmeow:citedEntity <https://datatracker.ietf.org/doc/html/rfc9580> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
+
+# Declared textual regex and boundary contracts, grounded by inspected source.
+
+<https://docs.rs/regex/1.13.1/regex/> a gmeow:CreativeWork ;
+    rdfs:label "Rust regex 1.13.1: syntax and search complexity"@en ;
+    gmeow:sourceLocation "regex-1.13.1/src/lib.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-regex-v1> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Rust regex 1.13.1 as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/regex/1.13.1/regex/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-v1> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-v1> a gmeow:Selector ;
+    rdfs:label "Rust regex 1.13.1 contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Rust regex 1.13.1."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://docs.rs/regex-syntax/0.8.11/regex_syntax/> a gmeow:CreativeWork ;
+    rdfs:label "Rust regex-syntax 0.8.11: Unicode 16 property and simple-fold tables"@en ;
+    gmeow:sourceLocation "regex-syntax-0.8.11/src/unicode_tables/general_category.rs", "regex-syntax-0.8.11/src/unicode_tables/case_folding_simple.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-regex-syntax-unicode16> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Rust regex-syntax 0.8.11 Unicode tables as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/regex-syntax/0.8.11/regex_syntax/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-syntax-unicode16> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-syntax-unicode16> a gmeow:Selector ;
+    rdfs:label "Rust regex-syntax 0.8.11 Unicode tables contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Rust regex-syntax 0.8.11 Unicode tables."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt> a gmeow:CreativeWork ;
+    rdfs:label "Unicode 16.0.0 CaseFolding data"@en ;
+    gmeow:sourceLocation "https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/unicode16-case-fold> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Unicode 16.0.0 case folding as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/unicode16-case-fold> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/unicode16-case-fold> a gmeow:Selector ;
+    rdfs:label "Unicode 16.0.0 case folding contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Unicode 16.0.0 case folding."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://www.unicode.org/versions/Unicode17.0.0/> a gmeow:CreativeWork ;
+    rdfs:label "Unicode 17.0.0: default UAX 29 text segmentation"@en ;
+    gmeow:sourceLocation "https://www.unicode.org/versions/Unicode17.0.0/" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/unicode17-segmentation> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Unicode 17.0.0 text segmentation as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://www.unicode.org/versions/Unicode17.0.0/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/unicode17-segmentation> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/unicode17-segmentation> a gmeow:Selector ;
+    rdfs:label "Unicode 17.0.0 text segmentation contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Unicode 17.0.0 text segmentation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/> a gmeow:CreativeWork ;
+    rdfs:label "unicode-segmentation 1.13.3: Unicode 17.0.0 boundary tables"@en ;
+    gmeow:sourceLocation "unicode-segmentation-1.13.3/src/tables.rs", "unicode-segmentation-1.13.3/src/lib.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-unicode-segmentation-17> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to unicode-segmentation 1.13.3 as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-unicode-segmentation-17> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-unicode-segmentation-17> a gmeow:Selector ;
+    rdfs:label "unicode-segmentation 1.13.3 contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites unicode-segmentation 1.13.3."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
