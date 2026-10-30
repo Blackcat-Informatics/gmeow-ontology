@@ -1,0 +1,795 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Scope"
+msgstr "Périmètre de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed enumeration of the exact source records offered to a selected refiner, with their declared assertion-time chronology frame. It asserts no completeness of the surrounding store."
+msgstr "Une énumération attribuée des enregistrements sources exacts proposés à un raffineur sélectionné, avec le cadre chronologique déclaré de leur temps d’assertion. Elle n’affirme aucune exhaustivité du dépôt environnant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope a gmeow:ReadingScope ."
+msgstr "Conserver ce rapport de périmètre défini : ex:scope a gmeow:ReadingScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope record"
+msgstr "enregistrement du périmètre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source record offered within a reading scope, including a record later reported unreadable. Members retain their actual RDF identities, including blank nodes or triple terms when supplied."
+msgstr "Un enregistrement source proposé dans un périmètre de lecture, y compris un enregistrement ultérieurement signalé illisible. Les membres conservent leurs identités RDF réelles, dont les nœuds anonymes ou termes triples fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope gmeow:scopeRecord ex:record ."
+msgstr "Conserver ce rapport de périmètre défini : ex:scope gmeow:scopeRecord ex:record ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope chronology"
+msgstr "chronologie du périmètre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The temporal frame in which source assertion times are interpreted for this scope’s chronology. The selected reading must respect original precision and unresolved ties; this relation does not manufacture an order."
+msgstr "Le cadre temporel dans lequel les temps d’assertion sources sont interprétés pour la chronologie de ce périmètre. La lecture sélectionnée doit respecter la précision originale et les égalités non résolues ; cette relation ne fabrique pas d’ordre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ."
+msgstr "Conserver ce rapport de périmètre défini : ex:scope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reading scope"
+msgstr "périmètre de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit source-record scope of a finding or reading-limit aggregate. This relation does not turn its subject into an Observation or claim global source coverage."
+msgstr "Le périmètre explicite d’enregistrements sources d’une constatation ou d’un agrégat de limites de lecture. Cette relation ne transforme pas son sujet en Observation et n’affirme pas de couverture globale des sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:readingScope ex:scope ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:readingScope ex:scope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "First Occurrence"
+msgstr "Première occurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected refiner’s reading of an earliest source record for one relation and referent among the records explicitly offered in its reading scope, under the declared source assertion-time chronology. It is not a global first or the subject’s assertion."
+msgstr "La lecture par un raffineur sélectionné d’un enregistrement source parmi les plus anciens pour une relation et un référent, parmi les enregistrements explicitement proposés dans son périmètre, selon la chronologie déclarée des temps d’assertion sources. Ce n’est ni une première occurrence globale ni une affirmation du sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:first a gmeow:FirstOccurrence ."
+msgstr "Conserver ce rapport de périmètre défini : ex:first a gmeow:FirstOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Relation Occasion"
+msgstr "Occasion de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected refiner’s reading of one occasion of a relation to a resource or source-named referent in its declared records-read scope. It records source evidence rather than an independent world event."
+msgstr "La lecture par un raffineur sélectionné d’une occasion de relation à une ressource ou à un référent nommé dans la source, dans son périmètre déclaré d’enregistrements lus. Elle consigne les preuves sources plutôt qu’un événement indépendant du monde."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:occasion a gmeow:RelationOccasion ."
+msgstr "Conserver ce rapport de périmètre défini : ex:occasion a gmeow:RelationOccasion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation predicate"
+msgstr "prédicat de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual predicate IRI by which the source records relate to the referent. It names the source relation without asserting a new edge or evaluating a query."
+msgstr "L’IRI réel du prédicat par lequel les enregistrements sources sont liés au référent. Il nomme la relation source sans affirmer de nouvelle arête ni évaluer de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationPredicate gmeow:hasParticipant ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relationPredicate gmeow:hasParticipant ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation vault"
+msgstr "dépôt de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source store containing the records for this relation reading or reading-limit aggregate. Naming the store supplies neither access authority nor a claim that every store record was read."
+msgstr "Le dépôt source contenant les enregistrements de cette lecture de relation ou de cet agrégat de limites. Nommer le dépôt ne fournit ni autorisation d’accès ni affirmation que tous ses enregistrements ont été lus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationVault ex:archive ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relationVault ex:archive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related thing"
+msgstr "chose liée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The referent identified by its actual IRI in the source relation. The IRI is retained without inferring identity from a name or minting a replacement for an unshareable source term."
+msgstr "Le référent identifié par son IRI réel dans la relation source. L’IRI est conservé sans inférer l’identité d’un nom ni créer de remplacement pour un terme source non partageable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relatedThing ex:person ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relatedThing ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related name"
+msgstr "nom lié"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source-supplied name when a relation names its referent only by a literal. Language and base direction are retained when supplied; the name alone does not establish an IRI identity."
+msgstr "Le nom exact fourni par la source lorsqu’une relation ne nomme son référent que par un littéral. La langue et la direction de base sont conservées lorsqu’elles sont fournies ; le nom seul n’établit pas d’identité IRI."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relatedName \"Visitor\"@en ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relatedName \"Visitor\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation assertion time"
+msgstr "temps d’assertion de la relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original assertion-time value supplied by the source record, retained at its actual precision. It is neither the refiner’s observation clock nor the record’s transaction time; a date, month or year invents no instant or timezone."
+msgstr "La valeur originale du temps d’assertion fournie par l’enregistrement source, conservée à sa précision réelle. Ce n’est ni l’horloge d’observation du raffineur ni le temps de transaction de l’enregistrement ; une date, un mois ou une année n’invente aucun instant ni fuseau horaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationAt \"2026-10\"^^xsd:gYearMonth ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relationAt \"2026-10\"^^xsd:gYearMonth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation source occasion"
+msgstr "occasion source de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source occasion or context in which the relation was found, such as a conversation. This is distinct from the refiner’s execution and from its derived RelationOccasion reading."
+msgstr "L’occasion ou le contexte source où la relation a été trouvée, par exemple une conversation. Cela se distingue de l’exécution du raffineur et de sa lecture dérivée RelationOccasion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationIn ex:conversation ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:relationIn ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding summary"
+msgstr "résumé de constatation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A language-bearing one-line account of what the refiner found under its own vantage. The wording retains its language and any base direction and does not become the source subject’s claim."
+msgstr "Un compte rendu d’une ligne, portant une langue, de ce que le raffineur a trouvé selon son propre point de vue. Le texte conserve sa langue et toute direction de base et ne devient pas une affirmation du sujet source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:findingSummary \"Earliest in the supplied archive excerpt.\"@en ."
+msgstr "Conserver ce rapport de périmètre défini : ex:finding gmeow:findingSummary \"Earliest in the supplied archive excerpt.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Milestone"
+msgstr "Jalon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed information annotation in which a teller reads a source record as marking a milestone. It is distinct from the underlying life event and never automatically the subject’s own claim."
+msgstr "Une annotation informationnelle attribuée dans laquelle un narrateur lit un enregistrement source comme marquant un jalon. Elle se distingue de l’événement de vie sous-jacent et n’est jamais automatiquement une affirmation du sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation a gmeow:Milestone ."
+msgstr "Conserver ce rapport de périmètre défini : ex:annotation a gmeow:Milestone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Milestone Kind"
+msgstr "Type de jalon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary of teller-defined milestone classifications. Consumers mint their own individuals; no classification is a diagnosis or an event type inferred from the source."
+msgstr "Un vocabulaire ouvert de valeurs de qualité pour les classifications de jalons définies par les narrateurs. Les consommateurs créent leurs propres individus ; aucune classification n’est un diagnostic ni un type d’événement inféré de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:localKind a gmeow:MilestoneKind ."
+msgstr "Conserver ce rapport de périmètre défini : ex:localKind a gmeow:MilestoneKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "milestone kind"
+msgstr "type de jalon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The teller’s classification of a milestone annotation, drawn from the open MilestoneKind vocabulary."
+msgstr "La classification par le narrateur d’une annotation de jalon, tirée du vocabulaire ouvert MilestoneKind."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation gmeow:milestoneKind ex:localKind ."
+msgstr "Conserver ce rapport de périmètre défini : ex:annotation gmeow:milestoneKind ex:localKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "milestone source"
+msgstr "source du jalon"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original record on which the teller’s milestone annotation rests. This link identifies evidence rather than declaring that the record itself is a life event."
+msgstr "L’enregistrement original sur lequel repose l’annotation de jalon du narrateur. Ce lien identifie une preuve sans déclarer que l’enregistrement lui-même est un événement de vie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation gmeow:milestoneOf ex:record ."
+msgstr "Conserver ce rapport de périmètre défini : ex:annotation gmeow:milestoneOf ex:record ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Limit"
+msgstr "Limite de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed QueryLossLedger grouping records the selected refiner could not read for one relation, store, source scope and reason. Its reported count may be zero; actual excluded records retain separate QueryLoss identities through ledgerLoss."
+msgstr "Un QueryLossLedger attribué regroupant les enregistrements que le raffineur sélectionné n’a pu lire pour une relation, un dépôt, un périmètre source et une raison. Son nombre déclaré peut être nul ; les enregistrements effectivement exclus conservent des identités QueryLoss distinctes via ledgerLoss."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit a gmeow:ReadingLimit ."
+msgstr "Conserver ce rapport de périmètre défini : ex:limit a gmeow:ReadingLimit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Limit Reason"
+msgstr "Raison de limite de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open specialization of QueryLossCause for limitations of a selected refiner and input scope. A reason describes that operation’s capability boundary, never an RDF 1.2 prohibition."
+msgstr "Une spécialisation ouverte de QueryLossCause pour les limites d’un raffineur sélectionné et d’un périmètre d’entrée. Une raison décrit la limite de capacité de cette opération, jamais une interdiction RDF 1.2."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:localReason a gmeow:ReadingLimitReason ."
+msgstr "Conserver ce rapport de périmètre défini : ex:localReason a gmeow:ReadingLimitReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit reason"
+msgstr "raison de limite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner limitation grouping this aggregate’s excluded records. Each referenced actual loss retains this same reason through lossCause."
+msgstr "La limite du raffineur sélectionné regroupant les enregistrements exclus de cet agrégat. Chaque perte réelle référencée conserve cette même raison via lossCause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit gmeow:limitReason gmeow:limitNoAssertionTime ."
+msgstr "Conserver ce rapport de périmètre défini : ex:limit gmeow:limitReason gmeow:limitNoAssertionTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit count"
+msgstr "nombre de limites"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported number of distinct source records excluded for this aggregate’s single reason and scope. Zero records no actual loss; the count is a source report whose exact arithmetic is not certified by the ontology."
+msgstr "Le nombre déclaré d’enregistrements sources distincts exclus pour la raison unique et le périmètre de cet agrégat. Zéro ne consigne aucune perte réelle ; le nombre est un rapport source dont l’arithmétique exacte n’est pas certifiée par l’ontologie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit gmeow:limitCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "Conserver ce rapport de périmètre défini : ex:limit gmeow:limitCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "no usable assertion time"
+msgstr "aucun temps d’assertion utilisable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner could not order this record because the input supplied no usable assertion time. It does not authorize substituting a refiner clock or inventing precision."
+msgstr "Le raffineur sélectionné n’a pu ordonner cet enregistrement car l’entrée ne fournissait aucun temps d’assertion utilisable. Cela n’autorise ni la substitution de l’horloge du raffineur ni l’invention de précision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitNoAssertionTime ."
+msgstr "Conserver ce rapport de périmètre défini : ex:loss gmeow:lossCause gmeow:limitNoAssertionTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "record unnameable to refiner"
+msgstr "enregistrement non nommable par le raffineur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner’s addressing contract could not retain a supplied blank-node record as a named record. RDF 1.2 can retain blank nodes; this is a limitation of the selected operation."
+msgstr "Le contrat d’adressage du raffineur sélectionné ne permettait pas de conserver un enregistrement fourni sous forme de nœud anonyme comme enregistrement nommé. RDF 1.2 peut conserver les nœuds anonymes ; c’est une limite de l’opération sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitRecordUnnameable ."
+msgstr "Conserver ce rapport de périmètre défini : ex:loss gmeow:lossCause gmeow:limitRecordUnnameable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referent unshareable to refiner"
+msgstr "référent non partageable par le raffineur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner could not correlate a supplied blank-node or triple-term referent across records under its addressing contract. This neither bans those RDF 1.2 terms nor proves that no relation or shared referent exists."
+msgstr "Le raffineur sélectionné n’a pu corréler un référent fourni sous forme de nœud anonyme ou terme triple entre les enregistrements selon son contrat d’adressage. Cela n’interdit pas ces termes RDF 1.2 et ne prouve pas l’absence de relation ou de référent partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "Utiliser pour conserver cette partie d’une lecture attribuée et de périmètre explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "Éviter d’inférer de cet enregistrement une exhaustivité globale, l’approbation du sujet source ou la réussite d’un calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "Conserver les identités sources originales, la précision fournie et le point de vue déclarant ; ne pas remplacer les preuves manquantes par des valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
+msgstr "Conserver ce rapport de périmètre défini : ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reading source scope constraint"
+msgstr "contrainte de périmètre source de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every source observed by a first-occurrence or relation-occasion reading belongs to each explicitly declared reading scope of that reading."
+msgstr "Chaque source observée par une lecture de première occurrence ou d’occasion de relation appartient à chaque périmètre de lecture explicitement déclaré pour cette lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:ReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+msgstr "Conserver la loi applicable : gmeow:ReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit member scope and cause constraint"
+msgstr "contrainte de périmètre et de cause des pertes membres"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each actual loss included in a reading-limit aggregate retains its aggregate reason and concerns a record offered in the declared input scope."
+msgstr "Chaque perte réelle incluse dans un agrégat de limites conserve la raison de l’agrégat et concerne un enregistrement proposé dans le périmètre d’entrée déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:LimitMemberScopeCauseConstraint logic:formalizes gmeow:ledgerLoss ."
+msgstr "Conserver la loi applicable : gmeow:LimitMemberScopeCauseConstraint logic:formalizes gmeow:ledgerLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "zero reading limit empty constraint"
+msgstr "contrainte de limite de lecture nulle vide"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reading-limit aggregate reporting zero excluded records contains no actual ledgerLoss member. It remains an aggregate report rather than a fabricated loss."
+msgstr "Un agrégat de limites déclarant zéro enregistrement exclu ne contient aucun membre ledgerLoss réel. Il reste un rapport agrégé plutôt qu’une perte fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:ZeroReadingLimitEmptyConstraint logic:formalizes gmeow:limitCount ."
+msgstr "Conserver la loi applicable : gmeow:ZeroReadingLimitEmptyConstraint logic:formalizes gmeow:limitCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive reading limit evidence constraint"
+msgstr "contrainte de preuve de limite de lecture positive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reading-limit aggregate reporting a positive excluded-record count retains actual loss evidence rather than silently omitting all excluded records. Exact count arithmetic remains the reporting refiner’s responsibility."
+msgstr "Un agrégat de limites déclarant un nombre positif d’enregistrements exclus conserve des preuves de perte réelles plutôt que d’omettre silencieusement tous les enregistrements exclus. L’arithmétique exacte du nombre reste la responsabilité du raffineur déclarant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:PositiveReadingLimitEvidenceConstraint logic:formalizes gmeow:limitCount ."
+msgstr "Conserver la loi applicable : gmeow:PositiveReadingLimitEvidenceConstraint logic:formalizes gmeow:limitCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement readings"
+msgstr "lectures de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Scoped relational findings, attributed milestone annotations and reading-limit aggregates preserving source evidence and actual query-loss identities."
+msgstr "Constatations relationnelles de périmètre défini, annotations de jalons attribuées et agrégats de limites de lecture préservant les preuves sources et les identités réelles de pertes de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Readings Module"
+msgstr "Module GMEOW des lectures de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners and recall adapters exposing scoped findings as process readings rather than subject assertions."
+msgstr "Raffineurs d’enregistrements et adaptateurs de rappel gérés par les consommateurs exposant des constatations de périmètre défini comme lectures de processus plutôt que comme affirmations des sujets."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "first-occurrence referent presence constraint"
+msgstr "contrainte de présence du référent de première occurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each first-occurrence reading supplies a related resource or an original source name, without inventing identity from the name."
+msgstr "Chaque lecture de première occurrence fournit une ressource liée ou un nom source original, sans inventer d’identité à partir du nom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:FirstOccurrenceReferentConstraint logic:formalizes gmeow:FirstOccurrence ."
+msgstr "Conserver la loi applicable : gmeow:FirstOccurrenceReferentConstraint logic:formalizes gmeow:FirstOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation-occasion referent presence constraint"
+msgstr "contrainte de présence du référent de l’occasion de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each relation-occasion reading supplies a related resource or an original source name, without inventing identity from the name."
+msgstr "Chaque lecture d’occasion de relation fournit une ressource liée ou un nom source original, sans inventer d’identité à partir du nom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelationOccasionReferentConstraint logic:formalizes gmeow:RelationOccasion ."
+msgstr "Conserver la loi applicable : gmeow:RelationOccasionReferentConstraint logic:formalizes gmeow:RelationOccasion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation predicate IRI constraint"
+msgstr "contrainte d’IRI du prédicat de relation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied relationPredicate value is an actual IRI, including on subjects without a reading type."
+msgstr "Chaque valeur fournie de relationPredicate est un IRI réel, y compris sur les sujets sans type de lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelationPredicateIriConstraint logic:formalizes gmeow:relationPredicate ."
+msgstr "Conserver la loi applicable : gmeow:RelationPredicateIriConstraint logic:formalizes gmeow:relationPredicate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related thing IRI constraint"
+msgstr "contrainte d’IRI de la chose liée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied relatedThing value is an actual IRI, never a fabricated lexical replacement for an unnameable source term, including on untyped subjects."
+msgstr "Chaque valeur fournie de relatedThing est un IRI réel, jamais un remplacement lexical fabriqué pour un terme source non nommable, y compris sur les sujets non typés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque de l’enregistrement fourni et de périmètre défini."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "Éviter de traiter cette loi de cohérence comme une certification d’exhaustivité des sources, de première occurrence ou d’exécution du raffineur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "Lire la formule réalisée sur le rapport nommé et conserver les preuves originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."
+msgstr "Conserver la loi applicable : gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."
