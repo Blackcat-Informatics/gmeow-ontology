@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use gmeow_errors::{Finding, Report, Severity, render};
+use purrdf_lex::json::{self, Object, Value, record::ToJson as _};
 
 use crate::dev_common::{
     NAMESPACE, ONTOLOGY_IRI, emit_report, fail, note, project_root, snapshot_bytes,
@@ -59,15 +60,8 @@ pub fn box_roles_audit(json_out: bool) -> i32 {
         Err(e) => return fail(format!("box-roles audit failed: {e}")),
     };
     if json_out {
-        let value = serde_json::json!({
-            "term_count": audit.term_count,
-            "role_counts": audit.role_counts,
-            "missing": audit.missing.iter().map(|f| f.term.clone()).collect::<Vec<_>>(),
-            "invalid": audit.invalid.iter().map(|f| f.term.clone()).collect::<Vec<_>>(),
-            "ok": audit.missing.is_empty() && audit.invalid.is_empty(),
-        });
-        match serde_json::to_string_pretty(&value) {
-            Ok(s) => println!("{s}"),
+        match box_roles_json(&audit) {
+            Ok(text) => print!("{text}"),
             Err(e) => return fail(format!("cannot serialize JSON: {e}")),
         }
     } else {
@@ -96,6 +90,33 @@ pub fn box_roles_audit(json_out: bool) -> i32 {
         ));
     }
     0
+}
+
+/// Encode the complete selected audit projection with its stdout terminal LF.
+fn box_roles_json(audit: &gmeow_validate::box_roles::BoxRoleAudit) -> std::io::Result<String> {
+    let value: Value = Object::new()
+        .with("term_count", audit.term_count)
+        .with("role_counts", audit.role_counts.to_json())
+        .with(
+            "missing",
+            audit
+                .missing
+                .iter()
+                .map(|finding| finding.term.as_str())
+                .collect::<Vec<_>>(),
+        )
+        .with(
+            "invalid",
+            audit
+                .invalid
+                .iter()
+                .map(|finding| finding.term.as_str())
+                .collect::<Vec<_>>(),
+        )
+        .with("ok", audit.missing.is_empty() && audit.invalid.is_empty())
+        .into();
+    let bytes = crate::dev_common::encode_metadata_json(&value)?;
+    String::from_utf8(bytes).map_err(std::io::Error::other)
 }
 
 // ── constitution-check ──────────────────────────────────────────────────────
@@ -291,12 +312,12 @@ fn load_vendored_corpus_descriptor(
     let text = std::fs::read_to_string(path).map_err(|e| {
         error::vendored_corpus(format!("{}: cannot read corpus.json: {e}", path.display()))
     })?;
-    let value: serde_json::Value = serde_json::from_str(&text)
+    let value = json::record::read_document(text.as_bytes())
         .map_err(|e| error::vendored_corpus(format!("{}: invalid JSON: {e}", path.display())))?;
     let field_str = |key: &str| -> Result<String, gmeow_errors::Diag> {
         value
             .get(key)
-            .and_then(serde_json::Value::as_str)
+            .and_then(Value::as_str)
             .map(str::to_owned)
             .ok_or_else(|| {
                 error::vendored_corpus(format!(
@@ -310,7 +331,7 @@ fn load_vendored_corpus_descriptor(
     let attribution = field_str("attribution")?;
     let ring_fenced = value
         .get("ring_fenced")
-        .and_then(serde_json::Value::as_bool)
+        .and_then(Value::as_bool)
         .ok_or_else(|| {
             error::vendored_corpus(format!(
                 "{}: missing required field \"ring_fenced\"",
