@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/refinement-state/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:readerLineage a gmeow:SoftwareAgent .
+ex:readerV2 a gmeow:SoftwareAgent ; gmeow:versionOf ex:readerLineage .
+ex:holder a gmeow:Agent .
+ex:opening a gmeow:InformationObject ;
+    dcterms:description "Please return the borrowed compass."@en ;
+    gmeow:assertedAt "2026-10-01T09:00:00Z"^^xsd:dateTime .
+ex:reply a gmeow:InformationObject ;
+    dcterms:description "I will bring it tomorrow."@en .
+ex:settlement a gmeow:InformationObject ;
+    dcterms:description "The holder recorded returning the compass."@en .
+
+# Each scope is the exact offered input, not the entire surrounding store.
+ex:initialScope a gmeow:ReadingScope ; gmeow:scopeRecord ex:opening ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:replyScope a gmeow:ReadingScope ; gmeow:scopeRecord ex:opening, ex:reply ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:settledScope a gmeow:ReadingScope ;
+    gmeow:scopeRecord ex:opening, ex:reply, ex:settlement ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:openReading a gmeow:OpenItemReading ;
+    gmeow:observedFeature ex:opening ; gmeow:vantage ex:readerV2 ;
+    gmeow:readingScope ex:initialScope ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:openResult ;
+    gmeow:openItemKind gmeow:openItemRequest ;
+    gmeow:openItemState gmeow:openItemOpen ; gmeow:openItemAgent ex:holder ;
+    gmeow:openItemAt "2026-10-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:displayable false .
+ex:replyReading a gmeow:OpenItemReading ;
+    gmeow:observedFeature ex:opening ; gmeow:vantage ex:readerV2 ;
+    gmeow:readingScope ex:replyScope ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:replyResult ;
+    gmeow:openItemKind gmeow:openItemRequest ;
+    gmeow:openItemState gmeow:openItemReplied ; gmeow:openItemAgent ex:holder ;
+    gmeow:openItemAt "2026-10-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:supersedes ex:openReading ; gmeow:wasDerivedFrom ex:reply ;
+    gmeow:displayable false .
+ex:settledReading a gmeow:OpenItemReading ;
+    gmeow:observedFeature ex:opening ; gmeow:vantage ex:readerV2 ;
+    gmeow:readingScope ex:settledScope ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:settledResult ;
+    gmeow:openItemKind gmeow:openItemRequest ;
+    gmeow:openItemState gmeow:openItemSettled ; gmeow:openItemAgent ex:holder ;
+    gmeow:openItemAt "2026-10-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:settledBy ex:settlement ; gmeow:supersedes ex:replyReading .
+
+# The repeated mention reading retains its original boundary and each member.
+ex:place a gmeow:Entity .
+ex:placeSettlement a gmeow:InformationObject ; dcterms:subject ex:place ;
+    dcterms:description "A recorded decision about the workshop arrangement."@en .
+ex:mentionA a gmeow:InformationObject ; dcterms:subject ex:place .
+ex:mentionB a gmeow:InformationObject ; dcterms:subject ex:place .
+ex:recurrenceScope a gmeow:ReadingScope ;
+    gmeow:scopeRecord ex:placeSettlement, ex:mentionA, ex:mentionB ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:recurrence a gmeow:RecurrenceReading ;
+    gmeow:observedFeature ex:mentionA ; gmeow:vantage ex:readerV2 ;
+    gmeow:readingScope ex:recurrenceScope ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:recurrenceResult ;
+    gmeow:relatedThing ex:place ;
+    gmeow:recurrenceSettledBy ex:placeSettlement ;
+    gmeow:recurrenceMember ex:mentionA, ex:mentionB .
+
+# The activity description is not one particular act. Counts are reported under
+# the holder's own evening reckoning; no fixed UTC evening interval is asserted.
+ex:woodworking a gmeow:InformationObject ;
+    rdfs:label "The holder's woodworking activity description"@en .
+ex:actA a gmeow:Activity ; gmeow:wasAssociatedWith ex:holder .
+ex:actB a gmeow:Activity ; gmeow:wasAssociatedWith ex:holder .
+ex:habitScope a gmeow:ReadingScope ; gmeow:scopeRecord ex:actA, ex:actB ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:figure a gmeow:HabitFigure ;
+    gmeow:observedFeature ex:actA ; gmeow:vantage ex:readerV2 ;
+    gmeow:readingScope ex:habitScope ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:habitResult ;
+    gmeow:habitActivity ex:woodworking ; gmeow:habitHolder ex:holder ;
+    gmeow:habitDayPart gmeow:dayPartEvening ;
+    gmeow:habitTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:habitChosenCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:habitSituationCount "3"^^xsd:nonNegativeInteger ;
+    gmeow:habitMember ex:actA, ex:actB .
+
+# Selected findings retain the refiner's own reading, separate from the source.
+ex:openResult a gmeow:InformationObject ;
+    gmeow:accordingTo ex:readerV2 ;
+    dcterms:description "No linked reply or settling act appears in the initial offered records."@en .
+ex:replyResult a gmeow:InformationObject ;
+    gmeow:accordingTo ex:readerV2 ;
+    dcterms:description "A reply appears in the offered records without a linked settling act."@en .
+ex:settledResult a gmeow:InformationObject ;
+    gmeow:accordingTo ex:readerV2 ;
+    dcterms:description "The offered record describes an act read as settling the request."@en .
+ex:recurrenceResult a gmeow:InformationObject ;
+    gmeow:accordingTo ex:readerV2 ;
+    dcterms:description "The offered records contain two mentions after the supplied settling boundary."@en .
+ex:habitResult a gmeow:InformationObject ;
+    gmeow:accordingTo ex:readerV2 ;
+    dcterms:description "The reported figure counts choices and situations under the holder's evening reckoning."@en .

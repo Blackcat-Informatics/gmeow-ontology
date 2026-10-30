@@ -1979,3 +1979,61 @@ gmeow:startedAtTimeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:startedAtTime and nothing else. It is not a definition of gmeow:startedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:startedAtTimeFunctionality logic:characterizes gmeow:startedAtTime ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Scoped process-state readings.
+
+gmeow:DayPart
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Day Part"@x-gmeow-english ;
+    skos:definition "An open vocabulary for parts of a civil day as reckoned by a holder in an explicit temporal frame. Values classify a contextual reckoning and impose no universal hours, ordering or preferred schedule."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:localPart a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartMorning
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "morning"@x-gmeow-english ;
+    skos:definition "The morning part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartMorning a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartAfternoon
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "afternoon"@x-gmeow-english ;
+    skos:definition "The afternoon part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartAfternoon a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartEvening
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "evening"@x-gmeow-english ;
+    skos:definition "The evening part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartEvening a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartNight
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "night"@x-gmeow-english ;
+    skos:definition "The night part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."@x-gmeow-english .

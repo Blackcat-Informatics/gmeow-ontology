@@ -53,3 +53,47 @@ provenance/observation relation owners supply the applicable bridges. Scoped
 first-occurrence claims and zero-capable limit aggregates have no justified
 exact external equivalence from this source review; no downstream duplicate
 alignment or unsupported preservation claim is authored (Principles 5 and 19).
+
+## Stateful readings and temporal ownership
+
+The three additional reading classes specialize the existing `Refinement`
+observation, inheriting its source and process-vantage interpretation. They share
+`ReadingScope` rather than inventing a second input-set model. The new evidence
+relations are genuine `wasDerivedFrom` specializations: they retain the original
+settling record, counted record or counted act, and do not declare that a
+world-state was changed by a reading.
+
+Open-item state is a local, single-valued report. Separate process readings can
+disagree without forcing their states to merge. The existing coreference
+`supersedes` relation records a successor's replacement of a prior reading while
+both remain accessible; its actual domain and range admit observation records.
+Nothing adds a global status or retracts source facts. Seeded settled and
+unsettled states have the two intrinsic evidence laws described in the docs.
+
+Five further scope laws retain the source and all explicitly supplied evidence
+within offered records. Together the seven additional formulas have directly
+targetable guards: a class atom, or conjunctions with source/scope atoms. Any
+disjunction occurs within such a guard or in a consequent, never as an unsupported
+OR-only outer guard. No generic predicate is broadened into a mandatory state
+field for unrelated observations or ledgers.
+
+The counted habit members are actual `Activity` occurrences, whose existing
+owner makes them events. An activity designation is deliberately `logic:Thing`:
+a source may name an activity description rather than one particular event, and
+this reading supplies no basis for forcing it into a narrower external sort.
+The two reported counts lack a universal denominator contract, so a chosen-count
+inequality or a member-count equality would be an invented invariant.
+
+`DayPart` and its four initial values belong to the temporal owner and remain
+open. They are quality classifications, not instants or fixed-hour intervals.
+The consuming figure binds holder, day part and temporal frame together. Its
+specific frame relation inherits `hasReferenceFrame` without casting a temporal
+value as an observation or making the process vantage the holder by default.
+The frame and holder supply the context for interpreting the classification;
+the vocabulary does not claim an unimplemented boundary calculator.
+
+The canonical observation, provenance, coreference and temporal owners provide
+the meaningful grounding. No exact external correspondence is justified for a
+scoped absence reading, a reported segmentation or an unspecified denominator;
+unsupported equivalences would erase these distinctions (Principles 4, 5, 11,
+17 and 19).
