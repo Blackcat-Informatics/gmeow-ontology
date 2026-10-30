@@ -12495,8 +12495,8 @@ msgid "The record of what was put in front of a decider: what was included, from
 msgstr "Le relevé de ce qui a été soumis à celui qui décide : ce qui a été inclus, d'où, sous quel budget, et — de façon décisive — ce qui a été EXCLU. Consigner les exclusions est ce qui donne son sens à une dissidence consignée, car « l'opérateur a vu l'objection et a poursuivi » et « l'objection n'a jamais été présentée » sont deux situations distinctes qu'un relevé limité aux inclusions ne peut départager. Typé À PART de la décision elle-même : un assemblage est ce dont on disposait pour décider."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."
-msgstr "La logic:Constraint qui rejette un logic:ContextAssembly qui nomme quelque chose dans logic:assemblyExcluded sans consigner de logic:assemblyExclusionReason. Consigner les exclusions est ce qui donne son sens à une dissidence consignée, et une simple liste d'éléments retenus n'y suffit pas : « j'aurais objecté si j'avais vu X » n'est jugeable que si le relevé dit si X a été présenté ET pour quel motif il ne l'a pas été. Pour tout lecteur ultérieur, une exclusion inexpliquée se lit exactement comme un oubli."
+msgid "An assembly using aggregate exclusion accounting must retain an aggregate reason. Explicit PerRecordExclusionAssembly instead requires a reason on each excluded assertion’s reifier through its canonical reification obligation."
+msgstr "Une assemblée utilisant la comptabilité agrégée conserve une raison agrégée. PerRecordExclusionAssembly exige explicitement une raison sur le réificateur de chaque assertion exclue par son obligation canonique de réification."
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."
@@ -13003,8 +13003,8 @@ msgid "The open classification of what KIND of prescription a logic:Plan is — 
 msgstr "La classification ouverte du GENRE de prescription qu'est un logic:Plan — chaîne de traitement de données, protocole de laboratoire, recette, cursus, plan de conduite, guide organisationnel. C'est une VALEUR portée par le plan, jamais une sous-classe de logic:Plan : créer une sous-classe par genre scinderait l'unique concept canonique de plan que le noyau existe pour maintenir un. Ses membres sont des individus et plus d'un peut s'appliquer conjointement."
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An immutable, content-addressed version of a logic:Plan — the prescription an enactment runs against. Exactly one logic:prescriptionOf names the plan it versions. A revision never mutates a version: it mints a new one and supersedes the old, so a landed enactment's prescription can always be recovered exactly as it was executed. Typed APART from logic:Plan, which is the continuing program identity across revisions: a version is one frozen state of that program."
-msgstr "Une version immuable et adressée par contenu d'un logic:Plan — la prescription face à laquelle une exécution effective se déroule. Exactement un logic:prescriptionOf nomme le plan qu'elle versionne. Une révision ne mute jamais une version : elle en crée une nouvelle et supplante l'ancienne, de sorte que la prescription d'une exécution effective déjà passée puisse toujours être récupérée exactement telle qu'elle a été exécutée. Typée À PART de logic:Plan, qui est l'identité continue du programme à travers les révisions : une version est un état figé de ce programme."
+msgid "An immutable version of one logic:Plan. Its default identity contract requires a content address. Explicit ImmutableIriPrescriptionIdentity instead selects externally maintained immutable IRI identity with durable retention and supersession; it provides no digest comparison or detection of changed bytes. A revision always mints a new version."
+msgstr "Version immuable d’un logic:Plan. Le contrat d’identité par défaut exige une adresse de contenu. ImmutableIriPrescriptionIdentity sélectionne explicitement une identité IRI immuable maintenue extérieurement avec conservation durable et remplacement ; elle ne fournit ni comparaison de condensat ni détection des octets modifiés. Toute révision crée une nouvelle version."
 
 msgctxt "https://blackcatinformatics.ca/logic/PriorEnactmentRequirement|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A precondition over OTHER enactments rather than over world state: this enactment may not start until a named prior enactment reached a named state. It is what a curriculum prerequisite, an operator certification, a prior-shift handover and an upstream-DAG dependency all are. Typed APART from logic:precondition, which gates on the situation obtaining at a state: a prior-enactment requirement gates on the RUN HISTORY of a different occurrence."
@@ -13263,8 +13263,8 @@ msgid "Relates a logic:ContextAssembly to something available but NOT surfaced. 
 msgstr "Relie un logic:ContextAssembly à quelque chose de disponible mais NON présenté. Portée : tout élément exclu (énoncée en prose). Multivaluée. C'est la moitié du relevé qui rend la dissidence interprétable : sans elle, le silence est illisible."
 
 msgctxt "https://blackcatinformatics.ca/logic/assemblyExclusionReason|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Why material available to the assembly was not surfaced — a budget, a relevance filter, a policy. Recording it distinguishes a deliberate omission from an accidental one."
-msgstr "Pourquoi un matériau disponible pour l'assemblage n'a pas été présenté — un budget, un filtre de pertinence, une politique. Le consigner distingue une omission délibérée d'une omission accidentelle."
+msgid "Why available material was withheld. On a ContextAssembly this is its aggregate report; on an AssemblyExclusion reifier it explains that particular assemblyExcluded assertion. Explicit per-record accounting requires a reason on each reifier rather than one shared aggregate reason."
+msgstr "Pourquoi des éléments disponibles ont été écartés. Sur ContextAssembly, rapport agrégé ; sur un réificateur AssemblyExclusion, explication de cette assertion assemblyExcluded particulière. La comptabilité par relevé exige une raison par réificateur plutôt qu’une seule raison agrégée."
 
 msgctxt "https://blackcatinformatics.ca/logic/assemblyForEnactment|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ContextAssembly to the enactment it served. Functional and MANDATORY: an assembly with no named beneficiary cannot answer 'what was surfaced to THIS run', which is the question it exists for."
@@ -13635,8 +13635,8 @@ msgid "Relates a logic:PreparationStep to the step or enactment it prepares for.
 msgstr "Relie une logic:PreparationStep à l'étape ou à l'exécution effective qu'elle prépare. Portée : une étape de plan ou une exécution effective (énoncée en prose). Fonctionnelle. C'est la couture qu'une tranche de domaine spécialise pour rattacher la préparation à son propre vocabulaire d'activité."
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-prefixed content address of a logic:PrescriptionVersion's frozen form. It is the value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot silently satisfy an authorization issued for its predecessor. Not functional: several digest algorithms may coexist over one version."
-msgstr "L'adresse de contenu préfixée par l'algorithme de la forme figée d'une logic:PrescriptionVersion. C'est la valeur au regard de laquelle sont contrôlées à la fois une restauration de point de reprise et une liaison d'approbation, de sorte qu'une prescription révisée ne puisse satisfaire en silence une autorisation délivrée pour celle qui l'a précédée. Non fonctionnelle : plusieurs algorithmes d'empreinte peuvent coexister sur une même version."
+msgid "An algorithm-prefixed content address of a prescription version’s frozen form. Required by the default content-identity contract; optional under explicitly selected immutable IRI identity. A supplied digest remains available to digest-bearing admission and pin comparisons; IRI identity supplies no substitute hash."
+msgstr "Adresse de contenu préfixée par l’algorithme de la forme figée d’une version. Requise par le contrat d’identité de contenu par défaut ; facultative sous identité IRI immuable explicitement sélectionnée. Tout condensat fourni reste disponible pour les admissions et comparaisons d’épinglage ; l’identité IRI ne fournit aucun hachage de remplacement."
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:Plan to a logic:PrescriptionKind classifying its genre. Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error."
@@ -17823,8 +17823,8 @@ msgid "The executable content the pin digest addresses and the content an approv
 msgstr "Le contenu exécutable qu'adresse l'empreinte de l'épinglage et celui pour lequel une approbation a été accordée : le modifier après approbation rompt l'identité sur laquelle repose l'autorisation. Univaluée pour la même raison que la liste produite."
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot satisfy either. One digest serving both checks is what keeps the two from drifting apart."
-msgstr "La valeur au regard de laquelle sont vérifiées tant une restauration de point de reprise qu'une liaison d'approbation : une prescription révisée ne peut donc satisfaire ni l'une ni l'autre. Une empreinte unique servant les deux contrôles les empêche de diverger."
+msgid "Selecting IRI identity does not relax an independently selected checkpoint, approval or other content-addressed admission contract."
+msgstr "Sélectionner l’identité IRI n’assouplit aucun contrat indépendant d’admission de point de reprise, d’approbation ou d’adressage par contenu."
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error. Forcing a single kind would make an author choose between two true statements."
@@ -18087,8 +18087,8 @@ msgid "a prescription version is content-addressed"
 msgstr "une version de prescription est adressée par contenu"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionIsContentAddressedConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Content-addressing is the PRECONDITION of immutability, not immutability itself: an unaddressed version cannot be shown to be the one an enactment ran, so nothing downstream can detect a revision in place. Whether a version actually stayed put is logic:PrescriptionVersionImmutabilityConstraint, which compares the address against what a run recorded."
-msgstr "La logic:Constraint qui rejette une logic:PrescriptionVersion sans empreinte. L'adressage par contenu est la PRÉCONDITION de l'immuabilité et non l'immuabilité même : une version non adressée ne peut être montrée comme celle qu'une exécution a suivie, si bien que rien en aval ne peut détecter une révision sur place. Savoir si une version est effectivement restée en l'état relève de logic:PrescriptionVersionImmutabilityConstraint, qui confronte l'adresse à ce qu'une exécution a consigné."
+msgid "A prescription version requires a digest unless it explicitly selects ImmutableIriPrescriptionIdentity. Absence of a mode retains the content-addressed default; the IRI contract does not claim digest verification."
+msgstr "Une version exige un condensat sauf sélection explicite de ImmutableIriPrescriptionIdentity. L’absence de mode conserve le défaut adressé par contenu ; le contrat IRI ne prétend pas vérifier un condensat."
 
 msgctxt "https://blackcatinformatics.ca/logic/RestoreStaysWithinItsEnactmentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a restore resumes the run its checkpoint came from"
@@ -23424,3 +23424,320 @@ msgstr "N’acceptez pas un motif source restreint sans modifier les identités 
 msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:howToUse"
 msgid "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."
 msgstr "Décodez un enregistrement de liaison rdf:JSON sans étiquette de langue et validez l’identité du corps, son lien getLeg canonique et chaque dépendance sélectionnée."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring AssemblyExclusion from missing evidence."
+msgstr "Éviter de déduire AssemblyExclusion d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit AssemblyExclusion contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite AssemblyExclusion et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Assembly Exclusion explicitly."
+msgstr "Utiliser pour déclarer explicitement Exclusion d’assemblage."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Assembly Exclusion"
+msgstr "Exclusion d’assemblage"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An RDF 1.2 reifier of one assemblyExcluded assertion. Its reason concerns exactly that excluded membership and does not explain other memberships by default."
+msgstr "Réificateur RDF 1.2 d’une assertion assemblyExcluded. Sa raison concerne exactement cette appartenance exclue et n’explique pas les autres par défaut."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:AssemblyExclusion."
+msgstr "Une source sélectionne explicitement logic:AssemblyExclusion."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ContentAddressedPrescriptionIdentity from missing evidence."
+msgstr "Éviter de déduire ContentAddressedPrescriptionIdentity d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit ContentAddressedPrescriptionIdentity contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite ContentAddressedPrescriptionIdentity et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare content-addressed prescription identity explicitly."
+msgstr "Utiliser pour déclarer explicitement identité de prescription adressée par contenu."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content-addressed prescription identity"
+msgstr "identité de prescription adressée par contenu"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The default contract requires a digest of frozen prescription content. Selecting it explicitly preserves the same digest obligation as omitting the selector."
+msgstr "Le contrat par défaut exige un condensat du contenu figé. Sa sélection explicite conserve la même obligation que l’absence de sélection."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:ContentAddressedPrescriptionIdentity."
+msgstr "Une source sélectionne explicitement logic:ContentAddressedPrescriptionIdentity."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ImmutableIriPrescriptionIdentity from missing evidence."
+msgstr "Éviter de déduire ImmutableIriPrescriptionIdentity d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit ImmutableIriPrescriptionIdentity contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite ImmutableIriPrescriptionIdentity et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare immutable IRI prescription identity explicitly."
+msgstr "Utiliser pour déclarer explicitement identité IRI immuable de prescription."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "immutable IRI prescription identity"
+msgstr "identité IRI immuable de prescription"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly selected contract under which an external owner preserves one immutable version per resolvable IRI, retains historical versions durably and revises only by supersession. It provides no hash comparison or changed-byte detection."
+msgstr "Contrat explicitement sélectionné où un propriétaire externe conserve durablement une version immuable par IRI résoluble et révise uniquement par remplacement. Il ne fournit ni comparaison de hachage ni détection d’octets modifiés."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:ImmutableIriPrescriptionIdentity."
+msgstr "Une source sélectionne explicitement logic:ImmutableIriPrescriptionIdentity."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring PerRecordExclusionAssembly from missing evidence."
+msgstr "Éviter de déduire PerRecordExclusionAssembly d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit PerRecordExclusionAssembly contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite PerRecordExclusionAssembly et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Per-Record Exclusion Assembly explicitly."
+msgstr "Utiliser pour déclarer explicitement Assemblage à exclusions par relevé."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Per-Record Exclusion Assembly"
+msgstr "Assemblage à exclusions par relevé"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit ContextAssembly profile requiring an identified reason-bearing reifier for every assemblyExcluded assertion. It does not additionally require an aggregate reason."
+msgstr "Profil explicite de ContextAssembly exigeant un réificateur identifié portant sa raison pour chaque assertion assemblyExcluded, sans exiger en plus une raison agrégée."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:PerRecordExclusionAssembly."
+msgstr "Une source sélectionne explicitement logic:PerRecordExclusionAssembly."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring PrescriptionIdentityMode from missing evidence."
+msgstr "Éviter de déduire PrescriptionIdentityMode d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit PrescriptionIdentityMode contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite PrescriptionIdentityMode et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Prescription Identity Mode explicitly."
+msgstr "Utiliser pour déclarer explicitement Mode d’identité de prescription."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prescription Identity Mode"
+msgstr "Mode d’identité de prescription"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected identity contract of an immutable prescription version. Absence retains content-addressed identity; selecting IRI identity changes no independent operation’s requirements."
+msgstr "Contrat d’identité sélectionné d’une version immuable. L’absence conserve l’identité adressée par contenu ; sélectionner l’identité IRI ne change aucune exigence indépendante."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:PrescriptionIdentityMode."
+msgstr "Une source sélectionne explicitement logic:PrescriptionIdentityMode."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind prescriptionOf and retain a content digest by default. Select ImmutableIriPrescriptionIdentity explicitly only when an external owner guarantees immutable IRI resolution and durable historical retention."
+msgstr "Renseigner prescriptionOf et conserver par défaut un condensat de contenu. Sélectionner explicitement ImmutableIriPrescriptionIdentity seulement si un propriétaire externe garantit résolution IRI immuable et conservation historique durable."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "per-record exclusion reification obligation"
+msgstr "obligation de réification des exclusions par relevé"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every exclusion of an explicitly selected PerRecordExclusionAssembly has a reifier conforming to AssemblyExclusion; its own reason is required."
+msgstr "Toute exclusion d’un PerRecordExclusionAssembly explicitement sélectionné possède un réificateur conforme à AssemblyExclusion ; sa propre raison est exigée."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting an immutable IRI contract as evidence of digest equality or changed-byte detection."
+msgstr "Éviter de présenter un contrat IRI immuable comme preuve d’égalité de condensats ou de détection d’octets modifiés."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the content identity contract or any digest-bearing operation that requires a version content witness."
+msgstr "Utiliser pour le contrat d’identité de contenu ou toute opération exigeant un témoin du contenu de version."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring prescriptionIdentityMode from missing evidence."
+msgstr "Éviter de déduire prescriptionIdentityMode d’éléments manquants."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit prescriptionIdentityMode contract and all independently selected obligations."
+msgstr "Conserver le contrat explicite prescriptionIdentityMode et toutes les obligations indépendamment sélectionnées."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare prescription identity mode explicitly."
+msgstr "Utiliser pour déclarer explicitement mode d’identité de prescription."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prescription identity mode"
+msgstr "mode d’identité de prescription"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit identity contract selection on a prescription version, never inferred from a missing digest."
+msgstr "Sélection explicite du contrat d’identité d’une version, jamais déduite d’un condensat absent."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:prescriptionIdentityMode."
+msgstr "Une source sélectionne explicitement logic:prescriptionIdentityMode."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating AssemblyExclusionHasOwnReasonConstraint as a runtime certificate."
+msgstr "Éviter de traiter AssemblyExclusionHasOwnReasonConstraint comme certificat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply AssemblyExclusionHasOwnReasonConstraint to actual records while retaining independent obligations."
+msgstr "Appliquer AssemblyExclusionHasOwnReasonConstraint aux relevés réels en conservant les obligations indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an excluded assertion carries its own reason."
+msgstr "Utiliser pour préserver une assertion exclue porte sa propre raison."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an excluded assertion carries its own reason"
+msgstr "une assertion exclue porte sa propre raison"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement."
+msgstr "Chaque réificateur RDF 1.2 AssemblyExclusion réel porte sa raison avec langue. Les métadonnées de schéma ne sont pas des exclusions ; aucune raison agrégée ne satisfait cette exigence."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:AssemblyExclusionHasOwnReasonConstraint."
+msgstr "Le relevé est régi par logic:AssemblyExclusionHasOwnReasonConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating AssemblyExclusionReasonLanguageConstraint as a runtime certificate."
+msgstr "Éviter de traiter AssemblyExclusionReasonLanguageConstraint comme certificat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply AssemblyExclusionReasonLanguageConstraint to actual records while retaining independent obligations."
+msgstr "Appliquer AssemblyExclusionReasonLanguageConstraint aux relevés réels en conservant les obligations indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an excluded assertion preserves reason language."
+msgstr "Utiliser pour préserver une assertion exclue préserve la langue de sa raison."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an excluded assertion preserves reason language"
+msgstr "une assertion exclue préserve la langue de sa raison"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction."
+msgstr "Chaque raison d’un réificateur AssemblyExclusion réel conserve une langue et toute direction de base RDF 1.2."
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:AssemblyExclusionReasonLanguageConstraint."
+msgstr "Le relevé est régi par logic:AssemblyExclusionReasonLanguageConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ImmutableIriPrescriptionIsNamedConstraint as a runtime certificate."
+msgstr "Éviter de traiter ImmutableIriPrescriptionIsNamedConstraint comme certificat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ImmutableIriPrescriptionIsNamedConstraint to actual records while retaining independent obligations."
+msgstr "Appliquer ImmutableIriPrescriptionIsNamedConstraint aux relevés réels en conservant les obligations indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an immutable IRI prescription has an IRI."
+msgstr "Utiliser pour préserver une prescription IRI immuable possède un IRI."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an immutable IRI prescription has an IRI"
+msgstr "une prescription IRI immuable possède un IRI"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality."
+msgstr "L’identité IRI immuable explicite exige une version identifiée par IRI. Ce contrôle ne prouve ni résolution durable, ni stockage immuable, ni égalité des octets."
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:ImmutableIriPrescriptionIsNamedConstraint."
+msgstr "Le relevé est régi par logic:ImmutableIriPrescriptionIsNamedConstraint."
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the per-record assembly profile requires every excluded membership to have its own reason-bearing reifier."
+msgstr "Utiliser lorsque le profil par relevé exige un réificateur portant sa raison pour chaque appartenance exclue."
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding an invented instance reason to this schema declaration."
+msgstr "Éviter d’ajouter une raison d’instance inventée à cette déclaration de schéma."
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and constrained reifier class; actual exclusions use native rdf:reifies statements."
+msgstr "Déclarer classe de sujet, prédicat et classe contrainte du réificateur ; les exclusions réelles utilisent rdf:reifies natif."
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."
+msgstr "Une exclusion d’assemblage par relevé respecte le contrat du réificateur AssemblyExclusion."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a captured prescription digest requires a current digest"
+msgstr "un condensat de prescription capturé exige un condensat actuel"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prescription version whose enactment captured a digest must retain a current prescriptionDigest under every identity mode. This law checks presence only; PrescriptionVersionImmutabilityConstraint separately compares the current value with the captured witness."
+msgstr "Une version dont l’exécution a capturé un condensat conserve un prescriptionDigest actuel sous tout mode d’identité. Cette loi vérifie seulement la présence ; PrescriptionVersionImmutabilityConstraint compare séparément la valeur actuelle au témoin capturé."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an enactment recorded enactedPrescriptionDigest and absence of the version’s current digest would otherwise bypass the comparison law."
+msgstr "Utiliser lorsqu’une exécution a enregistré enactedPrescriptionDigest et que l’absence du condensat actuel permettrait autrement d’éviter la loi de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating the immutability law’s mismatch finding here; a present but different digest is that law’s comparison failure."
+msgstr "Éviter de dupliquer ici le constat de divergence de la loi d’immutabilité ; un condensat présent mais différent relève de son échec de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the pinned version and captured digest, then require some current prescriptionDigest without a mode or current-digest guard. Let the existing immutability law require the matching value."
+msgstr "Joindre la version épinglée et le condensat capturé, puis exiger un prescriptionDigest actuel sans garde de mode ni de condensat actuel. Laisser la loi d’immutabilité existante exiger la valeur correspondante."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."
+msgstr "Supprimer le condensat actuel après capture échoue au contrôle de présence ; changer sa valeur échoue à l’immutabilité. Une nouvelle version IRI sans condensat capturé reste admissible."

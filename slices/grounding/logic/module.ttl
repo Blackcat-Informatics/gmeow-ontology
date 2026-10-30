@@ -9132,11 +9132,11 @@ logic:PrescriptionVersion
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Prescription Version"@x-gmeow-english ;
-    skos:definition "An immutable, content-addressed version of a logic:Plan — the prescription an enactment runs against. Exactly one logic:prescriptionOf names the plan it versions. A revision never mutates a version: it mints a new one and supersedes the old, so a landed enactment's prescription can always be recovered exactly as it was executed. Typed APART from logic:Plan, which is the continuing program identity across revisions: a version is one frozen state of that program."@x-gmeow-english ;
+    skos:definition "An immutable version of one logic:Plan. Its default identity contract requires a content address. Explicit ImmutableIriPrescriptionIdentity instead selects externally maintained immutable IRI identity with durable retention and supersession; it provides no digest comparison or detection of changed bytes. A revision always mints a new version."@x-gmeow-english ;
     skos:example "ex:adrReviewV3 a logic:PrescriptionVersion ; logic:prescriptionOf ex:adrReviewPlan ."@x-gmeow-english ;
     gmeow:useWhen "Use whenever a plan can be revised while earlier runs against it must stay reproducible — a versioned curriculum, a revised control recipe, a workflow definition under change control."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mutating a landed version in place, and avoid minting one per enactment (many enactments share one version)."@x-gmeow-english ;
-    gmeow:howToUse "Content-address the plan's frozen form, bind logic:prescriptionOf, and record revision by minting a successor and superseding the predecessor."@x-gmeow-english ;
+    gmeow:howToUse "Bind prescriptionOf and retain a content digest by default. Select ImmutableIriPrescriptionIdentity explicitly only when an external owner guarantees immutable IRI resolution and durable historical retention."@x-gmeow-english ;
     skos:scopeNote "A revision never mutates a version: it mints a new one and supersedes the old, so an enactment that pinned the old version keeps running exactly what it started with. Mutation in place would silently rewrite history."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -9160,12 +9160,12 @@ logic:prescriptionDigest
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "prescription digest"@x-gmeow-english ;
-    skos:definition "The algorithm-prefixed content address of a logic:PrescriptionVersion's frozen form. It is the value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot silently satisfy an authorization issued for its predecessor. Not functional: several digest algorithms may coexist over one version."@x-gmeow-english ;
+    skos:definition "An algorithm-prefixed content address of a prescription version’s frozen form. Required by the default content-identity contract; optional under explicitly selected immutable IRI identity. A supplied digest remains available to digest-bearing admission and pin comparisons; IRI identity supplies no substitute hash."@x-gmeow-english ;
     skos:example "ex:reviewV4 logic:prescriptionDigest \"b3:4c8a03…\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to content-address a prescription version, which is how its immutability is enforced."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid a mutability flag in place of a digest: a flag can be set wrongly, whereas an unmatched digest cannot lie."@x-gmeow-english ;
+    gmeow:useWhen "Use for the content identity contract or any digest-bearing operation that requires a version content witness."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting an immutable IRI contract as evidence of digest equality or changed-byte detection."@x-gmeow-english ;
     gmeow:howToUse "Address the version's bytes, so revising it in place becomes detectable rather than silent."@x-gmeow-english ;
-    skos:scopeNote "The value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot satisfy either. One digest serving both checks is what keeps the two from drifting apart."@x-gmeow-english ;
+    skos:scopeNote "Selecting IRI identity does not relax an independently selected checkpoint, approval or other content-addressed admission contract."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:InputSnapshot
@@ -14332,11 +14332,11 @@ logic:assemblyExcluded
 
 logic:assemblyExclusionReason
     a logic:DatatypeProperty ;
-    rdfs:domain logic:ContextAssembly ;
+    logic:domain [ a logic:Class ; logic:unionOf ( logic:ContextAssembly logic:AssemblyExclusion ) ] ;
     rdfs:range rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "assembly exclusion reason"@x-gmeow-english ;
-    skos:definition "Why material available to the assembly was not surfaced — a budget, a relevance filter, a policy. Recording it distinguishes a deliberate omission from an accidental one."@x-gmeow-english ;
+    skos:definition "Why available material was withheld. On a ContextAssembly this is its aggregate report; on an AssemblyExclusion reifier it explains that particular assemblyExcluded assertion. Explicit per-record accounting requires a reason on each reifier rather than one shared aggregate reason."@x-gmeow-english ;
     skos:example "ex:week13Context logic:assemblyExclusionReason \"superseded by revision 4\"@x-gmeow-english ."@x-gmeow-english ;
     gmeow:useWhen "Use to say why something was withheld."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an unexplained exclusion; it is indistinguishable from an oversight."@x-gmeow-english ;
@@ -14444,17 +14444,20 @@ logic:ContextAssemblyRecordsExclusionsConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "an assembly that withholds material says why"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."@x-gmeow-english ;
+    skos:definition "An assembly using aggregate exclusion accounting must retain an aggregate reason. Explicit PerRecordExclusionAssembly instead requires a reason on each excluded assertion’s reifier through its canonical reification obligation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:ContextAssembly binding logic:assemblyExcluded must record a logic:assemblyExclusionReason; a deliberate omission with no stated grounds is indistinguishable from an accidental one." ;
+    logic:message "Aggregate exclusion accounting requires an assembly reason; explicit per-record accounting requires a reason for every excluded assertion." ;
     logic:integrity logic:careXForall .
 logic:careXForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:careXImpl .
 logic:careXImpl a logic:Formula ; logic:antecedent logic:careXGuard ; logic:consequent logic:careXCons .
-logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded .
+logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded , logic:careXUsesAggregate .
+logic:careXUsesAggregate a logic:Formula ; logic:not logic:careXPerRecord .
+logic:careXPerRecord a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PerRecordExclusionAssembly ] .
 logic:careXIsAssembly a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
 logic:careXExcluded a logic:Formula ; logic:relation logic:assemblyExcluded ;
@@ -14673,18 +14676,22 @@ logic:PrescriptionVersionIsContentAddressedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "a prescription version is content-addressed"@x-gmeow-english ;
-    skos:definition "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Content-addressing is the PRECONDITION of immutability, not immutability itself: an unaddressed version cannot be shown to be the one an enactment ran, so nothing downstream can detect a revision in place. Whether a version actually stayed put is logic:PrescriptionVersionImmutabilityConstraint, which compares the address against what a run recorded."@x-gmeow-english ;
+    skos:definition "A prescription version requires a digest unless it explicitly selects ImmutableIriPrescriptionIdentity. Absence of a mode retains the content-addressed default; the IRI contract does not claim digest verification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
     logic:severity "Violation" ;
-    logic:message "A logic:PrescriptionVersion must carry logic:prescriptionDigest; without a content address, revising a version in place is undetectable." ;
+    logic:message "A prescription version requires a digest unless immutable IRI identity is explicitly selected; absence retains the content-addressed default." ;
     logic:integrity logic:pviForall .
 logic:pviForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:pviImpl .
 logic:pviImpl a logic:Formula ; logic:antecedent logic:pviGuard ; logic:consequent logic:pviCons .
-logic:pviGuard a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+logic:pviGuard a logic:Formula ; logic:and logic:pviVersionType , logic:pviNeedsContentIdentity .
+logic:pviVersionType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ] .
+logic:pviNeedsContentIdentity a logic:Formula ; logic:not logic:pviIriSelection .
+logic:pviIriSelection a logic:Formula ; logic:relation logic:prescriptionIdentityMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ImmutableIriPrescriptionIdentity ] .
 logic:pviCons a logic:Formula ; logic:relation logic:prescriptionDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
 
@@ -24218,3 +24225,186 @@ logic:projectionBindingContent a logic:DatatypeProperty ;
     gmeow:howToUse "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     logic:range rdf:JSON .
+
+logic:PrescriptionIdentityMode
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Prescription Identity Mode"@x-gmeow-english ;
+    skos:definition "The selected identity contract of an immutable prescription version. Absence retains content-addressed identity; selecting IRI identity changes no independent operation’s requirements."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Prescription Identity Mode explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring PrescriptionIdentityMode from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit PrescriptionIdentityMode contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:PrescriptionIdentityMode."@x-gmeow-english .
+
+logic:prescriptionIdentityMode
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "prescription identity mode"@x-gmeow-english ;
+    skos:definition "An explicit identity contract selection on a prescription version, never inferred from a missing digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare prescription identity mode explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring prescriptionIdentityMode from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit prescriptionIdentityMode contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:prescriptionIdentityMode."@x-gmeow-english .
+
+logic:ContentAddressedPrescriptionIdentity
+    a logic:PrescriptionIdentityMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "content-addressed prescription identity"@x-gmeow-english ;
+    skos:definition "The default contract requires a digest of frozen prescription content. Selecting it explicitly preserves the same digest obligation as omitting the selector."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare content-addressed prescription identity explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ContentAddressedPrescriptionIdentity from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit ContentAddressedPrescriptionIdentity contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:ContentAddressedPrescriptionIdentity."@x-gmeow-english .
+
+logic:ImmutableIriPrescriptionIdentity
+    a logic:PrescriptionIdentityMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "immutable IRI prescription identity"@x-gmeow-english ;
+    skos:definition "An explicitly selected contract under which an external owner preserves one immutable version per resolvable IRI, retains historical versions durably and revises only by supersession. It provides no hash comparison or changed-byte detection."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare immutable IRI prescription identity explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring ImmutableIriPrescriptionIdentity from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit ImmutableIriPrescriptionIdentity contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:ImmutableIriPrescriptionIdentity."@x-gmeow-english .
+
+logic:PerRecordExclusionAssembly
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Per-Record Exclusion Assembly"@x-gmeow-english ;
+    skos:definition "An explicit ContextAssembly profile requiring an identified reason-bearing reifier for every assemblyExcluded assertion. It does not additionally require an aggregate reason."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Per-Record Exclusion Assembly explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring PerRecordExclusionAssembly from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit PerRecordExclusionAssembly contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:PerRecordExclusionAssembly."@x-gmeow-english .
+
+logic:AssemblyExclusion
+    a logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Assembly Exclusion"@x-gmeow-english ;
+    skos:definition "An RDF 1.2 reifier of one assemblyExcluded assertion. Its reason concerns exactly that excluded membership and does not explain other memberships by default."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare Assembly Exclusion explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring AssemblyExclusion from missing evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit AssemblyExclusion contract and all independently selected obligations."@x-gmeow-english ;
+    skos:example "A source explicitly selects logic:AssemblyExclusion."@x-gmeow-english .
+
+logic:prescriptionIdentityMode logic:domain logic:PrescriptionVersion ; logic:range logic:PrescriptionIdentityMode .
+logic:PrescriptionVersion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:prescriptionIdentityMode ; logic:allValuesFrom [ a logic:Class ; logic:oneOf ( logic:ContentAddressedPrescriptionIdentity logic:ImmutableIriPrescriptionIdentity ) ] ],
+    [ a logic:Restriction ; logic:onProperty logic:prescriptionIdentityMode ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+logic:PerRecordExclusionAssembly logic:subClassOf logic:ContextAssembly .
+logic:AssemblyExclusion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:assemblyExclusionReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass logic:AssemblyExclusion ; logic:closureKey "https://blackcatinformatics.ca/logic/assemblyExclusionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Schema-level authoring of the RDF 1.2 reifier obligation, consumed by native derivation.
+logic:perRecordExclusionReificationObligation a rdf:Statement , logic:AssemblyExclusion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "per-record exclusion reification obligation"@x-gmeow-english ;
+    skos:definition "Every exclusion of an explicitly selected PerRecordExclusionAssembly has a reifier conforming to AssemblyExclusion; its own reason is required."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdf:subject logic:PerRecordExclusionAssembly ;
+    rdf:predicate logic:assemblyExcluded ;
+    rdf:object logic:Thing .
+
+logic:AssemblyExclusionHasOwnReasonConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an excluded assertion carries its own reason"@x-gmeow-english ;
+    skos:definition "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an excluded assertion carries its own reason."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating AssemblyExclusionHasOwnReasonConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply AssemblyExclusionHasOwnReasonConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:AssemblyExclusionHasOwnReasonConstraint."@x-gmeow-english ;
+    logic:formalizes logic:assemblyExclusionReason ;
+    logic:message "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AssemblyExclusion ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reason" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:assemblyExclusionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ] , [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reason" ] ] ] ] ] ] .
+
+logic:AssemblyExclusionReasonLanguageConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an excluded assertion preserves reason language"@x-gmeow-english ;
+    skos:definition "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an excluded assertion preserves reason language."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating AssemblyExclusionReasonLanguageConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply AssemblyExclusionReasonLanguageConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:AssemblyExclusionReasonLanguageConstraint."@x-gmeow-english ;
+    logic:formalizes logic:assemblyExclusionReason ;
+    logic:message "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] , [ logic:termIndex 2 ; logic:termVariable "reason" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:AssemblyExclusion ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] , [ a logic:Formula ; logic:relation logic:assemblyExclusionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reason" ] ] ] ] .
+
+logic:ImmutableIriPrescriptionIsNamedConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "an immutable IRI prescription has an IRI"@x-gmeow-english ;
+    skos:definition "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve an immutable IRI prescription has an IRI."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ImmutableIriPrescriptionIsNamedConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ImmutableIriPrescriptionIsNamedConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by logic:ImmutableIriPrescriptionIsNamedConstraint."@x-gmeow-english ;
+    logic:formalizes logic:ImmutableIriPrescriptionIdentity ;
+    logic:message "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:prescriptionIdentityMode ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ImmutableIriPrescriptionIdentity ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ] ] ] .
+
+logic:perRecordExclusionReificationObligation
+    gmeow:useWhen "Use when the per-record assembly profile requires every excluded membership to have its own reason-bearing reifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid adding an invented instance reason to this schema declaration."@x-gmeow-english ;
+    gmeow:howToUse "Declare the subject class, predicate and constrained reifier class; actual exclusions use native rdf:reifies statements."@x-gmeow-english ;
+    skos:example "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."@x-gmeow-english .
+
+logic:CapturedPrescriptionDigestPresenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "a captured prescription digest requires a current digest"@x-gmeow-english ;
+    skos:definition "A prescription version whose enactment captured a digest must retain a current prescriptionDigest under every identity mode. This law checks presence only; PrescriptionVersionImmutabilityConstraint separately compares the current value with the captured witness."@x-gmeow-english ;
+    gmeow:useWhen "Use when an enactment recorded enactedPrescriptionDigest and absence of the version’s current digest would otherwise bypass the comparison law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the immutability law’s mismatch finding here; a present but different digest is that law’s comparison failure."@x-gmeow-english ;
+    gmeow:howToUse "Join the pinned version and captured digest, then require some current prescriptionDigest without a mode or current-digest guard. Let the existing immutability law require the matching value."@x-gmeow-english ;
+    skos:example "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."@x-gmeow-english ;
+    logic:formalizes logic:enactedPrescriptionDigest ;
+    gmeow:enforcesFailureClass logic:EnactmentIntegrityViolation ;
+    logic:severity "Violation" ;
+    logic:message "A prescription version with a captured enactment digest requires a current prescriptionDigest under every identity mode; the existing immutability law compares its value." ;
+    logic:integrity [
+        a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                 [ logic:termIndex 1 ; logic:termVariable "run" ],
+                                 [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
+        logic:forall [
+            a logic:Formula ;
+            logic:antecedent [
+                a logic:Formula ;
+                logic:and [
+                    a logic:Formula ;
+                    logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                   [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ]
+                ], [
+                    a logic:Formula ;
+                    logic:relation logic:enactsPrescriptionVersion ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "this" ]
+                ], [
+                    a logic:Formula ;
+                    logic:relation logic:enactedPrescriptionDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "run" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "digest" ]
+                ]
+            ] ;
+            logic:consequent [
+                a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "current" ] ;
+                logic:exists [
+                    a logic:Formula ;
+                    logic:relation logic:prescriptionDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                                   [ logic:termIndex 1 ; logic:termVariable "current" ]
+                ]
+            ]
+        ]
+    ] .
