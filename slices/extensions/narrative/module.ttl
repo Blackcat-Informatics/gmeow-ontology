@@ -7,6 +7,155 @@
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
+# Fictional identities and original source wording.
+
+gmeow:Character
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:Entity ;
+    logic:disjointWith gmeow:Person ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Fictional Character"@x-gmeow-english ;
+    skos:definition "A fictional entity whose identity is local to one narrative reference frame. It is an Entity, never a Person; a representation of a historical person remains a distinct counterpart."@x-gmeow-english ;
+    gmeow:useWhen "Use for a fictional participant whose identity must remain separate from an actual person and from variants in other continuities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a historical Person as Character or merging fictional counterparts because their names match."@x-gmeow-english ;
+    gmeow:howToUse "Set one narrative hasReferenceFrame; retain source and viewpoint on each prose statement, and use counterpartOf only for an explicitly supported cross-frame correspondence."@x-gmeow-english ;
+    skos:example "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."@x-gmeow-english .
+
+gmeow:arcPositionLabel
+    a logic:DatatypeProperty ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc position label as recorded"@x-gmeow-english ;
+    skos:definition "The source's original arc-phase wording, such as rising, on its actual character or source record. It is not a NarrativePosition name, a BeatFunction classification or a pursuit-progress value unless the source separately supplies that meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an arc-phase field without constructing a complete ArcSample or inventing a phase taxonomy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this field as a position ordinal, a structural beat function, an affect state or proof of progress."@x-gmeow-english ;
+    gmeow:howToUse "Keep the literal's language and direction, supply the narrative hasReferenceFrame on its bearer, and attach original source and interpreting viewpoint to the exact statement."@x-gmeow-english ;
+    skos:example "A source record retains its original arc-phase wording: ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."@x-gmeow-english .
+
+gmeow:motivation
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Character ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "character motivation wording"@x-gmeow-english ;
+    skos:definition "Source prose describing a fictional character's motivation. Several attributed readings may coexist; the wording does not create a Desire, an intention or the character's own endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain what a source or interpreter says motivates a fictional character."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an actual intentional mode, commitment or self-assertion from descriptive prose."@x-gmeow-english ;
+    gmeow:howToUse "Preserve each original literal with its language and direction; retain the source and viewpoint on that statement rather than attaching documentary derivation to the character itself."@x-gmeow-english ;
+    skos:example "An interpreter records motivation wording without creating a Desire: ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."@x-gmeow-english .
+
+gmeow:relationshipText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Character ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "character relationship wording"@x-gmeow-english ;
+    skos:definition "Source prose describing a fictional character's relationship. It preserves the source's wording without resolving a partner, asserting a contact relation or claiming another character agrees."@x-gmeow-english ;
+    gmeow:useWhen "Use when a relationship is supplied in prose rather than as a resolved and attributed relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a related entity, a reciprocal relationship or another character's endorsement from the text."@x-gmeow-english ;
+    gmeow:howToUse "Retain coexisting source literals with language, direction and exact-statement provenance; keep the character's narrative frame explicit."@x-gmeow-english ;
+    skos:example "An interpreter retains relationship prose without resolving a partner: ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."@x-gmeow-english .
+
+# Character identity is frame-relative; no new global functional carrier.
+gmeow:Character logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:NarrativeReferenceFrame ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:NarrativeReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Character ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:CharacterArcFrameAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fictional character arc frame agreement"@x-gmeow-english ;
+    skos:definition "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect an arc that silently reuses one fictional identity across distinct narrative frames."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating frame agreement as proof that an interpretation is true or that counterparts are identical."@x-gmeow-english ;
+    gmeow:howToUse "Compare the supplied arcFrame with the Character's hasReferenceFrame; preserve competing readings as attributed records."@x-gmeow-english ;
+    skos:example "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcSubject ;
+    logic:message "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "character" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:arcSubject ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "character" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Character ] ],
+                [ a logic:Formula ; logic:relation gmeow:arcFrame ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                    [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] .
+
+gmeow:CharacterRoleFrameAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fictional character role frame agreement"@x-gmeow-english ;
+    skos:definition "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect a fictional character role explicitly scoped to an incompatible continuity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying this frame comparison to a work or segment merely because it is a narrative role scope."@x-gmeow-english ;
+    gmeow:howToUse "Check only an explicitly typed narrative frame scope against the Character's hasReferenceFrame."@x-gmeow-english ;
+    skos:example "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."@x-gmeow-english ;
+    logic:formalizes gmeow:narrativeRoleBearer ;
+    logic:message "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "character" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:narrativeRoleBearer ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "character" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Character ] ],
+                [ a logic:Formula ; logic:relation gmeow:narrativeRoleScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeReferenceFrame ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                    [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] .
+
+gmeow:ArcPositionLabelFrameConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recorded arc label frame presence"@x-gmeow-english ;
+    skos:definition "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep source arc-phase wording anchored to its declared continuity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a frame from the label's spelling or fabricating an ArcSample to satisfy this obligation."@x-gmeow-english ;
+    gmeow:howToUse "Supply hasReferenceFrame with a NarrativeReferenceFrame on the existing character or source record, retaining the label statement's source and viewpoint."@x-gmeow-english ;
+    skos:example "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcPositionLabel ;
+    logic:message "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "label" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcPositionLabel ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "label" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "frame" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeReferenceFrame ] ] ] ] ] ] .
+
+
 gmeow:ArcSample
     a logic:SubKind ,
         logic:Class ;

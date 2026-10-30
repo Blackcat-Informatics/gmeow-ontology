@@ -1336,3 +1336,173 @@ msgstr "一并检查讲述者提供的 arcThreadKind 与 arcThread 关系。"
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcKnownThreadResourceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain a consistent thread account: gmeow:ArcKnownThreadResourceConstraint logic:formalizes gmeow:arcThreadKind ."
 msgstr "保留一致的线索叙述：gmeow:ArcKnownThreadResourceConstraint logic:formalizes gmeow:arcThreadKind ."
+
+# Fictional characters and source narrative wording.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fictional Character"
+msgstr "虚构角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A fictional entity whose identity is local to one narrative reference frame. It is an Entity, never a Person; a representation of a historical person remains a distinct counterpart."
+msgstr "身份限定于单一叙事参照系的虚构实体。它是 Entity，绝非 Person；历史人物的虚构表征仍是独立的对应实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a fictional participant whose identity must remain separate from an actual person and from variants in other continuities."
+msgstr "用于身份必须区别于现实人物及其他连续性版本的虚构参与者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a historical Person as Character or merging fictional counterparts because their names match."
+msgstr "避免将历史 Person 标记为 Character，或因名称相同而合并虚构对应实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set one narrative hasReferenceFrame; retain source and viewpoint on each prose statement, and use counterpartOf only for an explicitly supported cross-frame correspondence."
+msgstr "设置一个叙事 hasReferenceFrame；在每个散文陈述上保留来源与视点，仅对有明确依据的跨参照系对应关系使用 counterpartOf。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."
+msgstr "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc position label as recorded"
+msgstr "原样记录的弧线位置标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original arc-phase wording, such as rising, on its actual character or source record. It is not a NarrativePosition name, a BeatFunction classification or a pursuit-progress value unless the source separately supplies that meaning."
+msgstr "来源在其实际角色或来源记录上给出的原始弧线阶段措辞，例如 rising。除非来源另行给出该含义，它既不是 NarrativePosition 名称，也不是 BeatFunction 分类或追求进展值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an arc-phase field without constructing a complete ArcSample or inventing a phase taxonomy."
+msgstr "用于保留弧线阶段字段，而不构造完整 ArcSample 或虚构阶段分类体系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this field as a position ordinal, a structural beat function, an affect state or proof of progress."
+msgstr "避免将此字段用作位置序号、结构性节拍功能、情感状态或进展证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the literal's language and direction, supply the narrative hasReferenceFrame on its bearer, and attach original source and interpreting viewpoint to the exact statement."
+msgstr "保留字面量的语言和书写方向，在其承载者上提供叙事 hasReferenceFrame，并将原始来源与解释视点附于确切陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source record retains its original arc-phase wording: ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."
+msgstr "来源记录保留其原始弧线阶段措辞：ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "character motivation wording"
+msgstr "角色动机措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source prose describing a fictional character's motivation. Several attributed readings may coexist; the wording does not create a Desire, an intention or the character's own endorsement."
+msgstr "描述虚构角色动机的来源散文。多个有归属的解读可以共存；这些措辞不创建 Desire、意图或角色自身的认可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what a source or interpreter says motivates a fictional character."
+msgstr "用于保留来源或解释者对虚构角色动机的描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an actual intentional mode, commitment or self-assertion from descriptive prose."
+msgstr "避免从描述性散文推断实际意向模式、承诺或自我断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve each original literal with its language and direction; retain the source and viewpoint on that statement rather than attaching documentary derivation to the character itself."
+msgstr "保留每个原始字面量及其语言与书写方向；在该陈述上保留来源和视点，而不将文档派生关系附于角色自身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "An interpreter records motivation wording without creating a Desire: ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."
+msgstr "解释者记录动机措辞，而不创建 Desire：ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "character relationship wording"
+msgstr "角色关系措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source prose describing a fictional character's relationship. It preserves the source's wording without resolving a partner, asserting a contact relation or claiming another character agrees."
+msgstr "描述虚构角色关系的来源散文。它保留来源措辞，而不解析关系对象、断言联系人关系或声称另一角色同意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a relationship is supplied in prose rather than as a resolved and attributed relation."
+msgstr "用于关系以散文给出，而非作为已解析且有归属的关系提供的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a related entity, a reciprocal relationship or another character's endorsement from the text."
+msgstr "避免从文本虚构关联实体、互惠关系或另一角色的认可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain coexisting source literals with language, direction and exact-statement provenance; keep the character's narrative frame explicit."
+msgstr "保留共存来源字面量及其语言、书写方向和确切陈述的来源信息；明确角色的叙事参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2004/02/skos/core#example"
+msgid "An interpreter retains relationship prose without resolving a partner: ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."
+msgstr "解释者保留关系散文，而不解析关系对象：ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fictional character arc frame agreement"
+msgstr "虚构角色弧线参照系一致性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart."
+msgstr "主体为 Character 的弧线使用该角色的叙事身份参照系。另一连续性中的解读需要独立的角色对应实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect an arc that silently reuses one fictional identity across distinct narrative frames."
+msgstr "用于检测在不同叙事参照系中悄然复用同一虚构身份的弧线。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating frame agreement as proof that an interpretation is true or that counterparts are identical."
+msgstr "避免将参照系一致视为解读为真或对应实体相同的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare the supplied arcFrame with the Character's hasReferenceFrame; preserve competing readings as attributed records."
+msgstr "比较给出的 arcFrame 与 Character 的 hasReferenceFrame；将相互竞争的解读保留为有归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."
+msgstr "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fictional character role frame agreement"
+msgstr "虚构角色角色职能参照系一致性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames."
+msgstr "当 Character 的角色职能范围明确为 NarrativeReferenceFrame 时，该范围与该角色的身份参照系一致。不将作品和片段范围强制视为参照系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect a fictional character role explicitly scoped to an incompatible continuity."
+msgstr "用于检测明确限定于不兼容连续性的虚构角色职能。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying this frame comparison to a work or segment merely because it is a narrative role scope."
+msgstr "避免仅因作品或片段属于叙事角色职能范围，就对其进行此参照系比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check only an explicitly typed narrative frame scope against the Character's hasReferenceFrame."
+msgstr "仅将明确标记为叙事参照系的范围与 Character 的 hasReferenceFrame 进行比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."
+msgstr "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded arc label frame presence"
+msgstr "所记录弧线标签的参照系存在性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork."
+msgstr "给出的弧线位置标签在其实际承载者上保留明确的叙事参照系。承载者无需是 ArcSample、Character 或 CreativeWork。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep source arc-phase wording anchored to its declared continuity."
+msgstr "用于将来源弧线阶段措辞锚定于其声明的连续性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a frame from the label's spelling or fabricating an ArcSample to satisfy this obligation."
+msgstr "避免从标签拼写推断参照系，或为满足此义务而虚构 ArcSample。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply hasReferenceFrame with a NarrativeReferenceFrame on the existing character or source record, retaining the label statement's source and viewpoint."
+msgstr "在现有角色或来源记录上提供指向 NarrativeReferenceFrame 的 hasReferenceFrame，同时保留标签陈述的来源与视点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."
+msgstr "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."

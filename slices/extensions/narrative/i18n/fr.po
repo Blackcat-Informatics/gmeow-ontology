@@ -1336,3 +1336,173 @@ msgstr "Vérifier ensemble les relations arcThreadKind et arcThread fournies par
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcKnownThreadResourceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain a consistent thread account: gmeow:ArcKnownThreadResourceConstraint logic:formalizes gmeow:arcThreadKind ."
 msgstr "Conserver un récit cohérent du fil : gmeow:ArcKnownThreadResourceConstraint logic:formalizes gmeow:arcThreadKind ."
+
+# Fictional characters and source narrative wording.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Fictional Character"
+msgstr "Personnage fictif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A fictional entity whose identity is local to one narrative reference frame. It is an Entity, never a Person; a representation of a historical person remains a distinct counterpart."
+msgstr "Une entité fictive dont l’identité est locale à un seul cadre de référence narratif. C’est une Entity, jamais une Person ; la représentation d’une personne historique reste un correspondant distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a fictional participant whose identity must remain separate from an actual person and from variants in other continuities."
+msgstr "Utiliser pour un participant fictif dont l’identité doit rester distincte d’une personne réelle et des variantes d’autres continuités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a historical Person as Character or merging fictional counterparts because their names match."
+msgstr "Éviter de typer une Person historique comme Character ou de fusionner des correspondants fictifs parce que leurs noms concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set one narrative hasReferenceFrame; retain source and viewpoint on each prose statement, and use counterpartOf only for an explicitly supported cross-frame correspondence."
+msgstr "Définir un seul hasReferenceFrame narratif ; conserver la source et le point de vue sur chaque énoncé de prose, et utiliser counterpartOf uniquement pour une correspondance entre cadres explicitement étayée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Character|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."
+msgstr "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc position label as recorded"
+msgstr "libellé de position d’arc tel que consigné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original arc-phase wording, such as rising, on its actual character or source record. It is not a NarrativePosition name, a BeatFunction classification or a pursuit-progress value unless the source separately supplies that meaning."
+msgstr "La formulation originale de phase d’arc de la source, telle que « rising », sur son personnage ou enregistrement source réel. Ce n’est ni un nom de NarrativePosition, ni une classification BeatFunction, ni une valeur de progression de poursuite, sauf si la source fournit séparément ce sens."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an arc-phase field without constructing a complete ArcSample or inventing a phase taxonomy."
+msgstr "Utiliser pour conserver un champ de phase d’arc sans construire un ArcSample complet ni inventer une taxonomie de phases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this field as a position ordinal, a structural beat function, an affect state or proof of progress."
+msgstr "Éviter d’utiliser ce champ comme ordinal de position, fonction structurelle de temps fort, état affectif ou preuve de progression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the literal's language and direction, supply the narrative hasReferenceFrame on its bearer, and attach original source and interpreting viewpoint to the exact statement."
+msgstr "Conserver la langue et la direction du littéral, fournir le hasReferenceFrame narratif sur son porteur, et rattacher la source originale et le point de vue interprétatif à l’énoncé exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcPositionLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source record retains its original arc-phase wording: ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."
+msgstr "Un enregistrement source conserve sa formulation originale de phase d’arc : ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "character motivation wording"
+msgstr "formulation de motivation du personnage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source prose describing a fictional character's motivation. Several attributed readings may coexist; the wording does not create a Desire, an intention or the character's own endorsement."
+msgstr "Une prose source décrivant la motivation d’un personnage fictif. Plusieurs lectures attribuées peuvent coexister ; la formulation ne crée ni Desire, ni intention, ni approbation propre du personnage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what a source or interpreter says motivates a fictional character."
+msgstr "Utiliser pour conserver ce qu’une source ou un interprète dit de la motivation d’un personnage fictif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring an actual intentional mode, commitment or self-assertion from descriptive prose."
+msgstr "Éviter d’inférer un mode intentionnel réel, un engagement ou une auto-assertion d’une prose descriptive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve each original literal with its language and direction; retain the source and viewpoint on that statement rather than attaching documentary derivation to the character itself."
+msgstr "Préserver chaque littéral original avec sa langue et sa direction ; conserver la source et le point de vue sur cet énoncé plutôt que de rattacher une dérivation documentaire au personnage lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/motivation|http://www.w3.org/2004/02/skos/core#example"
+msgid "An interpreter records motivation wording without creating a Desire: ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."
+msgstr "Un interprète consigne une formulation de motivation sans créer de Desire : ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "character relationship wording"
+msgstr "formulation de relation du personnage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source prose describing a fictional character's relationship. It preserves the source's wording without resolving a partner, asserting a contact relation or claiming another character agrees."
+msgstr "Une prose source décrivant la relation d’un personnage fictif. Elle préserve la formulation de la source sans résoudre un partenaire, affirmer une relation de contact ni prétendre qu’un autre personnage est d’accord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a relationship is supplied in prose rather than as a resolved and attributed relation."
+msgstr "Utiliser lorsqu’une relation est fournie en prose plutôt que comme relation résolue et attribuée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a related entity, a reciprocal relationship or another character's endorsement from the text."
+msgstr "Éviter d’inventer une entité liée, une relation réciproque ou l’approbation d’un autre personnage à partir du texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain coexisting source literals with language, direction and exact-statement provenance; keep the character's narrative frame explicit."
+msgstr "Conserver les littéraux sources coexistants avec leur langue, leur direction et la provenance de l’énoncé exact ; expliciter le cadre narratif du personnage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationshipText|http://www.w3.org/2004/02/skos/core#example"
+msgid "An interpreter retains relationship prose without resolving a partner: ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."
+msgstr "Un interprète conserve la prose de relation sans résoudre un partenaire : ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fictional character arc frame agreement"
+msgstr "accord du cadre d’arc du personnage fictif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart."
+msgstr "Un arc dont le sujet est un Character utilise le cadre d’identité narratif de ce personnage. Une lecture dans une autre continuité exige un correspondant de personnage distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect an arc that silently reuses one fictional identity across distinct narrative frames."
+msgstr "Utiliser pour détecter un arc qui réutilise silencieusement une identité fictive dans des cadres narratifs distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating frame agreement as proof that an interpretation is true or that counterparts are identical."
+msgstr "Éviter de traiter l’accord des cadres comme une preuve qu’une interprétation est vraie ou que des correspondants sont identiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare the supplied arcFrame with the Character's hasReferenceFrame; preserve competing readings as attributed records."
+msgstr "Comparer le arcFrame fourni au hasReferenceFrame du Character ; préserver les lectures concurrentes comme enregistrements attribués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterArcFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."
+msgstr "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fictional character role frame agreement"
+msgstr "accord du cadre de rôle du personnage fictif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames."
+msgstr "Lorsque la portée du rôle d’un Character est explicitement un NarrativeReferenceFrame, elle correspond au cadre d’identité de ce personnage. Les portées d’œuvre et de segment ne sont pas forcées en cadres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to detect a fictional character role explicitly scoped to an incompatible continuity."
+msgstr "Utiliser pour détecter un rôle de personnage fictif explicitement situé dans une continuité incompatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying this frame comparison to a work or segment merely because it is a narrative role scope."
+msgstr "Éviter d’appliquer cette comparaison de cadres à une œuvre ou à un segment simplement parce qu’il est la portée d’un rôle narratif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check only an explicitly typed narrative frame scope against the Character's hasReferenceFrame."
+msgstr "Vérifier uniquement une portée explicitement typée comme cadre narratif par rapport au hasReferenceFrame du Character."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CharacterRoleFrameAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."
+msgstr "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded arc label frame presence"
+msgstr "présence du cadre du libellé d’arc consigné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork."
+msgstr "Un libellé fourni de position d’arc conserve un cadre de référence narratif explicite sur son porteur réel. Ce porteur n’a pas à être un ArcSample, un Character ou une CreativeWork."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep source arc-phase wording anchored to its declared continuity."
+msgstr "Utiliser pour ancrer la formulation source de phase d’arc dans sa continuité déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a frame from the label's spelling or fabricating an ArcSample to satisfy this obligation."
+msgstr "Éviter d’inférer un cadre de l’orthographe du libellé ou de fabriquer un ArcSample pour satisfaire cette obligation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply hasReferenceFrame with a NarrativeReferenceFrame on the existing character or source record, retaining the label statement's source and viewpoint."
+msgstr "Fournir hasReferenceFrame avec un NarrativeReferenceFrame sur le personnage ou l’enregistrement source existant, en conservant la source et le point de vue de l’énoncé du libellé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."
+msgstr "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."
