@@ -284,13 +284,20 @@ ex:saTreeEntryPropertiesExist a gmeow:StructuralAssertion ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:treeEntryName   rdfs:domain gmeow:TreeEntry .
     gmeow:treeEntryMode   rdfs:domain gmeow:TreeEntry .
     gmeow:treeEntryObject rdfs:domain gmeow:TreeEntry ;
-                          rdfs:range  gmeow:SourceNode .
+                          rdfs:range [ owl:unionOf ?kinds ] .
+    ?kinds rdf:rest*/rdf:first gmeow:Blob, gmeow:SourceTree, gmeow:Commit .
+    FILTER NOT EXISTS {
+        ?kinds rdf:rest*/rdf:first ?kind .
+        FILTER (?kind NOT IN (gmeow:Blob, gmeow:SourceTree, gmeow:Commit))
+    }
 }""" ;
-    gmeow:saRationale "gmeow:treeEntryName, treeEntryMode, and treeEntryObject MUST all have domain gmeow:TreeEntry; treeEntryObject MUST also have range gmeow:SourceNode -- the entry is the name+mode+pointer triple of a Merkle directory node." .
+    gmeow:saRationale "gmeow:treeEntryName, treeEntryMode, and treeEntryObject MUST all have domain gmeow:TreeEntry; treeEntryObject MUST have the exact Blob/SourceTree/Commit target union, including gitlinks without admitting annotated tag objects." .
 
 # --- 19. diff properties have correct domain and range (MUST) ----------------
 ex:saDiffPropertiesExist a gmeow:StructuralAssertion ;
