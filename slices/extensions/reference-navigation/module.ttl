@@ -1,0 +1,575 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:Mention
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:EvidenceSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source Mention"@x-gmeow-english ;
+    skos:definition "An occurrence of source wording referring to an entity, located within one exact containing block and source revision. Resolution is optional; the occurrence is neither the entity nor a Note or Selector."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:Mention ."@x-gmeow-english .
+
+gmeow:CrossReference
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:EvidenceSpan ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Internal Cross-reference Occurrence"@x-gmeow-english ;
+    skos:definition "A source occurrence pointing within one reference revision to a division or block. It retains its origin, local span and original wording even when no target has been resolved."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:CrossReference ."@x-gmeow-english .
+
+gmeow:IndexEntry
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source Index Entry"@x-gmeow-english ;
+    skos:definition "A source record of one index entry's original term, subterm and locator wording, with an optional resolved Concept. Locator text is not itself resolved identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:IndexEntry ."@x-gmeow-english .
+
+gmeow:mentionIn
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Mention ;
+    logic:range gmeow:ContentBlock ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mention in block"@x-gmeow-english ;
+    skos:definition "The exact containing ContentBlock whose original decoded text is the origin for this mention's zero-based half-open Unicode code-point span. Offsets are local to this block, not the whole reference."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:mentionIn ex:target ."@x-gmeow-english .
+
+gmeow:mentionOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Mention ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolved mention referent"@x-gmeow-english ;
+    skos:definition "An Entity explicitly resolved as the referent of this mention under the recorded source and viewpoint. Missing resolution remains absent; competing attributed resolutions do not merge entities."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:mentionOf ex:target ."@x-gmeow-english .
+
+gmeow:surfaceForm
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "original occurrence wording"@x-gmeow-english ;
+    skos:definition "The exact original wording of a source occurrence, preserving its supplied language and direction. This literal is source data, not an analyzed lang:Form or a normalized entity name. It specializes lang:literalValue without changing its subject type."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:surfaceForm \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:refersFrom
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CrossReference ;
+    logic:range gmeow:ContentSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cross-reference source segment"@x-gmeow-english ;
+    skos:definition "The exact source ContentSegment or ContentBlock whose original decoded text is the local origin for this cross-reference's code-point offsets. It is not forced into CreativeWork."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:refersFrom ex:target ."@x-gmeow-english .
+
+gmeow:refersTo
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CrossReference ;
+    logic:range gmeow:ContentSegment ;
+    logic:subPropertyOf gmeow:references ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolved internal target"@x-gmeow-english ;
+    skos:definition "A source-resolved ContentSegment target within the same exact reference revision. It specializes references for the occurrence itself; the containing source reaches the target through the inverse refersFrom followed by refersTo path."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:refersTo ex:target ."@x-gmeow-english .
+
+gmeow:indexTerm
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:IndexEntry ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "original index term"@x-gmeow-english ;
+    skos:definition "The original term heading of an index entry. Coexisting source literals preserve language and direction rather than selecting a preferred wording. It specializes lang:literalValue without changing its subject type."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:indexTerm \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:indexSubTerm
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:IndexEntry ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "original index subterm"@x-gmeow-english ;
+    skos:definition "The source's original subordinate index wording, retained without inventing a concept hierarchy or an absent parent entry. It specializes lang:literalValue without changing its subject type."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:indexSubTerm \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:indexLocator
+    a logic:DatatypeProperty ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:domain gmeow:IndexEntry ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "original index locator"@x-gmeow-english ;
+    skos:definition "The source's original index locator wording, such as a page range, section code or see-reference. It remains textual evidence independently of any resolved target. It specializes lang:literalValue without changing its subject type."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:indexLocator \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:indexConcept
+    a logic:ObjectProperty ;
+    logic:domain gmeow:IndexEntry ;
+    logic:range gmeow:Concept ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolved index concept"@x-gmeow-english ;
+    skos:definition "The actual Concept explicitly resolved for an index entry. This link does not identify locator prose with a Concept or create a definition from an index heading."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:indexConcept ex:target ."@x-gmeow-english .
+
+gmeow:assumes
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentSegment ;
+    logic:range gmeow:ContentSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "assumes source division"@x-gmeow-english ;
+    skos:definition "An attributed prerequisite reading that one ContentSegment assumes another. It creates no CreativeWork endpoint typing, universal prerequisite, transitive closure or execution obligation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:assumes ex:target ."@x-gmeow-english .
+
+gmeow:occurrenceSurface
+    a logic:ObjectProperty ;
+    logic:domain gmeow:EvidenceSpan ;
+    logic:range lang:SurfaceForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "supplied occurrence surface"@x-gmeow-english ;
+    skos:definition "An actual supplied language SurfaceForm for this occurrence's original wording. Its text agrees with surfaceForm and one of its anchors matches the exact local origin, span and code-point offset space; no analyzed form is fabricated."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:occurrenceSurface ex:target ."@x-gmeow-english .
+
+gmeow:navigationSource
+    a logic:ObjectProperty ;
+    logic:range gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "exact navigation source revision"@x-gmeow-english ;
+    skos:definition "The exact source revision artifact identifying this navigation record or its origin or target segment. Its contentDigest is required; a mutable work identity, path or locator string cannot substitute for the revision."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:navigationSource ex:target ."@x-gmeow-english .
+
+# Canonical source occurrence contracts; no new global functional carrier.
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mentionIn ; logic:allValuesFrom gmeow:ContentBlock ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Mention ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mentionIn" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:mentionIn ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContentBlock ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Mention ; logic:closureKey "https://blackcatinformatics.ca/gmeow/navigationSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:surfaceForm ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Mention ; logic:closureKey "https://blackcatinformatics.ca/gmeow/surfaceForm" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:surfaceForm ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Mention ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Mention ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Mention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refersFrom ; logic:allValuesFrom gmeow:ContentSegment ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CrossReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refersFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refersFrom ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContentSegment ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CrossReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/navigationSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:surfaceForm ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CrossReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/surfaceForm" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:surfaceForm ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CrossReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CrossReference ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CrossReference logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:IndexEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:IndexEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/navigationSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:IndexEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:navigationSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
+gmeow:IndexEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:indexTerm ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:IndexEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/indexTerm" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:NavigationSourceDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "navigation source revision digest"@x-gmeow-english ;
+    skos:definition "Every explicitly selected navigation source revision retains a contentDigest of that exact artifact. This obligation does not calculate or authenticate a hash."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:NavigationSourceDigestConstraint logic:formalizes gmeow:navigationSource ."@x-gmeow-english ;
+    logic:formalizes gmeow:navigationSource ;
+    logic:message "Every explicitly selected navigation source revision retains a contentDigest of that exact artifact. This obligation does not calculate or authenticate a hash." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "source" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ],
+                        [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+gmeow:MentionSpanOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "mention local span order"@x-gmeow-english ;
+    skos:definition "The supplied mention span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MentionSpanOrderConstraint logic:formalizes gmeow:mentionIn ."@x-gmeow-english ;
+    logic:formalizes gmeow:mentionIn ;
+    logic:message "The supplied mention span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "start" ], [ logic:termIndex 2 ; logic:termVariable "end" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Mention ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanStart ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanEnd ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termLess ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ],
+                    [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] .
+
+gmeow:MentionOriginRevisionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "mention origin revision agreement"@x-gmeow-english ;
+    skos:definition "The mention's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MentionOriginRevisionConstraint logic:formalizes gmeow:mentionIn ."@x-gmeow-english ;
+    logic:formalizes gmeow:mentionIn ;
+    logic:message "The mention's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "origin" ], [ logic:termIndex 2 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:mentionIn ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "origin" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "otherSource" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "origin" ],
+                                [ logic:termIndex 1 ; logic:termVariable "otherSource" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "otherSource" ],
+                                [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ] ] ] ] .
+
+gmeow:MentionSurfaceAnchorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "mention supplied surface anchor"@x-gmeow-english ;
+    skos:definition "When a language surface is explicitly supplied for the mention, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:MentionSurfaceAnchorConstraint logic:formalizes gmeow:mentionIn ."@x-gmeow-english ;
+    logic:formalizes gmeow:mentionIn ;
+    logic:message "When a language surface is explicitly supplied for the mention, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "origin" ], [ logic:termIndex 2 ; logic:termVariable "surface" ], [ logic:termIndex 3 ; logic:termVariable "start" ], [ logic:termIndex 4 ; logic:termVariable "end" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:mentionIn ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                [ a logic:Formula ; logic:relation gmeow:occurrenceSurface ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "surface" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanStart ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanEnd ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "anchor" ], [ logic:termIndex 1 ; logic:termVariable "anchorStart" ], [ logic:termIndex 2 ; logic:termVariable "anchorEnd" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation lang:surfaceAnchor ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "surface" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchor" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorSource ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorStart ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchorStart" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorEnd ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchorEnd" ] ],
+                    [ a logic:Formula ; logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchorStart" ],
+                            [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                    [ a logic:Formula ; logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchorEnd" ],
+                            [ logic:termIndex 1 ; logic:termVariable "end" ] ],
+                    [ a logic:Formula ; logic:relation lang:offsetSpace ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termIri lang:codepointOffset ] ] ] ] ] ] .
+
+gmeow:CrossReferenceSpanOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cross-reference local span order"@x-gmeow-english ;
+    skos:definition "The supplied cross-reference span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:CrossReferenceSpanOrderConstraint logic:formalizes gmeow:refersFrom ."@x-gmeow-english ;
+    logic:formalizes gmeow:refersFrom ;
+    logic:message "The supplied cross-reference span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "start" ], [ logic:termIndex 2 ; logic:termVariable "end" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:CrossReference ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanStart ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanEnd ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termLess ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ],
+                    [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] .
+
+gmeow:CrossReferenceOriginRevisionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cross-reference origin revision agreement"@x-gmeow-english ;
+    skos:definition "The cross-reference's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:CrossReferenceOriginRevisionConstraint logic:formalizes gmeow:refersFrom ."@x-gmeow-english ;
+    logic:formalizes gmeow:refersFrom ;
+    logic:message "The cross-reference's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "origin" ], [ logic:termIndex 2 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:refersFrom ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "origin" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "otherSource" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "origin" ],
+                                [ logic:termIndex 1 ; logic:termVariable "otherSource" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "otherSource" ],
+                                [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ] ] ] ] .
+
+gmeow:CrossReferenceSurfaceAnchorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "cross-reference supplied surface anchor"@x-gmeow-english ;
+    skos:definition "When a language surface is explicitly supplied for the cross-reference, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:CrossReferenceSurfaceAnchorConstraint logic:formalizes gmeow:refersFrom ."@x-gmeow-english ;
+    logic:formalizes gmeow:refersFrom ;
+    logic:message "When a language surface is explicitly supplied for the cross-reference, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "origin" ], [ logic:termIndex 2 ; logic:termVariable "surface" ], [ logic:termIndex 3 ; logic:termVariable "start" ], [ logic:termIndex 4 ; logic:termVariable "end" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:refersFrom ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                [ a logic:Formula ; logic:relation gmeow:occurrenceSurface ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "surface" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanStart ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                [ a logic:Formula ; logic:relation gmeow:spanEnd ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "anchor" ], [ logic:termIndex 1 ; logic:termVariable "anchorStart" ], [ logic:termIndex 2 ; logic:termVariable "anchorEnd" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation lang:surfaceAnchor ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "surface" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchor" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorSource ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorStart ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchorStart" ] ],
+                    [ a logic:Formula ; logic:relation lang:anchorEnd ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termVariable "anchorEnd" ] ],
+                    [ a logic:Formula ; logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchorStart" ],
+                            [ logic:termIndex 1 ; logic:termVariable "start" ] ],
+                    [ a logic:Formula ; logic:relation logic:termEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchorEnd" ],
+                            [ logic:termIndex 1 ; logic:termVariable "end" ] ],
+                    [ a logic:Formula ; logic:relation lang:offsetSpace ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "anchor" ],
+                            [ logic:termIndex 1 ; logic:termIri lang:codepointOffset ] ] ] ] ] ] .
+
+gmeow:CrossReferenceTargetRevisionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "internal target revision agreement"@x-gmeow-english ;
+    skos:definition "Every supplied internal target belongs to the cross-reference's exact selected source revision. Extra target revision bindings must agree; unresolved targets remain absent."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:CrossReferenceTargetRevisionConstraint logic:formalizes gmeow:refersTo ."@x-gmeow-english ;
+    logic:formalizes gmeow:refersTo ;
+    logic:message "Every supplied internal target belongs to the cross-reference's exact selected source revision. Extra target revision bindings must agree; unresolved targets remain absent." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ], [ logic:termIndex 2 ; logic:termVariable "source" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:refersTo ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "target" ] ],
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ],
+                        [ logic:termIndex 1 ; logic:termVariable "source" ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "otherSource" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation gmeow:navigationSource ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ],
+                                [ logic:termIndex 1 ; logic:termVariable "otherSource" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "otherSource" ],
+                                [ logic:termIndex 1 ; logic:termVariable "source" ] ] ] ] ] ] ] .
+
+gmeow:OccurrenceSurfaceTextAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied occurrence surface text agreement"@x-gmeow-english ;
+    skos:definition "A supplied occurrence surface retains the exact original surfaceForm literal, including supplied language and direction. All of that surface's text values must agree; lexical similarity alone does not merge forms."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of explicitly supplied navigation evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."@x-gmeow-english ;
+    gmeow:howToUse "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:OccurrenceSurfaceTextAgreementConstraint logic:formalizes gmeow:occurrenceSurface ."@x-gmeow-english ;
+    logic:formalizes gmeow:occurrenceSurface ;
+    logic:message "A supplied occurrence surface retains the exact original surfaceForm literal, including supplied language and direction. All of that surface's text values must agree; lexical similarity alone does not merge forms." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "surface" ], [ logic:termIndex 2 ; logic:termVariable "text" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:occurrenceSurface ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "surface" ] ],
+                [ a logic:Formula ; logic:relation gmeow:surfaceForm ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation lang:surfaceText ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "surface" ],
+                        [ logic:termIndex 1 ; logic:termVariable "text" ] ],
+                [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "otherText" ] ;
+                    logic:forall [ a logic:Formula ;
+                        logic:antecedent [ a logic:Formula ; logic:relation lang:surfaceText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "surface" ],
+                                [ logic:termIndex 1 ; logic:termVariable "otherText" ] ] ;
+                        logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "otherText" ],
+                                [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ] ] ] .

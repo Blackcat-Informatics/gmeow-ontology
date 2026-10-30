@@ -1,0 +1,602 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source Mention"
+msgstr "Mention source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence of source wording referring to an entity, located within one exact containing block and source revision. Resolution is optional; the occurrence is neither the entity nor a Note or Selector."
+msgstr "Une occurrence de formulation source renvoyant à une entité, située dans un bloc contenant exact et une révision source précise. La résolution est facultative ; l’occurrence n’est ni l’entité, ni une Note, ni un Selector."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mention|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:Mention ."
+msgstr "Conserver ce sens source : ex:record a gmeow:Mention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Internal Cross-reference Occurrence"
+msgstr "Occurrence de renvoi interne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source occurrence pointing within one reference revision to a division or block. It retains its origin, local span and original wording even when no target has been resolved."
+msgstr "Une occurrence source pointant dans une révision de référence vers une division ou un bloc. Elle conserve son origine, son intervalle local et sa formulation originale même lorsqu’aucune cible n’est résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:CrossReference ."
+msgstr "Conserver ce sens source : ex:record a gmeow:CrossReference ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source Index Entry"
+msgstr "Entrée d’index source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source record of one index entry's original term, subterm and locator wording, with an optional resolved Concept. Locator text is not itself resolved identity."
+msgstr "Un enregistrement source du terme, du sous-terme et de la formulation de repère originaux d’une entrée d’index, avec un Concept résolu facultatif. Le texte du repère n’est pas lui-même une identité résolue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IndexEntry|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:IndexEntry ."
+msgstr "Conserver ce sens source : ex:record a gmeow:IndexEntry ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mention in block"
+msgstr "mention dans le bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact containing ContentBlock whose original decoded text is the origin for this mention's zero-based half-open Unicode code-point span. Offsets are local to this block, not the whole reference."
+msgstr "Le ContentBlock contenant exact dont le texte décodé original est l’origine de l’intervalle de cette mention, en points de code Unicode, basé à zéro et semi-ouvert. Les positions sont locales au bloc, pas à la référence entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionIn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:mentionIn ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:mentionIn ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved mention referent"
+msgstr "référent résolu de la mention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Entity explicitly resolved as the referent of this mention under the recorded source and viewpoint. Missing resolution remains absent; competing attributed resolutions do not merge entities."
+msgstr "Une Entity explicitement résolue comme référent de cette mention selon la source et le point de vue consignés. Une résolution manquante reste absente ; des résolutions attribuées concurrentes ne fusionnent pas les entités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mentionOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:mentionOf ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:mentionOf ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original occurrence wording"
+msgstr "formulation originale de l’occurrence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact original wording of a source occurrence, preserving its supplied language and direction. This literal is source data, not an analyzed lang:Form or a normalized entity name. It specializes lang:literalValue without changing its subject type."
+msgstr "La formulation originale exacte d’une occurrence source, conservant la langue et la direction fournies. Ce littéral est une donnée source, pas une lang:Form analysée ni un nom d’entité normalisé. Cette propriété spécialise lang:literalValue sans changer le type de son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/surfaceForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:surfaceForm \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:surfaceForm \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cross-reference source segment"
+msgstr "segment source du renvoi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source ContentSegment or ContentBlock whose original decoded text is the local origin for this cross-reference's code-point offsets. It is not forced into CreativeWork."
+msgstr "Le ContentSegment ou ContentBlock source exact dont le texte décodé original est l’origine locale des positions en points de code de ce renvoi. Il n’est pas forcé dans CreativeWork."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:refersFrom ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:refersFrom ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved internal target"
+msgstr "cible interne résolue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-resolved ContentSegment target within the same exact reference revision. It specializes references for the occurrence itself; the containing source reaches the target through the inverse refersFrom followed by refersTo path."
+msgstr "Une cible ContentSegment résolue par la source dans la même révision de référence exacte. Cette relation spécialise references pour l’occurrence elle-même ; la source contenant l’occurrence atteint la cible par le chemin inverse de refersFrom suivi de refersTo."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/refersTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:refersTo ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:refersTo ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original index term"
+msgstr "terme d’index original"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original term heading of an index entry. Coexisting source literals preserve language and direction rather than selecting a preferred wording. It specializes lang:literalValue without changing its subject type."
+msgstr "Le terme vedette original d’une entrée d’index. Les littéraux sources coexistants conservent langue et direction plutôt que de sélectionner une formulation préférée. Cette propriété spécialise lang:literalValue sans changer le type de son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:indexTerm \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:indexTerm \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original index subterm"
+msgstr "sous-terme d’index original"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original subordinate index wording, retained without inventing a concept hierarchy or an absent parent entry. It specializes lang:literalValue without changing its subject type."
+msgstr "La formulation d’index subordonnée originale de la source, conservée sans inventer une hiérarchie de concepts ni une entrée parente absente. Cette propriété spécialise lang:literalValue sans changer le type de son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexSubTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:indexSubTerm \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:indexSubTerm \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original index locator"
+msgstr "repère d’index original"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original index locator wording, such as a page range, section code or see-reference. It remains textual evidence independently of any resolved target. It specializes lang:literalValue without changing its subject type."
+msgstr "La formulation originale de repère d’index fournie par la source, telle qu’une plage de pages, un code de section ou un renvoi. Elle reste une preuve textuelle indépendamment de toute cible résolue. Cette propriété spécialise lang:literalValue sans changer le type de son sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexLocator|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:indexLocator \"source wording\"@en ."
+msgstr "Conserver ce sens source : ex:record gmeow:indexLocator \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolved index concept"
+msgstr "concept d’index résolu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Concept explicitly resolved for an index entry. This link does not identify locator prose with a Concept or create a definition from an index heading."
+msgstr "Le Concept réel explicitement résolu pour une entrée d’index. Ce lien n’identifie pas la prose du repère à un Concept et ne crée pas une définition à partir d’un terme vedette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/indexConcept|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:indexConcept ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:indexConcept ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "assumes source division"
+msgstr "suppose la division source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed prerequisite reading that one ContentSegment assumes another. It creates no CreativeWork endpoint typing, universal prerequisite, transitive closure or execution obligation."
+msgstr "Une lecture attribuée de prérequis selon laquelle un ContentSegment en suppose un autre. Elle ne crée ni typage CreativeWork des extrémités, ni prérequis universel, ni clôture transitive, ni obligation d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/assumes|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:assumes ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:assumes ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied occurrence surface"
+msgstr "surface d’occurrence fournie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual supplied language SurfaceForm for this occurrence's original wording. Its text agrees with surfaceForm and one of its anchors matches the exact local origin, span and code-point offset space; no analyzed form is fabricated."
+msgstr "Une SurfaceForm linguistique réelle fournie pour la formulation originale de cette occurrence. Son texte concorde avec surfaceForm et l’un de ses ancrages correspond à l’origine locale exacte, à l’intervalle et à l’espace de positions en points de code ; aucune forme analysée n’est fabriquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/occurrenceSurface|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:occurrenceSurface ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:occurrenceSurface ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exact navigation source revision"
+msgstr "révision source exacte de navigation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source revision artifact identifying this navigation record or its origin or target segment. Its contentDigest is required; a mutable work identity, path or locator string cannot substitute for the revision."
+msgstr "L’artefact exact de révision source identifiant cet enregistrement de navigation ou son segment d’origine ou cible. Son contentDigest est requis ; une identité d’œuvre mutable, un chemin ou une chaîne de repère ne peut remplacer la révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit source occurrence, navigation field or prerequisite reading with its original evidence."
+msgstr "Utiliser pour conserver une occurrence source explicite, un champ de navigation ou une lecture de prérequis avec ses preuves originales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring resolution, identity, analyzed language structure or a universal reading from source text alone."
+msgstr "Éviter d’inférer une résolution, une identité, une structure linguistique analysée ou une lecture universelle du seul texte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the exact revision, local coordinate origin, original words and exact-statement source and viewpoint; never invent missing targets or defaults."
+msgstr "Préserver la révision exacte, l’origine locale des coordonnées, les mots originaux ainsi que la source et le point de vue de l’énoncé exact ; ne jamais inventer de cibles ni de valeurs par défaut manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/navigationSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:navigationSource ex:target ."
+msgstr "Conserver ce sens source : ex:record gmeow:navigationSource ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "navigation source revision digest"
+msgstr "empreinte de révision source de navigation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every explicitly selected navigation source revision retains a contentDigest of that exact artifact. This obligation does not calculate or authenticate a hash."
+msgstr "Chaque révision source de navigation explicitement sélectionnée conserve un contentDigest de cet artefact exact. Cette obligation ne calcule ni n’authentifie d’empreinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NavigationSourceDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:NavigationSourceDigestConstraint logic:formalizes gmeow:navigationSource ."
+msgstr "Conserver cette loi de référence : gmeow:NavigationSourceDigestConstraint logic:formalizes gmeow:navigationSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mention local span order"
+msgstr "ordre de l’intervalle local de mention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied mention span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes."
+msgstr "L’intervalle de mention fourni est non vide et ordonné dans son origine locale exacte en points de code. L’ordre numérique seul ne vérifie pas une sous-chaîne par rapport aux octets sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MentionSpanOrderConstraint logic:formalizes gmeow:mentionIn ."
+msgstr "Conserver cette loi de référence : gmeow:MentionSpanOrderConstraint logic:formalizes gmeow:mentionIn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mention origin revision agreement"
+msgstr "accord de révision d’origine de la mention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mention's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions."
+msgstr "L’origine locale de la mention est liée à la même révision source de navigation exacte. Les liaisons de révision d’origine supplémentaires doivent concorder, empêchant un intervalle local de passer silencieusement d’une édition à une autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionOriginRevisionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MentionOriginRevisionConstraint logic:formalizes gmeow:mentionIn ."
+msgstr "Conserver cette loi de référence : gmeow:MentionOriginRevisionConstraint logic:formalizes gmeow:mentionIn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mention supplied surface anchor"
+msgstr "ancrage de la surface fournie de la mention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When a language surface is explicitly supplied for the mention, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope."
+msgstr "Lorsqu’une surface linguistique est explicitement fournie pour la mention, l’un de ses ancrages nomme les mêmes origine locale, début et fin sous codepointOffset. Un ancrage global au document ou en octets ne peut remplacer ce périmètre local de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MentionSurfaceAnchorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:MentionSurfaceAnchorConstraint logic:formalizes gmeow:mentionIn ."
+msgstr "Conserver cette loi de référence : gmeow:MentionSurfaceAnchorConstraint logic:formalizes gmeow:mentionIn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cross-reference local span order"
+msgstr "ordre de l’intervalle local de renvoi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied cross-reference span is nonempty and ordered within its exact local code-point origin. Numeric order alone does not verify a substring against source bytes."
+msgstr "L’intervalle de renvoi fourni est non vide et ordonné dans son origine locale exacte en points de code. L’ordre numérique seul ne vérifie pas une sous-chaîne par rapport aux octets sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:CrossReferenceSpanOrderConstraint logic:formalizes gmeow:refersFrom ."
+msgstr "Conserver cette loi de référence : gmeow:CrossReferenceSpanOrderConstraint logic:formalizes gmeow:refersFrom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cross-reference origin revision agreement"
+msgstr "accord de révision d’origine de renvoi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cross-reference's local origin is bound to that same exact navigation source revision. Extra origin revision bindings must agree, preventing a local span from silently moving between editions."
+msgstr "L’origine locale du renvoi est liée à la même révision source de navigation exacte. Les liaisons de révision d’origine supplémentaires doivent concorder, empêchant un intervalle local de passer silencieusement d’une édition à une autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceOriginRevisionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:CrossReferenceOriginRevisionConstraint logic:formalizes gmeow:refersFrom ."
+msgstr "Conserver cette loi de référence : gmeow:CrossReferenceOriginRevisionConstraint logic:formalizes gmeow:refersFrom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cross-reference supplied surface anchor"
+msgstr "ancrage de surface fournie du renvoi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When a language surface is explicitly supplied for the cross-reference, one of its anchors names the same local origin, start and end under codepointOffset. A document-global or byte anchor cannot substitute for this local coordinate scope."
+msgstr "Lorsqu’une surface linguistique est explicitement fournie pour le renvoi, l’un de ses ancrages nomme les mêmes origine locale, début et fin sous codepointOffset. Un ancrage global au document ou en octets ne peut remplacer ce périmètre local de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceSurfaceAnchorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:CrossReferenceSurfaceAnchorConstraint logic:formalizes gmeow:refersFrom ."
+msgstr "Conserver cette loi de référence : gmeow:CrossReferenceSurfaceAnchorConstraint logic:formalizes gmeow:refersFrom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "internal target revision agreement"
+msgstr "accord de révision de la cible interne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied internal target belongs to the cross-reference's exact selected source revision. Extra target revision bindings must agree; unresolved targets remain absent."
+msgstr "Chaque cible interne fournie appartient à la révision source exacte sélectionnée du renvoi. Les liaisons de révision cible supplémentaires doivent concorder ; les cibles non résolues restent absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CrossReferenceTargetRevisionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:CrossReferenceTargetRevisionConstraint logic:formalizes gmeow:refersTo ."
+msgstr "Conserver cette loi de référence : gmeow:CrossReferenceTargetRevisionConstraint logic:formalizes gmeow:refersTo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied occurrence surface text agreement"
+msgstr "accord du texte de surface d’occurrence fournie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied occurrence surface retains the exact original surfaceForm literal, including supplied language and direction. All of that surface's text values must agree; lexical similarity alone does not merge forms."
+msgstr "Une surface d’occurrence fournie conserve le littéral surfaceForm original exact, y compris la langue et la direction fournies. Toutes les valeurs textuelles de cette surface doivent concorder ; la seule similitude lexicale ne fusionne pas les formes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of explicitly supplied navigation evidence."
+msgstr "Utiliser pour vérifier la cohérence intrinsèque des preuves de navigation explicitement fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this law resolves a reference, authenticates bytes or executes text extraction."
+msgstr "Éviter de prétendre que cette loi résout un renvoi, authentifie des octets ou exécute une extraction de texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare only the recorded revision, origin, offsets and supplied anchors; preserve missing or disputed resolution without defaults."
+msgstr "Comparer uniquement la révision, l’origine, les positions et les ancrages fournis consignés ; préserver les résolutions manquantes ou contestées sans valeurs par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OccurrenceSurfaceTextAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:OccurrenceSurfaceTextAgreementConstraint logic:formalizes gmeow:occurrenceSurface ."
+msgstr "Conserver cette loi de référence : gmeow:OccurrenceSurfaceTextAgreementConstraint logic:formalizes gmeow:occurrenceSurface ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference navigation"
+msgstr "navigation de référence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Exact-source mentions, internal cross-reference occurrences, index wording and attributed segment prerequisites with local Unicode code-point coordinates."
+msgstr "Mentions de sources exactes, occurrences de renvois internes, formulations d’index et prérequis attribués de segments avec coordonnées locales en points de code Unicode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|http://purl.org/dc/terms/title"
+msgid "GMEOW Reference Navigation Module"
+msgstr "Module GMEOW de navigation de référence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-navigation|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Katamari reference-work import and other attributed source consumers retaining unresolved wording, exact local spans and source revision identities without fabricated resolution."
+msgstr "Import d’œuvres de référence Katamari et autres consommateurs de sources attribuées conservant les formulations non résolues, les intervalles locaux exacts et les identités de révision source sans résolution fabriquée."
