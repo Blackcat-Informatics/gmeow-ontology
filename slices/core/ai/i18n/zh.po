@@ -926,8 +926,8 @@ msgid "hypothesis template"
 msgstr "假设模板"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisTemplate|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact natural-language template instantiated with each zero-shot candidate label. The literal carrier preserves the template itself; changing it changes the execution context."
-msgstr "用每个零样本候选标签实例化的确切自然语言模板。字面量载体保留模板本身；改变模板会改变执行上下文。"
+msgid "The exact classifier template source string, including placeholders, instantiated with each zero-shot candidate label. This xsd:string carries the supplied source expression rather than a localized utterance or machine identifier; changing it changes the execution context."
+msgstr "确切的分类器模板源字符串（包括占位符），用每个零样本候选标签实例化。此 xsd:string 承载所提供的源表达式，而不是本地化话语或机器标识符；更改它会改变执行上下文。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/memberOfLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "member of label set"

@@ -863,7 +863,7 @@ msgstr "Ensemble d’étiquettes de classifieur"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierLabelSet|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An identified external label vocabulary, either a static registry or a run-scoped zero-shot candidate set. Members are ClassifierLabel artifacts, not canonical domain categories. Static registries used by the affect producer require a reviewed decision rule; run-scoped candidate sets may legitimately lack one."
-msgstr "Un vocabulaire externe d’étiquettes identifié : registre statique ou ensemble de candidats sans exemple propre à une exécution. Ses membres sont des artefacts ClassifierLabel et non des catégories canoniques. Les registres statiques utilisés par le producteur affectif exigent une règle de décision révisée ; les ensembles propres à une exécution peuvent légitimement ne pas en porter."
+msgstr "Un vocabulaire externe d’étiquettes identifié : soit un registre statique, soit un ensemble de candidats propre à une exécution en apprentissage à zéro exemple. Ses membres sont des artefacts ClassifierLabel et non des catégories canoniques. Les registres statiques utilisés par le producteur affectif exigent une règle de décision révisée ; les ensembles propres à une exécution peuvent légitimement ne pas en porter."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRun|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Model Inference Run"
@@ -919,15 +919,15 @@ msgstr "révision de l’ensemble d’étiquettes"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The pinned label-set revision of this execution record. For zero-shot inference it identifies the exact candidate inventory as part of run identity."
-msgstr "La révision fixée de l’ensemble d’étiquettes de ce dossier d’exécution. En inférence sans exemple, elle identifie l’inventaire exact des candidats comme partie de l’identité de l’exécution."
+msgstr "La révision fixée de l’ensemble d’étiquettes de ce dossier d’exécution. Pour l’inférence en apprentissage à zéro exemple, elle identifie l’inventaire exact des candidats comme partie de l’identité de l’exécution."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisTemplate|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "hypothesis template"
 msgstr "gabarit d’hypothèse"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisTemplate|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact natural-language template instantiated with each zero-shot candidate label. The literal carrier preserves the template itself; changing it changes the execution context."
-msgstr "Le gabarit exact en langue naturelle instancié avec chaque étiquette candidate sans exemple. Le porteur littéral préserve le gabarit lui-même ; sa modification change le contexte d’exécution."
+msgid "The exact classifier template source string, including placeholders, instantiated with each zero-shot candidate label. This xsd:string carries the supplied source expression rather than a localized utterance or machine identifier; changing it changes the execution context."
+msgstr "La chaîne source exacte du gabarit du classifieur, y compris ses espaces réservés, instanciée avec chaque étiquette candidate en apprentissage à zéro exemple. Ce xsd:string porte l’expression source fournie plutôt qu’un énoncé localisé ou un identifiant machine ; sa modification change le contexte d’exécution."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/memberOfLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "member of label set"
@@ -1019,7 +1019,7 @@ msgstr "décision de l’ensemble d’étiquettes"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecision|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The declared decision policy of a label set. Static registries used by the affect producer require one; run-scoped zero-shot candidates need not carry one. Where supplied it must agree with score semantics."
-msgstr "La politique de décision déclarée d’un ensemble. Les registres statiques utilisés par le producteur affectif en exigent une ; les candidats sans exemple propres à une exécution peuvent ne pas en porter. Si fournie, elle doit être compatible avec la sémantique du score."
+msgstr "La politique de décision déclarée d’un ensemble. Les registres statiques utilisés par le producteur affectif en exigent une ; les candidats propres à une exécution en apprentissage à zéro exemple peuvent ne pas en porter. Si fournie, elle doit être compatible avec la sémantique du score."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "implies label set decision"
@@ -1083,7 +1083,7 @@ msgstr "probabilité d’implication"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreEntailment|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A per-hypothesis entailment-versus-contradiction model probability for a zero-shot candidate and template. It is not normalized across candidates and does not establish calibration or confidence."
-msgstr "Une probabilité de modèle d’implication contre contradiction par hypothèse pour un candidat et un gabarit sans exemple. Elle n’est pas normalisée entre candidats et n’établit ni étalonnage ni confiance."
+msgstr "Une probabilité de modèle d’implication contre contradiction par hypothèse pour un candidat et un gabarit en apprentissage à zéro exemple. Elle n’est pas normalisée entre candidats et n’établit ni étalonnage ni confiance."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/decisionArgmax|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "argmax (single-label)"
