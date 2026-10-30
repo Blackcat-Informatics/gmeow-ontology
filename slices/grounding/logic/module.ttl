@@ -24410,9 +24410,47 @@ logic:CapturedPrescriptionDigestPresenceConstraint
     ] .
 
 # Forward single-valued bindings; a shared target does not identify its sources.
-logic:PreparationReceipt logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:receiptOfPreparation ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
-logic:AxisTransitionLaw logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:lawGovernsAxis ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
-logic:RevisionLens logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:lensGoverns ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+logic:receiptOfPreparationFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "receiptOfPreparation is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:receiptOfPreparation binds each logic:PreparationReceipt to at most one logic:PreparationStep. This forward functionality does not require a step to be present and does not limit how many receipts may record the same preparation step."@x-gmeow-english ;
+    logic:characterizes logic:receiptOfPreparation ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:receiptOfPreparation ;
+    gmeow:useWhen "Use to enforce the forward at-most-one preparation-step binding while retaining separate receipt evidence for repeated runs."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this assertion to choose a receipt for resumption or to treat evidence from an earlier run as completion of the current run."@x-gmeow-english ;
+    gmeow:howToUse "Assert the characteristic through logic:characterizes and logic:characteristicSort; retain each receipt's source and enactment context when deciding which completion it evidences."@x-gmeow-english ;
+    skos:scopeNote "The bound concerns targets of one receipt, not receipt identity across runs. Two targets of one receipt may be equated by functional reasoning; different receipts sharing a step are not thereby equated, selected for resumption, or licensed for cross-run reuse."@x-gmeow-english ;
+    skos:example "In Turtle, ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . describes two receipts for one step; functionality does not entail that ex:receiptA and ex:receiptB are identical."@x-gmeow-english .
+
+logic:lawGovernsAxisFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lawGovernsAxis is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:lawGovernsAxis binds each logic:AxisTransitionLaw to at most one closed lifecycle value class. Functionality caps the axes named by one law; it does not require an axis binding or restrict an axis to one law."@x-gmeow-english ;
+    logic:characterizes logic:lawGovernsAxis ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:lawGovernsAxis ;
+    gmeow:useWhen "Use to keep one axis transition law from naming multiple distinct lifecycle axes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring one law per axis, agreement between law versions, or authority to combine their admitted transitions."@x-gmeow-english ;
+    gmeow:howToUse "Carry the functional characteristic on logic:lawGovernsAxis and preserve the governing law's scope and version when interpreting transitions and certificate evidence."@x-gmeow-english ;
+    skos:scopeNote "Distinct scoped or versioned laws may govern the same axis without being equated. Functional reasoning may equate two axis targets named by one law, but sharing an axis neither selects the applicable law nor proves agreement between laws."@x-gmeow-english ;
+    skos:example "In Turtle, ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . permits separate law versions for the same axis; the selected scope and version still determine which transitions apply."@x-gmeow-english .
+
+logic:lensGovernsFunctionality
+    a logic:NamedIndividual ,
+        logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "lensGoverns is functional"@x-gmeow-english ;
+    skos:definition "Asserts that logic:lensGoverns binds each logic:RevisionLens to at most one logic:Plan, keeping that lens's revision and restore evidence attached to a single plan. This characteristic does not require a plan binding and permits distinct lenses to govern the same plan."@x-gmeow-english ;
+    logic:characterizes logic:lensGoverns ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes logic:lensGoverns ;
+    gmeow:useWhen "Use to preserve the single-plan subject of a revision lens's law evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a shared plan to merge lens identities, choose a lens, or substitute one lens's revision and restore results for another's."@x-gmeow-english ;
+    gmeow:howToUse "Bind the characteristic to logic:lensGoverns, keep each lens's law evidence separately identified, and name the selected lens when interpreting a revision or restore."@x-gmeow-english ;
+    skos:scopeNote "The bound applies from lens to plan. Functional reasoning may equate two plan targets of one lens; distinct lenses sharing a plan are not thereby equated, selected, or certified to have interchangeable revision and restore results."@x-gmeow-english ;
+    skos:example "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."@x-gmeow-english .

@@ -23725,3 +23725,51 @@ msgstr "Joindre la version épinglée et le condensat capturé, puis exiger un p
 msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."
 msgstr "Supprimer le condensat actuel après capture échoue au contrôle de présence ; changer sa valeur échoue à l’immutabilité. Une nouvelle version IRI sans condensat capturé reste admissible."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receiptOfPreparation is functional"
+msgstr "receiptOfPreparation est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:receiptOfPreparation binds each logic:PreparationReceipt to at most one logic:PreparationStep. This forward functionality does not require a step to be present and does not limit how many receipts may record the same preparation step."
+msgstr "Affirme que logic:receiptOfPreparation lie chaque logic:PreparationReceipt à au plus une logic:PreparationStep. Cette fonctionnalité dans le sens direct n’impose pas la présence d’une étape et ne limite pas le nombre de reçus pouvant consigner la même étape de préparation."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound concerns targets of one receipt, not receipt identity across runs. Two targets of one receipt may be equated by functional reasoning; different receipts sharing a step are not thereby equated, selected for resumption, or licensed for cross-run reuse."
+msgstr "La borne porte sur les cibles d’un seul reçu, non sur l’identité des reçus entre exécutions. Le raisonnement fonctionnel peut identifier deux cibles d’un même reçu ; des reçus différents partageant une étape ne sont de ce fait ni identifiés, ni sélectionnés pour la reprise, ni autorisés à être réutilisés entre exécutions."
+
+msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparationFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . describes two receipts for one step; functionality does not entail that ex:receiptA and ex:receiptB are identical."
+msgstr "En Turtle, ex:receiptA logic:receiptOfPreparation ex:stageFiles . ex:receiptB logic:receiptOfPreparation ex:stageFiles . décrit deux reçus pour une étape ; la fonctionnalité n’entraîne pas que ex:receiptA et ex:receiptB soient identiques."
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lawGovernsAxis is functional"
+msgstr "lawGovernsAxis est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:lawGovernsAxis binds each logic:AxisTransitionLaw to at most one closed lifecycle value class. Functionality caps the axes named by one law; it does not require an axis binding or restrict an axis to one law."
+msgstr "Affirme que logic:lawGovernsAxis lie chaque logic:AxisTransitionLaw à au plus une classe fermée de valeurs du cycle de vie. La fonctionnalité borne les axes nommés par une loi ; elle n’exige pas de liaison à un axe et ne réserve pas un axe à une seule loi."
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Distinct scoped or versioned laws may govern the same axis without being equated. Functional reasoning may equate two axis targets named by one law, but sharing an axis neither selects the applicable law nor proves agreement between laws."
+msgstr "Des lois distinctes, propres à des portées ou versions différentes, peuvent gouverner le même axe sans être identifiées. Le raisonnement fonctionnel peut identifier deux axes cibles nommés par une même loi, mais le partage d’un axe ne sélectionne pas la loi applicable et ne prouve pas l’accord entre les lois."
+
+msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxisFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . permits separate law versions for the same axis; the selected scope and version still determine which transitions apply."
+msgstr "En Turtle, ex:lawV1 logic:lawGovernsAxis logic:StepState . ex:lawV2 logic:lawGovernsAxis logic:StepState . permet des versions distinctes de loi pour le même axe ; la portée et la version sélectionnées déterminent toujours les transitions applicables."
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lensGoverns is functional"
+msgstr "lensGoverns est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts that logic:lensGoverns binds each logic:RevisionLens to at most one logic:Plan, keeping that lens's revision and restore evidence attached to a single plan. This characteristic does not require a plan binding and permits distinct lenses to govern the same plan."
+msgstr "Affirme que logic:lensGoverns lie chaque logic:RevisionLens à au plus un logic:Plan, rattachant ainsi les preuves de révision et de restauration de cette lentille à un seul plan. Cette caractéristique n’exige pas de liaison à un plan et permet à des lentilles distinctes de gouverner le même plan."
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bound applies from lens to plan. Functional reasoning may equate two plan targets of one lens; distinct lenses sharing a plan are not thereby equated, selected, or certified to have interchangeable revision and restore results."
+msgstr "La borne s’applique de la lentille vers le plan. Le raisonnement fonctionnel peut identifier deux plans cibles d’une même lentille ; des lentilles distinctes partageant un plan ne sont de ce fait ni identifiées, ni sélectionnées, ni certifiées comme ayant des résultats de révision et de restauration interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."
+msgstr "En Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . conserve deux lentilles pour un plan ; interpréter une révision exige toujours d’identifier la lentille sélectionnée et ses propres preuves de lois."
