@@ -292,3 +292,18 @@ here; affect retains its class specializations and affect-only laws.
 `ModelInferenceRun` is an enduring execution record compatible with the
 observation vantage contract. See [the contract and example](design/CLASSIFIER-EVIDENCE.md)
 for candidate-set scope, calibration and the separate execution-activity boundary.
+
+## Contract-bound chunkings and summary carriers
+
+`Chunking` records one segmentation of an exact source revision under an
+identified rules artifact. `ChunkingMember` selects actual chunks with scoped
+ordinals. `BlockExtent` places atomic ContentBlocks in the same whole-source
+coordinate frame as the chunks, enabling intrinsic no-split and coverage laws.
+Selected source and contract digests identify those artifacts’ own bytes;
+overlap and exhaustive coverage follow the declared contract without defaults.
+
+A retrieved summary’s `chunkOf` names the carrier containing its text, while
+`wasDerivedFrom` names the summarized division. A generated summary is not a cut
+of its original division. Summary and Chunk can share a node when both meanings
+hold; separate summary and retrieval-chunk nodes are also valid. CommunitySummary
+keeps its GraphRAG community meaning. See [the contract and ordinary scenes](design/CHUNKING.md).
