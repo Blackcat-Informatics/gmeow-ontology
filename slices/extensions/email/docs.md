@@ -8,6 +8,17 @@ GMEOW email terms, so the importer can emit GMEOW RDF. Each email becomes a
 `gmeow:EmailMessage`; participants are reached through `gmeow:EmailAddress` (the
 seam to people and accounts); residence and address tenure are time-scoped.
 
+## Shared message structure
+
+The [messaging core](../../core/messaging/docs.md) owns `Message`, `BodyPart`,
+`Thread`, `hasBodyPart`, `inReplyTo`, `partOfThread`, `sentAt` and `receivedAt`.
+Their IRIs are shared by email and chat. Email keeps its RFC-specific classes,
+MIME specializations, participant-address relators and header metadata. The shared
+`BodyPart` admits non-MIME content; email parts retain their MIME meaning here.
+A `Message` can be intended communication whose dispatch was refused. Its type
+alone proves neither sending nor delivery. The source meaning of RFC 5322
+`Date` and provider receive time remains as described below.
+
 ## Facet metadata fields
 
 | gmeow facet field | GMEOW term | Object kind |
@@ -730,7 +741,7 @@ The presentation-disposition facet (RFC 2183): `hasContentDisposition` relates a
 part to its `ContentDisposition` value — inline (rendered in the body) or attachment
 (presented as a separate file).
 
-### gmeow:ContentTransferEncoding · gmeow:hasContentTransferEncoding · gmeow:transferEncodingBase64 · gmeow:transferEncodingQuotedPrintable · gmeow:transferEncoding7bit · gmeow:transferEncoding8bit · gmeow:transferEncodingBinary
+### `gmeow:ContentTransferEncoding` · `gmeow:hasContentTransferEncoding` · `gmeow:transferEncodingBase64` · `gmeow:transferEncodingQuotedPrintable` · `gmeow:transferEncoding7bit` · `gmeow:transferEncoding8bit` · `gmeow:transferEncodingBinary`
 
 The MIME content-transfer-encoding facet (RFC 2045): `hasContentTransferEncoding`
 relates a body part to its encoding value — base64, quoted-printable, 7bit, 8bit, or

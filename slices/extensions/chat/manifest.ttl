@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/chat>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    rdfs:label "chat"@x-gmeow-english ;
+    skos:definition "Chat transport and room context, participant occurrences, response turns, ordered parts and faithful reader-relative retention of received content."@x-gmeow-english ;
+    dcterms:title "GMEOW Chat Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Conversation archives and chat adapters retaining participant evidence, intended outputs and original received parts without email-address assumptions or inferred success."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/documents>,
+        <https://blackcatinformatics.ca/gmeow/slices/creative-works>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/imagination>,
+        <https://blackcatinformatics.ca/gmeow/slices/tags>,
+        <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/messaging>,
+        <https://blackcatinformatics.ca/gmeow/slices/accounts>,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata>,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> .

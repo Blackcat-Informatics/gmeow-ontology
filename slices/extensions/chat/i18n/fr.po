@@ -1,0 +1,770 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: chat, language: fr).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Message"
+msgstr "Message de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A message in a networked chat conversation, retaining its transport, response turn and participant occurrences. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."
+msgstr "Message d’une conversation de discussion en réseau, conservant son transport, son tour de réponse et ses occurrences de participants. Il peut être un message sortant prévu refusé avant envoi ; son type n’affirme aucun succès de livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for chat communication with explicit source context."
+msgstr "Utiliser pour une communication de discussion avec un contexte source explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying email-address participant requirements to chat."
+msgstr "Éviter d’appliquer aux discussions les exigences de participants par adresse électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link chatTransport, chatTurn and hasChatParticipant; retain ordered ChatMessagePart nodes with hasBodyPart."
+msgstr "Relier chatTransport, chatTurn et hasChatParticipant ; conserver des nœuds ChatMessagePart ordonnés avec hasBodyPart."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message a gmeow:ChatMessage ."
+msgstr "ex:message a gmeow:ChatMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Transport"
+msgstr "Transport de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary identifying the chat network or transport convention reported by a source. A transport value is distinct from a room, an account and the agent operating a service."
+msgstr "Vocabulaire ouvert de valeurs identifiant le réseau ou la convention de transport de discussion rapporté par une source. Une valeur de transport est distincte d’un salon, d’un compte et de l’agent exploitant un service."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source network classification of chat artifacts."
+msgstr "Utiliser pour conserver la classification réseau source des artefacts de discussion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a protocol label as the identity of every deployment using it."
+msgstr "Éviter de traiter une étiquette de protocole comme l’identité de chaque déploiement qui l’utilise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint source-scoped network values when deployments differ; add values as individuals rather than subclasses."
+msgstr "Créer des valeurs réseau limitées à la source lorsque les déploiements diffèrent ; ajouter des individus plutôt que des sous-classes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTransport|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:network a gmeow:ChatTransport ."
+msgstr "ex:network a gmeow:ChatTransport ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat transport"
+msgstr "transport de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported chat transport or network of a message, room or carried artifact. The domain is open so media and room identities can retain their network context without becoming messages."
+msgstr "Transport ou réseau de discussion rapporté pour un message, un salon ou un artefact porté. Le domaine est ouvert pour que les médias et salons gardent leur contexte réseau sans devenir des messages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to scope a chat resource to its source network."
+msgstr "Utiliser pour délimiter une ressource de discussion à son réseau source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring account ownership or a room identity from transport alone."
+msgstr "Éviter de déduire la propriété d’un compte ou l’identité d’un salon du seul transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every source-supported ChatTransport; qualify independent network attributions when needed."
+msgstr "Référencer chaque ChatTransport étayé par la source ; qualifier au besoin les attributions réseau indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTransport|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:chatTransport ex:network ."
+msgstr "ex:message gmeow:chatTransport ex:network ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Room"
+msgstr "Salon de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A room or channel entity identified within a source chat transport by verbatim room identifiers. It is distinct from a conversation thread and from a globally unique identifier string."
+msgstr "Entité de salon ou canal identifiée dans un transport de discussion source par des identifiants textuellement conservés. Elle est distincte d’un fil de conversation et d’une chaîne d’identifiant globalement unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the room in which a message was carried."
+msgstr "Utiliser lorsque la source identifie le salon dans lequel un message a circulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging rooms from different networks because their raw identifiers match."
+msgstr "Éviter de fusionner des salons de réseaux différents parce que leurs identifiants bruts concordent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the room chatTransport and chatRoomIdentifier values; retain separate source room identities when scope is uncertain."
+msgstr "Donner au salon des valeurs chatTransport et chatRoomIdentifier ; conserver des identités sources distinctes lorsque la portée est incertaine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatRoom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:room a gmeow:ChatRoom ; gmeow:chatTransport ex:network ; gmeow:chatRoomIdentifier \"room-7\" ."
+msgstr "ex:room a gmeow:ChatRoom ; gmeow:chatTransport ex:network ; gmeow:chatRoomIdentifier \"room-7\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat room"
+msgstr "salon de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a chat message to the room or channel entity reported by its source. This is a room reference rather than a literal-valued room identifier."
+msgstr "Relie un message de discussion à l’entité de salon ou canal rapportée par sa source. Il s’agit d’une référence au salon plutôt que d’un identifiant littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-supported room membership of a chat message."
+msgstr "Utiliser pour l’appartenance d’un message à un salon étayée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a room for a direct conversation with no room identifier."
+msgstr "Éviter d’inventer un salon pour une conversation directe sans identifiant de salon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a ChatRoom with its scoped identifier; omit this relation when the source supplies no room."
+msgstr "Référencer un ChatRoom avec son identifiant délimité ; omettre cette relation lorsque la source ne fournit aucun salon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:chatRoom ex:room ."
+msgstr "ex:message gmeow:chatRoom ex:room ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat room identifier"
+msgstr "identifiant de salon de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."
+msgstr "Identifiant de salon exactement fourni par le réseau source, représenté comme xsd:string. Casse, espaces et ponctuation sont conservés ; sa portée vient du chatTransport du ChatRoom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve opaque source room identifiers without token normalization."
+msgstr "Utiliser pour préserver les identifiants opaques sans normalisation de type token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this string as a global key or putting a normalized replacement in its place."
+msgstr "Éviter d’interpréter cette chaîne comme une clé globale ou de la remplacer par une forme normalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied string on the room node and retain the transport that defines its scope."
+msgstr "Conserver la chaîne fournie sur le nœud de salon et garder le transport qui définit sa portée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."
+msgstr "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Output Role"
+msgstr "Rôle de sortie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the role an outgoing chat message plays in its response turn, including a terminal reply and an auxiliary message before it. Role does not assert successful delivery."
+msgstr "Vocabulaire ouvert du rôle d’un message sortant dans son tour de réponse, notamment réponse terminale et message auxiliaire préalable. Le rôle n’affirme pas une livraison réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish outgoing messages within a response turn."
+msgstr "Utiliser pour distinguer les messages sortants dans un tour de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a terminal role as evidence that the recipient saw the message."
+msgstr "Éviter de traiter un rôle terminal comme preuve de lecture par le destinataire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use role individuals through outputRole on the relevant ChatMessage."
+msgstr "Utiliser les individus de rôle via outputRole sur le ChatMessage concerné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OutputRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:role a gmeow:OutputRole ."
+msgstr "ex:role a gmeow:OutputRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Participant Role"
+msgstr "Rôle de participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for a participant occurrence in a chat message, independent of email header and envelope roles."
+msgstr "Vocabulaire ouvert du rôle d’une occurrence de participant dans un message de discussion, indépendant des rôles d’en-tête et d’enveloppe électroniques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for chat author and intended-recipient occurrences."
+msgstr "Utiliser pour les occurrences d’auteur et de destinataire prévu de discussion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid translating chat participants into email addresses to express their roles."
+msgstr "Éviter de convertir les participants en adresses électroniques pour exprimer leurs rôles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach supported role individuals through chatParticipantRole; retain coexisting roles."
+msgstr "Rattacher les individus de rôle étayés via chatParticipantRole ; conserver les rôles coexistants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatParticipantRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:role a gmeow:ChatParticipantRole ."
+msgstr "ex:role a gmeow:ChatParticipantRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "terminal reply"
+msgstr "réponse terminale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The outgoing reply designated by the source as terminal within its response turn. It does not guarantee transmission, a unique final interpretation or successful delivery."
+msgstr "Réponse sortante désignée par la source comme terminale dans son tour. Elle ne garantit ni transmission, ni interprétation finale unique, ni livraison réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source-designated terminal outgoing reply."
+msgstr "Utiliser pour la réponse sortante terminale désignée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving terminal role from timestamp order alone."
+msgstr "Éviter de déduire le rôle terminal du seul ordre temporel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference outputRoleTerminalReply through outputRole in its source context."
+msgstr "Référencer outputRoleTerminalReply via outputRole dans son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleTerminalReply|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:occurrence gmeow:outputRole gmeow:outputRoleTerminalReply ."
+msgstr "ex:occurrence gmeow:outputRole gmeow:outputRoleTerminalReply ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "auxiliary message"
+msgstr "message auxiliaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An outgoing message sent or intended before the terminal reply as an auxiliary contribution to the same response turn."
+msgstr "Message sortant envoyé ou prévu avant la réponse terminale comme contribution auxiliaire au même tour de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-labelled auxiliary outgoing message."
+msgstr "Utiliser pour un message sortant auxiliaire étiqueté par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating auxiliary role as lesser truth or lesser participant status."
+msgstr "Éviter de traiter le rôle auxiliaire comme une vérité ou un statut de participant inférieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference outputRoleAuxiliary through outputRole in its source context."
+msgstr "Référencer outputRoleAuxiliary via outputRole dans son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRoleAuxiliary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:occurrence gmeow:outputRole gmeow:outputRoleAuxiliary ."
+msgstr "ex:occurrence gmeow:outputRole gmeow:outputRoleAuxiliary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat author"
+msgstr "auteur de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The participant occurrence identifies the author of this chat message according to its source. It does not imply account ownership or delivery."
+msgstr "L’occurrence identifie l’auteur de ce message selon sa source. Elle n’implique ni propriété de compte ni livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-supported authorship occurrence."
+msgstr "Utiliser pour une occurrence d’auteur étayée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a human identity from an account-only author endpoint."
+msgstr "Éviter de déduire une identité humaine d’un auteur connu seulement par compte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference chatRoleAuthor through chatParticipantRole in its source context."
+msgstr "Référencer chatRoleAuthor via chatParticipantRole dans son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleAuthor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+msgstr "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat recipient"
+msgstr "destinataire de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The participant occurrence identifies an intended recipient of this chat message. Intended receipt does not assert actual arrival or readership."
+msgstr "L’occurrence identifie un destinataire prévu de ce message. La réception prévue n’affirme ni arrivée réelle ni lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a retained intended-recipient occurrence."
+msgstr "Utiliser pour une occurrence conservée de destinataire prévu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating recipient role as proof of successful delivery."
+msgstr "Éviter de traiter le rôle de destinataire comme preuve de livraison réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference chatRoleRecipient through chatParticipantRole in its source context."
+msgstr "Référencer chatRoleRecipient via chatParticipantRole dans son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoleRecipient|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleRecipient ."
+msgstr "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleRecipient ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "output role"
+msgstr "rôle de sortie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed role of an outgoing ChatMessage within its ChatTurn. Multiple supported role attributions coexist and none entails delivery success."
+msgstr "Rôle attribué à un ChatMessage sortant dans son ChatTurn. Plusieurs attributions étayées coexistent et aucune n’implique une livraison réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain terminal or auxiliary intent on outgoing chat records."
+msgstr "Utiliser pour conserver l’intention terminale ou auxiliaire sur les enregistrements sortants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring output roles on incoming messages or selecting one globally preferred role."
+msgstr "Éviter d’exiger des rôles de sortie sur les messages entrants ou de choisir un rôle globalement privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each source-supported OutputRole and keep turn membership with chatTurn."
+msgstr "Relier chaque OutputRole étayé par la source et conserver l’appartenance au tour avec chatTurn."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/outputRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:outputRole gmeow:outputRoleTerminalReply ."
+msgstr "ex:reply gmeow:outputRole gmeow:outputRoleTerminalReply ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Message Participant"
+msgstr "Participant de message de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified source occurrence of an agent or online account playing one or more roles in a chat message. A known account does not fabricate an unknown agent or inherit email-address requirements."
+msgstr "Occurrence source réifiée d’un agent ou compte en ligne jouant un ou plusieurs rôles dans un message de discussion. Un compte connu ne fabrique pas un agent inconnu et n’hérite pas d’exigences d’adresse électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain participants, roles and source order as separately annotatable occurrences."
+msgstr "Utiliser pour conserver participants, rôles et ordre source comme occurrences annotables séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the occurrence with the person, account or email participant relator."
+msgstr "Éviter d’identifier l’occurrence à la personne, au compte ou au relateur de participant électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the occurrence to its message and endpoint, add supported roles, and retain entryOrdinal when source order is known."
+msgstr "Relier l’occurrence à son message et à son extrémité, ajouter les rôles étayés et conserver entryOrdinal lorsque l’ordre source est connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageParticipant|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."
+msgstr "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has chat participant"
+msgstr "a pour participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a chat message to one of its reified participant occurrences. This is the inverse of chatParticipantMessage, not an email-address relation."
+msgstr "Relie un message de discussion à une de ses occurrences de participants réifiées. C’est l’inverse de chatParticipantMessage, pas une relation d’adresse électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enumerate a chat record’s source participant occurrences."
+msgstr "Utiliser pour énumérer les occurrences sources de participants d’un enregistrement de discussion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid flattening a participant occurrence into account ownership."
+msgstr "Éviter d’aplatir une occurrence de participant en propriété de compte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each occurrence; its message link is the inverse view of this relation."
+msgstr "Relier chaque occurrence ; son lien de message est la vue inverse de cette relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasChatParticipant|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."
+msgstr "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat participant message"
+msgstr "message du participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ChatMessage to which this source participant occurrence belongs."
+msgstr "ChatMessage auquel appartient cette occurrence source de participant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the owning message of a chat participant occurrence."
+msgstr "Utiliser pour conserver le message propriétaire d’une occurrence de participant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an EmailMessage-specific participant link for this occurrence."
+msgstr "Éviter d’utiliser un lien de participant propre à EmailMessage pour cette occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference its ChatMessage; hasChatParticipant provides the inverse navigation."
+msgstr "Référencer son ChatMessage ; hasChatParticipant fournit la navigation inverse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantMessage ex:message ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantMessage ex:message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat participant endpoint"
+msgstr "extrémité du participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-known Agent or OnlineAccount endpoint of this participant occurrence. An account endpoint alone asserts no holder identity."
+msgstr "Extrémité Agent ou OnlineAccount connue de la source pour cette occurrence. Un compte seul n’affirme aucune identité de titulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a chat participant is known as an agent, an account or both."
+msgstr "Utiliser lorsqu’un participant est connu comme agent, compte ou les deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing an account information object into an Agent."
+msgstr "Éviter de convertir un objet informationnel de compte en Agent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual source endpoint; the agent and account specializations retain more specific evidence."
+msgstr "Référencer l’extrémité réelle de la source ; les spécialisations agent et compte conservent des éléments plus précis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantEndpoint ex:account ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantEndpoint ex:account ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat participant agent"
+msgstr "agent du participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Agent explicitly identified by the source for this participant occurrence. It specializes the endpoint relation without deriving account ownership."
+msgstr "Agent explicitement identifié par la source pour cette occurrence. Il spécialise la relation d’extrémité sans déduire de propriété de compte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the acting participant itself."
+msgstr "Utiliser lorsque la source identifie le participant agissant lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an agent identity from an opaque account identifier."
+msgstr "Éviter d’inventer une identité d’agent à partir d’un identifiant de compte opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the known Agent; keep any account evidence on chatParticipantAccount separately."
+msgstr "Référencer l’Agent connu ; conserver séparément les éléments de compte sur chatParticipantAccount."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAgent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantAgent ex:agent ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantAgent ex:agent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat participant account"
+msgstr "compte du participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An OnlineAccount identified by the source for this participant occurrence. This endpoint remains an account even when its holder is unknown."
+msgstr "OnlineAccount identifié par la source pour cette occurrence. Cette extrémité reste un compte même lorsque son titulaire est inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an account-only chat identity faithfully."
+msgstr "Utiliser pour conserver fidèlement une identité de discussion connue seulement par compte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this occurrence link as a holdsAccount assertion."
+msgstr "Éviter de traiter ce lien d’occurrence comme une affirmation holdsAccount."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual OnlineAccount; add chatParticipantAgent only with separate source evidence."
+msgstr "Référencer le OnlineAccount réel ; ajouter chatParticipantAgent seulement avec des éléments sources distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantAccount|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantAccount ex:account ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantAccount ex:account ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat participant role"
+msgstr "Rôle de participant de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A role attributed to this participant occurrence in its chat message. Supported roles coexist rather than replacing one another."
+msgstr "Rôle attribué à cette occurrence de participant dans son message. Les rôles étayés coexistent plutôt que de se remplacer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-supported author, recipient or consumer-defined chat roles."
+msgstr "Utiliser pour les rôles d’auteur, de destinataire ou définis par le consommateur et étayés par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid forcing the roles into the email header-role vocabulary."
+msgstr "Éviter de forcer ces rôles dans le vocabulaire des rôles d’en-tête électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each applicable ChatParticipantRole on the occurrence."
+msgstr "Référencer chaque ChatParticipantRole applicable sur l’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatParticipantRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Turn"
+msgstr "Tour de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-identified response unit within a conversation thread, grouping related incoming and outgoing chat messages. It is distinct from the whole room or thread and makes auxiliary and terminal roles interpretable."
+msgstr "Unité de réponse identifiée par la source dans un fil, regroupant des messages entrants et sortants liés. Elle est distincte du salon ou du fil entier et rend interprétables les rôles auxiliaire et terminal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the producer’s response-turn grouping."
+msgstr "Utiliser pour conserver le regroupement de tours de réponse du producteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reconstructing a turn boundary from timestamps alone."
+msgstr "Éviter de reconstruire une limite de tour à partir des seuls horodatages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the turn to its Thread with turnOfThread; place messages in it through chatTurn and preserve supplied order with entryOrdinal."
+msgstr "Relier le tour à son Thread avec turnOfThread ; y placer les messages par chatTurn et préserver l’ordre fourni avec entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:turn a gmeow:ChatTurn ; gmeow:turnOfThread ex:conversation ."
+msgstr "ex:turn a gmeow:ChatTurn ; gmeow:turnOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat turn"
+msgstr "tour de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source response turn containing a chat message. The turn’s thread supplies shared partOfThread membership."
+msgstr "Tour de réponse source contenant un message de discussion. Le fil du tour fournit l’appartenance commune partOfThread."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish messages contributing to the same response unit."
+msgstr "Utiliser pour distinguer les messages contribuant à la même unité de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making turn membership evidence of successful output."
+msgstr "Éviter de faire de l’appartenance au tour une preuve de sortie réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source ChatTurn, retaining entryOrdinal only as local source order."
+msgstr "Référencer le ChatTurn source, en conservant entryOrdinal seulement comme ordre source local."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:chatTurn ex:turn ."
+msgstr "ex:reply gmeow:chatTurn ex:turn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "turn of thread"
+msgstr "tour du fil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The conversation Thread containing a source chat response turn. It is not a network-room identifier."
+msgstr "Thread de conversation contenant un tour de réponse source. Ce n’est pas un identifiant de salon réseau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind a response-turn grouping to its conversation."
+msgstr "Utiliser pour rattacher un regroupement de tour de réponse à sa conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing room identity with thread membership."
+msgstr "Éviter de remplacer l’identité de salon par l’appartenance au fil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each source-supported Thread; message membership follows the chatTurn path."
+msgstr "Référencer chaque Thread étayé par la source ; l’appartenance des messages suit le chemin chatTurn."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/turnOfThread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:turn gmeow:turnOfThread ex:conversation ."
+msgstr "ex:turn gmeow:turnOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Message Part"
+msgstr "Partie de message de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An ordered body-part occurrence in a chat message. Its entryOrdinal preserves source position within that message; its content remains distinct from a reader’s diagnostic report."
+msgstr "Occurrence ordonnée de partie de corps dans un message de discussion. Son entryOrdinal préserve la position source dans ce message ; son contenu reste distinct d’un rapport diagnostique du lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for retained typed, textual or media-bearing chat parts."
+msgstr "Utiliser pour les parties de discussion conservées, typées, textuelles ou portant des médias."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing an unparsed received part with an error message."
+msgstr "Éviter de remplacer une partie reçue non analysée par un message d’erreur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach with hasBodyPart and retain its zero-based entryOrdinal; identify carried media separately with partMedia."
+msgstr "Rattacher avec hasBodyPart et conserver son entryOrdinal compté à partir de zéro ; identifier séparément le média porté avec partMedia."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessagePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part0 . ex:part0 a gmeow:ChatMessagePart ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+msgstr "ex:message gmeow:hasBodyPart ex:part0 . ex:part0 a gmeow:ChatMessagePart ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unreadable Chat Part"
+msgstr "Partie de discussion illisible pour un lecteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained chat-part occurrence classified by an identified reader as unreadable when received. Its exact received bytes are named by contentDigest; the classification is reader-relative, not a claim that no reader can parse those bytes."
+msgstr "Occurrence conservée classée par un lecteur identifié comme illisible à réception. Ses octets reçus exacts sont nommés par contentDigest ; la classification est relative au lecteur, pas une affirmation qu’aucun lecteur ne peut les analyser."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep unreadable received content in the conversation without substituting diagnostics."
+msgstr "Utiliser pour garder le contenu reçu illisible dans la conversation sans substituer de diagnostics."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating one reader’s parsing limit as a universal property of the payload."
+msgstr "Éviter de traiter la limite d’analyse d’un lecteur comme une propriété universelle de la charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain contentDigest, chatPartReader, source order and original bytes; keep any reader fault report outside conversation content."
+msgstr "Conserver contentDigest, chatPartReader, l’ordre source et les octets originaux ; garder tout rapport d’erreur hors du contenu de conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableChatPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:retainedPart a gmeow:UnreadableChatPart ."
+msgstr "ex:retainedPart a gmeow:UnreadableChatPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disagreeing Chat Text"
+msgstr "Texte de discussion divergent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained occurrence of sender text that an identified reader found to disagree with accompanying typed parts. Its exact received content is retained by digest, alongside the compared parts and the reader-relative classification."
+msgstr "Occurrence conservée de texte de l’expéditeur qu’un lecteur identifié a jugé divergent des parties typées accompagnantes. Son contenu reçu exact est conservé par empreinte avec les parties comparées et la classification relative au lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source preserves a disagreeing plain-text mirror beside the typed content."
+msgstr "Utiliser lorsqu’une source conserve un miroir textuel divergent à côté du contenu typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid rewriting sender text to match a reader’s interpretation of typed parts."
+msgstr "Éviter de réécrire le texte de l’expéditeur pour l’aligner sur l’interprétation des parties typées par un lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original contentDigest and chatPartReader, and name the compared occurrence through disagreesWithPart."
+msgstr "Conserver le contentDigest original et chatPartReader, puis nommer l’occurrence comparée via disagreesWithPart."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingChatText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:retainedPart a gmeow:DisagreeingChatText ."
+msgstr "ex:retainedPart a gmeow:DisagreeingChatText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat part classifying reader"
+msgstr "lecteur classifiant la partie de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Agent responsible for the retained occurrence’s unreadability or disagreement classification. It identifies the actual reading context without inserting its error-report prose into the sender’s content."
+msgstr "Agent responsable de la classification d’illisibilité ou de divergence de l’occurrence conservée. Il identifie le contexte réel de lecture sans insérer sa prose d’erreur dans le contenu de l’expéditeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to qualify a retained chat part’s reader-relative classification."
+msgstr "Utiliser pour qualifier la classification relative au lecteur d’une partie conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting that every other reader had the same result."
+msgstr "Éviter d’affirmer que tous les autres lecteurs ont obtenu le même résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference each reporting reader and retain attribution provenance on the classification when needed."
+msgstr "Référencer chaque lecteur rapporteur et conserver au besoin la provenance de l’attribution sur la classification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatPartReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:retainedPart gmeow:chatPartReader ex:reader ."
+msgstr "ex:retainedPart gmeow:chatPartReader ex:reader ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "disagrees with part"
+msgstr "diverge de la partie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates retained sender text to the accompanying chat-part occurrence with which its reader found disagreement. It records that comparison without deleting either original."
+msgstr "Relie le texte conservé de l’expéditeur à l’occurrence de partie accompagnante avec laquelle son lecteur a constaté une divergence. Elle consigne cette comparaison sans supprimer les originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual typed part involved in a disagreement classification."
+msgstr "Utiliser pour conserver la partie typée réelle impliquée dans une classification de divergence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this attributed comparison as a universal logical contradiction."
+msgstr "Éviter d’interpréter cette comparaison attribuée comme une contradiction logique universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the DisagreeingChatText occurrence to each compared ChatMessagePart and retain the classifying reader."
+msgstr "Relier l’occurrence DisagreeingChatText à chaque ChatMessagePart comparé et conserver le lecteur classifiant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/disagreesWithPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
+msgstr "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/chat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chat"
+msgstr "discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/chat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Chat transport and room context, participant occurrences, response turns, ordered parts and faithful reader-relative retention of received content."
+msgstr "Contexte de transport et de salon de discussion, occurrences de participants, tours de réponse, parties ordonnées et conservation fidèle du contenu reçu relative au lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/chat|http://purl.org/dc/terms/title"
+msgid "GMEOW Chat Module"
+msgstr "Module GMEOW de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/chat|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Conversation archives and chat adapters retaining participant evidence, intended outputs and original received parts without email-address assumptions or inferred success."
+msgstr "Archives de conversation et adaptateurs de discussion conservant les éléments de participation, sorties prévues et parties originales reçues sans hypothèse d’adresse électronique ni succès déduit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat part message constraint"
+msgstr "Contrainte de message des parties de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ChatMessagePart is retained under at least one ChatMessage by hasBodyPart. Its ordinal is local to that containing message."
+msgstr "Chaque ChatMessagePart est conservé sous au moins un ChatMessage par hasBodyPart. Son rang est local à ce message contenant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source context of an ordered chat-part occurrence."
+msgstr "Utiliser pour conserver le contexte source d’une occurrence de partie ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid publishing an orphan ordered part without its conversation message."
+msgstr "Éviter de publier une partie ordonnée orpheline sans son message de conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the existing ChatMessage to the part using hasBodyPart."
+msgstr "Relier le ChatMessage existant à la partie avec hasBodyPart."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatPartMessageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part0 ."
+msgstr "ex:message gmeow:hasBodyPart ex:part0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat message author constraint"
+msgstr "Contrainte d’auteur des messages de discussion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ChatMessage retains at least one participant occurrence classified as author. That occurrence can identify an agent or an account without inventing a holder."
+msgstr "Un ChatMessage conserve au moins une occurrence de participant classée comme auteur. Cette occurrence peut identifier un agent ou un compte sans inventer de titulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain source authorship evidence on a complete chat record."
+msgstr "Utiliser pour conserver les éléments d’auteur source sur un enregistrement de discussion complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying a default author when source authorship is unknown."
+msgstr "Éviter de fournir un auteur par défaut lorsque l’auteur source est inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link a source-supported author occurrence through hasChatParticipant and chatParticipantRole."
+msgstr "Relier une occurrence d’auteur étayée par la source via hasChatParticipant et chatParticipantRole."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessageAuthorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+msgstr "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Disagreeing part context constraint"
+msgstr "Contrainte de contexte des parties divergentes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A disagreeing text occurrence and each compared typed-part occurrence belong to a common retained ChatMessage. The relation preserves their actual source accompaniment."
+msgstr "Une occurrence de texte divergent et chaque occurrence typée comparée appartiennent à un ChatMessage conservé commun. La relation préserve leur accompagnement réel dans la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep disagreement classifications tied to the compared source message."
+msgstr "Utiliser pour garder les classifications de divergence liées au message source comparé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing unrelated payloads as if they had accompanied one another."
+msgstr "Éviter de comparer des charges sans lien comme si elles s’étaient accompagnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep both original occurrences under the same hasBodyPart context."
+msgstr "Conserver les deux occurrences originales sous le même contexte hasBodyPart."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
+msgstr "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
