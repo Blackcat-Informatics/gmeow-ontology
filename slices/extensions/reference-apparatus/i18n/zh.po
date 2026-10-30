@@ -1,0 +1,894 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Source reference blocks and apparatus.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Documentary Table Cell"
+msgstr "文档表格单元格"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source cell located by one table, row and column under that table's explicit index origin. It is an InformationObject, not a scalar MatrixEntry."
+msgstr "在表格明确索引起点下由一个表格、行和列定位的来源单元格。它是 InformationObject，而非标量 MatrixEntry。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCell|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:TableCell ."
+msgstr "保留此来源含义：ex:record a gmeow:TableCell ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Printed Formal Block Kind"
+msgstr "印刷形式块种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for the source's printed exposition role. A theorem, proof or algorithm label records document apparatus, never successful verification."
+msgstr "表示来源印刷论述角色的开放性质值词汇。定理、证明或算法标签记录的是文档论述装置，绝非核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record a gmeow:FormalBlockKind ."
+msgstr "保留此来源含义：ex:record a gmeow:FormalBlockKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source speaker"
+msgstr "来源说话者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Entity explicitly identified as speaking this source block. A fictional character may be the speaker without becoming a Person."
+msgstr "明确标识为说出此来源块内容的 Entity。虚构角色可以是说话者，而不成为 Person。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/speaker|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:speaker ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:speaker ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "programming language as recorded"
+msgstr "原样记录的编程语言"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's exact programming-language name or code for a listing. It is an opaque string, not the software slice's Project-to-Language relation."
+msgstr "来源为代码清单给出的确切编程语言名称或代码。它是不透明字符串，而非 software 切片中的 Project 到 Language 关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/programmingLanguageAsRecorded|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:programmingLanguageAsRecorded \"source wording\" ."
+msgstr "保留此来源含义：ex:record gmeow:programmingLanguageAsRecorded \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equation source text"
+msgstr "公式来源文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source spelling of a mathematical display, before parsing, normalization or notation conversion. A matching retained language surface preserves that spelling; the string itself is not a computable expression AST."
+msgstr "数学显示内容在解析、规范化或记法转换前的确切来源拼写。对应的保留语言表面形式保存此拼写；字符串本身不是可计算表达式 AST。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/equationSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:equationSource \"source wording\" ."
+msgstr "保留此来源含义：ex:record gmeow:equationSource \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notation as recorded"
+msgstr "原样记录的记法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's exact notation name or code. The spelling alone neither identifies a MathematicalNotation convention nor proves a rendering preserves meaning."
+msgstr "来源给出的确切记法名称或代码。仅凭拼写既不能标识 MathematicalNotation 约定，也不能证明呈现保持意义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceNotation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:sourceNotation \"source wording\" ."
+msgstr "保留此来源含义：ex:record gmeow:sourceNotation \"source wording\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source table cell"
+msgstr "来源表格单元格"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained documentary cell of this table block. Row and column identities are scoped by this exact table, not shared globally across tables."
+msgstr "此表格块中保留的文档单元格。行列身份限定于此确切表格，而不在不同表格间全局共享。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cell|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cell ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:cell ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cell of source table"
+msgstr "单元格所属来源表格"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact table block containing this documentary cell. It is the inverse of cell and supplies the coordinate scope."
+msgstr "包含此文档单元格的确切表格块。它是 cell 的逆关系，并提供坐标范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellOf ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:cellOf ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell row"
+msgstr "来源单元格行"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source row index of a documentary cell under its table's explicit tableIndexOrigin. It is not a matrix coordinate or an implicit zero-based conversion."
+msgstr "文档单元格在其表格明确 tableIndexOrigin 下的来源行索引。它不是矩阵坐标，也不是隐式零起始转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellRow|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellRow 0 ."
+msgstr "保留此来源含义：ex:record gmeow:cellRow 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell column"
+msgstr "来源单元格列"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source column index of a documentary cell under its table's explicit tableIndexOrigin. Identical indices in distinct tables do not identify the same cell."
+msgstr "文档单元格在其表格明确 tableIndexOrigin 下的来源列索引。不同表格中的相同索引不标识同一单元格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellColumn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellColumn 0 ."
+msgstr "保留此来源含义：ex:record gmeow:cellColumn 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source table index origin"
+msgstr "来源表格索引起点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit integer origin shared by this source table's row and column indices. Missing origin stays missing; consumers must not silently assume zero or one."
+msgstr "此来源表格行列索引共同采用的明确整数起点。缺失起点保持缺失；使用方不得悄然假定为零或一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tableIndexOrigin|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:tableIndexOrigin 0 ."
+msgstr "保留此来源含义：ex:record gmeow:tableIndexOrigin 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source cell text"
+msgstr "来源单元格文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original textual content of a documentary cell, including an explicitly empty string. Preserve language and direction when supplied; absence is not an invented empty value."
+msgstr "文档单元格的原始文本内容，包括明确的空字符串。保留已提供的语言和书写方向；缺失并非虚构的空值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cellText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:cellText \"source wording\"@en ."
+msgstr "保留此来源含义：ex:record gmeow:cellText \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source alternative text"
+msgstr "来源替代文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's alternative description for perceiving a block's content. It is distinct from a displayed caption and does not type a figure block as a media file."
+msgstr "来源为感知块内容提供的替代描述。它区别于显示的说明文字，也不将插图块标记为媒体文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/altText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:altText \"source wording\"@en ."
+msgstr "保留此来源含义：ex:record gmeow:altText \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed formal kind"
+msgstr "印刷形式种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-attributed printed role of a block, drawn from FormalBlockKind. It is distinct from theory-scoped mathematical statement roles and formal proof status."
+msgstr "来源归属给块的印刷角色，取自 FormalBlockKind。它区别于理论限定的数学陈述角色和形式证明状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:formalKind ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:formalKind ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formal label as recorded"
+msgstr "原样记录的形式标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's original identifier or heading for formal apparatus, such as a numbered theorem label. It names the printed item without certifying its conclusion."
+msgstr "来源为形式论述装置给出的原始标识符或标题，例如带编号的定理标签。它命名印刷条目，而不证明其结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:formalLabel \"source wording\"@en ."
+msgstr "保留此来源含义：ex:record gmeow:formalLabel \"source wording\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source definition target"
+msgstr "来源定义目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Concept this block explicitly presents as defined in the source. A documentary definition does not automatically create a MathematicalDefinition or a formal equivalence."
+msgstr "此块在来源中明确表示为所定义对象的 Concept。文档定义不会自动创建 MathematicalDefinition 或形式等价关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defines|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:defines ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:defines ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source proof target"
+msgstr "来源证明目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact target for which this block presents a source-reported argument or proof. The target may be a documentary item or supplied mathematical statement; this link is not math:provesStatement and certifies no formal proof."
+msgstr "此块提供来源所报告论证或证明时针对的确切目标。目标可为文档条目或所提供的数学陈述；此链接不是 math:provesStatement，也不证明任何形式证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/proves|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:proves ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:proves ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "retained block surface"
+msgstr "保留的块表面形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual language SurfaceForm retained for this block, with its sign system, encoding and anchoring contracts. It preserves a supplied surface rather than inventing an analysis from a language name."
+msgstr "为此块保留的实际语言 SurfaceForm，具有其符号系统、编码和锚定约定。它保留已提供的表面形式，而不从语言名称虚构分析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockSurface|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:blockSurface ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:blockSurface ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied block rendering"
+msgstr "所提供的块呈现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit language Rendering whose form is retained by this block. Follow renderedContent to the actual supplied mathematical expression, statement, proof or other content; the block itself is not coerced into that content's sort."
+msgstr "其形式由此块保留的明确语言 Rendering。通过 renderedContent 到达实际提供的数学表达式、陈述、证明或其他内容；块本身不被强制归入该内容的类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blockRendering|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:record gmeow:blockRendering ex:target ."
+msgstr "保留此来源含义：ex:record gmeow:blockRendering ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "definition"
+msgstr "定义"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed unit introducing or fixing a term's meaning, without automatically asserting a formal equivalence."
+msgstr "引入或规定术语含义的印刷单元，不会自动断言形式等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindDefinition ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindDefinition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "theorem"
+msgstr "定理"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source labels as a theorem. Its mathematical status requires the separate theory and warrant structures."
+msgstr "来源标记为定理的单元。其数学状态需要独立的理论与依据结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindTheorem|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindTheorem ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindTheorem ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lemma"
+msgstr "引理"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source labels as an auxiliary result. The printed label alone establishes no derivation."
+msgstr "来源标记为辅助结果的单元。仅凭印刷标签不能确立推导。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindLemma|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindLemma ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindLemma ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "corollary"
+msgstr "推论"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit presented as following from another result, retaining that source classification without proving the dependency."
+msgstr "被呈现为源自另一结果的单元；保留该来源分类，而不证明依赖关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindCorollary|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindCorollary ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindCorollary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "proof"
+msgstr "证明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed argument or derivation the source presents as a proof. It is not thereby a checked math:Proof or a verification result."
+msgstr "来源呈现为证明的印刷论证或推导。它不会因此成为已核验的 math:Proof 或核验结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindProof|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindProof ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindProof ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "algorithm"
+msgstr "算法"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A printed procedure or pseudocode description. The source classification does not execute it or establish its correctness."
+msgstr "印刷过程或伪代码描述。来源分类不执行它，也不确立其正确性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindAlgorithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindAlgorithm ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindAlgorithm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "example"
+msgstr "示例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A worked or illustrative instance designated as an example by the source, rather than a universal law."
+msgstr "来源指定为示例的演算或说明性实例，而非普遍定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExample ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindExample ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exercise"
+msgstr "练习"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated task for the reader. Its presence does not assert an attempted or completed solution."
+msgstr "来源为读者指定的任务。其存在不断言已尝试或完成解答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindExercise|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExercise ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindExercise ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "solution"
+msgstr "解答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A unit the source presents as an answer to a task, without certifying correctness or inventing a missing task link."
+msgstr "来源呈现为任务答案的单元，不证明其正确性，也不虚构缺失的任务链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindSolution|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindSolution ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindSolution ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "note"
+msgstr "注记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-designated explanatory or supplementary formal note, distinct from a proof or theorem status."
+msgstr "来源指定的解释性或补充性形式注记，区别于证明或定理状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this explicit part of the source structure or apparatus with its original evidence."
+msgstr "用于保留来源结构或论述装置的此明确部分及其原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."
+msgstr "避免仅从文档版式或来源措辞推断执行、身份、形式真理或核验成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."
+msgstr "保留来源身份与确切陈述归属；明确未解析或缺失的信息，而不虚构默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/formalKindNote|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindNote ."
+msgstr "保留此来源含义：ex:block gmeow:formalKind gmeow:formalKindNote ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary cell table scope"
+msgstr "文档单元格表格范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A documentary cell belongs to a block explicitly classified as a table. The link does not classify either resource as a mathematical matrix."
+msgstr "文档单元格属于明确分类为表格的块。此链接不将任何一方分类为数学矩阵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellTableKindConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellTableKindConstraint logic:formalizes gmeow:cellOf ."
+msgstr "保留此支配定律：gmeow:TableCellTableKindConstraint logic:formalizes gmeow:cellOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary cell index origin"
+msgstr "文档单元格索引起点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied cell coordinate pair has its table's explicit index origin, and neither coordinate precedes that origin. The source indices are not silently rebased."
+msgstr "每个给出的单元格坐标对均具有其表格的明确索引起点，且任一坐标不早于该起点。不悄然改变来源索引的起点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellIndexOriginConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellIndexOriginConstraint logic:formalizes gmeow:cellOf ."
+msgstr "保留此支配定律：gmeow:TableCellIndexOriginConstraint logic:formalizes gmeow:cellOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "documentary table coordinate uniqueness"
+msgstr "文档表格坐标唯一性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Within one source table, a row and column pair identifies one documentary cell. The same coordinates in another table remain a different scope."
+msgstr "在同一来源表格内，一个行列对标识一个文档单元格。另一表格中的相同坐标保持属于不同范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TableCellCoordinateUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:TableCellCoordinateUniquenessConstraint logic:formalizes gmeow:cell ."
+msgstr "保留此支配定律：gmeow:TableCellCoordinateUniquenessConstraint logic:formalizes gmeow:cell ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "printed formal block kind presence"
+msgstr "印刷形式块种类存在性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A block classified as formal exposition retains at least one source-attributed printed formal kind. The vocabulary remains open and the kind establishes no theorem or proof status."
+msgstr "分类为形式论述的块保留至少一个来源归属的印刷形式种类。词汇保持开放，该种类不确立定理或证明状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FormalBlockKindPresentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:FormalBlockKindPresentConstraint logic:formalizes gmeow:formalKind ."
+msgstr "保留此支配定律：gmeow:FormalBlockKindPresentConstraint logic:formalizes gmeow:formalKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "equation source surface retention"
+msgstr "公式来源表面形式保留"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied equation-source string has a retained language surface carrying that exact text. Retention does not parse the string or certify mathematical meaning."
+msgstr "每个给出的公式来源字符串均具有承载该确切文本的保留语言表面形式。保留不解析字符串，也不证明数学意义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EquationSourceSurfaceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:EquationSourceSurfaceConstraint logic:formalizes gmeow:equationSource ."
+msgstr "保留此支配定律：gmeow:EquationSourceSurfaceConstraint logic:formalizes gmeow:equationSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "block rendering form retention"
+msgstr "块呈现形式保留"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied block rendering names its actual content and a form retained as a block surface. Content keeps its own sort; a documentary block is not converted into an expression, statement or proof."
+msgstr "每个给出的块呈现命名其实际内容及作为块表面形式保留的形式。内容保持自身类别；文档块不被转换为表达式、陈述或证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check intrinsic consistency of the supplied source inventory."
+msgstr "用于检查所给来源清单的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."
+msgstr "避免声称此义务执行生产器、解析器、证明检查器或表格呈现器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."
+msgstr "当所给结构违反义务时保留确切来源证据；绝不使用虚构默认值修复它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockRenderingSurfaceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this governing law: gmeow:BlockRenderingSurfaceConstraint logic:formalizes gmeow:blockRendering ."
+msgstr "保留此支配定律：gmeow:BlockRenderingSurfaceConstraint logic:formalizes gmeow:blockRendering ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reference apparatus"
+msgstr "参考文献论述装置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-preserving technical apparatus for reference-work blocks, documentary table cells and explicit language and mathematical renderings."
+msgstr "为参考作品块、文档表格单元格以及明确的语言和数学呈现保留来源的技术论述装置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|http://purl.org/dc/terms/title"
+msgid "GMEOW Reference Apparatus Module"
+msgstr "GMEOW 参考论述装置模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/reference-apparatus|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Katamari reference-work import and other attributed document consumers retaining source apparatus without fabricated parsing, execution or proof certification."
+msgstr "Katamari 参考作品导入及其他保留来源论述装置、而不虚构解析、执行或证明认证的有归属文档使用方。"
+
+# Structural-caption mapping instance owned by reference apparatus.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structural caption to schema description"
+msgstr "结构说明文字到 schema 描述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The schema profile retains a structural segment's caption as a description, with an explicit loss of its caption role rather than media-file classification."
+msgstr "schema 配置将结构片段的说明文字保留为描述，明确丢失其说明文字角色，而非将片段分类为媒体文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structural content caption must survive the schema profile."
+msgstr "用于结构内容说明文字必须在 schema 配置中保留的情况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid projecting a structural caption as evidence that its bearer is a MediaObject."
+msgstr "避免将结构说明文字投影为其承载者是 MediaObject 的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original GMEOW caption and its structural subject; disclose the role lost in the description view."
+msgstr "保留原始 GMEOW 说明文字及其结构主体；披露描述视图中丢失的角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSchemaStructuralCaption|http://www.w3.org/2004/02/skos/core#example"
+msgid "A structural caption remains documentary: ex:figure gmeow:caption \"A bridge plan.\"@en ."
+msgstr "结构说明文字保持文档性质：ex:figure gmeow:caption \"A bridge plan.\"@en ."
