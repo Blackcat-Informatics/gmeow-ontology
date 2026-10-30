@@ -631,7 +631,7 @@ msgstr "Les mots originaux d’une invite concrète présentée à un modèle."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:question gmeow:promptText \"What did you observe?\"@en ."
-msgstr "ex:question gmeow:promptText \"What did you observe?\"@en ."
+msgstr "La question demande ce qui a été observé : `ex:question gmeow:promptText \"What did you observe?\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Retain language and direction where supplied; a text rendering does not replace the exact-byte content digest."
@@ -687,7 +687,7 @@ msgstr "Les mots originaux d’une réponse conservée comme objet informationne
 
 msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
-msgstr "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+msgstr "La réponse indique que la vérification n’a pas été possible : `ex:answer gmeow:answerText \"I could not verify it.\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Text is attributed content, not an asserted triple or proof of what it says; preserve language and direction."

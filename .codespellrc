@@ -23,4 +23,7 @@ skip = Cargo.lock,fuzz/Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtu
 # atmost (the `at-most-one` choice-mode token, SHACL sh:maxCount analogue),
 # deriver (the JSON-Schema/SHACL projection deriver) and exemple (French for
 # "example" in a French translation-integrity test string in crates/docs/src/i18n.rs).
-ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,atleast,deriver,exemple
+# Exact ontology identifiers: CrossReference is the source cross-reference occurrence
+# class and mentionIn is its mention counterpart's containing-block property. Their
+# declared spellings are intentional; ordinary prose uses cross-reference and mention in.
+ignore-words-list = lod,derails,gmeow,nmo,gufo,nd,opne,ned,intoto,crate,ser,fpr,beng,fo,te,intensional,intensionally,intension,hendler,pease,vor,ans,notin,fof,ehr,sme,ore,lits,ot,covert,pres,falso,atmost,atleast,deriver,exemple,crossreference,mentionin

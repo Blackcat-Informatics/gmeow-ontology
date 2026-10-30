@@ -631,7 +631,7 @@ msgstr "提交给模型的具体提示的原始文字。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:question gmeow:promptText \"What did you observe?\"@en ."
-msgstr "ex:question gmeow:promptText \"What did you observe?\"@en ."
+msgstr "提问要求说明观察到了什么：`ex:question gmeow:promptText \"What did you observe?\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/promptText|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Retain language and direction where supplied; a text rendering does not replace the exact-byte content digest."
@@ -687,7 +687,7 @@ msgstr "作为信息对象保留的回答原始文字。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
-msgstr "ex:answer gmeow:answerText \"I could not verify it.\"@en ."
+msgstr "回答说明无法核实：`ex:answer gmeow:answerText \"I could not verify it.\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/answerText|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Text is attributed content, not an asserted triple or proof of what it says; preserve language and direction."

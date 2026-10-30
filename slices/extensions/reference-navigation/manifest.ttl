@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/reference-navigation>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-navigation> ;
+    gmeow:sliceTier gmeow:tierExtension ;
+    rdfs:label "reference navigation"@x-gmeow-english ;
+    skos:definition "Exact-source mentions, internal cross-reference occurrences, index wording and attributed segment prerequisites with local Unicode code-point coordinates."@x-gmeow-english ;
+    dcterms:title "GMEOW Reference Navigation Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Katamari reference-work import and other attributed source consumers retaining unresolved wording, exact local spans and source revision identities without fabricated resolution."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/documents>,
+        <https://blackcatinformatics.ca/gmeow/slices/evidence>,
+        <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/citations>,
+        <https://blackcatinformatics.ca/gmeow/slices/concepts>,
+        <https://blackcatinformatics.ca/gmeow/slices/lang>,
+        <https://blackcatinformatics.ca/gmeow/slices/entities>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/sources>,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
