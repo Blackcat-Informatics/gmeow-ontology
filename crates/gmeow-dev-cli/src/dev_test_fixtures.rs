@@ -15,6 +15,7 @@ use gmeow_errors::Diag;
 use purrdf::ContentDigest;
 use purrdf_lex::json::{self, Object, Value, record::ToJson as _};
 
+use crate::dev_common::encode_metadata_json;
 use crate::{TestFixtureMode, TestFixtureScope};
 
 mod bundle_artifacts;
@@ -763,7 +764,7 @@ fn prepare_fixture_selector_fields(
     for (name, value) in fields {
         object.insert(name.to_owned(), value);
     }
-    let bytes = encode_fixture_selector(&value)
+    let bytes = encode_metadata_json(&value)
         .map_err(|error| fail(format!("encode complete fixture selector: {error}")))?;
     let sha256 = ContentDigest::of(&bytes).to_hex();
     Ok(PreparedFixtureSelector {
@@ -796,22 +797,9 @@ impl PreparedFixtureSelector {
     }
 }
 
-/// Encode fixture metadata with recursively sorted keys, pretty JSON and one LF.
-fn encode_fixture_selector(value: &Value) -> std::io::Result<Vec<u8>> {
-    let mut value = value.clone();
-    json::record::sorted_last_wins(&mut value);
-    let mut resident = purrdf_lex::allocation::Resident;
-    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
-    let mut bytes = json::write_with_memory(&value, json::Format::PRETTY, &mut memory)
-        .map(String::into_bytes)
-        .map_err(std::io::Error::other)?;
-    bytes.push(b'\n');
-    Ok(bytes)
-}
-
 /// Publish fully encoded fixture metadata through the durable atomic writer.
 fn write_json_atomic(path: &Path, value: &Value) -> std::io::Result<()> {
-    write_bytes_atomic(path, &encode_fixture_selector(value)?)
+    write_bytes_atomic(path, &encode_metadata_json(value)?)
 }
 
 fn write_bytes_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {

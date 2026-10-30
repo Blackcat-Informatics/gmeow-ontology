@@ -3,6 +3,8 @@
 
 //! Observations of example validation, never cached verdicts or semantic inputs.
 
+mod json;
+
 use purrdf::ir::ViewStats;
 use purrdf::shapes::data_view::ShaclViewStats;
 use serde::{Deserialize, Serialize};
