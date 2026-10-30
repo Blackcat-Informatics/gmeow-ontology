@@ -1,0 +1,143 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/chat/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# The archive knows the remote author’s account but not its holder. Network and
+# room identifiers are source context, not a claim about that unknown identity.
+ex:network a gmeow:ChatTransport .
+ex:remoteAccount a gmeow:OnlineAccount .
+ex:readerA a gmeow:Agent .
+ex:readerB a gmeow:Agent .
+
+ex:room a gmeow:ChatRoom ;
+    gmeow:chatTransport ex:network ;
+    gmeow:chatRoomIdentifier " Studio-Room-7 " .
+
+ex:conversation a gmeow:Thread .
+ex:turn a gmeow:ChatTurn ;
+    gmeow:turnOfThread ex:conversation ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+
+ex:incoming a gmeow:ChatMessage ;
+    gmeow:chatTransport ex:network ;
+    gmeow:chatRoom ex:room ;
+    gmeow:chatTurn ex:turn ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:hasChatParticipant ex:incomingAuthor , ex:incomingRecipient ;
+    gmeow:hasBodyPart ex:receivedPart0 , ex:imagePart1 , ex:mirrorPart2 ;
+    gmeow:receivedAt "2026-10-29T10:00:01Z"^^xsd:dateTime ;
+    gmeow:recordedAt "2026-10-29"^^xsd:date .
+
+ex:incomingAuthor a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:incoming ;
+    gmeow:chatParticipantAccount ex:remoteAccount ;
+    gmeow:chatParticipantRole gmeow:chatRoleAuthor ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+
+ex:incomingRecipient a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:incoming ;
+    gmeow:chatParticipantAgent ex:readerA ;
+    gmeow:chatParticipantRole gmeow:chatRoleRecipient ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+
+# Reader A retained the first received payload without being able to parse it.
+# Its original bytes remain at the archive location; its digest names that
+# content, rather than a replacement error report. Identities are illustrative.
+ex:receivedPart0 a gmeow:UnreadableChatPart ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "sha256:4444444444444444444444444444444444444444444444444444444444444444" ;
+    gmeow:sourceLocation "https://example.org/archive/received-part-0" ;
+    gmeow:chatPartReader ex:readerA .
+
+ex:imagePart1 a gmeow:ChatMessagePart ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:partMedia ex:deliveryImage .
+
+ex:pictureWork a gmeow:Work .
+ex:pictureExpression a gmeow:Expression ;
+    gmeow:realizes ex:pictureWork .
+
+ex:deliveryImage a gmeow:MediaObject ;
+    gmeow:embodies ex:pictureExpression ;
+    gmeow:chatTransport ex:network ;
+    gmeow:contentDigest "sha256:5555555555555555555555555555555555555555555555555555555555555555" ;
+    gmeow:sourceMedia ex:sourceImageBytes ;
+    gmeow:hasTag gmeow:tagContainsIllustrativeText .
+
+ex:sourceImageBytes a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:6666666666666666666666666666666666666666666666666666666666666666" .
+
+# Reader A found the accompanying sender text inconsistent with the typed image
+# part. Both originals survive. The classification does not rewrite either one.
+ex:mirrorPart2 a gmeow:DisagreeingChatText ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "sha256:7777777777777777777777777777777777777777777777777777777777777777" ;
+    gmeow:sourceLocation "https://example.org/archive/sender-text-2" ;
+    gmeow:chatPartReader ex:readerA ;
+    gmeow:disagreesWithPart ex:imagePart1 .
+
+# Reader B later interpreted the same first-part bytes successfully. That output
+# belongs to the reader’s activity; it does not replace the source conversation.
+ex:readerBActivity a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:readerB .
+
+ex:readerBInterpretation a gmeow:InformationObject ;
+    gmeow:wasGeneratedBy ex:readerBActivity ;
+    gmeow:wasDerivedFrom ex:receivedPart0 .
+
+# Reader A produces an auxiliary message and then a terminal reply in the same
+# source turn. The terminal message is refused by its sender guard and retained.
+ex:auxiliary a gmeow:ChatMessage ;
+    gmeow:chatTransport ex:network ;
+    gmeow:chatRoom ex:room ;
+    gmeow:chatTurn ex:turn ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:hasChatParticipant ex:auxiliaryAuthor , ex:auxiliaryRecipient ;
+    gmeow:hasBodyPart ex:auxiliaryPart ;
+    gmeow:outputRole gmeow:outputRoleAuxiliary ;
+    gmeow:contentOrigin gmeow:originComposed , gmeow:originGenerated .
+
+ex:auxiliaryAuthor a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:auxiliary ;
+    gmeow:chatParticipantAgent ex:readerA ;
+    gmeow:chatParticipantRole gmeow:chatRoleAuthor .
+
+ex:auxiliaryRecipient a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:auxiliary ;
+    gmeow:chatParticipantAccount ex:remoteAccount ;
+    gmeow:chatParticipantRole gmeow:chatRoleRecipient .
+
+ex:auxiliaryPart a gmeow:ChatMessagePart ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "sha256:8888888888888888888888888888888888888888888888888888888888888888" ;
+    gmeow:sourceLocation "https://example.org/archive/auxiliary-body" .
+
+ex:terminal a gmeow:ChatMessage ;
+    gmeow:chatTransport ex:network ;
+    gmeow:chatRoom ex:room ;
+    gmeow:chatTurn ex:turn ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:hasChatParticipant ex:terminalAuthor , ex:terminalRecipient ;
+    gmeow:hasBodyPart ex:terminalPart ;
+    gmeow:outputRole gmeow:outputRoleTerminalReply ;
+    gmeow:inReplyTo ex:incoming ;
+    gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ;
+    gmeow:contentOrigin gmeow:originComposed .
+
+ex:terminalAuthor a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:terminal ;
+    gmeow:chatParticipantAgent ex:readerA ;
+    gmeow:chatParticipantRole gmeow:chatRoleAuthor .
+
+ex:terminalRecipient a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:terminal ;
+    gmeow:chatParticipantAccount ex:remoteAccount ;
+    gmeow:chatParticipantRole gmeow:chatRoleRecipient .
+
+ex:terminalPart a gmeow:ChatMessagePart ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:contentDigest "sha256:9999999999999999999999999999999999999999999999999999999999999999" ;
+    gmeow:sourceLocation "https://example.org/archive/terminal-body" .

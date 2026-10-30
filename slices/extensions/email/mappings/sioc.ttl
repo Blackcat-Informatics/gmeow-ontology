@@ -6,13 +6,9 @@
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sioc:  <http://rdfs.org/sioc/ns#> .
 
-# Projection mappings: GMEOW → SIOC (PROV activity alignment phase 3). Email is the original
-# online-community content GMEOW models — a message is a sioc:Post, a thread is
-# a sioc:Container, threading and authorship flatten to SIOC's reply/creator
-# edges. The former forum/blog/ActivityPub partiality is now RESOLVED (MoveAction projection):
-# gmeow:FeedPosting (documents) carries social/blog/microblog posts as
-# sioc:Post, with shares as sioc:links_to — see the syndicated-postings block
-# at the foot of this file.
+# Email and syndicated-posting projections to SIOC. Thread and direct-reply
+# projections are owned by the shared messaging slice. Email-specific authorship
+# resolves a From address to its contact-point holder rather than its string.
 
 gmeow:mapSiocPost a gmeow:ProjectionMapping ;
     rdfs:label "EmailMessage → sioc:Post"@x-gmeow-english ;
@@ -24,41 +20,8 @@ gmeow:mapSiocPost a gmeow:ProjectionMapping ;
         gmeow:profile "sioc" ; gmeow:toClass sioc:Post ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "RFC 5322 header structure (cc/bcc, address vs agent) flattens to SIOC's post model" ] .
 
-gmeow:mapSiocContainer a gmeow:ProjectionMapping ;
-    rdfs:label "Thread → sioc:Container"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "sthread" ;
-        gmeow:atom ( [ gmeow:subjectVar "sthread" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Thread ] ) ;
-        gmeow:edoalSource gmeow:Thread ; gmeow:edoalSourceKind "class" ] ;
-    gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toClass sioc:Thread ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
-        gmeow:templateAtoms (
-            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Thread ]
-            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Container ] ) ] .
 
-gmeow:mapSiocHasContainer a gmeow:ProjectionMapping ;
-    rdfs:label "partOfThread → sioc:has_container"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "scmsg" ; gmeow:value "scthread" ;
-        gmeow:atom ( [ gmeow:subjectVar "scmsg" ; gmeow:predicate gmeow:partOfThread ; gmeow:objectVar "scthread" ] ) ;
-        gmeow:edoalSource gmeow:partOfThread ] ;
-    gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_container ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
-        gmeow:templateAtoms (
-            [ gmeow:tSubj "scmsg" ; gmeow:tPred sioc:has_container ; gmeow:tObj "scthread" ]
-            [ gmeow:tSubj "scthread" ; gmeow:tPred sioc:container_of ; gmeow:tObj "scmsg" ] ) ] .
 
-gmeow:mapSiocReplyOf a gmeow:ProjectionMapping ;
-    rdfs:label "inReplyTo → sioc:reply_of"@x-gmeow-english ;
-    gmeow:hasMappingPattern [
-        gmeow:anchor "srmsg" ; gmeow:value "sparent" ;
-        gmeow:atom ( [ gmeow:subjectVar "srmsg" ; gmeow:predicate gmeow:inReplyTo ; gmeow:objectVar "sparent" ] ) ;
-        gmeow:edoalSource gmeow:inReplyTo ] ;
-    gmeow:hasBinding [
-        gmeow:profile "sioc" ; gmeow:toPredicate sioc:reply_of ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ;
-        gmeow:templateAtoms (
-            [ gmeow:tSubj "srmsg" ; gmeow:tPred sioc:reply_of ; gmeow:tObj "sparent" ]
-            [ gmeow:tSubj "sparent" ; gmeow:tPred sioc:has_reply ; gmeow:tObj "srmsg" ] ) ] .
 
 # Authorship: the From ADDRESS resolves to the agent holding it as a contact
 # point — SIOC's creator is the agent, never the mailbox string.
@@ -89,7 +52,7 @@ gmeow:mapSiocUserAccount a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "sacct" ; gmeow:tPred sioc:account_of ; gmeow:tObj "sagent" ] ) ] .
 
 
-# --- PROV activity alignment backlog audit: topic/name/link have real sources after all. ------ #
+# Topic, display name and source-location projections.
 
 # NOT mnemomorphic: the source pattern uses `stMsg a gmeow:EmailMessage` as a
 # selection GUARD, but sioc:topic carries no email-hood — a bare sioc:topic edge
@@ -125,11 +88,8 @@ gmeow:mapSiocLink a gmeow:ProjectionMapping ;
     gmeow:hasBinding [ gmeow:profile "sioc" ; gmeow:toPredicate sioc:link ; gmeow:relation "<=" ; gmeow:confidence 0.85 ] .
 
 # --------------------------------------------------------------------------- #
-# Syndicated postings (MoveAction projection) — the consumer the partial above was waiting on.
-# A gmeow:FeedPosting (documents slice) is online-community content too: a
-# social/blog/microblog post IS a sioc:Post, and a share/repost is sioc:links_to.
-# This RESOLVES the declared SIOC partiality (email is no longer the only
-# consumer).
+# Syndicated postings are online-community content: a FeedPosting projects to
+# sioc:Post, and a share or repost retains its shared-content link.
 # --------------------------------------------------------------------------- #
 
 gmeow:mapSiocFeedPost a gmeow:ProjectionMapping ;

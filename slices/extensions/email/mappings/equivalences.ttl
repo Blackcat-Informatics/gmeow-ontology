@@ -36,23 +36,8 @@ gmeow:EmailMessage skos:closeMatch sioc:Post {|
     gmeow:confidence 0.7
 |} .
 
-gmeow:Message skos:closeMatch schema:Message {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9
-|} .
 
-gmeow:Message skos:closeMatch nmo:Message {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9
-|} .
 
-gmeow:Thread skos:closeMatch sioc:Thread {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8
-|} .
 
 gmeow:Mailbox skos:closeMatch nmo:Mailbox {|
     gmeow:sssomFile "gmeow-email.sssom.tsv" ;
@@ -114,29 +99,9 @@ gmeow:replyTo skos:closeMatch nmo:replyTo {|
     gmeow:confidence 0.9
 |} .
 
-gmeow:sentAt skos:closeMatch schema:dateSent {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95
-|} .
 
-gmeow:sentAt skos:closeMatch nmo:sentDate {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95
-|} .
 
-gmeow:receivedAt skos:closeMatch schema:dateReceived {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95
-|} .
 
-gmeow:receivedAt skos:closeMatch nmo:receivedDate {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95
-|} .
 
 gmeow:subject skos:closeMatch nmo:messageSubject {|
     gmeow:sssomFile "gmeow-email.sssom.tsv" ;
@@ -150,11 +115,6 @@ gmeow:rfcMessageId skos:closeMatch nmo:messageId {|
     gmeow:confidence 0.95
 |} .
 
-gmeow:inReplyTo skos:closeMatch nmo:inReplyTo {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.95
-|} .
 
 gmeow:references skos:closeMatch nmo:references {|
     gmeow:sssomFile "gmeow-email.sssom.tsv" ;
@@ -250,12 +210,6 @@ gmeow:displayName skos:closeMatch schema:name {|
     gmeow:comment "GMEOW scopes displayName to the MessageParticipant occurrence; schema:name is broader (Thing/ContactPoint/Person)"
 |} .
 
-gmeow:Thread skos:closeMatch sioc:Container {|
-    gmeow:sssomFile "gmeow-email.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.8 ;
-    gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion (PROV activity alignment phase 3 — declares the sioc projection's Container typing row)"
-|} .
 
 # Term equivalences (authored in-slice; source of alignment linkage).
 
