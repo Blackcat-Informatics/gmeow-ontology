@@ -68,8 +68,10 @@ Model outputs and signals are **attributed evidence, never inner-state truth**. 
 classifier output is "this model, at this revision, over this span, emitted this
 label with this score under this label set" — never "the user is joyful".
 
-- `gmeow:ModelInferenceRun` — one classifier execution (PROV-O-aligned) with full
-  run provenance and a **mandatory pinned** `modelRevision`.
+- `gmeow:ModelInferenceRun` — the enduring record of one classifier execution,
+  owned by the AI slice, with full provenance and a **mandatory pinned**
+  `modelRevision`. The record is the model-output vantage; the execution activity
+  is a separate occurrent.
 - `gmeow:AffectClassifierOutput` — one emitted output (label + raw score +
   `scoreSemantics` + threshold), `producedBy` a run, over a `classifiedTarget`. It
   `supportsAffectiveClaim` — evidence, never entailment.
@@ -85,9 +87,16 @@ label with this score under this label set" — never "the user is joyful".
 - `gmeow:AffectTelemetryStream` — high-frequency evidence held by-reference
   (`telemetryBlob`, a digest + origin), never a per-frame triple storm.
 
-A raw sigmoid/softmax `classifierScore` is `logic:evidenceStrength`/probability, and
-only a **calibrated** probability (declared `scoreCalibration`) may be read as
-confidence — `logic:confidence ≠ probability` without a declared mapping.
+A raw `classifierScore` retains its declared `scoreSemantics`. A probability,
+including one calibrated under `scoreCalibration`, does not automatically supply
+`logic:confidence` or provenance-derived `logic:evidenceStrength`. An explicit,
+separately justified mapping is required. Logits and margins have no universal
+unit-interval bounds.
+
+`AffectClassifierOutput`, `AffectClassifierLabel`, and `AffectLabelSet` specialize
+the AI slice’s general classifier classes. Their affect-only label ranges,
+inner-affect prohibitions, reviewed emotion mappings, and claim boundary remain
+local. See [the general classifier contract](../ai/design/CLASSIFIER-EVIDENCE.md).
 
 The label prefixes are registered in **both** the Rust (`prefixes.rs`) and Python
 (`config.py`) prefix registries, kept byte-parallel.
@@ -117,8 +126,11 @@ after review (the overclaim gate reds an unearned equivalence). Authored in
   bridges to teleology's `gmeow:Desire`; SST-2 / CardiffNLP sentiment labels
   `relatedMatch` the valence axis (positive sentiment is not joy); `neutral` has
   no canonical mapping.
-- **PROV-O** — `ModelInferenceRun`→`prov:Activity`, output→`prov:Entity`,
-  `producedBy`→`prov:wasGeneratedBy`, `usedInput`→`prov:used`.
+- **PROV-O** — affect outputs retain the enduring-entity correspondence.
+  `ModelInferenceRun` is an information record, so its record identity and
+  record-owned properties do not substitute activity sorts or activity-domain
+  properties. A real activity
+  may generate a record through the existing `wasGeneratedBy` foundation.
 - **Web Annotation** — evidence spans (`classifiedTarget`→`oa:hasTarget`,
   `AffectiveExpression`→`oa:Annotation`, `relatedMatch`).
 - **MFOEM** (Emotion Ontology, BFO lineage, linkage-only) — `Emotion` and the

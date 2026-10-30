@@ -77,14 +77,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Asserts on the canonical carrier that gmeow:intensityBasis is functional: a derived intensity is the norm OF exactly one vector observation — the single declared basis it is computed from — so it cannot be the norm of two vectors at once without ceasing to be one intensity."
 msgstr "Affirme sur le porteur canonique que gmeow:intensityBasis est fonctionnelle : une intensité dérivée est la norme d'exactement une observation vectorielle — la base déclarée unique à partir de laquelle elle est calculée — de sorte qu'elle ne peut être la norme de deux vecteurs à la fois sans cesser d'être une seule intensité."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "labelSetDecision is functional"
-msgstr "labelSetDecision est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:labelSetDecision est fonctionnelle : un ensemble d'étiquettes enregistré porte exactement une structure de décision — argmax-exclusive ou à seuil indépendant — car un ensemble qui serait à la fois mono-étiquette et multi-étiquette rendrait indécidable son exclusivité, et donc la question de savoir si le franchissement d'une seconde étiquette constitue une violation. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "metricGram is functional"
 msgstr "metricGram est fonctionnelle"
@@ -101,22 +93,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Asserts on the canonical carrier that gmeow:metricProfile is functional: a derived intensity is computed under exactly one declared scale-normalization profile for the whole vector, so a second metric profile would leave the normalization of that one intensity ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "Affirme sur le porteur canonique que gmeow:metricProfile est fonctionnelle : une intensité dérivée est calculée sous exactement un profil de normalisation d'échelle déclaré pour l'ensemble du vecteur, de sorte qu'un second profil métrique laisserait ambiguë la normalisation de cette intensité. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelIdentifier is functional"
-msgstr "modelIdentifier est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."
-msgstr "Affirme sur le porteur canonique que gmeow:modelIdentifier est fonctionnelle : une exécution d'inférence exécute exactement un identifiant de dépôt de modèle figé, de sorte qu'une exécution nommant deux identifiants de modèle n'identifierait pas une exécution reproductible unique."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelRevision is functional"
-msgstr "modelRevision est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."
-msgstr "Affirme sur le porteur canonique que gmeow:modelRevision est fonctionnelle : une exécution fixe exactement une révision/commit de modèle — la coordonnée la plus sujette à dérive de son identité reproductible — de sorte que deux révisions sur une même exécution désigneraient deux modèles différents plutôt qu'une seule exécution."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "normFunction is functional"
 msgstr "normFunction est fonctionnelle"
@@ -124,14 +100,6 @@ msgstr "normFunction est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:normFunction is functional: a derived intensity is computed under exactly one declared math:Norm — a single Gram-induced ‖x‖=√(xᵀGx) — so two norms on one intensity would yield two incompatible magnitudes for the same reading. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "Affirme sur le porteur canonique que gmeow:normFunction est fonctionnelle : une intensité dérivée est calculée sous exactement une math:Norm déclarée — une unique ‖x‖=√(xᵀGx) induite par Gram — de sorte que deux normes sur une même intensité produiraient deux magnitudes incompatibles pour la même lecture. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "producedBy is functional"
-msgstr "producedBy est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is generated by exactly one inference run — its single provenance source (prov:wasGeneratedBy) — so it cannot be attributed to two producing runs."
-msgstr "Affirme sur le porteur canonique que gmeow:producedBy est fonctionnelle : une sortie de classificateur est générée par exactement une exécution d'inférence — son unique source de provenance (prov:wasGeneratedBy) — de sorte qu'elle ne peut être attribuée à deux exécutions productrices."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "profileMidpoint is functional"
@@ -180,14 +148,6 @@ msgstr "prototypeFor est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/gmeow/prototypeForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:prototypeFor is functional: a gmeow:AffectPrototype names exactly one gmeow:EmotionType — the single emotion it is the typical signature of — since a prototype's identity is carried by that one type link, not by a stored classification verdict."
 msgstr "Affirme sur le porteur canonique que gmeow:prototypeFor est fonctionnelle : un gmeow:AffectPrototype désigne exactement un gmeow:EmotionType — la seule émotion dont il constitue la signature typique — puisque l'identité d'un prototype est portée par ce seul lien de type, et non par un verdict de classification stocké."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "scoreSemantics is functional"
-msgstr "scoreSemantics est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."
-msgstr "Affirme sur le porteur canonique que gmeow:scoreSemantics est fonctionnelle : un score de classifieur possède exactement une signification déclarée — sigmoïde, probabilité softmax, probabilité calibrée, logit ou marge — car un même nombre ne peut être deux de ces choses à la fois sans devenir ininterprétable."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sparseAxisCompletion is functional"
@@ -341,22 +301,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 msgstr "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:labelSetDecision nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-msgstr "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:metricGram names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:metricGram nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
@@ -389,38 +333,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 msgstr "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:modelIdentifier nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-msgstr "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:modelRevision nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-msgstr "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:normFunction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:normFunction nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
@@ -436,22 +348,6 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
 msgstr "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:producedBy nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
-msgstr "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:profileMidpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -532,22 +428,6 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes g
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
 msgstr "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:scoreSemantics nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
-msgstr "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:sparseAxisCompletion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -645,10 +525,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Scope: this record carries ONE integrity obligation about gmeow:intensityBasis and nothing else. It is not a definition of gmeow:intensityBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:intensityBasis, et rien d'autre. Ce n'est pas une définition de gmeow:intensityBasis (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:labelSetDecision, et rien d'autre. Ce n'est pas une définition de gmeow:labelSetDecision (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricGram and nothing else. It is not a definition of gmeow:metricGram (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:metricGram, et rien d'autre. Ce n'est pas une définition de gmeow:metricGram (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
@@ -657,21 +533,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricProfile and nothing else. It is not a definition of gmeow:metricProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:metricProfile, et rien d'autre. Ce n'est pas une définition de gmeow:metricProfile (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:modelIdentifier, et rien d'autre. Ce n'est pas une définition de gmeow:modelIdentifier (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:modelRevision, et rien d'autre. Ce n'est pas une définition de gmeow:modelRevision (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:normFunction and nothing else. It is not a definition of gmeow:normFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:normFunction, et rien d'autre. Ce n'est pas une définition de gmeow:normFunction (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:producedBy, et rien d'autre. Ce n'est pas une définition de gmeow:producedBy (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileMidpoint and nothing else. It is not a definition of gmeow:profileMidpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -692,10 +556,6 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileTransform and nothing else. It is not a definition of gmeow:profileTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:profileTransform, et rien d'autre. Ce n'est pas une définition de gmeow:profileTransform (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:scoreSemantics, et rien d'autre. Ce n'est pas une définition de gmeow:scoreSemantics (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:sparseAxisCompletion and nothing else. It is not a definition of gmeow:sparseAxisCompletion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -768,3 +628,26 @@ msgstr "Attribuer le sentiment par une Emotion ou un ArcSample et enregistrer s�
 msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."
 msgstr "À employer pour le moment émotionnel où l’on se reprend dans une expérience enregistrée ou une lecture narrative."
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Label"
+msgstr "Étiquette de classifieur affectif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact affect-classifier label identity specializing ClassifierLabel. It belongs to an AffectLabelSet and remains distinct from EmotionType; reviewed affect correspondences never replace the original identity."
+msgstr "Une identité exacte d’étiquette de classifieur affectif spécialisée depuis ClassifierLabel. Elle appartient à un AffectLabelSet et reste distincte d’EmotionType ; les correspondances affectives révisées ne remplacent jamais son identité originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Output"
+msgstr "Sortie de classifieur affectif"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-specialized ClassifierOutput whose emitted label is an AffectClassifierLabel. It inherits the general run, target, score and semantics contract and may support an AffectiveClaim. It never directly entails inner affect; calibrated probability is not automatically epistemic confidence."
+msgstr "Une ClassifierOutput spécialisée dans l’affect dont l’étiquette émise est une AffectClassifierLabel. Elle hérite du contrat général d’exécution, de cible, de score et de sémantique et peut soutenir une AffectiveClaim. Elle n’implique jamais directement un affect intérieur ; une probabilité étalonnée n’est pas automatiquement une confiance épistémique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Label Set"
+msgstr "Ensemble d’étiquettes affectives"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-classifier label vocabulary specializing ClassifierLabelSet. A registered static set used by the affect producer declares labelSetDecision; a run-scoped zero-shot candidate set may legitimately lack that rule. Neither form defines canonical emotion categories."
+msgstr "Un vocabulaire d’étiquettes de classifieur affectif spécialisé depuis ClassifierLabelSet. Un ensemble statique enregistré utilisé par le producteur affectif déclare labelSetDecision ; un ensemble de candidats sans exemple propre à une exécution peut légitimement ne pas porter cette règle. Aucune forme ne définit les catégories canoniques d’émotion."

@@ -704,3 +704,520 @@ msgstr "保留 hasPrompt、usedModel 以及输出的 wasGeneratedBy/wasAttribute
 msgctxt "https://blackcatinformatics.ca/gmeow/answerText|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when preserving what was asked and answered without treating generated words as established facts."
 msgstr "用于保留所问与所答，同时不将生成文字视为已确立事实时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "labelSetDecision is functional"
+msgstr "labelSetDecision 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "在规范载体上断言 gmeow:labelSetDecision 是函数式的:一个已注册的标签集恰好携带一种决策结构——argmax 互斥式或独立阈值式——因为一个同时既是单标签又是多标签的集合,会使其互斥性、进而使第二个标签越界是否构成违规都变得不可判定。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modelIdentifier is functional"
+msgstr "modelIdentifier 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."
+msgstr "在规范载体上断言 gmeow:modelIdentifier 是函数式的:一次推理运行恰好执行一个被锁定的模型仓库标识,因此一次运行若指名两个模型标识,就无法标识出单一的可复现执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "modelRevision is functional"
+msgstr "modelRevision 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."
+msgstr "在规范载体上断言 gmeow:modelRevision 是函数式的:一次运行恰好锁定一个模型修订版本/提交——这是其可复现身份中最易漂移的坐标——因此同一次运行上的两个修订版本将指向两个不同的模型,而不是一次执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "producedBy is functional"
+msgstr "producedBy 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scoreSemantics is functional"
+msgstr "scoreSemantics 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."
+msgstr "在规范载体上断言 gmeow:scoreSemantics 是函数性的:一个分类器分数恰好具有一种声明的含义——sigmoid、softmax 概率、校准概率、logit 或间隔(margin)——因为同一个数字若同时是其中两种,就会变得无法解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:labelSetDecision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
+msgstr "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:modelIdentifier 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
+msgstr "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:modelRevision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
+msgstr "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:producedBy 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
+msgstr "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
+msgstr "当原生一致性门必须强制 gmeow:scoreSemantics 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
+msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
+msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
+msgstr "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:labelSetDecision 的一项完整性义务，别无其他。它不是 gmeow:labelSetDecision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:modelIdentifier 的一项完整性义务，别无其他。它不是 gmeow:modelIdentifier 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:modelRevision 的一项完整性义务，别无其他。它不是 gmeow:modelRevision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:producedBy 的一项完整性义务，别无其他。它不是 gmeow:producedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
+msgstr "范围：该记录仅承载关于 gmeow:scoreSemantics 的一项完整性义务，别无其他。它不是 gmeow:scoreSemantics 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier Label"
+msgstr "分类器标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact external label identity in a classifier label set. This information artifact is distinct from a canonical category; identical words in different registries or run-scoped candidate sets do not identify the same label."
+msgstr "分类器标签集中的确切外部标签标识。此信息制品有别于规范类别；不同注册表或不同运行范围候选集中的相同词语并不标识同一标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier Output"
+msgstr "分类器输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One attributed classifier result for one target and exact emitted label, retaining its raw decimal score, declared score semantics and producing ModelInferenceRun record. Model evidence does not entail membership in a canonical domain category."
+msgstr "针对一个目标和一个确切输出标签的归属明确的分类器结果，保留原始十进制分数、声明的分数语义及产生结果的 ModelInferenceRun 记录。模型证据不蕴含规范领域类别成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier Label Set"
+msgstr "分类器标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An identified external label vocabulary, either a static registry or a run-scoped zero-shot candidate set. Members are ClassifierLabel artifacts, not canonical domain categories. Static registries used by the affect producer require a reviewed decision rule; run-scoped candidate sets may legitimately lack one."
+msgstr "具有标识的外部标签词表，可以是静态注册表或运行范围的零样本候选集。成员是 ClassifierLabel 制品，而非规范领域类别。情感生产器使用的静态注册表需要经审查的决策规则；运行范围候选集可合法地缺少该规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Inference Run"
+msgstr "模型推理运行记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The enduring provenance record of one classifier execution, not the execution activity. It pins the model identifier and exact revision and captures task, framework, tokenizer and label-set revisions, inputs and hypothesis template. It may serve as an Observation vantage. A real generating Activity is distinct and may generate the record through wasGeneratedBy; producedBy points to the record."
+msgstr "一次分类器执行的持久来源记录，而非执行活动本身。它固定模型标识和确切版本，并捕获任务、框架、分词器与标签集版本、输入及假设模板。它可充当 Observation 的观察立场。真实的生成 Activity 与其区分，可通过 wasGeneratedBy 生成记录；producedBy 指向记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Score Semantics"
+msgstr "分数语义"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScoreSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary declaring the interpretation of a raw classifier score. Calibration and probability do not by themselves establish epistemic confidence or provenance-derived evidence strength; each requires a separately justified mapping."
+msgstr "声明分类器原始分数解释的开放词表。校准与概率本身不确立认知置信度或来源推导的证据强度；各自都需要单独论证的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Label Set Decision Rule"
+msgstr "标签集决策规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelSetDecisionRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of declared score-to-decision policies over a label set. Argmax and independent thresholding are distinct policies, coupled to compatible score semantics through impliesLabelSetDecision."
+msgstr "标签集上声明的分数到决策策略的开放词表。最大值选择与独立阈值是不同策略，通过 impliesLabelSetDecision 连接兼容的分数语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/classifiedTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "classified target"
+msgstr "分类目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/classifiedTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The target classified by this output, bridged to observedFeature. The target may be a document, span, media segment or other feature of interest."
+msgstr "此输出分类的目标，桥接到 observedFeature。目标可以是文档、文本片段、媒体片段或其他关注对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/classifierScore|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "classifier score"
+msgstr "分类器分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/classifierScore|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact raw decimal score emitted for this label, interpreted only under scoreSemantics. No universal unit interval, probability, confidence or evidential-warrant interpretation is inferred."
+msgstr "为此标签输出的确切原始十进制分数，仅按 scoreSemantics 解释。不推断通用单位区间、概率、置信度或证据论据含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emittedLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "emitted label"
+msgstr "输出标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/emittedLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact ClassifierLabel artifact emitted by this output. Identity and label-set membership survive any reviewed mapping to a canonical category."
+msgstr "此输出产生的确切 ClassifierLabel 制品。经审查映射到规范类别后，仍保留其标识及标签集成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "label-set revision"
+msgstr "标签集版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The pinned label-set revision of this execution record. For zero-shot inference it identifies the exact candidate inventory as part of run identity."
+msgstr "此执行记录固定的标签集版本。对零样本推理，它将确切候选清单标识为运行标识的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisTemplate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hypothesis template"
+msgstr "假设模板"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hypothesisTemplate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact natural-language template instantiated with each zero-shot candidate label. The literal carrier preserves the template itself; changing it changes the execution context."
+msgstr "用每个零样本候选标签实例化的确切自然语言模板。字面量载体保留模板本身；改变模板会改变执行上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memberOfLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "member of label set"
+msgstr "所属标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/memberOfLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Registers an exact label identity in its ClassifierLabelSet. Membership also applies to run-scoped candidates and does not imply a static registry or reviewed decision rule."
+msgstr "将确切标签标识登记到其 ClassifierLabelSet。成员关系也适用于运行范围候选项，不蕴含静态注册表或经审查的决策规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model framework"
+msgstr "模型框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The execution framework captured in the run record, such as transformers or onnxruntime."
+msgstr "运行记录捕获的执行框架，例如 transformers 或 onnxruntime。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model identifier"
+msgstr "模型标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact model repository or artifact identifier pinned by the execution record, paired with modelRevision."
+msgstr "执行记录固定的确切模型仓库或制品标识，与 modelRevision 配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model revision"
+msgstr "模型版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact immutable model revision used for this execution. A mutable model name alone cannot satisfy the pinned revision requirement."
+msgstr "此次执行使用的确切不可变模型版本。仅有可变模型名称不能满足固定版本要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model task"
+msgstr "模型任务"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "produced by"
+msgstr "产生记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single ModelInferenceRun record attributing this output. It points to an enduring record, not an Activity; it is not a wasGeneratedBy specialization."
+msgstr "为此输出提供归属的唯一 ModelInferenceRun 记录。它指向持久记录，而非 Activity；不是 wasGeneratedBy 的特化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "score calibration"
+msgstr "分数校准"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."
+msgstr "分数的声明校准配置，校准概率语义必须具备。仅有校准绝不将概率转为认知置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "score semantics"
+msgstr "分数语义"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single declared interpretation of classifierScore from the open ScoreSemantics vocabulary. A bare uninterpreted number is incomplete evidence."
+msgstr "从开放 ScoreSemantics 词表选择的 classifierScore 唯一声明解释。没有解释的裸数字是不完整证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdApplied|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "threshold applied"
+msgstr "应用阈值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/thresholdApplied|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The threshold actually applied to this output label. No universal threshold or requirement to threshold every classifier is implied."
+msgstr "实际应用于此输出标签的阈值。不蕴含通用阈值，也不要求每个分类器都使用阈值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tokenizer revision"
+msgstr "分词器版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact tokenizer revision captured in this execution record; changing it may change scores independently of the model revision."
+msgstr "此执行记录捕获的确切分词器版本；改变它可独立于模型版本而改变分数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedInput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "used input"
+msgstr "使用的输入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/usedInput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An input recorded as consumed by the classifier execution. The subject is the execution record, not an Activity."
+msgstr "记录为被分类器执行所使用的输入。主体是执行记录，而非 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "label set decision"
+msgstr "标签集决策"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared decision policy of a label set. Static registries used by the affect producer require one; run-scoped zero-shot candidates need not carry one. Where supplied it must agree with score semantics."
+msgstr "标签集声明的决策策略。情感生产器使用的静态注册表必须提供；运行范围零样本候选集无需提供。如提供，必须与分数语义一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "implies label set decision"
+msgstr "蕴含标签集决策"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/impliesLabelSetDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The compatibility commitment from score semantics to decision policy: softmax to argmax, sigmoid to independent thresholding. Logit, margin and per-hypothesis entailment carry none."
+msgstr "从分数语义到决策策略的兼容承诺：softmax 对应最大值选择，sigmoid 对应独立阈值。logit 值、间隔和逐假设蕴含不带此承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/runLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "run label set"
+msgstr "运行标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/runLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit label set used by this execution record. When supplied, its outputs must emit labels belonging to that set. Existing records may capture membership through emitted labels and labelSetRevision instead. This edge implies no static decision rule."
+msgstr "此执行记录使用的显式标签集。如提供，其输出标签必须属于此集合。现有记录可通过输出标签和 labelSetRevision 捕获成员关系。此边不蕴含静态决策规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "calibrated probability"
+msgstr "校准概率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibratedProbability|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model probability under a declared calibration profile. Calibration alone authorizes neither epistemic confidence nor provenance-derived evidence strength."
+msgstr "采用声明校准配置的模型概率。仅有校准不授权认知置信度或来源推导的证据强度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreLogit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logit"
+msgstr "logit 值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreLogit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A raw pre-activation logit, potentially outside the unit interval and not a probability."
+msgstr "激活前的原始logit 值，可能超出单位区间，并非概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreMargin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "margin"
+msgstr "间隔"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreMargin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A decision margin, such as a signed classifier distance, not a probability."
+msgstr "决策间隔，例如带符号的分类器距离，并非概率。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSigmoid|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sigmoid score"
+msgstr "sigmoid 分数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSigmoid|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A per-label sigmoid score in the unit interval. Independent-label interpretation is distinct from calibration, confidence and evidential warrant."
+msgstr "单位区间内的逐标签 sigmoid 分数。独立标签解释有别于校准、置信度和证据论据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSoftmax|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "softmax probability"
+msgstr "softmax 概率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreSoftmax|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A model probability normalized over the declared mutually exclusive label set. This simplex interpretation establishes neither calibration nor confidence."
+msgstr "在声明的互斥标签集上归一化的模型概率。此单纯形解释不确立校准或置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreEntailment|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entailment probability"
+msgstr "蕴含概率"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreEntailment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A per-hypothesis entailment-versus-contradiction model probability for a zero-shot candidate and template. It is not normalized across candidates and does not establish calibration or confidence."
+msgstr "针对零样本候选及模板的逐假设蕴含对矛盾模型概率。它不在候选之间归一化，不确立校准或置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionArgmax|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "argmax (single-label)"
+msgstr "最大值选择（单标签）"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionArgmax|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A single-label decision policy selecting an argmax over the label set. It does not discard other emitted scores or entail a canonical category claim."
+msgstr "在标签集上选择最大值的单标签策略。不丢弃其他输出分数，也不蕴含规范类别主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "independent threshold (multi-label)"
+msgstr "独立阈值（多标签）"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A per-label threshold policy admitting zero, one or several labels. Applied thresholds remain explicit output provenance."
+msgstr "逐标签阈值策略，允许零个、一个或多个标签。应用的阈值仍作为显式输出来源信息保留。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RegisteredClassifierLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Registered Classifier Label Set"
+msgstr "已注册分类器标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RegisteredClassifierLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A static classifier registry admitted with a reviewed decision rule, specializing ClassifierLabelSet. The required labelSetDecision applies to this class only, never to every run-scoped candidate set."
+msgstr "具有经审查决策规则的获准静态分类器注册表，特化自 ClassifierLabelSet。必需的 labelSetDecision 仅适用于此类，绝不适用于所有运行范围候选集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroShotTemplatePresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Zero-shot template-present constraint"
+msgstr "零样本模板存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierRunLabelMembershipConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier run label-membership constraint"
+msgstr "分类器运行标签成员约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ClassifierRunLabelMembershipConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "If an execution record explicitly declares runLabelSet, every label emitted by an output attributed to that record must belong to that set."
+msgstr "如执行记录显式声明 runLabelSet，归属于该记录的输出所产生的每个标签都必须属于该集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is attributed to exactly one ModelInferenceRun execution record, so it cannot name two producing records. The record is distinct from an execution Activity."
+msgstr "在规范载体上断言 gmeow:producedBy 是函数性属性：分类器输出归属于恰好一个 ModelInferenceRun 执行记录，因而不能指定两个产生记录。记录与执行 Activity 保持区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The model task text captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task text."
+msgstr "执行记录捕获的模型任务文本，例如 text-classification 或 zero-shot-classification。必需的假设来源信息由声明的蕴含分数语义决定，而非此任务文本的拼写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroShotTemplatePresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An execution record named by an output declaring scoreEntailment must preserve its exact hypothesisTemplate."
+msgstr "声明 scoreEntailment 的输出所指定的执行记录必须保留其确切 hypothesisTemplate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunIdentifierPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ModelInferenceRun identifier-present constraint"
+msgstr "ModelInferenceRun 标识存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunIdentifierPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a gmeow:modelIdentifier."
+msgstr "封闭世界完整性约束：gmeow:ModelInferenceRun 声明 gmeow:modelIdentifier。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ModelInferenceRun revision-present constraint"
+msgstr "ModelInferenceRun 版本存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ModelInferenceRun declares a pinned gmeow:modelRevision."
+msgstr "封闭世界完整性约束：gmeow:ModelInferenceRun 声明固定的 gmeow:modelRevision。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputProducedByPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput produced-by constraint"
+msgstr "ClassifierOutput 产生记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputProducedByPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput is gmeow:producedBy a run."
+msgstr "封闭世界完整性约束：gmeow:ClassifierOutput 通过 gmeow:producedBy 关联运行记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputTargetPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput target-present constraint"
+msgstr "ClassifierOutput 目标存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputTargetPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput names a gmeow:classifiedTarget."
+msgstr "封闭世界完整性约束：gmeow:ClassifierOutput 指定 gmeow:classifiedTarget。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputLabelPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput label-present constraint"
+msgstr "ClassifierOutput 标签存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputLabelPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:emittedLabel."
+msgstr "封闭世界完整性约束：gmeow:ClassifierOutput 带有 gmeow:emittedLabel。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputScorePresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput score-present constraint"
+msgstr "ClassifierOutput 分数存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputScorePresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput carries a gmeow:classifierScore."
+msgstr "封闭世界完整性约束：gmeow:ClassifierOutput 带有 gmeow:classifierScore。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputSemanticsPresentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput score-semantics constraint"
+msgstr "ClassifierOutput 分数语义约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputSemanticsPresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput declares a gmeow:scoreSemantics."
+msgstr "封闭世界完整性约束：gmeow:ClassifierOutput 声明 gmeow:scoreSemantics。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelRegisteredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier label membership constraint"
+msgstr "分类器标签成员约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelRegisteredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierLabel is a gmeow:memberOfLabelSet of a label set."
+msgstr "封闭世界完整性约束：gmeow:ClassifierLabel 通过 gmeow:memberOfLabelSet 属于标签集。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ModelInferenceRun revision-unique constraint"
+msgstr "ModelInferenceRun 版本唯一约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInferenceRunRevisionUniqueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ModelInferenceRun pins at most one gmeow:modelRevision."
+msgstr "封闭世界完整性约束：gmeow:ModelInferenceRun 至多固定一个 gmeow:modelRevision。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputCalibrationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ClassifierOutput calibration constraint"
+msgstr "ClassifierOutput 校准约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputCalibrationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint: a gmeow:ClassifierOutput whose gmeow:scoreSemantics is gmeow:scoreCalibratedProbability declares a gmeow:scoreCalibration."
+msgstr "封闭世界完整性约束：gmeow:scoreSemantics 为 gmeow:scoreCalibratedProbability 的 gmeow:ClassifierOutput 声明 gmeow:scoreCalibration。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier decision rule-consistency constraint"
+msgstr "分类器决策规则一致性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world relational integrity constraint: a gmeow:ClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."
+msgstr "封闭世界关系完整性约束：gmeow:ClassifierOutput 的 gmeow:scoreSemantics 经由 gmeow:impliesLabelSetDecision 所蕴含的规则，与其输出标签所属集合的 gmeow:labelSetDecision 相符。"
