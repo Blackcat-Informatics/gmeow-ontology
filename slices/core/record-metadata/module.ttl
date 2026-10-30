@@ -1,0 +1,301 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:recordedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recorded at"@x-gmeow-english ;
+    skos:definition "A temporal value locating when this record was made, at the precision supplied by its source. This is transaction time of the record, distinct from occurrence, observation, assertion-witness, dispatch or creative-work creation time. A date, month or year does not assert midnight, a period-start instant or a timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use for record creation across record classes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the time of the described event for record creation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source datatype and timezone information exactly at the supplied precision; use recordedDuring for a period reference."@x-gmeow-english ;
+    skos:example "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+gmeow:updatedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "updated at"@x-gmeow-english ;
+    skos:definition "A temporal value locating the last change to this record or resource, at the precision supplied by its source. It does not date a change to the event described, assert an exact instant for a coarse value, or choose an unknown timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use for the last modification of the subject resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing recording or event time with a modification value."@x-gmeow-english ;
+    gmeow:howToUse "Preserve dateTime, date, gYearMonth or gYear as supplied; use updatedDuring for a period reference."@x-gmeow-english ;
+    skos:example "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+gmeow:recordedDuring
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recorded during"@x-gmeow-english ;
+    skos:definition "Relates a record to an interval or a named period within which it was made. The period supplies temporal scope without manufacturing a recording instant."@x-gmeow-english ;
+    gmeow:useWhen "Use when record creation is located by a period entity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an unresolved phrase as a named period with established bounds."@x-gmeow-english ;
+    gmeow:howToUse "Reference an existing TimeInterval or NamedPeriod whose temporal meaning is established."@x-gmeow-english ;
+    skos:example "ex:record gmeow:recordedDuring ex:cataloguingSeason ."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:TimeInterval gmeow:NamedPeriod ) ] .
+
+gmeow:updatedDuring
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "updated during"@x-gmeow-english ;
+    skos:definition "Relates a resource to an interval or a named period within which its last change occurred. This locates modification without converting a period to an instant."@x-gmeow-english ;
+    gmeow:useWhen "Use when the last modification is known by a period entity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the period start as the last modification time."@x-gmeow-english ;
+    gmeow:howToUse "Reference the established interval or named period; retain any coarse literal independently."@x-gmeow-english ;
+    skos:example "ex:record gmeow:updatedDuring ex:revisionSeason ."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:TimeInterval gmeow:NamedPeriod ) ] .
+
+gmeow:entryOrdinal
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "entry ordinal"@x-gmeow-english ;
+    skos:definition "The zero-based position of an entry in its containing ordered sequence. Its scope is that sequence, not global identity, rank or importance. Different sequences or standpoints may order the same content differently."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve source document or list order on entry nodes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying a one-based or frame-dependent ordinal without conversion."@x-gmeow-english ;
+    gmeow:howToUse "Write a nonNegativeInteger on each occurrence node; use separate occurrences when content belongs to differently ordered sequences."@x-gmeow-english ;
+    skos:example "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:LabelledFacet
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Labelled Facet"@x-gmeow-english ;
+    skos:definition "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use for content whose field names are chosen at run time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing reviewed domain properties with facets when their semantics already fit."@x-gmeow-english ;
+    gmeow:howToUse "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetLabel ; logic:allValuesFrom xsd:string ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetValue ; logic:allValuesFrom rdfs:Literal ] .
+
+gmeow:hasFacet
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has facet"@x-gmeow-english ;
+    skos:definition "Relates a record or record part to a labelled content facet. It does not turn the facet label into a schema property or impose a single facet per label."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose run-time fields as graph content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring vocabulary identity from matching facet labels."@x-gmeow-english ;
+    gmeow:howToUse "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."@x-gmeow-english ;
+    logic:range gmeow:LabelledFacet .
+
+gmeow:facetLabel
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet label"@x-gmeow-english ;
+    skos:definition "The verbatim source key or producer-supplied relative path labelling a facet. Case, spacing and punctuation are retained as xsd:string; no token whitespace normalization or path grammar is implied."@x-gmeow-english ;
+    gmeow:useWhen "Use for the exact run-time field name, including labels such as mood.tone or refs[]."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting this label into a predicate IRI or deriving facet identity from it."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one string per facet; keep repeated keys on distinct position-named facets."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetLabel \"mood.tone\" ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range xsd:string .
+
+gmeow:facetText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet text"@x-gmeow-english ;
+    skos:definition "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."@x-gmeow-english ;
+    gmeow:useWhen "Use when the run-time field contains text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stringifying numbers or booleans to fit this text property."@x-gmeow-english ;
+    gmeow:howToUse "Supply one string, language-tagged string or directional language string; use facetValue for typed scalar data."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:facetValue
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet value"@x-gmeow-english ;
+    skos:definition "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."@x-gmeow-english ;
+    gmeow:useWhen "Use when a run-time field carries a typed scalar literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid representing a source null as an invented string or datatype value."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."@x-gmeow-english ;
+    skos:example "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range rdfs:Literal .
+
+gmeow:facetConcept
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet concept"@x-gmeow-english ;
+    skos:definition "A reviewed interpretation of a facet label as a GMEOW Concept. Multiple interpretations coexist; this relation neither replaces the label nor makes the concept a privileged meaning or schema predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use after reviewing a recurring facet label against a concept."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the truth of the labelled content from a label interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Link the facet to each reviewed Concept; retain the exact label and annotate the relation when standpoint or provenance matters."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetConcept ex:emotionalTone ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range gmeow:Concept .
+
+gmeow:contextIncluded
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included"@x-gmeow-english ;
+    skos:definition "Relates a record to an information artifact present in the context in which the record was made. Inclusion records exposure, without asserting derivation, evidential support or actual use. The artifact carries its own contentDigest."@x-gmeow-english ;
+    gmeow:useWhen "Use to audit which input artifacts reached a creation context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating context presence as endorsement or causal dependence."@x-gmeow-english ;
+    gmeow:howToUse "Reference a reusable artifact node with its algorithm-labelled contentDigest; use the release or projection specialization when known."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncluded ex:inputArtifact ."@x-gmeow-english ;
+    logic:range gmeow:InformationObject .
+
+gmeow:contextIncludedRelease
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included release"@x-gmeow-english ;
+    skos:definition "Relates a record to the release artifact present in its creation context. The release is identified by its own digest, separately from any compiled projection; presence alone makes no claim of support or use."@x-gmeow-english ;
+    gmeow:useWhen "Use when the artifact supplied to the context is a release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching the release role to a projection merely derived from it."@x-gmeow-english ;
+    gmeow:howToUse "Link to the shared release node carrying contentDigest; type it as Manifestation only when it embodies an edition or format of an Expression."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncludedRelease ex:release ."@x-gmeow-english ;
+    logic:subPropertyOf gmeow:contextIncluded ;
+    logic:range gmeow:InformationObject .
+
+gmeow:contextIncludedProjection
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included projection"@x-gmeow-english ;
+    skos:definition "Relates a record to a compiled projection artifact present in its creation context. The projection has its own digest, distinct from the release it projects; inclusion does not assert that the original release was also present."@x-gmeow-english ;
+    gmeow:useWhen "Use when the context carries a compiled projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying the source release digest as the identity of projection bytes."@x-gmeow-english ;
+    gmeow:howToUse "Reference the shared projection node and its own contentDigest; record source derivation separately only with evidence."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncludedProjection ex:projection ."@x-gmeow-english ;
+    logic:subPropertyOf gmeow:contextIncluded ;
+    logic:range gmeow:InformationObject .
+
+gmeow:facetLabelFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetLabel is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetLabel on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetLabel slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetLabel functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetLabel."@x-gmeow-english ;
+    skos:example "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetLabel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetLabel .
+
+gmeow:facetTextFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetText is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetText on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetText slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetText functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetText."@x-gmeow-english ;
+    skos:example "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetText .
+
+gmeow:facetValueFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetValue on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetValue slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetValue functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetValue."@x-gmeow-english ;
+    skos:example "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetValue .
+
+gmeow:FacetPayloadExclusionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Facet payload exclusion constraint"@x-gmeow-english ;
+    skos:definition "A facet with a text payload has no facetValue payload. Together with the two payload functionality records this admits zero or one total payload and rejects simultaneous text and typed-value slots."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the two facet payload channels exclusive."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring either payload through this exclusion law."@x-gmeow-english ;
+    gmeow:howToUse "Apply to every subject of facetText; label-only facets satisfy this obligation."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:formalizes gmeow:LabelledFacet ;
+    logic:message "A facet must not carry both facetText and facetValue." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "text" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:facetText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "text" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:facetValue ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] ] .
+
+gmeow:ContextArtifactDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Context artifact digest constraint"@x-gmeow-english ;
+    skos:definition "Every artifact referenced by contextIncluded has a contentDigest value identifying its own bytes. The existing contentDigest contract retains multiple algorithm-labelled digests; this law invents no digest lexical datatype."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain artifact identity when auditing injected context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying artifact identity with the digest of the containing record."@x-gmeow-english ;
+    gmeow:howToUse "Place contentDigest on the referenced artifact; reuse that node across records."@x-gmeow-english ;
+    skos:example "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."@x-gmeow-english ;
+    logic:formalizes gmeow:contextIncluded ;
+    logic:message "A context artifact must carry its own contentDigest." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:contextIncluded ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "this" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+# The required label is a closed-world path, not an existential witness.
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:LabelledFacet ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/facetLabel" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+# These existing predicates describe last modification of the same resource.
+# Creative-work creation, observation and dispatch are deliberately not recording bridges.
+gmeow:noteModifiedAt logic:subPropertyOf gmeow:updatedAt .
+gmeow:dateModified logic:subPropertyOf gmeow:updatedAt .
+
+# Domain-free literal metadata still has an explicit closed-world range reading.
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/recordedAt" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/updatedAt" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
