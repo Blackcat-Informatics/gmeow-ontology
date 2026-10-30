@@ -1534,9 +1534,35 @@ gmeow:mapSchemaCaption a gmeow:ProjectionMapping ;
     rdfs:label "caption → schema:caption"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "cpMedia" ; gmeow:value "cpText" ;
-        gmeow:atom ( [ gmeow:subjectVar "cpMedia" ; gmeow:predicate gmeow:caption ; gmeow:objectVar "cpText" ] ) ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cpMedia" ; gmeow:predicate gmeow:caption ; gmeow:objectVar "cpText" ]
+            [ gmeow:subjectVar "cpMedia" ; gmeow:predicate rdf:type ; gmeow:objectVar "cpMediaType" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpMediaType" ] gmeow:MediaObject ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpMediaType" ] schema:MediaObject ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpMediaType" ] schema:ImageObject ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpMediaType" ] schema:AudioObject ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpMediaType" ] schema:VideoObject ) ] ) ] ;
         gmeow:edoalSource gmeow:caption ] ;
     gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:caption ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+
+gmeow:mapSchemaStructuralCaption a gmeow:ProjectionMapping ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "cpSegment" ; gmeow:value "cpText" ;
+        gmeow:atom (
+            [ gmeow:subjectVar "cpSegment" ; gmeow:predicate gmeow:caption ; gmeow:objectVar "cpText" ]
+            [ gmeow:subjectVar "cpSegment" ; gmeow:predicate rdf:type ; gmeow:objectVar "cpSegmentType" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpSegmentType" ] gmeow:ContentSegment ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpSegmentType" ] gmeow:ContentBlock ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpSegmentType" ] gmeow:MusicalSegment ) ]
+            [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "cpSegmentType" ] gmeow:ToneEvent ) ] ) ] ;
+        gmeow:edoalSource gmeow:caption ] ;
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:description ;
+        gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "The caption role and attachment semantics are reduced to a general description; the structural segment is not classified as a media file." ] .
+
 
 gmeow:mapSchemaServiceDissolution a gmeow:ProjectionMapping ;
     rdfs:label "serviceShutdownDate → schema:dissolutionDate"@x-gmeow-english ;

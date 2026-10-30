@@ -1,0 +1,571 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:TableCell
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Documentary Table Cell"@x-gmeow-english ;
+    skos:definition "A source cell located by one table, row and column under that table's explicit index origin. It is an InformationObject, not a scalar MatrixEntry."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:TableCell ."@x-gmeow-english .
+
+gmeow:FormalBlockKind
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Printed Formal Block Kind"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for the source's printed exposition role. A theorem, proof or algorithm label records document apparatus, never successful verification."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:FormalBlockKind ."@x-gmeow-english .
+
+gmeow:speaker
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source speaker"@x-gmeow-english ;
+    skos:definition "The Entity explicitly identified as speaking this source block. A fictional character may be the speaker without becoming a Person."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:speaker ex:target ."@x-gmeow-english .
+
+gmeow:programmingLanguageAsRecorded
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "programming language as recorded"@x-gmeow-english ;
+    skos:definition "The source's exact programming-language name or code for a listing. It is an opaque string, not the software slice's Project-to-Language relation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:programmingLanguageAsRecorded \"source wording\" ."@x-gmeow-english .
+
+gmeow:equationSource
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "equation source text"@x-gmeow-english ;
+    skos:definition "The exact source spelling of a mathematical display, before parsing, normalization or notation conversion. A matching retained language surface preserves that spelling; the string itself is not a computable expression AST."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:equationSource \"source wording\" ."@x-gmeow-english .
+
+gmeow:sourceNotation
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:string ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "notation as recorded"@x-gmeow-english ;
+    skos:definition "The source's exact notation name or code. The spelling alone neither identifies a MathematicalNotation convention nor proves a rendering preserves meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:sourceNotation \"source wording\" ."@x-gmeow-english .
+
+gmeow:cell
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:TableCell ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source table cell"@x-gmeow-english ;
+    skos:definition "A retained documentary cell of this table block. Row and column identities are scoped by this exact table, not shared globally across tables."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:cell ex:target ."@x-gmeow-english .
+
+gmeow:cellOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:TableCell ;
+    logic:range gmeow:ContentBlock ;
+    logic:inverseOf gmeow:cell ;
+    logic:subPropertyOf gmeow:partOf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cell of source table"@x-gmeow-english ;
+    skos:definition "The exact table block containing this documentary cell. It is the inverse of cell and supplies the coordinate scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:cellOf ex:target ."@x-gmeow-english .
+
+gmeow:cellRow
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:TableCell ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source cell row"@x-gmeow-english ;
+    skos:definition "The source row index of a documentary cell under its table's explicit tableIndexOrigin. It is not a matrix coordinate or an implicit zero-based conversion."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:cellRow 0 ."@x-gmeow-english .
+
+gmeow:cellColumn
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:TableCell ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source cell column"@x-gmeow-english ;
+    skos:definition "The source column index of a documentary cell under its table's explicit tableIndexOrigin. Identical indices in distinct tables do not identify the same cell."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:cellColumn 0 ."@x-gmeow-english .
+
+gmeow:tableIndexOrigin
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range xsd:integer ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source table index origin"@x-gmeow-english ;
+    skos:definition "The explicit integer origin shared by this source table's row and column indices. Missing origin stays missing; consumers must not silently assume zero or one."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:tableIndexOrigin 0 ."@x-gmeow-english .
+
+gmeow:cellText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:TableCell ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source cell text"@x-gmeow-english ;
+    skos:definition "The original textual content of a documentary cell, including an explicitly empty string. Preserve language and direction when supplied; absence is not an invented empty value."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:cellText \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:altText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source alternative text"@x-gmeow-english ;
+    skos:definition "The source's alternative description for perceiving a block's content. It is distinct from a displayed caption and does not type a figure block as a media file."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:altText \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:formalKind
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "printed formal kind"@x-gmeow-english ;
+    skos:definition "The source-attributed printed role of a block, drawn from FormalBlockKind. It is distinct from theory-scoped mathematical statement roles and formal proof status."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:formalKind ex:target ."@x-gmeow-english .
+
+gmeow:formalLabel
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "formal label as recorded"@x-gmeow-english ;
+    skos:definition "The source's original identifier or heading for formal apparatus, such as a numbered theorem label. It names the printed item without certifying its conclusion."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:formalLabel \"source wording\"@en ."@x-gmeow-english .
+
+gmeow:defines
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:Concept ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source definition target"@x-gmeow-english ;
+    skos:definition "The Concept this block explicitly presents as defined in the source. A documentary definition does not automatically create a MathematicalDefinition or a formal equivalence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:defines ex:target ."@x-gmeow-english .
+
+gmeow:proves
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source proof target"@x-gmeow-english ;
+    skos:definition "The exact target for which this block presents a source-reported argument or proof. The target may be a documentary item or supplied mathematical statement; this link is not math:provesStatement and certifies no formal proof."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:proves ex:target ."@x-gmeow-english .
+
+gmeow:blockSurface
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range lang:SurfaceForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "retained block surface"@x-gmeow-english ;
+    skos:definition "An actual language SurfaceForm retained for this block, with its sign system, encoding and anchoring contracts. It preserves a supplied surface rather than inventing an analysis from a language name."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:blockSurface ex:target ."@x-gmeow-english .
+
+gmeow:blockRendering
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range lang:Rendering ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "supplied block rendering"@x-gmeow-english ;
+    skos:definition "An explicit language Rendering whose form is retained by this block. Follow renderedContent to the actual supplied mathematical expression, statement, proof or other content; the block itself is not coerced into that content's sort."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:blockRendering ex:target ."@x-gmeow-english .
+
+gmeow:formalKindDefinition
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "definition"@x-gmeow-english ;
+    skos:definition "A printed unit introducing or fixing a term's meaning, without automatically asserting a formal equivalence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindDefinition ."@x-gmeow-english .
+
+gmeow:formalKindTheorem
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "theorem"@x-gmeow-english ;
+    skos:definition "A unit the source labels as a theorem. Its mathematical status requires the separate theory and warrant structures."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindTheorem ."@x-gmeow-english .
+
+gmeow:formalKindLemma
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "lemma"@x-gmeow-english ;
+    skos:definition "A unit the source labels as an auxiliary result. The printed label alone establishes no derivation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindLemma ."@x-gmeow-english .
+
+gmeow:formalKindCorollary
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "corollary"@x-gmeow-english ;
+    skos:definition "A unit presented as following from another result, retaining that source classification without proving the dependency."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindCorollary ."@x-gmeow-english .
+
+gmeow:formalKindProof
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "proof"@x-gmeow-english ;
+    skos:definition "A printed argument or derivation the source presents as a proof. It is not thereby a checked math:Proof or a verification result."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindProof ."@x-gmeow-english .
+
+gmeow:formalKindAlgorithm
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "algorithm"@x-gmeow-english ;
+    skos:definition "A printed procedure or pseudocode description. The source classification does not execute it or establish its correctness."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindAlgorithm ."@x-gmeow-english .
+
+gmeow:formalKindExample
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "example"@x-gmeow-english ;
+    skos:definition "A worked or illustrative instance designated as an example by the source, rather than a universal law."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExample ."@x-gmeow-english .
+
+gmeow:formalKindExercise
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "exercise"@x-gmeow-english ;
+    skos:definition "A source-designated task for the reader. Its presence does not assert an attempted or completed solution."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindExercise ."@x-gmeow-english .
+
+gmeow:formalKindSolution
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "solution"@x-gmeow-english ;
+    skos:definition "A unit the source presents as an answer to a task, without certifying correctness or inventing a missing task link."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindSolution ."@x-gmeow-english .
+
+gmeow:formalKindNote
+    a gmeow:FormalBlockKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "note"@x-gmeow-english ;
+    skos:definition "A source-designated explanatory or supplementary formal note, distinct from a proof or theorem status."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:formalKind gmeow:formalKindNote ."@x-gmeow-english .
+
+gmeow:TableCellTableKindConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "documentary cell table scope"@x-gmeow-english ;
+    skos:definition "A documentary cell belongs to a block explicitly classified as a table. The link does not classify either resource as a mathematical matrix."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:TableCellTableKindConstraint logic:formalizes gmeow:cellOf ."@x-gmeow-english ;
+    logic:formalizes gmeow:cellOf ;
+    logic:message "A documentary cell belongs to a block explicitly classified as a table. The link does not classify either resource as a mathematical matrix." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "table" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:cellOf ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "table" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:segmentType ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "table" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:segmentTypeTable ] ] ] ] .
+
+gmeow:TableCellIndexOriginConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "documentary cell index origin"@x-gmeow-english ;
+    skos:definition "Each supplied cell coordinate pair has its table's explicit index origin, and neither coordinate precedes that origin. The source indices are not silently rebased."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:TableCellIndexOriginConstraint logic:formalizes gmeow:cellOf ."@x-gmeow-english ;
+    logic:formalizes gmeow:cellOf ;
+    logic:message "Each supplied cell coordinate pair has its table's explicit index origin, and neither coordinate precedes that origin. The source indices are not silently rebased." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "table" ], [ logic:termIndex 2 ; logic:termVariable "row" ], [ logic:termIndex 3 ; logic:termVariable "column" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:cellOf ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "table" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellRow ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellColumn ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "column" ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "origin" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:tableIndexOrigin ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "table" ],
+                            [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                    [ a logic:Formula ; logic:relation logic:termGreaterEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "row" ],
+                            [ logic:termIndex 1 ; logic:termVariable "origin" ] ],
+                    [ a logic:Formula ; logic:relation logic:termGreaterEqual ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "column" ],
+                            [ logic:termIndex 1 ; logic:termVariable "origin" ] ] ] ] ] ] .
+
+gmeow:TableCellCoordinateUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "documentary table coordinate uniqueness"@x-gmeow-english ;
+    skos:definition "Within one source table, a row and column pair identifies one documentary cell. The same coordinates in another table remain a different scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:TableCellCoordinateUniquenessConstraint logic:formalizes gmeow:cell ."@x-gmeow-english ;
+    logic:formalizes gmeow:cell ;
+    logic:message "Within one source table, a row and column pair identifies one documentary cell. The same coordinates in another table remain a different scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "first" ], [ logic:termIndex 2 ; logic:termVariable "second" ], [ logic:termIndex 3 ; logic:termVariable "row" ], [ logic:termIndex 4 ; logic:termVariable "column" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:cell ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "first" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cell ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "second" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellRow ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ],
+                        [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellRow ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ],
+                        [ logic:termIndex 1 ; logic:termVariable "row" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellColumn ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ],
+                        [ logic:termIndex 1 ; logic:termVariable "column" ] ],
+                [ a logic:Formula ; logic:relation gmeow:cellColumn ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "second" ],
+                        [ logic:termIndex 1 ; logic:termVariable "column" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ],
+                    [ logic:termIndex 1 ; logic:termVariable "second" ] ] ] ] .
+
+gmeow:FormalBlockKindPresentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "printed formal block kind presence"@x-gmeow-english ;
+    skos:definition "A block classified as formal exposition retains at least one source-attributed printed formal kind. The vocabulary remains open and the kind establishes no theorem or proof status."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:FormalBlockKindPresentConstraint logic:formalizes gmeow:formalKind ."@x-gmeow-english ;
+    logic:formalizes gmeow:formalKind ;
+    logic:message "A block classified as formal exposition retains at least one source-attributed printed formal kind. The vocabulary remains open and the kind establishes no theorem or proof status." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:segmentType ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termIri gmeow:segmentTypeFormalBlock ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "kind" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:formalKind ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "kind" ] ] ] ] ] .
+
+gmeow:EquationSourceSurfaceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "equation source surface retention"@x-gmeow-english ;
+    skos:definition "Every supplied equation-source string has a retained language surface carrying that exact text. Retention does not parse the string or certify mathematical meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:EquationSourceSurfaceConstraint logic:formalizes gmeow:equationSource ."@x-gmeow-english ;
+    logic:formalizes gmeow:equationSource ;
+    logic:message "Every supplied equation-source string has a retained language surface carrying that exact text. Retention does not parse the string or certify mathematical meaning." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:equationSource ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "text" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "surface" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:blockSurface ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "surface" ] ],
+                    [ a logic:Formula ; logic:relation lang:surfaceText ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "surface" ],
+                            [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ] ] .
+
+gmeow:BlockRenderingSurfaceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "block rendering form retention"@x-gmeow-english ;
+    skos:definition "Every supplied block rendering names its actual content and a form retained as a block surface. Content keeps its own sort; a documentary block is not converted into an expression, statement or proof."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:BlockRenderingSurfaceConstraint logic:formalizes gmeow:blockRendering ."@x-gmeow-english ;
+    logic:formalizes gmeow:blockRendering ;
+    logic:message "Every supplied block rendering names its actual content and a form retained as a block surface. Content keeps its own sort; a documentary block is not converted into an expression, statement or proof." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rendering" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:blockRendering ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "rendering" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "content" ], [ logic:termIndex 1 ; logic:termVariable "surface" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation lang:renderedContent ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "rendering" ],
+                            [ logic:termIndex 1 ; logic:termVariable "content" ] ],
+                    [ a logic:Formula ; logic:relation lang:renderingForm ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "rendering" ],
+                            [ logic:termIndex 1 ; logic:termVariable "surface" ] ],
+                    [ a logic:Formula ; logic:relation gmeow:blockSurface ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "surface" ] ] ] ] ] ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellOf ; logic:allValuesFrom gmeow:ContentBlock ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TableCell ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cellOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellOf ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContentBlock ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellRow ; logic:allValuesFrom xsd:integer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TableCell ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cellRow" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellRow ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellColumn ; logic:allValuesFrom xsd:integer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TableCell ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cellColumn" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TableCell logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cellColumn ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tableIndexOrigin ; logic:allValuesFrom xsd:integer ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tableIndexOrigin ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:integer ] .
+
+# Domain mapping-instance annotations; the profile pattern and binding remain in the DSL.
+gmeow:mapSchemaStructuralCaption
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
+    rdfs:label "structural caption to schema description"@x-gmeow-english ;
+    skos:definition "The schema profile retains a structural segment's caption as a description, with an explicit loss of its caption role rather than media-file classification."@x-gmeow-english ;
+    gmeow:useWhen "Use when a structural content caption must survive the schema profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid projecting a structural caption as evidence that its bearer is a MediaObject."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original GMEOW caption and its structural subject; disclose the role lost in the description view."@x-gmeow-english ;
+    skos:example "A structural caption remains documentary: ex:figure gmeow:caption \"A bridge plan.\"@en ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox .

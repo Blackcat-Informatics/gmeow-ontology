@@ -178,3 +178,36 @@ Depends on `kernel`, `creative-works` (the WEMI spine), `names` (Appellation),
 `observations`, `places`, `standpoint` (ReadingOrder), and `tags` (the isAbout
 trichotomy). Consumed by creative-works manifestations, the mail-corpus attachments,
 and depictions of any entity.
+
+## Source structural blocks and volumes
+
+`segmentTypeVolume` classifies one structural volume using ContentSegment,
+segmentOf and segmentIndex. It does not identify an abstract work with a
+published Manifestation or physical copy.
+
+`ContentBlock` specializes ContentSegment for the atomic unit inside a source
+division under a declared segmentation. Use its immediate `blockOf` division,
+one source structural index and one open segmentType value. blockOf specializes
+segmentOf without being transitive; segmentOf still reaches structural
+ancestors. A nonempty containment cycle or duplicate block index within one
+immediate division violates the canonical obligations.
+
+Block indivisibility is a retrieval boundary, not a prohibition on internal
+text, media or cell structure. Later chunking consumers must preserve that
+boundary. This vocabulary does not run a chunker.
+
+The twelve block kinds are paragraph, heading, verse, dialogue, stage direction,
+code listing, equation display, table, figure, formal block, epigraph and
+quotation. They are ContentSegmentType values, never one subclass per kind.
+Paragraph reuses the existing value; the vocabulary remains open.
+
+`caption` admits MediaObject or ContentSegment through a single union domain.
+A caption on a table or figure block therefore does not make it a media file.
+The schema profile retains actual media captions as schema:caption; structural
+captions become an explicitly lossy schema:description that loses the caption
+role and attachment distinction.
+
+[The ordinary source inventory](examples/source-blocks.ttl) shows every block
+kind. The downstream [reference apparatus extension](../../extensions/reference-apparatus/docs.md)
+adds source speaker/language/notation fields, documentary cells, printed formal
+roles and actual lang/math rendering links without a reverse core dependency.
