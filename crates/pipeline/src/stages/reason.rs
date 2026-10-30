@@ -201,7 +201,7 @@ fn reason_prepared_input(
         "stage phase boundary",
     );
     let result = reason_all(input, domains)
-        .map_err(|error| stage_failure(format!("native reasoning failed: {error}")))?;
+        .map_err(|error| error.with_context("stage-reason: native reasoning failed"))?;
     tracing::info!(
         target: "pipeline_phase",
         stage = "stage-reason",
