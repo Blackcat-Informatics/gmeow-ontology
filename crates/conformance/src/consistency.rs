@@ -3,6 +3,10 @@
 
 //! Native consistency evidence. Execution errors are not semantic gap verdicts.
 
+// The separate heavy aggregate still serializes this shared observation.
+mod json;
+pub use json::recorded_observations_from_bytes;
+
 use std::collections::BTreeMap;
 use std::path::Path;
 

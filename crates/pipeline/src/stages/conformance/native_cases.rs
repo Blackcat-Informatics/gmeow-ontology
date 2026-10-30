@@ -274,6 +274,7 @@ fn full_native_observation(dataset: &RdfDataset) -> gmeow_errors::Result<NativeE
     Ok(result.native_execution()?.clone())
 }
 
+/// Observe selected native cases through their shared authenticated action cache.
 pub(super) fn record(
     root: &Path,
     consistency_inputs: Vec<PathBuf>,
@@ -308,7 +309,7 @@ pub(super) fn record(
                 .to_string_lossy()
                 .into_owned();
             let consistency = selected.consistency.then(|| {
-                input.observe(store, "native-consistency", |dataset| {
+                input.observe_native(store, "native-consistency", |dataset| {
                     gmeow_conformance::consistency::observe(dataset)
                 })
             });
