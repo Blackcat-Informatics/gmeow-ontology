@@ -1,0 +1,632 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:wornModality
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "worn modality"@x-gmeow-english ;
+    skos:definition "The Persona worn while making this record. It attributes a token record to an expression policy, rather than naming the condition or situation type that activates that policy. Several attributed personas may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to recall records made while wearing a particular persona."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this attribution as the inverse of activatedIn or as a preferred persona."@x-gmeow-english ;
+    gmeow:howToUse "Link any record to each attributed Persona; preserve standpoint and provenance on the relation when needed."@x-gmeow-english ;
+    skos:example "ex:note gmeow:wornModality ex:formalPersona ."@x-gmeow-english ;
+    logic:range gmeow:Persona .
+
+gmeow:ModeTransition
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Mode Transition"@x-gmeow-english ;
+    skos:definition "An information record of a persona change in a containing activity. It preserves the source slot, previous and replacement personas, cause, producer-clock reading and sequence; it is not a separate transition event or a general state-transition calculus."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a producer’s account of a persona change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making the information record an Activity or deriving order from its timestamp."@x-gmeow-english ;
+    gmeow:howToUse "Attach the record with modeTransition and identify its stream through transitionSlot; retain measured tenure duration when supplied."@x-gmeow-english ;
+    skos:example "ex:activity gmeow:modeTransition ex:change0 . ex:change0 a gmeow:ModeTransition ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:modeTransition
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "mode transition"@x-gmeow-english ;
+    skos:definition "Relates a containing Activity to a record of a persona change that happened within it. The linked information object records the change without requiring another free-standing event."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep persona changes with the activity in which they occurred."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the container link as the time or cause of the change."@x-gmeow-english ;
+    gmeow:howToUse "Link the existing activity to every retained ModeTransition record; several changes may share one activity."@x-gmeow-english ;
+    skos:example "ex:activity gmeow:modeTransition ex:change0 , ex:change1 ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:ModeTransition .
+
+gmeow:PersonaSlot
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Persona Slot"@x-gmeow-english ;
+    skos:definition "A consumer-minted information object identifying one producer’s persona-state slot and sequence stream for one bearer. It scopes transition numbering without prescribing a fixed set of slots or a general mutable-state model."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the bearer-specific stream in which persona transitions are numbered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing one slot node for unrelated producers, bearers or counters that restart."@x-gmeow-english ;
+    gmeow:howToUse "Mint a stable node for each producer stream and bearer, link slotBearer, and mint another slot node when that stream’s numbering restarts."@x-gmeow-english ;
+    skos:example "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:slotBearer
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "slot bearer"@x-gmeow-english ;
+    skos:definition "The Agent whose persona state is tracked by this source-scoped PersonaSlot. A slot record has one bearer; it does not designate one of that bearer’s personas as primary."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor a persona transition stream to its agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying a persona policy or an audience as the slot’s bearer."@x-gmeow-english ;
+    gmeow:howToUse "Reference the same Agent borne by the previous and replacement Personas."@x-gmeow-english ;
+    skos:example "ex:expressionSlot gmeow:slotBearer ex:agent ."@x-gmeow-english ;
+    logic:domain gmeow:PersonaSlot ;
+    logic:range gmeow:Agent .
+
+gmeow:transitionSlot
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition slot"@x-gmeow-english ;
+    skos:definition "The source-scoped PersonaSlot whose persona value changed. Its identity supplies the bearer and sequence-number scope of this transition record."@x-gmeow-english ;
+    gmeow:useWhen "Use to place a recorded persona change in its producer stream."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing transition sequence numbers across different slot identities."@x-gmeow-english ;
+    gmeow:howToUse "Reference the slot node retained for that producer and bearer; keep the slot stable when the stream spans several activities."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionSlot ex:expressionSlot ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:PersonaSlot .
+
+gmeow:transitionFrom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition from"@x-gmeow-english ;
+    skos:definition "The previous Persona replaced by this recorded change. It belongs to the bearer identified by the transition’s slot."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the persona being left."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the previous persona from the replacement alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source’s previous Persona and keep its bearer aligned with slotBearer."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionFrom ex:formalPersona ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:Persona .
+
+gmeow:transitionTo
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition to"@x-gmeow-english ;
+    skos:definition "The replacement Persona entered in this recorded change. It has the same bearer as the slot and previous persona, without becoming a preferred persona."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the persona entered after a change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading replacement as a lasting preference or suppression of other personas."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source’s replacement Persona; express any later change in another transition record."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionTo ex:casualPersona ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:Persona .
+
+gmeow:transitionLasted
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "replaced persona lasted"@x-gmeow-english ;
+    skos:definition "The producer-reported duration for which the replaced persona lasted before this change. The source xsd:duration is retained; it is not computed by subtracting producer-clock timestamps."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports the tenure duration of the persona being replaced."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a zero duration when elapsed time was not measured."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied duration and its units; omit this value when the source gives no elapsed-duration observation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range xsd:duration .
+
+gmeow:transitionAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition clock reading"@x-gmeow-english ;
+    skos:definition "The producer’s clock reading when the persona changed. Clock adjustment may make a later transition’s timestamp smaller; this value is neither sequence order nor the time the transition record was created."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source clock observation of a persona change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sorting transitions by timestamp or defaulting an unknown timezone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied dateTime and timezone information; order by transitionSequence within transitionSlot."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range xsd:dateTime .
+
+gmeow:transitionSequence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition sequence"@x-gmeow-english ;
+    skos:definition "The nonnegative sequence number assigned by the producer within the stream identified by transitionSlot. Increasing numbers describe source order even when clocks repeat or step backward. No zero-based starting convention or global uniqueness is asserted."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve producer order independently of its clock."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this number as elapsed time or as an ordinal shared by all slots."@x-gmeow-english ;
+    gmeow:howToUse "Keep the producer’s nonNegativeInteger; compare numbers only within the same slot stream and preserve tied reports without inventing a tie-breaker."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionSequence \"8\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:TransitionCause
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Transition Cause"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the producer-reported cause of a persona change. Its seeded values distinguish choice, automatic boundaries and the release, forcing or resumption of holds; several supported causes may coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify why a persona transition was recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating these cause values as executable rules or a closed state machine."@x-gmeow-english ;
+    gmeow:howToUse "Use the seeded individuals through transitionCause and add consumer-defined cause individuals when needed."@x-gmeow-english ;
+    skos:example "gmeow:transitionCauseChosen a gmeow:TransitionCause ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:transitionCause
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition cause"@x-gmeow-english ;
+    skos:definition "A supported cause attributed to this persona transition. It records the producer’s explanation without selecting a sole cause or executing the policy that made the change."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain why a source reports a persona change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a cause from timestamp, replacement persona or missing audience data."@x-gmeow-english ;
+    gmeow:howToUse "Reference every supported TransitionCause; annotate competing explanations with their provenance."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:TransitionCause .
+
+gmeow:transitionCauseChosen
+    a gmeow:TransitionCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chosen"@x-gmeow-english ;
+    skos:definition "The agent deliberately chose this persona change."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported deliberate switch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring deliberate choice merely from an authored message."@x-gmeow-english ;
+    gmeow:howToUse "Attribute transitionCauseChosen through transitionCause only when the source supports this explanation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."@x-gmeow-english .
+
+gmeow:transitionCauseAutomaticBoundary
+    a gmeow:TransitionCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "automatic boundary change"@x-gmeow-english ;
+    skos:definition "The producer automatically changed persona at a reported cycle boundary. The corresponding transitionBoundary is retained."@x-gmeow-english ;
+    gmeow:useWhen "Use for an automatic switch tied to a known cycle boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting the boundary when attributing this automatic cause."@x-gmeow-english ;
+    gmeow:howToUse "Attribute transitionCauseAutomaticBoundary through transitionCause only when the source supports this explanation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseAutomaticBoundary ."@x-gmeow-english .
+
+gmeow:transitionCauseHoldReleased
+    a gmeow:TransitionCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "hold released"@x-gmeow-english ;
+    skos:definition "The persona relaxed after a hold on the previous persona was released. This explains the change rather than asserting a general hold mechanism."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-reported relaxation after releasing a hold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating release of a hold with the disappearance of every audience constraint."@x-gmeow-english ;
+    gmeow:howToUse "Attribute transitionCauseHoldReleased through transitionCause only when the source supports this explanation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldReleased ."@x-gmeow-english .
+
+gmeow:transitionCauseAudienceForced
+    a gmeow:TransitionCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "audience-forced change"@x-gmeow-english ;
+    skos:definition "The audience could not admit the persona being worn, forcing a change. transitionRing records the relevant listening-audience ring."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reported audience restriction forced the switch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning the audience ring into a judgment about one person’s relationship."@x-gmeow-english ;
+    gmeow:howToUse "Attribute transitionCauseAudienceForced through transitionCause only when the source supports this explanation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseAudienceForced ."@x-gmeow-english .
+
+gmeow:transitionCauseHoldResumed
+    a gmeow:TransitionCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "hold resumed"@x-gmeow-english ;
+    skos:definition "A held persona resumed once the audience that prevented it was gone. This cause preserves the reported resumption without inferring who left."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reported return to a hold after its audience restriction ended."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting that an audience is still present from this resumption alone."@x-gmeow-english ;
+    gmeow:howToUse "Attribute transitionCauseHoldResumed through transitionCause only when the source supports this explanation."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldResumed ."@x-gmeow-english .
+
+gmeow:TransitionBoundary
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Transition Boundary"@x-gmeow-english ;
+    skos:definition "An open value vocabulary describing where in an agent’s cycle an automatic persona change happened. It does not define a lifecycle engine or a timestamp order."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the reported cycle location of an automatic change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a boundary value as a required cycle step for every agent."@x-gmeow-english ;
+    gmeow:howToUse "Use the four seeded boundaries or consumer-defined additions through transitionBoundary."@x-gmeow-english ;
+    skos:example "gmeow:transitionBoundaryWaking a gmeow:TransitionBoundary ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:transitionBoundary
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition boundary"@x-gmeow-english ;
+    skos:definition "A cycle boundary or location reported for this persona change. It refines an automatic cause without replacing the containing activity or producer-clock reading."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the cycle location named by the producer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a boundary solely from a transition’s time of day."@x-gmeow-english ;
+    gmeow:howToUse "Link the transition record to every supported TransitionBoundary value."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:TransitionBoundary .
+
+gmeow:transitionBoundaryConversationOpened
+    a gmeow:TransitionBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "conversation opened"@x-gmeow-english ;
+    skos:definition "The automatic persona change happened as a conversation opened."@x-gmeow-english ;
+    gmeow:useWhen "Use when conversation opening is the reported transition boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every message as a new conversation opening."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the producer’s transitionBoundaryConversationOpened classification through transitionBoundary."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."@x-gmeow-english .
+
+gmeow:transitionBoundaryPeriodicWakeup
+    a gmeow:TransitionBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "periodic wake-up"@x-gmeow-english ;
+    skos:definition "The automatic persona change happened during a periodic wake-up in the producer’s cycle."@x-gmeow-english ;
+    gmeow:useWhen "Use for a transition explicitly associated with a periodic wake-up."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this periodic boundary as waking from sleep."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the producer’s transitionBoundaryPeriodicWakeup classification through transitionBoundary."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryPeriodicWakeup ."@x-gmeow-english .
+
+gmeow:transitionBoundaryWaking
+    a gmeow:TransitionBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "waking"@x-gmeow-english ;
+    skos:definition "The automatic persona change happened while waking, as distinguished by the producer from a periodic wake-up."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies waking as the boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming a biological sleep mechanism from this cycle label."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the producer’s transitionBoundaryWaking classification through transitionBoundary."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryWaking ."@x-gmeow-english .
+
+gmeow:transitionBoundaryMidConversation
+    a gmeow:TransitionBoundary ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "mid-conversation"@x-gmeow-english ;
+    skos:definition "The automatic persona change happened within an ongoing conversation rather than at its opening."@x-gmeow-english ;
+    gmeow:useWhen "Use for a producer-reported automatic change during an existing conversation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this location as a new conversation or a reply outcome."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the producer’s transitionBoundaryMidConversation classification through transitionBoundary."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryMidConversation ."@x-gmeow-english .
+
+gmeow:AudienceRing
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Audience Ring"@x-gmeow-english ;
+    skos:definition "An open, consumer-minted value for a listening-audience ring within one AudienceRingScheme. Its rank is local to that scheme, innermost first; it does not classify one person’s relationship to the agent."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the audience context responsible for a persona restriction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ring rank as a universal scale of intimacy or a person identifier."@x-gmeow-english ;
+    gmeow:howToUse "Mint ring members in a consumer scheme, link audienceRingScheme and supply audienceRingRank; no fixed ring members are prescribed."@x-gmeow-english ;
+    skos:example "ex:studioAudience a gmeow:AudienceRing ; gmeow:audienceRingScheme ex:audienceScheme ; gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:AudienceRingScheme
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Audience Ring Scheme"@x-gmeow-english ;
+    skos:definition "A consumer-defined information object identifying the scope of audience-ring membership and rank. Different schemes may rank audience descriptions differently without a global winner."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the local meaning of an audience rank explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging separately defined schemes merely because their labels match."@x-gmeow-english ;
+    gmeow:howToUse "Mint a scheme node for the consumer’s rank convention and keep member nodes distinct across independently defined schemes."@x-gmeow-english ;
+    skos:example "ex:audienceScheme a gmeow:AudienceRingScheme ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:audienceRingScheme
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "audience ring scheme"@x-gmeow-english ;
+    skos:definition "The consumer scheme that defines this audience-ring member and the meaning of its rank. A scheme-scoped member record is not reused as a member of an unrelated scheme."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind an audience-ring value to its ranking context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this scheme link as audience presence in an activity."@x-gmeow-english ;
+    gmeow:howToUse "Reference the member’s defining AudienceRingScheme and compare its rank only with members of that same scheme."@x-gmeow-english ;
+    skos:example "ex:studioAudience gmeow:audienceRingScheme ex:audienceScheme ."@x-gmeow-english ;
+    logic:domain gmeow:AudienceRing ;
+    logic:range gmeow:AudienceRingScheme .
+
+gmeow:audienceRingRank
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "audience ring rank"@x-gmeow-english ;
+    skos:definition "A nonnegative rank of this ring within its audienceRingScheme. Smaller values are more inward; equal ranks coexist. The vocabulary need not start at zero, and ranks from different schemes are incomparable here."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a consumer’s innermost-first audience ordering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this local rank as a transition sequence or a globally preferred audience."@x-gmeow-english ;
+    gmeow:howToUse "Keep the consumer’s nonNegativeInteger on its scheme-scoped ring node; use different members for independently ranked schemes."@x-gmeow-english ;
+    skos:example "ex:studioAudience gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:AudienceRing ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:transitionRing
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "transition audience ring"@x-gmeow-english ;
+    skos:definition "An audience-ring context reported as responsible for an audience-forced persona change. It records who could listen as a consumer classification, not a relationship assigned to one person."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the audience ring that forced a change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting current audience presence merely because an earlier transition names a ring."@x-gmeow-english ;
+    gmeow:howToUse "Reference the consumer’s scheme-scoped AudienceRing; preserve multiple supported audience explanations."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionRing ex:studioAudience ."@x-gmeow-english ;
+    logic:domain gmeow:ModeTransition ;
+    logic:range gmeow:AudienceRing .
+
+# Source-record fields and their required-path policies.
+
+gmeow:ModeTransition logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionSlot ; logic:allValuesFrom gmeow:PersonaSlot ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionFrom ; logic:allValuesFrom gmeow:Persona ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionTo ; logic:allValuesFrom gmeow:Persona ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionAt ; logic:allValuesFrom xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionSequence ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionCause ; logic:allValuesFrom gmeow:TransitionCause ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionLasted ; logic:allValuesFrom xsd:duration ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionBoundary ; logic:allValuesFrom gmeow:TransitionBoundary ],
+    [ a logic:Restriction ; logic:onProperty gmeow:transitionRing ; logic:allValuesFrom gmeow:AudienceRing ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionSlot" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionSequence" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModeTransition ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/transitionCause" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:PersonaSlot logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:slotBearer ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:PersonaSlot ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/slotBearer" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:AudienceRing logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:audienceRingScheme ; logic:allValuesFrom gmeow:AudienceRingScheme ],
+    [ a logic:Restriction ; logic:onProperty gmeow:audienceRingRank ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:AudienceRing ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/audienceRingScheme" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:AudienceRing ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/audienceRingRank" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:slotBearerFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "slotBearer is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one slotBearer field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s slotBearer field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using slotBearer functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s slotBearer slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."@x-gmeow-english ;
+    logic:characterizes gmeow:slotBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:slotBearer .
+
+gmeow:transitionSlotFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionSlot is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionSlot field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionSlot field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionSlot functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionSlot slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionSlotFunctionality logic:characterizes gmeow:transitionSlot ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionSlot ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionSlot .
+
+gmeow:transitionFromFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionFrom is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionFrom field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionFrom field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionFrom functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionFrom slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionFromFunctionality logic:characterizes gmeow:transitionFrom ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionFrom ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionFrom .
+
+gmeow:transitionToFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionTo is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionTo field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionTo field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionTo functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionTo slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionToFunctionality logic:characterizes gmeow:transitionTo ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionTo ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionTo .
+
+gmeow:transitionLastedFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionLasted is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionLasted field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionLasted field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionLasted functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionLasted slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionLastedFunctionality logic:characterizes gmeow:transitionLasted ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionLasted ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionLasted .
+
+gmeow:transitionAtFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionAt is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionAt field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionAt field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionAt functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionAt slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionAtFunctionality logic:characterizes gmeow:transitionAt ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionAt ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionAt .
+
+gmeow:transitionSequenceFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "transitionSequence is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one transitionSequence field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s transitionSequence field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using transitionSequence functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s transitionSequence slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:transitionSequenceFunctionality logic:characterizes gmeow:transitionSequence ."@x-gmeow-english ;
+    logic:characterizes gmeow:transitionSequence ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:transitionSequence .
+
+gmeow:audienceRingSchemeFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "audienceRingScheme is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one audienceRingScheme field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s audienceRingScheme field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using audienceRingScheme functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s audienceRingScheme slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:audienceRingSchemeFunctionality logic:characterizes gmeow:audienceRingScheme ."@x-gmeow-english ;
+    logic:characterizes gmeow:audienceRingScheme ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:audienceRingScheme .
+
+gmeow:audienceRingRankFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "audienceRingRank is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one audienceRingRank field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the source record’s audienceRingRank field singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using audienceRingRank functionality to merge independently attributed records."@x-gmeow-english ;
+    gmeow:howToUse "Read this obligation only on each record’s audienceRingRank slot; existence is specified separately by closed-world paths."@x-gmeow-english ;
+    skos:example "gmeow:audienceRingRankFunctionality logic:characterizes gmeow:audienceRingRank ."@x-gmeow-english ;
+    logic:characterizes gmeow:audienceRingRank ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:audienceRingRank .
+
+gmeow:ModeTransitionActivityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Mode transition activity constraint"@x-gmeow-english ;
+    skos:definition "Every ModeTransition is retained under at least one containing activity through an incoming modeTransition relation. The activity is distinct from the transition’s information record."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep persona transition records attached to their occurrence context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an orphan information record as a complete contained transition."@x-gmeow-english ;
+    gmeow:howToUse "Supply an existing activity with modeTransition pointing to the record; nested containing activities are permitted."@x-gmeow-english ;
+    skos:example "ex:activity gmeow:modeTransition ex:change0 ."@x-gmeow-english ;
+    logic:formalizes gmeow:ModeTransition ;
+    logic:message "A ModeTransition must be linked from a containing activity by modeTransition." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModeTransition ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "activity" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:modeTransition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] .
+
+gmeow:TransitionFromBearerConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "transitionFrom bearer constraint"@x-gmeow-english ;
+    skos:definition "The Persona referenced by transitionFrom has the same bearer as the transition slot. This preserves the identity of the agent across the recorded persona change."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent transitionFrom from silently changing the slot’s agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a different agent’s persona as the transitionFrom value."@x-gmeow-english ;
+    gmeow:howToUse "Check personaBearer on the transitionFrom target against slotBearer on transitionSlot."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionFrom ex:formalPersona ."@x-gmeow-english ;
+    logic:formalizes gmeow:transitionFrom ;
+    logic:message "The transitionFrom persona must have the same bearer as the transition slot." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "slot" ], [ logic:termIndex 2 ; logic:termVariable "slotAgent" ], [ logic:termIndex 3 ; logic:termVariable "persona" ], [ logic:termIndex 4 ; logic:termVariable "personaAgent" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModeTransition ] ],
+            [ a logic:Formula ; logic:relation gmeow:transitionSlot ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "slot" ] ],
+            [ a logic:Formula ; logic:relation gmeow:slotBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "slot" ], [ logic:termIndex 1 ; logic:termVariable "slotAgent" ] ],
+            [ a logic:Formula ; logic:relation gmeow:transitionFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "persona" ] ],
+            [ a logic:Formula ; logic:relation gmeow:personaBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "persona" ], [ logic:termIndex 1 ; logic:termVariable "personaAgent" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "personaAgent" ], [ logic:termIndex 1 ; logic:termVariable "slotAgent" ] ] ] ] .
+
+gmeow:TransitionToBearerConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "transitionTo bearer constraint"@x-gmeow-english ;
+    skos:definition "The Persona referenced by transitionTo has the same bearer as the transition slot. This preserves the identity of the agent across the recorded persona change."@x-gmeow-english ;
+    gmeow:useWhen "Use to prevent transitionTo from silently changing the slot’s agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a different agent’s persona as the transitionTo value."@x-gmeow-english ;
+    gmeow:howToUse "Check personaBearer on the transitionTo target against slotBearer on transitionSlot."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionTo ex:formalPersona ."@x-gmeow-english ;
+    logic:formalizes gmeow:transitionTo ;
+    logic:message "The transitionTo persona must have the same bearer as the transition slot." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "slot" ], [ logic:termIndex 2 ; logic:termVariable "slotAgent" ], [ logic:termIndex 3 ; logic:termVariable "persona" ], [ logic:termIndex 4 ; logic:termVariable "personaAgent" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModeTransition ] ],
+            [ a logic:Formula ; logic:relation gmeow:transitionSlot ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "slot" ] ],
+            [ a logic:Formula ; logic:relation gmeow:slotBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "slot" ], [ logic:termIndex 1 ; logic:termVariable "slotAgent" ] ],
+            [ a logic:Formula ; logic:relation gmeow:transitionTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "persona" ] ],
+            [ a logic:Formula ; logic:relation gmeow:personaBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "persona" ], [ logic:termIndex 1 ; logic:termVariable "personaAgent" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "personaAgent" ], [ logic:termIndex 1 ; logic:termVariable "slotAgent" ] ] ] ] .
+
+gmeow:AutomaticTransitionBoundaryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Automatic transition boundary constraint"@x-gmeow-english ;
+    skos:definition "A transition attributed to an automatic boundary change names at least one producer-reported transitionBoundary. No particular boundary is guessed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the location that explains an automatic switch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an automatic-boundary cause without its reported boundary."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source’s boundary value on the same transition record."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionBoundary ex:sourceValue ."@x-gmeow-english ;
+    logic:formalizes gmeow:transitionCauseAutomaticBoundary ;
+    logic:message "A transitionCauseAutomaticBoundary transition must carry transitionBoundary." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:transitionCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:transitionCauseAutomaticBoundary ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:transitionBoundary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+gmeow:AudienceForcedTransitionRingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Audience-forced transition ring constraint"@x-gmeow-english ;
+    skos:definition "A transition attributed to audience forcing names at least one transitionRing identifying the audience context responsible. This does not infer a relationship category for a listener."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the audience context behind a forced persona change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying a forced-change explanation by inventing a default audience ring."@x-gmeow-english ;
+    gmeow:howToUse "Reference the producer’s scheme-scoped audience ring on that transition."@x-gmeow-english ;
+    skos:example "ex:change0 gmeow:transitionRing ex:sourceValue ."@x-gmeow-english ;
+    logic:formalizes gmeow:transitionCauseAudienceForced ;
+    logic:message "A transitionCauseAudienceForced transition must carry transitionRing." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:transitionCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:transitionCauseAudienceForced ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:transitionRing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
