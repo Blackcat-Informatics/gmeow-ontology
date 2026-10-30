@@ -1,0 +1,1395 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: query-context, language: fr).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Answer"
+msgstr "Réponse de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed query-result information record carrying its loss ledger and independently reported information, evaluation and completeness axes. It is not automatically a logic:ReasoningResult or a claim of complete retrieval."
+msgstr "Enregistrement informationnel attribué d’un résultat de requête portant son registre de pertes et ses axes indépendants d’information, d’évaluation et de complétude. Il n’est pas automatiquement un logic:ReasoningResult ni une affirmation de récupération complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what a query answered together with its declared limits."
+msgstr "Utiliser pour conserver la réponse d’une requête avec ses limites déclarées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating absent losses or reader acceptance as proof of completeness."
+msgstr "Éviter de traiter l’absence de pertes ou leur acceptation comme preuve de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link queryAnswerFor and queryLossLedger; retain each supplied status on its own axis without inventing missing values."
+msgstr "Relier queryAnswerFor et queryLossLedger ; conserver chaque état fourni sur son axe sans inventer les valeurs absentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryAnswer ."
+msgstr "ex:record a gmeow:QueryAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss Ledger"
+msgstr "Registre de pertes de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object retaining the individual losses reported for query work. An empty ledger reports no listed loss within its scope, not global completeness or an evaluated negative."
+msgstr "Objet informationnel conservant les pertes individuelles rapportées pour une requête. Un registre vide ne rapporte aucune perte listée dans sa portée, pas une complétude globale ni une réponse négative évaluée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve loss identity across query answers and later composition."
+msgstr "Utiliser pour préserver l’identité des pertes entre réponses et compositions ultérieures."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid rewriting acknowledged losses into an empty or successful ledger."
+msgstr "Éviter de réécrire des pertes reconnues en registre vide ou réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original QueryLoss records with ledgerLoss and keep their causes, affected resources and acknowledgements."
+msgstr "Relier les QueryLoss originaux par ledgerLoss et garder causes, ressources concernées et reconnaissances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryLossLedger ."
+msgstr "ex:record a gmeow:QueryLossLedger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss"
+msgstr "Perte de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified report of unavailable, missing, out-of-coverage, failed-family or coarser-than-requested query input. It identifies what is concerned and its cause; it is not a projection-loss code or proof that the missing content is false."
+msgstr "Rapport réifié d’une entrée indisponible, absente, hors couverture, d’une famille défaillante ou plus grossière que demandé. Il identifie la ressource et la cause ; ce n’est ni un code de perte de projection ni une preuve de fausseté du contenu manquant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain one identifiable retrieval limitation rather than a free-text summary alone."
+msgstr "Utiliser pour conserver une limite de récupération identifiable plutôt qu’un seul résumé libre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using ProjectionLoss for an inaccessible query input."
+msgstr "Éviter d’utiliser ProjectionLoss pour une entrée de requête inaccessible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lossConcerns and lossCause, name an affected lossConstraint when known, and retain the same loss after acknowledgement."
+msgstr "Fournir lossConcerns et lossCause, nommer lossConstraint si connu et conserver la même perte après reconnaissance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryLoss ."
+msgstr "ex:record a gmeow:QueryLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss Cause"
+msgstr "Cause de perte de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."
+msgstr "Vocabulaire ouvert des causes d’entrée indisponible ou dégradée. Ses cinq causes initiales restent distinctes des valeurs d’information, d’évaluation et de complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a reported query-input loss."
+msgstr "Utiliser pour classifier une perte d’entrée rapportée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the vocabulary or deriving a verdict solely from a cause."
+msgstr "Éviter de fermer le vocabulaire ou de déduire un verdict de la seule cause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a seeded cause through lossCause or add a reviewed source-specific individual."
+msgstr "Référencer une cause initiale par lossCause ou ajouter un individu source révisé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value missing"
+msgstr "valeur absente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A required or requested value was absent from the available query input. Absence is not a refutation of the requested fact."
+msgstr "Une valeur requise ou demandée était absente de l’entrée disponible. L’absence ne réfute pas le fait demandé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports value missing."
+msgstr "Utiliser lorsque la source rapporte : valeur absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossValueMissing as permission, truth or a successful replacement result."
+msgstr "Éviter de lire lossValueMissing comme permission, vérité ou résultat de remplacement réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossValueMissing through lossCause and retain the original concerned resource."
+msgstr "Rattacher lossValueMissing par lossCause et conserver la ressource concernée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossValueMissing ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossValueMissing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vault locked"
+msgstr "coffre verrouillé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A relevant vault or protected source was locked to this query context. The loss grants no access permission."
+msgstr "Un coffre ou une source protégée pertinent était verrouillé pour ce contexte. La perte n’accorde aucune permission d’accès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports vault locked."
+msgstr "Utiliser lorsque la source rapporte : coffre verrouillé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossVaultLocked as permission, truth or a successful replacement result."
+msgstr "Éviter de lire lossVaultLocked comme permission, vérité ou résultat de remplacement réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossVaultLocked through lossCause and retain the original concerned resource."
+msgstr "Rattacher lossVaultLocked par lossCause et conserver la ressource concernée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "coverage ends"
+msgstr "fin de couverture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Available source coverage ended before the query’s requested scope. No unsupported continuation is inferred."
+msgstr "La couverture disponible s’arrêtait avant la portée demandée. Aucune continuation non étayée n’est déduite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports coverage ends."
+msgstr "Utiliser lorsque la source rapporte : fin de couverture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossCoverageEnds as permission, truth or a successful replacement result."
+msgstr "Éviter de lire lossCoverageEnds comme permission, vérité ou résultat de remplacement réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossCoverageEnds through lossCause and retain the original concerned resource."
+msgstr "Rattacher lossCoverageEnds par lossCause et conserver la ressource concernée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossCoverageEnds ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossCoverageEnds ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query family could not evaluate"
+msgstr "famille de requête incapable d’évaluer"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A participating query or retrieval family could not perform its requested evaluation. This does not silently select a weaker procedure."
+msgstr "Une famille de requête ou récupération n’a pas pu effectuer l’évaluation demandée. Cela ne sélectionne pas silencieusement une procédure plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports query family could not evaluate."
+msgstr "Utiliser lorsque la source rapporte : famille de requête non évaluée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossFamilyCouldNot as permission, truth or a successful replacement result."
+msgstr "Éviter de lire lossFamilyCouldNot comme permission, vérité ou résultat de remplacement réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossFamilyCouldNot through lossCause and retain the original concerned resource."
+msgstr "Rattacher lossFamilyCouldNot par lossCause et conserver la ressource concernée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossFamilyCouldNot ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossFamilyCouldNot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "precision coarser"
+msgstr "précision plus grossière"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The available input precision was coarser than requested. The ledger preserves that limitation rather than manufacturing detail."
+msgstr "La précision disponible était plus grossière que demandé. Le registre conserve la limite sans fabriquer de détail."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports precision coarser."
+msgstr "Utiliser lorsque la source rapporte : précision plus grossière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossPrecisionCoarser as permission, truth or a successful replacement result."
+msgstr "Éviter de lire lossPrecisionCoarser comme permission, vérité ou résultat de remplacement réussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossPrecisionCoarser through lossCause and retain the original concerned resource."
+msgstr "Rattacher lossPrecisionCoarser par lossCause et conserver la ressource concernée originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossPrecisionCoarser ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossPrecisionCoarser ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer for query"
+msgstr "réponse à la requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared query whose result this answer records, without committing a query-text language or executor."
+msgstr "Requête déclarée dont cette réponse consigne le résultat, sans imposer de langage textuel ni d’exécuteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s answer for query relation."
+msgstr "Utiliser pour conserver la relation source : réponse à la requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryAnswerFor value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur queryAnswerFor depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryAnswerFor target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de queryAnswerFor et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryAnswerFor ex:target ."
+msgstr "ex:record gmeow:queryAnswerFor ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query loss ledger"
+msgstr "registre de pertes de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to a retained ledger of its reported retrieval limitations. Multiple source ledgers can coexist."
+msgstr "Relie une réponse à un registre conservé de ses limites rapportées. Plusieurs registres sources peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query loss ledger relation."
+msgstr "Utiliser pour conserver la relation source : registre de pertes de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryLossLedger value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur queryLossLedger depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryLossLedger target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de queryLossLedger et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryLossLedger ex:target ."
+msgstr "ex:record gmeow:queryLossLedger ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ledger loss"
+msgstr "perte du registre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A particular QueryLoss retained in this ledger. Membership preserves the loss resource’s identity and acknowledgements."
+msgstr "QueryLoss particulière conservée dans ce registre. L’appartenance préserve l’identité de la perte et ses reconnaissances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s ledger loss relation."
+msgstr "Utiliser pour conserver la relation source : perte du registre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a ledgerLoss value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur ledgerLoss depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual ledgerLoss target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de ledgerLoss et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:ledgerLoss ex:target ."
+msgstr "ex:record gmeow:ledgerLoss ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss concerns resource"
+msgstr "ressource concernée par la perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource whose input, value, coverage or precision was unavailable or limited for this loss report."
+msgstr "Ressource dont l’entrée, valeur, couverture ou précision était indisponible ou limitée pour ce rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss concerns resource relation."
+msgstr "Utiliser pour conserver la relation source : ressource concernée par la perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossConcerns value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur lossConcerns depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossConcerns target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de lossConcerns et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossConcerns ex:target ."
+msgstr "ex:record gmeow:lossConcerns ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss cause"
+msgstr "cause de perte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported cause of this identifiable query loss, independently of result-status axes."
+msgstr "Cause source de cette perte identifiable, indépendante des axes d’état du résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss cause relation."
+msgstr "Utiliser pour conserver la relation source : cause de perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossCause value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur lossCause depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossCause target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de lossCause et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossCause ex:target ."
+msgstr "ex:record gmeow:lossCause ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affected query constraint"
+msgstr "contrainte de requête affectée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual query constraint affected by the reported loss, when known. It need not be a logic:Constraint integrity rule."
+msgstr "Contrainte réelle de requête affectée, si connue. Elle n’est pas nécessairement une règle d’intégrité logic:Constraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s affected query constraint relation."
+msgstr "Utiliser pour conserver la relation source : contrainte de requête affectée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossConstraint value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur lossConstraint depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossConstraint target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de lossConstraint et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossConstraint ex:target ."
+msgstr "ex:record gmeow:lossConstraint ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss acknowledged by reader"
+msgstr "perte reconnue par le lecteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reader that acknowledged this reported limitation. Acknowledgement neither erases the loss nor repairs it, changes a result axis or authorizes access."
+msgstr "Lecteur ayant reconnu cette limite rapportée. La reconnaissance ne supprime ni répare la perte, ne change aucun axe et n’autorise aucun accès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss acknowledged by reader relation."
+msgstr "Utiliser pour conserver la relation source : perte reconnue par le lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossAcceptedBy value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur lossAcceptedBy depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossAcceptedBy target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de lossAcceptedBy et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossAcceptedBy ex:target ."
+msgstr "ex:record gmeow:lossAcceptedBy ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query information state"
+msgstr "état informationnel de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported information verdict about the query’s proposition, using the existing InformationState vocabulary. Undetermined and not-evaluated remain on this axis."
+msgstr "Verdict informationnel rapporté sur la proposition de la requête, utilisant InformationState existant. Indéterminé et non évalué restent sur cet axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query information state relation."
+msgstr "Utiliser pour conserver la relation source : état informationnel de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryInformationState value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur queryInformationState depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryInformationState target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de queryInformationState et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryInformationState ex:target ."
+msgstr "ex:record gmeow:queryInformationState ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query evaluation status"
+msgstr "état d’évaluation de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported computation status of this query answer, independently of what information was supported and how complete the answer is."
+msgstr "État de calcul rapporté de cette réponse, indépendant de l’information étayée et de sa complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query evaluation status relation."
+msgstr "Utiliser pour conserver la relation source : état d’évaluation de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryEvaluationStatus value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur queryEvaluationStatus depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryEvaluationStatus target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de queryEvaluationStatus et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryEvaluationStatus ex:target ."
+msgstr "ex:record gmeow:queryEvaluationStatus ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query completeness status"
+msgstr "état de complétude de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported completeness relative to the declared query scope or fragment. It is not a second home for undetermined or not-evaluated information states."
+msgstr "Complétude rapportée relativement à la portée ou au fragment déclaré. Ce n’est pas un autre emplacement des états informationnels indéterminé ou non évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query completeness status relation."
+msgstr "Utiliser pour conserver la relation source : état de complétude de requête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryCompletenessStatus value from silence or another result axis."
+msgstr "Éviter d’inventer une valeur queryCompletenessStatus depuis le silence ou un autre axe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryCompletenessStatus target and preserve source attribution and scope."
+msgstr "Référencer la cible réelle de queryCompletenessStatus et préserver attribution et portée sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryCompletenessStatus ex:target ."
+msgstr "ex:record gmeow:queryCompletenessStatus ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query context"
+msgstr "contexte de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Query-result loss records and explicitly interpreted frame-composition descriptors, keeping result axes and context semantics distinct."
+msgstr "Pertes de résultats de requête et descriptions de composition de cadres explicitement interprétées, séparant axes de résultat et sémantique de contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://purl.org/dc/terms/title"
+msgid "GMEOW Query Context Module"
+msgstr "Module GMEOW de contexte de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Governed query stores and recall adapters retaining unavailable-input reports and explicit frame-composition semantics without silent capability degradation."
+msgstr "Magasins de requêtes gouvernés et adaptateurs de rappel conservant limites d’entrée et sémantique de composition explicite sans dégradation silencieuse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Interpretation"
+msgstr "Interprétation de cadres de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly scoped extensional interpretation of query frames, with a declared domain of evaluation contexts and frame memberships. Completeness is an author’s assertion about that interpretation, not a runtime certificate or proof about all possible semantic models."
+msgstr "Interprétation extensionnelle explicitement délimitée de cadres de requête, avec domaine déclaré de contextes d’évaluation et appartenances. La complétude est une assertion d’auteur sur cette interprétation, pas un certificat d’exécution ni une preuve sur tous les modèles possibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the exact interpretation in which frame-set equations are asserted."
+msgstr "Utiliser pour préciser l’interprétation exacte des équations d’ensembles de cadres."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a finite sample as a complete interpretation of a larger undeclared domain."
+msgstr "Éviter de traiter un échantillon fini comme une interprétation complète d’un domaine plus large non déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name interpretationScope, retain interpretationMember entries, and assert interpretationComplete only for the declared model and scope."
+msgstr "Nommer interpretationScope, conserver interpretationMember et affirmer interpretationComplete seulement pour le modèle et la portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryFrameInterpretation ."
+msgstr "ex:record a gmeow:QueryFrameInterpretation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Extent"
+msgstr "Extension de cadre de requête"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."
+msgstr "Contextes d’évaluation admis enregistrés pour un cadre dans une QueryFrameInterpretation. Une extension vide peut consigner une incompatibilité sans fournir un point de vue ou scénario utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make component and result membership explicit within a named interpretation."
+msgstr "Utiliser pour expliciter l’appartenance des composantes et résultats dans une interprétation nommée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining extents from different interpretations or inventing members for an empty result."
+msgstr "Éviter de combiner des extensions d’interprétations différentes ou d’inventer des membres pour un résultat vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind extentInterpretation, name extentFrame when represented, and retain extentMember values inside that interpretation’s declared domain."
+msgstr "Lier extentInterpretation, nommer extentFrame si représenté et conserver extentMember dans le domaine déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryFrameExtent ."
+msgstr "ex:record a gmeow:QueryFrameExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Frame Composition"
+msgstr "Composition de cadres"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A binary query-frame composition descriptor with explicit left and right extents and one interpretation. Freely describing a request establishes neither a result, realization, compatibility nor a usable frame."
+msgstr "Descripteur binaire de composition avec extensions gauche et droite et une interprétation explicites. Décrire une demande n’établit ni résultat, réalisation, compatibilité ni cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a requested or asserted frame composition independently of its realization."
+msgstr "Utiliser pour conserver une composition demandée ou affirmée indépendamment de sa réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a semantic meet merely from the existence of a descriptor or a refinement poset."
+msgstr "Éviter de déduire une borne inférieure sémantique du seul descripteur ou d’un ordre partiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use a concrete composition kind, identify its interpretation and operands, and retain explicit result and realization claims only when supplied."
+msgstr "Utiliser un type concret, identifier interprétation et opérandes, et conserver les assertions explicites de résultat et réalisation seulement si fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:FrameComposition ."
+msgstr "ex:record a gmeow:FrameComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint Meet Composition"
+msgstr "Composition par intersection de points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for the intersection of two standpoint precisification extents in an explicit interpretation. A represented nonempty intersection is a meet there; a partial order alone guarantees no such represented result."
+msgstr "Descripteur de l’intersection de deux extensions de précisions de points de vue dans une interprétation explicite. Une intersection représentée non vide y est une borne inférieure ; un ordre partiel ne garantit pas ce résultat représenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared admissible precisifications of two standpoints."
+msgstr "Utiliser pour les précisions admissibles communes à deux points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading truth on an intersection as the requirement of truth throughout both original standpoints."
+msgstr "Éviter de lire la vérité sur l’intersection comme exigence de vérité sur les deux points de vue originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply standpoint operands and an explicit result extent; a usable result additionally requires a nonempty complete-model realization claim."
+msgstr "Fournir les opérandes de points de vue et un résultat explicite ; un résultat utilisable exige en plus une assertion de réalisation non vide sur un modèle complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:StandpointMeetComposition ."
+msgstr "ex:composition a gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-Standpoint Truth Composition"
+msgstr "Composition de vérité des deux points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for the union of two standpoint precisification extents. Universal truth over that union requires truth at every context of both inputs; it is different from their meet."
+msgstr "Descripteur de l’union des extensions de précisions de deux points de vue. La vérité universelle sur cette union exige la vérité dans chaque contexte des deux entrées ; elle diffère de leur intersection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent the frame domain needed for a true-from-both requirement."
+msgstr "Utiliser pour représenter le domaine requis pour être vrai depuis les deux points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing this union with precisification intersection or treating unknown truth as supported."
+msgstr "Éviter de remplacer cette union par une intersection ou de traiter la vérité inconnue comme étayée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the two standpoint extents and the exact union result within the same interpretation."
+msgstr "Conserver les deux extensions de points de vue et l’union exacte dans la même interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:StandpointTruthUnionComposition ."
+msgstr "ex:composition a gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario Conjunction Composition"
+msgstr "Composition de conjonction de scénarios"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for jointly entertaining two scenario suppositions, represented by intersection of their satisfying evaluation-context extents. It neither adopts a standpoint nor asserts alethic possibility or actuality."
+msgstr "Descripteur pour considérer conjointement deux suppositions de scénarios, par intersection de leurs extensions de contextes satisfaisants. Il n’adopte aucun point de vue et n’affirme ni possibilité aléthique ni actualité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record a joint hypothetical scenario in one declared interpretation."
+msgstr "Utiliser pour consigner un scénario hypothétique conjoint dans une interprétation déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing scenario conjunction with standpoint meet or cross-type accessibility."
+msgstr "Éviter de mélanger conjonction de scénarios, intersection de points de vue ou accessibilité inter-types."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference two scenario extents and retain their intersection, including an explicit empty incompatible result when applicable."
+msgstr "Référencer deux extensions de scénarios et conserver leur intersection, y compris un résultat vide incompatible explicite si applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:ScenarioConjunctionComposition ."
+msgstr "ex:composition a gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation scope"
+msgstr "portée de l’interprétation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit scope or model contract defining the evaluation-context universe represented here."
+msgstr "Portée ou contrat de modèle explicite définissant l’univers de contextes représenté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit interpretation scope binding."
+msgstr "Utiliser pour conserver le lien explicite : portée de l’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of interpretationScope from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de interpretationScope de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported interpretationScope resource within its declared model and scope."
+msgstr "Référencer la ressource interpretationScope étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:interpretationScope ex:target ."
+msgstr "ex:record gmeow:interpretationScope ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation domain member"
+msgstr "membre du domaine d’interprétation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An evaluation context in the declared interpretation domain. World typing does not assert the alethic PossibleWorld subtype."
+msgstr "Contexte d’évaluation du domaine déclaré. Le type World n’affirme pas le sous-type aléthique PossibleWorld."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit interpretation domain member binding."
+msgstr "Utiliser pour conserver le lien explicite : membre du domaine d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of interpretationMember from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de interpretationMember de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported interpretationMember resource within its declared model and scope."
+msgstr "Référencer la ressource interpretationMember étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:interpretationMember ex:target ."
+msgstr "ex:record gmeow:interpretationMember ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent interpretation"
+msgstr "interprétation de l’extension"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single source interpretation in which this frame extent’s memberships are read."
+msgstr "Interprétation source unique dans laquelle les appartenances de cette extension sont lues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit extent interpretation binding."
+msgstr "Utiliser pour conserver le lien explicite : interprétation de l’extension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentInterpretation from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de extentInterpretation de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentInterpretation resource within its declared model and scope."
+msgstr "Référencer la ressource extentInterpretation étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentInterpretation ex:target ."
+msgstr "ex:record gmeow:extentInterpretation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "represented extent frame"
+msgstr "cadre représenté par l’extension"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
+msgstr "Standpoint ou Scenario représenté par l’extension. Les résultats vides incompatibles n’ont pas à nommer de cadre utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit represented extent frame binding."
+msgstr "Utiliser pour conserver le lien explicite : cadre représenté par l’extension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentFrame from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de extentFrame de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentFrame resource within its declared model and scope."
+msgstr "Référencer la ressource extentFrame étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentFrame ex:target ."
+msgstr "ex:record gmeow:extentFrame ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent member"
+msgstr "membre de l’extension"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An evaluation context admitted by this frame extent in its explicit interpretation. Absence is read extensionally only under that interpretation’s completeness claim."
+msgstr "Contexte d’évaluation admis dans l’interprétation explicite. L’absence n’est lue extensionnellement que sous l’assertion de complétude de cette interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit extent member binding."
+msgstr "Utiliser pour conserver le lien explicite : membre de l’extension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentMember from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de extentMember de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentMember resource within its declared model and scope."
+msgstr "Référencer la ressource extentMember étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentMember ex:target ."
+msgstr "ex:record gmeow:extentMember ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition interpretation"
+msgstr "interprétation de la composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The shared interpretation of this composition’s operand and result extents."
+msgstr "Interprétation commune aux extensions d’opérandes et de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit composition interpretation binding."
+msgstr "Utiliser pour conserver le lien explicite : interprétation de la composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionInterpretation from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de compositionInterpretation de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionInterpretation resource within its declared model and scope."
+msgstr "Référencer la ressource compositionInterpretation étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionInterpretation ex:target ."
+msgstr "ex:record gmeow:compositionInterpretation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "left composition operand"
+msgstr "opérande gauche de composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly identified left frame extent; operand position is not a priority between standpoints."
+msgstr "Extension gauche explicitement identifiée ; sa position n’est pas une priorité entre points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit left composition operand binding."
+msgstr "Utiliser pour conserver le lien explicite : opérande gauche de composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionLeft from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de compositionLeft de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionLeft resource within its declared model and scope."
+msgstr "Référencer la ressource compositionLeft étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionLeft ex:target ."
+msgstr "ex:record gmeow:compositionLeft ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "right composition operand"
+msgstr "opérande droite de composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly identified right frame extent, interpreted in the same model as the left."
+msgstr "Extension droite explicitement identifiée, interprétée dans le même modèle que la gauche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit right composition operand binding."
+msgstr "Utiliser pour conserver le lien explicite : opérande droite de composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionRight from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de compositionRight de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionRight resource within its declared model and scope."
+msgstr "Référencer la ressource compositionRight étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionRight ex:target ."
+msgstr "ex:record gmeow:compositionRight ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition result extent"
+msgstr "extension résultante de composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded result extent, which can be empty for an incompatible composition and is not automatically a usable semantic frame."
+msgstr "Extension résultante enregistrée, éventuellement vide en cas d’incompatibilité, sans être automatiquement un cadre sémantique utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit composition result extent binding."
+msgstr "Utiliser pour conserver le lien explicite : extension résultante de composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionResult from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de compositionResult de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionResult resource within its declared model and scope."
+msgstr "Référencer la ressource compositionResult étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionResult ex:target ."
+msgstr "ex:record gmeow:compositionResult ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable composition frame"
+msgstr "cadre utilisable de composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly asserted represented result frame within the complete declared interpretation. It requires realized, compatible and nonempty result evidence, without certifying global semantic existence."
+msgstr "Cadre résultant représenté explicitement affirmé dans l’interprétation complète déclarée. Il exige éléments de réalisation, compatibilité et résultat non vide, sans certifier l’existence sémantique globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit usable composition frame binding."
+msgstr "Utiliser pour conserver le lien explicite : cadre utilisable de composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionFrame from descriptor existence alone."
+msgstr "Éviter d’inventer la cible de compositionFrame de la seule existence du descripteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionFrame resource within its declared model and scope."
+msgstr "Référencer la ressource compositionFrame étayée dans son modèle et sa portée déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionFrame ex:target ."
+msgstr "ex:record gmeow:compositionFrame ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation complete"
+msgstr "interprétation complète"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source assertion that the declared domain and recorded frame extents constitute a complete extensional interpretation for its named scope. It is not inferred from sample size."
+msgstr "Assertion source que le domaine et les extensions enregistrées forment une interprétation extensionnelle complète pour la portée nommée. Elle n’est pas déduite de la taille d’un échantillon."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source interpretation complete assertion."
+msgstr "Utiliser pour une assertion source explicite : interprétation complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting interpretationComplete from absent members or an unevaluated descriptor."
+msgstr "Éviter de déduire interpretationComplete par défaut de membres absents ou d’un descripteur non évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied interpretationComplete boolean with its exact interpretation scope."
+msgstr "Conserver le booléen interpretationComplete fourni avec sa portée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this interpretation complete: ex:record gmeow:interpretationComplete true ."
+msgstr "La source déclare cette interprétation complète : ex:record gmeow:interpretationComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition realized"
+msgstr "composition réalisée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source claim that this composition has a result interpreted by its declared complete model. It is not a runtime verification certificate."
+msgstr "Affirmation source explicite que cette composition possède un résultat dans son modèle complet déclaré. Ce n’est pas un certificat de vérification d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source composition realized assertion."
+msgstr "Utiliser pour une assertion source explicite : composition réalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting compositionRealized from absent members or an unevaluated descriptor."
+msgstr "Éviter de déduire compositionRealized par défaut de membres absents ou d’un descripteur non évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied compositionRealized boolean with its exact interpretation scope."
+msgstr "Conserver le booléen compositionRealized fourni avec sa portée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this composition realized: ex:record gmeow:compositionRealized true ."
+msgstr "La source déclare cette composition réalisée : ex:record gmeow:compositionRealized true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition compatible"
+msgstr "compatibilité de la composition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "For a realized composition, whether the result extent is nonempty in the declared interpretation. False records empty incompatibility; missing remains unknown."
+msgstr "Pour une composition réalisée, indique si l’extension résultante est non vide dans l’interprétation déclarée. Faux consigne l’incompatibilité vide ; l’absence reste inconnue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source composition compatible assertion."
+msgstr "Utiliser pour une assertion source explicite : composition compatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting compositionCompatible from absent members or an unevaluated descriptor."
+msgstr "Éviter de déduire compositionCompatible par défaut de membres absents ou d’un descripteur non évalué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied compositionCompatible boolean with its exact interpretation scope."
+msgstr "Conserver le booléen compositionCompatible fourni avec sa portée exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this composition compatible: ex:record gmeow:compositionCompatible true ."
+msgstr "La source déclare cette composition compatible : ex:record gmeow:compositionCompatible true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Acknowledged loss ledger constraint"
+msgstr "Contrainte de registre des pertes reconnues"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An acknowledged loss remains present as the same resource in a query loss ledger. Acknowledgement supplies no erasure or remedy."
+msgstr "Une perte reconnue demeure la même ressource dans un registre de requête. La reconnaissance n’apporte ni suppression ni réparation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve acknowledged loss ledger constraint."
+msgstr "Utiliser pour préserver : contrainte de registre des pertes reconnues."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying AcknowledgedLossLedgerConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire AcknowledgedLossLedgerConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read AcknowledgedLossLedgerConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire AcknowledgedLossLedgerConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:AcknowledgedLossLedgerConstraint logic:formalizes gmeow:lossAcceptedBy ."
+msgstr "gmeow:AcknowledgedLossLedgerConstraint logic:formalizes gmeow:lossAcceptedBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Extent domain membership constraint"
+msgstr "Contrainte de domaine des membres d’extension"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every recorded extent member belongs to its explicitly identified interpretation domain."
+msgstr "Chaque membre enregistré d’extension appartient au domaine explicitement identifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve extent domain membership constraint."
+msgstr "Utiliser pour préserver : contrainte de domaine des membres d’extension."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ExtentDomainMembershipConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire ExtentDomainMembershipConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ExtentDomainMembershipConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire ExtentDomainMembershipConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExtentDomainMembershipConstraint logic:formalizes gmeow:extentMember ."
+msgstr "gmeow:ExtentDomainMembershipConstraint logic:formalizes gmeow:extentMember ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Composition operand interpretation constraint"
+msgstr "Contrainte d’interprétation des opérandes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both composition operands use the descriptor’s same interpretation; mixed-domain operands do not establish a composition."
+msgstr "Les deux opérandes utilisent la même interprétation que le descripteur ; des domaines mêlés n’établissent pas une composition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve composition operand interpretation constraint."
+msgstr "Utiliser pour préserver : contrainte d’interprétation des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying CompositionOperandInterpretationConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire CompositionOperandInterpretationConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read CompositionOperandInterpretationConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire CompositionOperandInterpretationConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompositionOperandInterpretationConstraint logic:formalizes gmeow:compositionInterpretation ."
+msgstr "gmeow:CompositionOperandInterpretationConstraint logic:formalizes gmeow:compositionInterpretation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Realized composition evidence constraint"
+msgstr "Contrainte d’éléments de composition réalisée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A realization claim retains an explicit result and compatibility value in the same source-asserted complete interpretation. It is not an engine certificate."
+msgstr "Une réalisation conserve résultat et compatibilité explicites dans la même interprétation complète affirmée par la source. Ce n’est pas un certificat moteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve realized composition evidence constraint."
+msgstr "Utiliser pour préserver : contrainte d’éléments de composition réalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RealizedCompositionEvidenceConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire RealizedCompositionEvidenceConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read RealizedCompositionEvidenceConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire RealizedCompositionEvidenceConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RealizedCompositionEvidenceConstraint logic:formalizes gmeow:compositionRealized ."
+msgstr "gmeow:RealizedCompositionEvidenceConstraint logic:formalizes gmeow:compositionRealized ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint composition operands constraint"
+msgstr "Contrainte d’opérandes de points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Standpoint operands name nonempty represented standpoints; the unspecified default is excluded from the sharpening order."
+msgstr "Les opérandes nomment des points de vue représentés non vides ; le défaut non spécifié est exclu de l’ordre de raffinement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint composition operands constraint."
+msgstr "Utiliser pour préserver : contrainte d’opérandes de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying StandpointCompositionOperandsConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire StandpointCompositionOperandsConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read StandpointCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire StandpointCompositionOperandsConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StandpointCompositionOperandsConstraint logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:StandpointCompositionOperandsConstraint logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario composition operands constraint"
+msgstr "Contrainte d’opérandes de scénarios"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Scenario conjunction operands represent scenarios rather than adopting standpoint or alethic context types."
+msgstr "Les opérandes de conjonction représentent des scénarios, sans adopter des types de point de vue ou aléthiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario composition operands constraint."
+msgstr "Utiliser pour préserver : contrainte d’opérandes de scénarios."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioCompositionOperandsConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire ScenarioCompositionOperandsConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire ScenarioCompositionOperandsConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioCompositionOperandsConstraint logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioCompositionOperandsConstraint logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Usable composition frame constraint"
+msgstr "Contrainte de cadre de composition utilisable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exposed composition frame is explicitly represented by a realized compatible nonempty result. Minting a descriptor alone supplies none of this evidence."
+msgstr "Un cadre exposé est explicitement représenté par un résultat réalisé compatible non vide. Créer un descripteur ne fournit aucun de ces éléments."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve usable composition frame constraint."
+msgstr "Utiliser pour préserver : contrainte de cadre de composition utilisable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying UsableCompositionFrameConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire UsableCompositionFrameConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read UsableCompositionFrameConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire UsableCompositionFrameConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:UsableCompositionFrameConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:UsableCompositionFrameConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compatible composition nonempty constraint"
+msgstr "Contrainte de non-vacuité de composition compatible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A compatible assertion requires a realized nonempty result in the declared interpretation."
+msgstr "Une assertion compatible exige un résultat réalisé non vide dans l’interprétation déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve compatible composition nonempty constraint."
+msgstr "Utiliser pour préserver : contrainte de non-vacuité de composition compatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying CompatibleCompositionNonemptyConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire CompatibleCompositionNonemptyConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read CompatibleCompositionNonemptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire CompatibleCompositionNonemptyConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompatibleCompositionNonemptyConstraint logic:formalizes gmeow:compositionCompatible ."
+msgstr "gmeow:CompatibleCompositionNonemptyConstraint logic:formalizes gmeow:compositionCompatible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incompatible composition empty constraint"
+msgstr "Contrainte de vacuité de composition incompatible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An incompatible assertion records a realized empty result, retained without a usable frame or vacuous universal-truth promotion."
+msgstr "Une incompatibilité consigne un résultat réalisé vide, conservé sans cadre utilisable ni promotion de vérité universelle par vacuité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve incompatible composition empty constraint."
+msgstr "Utiliser pour préserver : contrainte de vacuité de composition incompatible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying IncompatibleCompositionEmptyConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire IncompatibleCompositionEmptyConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read IncompatibleCompositionEmptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire IncompatibleCompositionEmptyConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IncompatibleCompositionEmptyConstraint logic:formalizes gmeow:compositionCompatible ."
+msgstr "gmeow:IncompatibleCompositionEmptyConstraint logic:formalizes gmeow:compositionCompatible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint composition result type constraint"
+msgstr "Contrainte de type du résultat de points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A usable standpoint intersection or truth-union frame remains a Standpoint rather than a Scenario."
+msgstr "Un cadre utilisable d’intersection ou union de points de vue demeure un Standpoint plutôt qu’un Scenario."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint composition result type constraint."
+msgstr "Utiliser pour préserver : contrainte de type du résultat de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying StandpointCompositionResultTypeConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire StandpointCompositionResultTypeConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read StandpointCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire StandpointCompositionResultTypeConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StandpointCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:StandpointCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario composition result type constraint"
+msgstr "Contrainte de type du résultat de scénarios"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A usable joint-scenario frame remains a Scenario and asserts no alethic possibility."
+msgstr "Un cadre conjoint utilisable demeure un Scenario sans affirmer de possibilité aléthique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario composition result type constraint."
+msgstr "Utiliser pour préserver : contrainte de type du résultat de scénarios."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioCompositionResultTypeConstraint by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire ScenarioCompositionResultTypeConstraint en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire ScenarioCompositionResultTypeConstraint dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:ScenarioCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint meet result membership law"
+msgstr "Loi des membres du résultat : intersection de points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every standpoint-meet result member belongs to both operand extents in the complete declared interpretation."
+msgstr "Chaque membre du résultat d’intersection de points de vue appartient aux deux extensions dans l’interprétation complète déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint meet result membership law."
+msgstr "Utiliser pour préserver : loi des membres du résultat : intersection de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying MeetResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire MeetResultMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read MeetResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire MeetResultMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MeetResultMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:MeetResultMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint meet common membership law"
+msgstr "Loi des membres communs : intersection de points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every context common to both standpoint-meet operand extents belongs to that operation’s result in the complete declared interpretation."
+msgstr "Chaque contexte commun aux deux extensions d’intersection de points de vue appartient au résultat de cette opération dans l’interprétation complète déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint meet common membership law."
+msgstr "Utiliser pour préserver : loi des membres communs : intersection de points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying MeetCommonMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire MeetCommonMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read MeetCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire MeetCommonMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MeetCommonMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:MeetCommonMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scenario conjunction result membership law"
+msgstr "Loi des membres du résultat : conjonction de scénarios"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every scenario-conjunction result member belongs to both operand extents in the complete declared interpretation."
+msgstr "Chaque membre du résultat de conjonction de scénarios appartient aux deux extensions dans l’interprétation complète déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario conjunction result membership law."
+msgstr "Utiliser pour préserver : loi des membres du résultat : conjonction de scénarios."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioConjunctionResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire ScenarioConjunctionResultMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioConjunctionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire ScenarioConjunctionResultMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioConjunctionResultMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioConjunctionResultMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scenario conjunction common membership law"
+msgstr "Loi des membres communs : conjonction de scénarios"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every context common to both scenario-conjunction operand extents belongs to that operation’s result in the complete declared interpretation."
+msgstr "Chaque contexte commun aux deux extensions de conjonction de scénarios appartient au résultat de cette opération dans l’interprétation complète déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario conjunction common membership law."
+msgstr "Utiliser pour préserver : loi des membres communs : conjonction de scénarios."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioConjunctionCommonMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire ScenarioConjunctionCommonMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioConjunctionCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire ScenarioConjunctionCommonMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioConjunctionCommonMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioConjunctionCommonMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union result membership law"
+msgstr "Loi des membres résultants de l’union des points de vue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every union-result context belongs to at least one input extent; no additional context is admitted."
+msgstr "Chaque contexte de l’union appartient à au moins une entrée ; aucun contexte supplémentaire n’est admis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union result membership law."
+msgstr "Utiliser pour préserver : loi des membres résultants de l’union des points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire TruthUnionResultMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire TruthUnionResultMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionResultMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionResultMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union left membership law"
+msgstr "Loi des membres de l’union, entrée gauche"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every left operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."
+msgstr "Chaque contexte de l’entrée gauche appartient à l’union, préservant les contextes requis pour la vérité universelle des deux entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union left membership law."
+msgstr "Utiliser pour préserver : loi des membres de l’union, entrée gauche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionLeftMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire TruthUnionLeftMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionLeftMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire TruthUnionLeftMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionLeftMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionLeftMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union right membership law"
+msgstr "Loi des membres de l’union, entrée droite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every right operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."
+msgstr "Chaque contexte de l’entrée droite appartient à l’union, préservant les contextes requis pour la vérité universelle des deux entrées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union right membership law."
+msgstr "Utiliser pour préserver : loi des membres de l’union, entrée droite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionRightMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "Éviter de satisfaire TruthUnionRightMembershipLaw en inventant appartenance, portée ou réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionRightMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "Lire TruthUnionRightMembershipLaw dans l’interprétation source explicite ; elle ne fournit aucun certificat global d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionRightMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionRightMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent frame congruence law"
+msgstr "loi de congruence des extensions de cadre"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two extent records representing the same frame in the same explicitly complete interpretation have identical members while retaining their separate record identities."
+msgstr "Deux enregistrements d’extension représentant le même cadre dans la même interprétation explicitement complète ont les mêmes membres tout en conservant leurs identités distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require one consistent denotation for a represented frame within a complete scoped interpretation."
+msgstr "Utiliser pour imposer une dénotation cohérente à un cadre représenté dans une interprétation complète de portée définie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning different memberships to the same represented frame by creating another extent record in the same complete interpretation."
+msgstr "Éviter d’attribuer des membres différents au même cadre représenté en créant un autre enregistrement d’extension dans la même interprétation complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the universally ordered extent pairs in both directions: shared interpretation and frame require every member of either record to belong to the other."
+msgstr "Lire les paires d’extensions universellement ordonnées dans les deux sens : une interprétation et un cadre partagés imposent que chaque membre de l’un des enregistrements appartienne à l’autre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
+msgstr "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
