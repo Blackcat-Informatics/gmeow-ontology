@@ -17,6 +17,9 @@ no global key, single preferred identifier or forced token normalization.
 Response-turn grouping is explicit. The canonical chain
 `chatTurn / turnOfThread` derives shared `partOfThread`. It does not invent turn
 boundaries from dates, require one terminal message or infer successful output.
+`chatTurn` is supplied only when the source identifies that grouping; its range
+remains constrained without a required-path closure on every `ChatMessage`.
+Sources without turns can retain known thread membership directly.
 `entryOrdinal` retains known zero-based local order on parts, messages or turns;
 source precision of record time remains governed by `recordedAt`. Source sending
 and storing-system receipt use shared `sentAt` and `receivedAt` independently.
@@ -40,7 +43,7 @@ is inherited.
 
 | Object | Canonical obligation |
 | --- | --- |
-| ChatMessage | Required network, turn and participant paths; a realized author-occurrence obligation. |
+| ChatMessage | Required network and participant paths; a realized author-occurrence obligation; optional source-provided turn with a constrained range. |
 | ChatRoom | Required transport and exact string identifier paths. |
 | ChatTurn | Required Thread reference. |
 | ChatMessageParticipant | Required message, Agent-or-account endpoint and role paths. |

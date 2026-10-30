@@ -13,10 +13,10 @@ gmeow:ChatMessage
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Chat Message"@x-gmeow-english ;
-    skos:definition "A message in a networked chat conversation, retaining its transport, response turn and participant occurrences. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."@x-gmeow-english ;
+    skos:definition "A message in a networked chat conversation, retaining its transport and participant occurrences, with response-turn grouping when supplied by the source. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."@x-gmeow-english ;
     gmeow:useWhen "Use for chat communication with explicit source context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid applying email-address participant requirements to chat."@x-gmeow-english ;
-    gmeow:howToUse "Link chatTransport, chatTurn and hasChatParticipant; retain ordered ChatMessagePart nodes with hasBodyPart."@x-gmeow-english ;
+    gmeow:howToUse "Link chatTransport and hasChatParticipant; add chatTurn only when the source supplies response-turn grouping, and retain ordered ChatMessagePart nodes with hasBodyPart."@x-gmeow-english ;
     skos:example "ex:message a gmeow:ChatMessage ."@x-gmeow-english ;
     logic:subClassOf gmeow:Message .
 
@@ -277,7 +277,7 @@ gmeow:chatTurn
     skos:definition "The source response turn containing a chat message. The turn’s thread supplies shared partOfThread membership."@x-gmeow-english ;
     gmeow:useWhen "Use to distinguish messages contributing to the same response unit."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid making turn membership evidence of successful output."@x-gmeow-english ;
-    gmeow:howToUse "Reference the source ChatTurn, retaining entryOrdinal only as local source order."@x-gmeow-english ;
+    gmeow:howToUse "Reference a source-provided ChatTurn and retain entryOrdinal only as local source order; omit chatTurn when the source has no response-turn grouping."@x-gmeow-english ;
     skos:example "ex:reply gmeow:chatTurn ex:turn ."@x-gmeow-english ;
     logic:domain gmeow:ChatMessage ;
     logic:range gmeow:ChatTurn .
@@ -372,9 +372,6 @@ gmeow:ChatMessage logic:subClassOf
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
     logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
-
-[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
-    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTurn" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
     logic:closureKey "https://blackcatinformatics.ca/gmeow/hasChatParticipant" ; logic:closureValue logic:ClosedWorldClosure ] .

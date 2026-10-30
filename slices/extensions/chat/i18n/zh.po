@@ -14,8 +14,8 @@ msgid "Chat Message"
 msgstr "聊天消息"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A message in a networked chat conversation, retaining its transport, response turn and participant occurrences. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."
-msgstr "网络聊天会话中的消息，保留传输、响应轮次及参与者出现。它可以是发送前被拒绝的拟发消息；其类型不表示送达成功。"
+msgid "A message in a networked chat conversation, retaining its transport and participant occurrences, with response-turn grouping when supplied by the source. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."
+msgstr "网络聊天会话中的消息，保留传输及参与者出现，并在来源提供时保留响应轮次分组。它可以是发送前被拒绝的拟发消息；其类型不表示送达成功。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for chat communication with explicit source context."
@@ -26,8 +26,8 @@ msgid "Avoid applying email-address participant requirements to chat."
 msgstr "避免对聊天施加电子邮件地址参与者要求。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link chatTransport, chatTurn and hasChatParticipant; retain ordered ChatMessagePart nodes with hasBodyPart."
-msgstr "填写 chatTransport、chatTurn 及 hasChatParticipant；用 hasBodyPart 保留有序 ChatMessagePart 节点。"
+msgid "Link chatTransport and hasChatParticipant; add chatTurn only when the source supplies response-turn grouping, and retain ordered ChatMessagePart nodes with hasBodyPart."
+msgstr "填写 chatTransport 及 hasChatParticipant；仅在来源提供响应轮次分组时添加 chatTurn，并用 hasBodyPart 保留有序 ChatMessagePart 节点。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:message a gmeow:ChatMessage ."
@@ -530,8 +530,8 @@ msgid "Avoid making turn membership evidence of successful output."
 msgstr "避免将轮次成员资格当作输出成功证据。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference the source ChatTurn, retaining entryOrdinal only as local source order."
-msgstr "引用来源 ChatTurn，仅以 entryOrdinal 保留局部来源顺序。"
+msgid "Reference a source-provided ChatTurn and retain entryOrdinal only as local source order; omit chatTurn when the source has no response-turn grouping."
+msgstr "引用来源提供的 ChatTurn，并仅以 entryOrdinal 保留局部来源顺序；来源没有响应轮次分组时省略 chatTurn。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reply gmeow:chatTurn ex:turn ."

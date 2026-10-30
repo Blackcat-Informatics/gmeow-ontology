@@ -3,8 +3,9 @@
 
 # Chat conversations
 
-A `ChatMessage` specializes the shared `Message` with transport context, response
-turns, participant occurrences and ordered parts. It includes intended output
+A `ChatMessage` specializes the shared `Message` with transport context,
+participant occurrences and ordered parts. Source-provided response turns retain
+additional grouping when available. It includes intended output
 refused before dispatch. Its type and output role do not prove successful delivery.
 
 ## Network, room and turn
@@ -29,6 +30,11 @@ A `ChatTurn` is the producer’s response unit in a `Thread`. It can group incom
 messages, auxiliary output and the terminal reply. `chatTurn` assigns messages;
 `turnOfThread` assigns the turn’s conversation. The canonical property chain
 supplies shared `partOfThread` membership along those two links.
+
+Some chat sources supply no response-turn grouping. Omit `chatTurn` in that case
+and retain any known `partOfThread` membership directly. A message remains a
+`ChatMessage` without an invented turn. When a turn is supplied, its reference
+must still identify a `ChatTurn` with its own conversation context.
 
 `outputRoleTerminalReply` and `outputRoleAuxiliary` retain the source’s intended
 role of outgoing messages in the turn. Roles remain attributed and nonfunctional;

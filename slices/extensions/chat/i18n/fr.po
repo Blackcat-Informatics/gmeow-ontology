@@ -14,8 +14,8 @@ msgid "Chat Message"
 msgstr "Message de discussion"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A message in a networked chat conversation, retaining its transport, response turn and participant occurrences. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."
-msgstr "Message d’une conversation de discussion en réseau, conservant son transport, son tour de réponse et ses occurrences de participants. Il peut être un message sortant prévu refusé avant envoi ; son type n’affirme aucun succès de livraison."
+msgid "A message in a networked chat conversation, retaining its transport and participant occurrences, with response-turn grouping when supplied by the source. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."
+msgstr "Message d’une conversation de discussion en réseau, conservant son transport et ses occurrences de participants, avec regroupement en tours de réponse lorsque la source le fournit. Il peut être un message sortant prévu refusé avant envoi ; son type n’affirme aucun succès de livraison."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for chat communication with explicit source context."
@@ -26,8 +26,8 @@ msgid "Avoid applying email-address participant requirements to chat."
 msgstr "Éviter d’appliquer aux discussions les exigences de participants par adresse électronique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link chatTransport, chatTurn and hasChatParticipant; retain ordered ChatMessagePart nodes with hasBodyPart."
-msgstr "Relier chatTransport, chatTurn et hasChatParticipant ; conserver des nœuds ChatMessagePart ordonnés avec hasBodyPart."
+msgid "Link chatTransport and hasChatParticipant; add chatTurn only when the source supplies response-turn grouping, and retain ordered ChatMessagePart nodes with hasBodyPart."
+msgstr "Relier chatTransport et hasChatParticipant ; ajouter chatTurn seulement lorsque la source fournit un regroupement en tours de réponse, et conserver des nœuds ChatMessagePart ordonnés avec hasBodyPart."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChatMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:message a gmeow:ChatMessage ."
@@ -530,8 +530,8 @@ msgid "Avoid making turn membership evidence of successful output."
 msgstr "Éviter de faire de l’appartenance au tour une preuve de sortie réussie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference the source ChatTurn, retaining entryOrdinal only as local source order."
-msgstr "Référencer le ChatTurn source, en conservant entryOrdinal seulement comme ordre source local."
+msgid "Reference a source-provided ChatTurn and retain entryOrdinal only as local source order; omit chatTurn when the source has no response-turn grouping."
+msgstr "Référencer un ChatTurn fourni par la source et conserver entryOrdinal seulement comme ordre source local ; omettre chatTurn lorsque la source ne fournit aucun regroupement en tours de réponse."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatTurn|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reply gmeow:chatTurn ex:turn ."
