@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/persona-context>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "persona context"@x-gmeow-english ;
+    skos:definition "Record-level persona attribution and source-scoped persona transition records with producer time, sequence, cause, cycle boundary and locally ranked audience context."@x-gmeow-english ;
+    dcterms:title "GMEOW Persona Context Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Agent memory and conversation recall retaining which persona made a record, why persona state changed and the producer order of changes across containing activities."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/norms>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata>,
+        <https://blackcatinformatics.ca/gmeow/slices/names> .
