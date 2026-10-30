@@ -12495,8 +12495,8 @@ msgid "The record of what was put in front of a decider: what was included, from
 msgstr "呈交予决策者之物的记录：纳入了什么、来自何处、在何种预算之下，以及——至为关键的——排除了什么。记录排除项，正是使所记载的异议具有意义之所在，因为「操作者看到了反对意见仍然推进」与「反对意见从未被呈现」是两种截然不同的情形，而只记纳入项的记录无从分辨。与决策本身判然有别：编集是据以决策的可用之物。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContextAssemblyRecordsExclusionsConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:ContextAssembly that names something in logic:assemblyExcluded and records no logic:assemblyExclusionReason. Recording exclusions is what makes recorded dissent meaningful, and a bare list of withheld items does not: 'I would have objected had I seen X' is answerable only if the record says whether X was shown AND on what grounds it was not. An unexplained exclusion reads, to every later reader, exactly like an oversight."
-msgstr "拒斥「在 logic:assemblyExcluded 中指明了某物却未记载 logic:assemblyExclusionReason」之 logic:ContextAssembly 的 logic:Constraint。记载排除，才使被记载的异议有意义，而一份光秃秃的扣留清单做不到这一点：「若我当时看到 X，我本会反对」只有在记录既说明 X 是否被呈现、又说明以何理由未被呈现时，才是可裁断的。对其后每一位读者而言，一项未加解释的排除，读起来与一次疏漏别无二致。"
+msgid "An assembly using aggregate exclusion accounting must retain an aggregate reason. Explicit PerRecordExclusionAssembly instead requires a reason on each excluded assertion’s reifier through its canonical reification obligation."
+msgstr "使用汇总排除计账的组装必须保留汇总原因。显式 PerRecordExclusionAssembly 通过其规范具体化义务要求每个排除断言的具体化者携带原因。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ContinuationKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed three-valued vocabulary distinguishing the three ways work continues after it has already begun: resuming the same enactment, repeating under a new input generation, or revising the prescription itself. They are pairwise disjoint and carry different required bindings, so conflating them — the common failure in which 'run it again' silently means any of the three — is structurally detectable. Its members are individuals, never subclasses."
@@ -13003,8 +13003,8 @@ msgid "The open classification of what KIND of prescription a logic:Plan is — 
 msgstr "对某个 logic:Plan 属于何种规定的开放式分类——数据流水线、实验方案、配方、课程体系、控制方案、组织指南。它是承载于计划之上的值，绝非 logic:Plan 的子类：为每个体裁各铸一个子类，会把内核存在所要维系其唯一性的那个规范计划概念一分为多。其成员为个体，且可同时适用一个以上。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An immutable, content-addressed version of a logic:Plan — the prescription an enactment runs against. Exactly one logic:prescriptionOf names the plan it versions. A revision never mutates a version: it mints a new one and supersedes the old, so a landed enactment's prescription can always be recovered exactly as it was executed. Typed APART from logic:Plan, which is the continuing program identity across revisions: a version is one frozen state of that program."
-msgstr "某个 logic:Plan 的不可变、按内容寻址的版本——即实施所依据的规定。恰有一个 logic:prescriptionOf 指明它所版本化的那个计划。修订绝不改动既有版本：它铸造一个新版本并取代旧版本，从而使一次已落地实施所依据的规定，永远可以按其当初被执行的样子被完整取回。与 logic:Plan 判然有别：后者是跨越各次修订而延续的程序身份；版本则是该程序的一个冻结状态。"
+msgid "An immutable version of one logic:Plan. Its default identity contract requires a content address. Explicit ImmutableIriPrescriptionIdentity instead selects externally maintained immutable IRI identity with durable retention and supersession; it provides no digest comparison or detection of changed bytes. A revision always mints a new version."
+msgstr "一个 logic:Plan 的不可变版本。默认身份契约要求内容地址。显式 ImmutableIriPrescriptionIdentity 选择由外部维护、持久保留且以取代更新的不可变 IRI 身份；不提供摘要比较或字节变化检测。修订始终创建新版本。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PriorEnactmentRequirement|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A precondition over OTHER enactments rather than over world state: this enactment may not start until a named prior enactment reached a named state. It is what a curriculum prerequisite, an operator certification, a prior-shift handover and an upstream-DAG dependency all are. Typed APART from logic:precondition, which gates on the situation obtaining at a state: a prior-enactment requirement gates on the RUN HISTORY of a different occurrence."
@@ -13263,8 +13263,8 @@ msgid "Relates a logic:ContextAssembly to something available but NOT surfaced. 
 msgstr "把 logic:ContextAssembly 关联到某个可得却未被呈现之物。值域为任何被排除项（以散文陈述）。多值。正是这一半记录使异议变得可解读：没有它，沉默便无从读懂。"
 
 msgctxt "https://blackcatinformatics.ca/logic/assemblyExclusionReason|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Why material available to the assembly was not surfaced — a budget, a relevance filter, a policy. Recording it distinguishes a deliberate omission from an accidental one."
-msgstr "编集可得的材料何以未被呈现——出于预算、相关性过滤、或某项策略。记录下来，方能把有意的省略与无意的疏漏区分开。"
+msgid "Why available material was withheld. On a ContextAssembly this is its aggregate report; on an AssemblyExclusion reifier it explains that particular assemblyExcluded assertion. Explicit per-record accounting requires a reason on each reifier rather than one shared aggregate reason."
+msgstr "为何未呈现可用材料。位于 ContextAssembly 时是其汇总报告；位于 AssemblyExclusion 具体化者时解释该特定 assemblyExcluded 断言。显式逐记录计账要求每个具体化者各有原因，而非共享一个汇总原因。"
 
 msgctxt "https://blackcatinformatics.ca/logic/assemblyForEnactment|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ContextAssembly to the enactment it served. Functional and MANDATORY: an assembly with no named beneficiary cannot answer 'what was surfaced to THIS run', which is the question it exists for."
@@ -13635,8 +13635,8 @@ msgid "Relates a logic:PreparationStep to the step or enactment it prepares for.
 msgstr "把 logic:PreparationStep 关联到它所为之作准备的那个步骤或那次实施。值域为一个计划步骤或一次实施（以散文陈述）。函数性。领域切片正是在此接缝处加以特化，把准备工作绑定到自有的活动词汇之上。"
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-prefixed content address of a logic:PrescriptionVersion's frozen form. It is the value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot silently satisfy an authorization issued for its predecessor. Not functional: several digest algorithms may coexist over one version."
-msgstr "某个 logic:PrescriptionVersion 冻结形式的带算法前缀内容地址。检查点恢复与批准绑定二者据以校验的正是此值，故经修订的规定无法悄然满足为其前身签发的授权。非函数性：同一版本之上可并存多种摘要算法。"
+msgid "An algorithm-prefixed content address of a prescription version’s frozen form. Required by the default content-identity contract; optional under explicitly selected immutable IRI identity. A supplied digest remains available to digest-bearing admission and pin comparisons; IRI identity supplies no substitute hash."
+msgstr "处方版本冻结形式的算法前缀内容地址。默认内容身份契约要求提供；显式选择不可变 IRI 身份时可不提供。已提供的摘要仍供基于摘要的准入及固定值比较使用；IRI 身份不提供替代哈希。"
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:Plan to a logic:PrescriptionKind classifying its genre. Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error."
@@ -17823,8 +17823,8 @@ msgid "The executable content the pin digest addresses and the content an approv
 msgstr "它是固定摘要所寻址的可执行内容，也是当初批准所针对的内容，因此在批准之后加以编辑，就破坏了授权赖以成立的那种同一性。它之所以单值，理由与产出列表相同。"
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The value a checkpoint restore and an approval binding are both checked against, so a revised prescription cannot satisfy either. One digest serving both checks is what keeps the two from drifting apart."
-msgstr "检查点还原与批准绑定都以此值为核对对象，因此经修订的处方两者皆不能满足。以同一个摘要服务于两项检查，正是防止二者彼此漂移的办法。"
+msgid "Selecting IRI identity does not relax an independently selected checkpoint, approval or other content-addressed admission contract."
+msgstr "选择 IRI 身份不会放宽独立选择的检查点、批准或其他内容寻址准入契约。"
 
 msgctxt "https://blackcatinformatics.ca/logic/prescriptionKind|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Non-functional: a plan may be both a data pipeline and an ingestion, and the co-application is meaningful rather than a modelling error. Forcing a single kind would make an author choose between two true statements."
@@ -18087,8 +18087,8 @@ msgid "a prescription version is content-addressed"
 msgstr "处方版本须按内容寻址"
 
 msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersionIsContentAddressedConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The logic:Constraint rejecting a logic:PrescriptionVersion with no digest. Content-addressing is the PRECONDITION of immutability, not immutability itself: an unaddressed version cannot be shown to be the one an enactment ran, so nothing downstream can detect a revision in place. Whether a version actually stayed put is logic:PrescriptionVersionImmutabilityConstraint, which compares the address against what a run recorded."
-msgstr "此 logic:Constraint 拒斥没有摘要的 logic:PrescriptionVersion。按内容寻址是不可变性的前置条件，而非不可变性本身：未经寻址的版本无从被证明就是某次执行所依据的那一个，于是下游便无从察觉就地修订。某个版本是否确实原封未动，由 logic:PrescriptionVersionImmutabilityConstraint 判定，后者会把该地址与运行所记录之值相比对。"
+msgid "A prescription version requires a digest unless it explicitly selects ImmutableIriPrescriptionIdentity. Absence of a mode retains the content-addressed default; the IRI contract does not claim digest verification."
+msgstr "处方版本要求摘要，除非显式选择 ImmutableIriPrescriptionIdentity。缺失模式保留内容寻址默认要求；IRI 契约不声称摘要验证。"
 
 msgctxt "https://blackcatinformatics.ca/logic/RestoreStaysWithinItsEnactmentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "a restore resumes the run its checkpoint came from"
@@ -23424,3 +23424,296 @@ msgstr "不要在主体和对应关系身份不变的情况下接受缩窄的源
 msgctxt "https://blackcatinformatics.ca/logic/projectionBindingContent|gmeow:howToUse"
 msgid "Decode one untagged rdf:JSON binding record and validate its body identity, canonical getLeg link and every selected dependency."
 msgstr "解码一个无语言标记的 rdf:JSON 绑定记录，并验证其主体身份、规范 getLeg 链接及每项所选依赖。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring AssemblyExclusion from missing evidence."
+msgstr "避免从缺失证据推断 AssemblyExclusion。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit AssemblyExclusion contract and all independently selected obligations."
+msgstr "保留显式 AssemblyExclusion 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Assembly Exclusion explicitly."
+msgstr "用于显式声明组装排除。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Assembly Exclusion"
+msgstr "组装排除"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An RDF 1.2 reifier of one assemblyExcluded assertion. Its reason concerns exactly that excluded membership and does not explain other memberships by default."
+msgstr "一个 assemblyExcluded 断言的 RDF 1.2 具体化者。其原因仅针对该排除成员关系，默认不解释其他成员关系。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:AssemblyExclusion."
+msgstr "来源显式选择 logic:AssemblyExclusion。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ContentAddressedPrescriptionIdentity from missing evidence."
+msgstr "避免从缺失证据推断 ContentAddressedPrescriptionIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit ContentAddressedPrescriptionIdentity contract and all independently selected obligations."
+msgstr "保留显式 ContentAddressedPrescriptionIdentity 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare content-addressed prescription identity explicitly."
+msgstr "用于显式声明内容寻址处方身份。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content-addressed prescription identity"
+msgstr "内容寻址处方身份"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The default contract requires a digest of frozen prescription content. Selecting it explicitly preserves the same digest obligation as omitting the selector."
+msgstr "默认契约要求冻结处方内容的摘要。显式选择与省略选择器具有相同摘要义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ContentAddressedPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:ContentAddressedPrescriptionIdentity."
+msgstr "来源显式选择 logic:ContentAddressedPrescriptionIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring ImmutableIriPrescriptionIdentity from missing evidence."
+msgstr "避免从缺失证据推断 ImmutableIriPrescriptionIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit ImmutableIriPrescriptionIdentity contract and all independently selected obligations."
+msgstr "保留显式 ImmutableIriPrescriptionIdentity 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare immutable IRI prescription identity explicitly."
+msgstr "用于显式声明不可变 IRI 处方身份。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "immutable IRI prescription identity"
+msgstr "不可变 IRI 处方身份"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly selected contract under which an external owner preserves one immutable version per resolvable IRI, retains historical versions durably and revises only by supersession. It provides no hash comparison or changed-byte detection."
+msgstr "显式选择的契约：外部所有者按可解析 IRI 保留一个不可变版本，持久保留历史版本，且仅通过取代修订。不提供哈希比较或字节变化检测。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:ImmutableIriPrescriptionIdentity."
+msgstr "来源显式选择 logic:ImmutableIriPrescriptionIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring PerRecordExclusionAssembly from missing evidence."
+msgstr "避免从缺失证据推断 PerRecordExclusionAssembly。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit PerRecordExclusionAssembly contract and all independently selected obligations."
+msgstr "保留显式 PerRecordExclusionAssembly 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Per-Record Exclusion Assembly explicitly."
+msgstr "用于显式声明逐记录排除组装。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Per-Record Exclusion Assembly"
+msgstr "逐记录排除组装"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit ContextAssembly profile requiring an identified reason-bearing reifier for every assemblyExcluded assertion. It does not additionally require an aggregate reason."
+msgstr "显式 ContextAssembly 配置，要求每个 assemblyExcluded 断言具有带原因的已标识具体化者。不额外要求汇总原因。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PerRecordExclusionAssembly|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:PerRecordExclusionAssembly."
+msgstr "来源显式选择 logic:PerRecordExclusionAssembly。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring PrescriptionIdentityMode from missing evidence."
+msgstr "避免从缺失证据推断 PrescriptionIdentityMode。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit PrescriptionIdentityMode contract and all independently selected obligations."
+msgstr "保留显式 PrescriptionIdentityMode 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare Prescription Identity Mode explicitly."
+msgstr "用于显式声明处方身份模式。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Prescription Identity Mode"
+msgstr "处方身份模式"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected identity contract of an immutable prescription version. Absence retains content-addressed identity; selecting IRI identity changes no independent operation’s requirements."
+msgstr "不可变处方版本选择的身份契约。缺失保留内容寻址身份；选择 IRI 身份不改变独立操作的要求。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:PrescriptionIdentityMode."
+msgstr "来源显式选择 logic:PrescriptionIdentityMode。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/PrescriptionVersion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind prescriptionOf and retain a content digest by default. Select ImmutableIriPrescriptionIdentity explicitly only when an external owner guarantees immutable IRI resolution and durable historical retention."
+msgstr "填写 prescriptionOf，默认保留内容摘要。仅当外部所有者保证不可变 IRI 解析及持久历史保留时显式选择 ImmutableIriPrescriptionIdentity。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "per-record exclusion reification obligation"
+msgstr "逐记录排除具体化义务"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every exclusion of an explicitly selected PerRecordExclusionAssembly has a reifier conforming to AssemblyExclusion; its own reason is required."
+msgstr "显式选择的 PerRecordExclusionAssembly 的每个排除具有符合 AssemblyExclusion 的具体化者；要求其自己的原因。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting an immutable IRI contract as evidence of digest equality or changed-byte detection."
+msgstr "避免将不可变 IRI 契约作为摘要相等或字节变化检测的证据。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the content identity contract or any digest-bearing operation that requires a version content witness."
+msgstr "用于内容身份契约或要求版本内容见证的任何摘要操作。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring prescriptionIdentityMode from missing evidence."
+msgstr "避免从缺失证据推断 prescriptionIdentityMode。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit prescriptionIdentityMode contract and all independently selected obligations."
+msgstr "保留显式 prescriptionIdentityMode 契约及所有独立选择的义务。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare prescription identity mode explicitly."
+msgstr "用于显式声明处方身份模式。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prescription identity mode"
+msgstr "处方身份模式"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit identity contract selection on a prescription version, never inferred from a missing digest."
+msgstr "处方版本的显式身份契约选择，绝不从缺失摘要推断。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/prescriptionIdentityMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source explicitly selects logic:prescriptionIdentityMode."
+msgstr "来源显式选择 logic:prescriptionIdentityMode。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating AssemblyExclusionHasOwnReasonConstraint as a runtime certificate."
+msgstr "避免将 AssemblyExclusionHasOwnReasonConstraint 视为运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply AssemblyExclusionHasOwnReasonConstraint to actual records while retaining independent obligations."
+msgstr "将 AssemblyExclusionHasOwnReasonConstraint 应用于实际记录，同时保留独立义务。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an excluded assertion carries its own reason."
+msgstr "用于保持被排除断言携带自身原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an excluded assertion carries its own reason"
+msgstr "被排除断言携带自身原因"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every actual AssemblyExclusion RDF 1.2 reifier carries its own language-bearing reason. Schema-obligation metadata is not an exclusion occurrence; no aggregate reason discharges this requirement."
+msgstr "每个实际 AssemblyExclusion RDF 1.2 具体化者携带自身带语言标记的原因。模式义务元数据并非排除发生项；汇总原因不能满足此要求。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionHasOwnReasonConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:AssemblyExclusionHasOwnReasonConstraint."
+msgstr "记录受 logic:AssemblyExclusionHasOwnReasonConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating AssemblyExclusionReasonLanguageConstraint as a runtime certificate."
+msgstr "避免将 AssemblyExclusionReasonLanguageConstraint 视为运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply AssemblyExclusionReasonLanguageConstraint to actual records while retaining independent obligations."
+msgstr "将 AssemblyExclusionReasonLanguageConstraint 应用于实际记录，同时保留独立义务。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an excluded assertion preserves reason language."
+msgstr "用于保持被排除断言保留原因语言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an excluded assertion preserves reason language"
+msgstr "被排除断言保留原因语言"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each reason on an actual AssemblyExclusion reifier preserves a language tag and any RDF 1.2 base direction."
+msgstr "实际 AssemblyExclusion 具体化者的每个原因保留语言标记及任何 RDF 1.2 基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AssemblyExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:AssemblyExclusionReasonLanguageConstraint."
+msgstr "记录受 logic:AssemblyExclusionReasonLanguageConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ImmutableIriPrescriptionIsNamedConstraint as a runtime certificate."
+msgstr "避免将 ImmutableIriPrescriptionIsNamedConstraint 视为运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ImmutableIriPrescriptionIsNamedConstraint to actual records while retaining independent obligations."
+msgstr "将 ImmutableIriPrescriptionIsNamedConstraint 应用于实际记录，同时保留独立义务。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve an immutable IRI prescription has an IRI."
+msgstr "用于保持不可变 IRI 处方具有 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "an immutable IRI prescription has an IRI"
+msgstr "不可变 IRI 处方具有 IRI"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Explicit immutable IRI identity requires an IRI-identified version. This check proves neither durable resolution nor immutable storage nor byte equality."
+msgstr "显式不可变 IRI 身份要求由 IRI 标识的版本。此检查不证明持久解析、不可变存储或字节相等。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ImmutableIriPrescriptionIsNamedConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by logic:ImmutableIriPrescriptionIsNamedConstraint."
+msgstr "记录受 logic:ImmutableIriPrescriptionIsNamedConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the per-record assembly profile requires every excluded membership to have its own reason-bearing reifier."
+msgstr "用于逐记录组装配置要求每个排除成员关系具有自身带原因具体化者时。"
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid adding an invented instance reason to this schema declaration."
+msgstr "避免向此模式声明添加虚构的实例原因。"
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and constrained reifier class; actual exclusions use native rdf:reifies statements."
+msgstr "声明主语类、谓词及受约束具体化者类；实际排除使用原生 rdf:reifies 语句。"
+
+msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."
+msgstr "逐记录组装排除符合 AssemblyExclusion 具体化者契约。"
