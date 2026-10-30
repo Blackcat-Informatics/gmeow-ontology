@@ -1221,3 +1221,151 @@ msgstr "分类器决策规则一致性约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world relational integrity constraint: a gmeow:ClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."
 msgstr "封闭世界关系完整性约束：gmeow:ClassifierOutput 的 gmeow:scoreSemantics 经由 gmeow:impliesLabelSetDecision 所蕴含的规则，与其输出标签所属集合的 gmeow:labelSetDecision 相符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking"
+msgstr "检索分块方案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One recorded segmentation of an exact source revision under an identified frozen contract. Source and contract artifacts retain their own content digests; the selected pins are distinct from any digest of this enclosing result record. Granularity and ordered member chunks describe this segmentation without assuming overlap or exhaustive coverage policies."
+msgstr "在已标识的冻结契约下，对确切源版本记录的一次分块方案。源制品和契约制品各自保留内容摘要；所固定的摘要值有别于此外围结果记录的任何摘要。粒度及有序成员块描述本次分块，不预设重叠或穷尽覆盖策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking Member"
+msgstr "分块方案成员"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role of an actual contiguous Chunk selected into one Chunking. Its ordinal belongs to that chunking, and chunkOf identifies the exact carrier cut by its source-coordinate bounds. A different segmentation uses fresh chunk identities; this role does not turn every existing Chunk into a contract-bound member."
+msgstr "在一个 Chunking 中选定的真实连续 Chunk 所承担的角色。其序号属于该分块方案，chunkOf 指定由源坐标边界切取的确切载体。另一分块方案使用新的块标识；此角色不会将所有现有 Chunk 变成受契约约束的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Block Extent"
+msgstr "原子块范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded whole-source extent of one ContentBlock in one exact source carrier. extentSource fixes the coordinate origin; spanStart and spanEnd retain the existing zero-based half-open Unicode-code-point semantics. These are not offsets local to the block or its division. This record supplies coordinates for atomic-boundary checks without redefining the block’s structural identity."
+msgstr "一个 ContentBlock 在确切整体源载体中的范围记录。extentSource 固定坐标原点；spanStart 和 spanEnd 保持现有的零起点、半开区间 Unicode 码点语义。这些偏移不是块或所属分区的局部偏移。此记录为原子边界检查提供坐标，不重新定义块的结构标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking source revision"
+msgstr "分块源版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact information artifact whose text this chunking segments, rather than a mutable work identity, location or enclosing import record."
+msgstr "此分块方案所切取文本的确切信息制品，而非可变作品标识、位置或外围导入记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking source digest"
+msgstr "分块源摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
+msgstr "确切 chunkingSource 制品的选定 contentDigest，作为本结果的固定值保存。它散列源字节，而非此结果记录。其他带算法标识的源摘要可以并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking contract artifact"
+msgstr "分块契约制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."
+msgstr "本次分块使用且存在于创建上下文中的冻结规则制品。它标识实际契约字节，而非描述封装的文字，也不声称不透明契约已被执行或证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking contract digest"
+msgstr "分块契约摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
+msgstr "指定 chunkingContract 制品的选定 contentDigest。它固定规则字节，并非外围 Chunking 的 contentDigest。IRI、路径或结果散列均不能替代必需的契约摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in chunking"
+msgstr "所属分块方案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one segmentation containing this selected chunk. Its source, contract and ordinal scope belong to that Chunking; membership is not a claim that all source text has been covered."
+msgstr "包含此选定块的唯一分块方案。其源、契约和序号作用域属于该 Chunking；成员关系并不声称全部源文本均已覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covers block extent"
+msgstr "覆盖原子块范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An atomic block occurrence wholly covered by this chunk, identified through its BlockExtent and extentOfBlock. The extent must share the chunk’s exact source origin. This relation neither substitutes local block offsets nor declares exhaustive source coverage."
+msgstr "此块完整覆盖的原子块出现位置，通过其 BlockExtent 和 extentOfBlock 标识。范围必须与块共享确切源原点。此关系不以块局部偏移替代源坐标，也不声明穷尽源覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent of block"
+msgstr "范围对应原子块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The structural ContentBlock located by this whole-source extent record. The block keeps its existing division, structural index and segment kind."
+msgstr "此整体源范围记录所定位的结构性 ContentBlock。原子块保留其现有分区、结构索引及段类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent source origin"
+msgstr "范围源原点"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact whole-source carrier whose Unicode-code-point origin these extent bounds use. A block-local rendering or a different revision is a different frame and cannot be compared silently with chunk bounds."
+msgstr "这些范围边界所使用的 Unicode 码点原点对应的确切整体源载体。块局部呈现或其他版本属于不同坐标框架，不可悄然与块边界比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier."
+msgstr "chunkOf 始终指定实际包含此块检索文本的载体。生成的摘要通过 wasDerivedFrom 派生自被概述分区，并非从原始分区切取。仅当一个节点既是浓缩叙述，又是实际载体的连续切片时，Summary 和 Chunk 才可共用该节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking source digest witness constraint"
+msgstr "分块源摘要见证约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."
+msgstr "选定 chunkingSourceDigest 必须是确切 chunkingSource 制品的 contentDigest。外围记录或其他源的摘要不满足此固定值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking contract digest witness constraint"
+msgstr "分块契约摘要见证约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
+msgstr "选定 chunkingContractDigest 必须是实际指定 chunkingContract 制品的 contentDigest。结果记录自身的内容散列不能替代规则制品的标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking member source constraint"
+msgstr "分块成员源约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division."
+msgstr "选定成员的实际 chunkOf 载体必须等于确切 chunkingSource。派生自原始分区并不意味着生成文本是该分区的切片。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking ordinal uniqueness constraint"
+msgstr "分块序号唯一约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage."
+msgstr "同一 Chunking 中具有相同 entryOrdinal 的两个选定成员必须是同一成员。此局部序列定律不施加全局顺序、连续序号、不重叠覆盖或穷尽源覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covered block extent origin constraint"
+msgstr "覆盖原子块范围原点约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it."
+msgstr "显式覆盖的 BlockExtent 必须以确切 chunkingSource 为整体源坐标原点。块或分区的局部框架不可悄然替代此原点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking atomic block boundary constraint"
+msgstr "分块原子块边界约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented."
+msgstr "当选定块与同一确切源框架中已表示的原子 BlockExtent 相交时，必须包含该完整范围并记录 coversBlockExtent。省略覆盖断言不能隐藏切开的边界。此定律不证明所有源块均已表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking coverage intersection constraint"
+msgstr "分块覆盖相交约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
+msgstr "声明覆盖的范围必须在共享整体源框架中与选定块实际相交。仅边界接触或不相交的范围不是被覆盖块。"

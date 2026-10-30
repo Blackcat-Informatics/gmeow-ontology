@@ -22,6 +22,7 @@ gmeow:Chunk
     skos:definition "A contiguous segment of a source information object, produced by a chunking step for retrieval — the unit a retrieval returns, a model reads, and an evidence span pins into. Located in its source by gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd and content-addressed via the EXISTING gmeow:contentDigest (sources slice), so 'which exact bytes did the model see?' is answerable after the fact."@x-gmeow-english ;
     skos:example "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest ex:sha256 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."@x-gmeow-english ;
+    skos:scopeNote "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the segment gmeow:Chunk, locate it with gmeow:chunkOf + gmeow:spanStart/gmeow:spanEnd, content-address it with the existing gmeow:contentDigest, and let evidence spans pin into it via gmeow:spanOfChunk."@x-gmeow-english ;
     gmeow:useWhen "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."@x-gmeow-english .
@@ -1939,3 +1940,366 @@ logic:classifierRunMembershipGuard3 a logic:Formula ; logic:relation gmeow:emitt
     logic:argument [ logic:termIndex 0 ; logic:termVariable "out" ] , [ logic:termIndex 1 ; logic:termVariable "label" ] .
 logic:classifierRunMembershipRequired a logic:Formula ; logic:relation gmeow:memberOfLabelSet ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "label" ] , [ logic:termIndex 1 ; logic:termVariable "set" ] .
+
+# Contract-bound retrieval segmentation and whole-source atomic block coordinates.
+
+gmeow:Chunking
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking"@x-gmeow-english ;
+    skos:definition "One recorded segmentation of an exact source revision under an identified frozen contract. Source and contract artifacts retain their own content digests; the selected pins are distinct from any digest of this enclosing result record. Granularity and ordered member chunks describe this segmentation without assuming overlap or exhaustive coverage policies."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ChunkingMember
+    a logic:Role , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking Member"@x-gmeow-english ;
+    skos:definition "The role of an actual contiguous Chunk selected into one Chunking. Its ordinal belongs to that chunking, and chunkOf identifies the exact carrier cut by its source-coordinate bounds. A different segmentation uses fresh chunk identities; this role does not turn every existing Chunk into a contract-bound member."@x-gmeow-english ;
+    logic:subClassOf gmeow:Chunk ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:BlockExtent
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Block Extent"@x-gmeow-english ;
+    skos:definition "A recorded whole-source extent of one ContentBlock in one exact source carrier. extentSource fixes the coordinate origin; spanStart and spanEnd retain the existing zero-based half-open Unicode-code-point semantics. These are not offsets local to the block or its division. This record supplies coordinates for atomic-boundary checks without redefining the block’s structural identity."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:chunkingSource
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "chunking source revision"@x-gmeow-english ;
+    skos:definition "The exact information artifact whose text this chunking segments, rather than a mutable work identity, location or enclosing import record."@x-gmeow-english ;
+    logic:domain gmeow:Chunking ;
+    logic:range gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:chunkingSourceDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "chunking source digest"@x-gmeow-english ;
+    skos:definition "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."@x-gmeow-english ;
+    logic:domain gmeow:Chunking ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:chunkingContract
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "chunking contract artifact"@x-gmeow-english ;
+    skos:definition "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."@x-gmeow-english ;
+    logic:domain gmeow:Chunking ;
+    logic:range gmeow:InformationObject ;
+    logic:subPropertyOf gmeow:contextIncluded ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:chunkingContractDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "chunking contract digest"@x-gmeow-english ;
+    skos:definition "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."@x-gmeow-english ;
+    logic:domain gmeow:Chunking ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:inChunking
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "in chunking"@x-gmeow-english ;
+    skos:definition "The one segmentation containing this selected chunk. Its source, contract and ordinal scope belong to that Chunking; membership is not a claim that all source text has been covered."@x-gmeow-english ;
+    logic:domain gmeow:ChunkingMember ;
+    logic:range gmeow:Chunking ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:coversBlockExtent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "covers block extent"@x-gmeow-english ;
+    skos:definition "An atomic block occurrence wholly covered by this chunk, identified through its BlockExtent and extentOfBlock. The extent must share the chunk’s exact source origin. This relation neither substitutes local block offsets nor declares exhaustive source coverage."@x-gmeow-english ;
+    logic:domain gmeow:ChunkingMember ;
+    logic:range gmeow:BlockExtent ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extentOfBlock
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "extent of block"@x-gmeow-english ;
+    skos:definition "The structural ContentBlock located by this whole-source extent record. The block keeps its existing division, structural index and segment kind."@x-gmeow-english ;
+    logic:domain gmeow:BlockExtent ;
+    logic:range gmeow:ContentBlock ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:extentSource
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "extent source origin"@x-gmeow-english ;
+    skos:definition "The exact whole-source carrier whose Unicode-code-point origin these extent bounds use. A block-local rendering or a different revision is a different frame and cannot be compared silently with chunk bounds."@x-gmeow-english ;
+    logic:domain gmeow:BlockExtent ;
+    logic:range gmeow:InformationObject ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:Chunking logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingSource ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:allValuesFrom gmeow:GranularityLevel ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContract" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContractDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasGranularity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChunkingMember logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:inChunking ; logic:allValuesFrom gmeow:Chunking ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:inChunking ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Chunking ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkOf ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChunkingMember ; logic:closureKey "https://blackcatinformatics.ca/gmeow/inChunking" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChunkingMember ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChunkingMember ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChunkingMember ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChunkingMember ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:BlockExtent logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:extentOfBlock ; logic:allValuesFrom gmeow:ContentBlock ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:extentOfBlock ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContentBlock ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:extentSource ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:extentSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BlockExtent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/extentOfBlock" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BlockExtent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/extentSource" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BlockExtent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:BlockExtent ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ChunkingMember logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:coversBlockExtent ; logic:allValuesFrom gmeow:BlockExtent ] .
+
+gmeow:ChunkingSourceDigestWitnessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking source digest witness constraint"@x-gmeow-english ;
+    skos:definition "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:Chunking , gmeow:chunkingSourceDigest ;
+    logic:message "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin." ;
+    logic:integrity logic:chunkingSourceWitnessForall .
+logic:chunkingSourceWitnessForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] , [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
+    logic:forall logic:chunkingSourceWitnessImpl .
+logic:chunkingSourceWitnessImpl a logic:Formula ; logic:antecedent logic:chunkingSourceWitnessGuard ; logic:consequent logic:chunkingSourceWitnessRequired .
+logic:chunkingSourceWitnessGuard a logic:Formula ; logic:and logic:chunkingSourceWitnessGuard0 , logic:chunkingSourceWitnessGuard1 , logic:chunkingSourceWitnessGuard2 .
+logic:chunkingSourceWitnessGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Chunking ] .
+logic:chunkingSourceWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingSourceWitnessGuard2 a logic:Formula ; logic:relation gmeow:chunkingSourceDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:chunkingSourceWitnessRequired a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+
+gmeow:ChunkingContractDigestWitnessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking contract digest witness constraint"@x-gmeow-english ;
+    skos:definition "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:Chunking , gmeow:chunkingContractDigest ;
+    logic:message "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity." ;
+    logic:integrity logic:chunkingContractWitnessForall .
+logic:chunkingContractWitnessForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] , [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
+    logic:forall logic:chunkingContractWitnessImpl .
+logic:chunkingContractWitnessImpl a logic:Formula ; logic:antecedent logic:chunkingContractWitnessGuard ; logic:consequent logic:chunkingContractWitnessRequired .
+logic:chunkingContractWitnessGuard a logic:Formula ; logic:and logic:chunkingContractWitnessGuard0 , logic:chunkingContractWitnessGuard1 , logic:chunkingContractWitnessGuard2 .
+logic:chunkingContractWitnessGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Chunking ] .
+logic:chunkingContractWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingContract ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] .
+logic:chunkingContractWitnessGuard2 a logic:Formula ; logic:relation gmeow:chunkingContractDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:chunkingContractWitnessRequired a logic:Formula ; logic:relation gmeow:contentDigest ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "contract" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+
+gmeow:ChunkingMemberSourceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking member source constraint"@x-gmeow-english ;
+    skos:definition "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:ChunkingMember , gmeow:chunkOf ;
+    logic:message "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division." ;
+    logic:integrity logic:chunkingMemberSourceForall .
+logic:chunkingMemberSourceForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] , [ logic:termIndex 2 ; logic:termVariable "source" ] , [ logic:termIndex 3 ; logic:termVariable "carrier" ] ;
+    logic:forall logic:chunkingMemberSourceImpl .
+logic:chunkingMemberSourceImpl a logic:Formula ; logic:antecedent logic:chunkingMemberSourceGuard ; logic:consequent logic:chunkingMemberSourceRequired .
+logic:chunkingMemberSourceGuard a logic:Formula ; logic:and logic:chunkingMemberSourceGuard0 , logic:chunkingMemberSourceGuard1 , logic:chunkingMemberSourceGuard2 , logic:chunkingMemberSourceGuard3 .
+logic:chunkingMemberSourceGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChunkingMember ] .
+logic:chunkingMemberSourceGuard1 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingMemberSourceGuard2 a logic:Formula ; logic:relation gmeow:chunkingSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "chunking" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingMemberSourceGuard3 a logic:Formula ; logic:relation gmeow:chunkOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "carrier" ] .
+logic:chunkingMemberSourceRequired a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "carrier" ] .
+
+gmeow:ChunkingOrdinalUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking ordinal uniqueness constraint"@x-gmeow-english ;
+    skos:definition "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:ChunkingMember , gmeow:entryOrdinal ;
+    logic:message "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage." ;
+    logic:integrity logic:chunkingOrdinalForall .
+logic:chunkingOrdinalForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "chunking" ] , [ logic:termIndex 3 ; logic:termVariable "ordinal" ] ;
+    logic:forall logic:chunkingOrdinalImpl .
+logic:chunkingOrdinalImpl a logic:Formula ; logic:antecedent logic:chunkingOrdinalGuard ; logic:consequent logic:chunkingOrdinalRequired .
+logic:chunkingOrdinalGuard a logic:Formula ; logic:and logic:chunkingOrdinalGuard0 , logic:chunkingOrdinalGuard1 , logic:chunkingOrdinalGuard2 , logic:chunkingOrdinalGuard3 , logic:chunkingOrdinalGuard4 .
+logic:chunkingOrdinalGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChunkingMember ] .
+logic:chunkingOrdinalGuard1 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingOrdinalGuard2 a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "ordinal" ] .
+logic:chunkingOrdinalGuard3 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingOrdinalGuard4 a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "ordinal" ] .
+logic:chunkingOrdinalRequired a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] .
+
+gmeow:ChunkingCoveredExtentOriginConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Covered block extent origin constraint"@x-gmeow-english ;
+    skos:definition "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:coversBlockExtent , gmeow:extentSource ;
+    logic:message "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it." ;
+    logic:integrity logic:chunkingCoveredOriginForall .
+logic:chunkingCoveredOriginForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] , [ logic:termIndex 2 ; logic:termVariable "source" ] , [ logic:termIndex 3 ; logic:termVariable "extent" ] , [ logic:termIndex 4 ; logic:termVariable "origin" ] ;
+    logic:forall logic:chunkingCoveredOriginImpl .
+logic:chunkingCoveredOriginImpl a logic:Formula ; logic:antecedent logic:chunkingCoveredOriginGuard ; logic:consequent logic:chunkingCoveredOriginRequired .
+logic:chunkingCoveredOriginGuard a logic:Formula ; logic:and logic:chunkingCoveredOriginGuard0 , logic:chunkingCoveredOriginGuard1 , logic:chunkingCoveredOriginGuard2 , logic:chunkingCoveredOriginGuard3 , logic:chunkingCoveredOriginGuard4 .
+logic:chunkingCoveredOriginGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChunkingMember ] .
+logic:chunkingCoveredOriginGuard1 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingCoveredOriginGuard2 a logic:Formula ; logic:relation gmeow:chunkingSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "chunking" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingCoveredOriginGuard3 a logic:Formula ; logic:relation gmeow:coversBlockExtent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "extent" ] .
+logic:chunkingCoveredOriginGuard4 a logic:Formula ; logic:relation gmeow:extentSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "origin" ] .
+logic:chunkingCoveredOriginRequired a logic:Formula ; logic:relation logic:termEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "origin" ] .
+
+gmeow:ChunkingAtomicBlockBoundaryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking atomic block boundary constraint"@x-gmeow-english ;
+    skos:definition "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:ChunkingMember , gmeow:BlockExtent , gmeow:coversBlockExtent ;
+    logic:message "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented." ;
+    logic:integrity logic:chunkingAtomicBoundaryForall .
+logic:chunkingAtomicBoundaryForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] , [ logic:termIndex 2 ; logic:termVariable "source" ] , [ logic:termIndex 3 ; logic:termVariable "start" ] , [ logic:termIndex 4 ; logic:termVariable "end" ] , [ logic:termIndex 5 ; logic:termVariable "extent" ] , [ logic:termIndex 6 ; logic:termVariable "block" ] , [ logic:termIndex 7 ; logic:termVariable "blockStart" ] , [ logic:termIndex 8 ; logic:termVariable "blockEnd" ] ;
+    logic:forall logic:chunkingAtomicBoundaryImpl .
+logic:chunkingAtomicBoundaryImpl a logic:Formula ; logic:antecedent logic:chunkingAtomicBoundaryGuard ; logic:consequent logic:chunkingAtomicBoundaryRequired .
+logic:chunkingAtomicBoundaryGuard a logic:Formula ; logic:and logic:chunkingAtomicBoundaryGuard0 , logic:chunkingAtomicBoundaryGuard1 , logic:chunkingAtomicBoundaryGuard2 , logic:chunkingAtomicBoundaryGuard3 , logic:chunkingAtomicBoundaryGuard4 , logic:chunkingAtomicBoundaryGuard5 , logic:chunkingAtomicBoundaryGuard6 , logic:chunkingAtomicBoundaryGuard7 , logic:chunkingAtomicBoundaryGuard8 , logic:chunkingAtomicBoundaryGuard9 , logic:chunkingAtomicBoundaryGuard10 , logic:chunkingAtomicBoundaryGuard11 , logic:chunkingAtomicBoundaryGuard12 .
+logic:chunkingAtomicBoundaryGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChunkingMember ] .
+logic:chunkingAtomicBoundaryGuard1 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingAtomicBoundaryGuard2 a logic:Formula ; logic:relation gmeow:chunkingSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "chunking" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingAtomicBoundaryGuard3 a logic:Formula ; logic:relation gmeow:chunkOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingAtomicBoundaryGuard4 a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "start" ] .
+logic:chunkingAtomicBoundaryGuard5 a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:chunkingAtomicBoundaryGuard6 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termIri gmeow:BlockExtent ] .
+logic:chunkingAtomicBoundaryGuard7 a logic:Formula ; logic:relation gmeow:extentSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingAtomicBoundaryGuard8 a logic:Formula ; logic:relation gmeow:extentOfBlock ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "block" ] .
+logic:chunkingAtomicBoundaryGuard9 a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "blockStart" ] .
+logic:chunkingAtomicBoundaryGuard10 a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "blockEnd" ] .
+logic:chunkingAtomicBoundaryGuard11 a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ] , [ logic:termIndex 1 ; logic:termVariable "blockEnd" ] .
+logic:chunkingAtomicBoundaryGuard12 a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "blockStart" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:chunkingAtomicBoundaryRequired a logic:Formula ; logic:and logic:chunkingAtomicBoundaryRequired0 , logic:chunkingAtomicBoundaryRequired1 , logic:chunkingAtomicBoundaryRequired2 .
+logic:chunkingAtomicBoundaryRequired0 a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ] , [ logic:termIndex 1 ; logic:termVariable "blockStart" ] .
+logic:chunkingAtomicBoundaryRequired1 a logic:Formula ; logic:relation logic:termLessEqual ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "blockEnd" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:chunkingAtomicBoundaryRequired2 a logic:Formula ; logic:relation gmeow:coversBlockExtent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "extent" ] .
+
+gmeow:ChunkingCoverageIntersectionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    rdfs:label "Chunking coverage intersection constraint"@x-gmeow-english ;
+    skos:definition "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:coversBlockExtent , gmeow:BlockExtent ;
+    logic:message "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks." ;
+    logic:integrity logic:chunkingCoverageIntersectionForall .
+logic:chunkingCoverageIntersectionForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] , [ logic:termIndex 2 ; logic:termVariable "source" ] , [ logic:termIndex 3 ; logic:termVariable "start" ] , [ logic:termIndex 4 ; logic:termVariable "end" ] , [ logic:termIndex 5 ; logic:termVariable "extent" ] , [ logic:termIndex 6 ; logic:termVariable "block" ] , [ logic:termIndex 7 ; logic:termVariable "blockStart" ] , [ logic:termIndex 8 ; logic:termVariable "blockEnd" ] ;
+    logic:forall logic:chunkingCoverageIntersectionImpl .
+logic:chunkingCoverageIntersectionImpl a logic:Formula ; logic:antecedent logic:chunkingCoverageIntersectionGuard ; logic:consequent logic:chunkingCoverageIntersectionRequired .
+logic:chunkingCoverageIntersectionGuard a logic:Formula ; logic:and logic:chunkingCoverageIntersectionGuard0 , logic:chunkingCoverageIntersectionGuard1 , logic:chunkingCoverageIntersectionGuard2 , logic:chunkingCoverageIntersectionGuard3 , logic:chunkingCoverageIntersectionGuard4 , logic:chunkingCoverageIntersectionGuard5 , logic:chunkingCoverageIntersectionGuard6 , logic:chunkingCoverageIntersectionGuard7 , logic:chunkingCoverageIntersectionGuard8 , logic:chunkingCoverageIntersectionGuard9 , logic:chunkingCoverageIntersectionGuard10 , logic:chunkingCoverageIntersectionGuard11 .
+logic:chunkingCoverageIntersectionGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChunkingMember ] .
+logic:chunkingCoverageIntersectionGuard1 a logic:Formula ; logic:relation gmeow:inChunking ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "chunking" ] .
+logic:chunkingCoverageIntersectionGuard2 a logic:Formula ; logic:relation gmeow:chunkingSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "chunking" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingCoverageIntersectionGuard3 a logic:Formula ; logic:relation gmeow:chunkOf ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingCoverageIntersectionGuard4 a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "start" ] .
+logic:chunkingCoverageIntersectionGuard5 a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+logic:chunkingCoverageIntersectionGuard6 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termIri gmeow:BlockExtent ] .
+logic:chunkingCoverageIntersectionGuard7 a logic:Formula ; logic:relation gmeow:extentSource ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] .
+logic:chunkingCoverageIntersectionGuard8 a logic:Formula ; logic:relation gmeow:extentOfBlock ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "block" ] .
+logic:chunkingCoverageIntersectionGuard9 a logic:Formula ; logic:relation gmeow:spanStart ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "blockStart" ] .
+logic:chunkingCoverageIntersectionGuard10 a logic:Formula ; logic:relation gmeow:spanEnd ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "extent" ] , [ logic:termIndex 1 ; logic:termVariable "blockEnd" ] .
+logic:chunkingCoverageIntersectionGuard11 a logic:Formula ; logic:relation gmeow:coversBlockExtent ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "extent" ] .
+logic:chunkingCoverageIntersectionRequired a logic:Formula ; logic:and logic:chunkingCoverageIntersectionRequired0 , logic:chunkingCoverageIntersectionRequired1 .
+logic:chunkingCoverageIntersectionRequired0 a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ] , [ logic:termIndex 1 ; logic:termVariable "blockEnd" ] .
+logic:chunkingCoverageIntersectionRequired1 a logic:Formula ; logic:relation logic:termLess ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "blockStart" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .

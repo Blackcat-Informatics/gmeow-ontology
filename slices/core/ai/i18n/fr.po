@@ -1221,3 +1221,151 @@ msgstr "Contrainte de cohérence de la règle de décision du classifieur"
 msgctxt "https://blackcatinformatics.ca/gmeow/AffectDecisionRuleConsistencyConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world relational integrity constraint: a gmeow:ClassifierOutput's gmeow:scoreSemantics gmeow:impliesLabelSetDecision matches its emitted label's set gmeow:labelSetDecision."
 msgstr "Une contrainte d’intégrité relationnelle en monde fermé : la règle impliquée par gmeow:scoreSemantics via gmeow:impliesLabelSetDecision pour une gmeow:ClassifierOutput correspond à la gmeow:labelSetDecision de l’ensemble de son étiquette émise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking"
+msgstr "Segmentation de récupération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One recorded segmentation of an exact source revision under an identified frozen contract. Source and contract artifacts retain their own content digests; the selected pins are distinct from any digest of this enclosing result record. Granularity and ordered member chunks describe this segmentation without assuming overlap or exhaustive coverage policies."
+msgstr "Une segmentation consignée d’une révision source exacte sous un contrat figé identifié. Les artefacts source et contrat conservent leurs propres empreintes ; les valeurs fixées se distinguent de toute empreinte de ce résultat englobant. La granularité et les fragments membres ordonnés décrivent cette segmentation sans supposer de politique de chevauchement ou de couverture exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking Member"
+msgstr "Fragment membre d’une segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The role of an actual contiguous Chunk selected into one Chunking. Its ordinal belongs to that chunking, and chunkOf identifies the exact carrier cut by its source-coordinate bounds. A different segmentation uses fresh chunk identities; this role does not turn every existing Chunk into a contract-bound member."
+msgstr "Le rôle d’un véritable Chunk contigu sélectionné dans une Chunking. Son ordinal appartient à cette segmentation et chunkOf identifie le support exact découpé par ses bornes source. Une autre segmentation utilise de nouvelles identités de fragments ; ce rôle ne transforme pas tout Chunk existant en membre lié à un contrat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Block Extent"
+msgstr "Étendue de bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recorded whole-source extent of one ContentBlock in one exact source carrier. extentSource fixes the coordinate origin; spanStart and spanEnd retain the existing zero-based half-open Unicode-code-point semantics. These are not offsets local to the block or its division. This record supplies coordinates for atomic-boundary checks without redefining the block’s structural identity."
+msgstr "L’étendue consignée d’un ContentBlock dans un support source exact entier. extentSource fixe l’origine des coordonnées ; spanStart et spanEnd gardent la sémantique existante de points de code Unicode, à partir de zéro et en intervalle semi-ouvert. Ces décalages ne sont pas locaux au bloc ou à sa division. Ce dossier fournit les coordonnées de contrôle des frontières atomiques sans redéfinir l’identité structurelle du bloc."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking source revision"
+msgstr "révision source de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact information artifact whose text this chunking segments, rather than a mutable work identity, location or enclosing import record."
+msgstr "L’artefact informationnel exact dont cette segmentation découpe le texte, plutôt qu’une identité d’œuvre mutable, un emplacement ou un dossier d’import englobant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking source digest"
+msgstr "empreinte source de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
+msgstr "L’empreinte contentDigest choisie de l’artefact chunkingSource exact, conservée comme valeur fixée sur ce résultat. Elle hache les octets source, non ce dossier de résultat. D’autres empreintes source nommant leur algorithme peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking contract artifact"
+msgstr "artefact de contrat de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."
+msgstr "L’artefact de règles figé utilisé pour cette segmentation et présent dans son contexte de création. Il identifie les véritables octets du contrat, non une description d’enveloppe ni une affirmation d’exécution ou de preuve du contrat opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking contract digest"
+msgstr "empreinte du contrat de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
+msgstr "L’empreinte contentDigest choisie de l’artefact chunkingContract nommé. Elle fixe ces octets de règles et n’est pas une contentDigest de la Chunking englobante. Aucun IRI, chemin ou hachage de résultat ne remplace cette empreinte obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in chunking"
+msgstr "dans la segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one segmentation containing this selected chunk. Its source, contract and ordinal scope belong to that Chunking; membership is not a claim that all source text has been covered."
+msgstr "L’unique segmentation contenant ce fragment sélectionné. Sa source, son contrat et la portée de son ordinal appartiennent à cette Chunking ; l’appartenance n’affirme pas que tout le texte source a été couvert."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "covers block extent"
+msgstr "couvre l’étendue de bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An atomic block occurrence wholly covered by this chunk, identified through its BlockExtent and extentOfBlock. The extent must share the chunk’s exact source origin. This relation neither substitutes local block offsets nor declares exhaustive source coverage."
+msgstr "Une occurrence de bloc atomique entièrement couverte par ce fragment, identifiée par sa BlockExtent et extentOfBlock. L’étendue doit partager l’origine source exacte du fragment. Cette relation ne substitue pas des décalages locaux au bloc et ne déclare pas de couverture source exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent of block"
+msgstr "étendue du bloc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The structural ContentBlock located by this whole-source extent record. The block keeps its existing division, structural index and segment kind."
+msgstr "Le ContentBlock structurel localisé par ce dossier d’étendue dans la source entière. Le bloc conserve sa division, son index structurel et son type de segment existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent source origin"
+msgstr "origine source de l’étendue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact whole-source carrier whose Unicode-code-point origin these extent bounds use. A block-local rendering or a different revision is a different frame and cannot be compared silently with chunk bounds."
+msgstr "Le support source entier exact dont ces bornes utilisent l’origine en points de code Unicode. Un rendu local au bloc ou une autre révision constitue un autre repère et ne peut être comparé silencieusement aux bornes du fragment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier."
+msgstr "chunkOf nomme toujours le véritable support contenant le texte récupéré de ce fragment. Un résumé généré dérive de la division résumée par wasDerivedFrom, sans être découpé dans cette division originale. Summary et Chunk ne peuvent partager un nœud que si celui-ci est à la fois un compte rendu condensé et une découpe contiguë de son véritable support."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking source digest witness constraint"
+msgstr "Contrainte de témoin d’empreinte source de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."
+msgstr "La chunkingSourceDigest choisie doit être une contentDigest de l’artefact chunkingSource exact. L’empreinte d’un dossier englobant ou d’une autre source ne satisfait pas cette valeur fixée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking contract digest witness constraint"
+msgstr "Contrainte de témoin d’empreinte du contrat de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
+msgstr "La chunkingContractDigest choisie doit être une contentDigest du véritable artefact chunkingContract nommé. Le hachage du résultat lui-même ne remplace pas l’identité de l’artefact de règles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking member source constraint"
+msgstr "Contrainte de source du membre de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division."
+msgstr "Le véritable support chunkOf d’un membre sélectionné est la chunkingSource exacte. La dérivation depuis une division originale ne fait pas du texte généré une découpe de cette division."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking ordinal uniqueness constraint"
+msgstr "Contrainte d’unicité d’ordinal de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage."
+msgstr "Deux membres sélectionnés d’une même Chunking portant le même entryOrdinal sont le même membre. Cette loi de séquence locale n’impose ni ordre global ni couverture source consécutive, sans chevauchement ou exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Covered block extent origin constraint"
+msgstr "Contrainte d’origine de l’étendue de bloc couverte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it."
+msgstr "Une BlockExtent explicitement couverte utilise la chunkingSource exacte comme origine des coordonnées dans la source entière. Les repères locaux au bloc ou à la division ne peuvent s’y substituer silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking atomic block boundary constraint"
+msgstr "Contrainte de frontière de bloc atomique de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented."
+msgstr "Lorsqu’un fragment sélectionné intersecte une BlockExtent atomique représentée dans le même repère source exact, il contient toute cette étendue et consigne coversBlockExtent. Omettre une assertion de couverture ne masque pas une frontière coupée. La loi ne certifie pas que tous les blocs source ont été représentés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunking coverage intersection constraint"
+msgstr "Contrainte d’intersection de couverture de segmentation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
+msgstr "Une étendue déclarée couverte doit réellement intersecter le fragment sélectionné dans leur repère source entier commun. Des étendues qui touchent seulement une borne ou sont disjointes ne sont pas des blocs couverts."
