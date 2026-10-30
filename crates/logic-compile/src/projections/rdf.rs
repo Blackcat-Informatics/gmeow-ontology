@@ -36,6 +36,45 @@ fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
 }
 
+/// Lower only the canonical top and bottom classes at an OWL class position.
+/// The same IRIs in individual, property, annotation or data roles retain their identity.
+fn owl_class_iri(iri: &str) -> &str {
+    match iri {
+        gmeow_ns::LOGIC_THING | gmeow_ns::LOGIC_NOTHING => gmeow_ns::to_owl_view(iri),
+        _ => iri,
+    }
+}
+
+fn emit_owl_class_object(
+    g: &mut TripleSink,
+    subject: &str,
+    predicate: &str,
+    object: &AtomicTerm,
+) -> gmeow_errors::Result<()> {
+    match object {
+        AtomicTerm::Iri(iri) => g.add_iri(subject, predicate, owl_class_iri(iri)),
+        _ => g.add_atomic(subject, predicate, object),
+    }
+}
+
+/// Structural property edges keep their endpoints; class relations lower both
+/// endpoints, while domain/range lower only their class-valued object.
+fn emit_owl_structural_edge(
+    g: &mut TripleSink,
+    subject: &str,
+    source_predicate: &str,
+    target_predicate: &str,
+    object: &AtomicTerm,
+) -> gmeow_errors::Result<()> {
+    match source_predicate.strip_prefix(LOGIC_NS) {
+        Some("subClassOf" | "equivalentClass" | "disjointWith") => {
+            emit_owl_class_object(g, owl_class_iri(subject), target_predicate, object)
+        }
+        Some("domain" | "range") => emit_owl_class_object(g, subject, target_predicate, object),
+        _ => g.add_atomic(subject, target_predicate, object),
+    }
+}
+
 /// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
 /// admits values that are already full custom IRIs (not under the
 /// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
@@ -536,6 +575,7 @@ fn emit_restriction(
     if r.constraints.is_empty() {
         return Ok(());
     }
+    let node = owl_class_iri(node);
     g.add_iri(node, RDF_TYPE, &owl("Restriction"))?;
     g.add_iri(node, &owl(restriction::ON_PROPERTY_LOCAL), on_property)?;
     for (local, object) in &r.constraints {
@@ -552,6 +592,11 @@ fn emit_restriction(
                 format!("OWL restriction <{node}> logic:{local} requires a non-negative integer count, found {}", object.key()),
             ))?;
             g.add_atomic(node, &owl(local), &AtomicTerm::Literal(literal))?;
+        } else if matches!(
+            local.as_str(),
+            "someValuesFrom" | "allValuesFrom" | "onClass"
+        ) {
+            emit_owl_class_object(g, node, &owl(local), object)?;
         } else {
             g.add_atomic(node, &owl(local), object)?;
         }
@@ -659,6 +704,46 @@ fn emit_list_cells(g: &mut TripleSink, cells: &[(&str, &AtomicTerm)]) -> gmeow_e
     let members: Vec<_> = cells.iter().map(|(_, member)| (*member).clone()).collect();
     g.add_list(&members, &names)?;
     Ok(())
+}
+
+/// Class lists may share source cells with nominal lists. When a class member
+/// changes spelling, give the OWL class view its own cells so oneOf stays intact.
+fn emit_owl_class_cells(
+    g: &mut TripleSink,
+    owner: &str,
+    constructor: &str,
+    cells: &[(&str, &AtomicTerm)],
+) -> gmeow_errors::Result<String> {
+    let head = cells
+        .first()
+        .map_or(crate::lists::RDF_NIL, |(cell, _)| *cell);
+    if !cells
+        .iter()
+        .any(|(_, member)| matches!(member, AtomicTerm::Iri(iri) if owl_class_iri(iri) != iri))
+    {
+        emit_list_cells(g, cells)?;
+        return Ok(head.to_owned());
+    }
+    // Length framing distinguishes arbitrary owner/constructor/head identities,
+    // including blank-node spellings, without using them as IRI path segments.
+    let key = format!(
+        "{}:{owner}{}:{constructor}{}:{head}",
+        owner.len(),
+        constructor.len(),
+        head.len()
+    );
+    let base = format!("{GMEOW_NS}owl/class-list/{}", sha256_12(&key));
+    let names: Vec<_> = (0..cells.len())
+        .map(|index| crate::lists::cell_iri(&base, index))
+        .collect();
+    let members: Vec<_> = cells
+        .iter()
+        .map(|(_, member)| match member {
+            AtomicTerm::Iri(iri) => AtomicTerm::Iri(owl_class_iri(iri).to_owned()),
+            _ => (*member).clone(),
+        })
+        .collect();
+    g.add_list(&members, &names)
 }
 
 /// The boolean / nominal class constructors a lifted anonymous class expression carries,
@@ -779,14 +864,20 @@ fn emit_class_expression(
         }
         lowered.push((local, LoweredOperand::List(cells)));
     }
+    let node = owl_class_iri(node);
     g.add_iri(node, RDF_TYPE, &owl("Class"))?;
     for (local, operand) in lowered {
         match operand {
             LoweredOperand::List(cells) => {
-                emit_list_cells(g, &cells)?;
-                g.add_iri(node, &owl(local), cells[0].0)?;
+                let head = if local == "oneOf" {
+                    emit_list_cells(g, &cells)?;
+                    cells[0].0.to_owned()
+                } else {
+                    emit_owl_class_cells(g, node, local, &cells)?
+                };
+                g.add_iri(node, &owl(local), &head)?;
             }
-            LoweredOperand::Class(class) => g.add_atomic(node, &owl(local), class)?,
+            LoweredOperand::Class(class) => emit_owl_class_object(g, node, &owl(local), class)?,
         }
     }
     Ok(true)
@@ -980,9 +1071,14 @@ pub fn project_owl_dl_dataset(
             continue;
         }
         if pred == RDF_TYPE {
+            if obj.as_iri().is_some_and(|iri| owl_class_iri(iri) != iri) {
+                emit_owl_class_object(&mut g, &axiom.subject, RDF_TYPE, obj)?;
+                continue;
+            }
             if let Some(gufo_type) = obj.as_iri().and_then(gufo_for_sort) {
-                g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type)?;
-                g.add_iri(&axiom.subject, RDF_TYPE, &owl("Class"))?;
+                let class = owl_class_iri(&axiom.subject);
+                g.add_iri(class, RDF_TYPE, &gufo_type)?;
+                g.add_iri(class, RDF_TYPE, &owl("Class"))?;
                 continue;
             }
             if let Some(owl_char) = obj.as_iri().and_then(owl_for_char) {
@@ -1016,7 +1112,7 @@ pub fn project_owl_dl_dataset(
             continue;
         }
         if let Some(owl_pred) = owl_for_pred(pred) {
-            g.add_atomic(&axiom.subject, &owl_pred, obj)?;
+            emit_owl_structural_edge(&mut g, &axiom.subject, pred, &owl_pred, obj)?;
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
@@ -1061,7 +1157,13 @@ pub fn project_owl_dl_dataset(
             && owl_for_pred(&rule.body[0].predicate).is_some()
         {
             let owl_head_pred = owl_for_pred(&head.predicate).unwrap();
-            g.add_atomic(&head.subject, &owl_head_pred, &head.obj)?;
+            emit_owl_structural_edge(
+                &mut g,
+                &head.subject,
+                &head.predicate,
+                &owl_head_pred,
+                &head.obj,
+            )?;
             continue;
         }
         let note = format!(
@@ -1252,9 +1354,14 @@ pub fn project_owl_el_dataset(
             continue;
         }
         if pred == RDF_TYPE {
+            if obj.as_iri().is_some_and(|iri| owl_class_iri(iri) != iri) {
+                emit_owl_class_object(&mut g, &axiom.subject, RDF_TYPE, obj)?;
+                continue;
+            }
             if let Some(gufo_type) = obj.as_iri().and_then(gufo_for_sort) {
-                g.add_iri(&axiom.subject, RDF_TYPE, &gufo_type)?;
-                g.add_iri(&axiom.subject, RDF_TYPE, &owl("Class"))?;
+                let class = owl_class_iri(&axiom.subject);
+                g.add_iri(class, RDF_TYPE, &gufo_type)?;
+                g.add_iri(class, RDF_TYPE, &owl("Class"))?;
                 continue;
             }
             if obj.as_iri().is_some_and(is_el_safe_char) {
@@ -1296,7 +1403,7 @@ pub fn project_owl_el_dataset(
         }
         if is_el_safe_pred(pred) {
             let owl_pred = owl_for_pred(pred).unwrap();
-            g.add_atomic(&axiom.subject, &owl_pred, obj)?;
+            emit_owl_structural_edge(&mut g, &axiom.subject, pred, &owl_pred, obj)?;
             continue;
         }
         if let Some(local) = pred.strip_prefix(LOGIC_NS) {
@@ -1913,7 +2020,10 @@ fn emit_class_list(
     base: &str,
     members: &[String],
 ) -> gmeow_errors::Result<String> {
-    let values: Vec<_> = members.iter().cloned().map(AtomicTerm::Iri).collect();
+    let values: Vec<_> = members
+        .iter()
+        .map(|member| AtomicTerm::Iri(owl_class_iri(member).to_owned()))
+        .collect();
     let cells: Vec<_> = (0..members.len())
         .map(|i| crate::lists::cell_iri(base, i))
         .collect();
@@ -1933,12 +2043,16 @@ fn emit_covering_owl_dl(
     let base = format!("{GMEOW_NS}owl/covering/{}", sha256_12(&covering_key(cov)));
     let list_head = emit_class_list(g, &base, &cov.members)?;
     if disjoint {
-        g.add_iri(&cov.whole, &owl("disjointUnionOf"), &list_head)?;
+        g.add_iri(
+            owl_class_iri(&cov.whole),
+            &owl("disjointUnionOf"),
+            &list_head,
+        )?;
     } else {
         let union_cls = format!("{base}/union");
         g.add_iri(&union_cls, RDF_TYPE, &owl("Class"))?;
         g.add_iri(&union_cls, &owl("unionOf"), &list_head)?;
-        g.add_iri(&cov.whole, &rdfs("subClassOf"), &union_cls)?;
+        g.add_iri(owl_class_iri(&cov.whole), &rdfs("subClassOf"), &union_cls)?;
     }
     Ok(())
 }
