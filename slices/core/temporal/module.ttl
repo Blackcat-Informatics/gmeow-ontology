@@ -63,11 +63,11 @@ gmeow:Instant
     rdfs:label "Instant"@x-gmeow-english ;
     rdfs:subClassOf logic:AbstractIndividual ;
     skos:definition "A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame."@x-gmeow-english ;
-    skos:example "ex:birthInstant a gmeow:Instant ; gmeow:instantValue \"1804-07-12T00:00:00Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."@x-gmeow-english ;
+    skos:example "An explicitly timestamped instant: ex:clockTick a gmeow:Instant ; gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an inline timestamp that needs no facets (use gmeow:atTime or gmeow:startedAtTime) and for a bounded span (use gmeow:TimeInterval); an Instant is the heavyweight, facet-bearing point."@x-gmeow-english ;
     gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Give it a crisp gmeow:instantValue (xsd:dateTime, P3) and/or an approximate gmeow:edtfValue, declare its gmeow:inTemporalFrame (P11), and attach gmeow:hasGranularity / gmeow:hasDeterminacy when the resolution or determinacy is below crisp-to-the-second."@x-gmeow-english ;
+    gmeow:howToUse "Use instantValue for a source-stated point timestamp in its inTemporalFrame. Preserve independently stated approximation through edtfValue and the existing facets; a granularity does not supply missing clock fields."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:inTemporalFrame ;
     gmeow:useWhen "Use for a zero-duration point that must itself bear a frame, a granularity, a determinacy, or an EDTF approximation — the reified point that a gmeow:TimeInterval endpoint or a gmeow:NamedPeriod boundary references."@x-gmeow-english .
 
@@ -180,7 +180,7 @@ gmeow:TimeInterval
     gmeow:avoidWhen "Avoid for a zero-duration point (use gmeow:Instant) and for the lightweight case where a statement merely holds over a period — there the RDF-star gmeow:validFrom/gmeow:validUntil clocks suffice without minting an interval."@x-gmeow-english ;
     gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Bound it with gmeow:startedAtTime/gmeow:endedAtTime (xsd:dateTime, never xsd:date per P3) or gmeow:hasStartInstant/gmeow:hasEndInstant; declare its gmeow:hasTemporalFrame (P11) and any gmeow:hasGranularity, then attach Allen relations to peers."@x-gmeow-english ;
+    gmeow:howToUse "Use startedAtTime/endedAtTime with xsd:dateTime or hasStartInstant/hasEndInstant when the corresponding boundary instants are known. Declare hasTemporalFrame (Principle 11) and any hasGranularity, then attach Allen relations. The boundary properties’ declared datatypes do not justify inventing missing clock fields."@x-gmeow-english ;
     gmeow:requiresFrame gmeow:hasTemporalFrame ;
     gmeow:useWhen "Use for a first-class bounded stretch of time that must itself bear properties — a frame, a granularity, Allen relations to other intervals, or the scope of a gmeow:TimeScopedRelation; the reify-on-demand sibling of the validFrom/validUntil statement-layer clocks."@x-gmeow-english .
 
@@ -676,10 +676,10 @@ gmeow:instantValue
     rdfs:label "instant value"@x-gmeow-english ;
     rdfs:range xsd:dateTime ;
     skos:definition "The crisp instant as an xsd:dateTime literal in the associated temporal frame."@x-gmeow-english ;
-    skos:example "ex:birthInstant gmeow:instantValue \"1804-07-12T00:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for approximate, uncertain, or open-ended points (use gmeow:edtfValue) and avoid an xsd:date literal — base-triple time is xsd:dateTime (P3); functional, so an instant has at most one crisp value."@x-gmeow-english ;
+    skos:example "The point retains its timestamp: ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a civil-day designation without a clock time as an instantValue. This property admits xsd:dateTime; that declared range does not authorize padding an incomplete source assertion. An instant has at most one crisp value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Write a full xsd:dateTime interpreted in the instant's gmeow:inTemporalFrame; when the point is only known to a coarser resolution, set it to the canonical start of the period and record the real resolution with gmeow:hasGranularity."@x-gmeow-english ;
+    gmeow:howToUse "Write the full source-stated xsd:dateTime in the instant’s inTemporalFrame. Do not invent midnight or a canonical period start when only a day, month or year was stated; hasGranularity records resolution without creating a missing instant."@x-gmeow-english ;
     gmeow:useForConsumer gmeow:consumerIndexProjection ;
     gmeow:useWhen "Use to carry the crisp, machine-computable value of a gmeow:Instant — the single xsd:dateTime the solver and renderers read."@x-gmeow-english .
 
@@ -1979,3 +1979,61 @@ gmeow:startedAtTimeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:startedAtTime and nothing else. It is not a definition of gmeow:startedAtTime (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:startedAtTimeFunctionality logic:characterizes gmeow:startedAtTime ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Scoped process-state readings.
+
+gmeow:DayPart
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Day Part"@x-gmeow-english ;
+    skos:definition "An open vocabulary for parts of a civil day as reckoned by a holder in an explicit temporal frame. Values classify a contextual reckoning and impose no universal hours, ordering or preferred schedule."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:localPart a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartMorning
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "morning"@x-gmeow-english ;
+    skos:definition "The morning part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartMorning a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartAfternoon
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "afternoon"@x-gmeow-english ;
+    skos:definition "The afternoon part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartAfternoon a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartEvening
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "evening"@x-gmeow-english ;
+    skos:definition "The evening part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartEvening a gmeow:DayPart ."@x-gmeow-english .
+
+gmeow:dayPartNight
+    a gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "night"@x-gmeow-english ;
+    skos:definition "The night part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."@x-gmeow-english ;
+    gmeow:useWhen "Use for a holder-relative civil-day classification in a declared temporal frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."@x-gmeow-english ;
+    gmeow:howToUse "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."@x-gmeow-english .

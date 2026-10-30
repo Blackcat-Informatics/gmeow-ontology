@@ -512,3 +512,131 @@ msgstr "具名时段「边界或测量」约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/NamedPeriodBoundsOrMeasurementConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: a gmeow:NamedPeriod is bounded by both gmeow:periodStart and gmeow:periodEnd, or carries at least one gmeow:hasTemporalMeasurement — a named stretch of time with neither bounds nor a measured duration is underspecified."
 msgstr "闭世界完整性约束：一个 gmeow:NamedPeriod 要么同时由 gmeow:periodStart 与 gmeow:periodEnd 界定，要么至少携带一个 gmeow:hasTemporalMeasurement——既无边界又无实测时长的具名时间段属于欠定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Instant|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly timestamped instant: ex:clockTick a gmeow:Instant ; gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ."
+msgstr "确有时间戳的时刻：ex:clockTick a gmeow:Instant ; gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/instantValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The point retains its timestamp: ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
+msgstr "该点保留其时间戳：ex:clockTick gmeow:instantValue \"2026-10-30T14:23:17Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Day Part"
+msgstr "日间部分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for parts of a civil day as reckoned by a holder in an explicit temporal frame. Values classify a contextual reckoning and impose no universal hours, ordering or preferred schedule."
+msgstr "用于持有者在显式时间框架中划分民用日各部分的开放词汇。各值对上下文相关划分进行分类，不强加通用小时、顺序或优先作息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "用于声明时间框架中相对于持有者的民用日分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "避免分配通用时钟边界，也不要将初始值视为穷尽集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划分创建额外 DayPart 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DayPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: ex:localPart a gmeow:DayPart ."
+msgstr "保留此有归属记录：ex:localPart a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "morning"
+msgstr "早晨"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The morning part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "所选持有者划分中民用日的早晨部分。边界取决于声明的时间框架及持有者，而非通用固定时钟小时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "用于声明时间框架中相对于持有者的民用日分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "避免分配通用时钟边界，也不要将初始值视为穷尽集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划分创建额外 DayPart 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartMorning|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartMorning a gmeow:DayPart ."
+msgstr "保留此有归属记录：gmeow:dayPartMorning a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "afternoon"
+msgstr "下午"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The afternoon part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "所选持有者划分中民用日的下午部分。边界取决于声明的时间框架及持有者，而非通用固定时钟小时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "用于声明时间框架中相对于持有者的民用日分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "避免分配通用时钟边界，也不要将初始值视为穷尽集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划分创建额外 DayPart 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartAfternoon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartAfternoon a gmeow:DayPart ."
+msgstr "保留此有归属记录：gmeow:dayPartAfternoon a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evening"
+msgstr "傍晚"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The evening part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "所选持有者划分中民用日的傍晚部分。边界取决于声明的时间框架及持有者，而非通用固定时钟小时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "用于声明时间框架中相对于持有者的民用日分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "避免分配通用时钟边界，也不要将初始值视为穷尽集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划分创建额外 DayPart 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartEvening|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartEvening a gmeow:DayPart ."
+msgstr "保留此有归属记录：gmeow:dayPartEvening a gmeow:DayPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "night"
+msgstr "夜间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The night part of a civil day in the selected holder’s reckoning. Its boundaries depend on the declared temporal frame and holder, not universal fixed clock hours."
+msgstr "所选持有者划分中民用日的夜间部分。边界取决于声明的时间框架及持有者，而非通用固定时钟小时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a holder-relative civil-day classification in a declared temporal frame."
+msgstr "用于声明时间框架中相对于持有者的民用日分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning universal clock boundaries or treating the seeded values as exhaustive."
+msgstr "避免分配通用时钟边界，也不要将初始值视为穷尽集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the holder and temporal frame on the consuming reading; mint additional DayPart individuals for other reckonings."
+msgstr "在使用该值的解读上绑定持有者及时间框架；为其他划分创建额外 DayPart 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dayPartNight|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this attributed record: gmeow:dayPartNight a gmeow:DayPart ."
+msgstr "保留此有归属记录：gmeow:dayPartNight a gmeow:DayPart ."

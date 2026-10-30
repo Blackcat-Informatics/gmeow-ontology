@@ -156,8 +156,9 @@ enforcement as a slice-level closed-world `logic:Constraint` over the statement-
 annotation clocks would exceed the range-restricted guarded fragment the native coherence
 gate decides (an annotation-property absence check is not an object/datatype edge the
 guarded existential/counting deciders reach), so the boundary is recorded honestly as
-`gmeow:ObservationWindowClosedWorldBoundary` (a `logic:expressivenessBoundary
-logic:FirstOrder` retained-withhold record, mirroring `logic:rdf12-nested-triple-term`)
+`gmeow:ObservationWindowClosedWorldBoundary` (a retained-withhold record with
+`logic:expressivenessBoundary logic:FirstOrder`, mirroring
+`logic:rdf12-nested-triple-term`)
 rather than improvised as an unsupported constraint. See
 [`docs/MIGRATING-SHAPES-TO-LOGIC.md`](../../../docs/MIGRATING-SHAPES-TO-LOGIC.md) for the
 doctrine on when a gap is an honest boundary rather than a constraint to author.
@@ -175,3 +176,18 @@ maps to `time:TRS`; GMEOW's addition is making the frame *first-class and self-d
 Depends on `core` (gufo grounding, base properties) and `profiles` (the reference-frame
 Profile pattern). Depended on by nearly everything — events, places (tenures), calendar,
 employment, lifecycle, and the statement layer's clocks.
+
+## Holder-relative day parts
+
+`DayPart` is an open quality-value vocabulary for parts of a civil day as its
+holder reckons them. The initial `dayPartMorning`, `dayPartAfternoon`,
+`dayPartEvening` and `dayPartNight` values impose no fixed hours, universal
+ordering or preferred schedule. Additional classifications are individuals,
+not subclasses.
+
+A consuming observation or report retains the holder and actual `TemporalFrame`
+alongside the selected value. Those bindings supply the reckoning context; the
+shared value alone cannot identify an interval or authorize a conversion to
+clock boundaries. Preserve the source's account rather than deriving hours from
+a label. The refinement-reading `HabitFigure` uses this pattern for reported
+activity figures without treating its process observer as the holder by default.

@@ -1,0 +1,119 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+gmeow:CivilDateExpression
+    a logic:Kind , logic:Class ;
+    logic:subClassOf gmeow:InformationObject ;
+    logic:disjointWith gmeow:Instant ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/civil-dating> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Civil Date Expression"@x-gmeow-english ;
+    skos:definition "A source record of an asserted civil-day designation in one explicit temporal frame. It preserves the supplied literal and day precision without asserting an instant, a day duration, calendar validity or a conversion."@x-gmeow-english ;
+    skos:example "A civil-day record: ex:date a gmeow:CivilDateExpression ; gmeow:civilDateLexical \"2026-10-30\" ; gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source dates an event to a civil day and supplies no clock time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this record as an Instant or validating a source date by merely recording it."@x-gmeow-english ;
+    gmeow:howToUse "Preserve one original literal, name one TemporalFrame with a CalendarSystem, and state granularityDay. Link the record as the result of a CivilDateObservation."@x-gmeow-english ;
+    skos:scopeNote "Datatype semantics remain those of the supplied RDF literal: xsd:date is Gregorian. A calendar frame does not reinterpret that datatype. Recording a mistyped producer assertion preserves evidence without endorsing its typing."@x-gmeow-english .
+
+gmeow:civilDateLexical
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:CivilDateExpression ;
+    logic:range rdfs:Literal ;
+    logic:subPropertyOf lang:literalValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/civil-dating> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "civil date lexical form"@x-gmeow-english ;
+    skos:definition "The exact RDF literal supplied as a civil-day designation. Lexical form, datatype, language and direction survive unchanged when present. This evidence carrier performs no date parsing, normalization or calendar interpretation."@x-gmeow-english ;
+    skos:example "The designation retains its language: ex:date gmeow:civilDateLexical \"30 octobre 2026\"@fr ."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source’s own civil-day wording or typed literal before any separately justified interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a language, changing a literal datatype to match a calendar, or replacing the source wording with midnight."@x-gmeow-english ;
+    gmeow:howToUse "Copy the complete source literal onto one CivilDateExpression and retain its explicit civilDateFrame and source attribution."@x-gmeow-english ;
+    skos:scopeNote "This specialization of the domain-free lang:literalValue carrier records an assertion. Its literal range does not certify that the designation exists in the named calendar."@x-gmeow-english .
+
+gmeow:civilDateFrame
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CivilDateExpression ;
+    logic:range gmeow:TemporalFrame ;
+    logic:subPropertyOf gmeow:hasReferenceFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/civil-dating> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "civil date frame"@x-gmeow-english ;
+    skos:definition "The single TemporalFrame in which the source asserted this civil-day designation. The frame must name its CalendarSystem; naming it supplies no missing clock time or calendar conversion."@x-gmeow-english ;
+    skos:example "The record names its frame: ex:date gmeow:civilDateFrame gmeow:temporalFrameUTCGregorian ."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the source calendar frame explicit on a CivilDateExpression."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing Gregorian or UTC by default when the source did not identify that frame."@x-gmeow-english ;
+    gmeow:howToUse "Point at the actual TemporalFrame and retain its frameCalendarSystem; generic frame queries follow hasReferenceFrame."@x-gmeow-english ;
+    skos:scopeNote "Exactly-one applies to this expression’s civilDateFrame only. The generic hasReferenceFrame spine remains nonfunctional and may inherit frames through its existing property chain."@x-gmeow-english .
+
+gmeow:CivilDateObservation
+    a logic:SubKind , logic:Class ;
+    logic:subClassOf gmeow:Observation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/civil-dating> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Civil Date Observation"@x-gmeow-english ;
+    skos:definition "An attributed Observation that an Event was designated by a source civil day. Its required observationResult values are CivilDateExpression records, and its required vantage retains the source standpoint. It asserts no event instant or elapsed duration."@x-gmeow-english ;
+    skos:example "An observation retains event, result and vantage: ex:dating a gmeow:CivilDateObservation ; gmeow:observedFeature ex:event ; gmeow:observationResult ex:date ; gmeow:vantage ex:archivist ."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-attributed civil-day assertion about an event, including an event in an explicitly named non-default frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this source claim as proof of calendar validity or as a parsed timestamp."@x-gmeow-english ;
+    gmeow:howToUse "Use observedFeature for the Event, observationResult for each preserved CivilDateExpression, and vantage for the source agent or standpoint. Existing provenance properties retain derivation."@x-gmeow-english ;
+    skos:scopeNote "Generic Observation queries discover this claim. Multiple results and coexisting vantages remain valid; instant-only queries gain no civil-date decoding or inclusion rule from this class."@x-gmeow-english .
+
+gmeow:CivilDateCalendarWitnessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/civil-dating> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Civil date calendar witness constraint"@x-gmeow-english ;
+    skos:definition "Every civilDateFrame used by a CivilDateExpression explicitly names a CalendarSystem through frameCalendarSystem. The witness records the declared calendar without checking its date arithmetic."@x-gmeow-english ;
+    skos:example "A witness names the frame’s calendar: ex:date gmeow:civilDateFrame ex:frame . ex:frame gmeow:frameCalendarSystem ex:calendar . ex:calendar a gmeow:CalendarSystem ."@x-gmeow-english ;
+    gmeow:useWhen "Use when admitting a CivilDateExpression whose declared frame must identify its calendar explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading calendar presence as proof of date validity, a default calendar or an executed conversion."@x-gmeow-english ;
+    gmeow:howToUse "Follow civilDateFrame from the expression and require a frameCalendarSystem edge to a typed CalendarSystem."@x-gmeow-english ;
+    skos:scopeNote "The law is scoped to frames selected by CivilDateExpression. Calendar-free scale frames remain valid elsewhere under the temporal owner’s existing contract."@x-gmeow-english ;
+    logic:formalizes gmeow:civilDateFrame , gmeow:CivilDateExpression ;
+    logic:message "A CivilDateExpression requires its civilDateFrame to name a CalendarSystem through frameCalendarSystem." ;
+    logic:integrity logic:civilDateCalendarForall .
+
+# Local selected-record requirements; shared properties retain their own contracts.
+gmeow:CivilDateExpression logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:civilDateLexical ; logic:allValuesFrom rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:civilDateLexical ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:civilDateFrame ; logic:allValuesFrom gmeow:TemporalFrame ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:civilDateFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:hasValue gmeow:granularityDay ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:allValuesFrom [ logic:oneOf ( gmeow:granularityDay ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateExpression ; logic:closureKey "https://blackcatinformatics.ca/gmeow/civilDateLexical" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateExpression ; logic:closureKey "https://blackcatinformatics.ca/gmeow/civilDateFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateExpression ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasGranularity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:CivilDateObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:Event ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:CivilDateExpression ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CivilDateObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# A class-guarded law requires an actual calendar witness on the selected frame.
+logic:civilDateCalendarForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] ;
+    logic:forall logic:civilDateCalendarImpl .
+logic:civilDateCalendarImpl a logic:Formula ; logic:antecedent logic:civilDateCalendarGuard ; logic:consequent logic:civilDateCalendarExists .
+logic:civilDateCalendarGuard a logic:Formula ; logic:and logic:civilDateCalendarType , logic:civilDateCalendarFrame .
+logic:civilDateCalendarType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CivilDateExpression ] .
+logic:civilDateCalendarFrame a logic:Formula ; logic:relation gmeow:civilDateFrame ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "frame" ] .
+logic:civilDateCalendarExists a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "calendar" ] ;
+    logic:exists logic:civilDateCalendarWitness .
+logic:civilDateCalendarWitness a logic:Formula ; logic:and logic:civilDateCalendarEdge , logic:civilDateCalendarKind .
+logic:civilDateCalendarEdge a logic:Formula ; logic:relation gmeow:frameCalendarSystem ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ] , [ logic:termIndex 1 ; logic:termVariable "calendar" ] .
+logic:civilDateCalendarKind a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "calendar" ] , [ logic:termIndex 1 ; logic:termIri gmeow:CalendarSystem ] .
