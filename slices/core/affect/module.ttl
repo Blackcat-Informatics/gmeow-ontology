@@ -2316,7 +2316,6 @@ logic:accExists a logic:Formula ;
 logic:accAtom a logic:Formula ; logic:relation gmeow:affectiveConstituent ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "o" ] .
 
-# modelRevision is single-valued: two distinct pinned revisions is a hard fail.
 # A derived intensity's weighting policy must be a machine-readable IRI, never a free-text string.
 gmeow:DerivedAffectIntensityWeightingIriConstraint
     a logic:Constraint ;
@@ -2385,7 +2384,6 @@ logic:lneNot a logic:Formula ; logic:not logic:lneEmotion .
 logic:lneEmotion a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EmotionType ] .
 
-# A calibrated-probability score requires a gmeow:scoreCalibration profile.
 # A classifier output must not directly assert inner affect (emotionType / emotionBearer).
 gmeow:AffectClassifierOutputNoInnerAffectConstraint
     a logic:Constraint ;
@@ -2487,7 +2485,6 @@ logic:dslDecision a logic:Formula ; logic:relation gmeow:labelSetDecision ;
 logic:dslEq a logic:Formula ; logic:relation logic:termEqual ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ] , [ logic:termIndex 1 ; logic:termIri gmeow:decisionArgmax ] .
 
-# A classifier output's score semantics must match its emitted label's set decision rule.
 # At most one AffectiveClaim over one target from a single-label (argmax) classifier run.
 gmeow:ExclusiveAffectiveClaimConstraint
     a logic:Constraint ;
@@ -2634,11 +2631,6 @@ gmeow:EmotionBearerConstraint
 gmeow:Appraisal logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:appraisalDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:appraisalValue ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
-
-# gmeow:ModelInferenceRunShape — a ModelInferenceRun declares exactly one gmeow:modelIdentifier and
-# one pinned gmeow:modelRevision. Both are literal-valued (a repo id, a revision string), so the
-# existence axiom ranges over rdfs:Literal (logic:allValuesFrom OWL Thing would reject the literal);
-# the closure entries project sh:minCount 1 and the OWL FunctionalProperty contract the sh:maxCount 1.
 
 # gmeow:DerivedAffectIntensityObservationShape — a DerivedAffectIntensityObservation must NOT carry a
 # stored gmeow:appraisalValue magnitude (the norm is a recomputable derived view, Principle 12): the
