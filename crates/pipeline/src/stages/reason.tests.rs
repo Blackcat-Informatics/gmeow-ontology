@@ -137,6 +137,71 @@ fn selected_blank_graph_cannot_silently_split_at_pipeline_relabelling() {
     assert!(error.to_string().contains("issuer mapping"));
 }
 
+/// Native admission failures keep their complete evidence across the stage caller.
+#[test]
+fn reason_stage_retains_native_source_refusal_evidence() {
+    use gmeow_logic::error::NativeSourceAdmission;
+    use gmeow_logic::reason::refute::ClassSourceRefusal;
+
+    const WORLD: &str = "urn:reason-refusal:world";
+    let source = purrdf::parse_dataset(
+        br#"
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+<urn:reason-refusal:world> {
+    <urn:reason-refusal:class> logic:oneOf <urn:reason-refusal:list> .
+    <urn:reason-refusal:list> rdf:first <urn:reason-refusal:member> ;
+        rdf:rest <urn:reason-refusal:list> .
+}
+"#,
+        "application/trig",
+        None,
+    )
+    .unwrap();
+    let canonical = canonicalize_edb(source.as_ref(), "stage-reason").unwrap();
+    let input = prepare_reasoning_input(canonical.as_ref()).unwrap();
+    let domains = SelectedDomains::new([SelectedLogicalWorld::new(
+        LogicalGraph::Named(purrdf::TermValue::iri(WORLD)),
+        DomainProfile::NonemptyObjectDomainV1,
+        "gmeow.pipeline.test.source-refusal.v1".to_owned(),
+        *input.ingress_contract(),
+    )
+    .unwrap()])
+    .unwrap();
+    // Capture the complete native refusal, before the actual pipeline caller adds context.
+    // Both operations consume only this three-row synthetic source, never the corpus.
+    let direct = reason_all(input, &domains)
+        .err()
+        .expect("a cyclic canonical nominal must fail native source admission");
+    let original = direct.downcast_ref::<NativeSourceAdmission>().unwrap();
+    let error = reason_over_dataset(source.as_ref(), &domains)
+        .err()
+        .expect("the stage must propagate the native source refusal");
+    let retained = error
+        .downcast_ref::<NativeSourceAdmission>()
+        .expect("stage context must preserve the original typed admission");
+    assert_eq!(retained.input_contract, original.input_contract);
+    assert_eq!(retained.admission, original.admission);
+    assert_eq!(error.code(), direct.code());
+    assert_eq!(error.inner().failure_class, direct.inner().failure_class);
+    assert_eq!(retained.admission.source_worlds[WORLD].assertions, 3);
+    assert_eq!(
+        retained.admission.selected_worlds[WORLD].graph,
+        Some(purrdf::TermValue::iri(WORLD))
+    );
+    assert_eq!(
+        retained.admission.refusal_class().unwrap(),
+        Some(ClassSourceRefusal::Invalid)
+    );
+    assert!(
+        error
+            .inner()
+            .context
+            .iter()
+            .any(|frame| { frame.label == "stage-reason: native reasoning failed" })
+    );
+}
+
 #[test]
 fn reason_product_reuses_the_already_projected_native_carrier() {
     let reasoned = reason_artifacts(br#"
