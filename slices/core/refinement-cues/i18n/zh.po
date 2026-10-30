@@ -38,8 +38,8 @@ msgid "Cue Lexicon"
 msgstr "线索词表"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An immutable, reviewed version of a named list of complete words or phrases used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; its cues do not define a text’s meaning."
-msgstr "具名完整词语或短语列表的不可变且已审阅版本，由解读规则用作证据。保留版本身份、内容摘要、来源派生及可追责审阅溯源；其中线索不定义文本含义。"
+msgid "An immutable, reviewed release of named Cue declarations used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; an empty release is legal and its cues never define a text's meaning."
+msgstr "供解读规则作为证据使用的具名 Cue 声明的不可变且经审阅发布版本。它保留版本身份、内容摘要、来源派生及可追责审阅来源；空发布版本合法，其线索绝不定义文本意义。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."
@@ -56,30 +56,6 @@ msgstr "指定不同的 versionOf 谱系，保留 versionLabel 与 contentDigest
 msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#example"
 msgid "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."
 msgstr "标识已审阅版本：ex:cuesV1 a gmeow:CueLexicon ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "cue word or phrase"
-msgstr "线索词语或短语"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A complete source word or phrase in a CueLexicon, preserved with its language and any RDF 1.2 base direction. It is a textual cue rather than a lexical sense, stem, substring instruction or automatic interpretation."
-msgstr "CueLexicon 中的完整来源词语或短语，保留其语言及任何 RDF 1.2 基方向。它是文本线索，而非词义、词干、子串指令或自动解释。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to retain every exact reviewed cue with its supplied language and direction."
-msgstr "用于保留每个确切已审阅线索及其提供的语言和方向。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid dropping language or direction, silently normalizing variants, or treating list order as rule priority."
-msgstr "避免丢弃语言或方向、静默规范化变体，或将列表顺序当作规则优先级。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Attach a language-tagged literal, including a directional language string when supplied. Retain whole phrases without inventing tokenization or a matching policy."
-msgstr "附加带语言标签的字面量；若来源提供方向，则使用带方向语言字符串。保留完整短语，不编造分词或匹配策略。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#example"
-msgid "Retain the original cue: ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
-msgstr "保留原始线索：ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "cue review"
@@ -104,30 +80,6 @@ msgstr "将不可变版本关联到其已完成签核 Activity；通过 wasAssoc
 msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
 msgstr "保留可追责审阅：ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "cue word language constraint"
-msgstr "线索词语言约束"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Every supplied cueWord retains a nonempty language tag, including the base direction of a directional language string."
-msgstr "每个所提供的 cueWord 须保留非空语言标签，包括带方向语言字符串的基方向。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
-msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
-msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
-msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
-msgid "Retain the governing law: gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
-msgstr "保留适用定律：gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "cue review evidence constraint"
@@ -192,3 +144,499 @@ msgstr "GMEOW 细化线索模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."
 msgstr "由消费者拥有的记录细化器，保留前提复述发现及用作证据的确切已审阅词语或短语集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue"
+msgstr "文本线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared textual signal used as evidence for or against one named reading. A cue retains its phrases or patterns, judge guidance, reading scope and evidence polarity; its presence is never the meaning of a text or a verdict about its author."
+msgstr "声明的文本信号，用作支持或反对某个具名解读的证据。线索保留短语或模式、评判指引、读取范围和证据极性；其出现绝非文本的意义，也不是对作者的裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Phrase and pattern alternatives may coexist. Their detected matches form a union, retaining one occurrence for each identical cue, source literal and original half-open code-point span. Empty reviewed lexicons remain legal."
+msgstr "短语和模式可以共存。检测结果取并集，每个相同线索、源字面量及原始半开码点区间只保留一次出现。经审阅的空词表仍然合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared signal: ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "声明的线索：ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has cue"
+msgstr "包含线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an immutable reviewed CueLexicon release to a declared Cue resource in its payload. Membership carries no ordering, priority or independent endorsement."
+msgstr "将不可变且经审阅的 CueLexicon 发布版本关联到其载荷中声明的 Cue 资源。成员关系不赋予顺序、优先级或独立认可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and not required: an empty reviewed release has no cues. Distinct releases can cite the same unchanged cue resource without sharing release identity."
+msgstr "多值且非必需：经审阅的空发布版本没有线索。不同发布版本可引用同一未变的线索资源，但不共享发布身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cuesV1 gmeow:hasCue ex:blocked ."
+msgstr "ex:cuesV1 gmeow:hasCue ex:blocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "detection guidance"
+msgstr "检测评判指引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Language-bearing instructions a person or model follows to judge reported and missed matches of this cue. These instructions are an evaluation rubric; the detector does not execute them."
+msgstr "供人或模型判断此线索已报告及漏报匹配的带语言指令。这些指令是评估准则，检测器不执行它们。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required for a Cue. Multiple language realizations may coexist without a preferred language."
+msgstr "Cue 必须具备此项。多种语言表述可以并存，不指定首选语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:detectionGuidance \"Count inability to proceed, not quoted sample instructions.\"@en ."
+msgstr "ex:blocked gmeow:detectionGuidance \"计入无法继续的表述，不计引用的示例指令。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue phrase"
+msgstr "线索短语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A whole contiguous sequence of source word tokens matched without case distinctions. Tokens are maximal runs of Unicode 16.0.0 Letter or Decimal_Number characters and U+0027 apostrophe, reading U+2019 as U+0027 for comparison only. Compare tokens under Unicode 16.0.0 simple C/S case-fold equivalence, without other normalization."
+msgstr "按忽略大小写方式匹配的完整连续源词序列。词是 Unicode 16.0.0 的 Letter、Decimal_Number 字符及 U+0027 撇号的最大连续串；仅在比较时把 U+2019 视为 U+0027。使用 Unicode 16.0.0 简单 C/S 大小写折叠等价关系，不作其他规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Separators may differ because comparison is over tokens. Keep the source interval from the first token's start to the last token's end, including intervening separators. This declared matching contract is not executed by ontology validation."
+msgstr "比较针对词，因此分隔符可以不同。保留从首词起点到末词终点的源区间，包括中间分隔符。此声明的匹配契约不由本体校验执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePhrase \"cannot continue\"@en ."
+msgstr "ex:blocked gmeow:cuePhrase \"无法继续\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue pattern"
+msgstr "线索模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A regex alternative for this cue, carried in the lang-owned gmeow:linearRegex datatype. It searches the original literal under that dialect's explicit flags and returns leftmost-first, non-overlapping, nonempty spans."
+msgstr "此线索的正则表达式备选项，使用归 lang 所有的 gmeow:linearRegex 数据类型。它按该方言的显式标志搜索原始字面量，返回最左优先、不重叠且非空的区间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Patterns and phrases are alternatives, not mutual guards. Pattern syntax, zero-width rejection and execution require a conforming matcher; a typed literal alone is not proof that those checks ran."
+msgstr "模式与短语是备选项，不是相互限定条件。语法、零宽匹配拒绝及执行都需要合规匹配器；仅有带类型字面量不能证明这些检查已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+msgstr "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads words of"
+msgstr "线索读取其话语者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Agent whose attributed words this cue is permitted to read. Multiple named agents form an allowed set; absence of this property imposes no speaker restriction."
+msgstr "此线索获准读取其归属话语的 Agent。多个具名主体构成允许集合；缺少此属性不施加说话者限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Selection controls which source words are read, not who authored the cue or whether the named agent holds the proposed reading."
+msgstr "选择限定读取哪些源话语，不决定线索作者，也不表示具名主体持有所提解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+msgstr "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads field"
+msgstr "线索读取字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A property IRI identifying a source literal field this cue reads. Multiple fields form an allowed set; absence imposes no field restriction. The object names the property rather than its value."
+msgstr "标识此线索所读取源字面量字段的属性 IRI。多个字段构成允许集合；缺少时不限制字段。对象命名属性而非其值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No single global domain or range is asserted on the named source property by this selection. Schema metadata and speaker attribution remain separate."
+msgstr "此选择不向被命名源属性施加全局定义域或值域。模式元数据与说话者归属仍然独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsField gmeow:description ."
+msgstr "ex:blocked gmeow:cueReadsField gmeow:description ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence for"
+msgstr "线索支持"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading for which a counted match of this cue is evidence. This is an evidence direction, never assertion of that reading or a verdict about the speaker."
+msgstr "命名某个解读的资源，此线索被计入的匹配为该解读提供支持证据。这是证据方向，绝非断言该解读或裁定说话者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One cue selects exactly one of the two evidence relations. Distinct cues may give opposing evidence without one deleting the other."
+msgstr "一个线索恰选两种证据关系之一。不同线索可提供相反证据，互不删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence against"
+msgstr "线索反对"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading against which a counted match of this cue is evidence. Counterevidence neither asserts the reading's negation nor erases supporting evidence."
+msgstr "命名某个解读的资源，此线索被计入的匹配为该解读提供反对证据。反证既不直接断言该解读的否定，也不抹去支持证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Evidence polarity and detection negation are independent: suppressing a match does not reverse its declared evidence direction."
+msgstr "证据极性与检测否定相互独立：抑制匹配不会反转其声明的证据方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+msgstr "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue example"
+msgstr "线索正例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is present, supplied for a judge's understanding rather than as a reported detector result."
+msgstr "包含此线索的带语言合成文本，用于帮助评判者理解，而非报告检测器结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An example is source documentation, not an executed evaluation or a claim about a real speaker."
+msgstr "正例是源文档，不是已执行评估，也不是关于真实说话者的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueExample \"I cannot continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueExample \"无法继续。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue counterexample"
+msgstr "线索反例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is absent, documenting a boundary a judge must retain."
+msgstr "不包含此线索的带语言合成文本，用于记录评判者必须保留的边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A counterexample is not evidence against the named reading; it illustrates cue absence only."
+msgstr "反例不是反对具名解读的证据，仅说明线索缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueCounterExample \"I can continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueCounterExample \"可以继续。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Negation"
+msgstr "线索否定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared suppression rule connecting a cue to exactly one negating Cue and one scope. A detected negating match in that scope suppresses a target match without deleting it or asserting a negative fact about a speaker."
+msgstr "声明的抑制规则，将线索关联到恰好一个否定 Cue 和一个范围。范围内检测到的否定匹配会抑制目标匹配，但不删除它，也不对说话者断言否定事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Suppression uses detected matches before suppression. It does not recursively withdraw a suppressor because that suppressor is itself suppressed. Multiple applicable rules retain every suppression reason; no priority is inferred."
+msgstr "抑制以抑制前的检测匹配为依据。不会因抑制者自身被抑制而递归撤销它。多条适用规则保留每项抑制理由，不推断优先级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negated by"
+msgstr "由规则抑制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a target Cue to one of its declared suppression rules. Multiple rules are independent alternatives; any applicable detected negator suppresses the target occurrence."
+msgstr "将目标 Cue 关联到其声明的抑制规则之一。多条规则是独立备选项；任何适用且已检测的否定者都会抑制目标出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is cue-to-rule membership, not a link to a suppressing match and not an assertion that any suppression happened."
+msgstr "这是线索到规则的成员关联，不是到抑制匹配的链接，也不表示抑制已经发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:negatedBy ex:notBlocked ."
+msgstr "ex:blocked gmeow:negatedBy ex:notBlocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negating cue"
+msgstr "否定线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one Cue whose detected occurrence can suppress a target under this negation rule. Detection alone supplies the suppressor; its evidence polarity and own suppression status do not reverse this role."
+msgstr "此否定规则中，其检测出现可抑制目标的唯一 Cue。抑制者由检测本身提供；其证据极性及自身抑制状态不反转此角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one per rule. The rule's target cue remains linked through negatedBy and is not inferred from evidence polarity."
+msgstr "每条规则恰好一个。目标线索仍通过 negatedBy 关联，不从证据极性推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negatingCue ex:not ."
+msgstr "ex:notBlocked gmeow:negatingCue ex:not ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Negation Scope"
+msgstr "否定范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."
+msgstr "线索抑制的封闭五值范围词汇：同句、同消息部分、同消息、同源轮次，或对称词窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."
+msgstr "缺少源分组或分段能力意味着评估不受支持，绝不能证明不存在适用否定者。范围选择不会创建消息、部分或轮次身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation scope"
+msgstr "否定范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one member of NegationScope controlling where a detected negating match suppresses a target match."
+msgstr "NegationScope 中唯一的成员，用于决定检测到的否定匹配在何处抑制目标匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."
+msgstr "句子和词范围比较同一确切源字面量中的原始区间。部分、消息和轮次范围比较显式源分组身份，可跨字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation word window"
+msgstr "否定词窗口"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive maximum number of intervening word tokens between a target span and a detected negating span in one source literal. The comparison is symmetric and inclusive: distance less than or equal to this value qualifies; overlapping or adjacent spans have distance zero."
+msgstr "同一源字面量中目标区间与检测到的否定区间之间允许的最大间隔词数，为正整数。比较对称且包含边界：距离小于等于该值即符合；重叠或相邻区间的距离为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same Unicode 16.0.0 word definition used by cuePhrase supplies the count. Punctuation creates no extra word, and a gap containing no whole word has distance zero."
+msgstr "计数沿用 cuePhrase 的 Unicode 16.0.0 词定义。标点不增加词数，不包含完整词的间隔距离为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same sentence"
+msgstr "同句"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both complete original match spans lie inside one default UAX 29 sentence segment of the same source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "两个完整原始匹配区间位于同一源字面量的同一默认 UAX 29 句段内，使用 Unicode 17.0.0 句子边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A span crossing a sentence boundary does not satisfy same-sentence scope. Sentence segmentation is a declared execution requirement, not an inference from punctuation alone."
+msgstr "跨越句子边界的区间不符合此范围。分句是声明的执行要求，不能仅凭标点推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message part"
+msgstr "同消息部分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:BodyPart. Literal or field equality alone does not establish part membership."
+msgstr "两个匹配属于同一个显式标识的源 gmeow:BodyPart。仅有字面量或字段相同不足以确立部分成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain actual part identities and message hasBodyPart membership. Do not infer parts by splitting on line breaks."
+msgstr "保留实际部分身份及消息的 hasBodyPart 成员关系，不根据换行推断部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message"
+msgstr "同消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:Message, whether in one or several of its retained parts or fields."
+msgstr "两个匹配属于同一个显式标识的源 gmeow:Message，可位于其一个或多个保留的部分或字段中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A shared thread, sender, timestamp or reply chain does not establish message identity."
+msgstr "共享会话串、发送者、时间戳或回复链不能确立消息身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same source turn"
+msgstr "同源轮次"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches share one explicitly supplied source turn identity. Turn membership is a source claim; this scope does not derive a turn from a conversation thread or message order."
+msgstr "两个匹配共享源显式提供的同一轮次身份。轮次成员关系是源主张，此范围不从会话串或消息顺序推导轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader must retain the exact source turn identity and membership evidence. Missing turn identity is unsupported evaluation, not a default message-sized turn."
+msgstr "读取者必须保留确切源轮次身份及成员关系证据。缺少轮次身份时评估不受支持，不能默认一条消息就是一个轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "within word window"
+msgstr "词窗口内"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both matches lie in one exact source literal and their symmetric intervening-word distance is at most the rule's positive negationWindow."
+msgstr "两个匹配位于同一确切源字面量中，其对称间隔词距离不超过规则的正数 negationWindow。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The window is inclusive and has no implicit left-only or right-only direction. Its unit is the cuePhrase word definition, not UAX 29 word segmentation."
+msgstr "窗口包含边界，不隐含仅向左或仅向右的方向。单位是 cuePhrase 定义的词，而非 UAX 29 分词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text alternatives"
+msgstr "线索文本备选约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue declares at least one cuePhrase or cuePattern; both may coexist."
+msgstr "每个 Cue 至少声明 cuePhrase 或 cuePattern 之一，二者可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence choice"
+msgstr "线索证据选择约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue selects exactly one of cueEvidenceFor and cueEvidenceAgainst. A class-local maximum separately bounds its chosen target."
+msgstr "每个 Cue 恰选 cueEvidenceFor 和 cueEvidenceAgainst 之一，类局部最大基数另行限制所选目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "word-window value required"
+msgstr "词窗口值必需约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation selecting negationWithinWords must supply a negationWindow. The datatype and at-most-one bound apply separately."
+msgstr "选择 negationWithinWords 的 CueNegation 必须提供 negationWindow，数据类型及至多一个上限另行适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+msgstr "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text language constraint"
+msgstr "线索文本语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied phrase, guidance, example and counterexample retains a nonempty language tag, including the base direction of a directional language string."
+msgstr "每个提供的短语、指引、正例和反例都保留非空语言标签，包括方向性语言字符串的基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The constraint preserves tagged source values; it does not normalize text or infer a language resource from a tag."
+msgstr "约束保留带标签源值，不规范化文本，也不从标签推断语言资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue field property constraint"
+msgstr "线索字段属性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every cueReadsField value is an IRI naming a declared object, datatype or annotation property, or an RDF property. This names the field without applying it as a predicate in the declaration."
+msgstr "每个 cueReadsField 值都是命名已声明对象属性、数据类型属性、注解属性或 RDF 属性的 IRI。它命名字段，不在声明中将其作为谓词应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Field declarations must be supplied for validation; their absence is not repaired by guessing a property kind."
+msgstr "校验必须获得字段声明，不能通过猜测属性种类补齐缺失声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+msgstr "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "window scope constraint"
+msgstr "窗口范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied negationWindow belongs to a CueNegation whose scope is negationWithinWords; other scopes must not carry a window."
+msgstr "每个提供的 negationWindow 都属于范围为 negationWithinWords 的 CueNegation；其他范围不得携带窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with conditional requiredness and positive-integer typing, this gives exactly one window only when word-window scope is selected."
+msgstr "结合条件必需性和正整数类型，仅在选择词窗口范围时恰有一个窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+msgstr "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueLexicon closed record"
+msgstr "CueLexicon 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "CueLexicon 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue closed record"
+msgstr "Cue 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "Cue 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueNegation closed record"
+msgstr "CueNegation 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "CueNegation 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
+msgstr "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."

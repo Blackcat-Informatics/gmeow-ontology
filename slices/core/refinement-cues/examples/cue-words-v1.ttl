@@ -1,9 +1,0 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix ex: <https://example.org/refinement-cues/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-
-ex:cuesV1 gmeow:cueWord "cannot continue"@en,
-    "ne peut pas continuer"@fr,
-    "لا يمكن المتابعة"@ar--rtl .

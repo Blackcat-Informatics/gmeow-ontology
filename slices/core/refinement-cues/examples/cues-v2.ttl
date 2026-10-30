@@ -1,0 +1,54 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/refinement-cues/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A new payload release: declaration data only, with no executed match claims.
+ex:cuesV2 gmeow:hasCue ex:blockedEnglish, ex:blockedFrench, ex:blockedArabic, ex:notCue .
+
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+ex:french a gmeow:Language ; gmeow:languageCode "fr" .
+ex:arabic a gmeow:Language ; gmeow:languageCode "ar" .
+ex:blockedReading a gmeow:InformationObject ;
+    gmeow:description "A provisional reading that the speaker cannot proceed."@en .
+
+ex:blockedEnglish a gmeow:Cue ;
+    gmeow:writtenInLanguage ex:english ;
+    gmeow:cuePhrase "cannot continue"@en ;
+    gmeow:cuePattern "(?i)cannot +continue"^^gmeow:linearRegex ;
+    gmeow:detectionGuidance "Judge an expressed inability to proceed; distinguish quotations and hypothetical examples. A detected span alone does not establish the reading."@en ;
+    gmeow:cueReadsField gmeow:description ;
+    gmeow:cueEvidenceFor ex:blockedReading ;
+    gmeow:cueExample "I cannot continue with this approach."@en ;
+    gmeow:cueCounterExample "I can continue with this approach."@en ;
+    gmeow:negatedBy ex:notInSentence .
+
+ex:blockedFrench a gmeow:Cue ;
+    gmeow:writtenInLanguage ex:french ;
+    gmeow:cuePhrase "ne peut pas continuer"@fr ;
+    gmeow:detectionGuidance "Évaluer une incapacité exprimée à poursuivre ; distinguer les citations et les illustrations hypothétiques."@fr ;
+    gmeow:cueEvidenceFor ex:blockedReading .
+
+ex:blockedArabic a gmeow:Cue ;
+    gmeow:writtenInLanguage ex:arabic ;
+    gmeow:cuePhrase "لا يمكن المتابعة"@ar--rtl ;
+    gmeow:detectionGuidance "احكم على التعبير عن عدم القدرة على المتابعة، مع تمييز الاقتباسات والأمثلة الافتراضية."@ar--rtl ;
+    gmeow:cueEvidenceFor ex:blockedReading .
+
+ex:notCue a gmeow:Cue ;
+    gmeow:writtenInLanguage ex:english ;
+    gmeow:cuePhrase "not"@en ;
+    gmeow:detectionGuidance "This literal negator is a synthetic scope illustration, not a complete natural-language negation analyzer."@en ;
+    gmeow:cueEvidenceAgainst ex:blockedReading .
+
+ex:notInSentence a gmeow:CueNegation ;
+    gmeow:negatingCue ex:notCue ;
+    gmeow:negationScope gmeow:negationSameSentence .
+
+# An alternative independently addressable rule; no detection is claimed here.
+ex:nearbyNot a gmeow:CueNegation ;
+    gmeow:negatingCue ex:notCue ;
+    gmeow:negationScope gmeow:negationWithinWords ;
+    gmeow:negationWindow "3"^^xsd:positiveInteger .
