@@ -342,7 +342,7 @@ pub fn sync(
             Err(e) => return fail(format!("generator metadata failed: {e}")),
         };
         for record in records {
-            match serde_json::to_string(&record) {
+            match generator_metadata_json(&record) {
                 Ok(line) => println!("{line}"),
                 Err(e) => return fail(format!("serialize generator metadata: {e}")),
             }
@@ -1071,6 +1071,18 @@ fn collect_files(dir: &Path, root: &Path, out: &mut Vec<String>) {
             );
         }
     }
+}
+
+/// Encode one complete metadata record; stdout supplies its terminal newline.
+fn generator_metadata_json(record: &gmeow_pipeline::GeneratorMetadata) -> std::io::Result<String> {
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    purrdf_lex::json::write_with_memory(
+        &record.to_json(),
+        purrdf_lex::json::Format::COMPACT,
+        &mut memory,
+    )
+    .map_err(std::io::Error::other)
 }
 
 fn write_manifest(path: &Path, manifest: &SyncManifest) -> std::io::Result<()> {
