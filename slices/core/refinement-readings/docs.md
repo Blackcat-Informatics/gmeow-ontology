@@ -66,6 +66,12 @@ relation, store, input scope and reason for a selected refiner. `limitCount` rep
   blank-node record as a named record.
 - `limitThingUnshareable`: its addressing contract cannot correlate a supplied
   blank-node or triple-term referent across records.
+- `limitCueSuppressed`: a cue matched words the reading read, but a negating cue
+  within the declared negation scope suppressed that match from counting.
+- `limitCueUngrounded`: a cue matched, but evaluation of its declared grounding
+  rules did not establish the match as grounded.
+- `limitCueUnread`: supplied words fell outside a cue's declared speaker or
+  field selection and were not read by that cue.
 
 These describe the selected refiner’s limitations. RDF 1.2 can retain blank nodes
 and triple terms. None of these values bans those terms, erases an input or
@@ -85,6 +91,32 @@ reuse an existing loss identity and avoid duplicate losses that inflate a count.
 The intrinsic laws check zero-versus-member consistency, positive evidence and
 scope/cause coherence. They do not certify the exact arithmetic of counts above
 one or perform the consumer’s grouping computation.
+
+Cue limits retain the original words and any detected match, together with the
+selected cue, negating evidence and scope, or evaluated grounding rules and
+supplied facts as applicable. Unread words remain offered inputs through
+`scopeRecord`. A reading records its source through `observedFeature` and its
+versioned process through `vantage`; a limit aggregate retains its reporting
+agent through `wasAttributedTo`. Preserve source authorship separately. None of
+these reasons turns a refiner's interpretation into the source author's claim
+or turns an uncounted cue into a silent negative verdict.
+
+Retain a source record actually excluded from the selected reading as a
+`QueryLoss` with `lossConcerns` naming that original record and `lossCause`
+naming the cue reason. A `ReadingLimit` groups those losses through `ledgerLoss`
+under the same `limitReason`, input `readingScope`, relation and store. A
+suppressed or ungrounded match alone does not show that its entire source
+record was excluded: other contributions may remain usable. Keep such match
+decisions as evidence without inventing an excluded-record loss. When records
+are excluded, count distinct source records for the stated reason, not matches;
+several excluded matches within one record do not inflate `limitCount`.
+
+These values classify reported outcomes; they do not execute cue detection,
+negation or grounding. Missing rules, an evaluation that never ran and an
+execution failure do not establish an ungrounded outcome. The existing
+scope/cause and count-evidence laws remain unchanged and do not certify the
+consumer's cue decisions or exact record-count arithmetic (Principles 4, 9
+and 11).
 
 The ordinary [archive scene](examples/archive-readings.ttl) separates an earliest
 reading over two ordered records from a wider input that also contains an

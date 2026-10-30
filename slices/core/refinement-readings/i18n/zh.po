@@ -585,6 +585,54 @@ msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w
 msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
 msgstr "保留此限定范围报告：ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue match suppressed"
+msgstr "线索匹配被抑制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading reports that a cue matched words it read, but a negating cue within the declared negation scope suppressed that match from counting as cue evidence. The match and its source remain retained; suppression does not establish a negative verdict about the source subject."
+msgstr "所选解读报告某线索匹配了它已读取的词语，但声明的否定作用域内的否定线索抑制了该匹配，使其不计为线索证据。匹配及其来源仍被保留；抑制不确立关于来源主体的否定裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This reason records a scoped suppression decision, not absence of a match. Several suppressed matches in one record do not become several excluded source records, and a retained contribution elsewhere in that record is not silently erased."
+msgstr "此原因记录有明确作用域的抑制决定，而非不存在匹配。同一来源记录中的多个被抑制匹配不成为多条被排除的来源记录，该记录其他位置保留的贡献也不会被静默抹除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading detects an affirmation and its scoped negating cue, retains both, and reports the uncounted match. If the source record is excluded for this reason, ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . identifies that record's loss rather than a match count."
+msgstr "某解读检测到肯定表述及其作用域内的否定线索，保留二者，并报告未计入的匹配。若因此排除来源记录，则 ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . 标识该记录的损失，而非匹配数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue match ungrounded"
+msgstr "线索匹配未落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading reports that a cue matched words it read, but the cue's declared grounding rules did not establish the match as grounded. The detected match remains evidence of detection, not a counted cue contribution or a verdict about the person whose words were read."
+msgstr "所选解读报告某线索匹配了它已读取的词语，但该线索声明的落地规则未将匹配确立为已落地。检测到的匹配仍是检测证据，不是已计入的线索贡献，也不是对被读取话语所属之人的裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Non-grounding is distinct from negation suppression and speaker or field exclusion. It reports the selected rule evaluation's outcome without converting an uncounted cue into evidence that the interpreted claim is false."
+msgstr "未落地不同于否定抑制或按说话者、字段进行的排除。它报告所选规则求值的结果，不将未计入的线索转换为被解读声明为假的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#example"
+msgid "A detected phrase lacks the record facts required by its evaluated grounding rules. The reading retains the phrase and rule outcome; ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . can retain an actual excluded-record loss."
+msgstr "检测到的短语缺少经求值的落地规则所要求的记录事实。解读保留该短语和规则结果；ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . 可保留实际被排除记录的损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied words unread by cue"
+msgstr "所提供词语未被线索读取"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading was offered words that a cue it uses does not read because those words belong to another speaker or another property under the cue's declared selection. This reason records excluded reading input, not a failed match search or proof that the words contain no cue."
+msgstr "所选解读获得了一些词语，但按它所用线索声明的选择，这些词语属于另一说话者或另一属性，因此该线索不读取它们。此原因记录被排除的解读输入，不表示匹配搜索失败，也不证明这些词语不含线索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The words remain in the offered input scope even though the selected cue does not read them. Another cue or reading may legitimately read them; this reason neither removes access nor changes their authorship."
+msgstr "即使所选线索不读取这些词语，它们仍处于所提供的输入范围内。另一线索或解读可以正当地读取它们；此原因既不撤销访问，也不改变其作者归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue selected for a speaker's answer field does not read the quoted words of another speaker in a different field. If this excludes the source record from the selected reading, ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . preserves the reason."
+msgstr "针对某说话者回答字段选定的线索不读取另一字段中引用的另一说话者的话语。若这使来源记录被排除在所选解读之外，则 ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . 保留该原因。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reading source scope constraint"
 msgstr "解读来源范围约束"

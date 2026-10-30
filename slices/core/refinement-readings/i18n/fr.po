@@ -585,6 +585,54 @@ msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w
 msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
 msgstr "Conserver ce rapport de périmètre défini : ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
 
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue match suppressed"
+msgstr "correspondance d’indice supprimée du comptage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading reports that a cue matched words it read, but a negating cue within the declared negation scope suppressed that match from counting as cue evidence. The match and its source remain retained; suppression does not establish a negative verdict about the source subject."
+msgstr "La lecture sélectionnée rapporte qu’un indice a correspondu à des mots qu’elle a lus, mais qu’un indice négateur dans la portée de négation déclarée a exclu cette correspondance du comptage comme preuve indicielle. La correspondance et sa source restent conservées ; la suppression n’établit pas de verdict négatif sur le sujet de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This reason records a scoped suppression decision, not absence of a match. Several suppressed matches in one record do not become several excluded source records, and a retained contribution elsewhere in that record is not silently erased."
+msgstr "Cette raison consigne une décision de suppression circonscrite, non l’absence de correspondance. Plusieurs correspondances supprimées dans un même document source ne deviennent pas plusieurs documents sources exclus, et une contribution conservée ailleurs dans ce document n’est pas effacée silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueSuppressed|http://www.w3.org/2004/02/skos/core#example"
+msgid "A reading detects an affirmation and its scoped negating cue, retains both, and reports the uncounted match. If the source record is excluded for this reason, ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . identifies that record's loss rather than a match count."
+msgstr "Une lecture détecte une affirmation et son indice négateur dans la portée prévue, conserve les deux et signale la correspondance non comptée. Si le document source est exclu pour cette raison, ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . identifie la perte de ce document plutôt qu’un nombre de correspondances."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue match ungrounded"
+msgstr "correspondance d’indice non fondée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading reports that a cue matched words it read, but the cue's declared grounding rules did not establish the match as grounded. The detected match remains evidence of detection, not a counted cue contribution or a verdict about the person whose words were read."
+msgstr "La lecture sélectionnée rapporte qu’un indice a correspondu à des mots qu’elle a lus, mais que les règles de fondement déclarées pour cet indice n’ont pas établi le fondement de la correspondance. La correspondance détectée reste une preuve de détection, non une contribution indicielle comptée ni un verdict sur la personne dont les mots ont été lus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Non-grounding is distinct from negation suppression and speaker or field exclusion. It reports the selected rule evaluation's outcome without converting an uncounted cue into evidence that the interpreted claim is false."
+msgstr "L’absence de fondement se distingue de la suppression par négation et de l’exclusion par locuteur ou champ. Elle rapporte le résultat de l’évaluation des règles sélectionnées sans convertir un indice non compté en preuve de fausseté de l’énoncé interprété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUngrounded|http://www.w3.org/2004/02/skos/core#example"
+msgid "A detected phrase lacks the record facts required by its evaluated grounding rules. The reading retains the phrase and rule outcome; ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . can retain an actual excluded-record loss."
+msgstr "Une expression détectée ne dispose pas des faits sur le document requis par ses règles de fondement évaluées. La lecture conserve l’expression et le résultat des règles ; ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . peut conserver une perte effective de document exclu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied words unread by cue"
+msgstr "mots fournis non lus par l’indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reading was offered words that a cue it uses does not read because those words belong to another speaker or another property under the cue's declared selection. This reason records excluded reading input, not a failed match search or proof that the words contain no cue."
+msgstr "La lecture sélectionnée a reçu des mots qu’un indice qu’elle utilise ne lit pas, parce qu’ils relèvent d’un autre locuteur ou d’une autre propriété selon la sélection déclarée de l’indice. Cette raison consigne une entrée de lecture exclue, non une recherche de correspondance infructueuse ni une preuve que les mots ne contiennent aucun indice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The words remain in the offered input scope even though the selected cue does not read them. Another cue or reading may legitimately read them; this reason neither removes access nor changes their authorship."
+msgstr "Les mots restent dans la portée d’entrée proposée même si l’indice sélectionné ne les lit pas. Un autre indice ou une autre lecture peut légitimement les lire ; cette raison ne retire aucun accès et ne modifie pas leur attribution d’auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCueUnread|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue selected for a speaker's answer field does not read the quoted words of another speaker in a different field. If this excludes the source record from the selected reading, ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . preserves the reason."
+msgstr "Un indice sélectionné pour le champ de réponse d’un locuteur ne lit pas les mots cités d’un autre locuteur dans un autre champ. Si cela exclut le document source de la lecture sélectionnée, ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . conserve la raison."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reading source scope constraint"
 msgstr "contrainte de périmètre source de lecture"
