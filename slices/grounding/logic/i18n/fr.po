@@ -13955,8 +13955,8 @@ msgid "abductive repair schema"
 msgstr "schéma de réparation abductif"
 
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A constructive-advice carrier: it marks a modeling discipline as abductively repairable and supplies the machinery for deriving the minimal 'what to ADD' addition that completes an under-specified subject. It logic:formalizes the governed term, names its repair mechanism with logic:repairStrategy (how the candidate addition is read off the declared structure), optionally back-links the discipline it repairs with logic:repairsDiscipline, and carries a logic:completenessFormula — the discipline-satisfied condition, authored as a first-class logic:Formula so the abductive suggestion is warranted by a native conjecture-engine corroboration rather than by hand-authored prose. Unlike a logic:Constraint it neither gates nor projects to a shape surface; it is consumed by the abductive advice producer, which instantiates the completeness formula at a gap subject and tests a candidate addition in an isolated scenario world."
-msgstr "Un porteur de conseil constructif : il marque une discipline de modélisation comme abductivement réparable et fournit la machinerie permettant de dériver l'ajout minimal du « quoi AJOUTER » qui complète un sujet sous-spécifié. Il logic:formalizes le terme régi, nomme son mécanisme de réparation avec logic:repairStrategy (comment l'ajout candidat est lu à partir de la structure déclarée), rétro-relie éventuellement la discipline qu'il répare avec logic:repairsDiscipline, et porte une logic:completenessFormula — la condition de satisfaction de la discipline, rédigée comme une logic:Formula de première classe afin que la suggestion abductive soit garantie par une corroboration du moteur de conjecture natif plutôt que par une prose rédigée à la main. Contrairement à une logic:Constraint, il ne verrouille ni ne projette vers une surface de forme ; il est consommé par le producteur de conseil abductif, qui instancie la formule de complétude sur un sujet lacunaire et teste un ajout candidat dans un monde-scénario isolé."
+msgid "A constructive-advice carrier marking a modeling discipline as repairable through candidate additions. It logic:formalizes the governed term, selects a supported logic:repairStrategy, may identify the repaired discipline through logic:repairsDiscipline, and carries a schema-owned logic:completenessFormula. The advice producer reads that formula to identify gaps and proposed additions without mutating the input graph or running a reasoner per candidate. For the supported conjunctive cases it warrants each missing relation separately by fresh-witness construction; for the supported sortal case it filters candidate types using the supplied type and disjointness information. A suggestion remains advisory and does not assert completion of every obligation."
+msgstr "Un porteur de conseils constructifs qui marque une discipline de modélisation comme réparable par des ajouts candidats. Il désigne le terme régi par logic:formalizes, sélectionne une logic:repairStrategy prise en charge, peut identifier la discipline réparée par logic:repairsDiscipline et porte une logic:completenessFormula propre au schéma. Le producteur de conseils lit cette formule pour identifier les lacunes et les ajouts proposés sans modifier le graphe d’entrée ni exécuter un raisonneur par candidat. Dans les cas conjonctifs pris en charge, il justifie séparément chaque relation manquante par construction d’un témoin frais ; dans le cas sortal pris en charge, il filtre les types candidats à partir des informations de type et de disjonction fournies. Une suggestion reste un conseil et n’affirme pas l’accomplissement de toutes les obligations."
 
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "abductive repair strategy"
@@ -13987,8 +13987,8 @@ msgid "sortal specialization"
 msgstr "spécialisation sortale"
 
 msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."
-msgstr "La stratégie de réparation d’un individu gmeow:Entity nu : les ajouts candidats sont les spécialisations en sortals supérieurs gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject et gmeow:SocialObject, soit « spécialiser en sortal X » ; le moteur ne conserve que celles compatibles avec les autres assertions du sujet."
+msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — filtered using the subject's supplied types and the candidates' class-disjointness information. Advice retains non-refuted candidates only when at least one offered candidate is refuted; this screen does not certify consistency with arbitrary other assertions."
+msgstr "La stratégie de réparation d’une instance nue de gmeow:Entity : les ajouts candidats sont les spécialisations sortales supérieures (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — « spécialiser vers le sortal X » — filtrées selon les types fournis du sujet et les informations d’incompatibilité de classes des candidats. Le conseil conserve les candidats non réfutés seulement si au moins un candidat proposé est réfuté ; ce filtrage ne certifie pas la cohérence avec toute autre assertion."
 
 msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "frame declaration"
@@ -14019,16 +14019,16 @@ msgid "completeness formula"
 msgstr "formule de complétude"
 
 msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The discipline-SATISFIED condition a logic:AbductiveSchema carries: a first-class logic:Formula over one free subject variable (\"this\") that holds exactly when the governed subject is no longer under-specified for the discipline. The abductive producer instantiates it at a gap subject and asks the native conjecture engine whether a candidate addition makes it hold in a consistent scenario world; a corroboration is the warrant for the emitted 'add X' recommendation. Reached only through this property (never asserted as a free-standing axiom), so authoring the completeness condition never changes what the reasoner entails about the live model."
-msgstr "La condition de discipline-SATISFAITE que porte une logic:AbductiveSchema : une logic:Formula de première classe sur une seule variable de sujet libre (\"this\") qui est vraie exactement lorsque le sujet régi n'est plus sous-spécifié pour la discipline. Le producteur abductif l'instancie sur un sujet lacunaire et demande au moteur de conjecture natif si un ajout candidat la rend vraie dans un monde-scénario cohérent ; une corroboration est la garantie de la recommandation « ajouter X » émise. Atteinte uniquement via cette propriété (jamais affirmée comme un axiome autonome), de sorte que rédiger la condition de complétude ne change jamais ce que le raisonneur entraîne sur le modèle vivant."
+msgid "Relates a logic:AbductiveSchema to its discipline-satisfied target, authored as a logic:Formula over the subject variable this. The formula supplies the guard and the conjunctive missing-relation or disjunctive sortal structure consumed by the advice producer. Current warranting constructs a fresh witness for each missing relation in the supported conjunctive cases or filters supported sortal candidates through supplied type and disjointness information; it does not run a conjecture engine for each addition. A per-conjunct suggestion need not satisfy the whole target when other conjuncts remain missing. Reaching this formula through the schema does not assert it as a free-standing axiom or change the live model."
+msgstr "Relie un logic:AbductiveSchema à sa cible de satisfaction de la discipline, rédigée comme une logic:Formula sur la variable de sujet this. La formule fournit la garde et la structure conjonctive de relations manquantes ou disjonctive de sortaux consommée par le producteur de conseils. La justification actuelle construit un témoin frais pour chaque relation manquante dans les cas conjonctifs pris en charge ou filtre les candidats sortaux pris en charge à partir des informations de type et de disjonction fournies ; elle n’exécute pas de moteur de conjecture pour chaque ajout. Une suggestion par terme de conjonction ne satisfait pas nécessairement la cible entière lorsque d’autres termes de conjonction manquent encore. L’accès à cette formule par le schéma ne l’affirme pas comme axiome autonome et ne modifie pas le modèle actif."
 
 msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relator-mediation abductive schema"
 msgstr "schéma abductif de médiation de relateur"
 
 msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."
-msgstr "Le schéma de réparation constructive pour un relateur gmeow:Commitment sous-médiatisé : lorsqu'un Commitment laisse au moins un de ses relata logic:mediates déclarés (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) non rempli, chaque relatum manquant est son propre ajout candidat, garanti indépendamment au regard de sa propre condition de complétude fondée — de sorte qu'un Commitment auquel manquent deux voire les trois relata produit tout de même une suggestion corroborée par relatum manquant. La formule de complétude est vraie, pour le Commitment dans son ensemble, une fois les trois relata remplis."
+msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator. Each absent relation among gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal yields its own candidate addition with a fresh witness, warranted separately by construction for that missing conjunct in the supported strategy. This is not a per-candidate reasoner run or a claim that the other relata are present. The schema's full completeness target requires all three relations, so a commitment missing several relata can receive several independent suggestions without any single suggestion completing the entire target."
+msgstr "Le schéma de réparation constructive d’un relateur gmeow:Commitment insuffisamment médié. Chaque relation absente parmi gmeow:committedAgent, gmeow:commitmentBeneficiary et gmeow:intentionGoal produit son propre ajout candidat avec un témoin frais, justifié séparément par construction pour ce terme de conjonction manquant dans la stratégie prise en charge. Il ne s’agit ni d’une exécution du raisonneur par candidat ni d’une affirmation de présence des autres relata. La cible de complétude entière du schéma exige les trois relations ; un engagement auquel plusieurs relata manquent peut donc recevoir plusieurs suggestions indépendantes sans qu’aucune ne complète seule la cible entière."
 
 msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reference-frame abductive schema"
@@ -14051,8 +14051,8 @@ msgid "bare-entity sortal abductive schema"
 msgstr "schéma abductif de sortal d'entité nue"
 
 msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The engine keeps only the specializations consistent with the subject's other assertions."
-msgstr "Le schéma de réparation constructive d’un individu uniquement typé gmeow:Entity : les ajouts candidats sont les spécialisations en sortals supérieurs gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject et gmeow:SocialObject, soit « spécialiser en sortal X ». Sa cible de justification, logic:besSortalCandidateForall, est sa PROPRE formule de complétude ; seule la garde Entity nue est partagée avec gmeow:BareEntitySortalAdviceConstraint. Une réparation doit NOMMER ses candidats pour être exploitable, tandis que la garde consultative doit couvrir toute spécialisation, y compris celles qu’aucune énumération ne prévoit : elles sont donc rédigées séparément, sans que l’une remplace l’autre. Le moteur ne conserve que les spécialisations compatibles avec les autres assertions du sujet."
+msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The producer screens specializations using the subject's supplied types and class-disjointness information, and emits non-refuted alternatives only when at least one offered candidate is refuted. This discriminating-choice screen is not a general consistency proof."
+msgstr "Le schéma de réparation constructive d’un individu typé comme simple gmeow:Entity : les ajouts candidats sont les spécialisations sortales supérieures (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — « spécialiser vers le sortal X ». Sa cible de justification (logic:besSortalCandidateForall) est sa PROPRE formule de complétude, qui ne partage que la garde d’entité nue avec gmeow:BareEntitySortalAdviceConstraint : une réparation doit NOMMER ses candidats pour être actionnable, tandis que la garde de conseil doit couvrir toute spécialisation, même absente de l’énumération ; elles sont donc rédigées séparément. Le producteur filtre les spécialisations à partir des types fournis du sujet et des informations d’incompatibilité de classes, et n’émet les possibilités non réfutées que si au moins un candidat proposé est réfuté. Ce filtrage des choix discriminants n’est pas une preuve générale de cohérence."
 
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "WEMI-chain abductive schema"
@@ -23773,3 +23773,115 @@ msgstr "La borne s’applique de la lentille vers le plan. Le raisonnement fonct
 msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."
 msgstr "En Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . conserve deux lentilles pour un plan ; interpréter une révision exige toujours d’identifier la lentille sélectionnée et ses propres preuves de lois."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema supplies advisory candidate structure. Its completeness formula is a target read by the advice producer, not a free-standing axiom, and producing advice does not mutate the supplied graph. Candidate subjects must carry gmeow:graphBoxRole gmeow:boxABox."
+msgstr "Le schéma fournit la structure des candidats à titre de conseil. Sa formule de complétude est une cible lue par le producteur de conseils, non un axiome autonome ; produire un conseil ne modifie pas le graphe fourni. Les sujets candidats doivent porter gmeow:graphBoxRole gmeow:boxABox."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "A schema for an incomplete commitment names logic:StrategyRelatumCompletion and a formula describing its required relata; the resulting missing-party suggestion remains advice until deliberately applied."
+msgstr "Un schéma pour un engagement incomplet nomme logic:StrategyRelatumCompletion et une formule décrivant ses relata requis ; la suggestion de partie manquante reste un conseil jusqu’à son application délibérée."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A strategy names candidate derivation, not a confidence level or permission to repair. The existing strategies distinguish missing relation targets from candidate sortal types."
+msgstr "Une stratégie nomme la dérivation des candidats, non un degré de confiance ni une permission de réparer. Les stratégies existantes distinguent les cibles de relations manquantes des types sortaux candidats."
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two schemas may both choose logic:StrategyFrameDeclaration while their formulas require different predicates: gmeow:hasReferenceFrame for an expression and logic:referenceFrame for a unit-bearing value."
+msgstr "Deux schémas peuvent choisir logic:StrategyFrameDeclaration tout en exigeant des prédicats différents dans leurs formules : gmeow:hasReferenceFrame pour une expression et logic:referenceFrame pour une valeur portant une unité."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each absent relation yields its own fresh-witness candidate. A warrant for one added relatum is narrower than satisfaction of the full conjunction when other relata remain absent."
+msgstr "Chaque relation absente produit son propre candidat avec un témoin frais. La justification d’un relatum ajouté est plus étroite que la satisfaction de la conjonction entière lorsque d’autres relata manquent encore."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A commitment lacking both gmeow:commitmentBeneficiary and gmeow:intentionGoal can receive two separate suggestions; adding the beneficiary alone leaves the goal requirement unsatisfied."
+msgstr "Un engagement dépourvu de gmeow:commitmentBeneficiary et de gmeow:intentionGoal peut recevoir deux suggestions distinctes ; ajouter seulement le bénéficiaire laisse l’exigence de but insatisfaite."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy derives the missing link named by the schema formula. Its fresh target witness identifies a proposed addition, not an independently established bibliographic resource."
+msgstr "La stratégie dérive le lien manquant nommé par la formule du schéma. Son témoin cible frais identifie un ajout proposé, non une ressource bibliographique établie indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an isolated gmeow:Item, a proposed gmeow:exemplifies relation supplies the next link; it does not also establish the manifestation's expression or work."
+msgstr "Pour un gmeow:Item isolé, une relation gmeow:exemplifies proposée fournit le lien suivant ; elle n’établit pas aussi l’expression ou l’œuvre de la manifestation."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate filtering reads the supplied type and disjointness information. It neither selects a unique surviving sortal nor invents entailed user types when the caller supplies asserted data only."
+msgstr "Le filtrage des candidats lit les informations de type et de disjonction fournies. Il ne sélectionne pas un sortal survivant unique et n’invente pas de types utilisateur inférés lorsque l’appelant ne fournit que des assertions."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#example"
+msgid "If supplied types refute gmeow:PhysicalObject among the offered sortals, advice may retain compatible alternatives; if no offered sortal is refuted, the undifferentiated menu is withheld."
+msgstr "Si les types fournis réfutent gmeow:PhysicalObject parmi les sortaux proposés, le conseil peut conserver les autres possibilités compatibles ; si aucun sortal proposé n’est réfuté, aucun menu indifférencié n’est émis."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy is shared by distinct frame disciplines; the completeness formula determines which frame predicate is missing. A frame proposal is not evidence that the value has already been interpreted in that frame."
+msgstr "La stratégie est partagée par des disciplines de cadre distinctes ; la formule de complétude détermine quel prédicat de cadre manque. Une proposition de cadre ne prouve pas que la valeur a déjà été interprétée dans ce cadre."
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "An expression may need gmeow:hasReferenceFrame, while a value with logic:unit may need logic:referenceFrame; using one strategy does not make these relations interchangeable."
+msgstr "Une expression peut nécessiter gmeow:hasReferenceFrame, tandis qu’une valeur portant logic:unit peut nécessiter logic:referenceFrame ; employer la même stratégie ne rend pas ces relations interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link explains the repair's disciplinary provenance. It neither imports the discipline's constraints nor makes a candidate addition satisfy all obligations of that discipline."
+msgstr "Ce lien explique la provenance disciplinaire de la réparation. Il n’importe pas les contraintes de la discipline et ne fait pas satisfaire toutes ses obligations à un ajout candidat."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:MeasurementFrameAbductiveSchema logic:repairsDiscipline logic:MeasurementFrameMissing . records the missing-frame discipline; the schema still supplies its own completeness target."
+msgstr "En Turtle, logic:MeasurementFrameAbductiveSchema logic:repairsDiscipline logic:MeasurementFrameMissing . consigne la discipline du cadre manquant ; le schéma fournit toujours sa propre cible de complétude."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy link selects how candidates are read from a schema. It does not replace the guard, the completeness consequent, or the individual warrant attached to a suggestion."
+msgstr "Le lien de stratégie sélectionne la manière de lire les candidats d’un schéma. Il ne remplace ni la garde, ni le conséquent de complétude, ni la justification individuelle attachée à une suggestion."
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:WemiChainAbductiveSchema logic:repairStrategy logic:StrategyChainCompletion . chooses chain completion; the schema's formula identifies gmeow:exemplifies as the required relation."
+msgstr "En Turtle, logic:WemiChainAbductiveSchema logic:repairStrategy logic:StrategyChainCompletion . choisit la complétion de chaîne ; la formule du schéma identifie gmeow:exemplifies comme relation requise."
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula is an advisory target reached through its schema. Current candidate warranting uses fresh-witness construction for missing relations or disjointness filtering for sortals; this link does not itself request a separate reasoning run."
+msgstr "La formule est une cible de conseil accessible par son schéma. La justification actuelle des candidats emploie des témoins frais pour les relations manquantes ou le filtrage par incompatibilité de classes pour les sortaux ; ce lien ne demande pas lui-même une exécution séparée du raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:ReferenceFrameAbductiveSchema logic:completenessFormula logic:referenceFrameComplete . identifies the expression-frame target without asserting that every expression already has a frame."
+msgstr "En Turtle, logic:ReferenceFrameAbductiveSchema logic:completenessFormula logic:referenceFrameComplete . identifie la cible de cadre des expressions sans affirmer que toute expression possède déjà un cadre."
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema's whole-subject target conjoins all three commitment relata. Current advice warrants each missing relation separately, so a suggested beneficiary does not prove that a committed agent or intention goal is present."
+msgstr "La cible du schéma pour le sujet entier conjoint les trois relata de l’engagement. Le conseil actuel justifie chaque relation manquante séparément ; un bénéficiaire suggéré ne prouve donc pas la présence d’un agent engagé ou d’un but d’intention."
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a commitment with gmeow:committedAgent but neither gmeow:commitmentBeneficiary nor gmeow:intentionGoal, the schema can propose one addition for each absent predicate while leaving the original graph intact."
+msgstr "Pour un engagement portant gmeow:committedAgent mais ni gmeow:commitmentBeneficiary ni gmeow:intentionGoal, le schéma peut proposer un ajout par prédicat absent tout en laissant intact le graphe d’origine."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard is expression typing and the required relation is gmeow:hasReferenceFrame. Advice identifies an absent declaration; it does not identify the correct language or notation from the expression's bytes."
+msgstr "La garde est le typage comme expression et la relation requise est gmeow:hasReferenceFrame. Le conseil identifie une déclaration absente ; il ne détermine pas la langue ou la notation correcte à partir des octets de l’expression."
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "An individual typed gmeow:Expression with no supplied gmeow:hasReferenceFrame relation can receive a frame-declaration proposal; choosing a specific notation still requires evidence about that expression."
+msgstr "Un individu typé gmeow:Expression sans relation gmeow:hasReferenceFrame fournie peut recevoir une proposition de déclaration de cadre ; choisir une notation précise exige toujours des preuves concernant cette expression."
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard is presence of an IRI-valued property, not measurement-class membership: logic:unit activates the missing-frame check. The proposed logic:referenceFrame relation supplies a declaration target without establishing calibration or a measured outcome."
+msgstr "La garde est la présence d’une propriété à valeur IRI, non l’appartenance à une classe de mesure : logic:unit active la recherche du cadre manquant. La relation logic:referenceFrame proposée fournit une cible de déclaration sans établir un étalonnage ni un résultat mesuré."
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:reading logic:unit ex:metre . supplies the guard even without a measurement type; absence of logic:referenceFrame can then yield a separate frame proposal."
+msgstr "En Turtle, ex:reading logic:unit ex:metre . fournit la garde même sans type de mesure ; l’absence de logic:referenceFrame peut alors produire une proposition de cadre distincte."
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema's explicit candidate formula supports actionable alternatives, while the separate advice guard recognizes specializations beyond that enumeration. An unfiltered menu is suppressed and no surviving alternative is automatically asserted."
+msgstr "La formule explicite des candidats du schéma permet des choix actionnables, tandis que la garde de conseil distincte reconnaît des spécialisations au-delà de cette énumération. Un menu non filtré est supprimé et aucune possibilité restante n’est affirmée automatiquement."
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "A bare gmeow:Entity whose supplied types exclude one offered top sortal can receive compatible alternatives; a subject typed only gmeow:Entity receives no undifferentiated four-way menu."
+msgstr "Un gmeow:Entity nu dont les types fournis excluent un sortal supérieur proposé peut recevoir des possibilités compatibles ; un sujet typé seulement gmeow:Entity ne reçoit pas de menu indifférencié à quatre choix."
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The authored target checks the item's gmeow:exemplifies relation. A fresh witness fills the proposed relation for advice purposes; it does not establish the target's bibliographic identity or the rest of the realization chain."
+msgstr "La cible rédigée vérifie la relation gmeow:exemplifies de l’item. Un témoin frais remplit la relation proposée pour le conseil ; il n’établit ni l’identité bibliographique de la cible ni le reste de la chaîne de réalisation."
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "An individual typed gmeow:Item without gmeow:exemplifies may receive a manifestation-link suggestion; the user still identifies the actual manifestation and any expression or work relations separately."
+msgstr "Un individu typé gmeow:Item sans gmeow:exemplifies peut recevoir une suggestion de lien vers une manifestation ; l’utilisateur identifie encore séparément la manifestation réelle et les éventuelles relations d’expression ou d’œuvre."
