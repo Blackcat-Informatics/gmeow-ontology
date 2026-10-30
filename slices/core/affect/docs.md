@@ -131,8 +131,9 @@ after review (the overclaim gate reds an unearned equivalence). Authored in
   record-owned properties do not substitute activity sorts or activity-domain
   properties. A real activity
   may generate a record through the existing `wasGeneratedBy` foundation.
-- **Web Annotation** — evidence spans (`classifiedTarget`→`oa:hasTarget`,
-  `AffectiveExpression`→`oa:Annotation`, `relatedMatch`).
+- **Web Annotation** — `AffectiveExpression`→`oa:Annotation` (`relatedMatch`).
+  The shared `classifiedTarget`→`oa:hasTarget` mapping belongs to
+  `../ai/mappings/equivalences.ttl`.
 - **MFOEM** (Emotion Ontology, BFO lineage, linkage-only) — `Emotion` and the
   Plutchik emotion types `closeMatch` their MFOEM terms.
 - **Wikidata** — curl-verified authority links for `Emotion`, anger, disgust.

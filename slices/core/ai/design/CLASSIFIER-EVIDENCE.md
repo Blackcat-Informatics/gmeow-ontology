@@ -60,7 +60,12 @@ semantics where both are present (Principles 2, 9 and 19).
 
 The grounding reuses the observation and provenance sorts and canonical `logic:`
 restrictions, closure entries and Formula laws. `hypothesisTemplate` specializes
-the domain-free `lang:literalValue` complete-literal carrier. The score is not a
+the domain-free `lang:literalValue` complete-literal carrier. Its narrower
+`xsd:string` contract preserves the exact template source expression, including
+placeholders. As with source programs in the literal policy, this is a supplied
+source string rather than a localized utterance or a machine identifier. The
+affect capture, emission and recovery paths carry that string; no language or
+direction is inferred. The score is not a
 `math:Quantity`, so it does not specialize `math:quantityValue`; no fake numeric
 grounding changes its subject sort or invents probability/confidence conversion.
 
