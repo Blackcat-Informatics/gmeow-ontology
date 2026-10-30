@@ -87,9 +87,19 @@ pub struct DocsFixtureSelector {
 
 /// Read the producer-selected documentation actions without inspecting live sources.
 pub fn selected_fixtures(root: &Path) -> Result<DocsFixtureSelector, ActionCacheError> {
-    #[derive(Deserialize)]
     struct Envelope {
         docs: DocsFixtureSelector,
+    }
+    impl purrdf_lex::json::record::FromJson for Envelope {
+        fn from_json(
+            value: &purrdf_lex::json::Value,
+        ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+            let mut fields = purrdf_lex::json::record::Record::new(value, "struct Envelope")?;
+            // Other selector extensions belong to their respective consumers.
+            Ok(Self {
+                docs: fields.required("docs")?,
+            })
+        }
     }
     let selected = load_manifest::<Envelope>(root)?.docs;
     if selected.schema_version != 1 {

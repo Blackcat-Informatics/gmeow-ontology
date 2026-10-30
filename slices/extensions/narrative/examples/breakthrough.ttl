@@ -1,0 +1,86 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/narrative-breakthrough/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:teller a gmeow:Agent ; rdfs:label "Archive storyteller"@en .
+ex:subject a gmeow:Agent ; rdfs:label "Observatory researcher"@en .
+ex:reviewer a gmeow:Agent ; rdfs:label "Reading-rule reviewer"@en .
+ex:account a gmeow:CreativeWork ; gmeow:title "The jammed observatory shutter"@en .
+ex:order a gmeow:Axis ; rdfs:label "Order of the archive telling"@en .
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ; gmeow:hasAxis ex:order ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:telling a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ; gmeow:discourseTimeOf ex:account ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ; gmeow:hasAxis ex:order ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:before a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "0"^^xsd:integer .
+ex:after a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "1"^^xsd:integer .
+
+ex:question a gmeow:Question ;
+    gmeow:questionText "How can the shutter be opened safely?"@en ;
+    gmeow:inquiryStatus gmeow:inquiryStatusSuspended .
+ex:subject gmeow:asks ex:question .
+
+# Both records explicitly concern the same question. This is the exact link
+# used in this telling, not a claim that the later record caused a resolution.
+ex:firstRecord a gmeow:ContentSegment ;
+    dcterms:subject ex:question ;
+    dcterms:description "I cannot continue with the current approach."@en ;
+    gmeow:wasAttributedTo ex:subject .
+ex:nextRecord a gmeow:ContentSegment ;
+    dcterms:subject ex:question ;
+    dcterms:description "I will measure the hinge clearance before trying again."@en ;
+    gmeow:wasAttributedTo ex:subject .
+ex:readingRule a gmeow:ObservationMethod ;
+    rdfs:label "Reviewed wording rule for this archive"@en ;
+    rdfs:isDefinedBy ex:ruleDescription .
+ex:ruleDescription a gmeow:InformationObject ;
+    dcterms:description "The reviewer approved reading the recorded inability to continue unchanged as an impasse cue."@en ;
+    gmeow:wasAttributedTo ex:reviewer .
+
+ex:wordsSample a gmeow:ArcSample ;
+    gmeow:vantage ex:teller ; gmeow:sampleSubject ex:subject ;
+    gmeow:observedFeature ex:subject ; gmeow:samplePosition ex:before ;
+    gmeow:sampleState gmeow:emotionSelfDoubt ;
+    gmeow:sampleProgress gmeow:progressStateImpasse ;
+    gmeow:impasseSignal gmeow:impasseSignalOwnWords ;
+    gmeow:observationMethod ex:readingRule ;
+    gmeow:wasDerivedFrom ex:firstRecord, ex:ruleDescription .
+ex:inquirySample a gmeow:ArcSample ;
+    gmeow:vantage ex:teller ; gmeow:sampleSubject ex:subject ;
+    gmeow:observedFeature ex:subject ; gmeow:samplePosition ex:before ;
+    gmeow:sampleState gmeow:emotionSelfDoubt ;
+    gmeow:sampleProgress gmeow:progressStateImpasse ;
+    gmeow:impasseSignal gmeow:impasseSignalInquirySuspended ;
+    gmeow:wasDerivedFrom ex:question .
+ex:movingSample a gmeow:ArcSample ;
+    gmeow:vantage ex:teller ; gmeow:sampleSubject ex:subject ;
+    gmeow:observedFeature ex:subject ; gmeow:samplePosition ex:after ;
+    gmeow:sampleState gmeow:emotionSelfCorrection ;
+    gmeow:sampleProgress gmeow:progressStateMoving ;
+    gmeow:wasDerivedFrom ex:nextRecord .
+ex:arc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeBreakthrough ; gmeow:accordingTo ex:teller ;
+    gmeow:arcSample ex:wordsSample, ex:inquirySample, ex:movingSample ;
+    gmeow:arcEvidence ex:firstRecord, ex:nextRecord ;
+    gmeow:arcThreadKind gmeow:threadKindQuestion ; gmeow:arcThread ex:question .
+
+# A separate holistic telling explicitly reports no shared thread. Omitting
+# arcThreadKind altogether would instead leave thread classification unknown.
+ex:unjoinedArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeBreakthrough ; gmeow:accordingTo ex:teller ;
+    gmeow:arcThreadKind gmeow:threadKindNone .

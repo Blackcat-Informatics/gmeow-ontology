@@ -116,15 +116,16 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
         Ok(imported) => imported,
         Err(code) => return code,
     };
-    let import_work = serde_json::json!({
-        "action_key": imported.receipt.action_key,
-        "source_digest": imported.receipt.source_digest,
-        "source_bytes": imported.receipt.source_bytes,
-        "pack_digest": imported.receipt.pack_digest,
-        "pack_bytes": imported.receipt.pack_bytes,
-        "dataset_quads": imported.receipt.dataset_quads,
-        "named_graphs": imported.receipt.named_graphs,
-    });
+    let import_work = purrdf_lex::json::Value::from(
+        purrdf_lex::json::Object::new()
+            .with("action_key", imported.receipt.action_key.as_str())
+            .with("source_digest", imported.receipt.source_digest.as_str())
+            .with("source_bytes", imported.receipt.source_bytes)
+            .with("pack_digest", imported.receipt.pack_digest.as_str())
+            .with("pack_bytes", imported.receipt.pack_bytes)
+            .with("dataset_quads", imported.receipt.dataset_quads)
+            .with("named_graphs", imported.receipt.named_graphs),
+    );
     let import_built = imported.built;
     let import_transfer_bytes = imported.transferred_bytes;
     let dataset = imported.dataset;
@@ -155,28 +156,68 @@ pub fn reason(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     // reporting it as "consistent" would silently ignore the undecided axioms.
     let ok = result.is_decided_consistent();
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "reason",
-            "mode": "native",
-            "ok": ok,
-            "deterministic_work": {
-                "gts_imports": 1,
-                "gts_import": import_work,
-                "closure_constructions": usize::from(fresh),
-                "edb_quads": edb_quads,
-                "inferred_axioms": result.inferred().len(),
-                "budget_consumed": result.provenance.consumed_budget.consumed,
-                "budget_allowance": result.provenance.consumed_budget.allowance,
-                "budget_limit": result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
-            },
-            "observations": {
-                "gts_import_built": import_built,
-                "gts_import_transfer_bytes": import_transfer_bytes,
-                "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
-            },
-            "timings": [{ "phase": phase, "elapsed_ms": elapsed, "metadata": null }],
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "reason")
+                .with("mode", "native")
+                .with("ok", ok)
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_imports", 1)
+                            .with("gts_import", import_work.clone())
+                            .with("closure_constructions", usize::from(fresh))
+                            .with("edb_quads", edb_quads)
+                            .with("inferred_axioms", result.inferred().len())
+                            .with(
+                                "budget_consumed",
+                                result.provenance.consumed_budget.consumed,
+                            )
+                            .with(
+                                "budget_allowance",
+                                result.provenance.consumed_budget.allowance,
+                            )
+                            .with(
+                                "budget_limit",
+                                result
+                                    .provenance
+                                    .consumed_budget
+                                    .limit
+                                    .map(|limit| limit.wire()),
+                            ),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_import_built", import_built)
+                            .with("gts_import_transfer_bytes", import_transfer_bytes)
+                            .with(
+                                "timings",
+                                purrdf_lex::json::Value::Array(vec![
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", phase)
+                                            .with("elapsed_ms", elapsed)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                ]),
+                            ),
+                    ),
+                )
+                .with(
+                    "timings",
+                    purrdf_lex::json::Value::Array(vec![purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("phase", phase)
+                            .with("elapsed_ms", elapsed)
+                            .with("metadata", purrdf_lex::json::Value::Null),
+                    )]),
+                ),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
@@ -263,39 +304,86 @@ pub fn verify(mode: &str, fresh: bool, timings_json: Option<&Path>) -> i32 {
     let elapsed = elapsed_ms(started);
     emit_report(&report);
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "verify",
-            "mode": "native",
-            "ok": report.ok(),
-            "deterministic_work": {
-                "gts_imports": 1,
-                "gts_import": {
-                    "action_key": imported.receipt.action_key,
-                    "source_digest": imported.receipt.source_digest,
-                    "source_bytes": imported.receipt.source_bytes,
-                    "pack_digest": imported.receipt.pack_digest,
-                    "pack_bytes": imported.receipt.pack_bytes,
-                    "dataset_quads": imported.receipt.dataset_quads,
-                    "named_graphs": imported.receipt.named_graphs,
-                },
-                "closure_constructions": usize::from(fresh),
-                "edb_quads": edb.quad_count(),
-                "verify_queries": queries.len(),
-                "inferred_axioms": result.inferred().len(),
-                "budget_consumed": result.provenance.consumed_budget.consumed,
-                "budget_allowance": result.provenance.consumed_budget.allowance,
-                "budget_limit": result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
-                "verify_errors": report.error_count(),
-                "verify_warnings": report.warning_count(),
-            },
-            "observations": {
-                "gts_import_built": imported.built,
-                "gts_import_transfer_bytes": imported.transferred_bytes,
-                "timings": [{ "phase": "verify-native", "elapsed_ms": elapsed, "metadata": null }],
-            },
-            "timings": [{ "phase": "verify-native", "elapsed_ms": elapsed, "metadata": null }],
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "verify")
+                .with("mode", "native")
+                .with("ok", report.ok())
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_imports", 1)
+                            .with(
+                                "gts_import",
+                                purrdf_lex::json::Value::from(
+                                    purrdf_lex::json::Object::new()
+                                        .with("action_key", imported.receipt.action_key.as_str())
+                                        .with(
+                                            "source_digest",
+                                            imported.receipt.source_digest.as_str(),
+                                        )
+                                        .with("source_bytes", imported.receipt.source_bytes)
+                                        .with("pack_digest", imported.receipt.pack_digest.as_str())
+                                        .with("pack_bytes", imported.receipt.pack_bytes)
+                                        .with("dataset_quads", imported.receipt.dataset_quads)
+                                        .with("named_graphs", imported.receipt.named_graphs),
+                                ),
+                            )
+                            .with("closure_constructions", usize::from(fresh))
+                            .with("edb_quads", edb.quad_count())
+                            .with("verify_queries", queries.len())
+                            .with("inferred_axioms", result.inferred().len())
+                            .with(
+                                "budget_consumed",
+                                result.provenance.consumed_budget.consumed,
+                            )
+                            .with(
+                                "budget_allowance",
+                                result.provenance.consumed_budget.allowance,
+                            )
+                            .with(
+                                "budget_limit",
+                                result
+                                    .provenance
+                                    .consumed_budget
+                                    .limit
+                                    .map(|limit| limit.wire()),
+                            )
+                            .with("verify_errors", report.error_count())
+                            .with("verify_warnings", report.warning_count()),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_import_built", imported.built)
+                            .with("gts_import_transfer_bytes", imported.transferred_bytes)
+                            .with(
+                                "timings",
+                                purrdf_lex::json::Value::Array(vec![
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", "verify-native")
+                                            .with("elapsed_ms", elapsed)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                ]),
+                            ),
+                    ),
+                )
+                .with(
+                    "timings",
+                    purrdf_lex::json::Value::Array(vec![purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("phase", "verify-native")
+                            .with("elapsed_ms", elapsed)
+                            .with("metadata", purrdf_lex::json::Value::Null),
+                    )]),
+                ),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
@@ -461,71 +549,178 @@ pub fn reason_verify(fresh: bool, timings_json: Option<&Path>) -> i32 {
     };
     let elapsed = elapsed_ms(started);
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "reason-verify",
-            "mode": "native",
-            "ok": evaluation.report.ok(),
-            "metrics": {
-                "inferred_axioms": evaluation.result.inferred().len(),
-                "verify_errors": evaluation.report.error_count(),
-                "bundle_import_builds": usize::from(imported.built),
-                "bundle_import_bytes": imported.transferred_bytes,
-                "bundle_import_quads": imported.receipt.dataset_quads,
-                "bundle_import_named_graphs": imported.receipt.named_graphs,
-                "closure_constructions": usize::from(fresh),
-                "attestation_closure_constructions": attestation.closure_constructions,
-                "attestation_graph_digest": attestation.graph_digest.clone(),
-                "attestation_record_digest": attestation.record_digest.clone(),
-                "verify_queries": queries.len(),
-                "edb_quads": edb.quad_count(),
-                "budget_consumed": evaluation.result.provenance.consumed_budget.consumed,
-                "budget_allowance": evaluation.result.provenance.consumed_budget.allowance,
-                "budget_limit": evaluation.result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
-            },
-            "deterministic_work": {
-                "gts_imports": 1,
-                "gts_import": {
-                    "action_key": imported.receipt.action_key,
-                    "source_digest": imported.receipt.source_digest,
-                    "source_bytes": imported.receipt.source_bytes,
-                    "pack_digest": imported.receipt.pack_digest,
-                    "pack_bytes": imported.receipt.pack_bytes,
-                    "dataset_quads": imported.receipt.dataset_quads,
-                    "named_graphs": imported.receipt.named_graphs,
-                },
-                "closure_constructions": usize::from(fresh),
-                "attestation": {
-                    "closure_constructions": attestation.closure_constructions,
-                    "graph_digest": attestation.graph_digest,
-                    "record_digest": attestation.record_digest,
-                    "query_count": attestation.query_count,
-                },
-                "verify_queries": queries.len(),
-                "edb_quads": edb.quad_count(),
-                "inferred_axioms": evaluation.result.inferred().len(),
-                "budget_consumed": evaluation.result.provenance.consumed_budget.consumed,
-                "budget_allowance": evaluation.result.provenance.consumed_budget.allowance,
-                "budget_limit": evaluation.result.provenance.consumed_budget.limit.map(|limit| limit.wire()),
-                "verify_errors": evaluation.report.error_count(),
-            },
-            "observations": {
-                "gts_import_built": imported.built,
-                "gts_import_transfer_bytes": imported.transferred_bytes,
-                "timings": [
-                    { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
-                    { "phase": result_phase, "elapsed_ms": evaluation.result_ms, "metadata": null },
-                    { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
-                    { "phase": "reason-verify-total", "elapsed_ms": elapsed, "metadata": null },
-                ],
-            },
-            "timings": [
-                { "phase": "snapshot-import", "elapsed_ms": snapshot_ms, "metadata": null },
-                { "phase": result_phase, "elapsed_ms": evaluation.result_ms, "metadata": null },
-                { "phase": "verify-native", "elapsed_ms": evaluation.verify_ms, "metadata": null },
-                { "phase": "reason-verify-total", "elapsed_ms": elapsed, "metadata": null },
-            ],
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "reason-verify")
+                .with("mode", "native")
+                .with("ok", evaluation.report.ok())
+                .with(
+                    "metrics",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("inferred_axioms", evaluation.result.inferred().len())
+                            .with("verify_errors", evaluation.report.error_count())
+                            .with("bundle_import_builds", usize::from(imported.built))
+                            .with("bundle_import_bytes", imported.transferred_bytes)
+                            .with("bundle_import_quads", imported.receipt.dataset_quads)
+                            .with("bundle_import_named_graphs", imported.receipt.named_graphs)
+                            .with("closure_constructions", usize::from(fresh))
+                            .with(
+                                "attestation_closure_constructions",
+                                attestation.closure_constructions,
+                            )
+                            .with("attestation_graph_digest", attestation.graph_digest.clone())
+                            .with(
+                                "attestation_record_digest",
+                                attestation.record_digest.clone(),
+                            )
+                            .with("verify_queries", queries.len())
+                            .with("edb_quads", edb.quad_count())
+                            .with(
+                                "budget_consumed",
+                                evaluation.result.provenance.consumed_budget.consumed,
+                            )
+                            .with(
+                                "budget_allowance",
+                                evaluation.result.provenance.consumed_budget.allowance,
+                            )
+                            .with(
+                                "budget_limit",
+                                evaluation
+                                    .result
+                                    .provenance
+                                    .consumed_budget
+                                    .limit
+                                    .map(|limit| limit.wire()),
+                            ),
+                    ),
+                )
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_imports", 1)
+                            .with(
+                                "gts_import",
+                                purrdf_lex::json::Value::from(
+                                    purrdf_lex::json::Object::new()
+                                        .with("action_key", imported.receipt.action_key.as_str())
+                                        .with(
+                                            "source_digest",
+                                            imported.receipt.source_digest.as_str(),
+                                        )
+                                        .with("source_bytes", imported.receipt.source_bytes)
+                                        .with("pack_digest", imported.receipt.pack_digest.as_str())
+                                        .with("pack_bytes", imported.receipt.pack_bytes)
+                                        .with("dataset_quads", imported.receipt.dataset_quads)
+                                        .with("named_graphs", imported.receipt.named_graphs),
+                                ),
+                            )
+                            .with("closure_constructions", usize::from(fresh))
+                            .with(
+                                "attestation",
+                                purrdf_lex::json::Value::from(
+                                    purrdf_lex::json::Object::new()
+                                        .with(
+                                            "closure_constructions",
+                                            attestation.closure_constructions,
+                                        )
+                                        .with("graph_digest", attestation.graph_digest.as_str())
+                                        .with("record_digest", attestation.record_digest.as_str())
+                                        .with("query_count", attestation.query_count),
+                                ),
+                            )
+                            .with("verify_queries", queries.len())
+                            .with("edb_quads", edb.quad_count())
+                            .with("inferred_axioms", evaluation.result.inferred().len())
+                            .with(
+                                "budget_consumed",
+                                evaluation.result.provenance.consumed_budget.consumed,
+                            )
+                            .with(
+                                "budget_allowance",
+                                evaluation.result.provenance.consumed_budget.allowance,
+                            )
+                            .with(
+                                "budget_limit",
+                                evaluation
+                                    .result
+                                    .provenance
+                                    .consumed_budget
+                                    .limit
+                                    .map(|limit| limit.wire()),
+                            )
+                            .with("verify_errors", evaluation.report.error_count()),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("gts_import_built", imported.built)
+                            .with("gts_import_transfer_bytes", imported.transferred_bytes)
+                            .with(
+                                "timings",
+                                purrdf_lex::json::Value::Array(vec![
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", "snapshot-import")
+                                            .with("elapsed_ms", snapshot_ms)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", result_phase)
+                                            .with("elapsed_ms", evaluation.result_ms)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", "verify-native")
+                                            .with("elapsed_ms", evaluation.verify_ms)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                    purrdf_lex::json::Value::from(
+                                        purrdf_lex::json::Object::new()
+                                            .with("phase", "reason-verify-total")
+                                            .with("elapsed_ms", elapsed)
+                                            .with("metadata", purrdf_lex::json::Value::Null),
+                                    ),
+                                ]),
+                            ),
+                    ),
+                )
+                .with(
+                    "timings",
+                    purrdf_lex::json::Value::Array(vec![
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("phase", "snapshot-import")
+                                .with("elapsed_ms", snapshot_ms)
+                                .with("metadata", purrdf_lex::json::Value::Null),
+                        ),
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("phase", result_phase)
+                                .with("elapsed_ms", evaluation.result_ms)
+                                .with("metadata", purrdf_lex::json::Value::Null),
+                        ),
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("phase", "verify-native")
+                                .with("elapsed_ms", evaluation.verify_ms)
+                                .with("metadata", purrdf_lex::json::Value::Null),
+                        ),
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("phase", "reason-verify-total")
+                                .with("elapsed_ms", elapsed)
+                                .with("metadata", purrdf_lex::json::Value::Null),
+                        ),
+                    ]),
+                ),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
@@ -666,7 +861,7 @@ fn resolve_profile(input_path: &Path, profile: Option<&str>) -> Result<String, i
     if sibling.is_file() {
         let text = std::fs::read_to_string(&sibling)
             .map_err(|e| fail(format!("certify: cannot read {}: {e}", sibling.display())))?;
-        let data: serde_json::Value = serde_json::from_str(&text)
+        let data = purrdf_lex::json::record::read_document(text.as_bytes())
             .map_err(|e| fail(format!("certify: cannot read {}: {e}", sibling.display())))?;
         if let Some(contract) = data.get("reasoning_contract") {
             let preset = contract.get("preset").and_then(|v| v.as_str());

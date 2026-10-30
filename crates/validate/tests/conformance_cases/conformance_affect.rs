@@ -86,7 +86,7 @@ fn conforms(#[case] case: Case) {
 #[case::label_unregistered(
     Case::inline(ttl("ex:l a gmeow:AffectClassifierLabel .\n"))
         .fails()
-        .violations(&["registered in a gmeow:AffectLabelSet"])
+        .violations(&["must belong to a gmeow:ClassifierLabelSet"])
 )]
 // ── Hard-fail rule 3: neutral (any label) as an EmotionType ────────────────────
 #[case::label_as_emotiontype(
@@ -98,7 +98,7 @@ fn conforms(#[case] case: Case) {
 #[case::calibrated_without_calibration(
     Case::inline(ttl("ex:out a gmeow:AffectClassifierOutput ; gmeow:producedBy ex:run ; gmeow:classifiedTarget ex:c ; gmeow:emittedLabel gmeow-goemotions:joy ; gmeow:classifierScore 0.8 ; gmeow:scoreSemantics gmeow:scoreCalibratedProbability .\n"))
         .fails()
-        .violations(&["requires a gmeow:scoreCalibration"])
+        .violations(&["requires its declared scoreCalibration profile"])
 )]
 // ── Hard-fail rule 5: output directly asserts inner affect (no claim boundary) ─
 #[case::output_asserts_inner_affect(

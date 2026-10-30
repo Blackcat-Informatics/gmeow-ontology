@@ -4,12 +4,13 @@
 //! Explicit producer observations for shipped coherence and foundation contracts.
 //! Consumers grade the authenticated observations without constructing a corpus.
 
+mod json;
+
 use crate::foundation::{AntiRigidityPolicy, FoundationQuad, evaluate as foundation_evaluate};
 use crate::reason::{DlVerdict, LogicalGraph};
 use crate::reasoning_graphs::is_object_level_named_graph;
 use crate::store::WorldStore;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, TermRef};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::Arc;
 
@@ -21,7 +22,7 @@ pub const RELCOMP_ARTIFACT: &str = "coherence-relcomp-observation-v1.json";
 pub const CHARACTERISTIC_ARTIFACT: &str = "coherence-characteristic-observation-v1.json";
 
 /// The IRI-only projection selected by the foundation operation, without RDF text.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct IriQuad {
     /// Exact subject IRI.
     pub subject: String,
@@ -53,7 +54,7 @@ impl IriQuad {
 }
 
 /// Native consistency result driven solely by the actual shipped disjoint edge.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct DisjointObservation {
     /// Exact world where the producer found the shipped edge and injected types.
     pub disjoint_world: LogicalGraph,
@@ -61,7 +62,7 @@ pub struct DisjointObservation {
     pub verdict: DlVerdict,
 }
 /// Relator-mediation violations before and after the one-role synthetic injection.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct RelcompObservation {
     /// Every shipped concrete relator that fails the discipline.
     pub clean_offenders: Vec<String>,
@@ -69,7 +70,7 @@ pub struct RelcompObservation {
     pub poisoned_offenders: Vec<String>,
 }
 /// One retained foundation result row, including its exact derivation ownership.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct FoundationObservation {
     /// Contextual modal evidence if this row belongs to a modal evaluation.
     pub modal_evaluation: Option<crate::modal::ModalEvaluation>,
@@ -103,7 +104,7 @@ impl From<FoundationQuad> for FoundationObservation {
     }
 }
 /// Shipped carrier declarations and the exact clean/poisoned foundation outcomes.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub struct CharacteristicObservation {
     /// Marker and record-link projection required by every carrier assertion.
     pub carrier_facts: BTreeSet<IriQuad>,

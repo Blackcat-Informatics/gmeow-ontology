@@ -221,3 +221,37 @@ ntest:rowEpistemicAffects0 a gmeow:ExpectedRow ;
 ntest:rowEpistemicAffects1 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "episode" ; gmeow:cellValueIri case:catchingOneself ],
         [ a gmeow:ExpectedCell ; gmeow:cellVar "type" ; gmeow:cellValueIri gmeow:emotionSelfCorrection ] .
+
+# Existing evidence and open-vocabulary contracts span the AI and affect owners.
+ex:saClassifierOutputIsObservationNotEmotion a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExpectAsk true ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AffectClassifierOutput a owl:Class ;
+        rdfs:subClassOf gmeow:ClassifierOutput .
+    gmeow:ClassifierOutput a owl:Class ;
+        rdfs:subClassOf gmeow:Observation .
+    gmeow:ModelInferenceRun a owl:Class .
+    gmeow:supportsAffectiveClaim a owl:ObjectProperty ;
+        rdfs:range gmeow:AffectiveClaim .
+    gmeow:modelRevision a owl:DatatypeProperty .
+}""" ;
+    gmeow:cqRationale "An affect classifier output MUST specialize the shared gmeow:ClassifierOutput and reach gmeow:Observation (evidence), produced by a gmeow:ModelInferenceRun, and it SUPPORTS a gmeow:AffectiveClaim (never entails it) — the evidence/claim boundary, viewed across the AI and affect owners. Model provenance (gmeow:modelRevision) is a first-class datatype property; the SHACL shapes enforce completeness and the claim boundary." .
+
+ex:saAffectVocabulariesAreOpen a gmeow:CompetencyQuestion ;
+    gmeow:cqReasoning gmeow:reasoningNone ;
+    gmeow:cqExpectAsk false ;
+    gmeow:cqQuery """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:EmotionType owl:oneOf ?x }
+    UNION { gmeow:ScoreSemantics owl:oneOf ?x }
+    UNION { gmeow:DimensionFamily owl:oneOf ?x }
+    UNION { gmeow:ScalePolarity owl:oneOf ?x }
+    UNION { gmeow:AppraisalDimension owl:oneOf ?x }
+    UNION { gmeow:AestheticQuality owl:oneOf ?x }
+}""" ;
+    gmeow:cqRationale "A closed enum anywhere in canonical affect is a hard fail (hard-fail rule 6): every value vocabulary used by affect, including the shared AI-owned ScoreSemantics — EmotionType, ScoreSemantics, DimensionFamily, ScalePolarity, AppraisalDimension, AestheticQuality — MUST stay an open individual vocabulary (logic:AbstractIndividualType ⊑ logic:QualityValue), NEVER an owl:oneOf enumeration. Closed sets are projection artifacts only." .

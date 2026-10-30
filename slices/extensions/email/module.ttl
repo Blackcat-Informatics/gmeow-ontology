@@ -24,14 +24,6 @@ gmeow:AuthenticationResult
     skos:definition "The outcome of an email authentication check (RFC 8601 Authentication-Results) — a method (DKIM, SPF, DMARC, ARC), a verdict, and the verifying server."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:BodyPart
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "Body Part"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A MIME part of a message's body, with a media type and content."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BodyValue
     a logic:Kind ,
@@ -132,14 +124,6 @@ gmeow:MailingList
     skos:definition "An email distribution list — an InformationObject identified by a List-Id and serving as the hub for list metadata, subscription, and archiving."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:Message
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "Message"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A communication sent from one agent to others — the parent of email and other message kinds."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageHeader
     a logic:Kind ,
@@ -230,14 +214,6 @@ gmeow:RelayHop
     skos:definition "One hop in a message's delivery path, recorded by a Received header: a relaying server, the host it received from, a server timestamp, and the protocol used."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:Thread
-    a logic:Kind ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "Thread"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A conversation: a set of messages related by reply/reference chains."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:analysisInputBodyLine
     a logic:DatatypeProperty ;
@@ -540,15 +516,6 @@ gmeow:hasAuthenticationResult
     skos:definition "Relates a message to an authentication check performed on it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:hasBodyPart
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "has body part"@x-gmeow-english ;
-    rdfs:range gmeow:BodyPart ;
-    rdfs:subPropertyOf gmeow:hasPart ;
-    skos:definition "Relates a message to a MIME part of its body. A MIME-structure specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasCalendarMethod
     a logic:ObjectProperty ;
@@ -698,14 +665,6 @@ gmeow:importance
     skos:definition "The raw Importance header value of an email message (high, normal, or low). Stored as the canonical header literal; the vocabulary is small but client-extensible."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:inReplyTo
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "in reply to"@x-gmeow-english ;
-    rdfs:range gmeow:Message ;
-    skos:definition "Relates a message to the message it directly replies to (RFC 5322 In-Reply-To)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:keywordAnswered
     a gmeow:MessageKeyword ;
@@ -1115,15 +1074,6 @@ gmeow:partId
     skos:definition "The structural identifier of a MIME part within a message (e.g. '1', '1.2', '2.1.3'). Scoped to the message; the same raw content may have different partIds in different messages."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:partOfThread
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "part of thread"@x-gmeow-english ;
-    rdfs:range gmeow:Thread ;
-    rdfs:subPropertyOf gmeow:partOf ;
-    skos:definition "Relates a message to the thread (conversation) it belongs to. A conversation-thread specialization of the universal gmeow:partOf spine."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:participantAddress
     a logic:ObjectProperty ;
@@ -1164,6 +1114,7 @@ gmeow:participantMessage
 gmeow:participantOrdinal
     a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
+    logic:subPropertyOf gmeow:entryOrdinal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant ordinal"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;
@@ -1224,14 +1175,6 @@ gmeow:readReceiptRequested
     skos:definition "Whether the message requests a read receipt (convenience projection derived from the presence of a Disposition-Notification-To header). Not functional: different sources or parsers may disagree or strip the header (Principle 9). The canonical underlying fact is gmeow:dispositionNotificationTo."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:receivedAt
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "received at"@x-gmeow-english ;
-    rdfs:range xsd:dateTime ;
-    skos:definition "When a message was received by the storing system (JMAP receivedAt / Gmail internalDate)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:relayAt
     a logic:DatatypeProperty ;
@@ -1341,14 +1284,6 @@ gmeow:sender
     skos:definition "The transmitting address of a message, where different from the author (RFC 5322 Sender)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:sentAt
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "sent at"@x-gmeow-english ;
-    rdfs:range xsd:dateTime ;
-    skos:definition "When a message was sent (RFC 5322 Date)."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:sentBySoftware
     a logic:ObjectProperty ;
@@ -1491,13 +1426,13 @@ logic:supMpNotSuppressed a logic:Formula ; logic:not logic:supMpDisp .
 logic:supMpDisp a logic:Formula ; logic:relation gmeow:displayable ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] .
 
-# --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
+# Required message-participant paths, projected from canonical logic.
 <https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantMessage> ; logic:allValuesFrom logic:Thing ] .
 <https://blackcatinformatics.ca/gmeow/MessageParticipant> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/participantRole> ; logic:allValuesFrom logic:Thing ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantMessage" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/MessageParticipant> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/participantRole" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 
-# --- Wave B1 shape-drain: message-participant cardinality + suppression ---
+# Message-participant cardinality and suppression obligations.
 # gmeow:MessageParticipantHasPlayersShape — a MessageParticipant belongs to exactly one message,
 # references at most one address, and declares exactly one role.
 gmeow:MessageParticipant logic:subClassOf

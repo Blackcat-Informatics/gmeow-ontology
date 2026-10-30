@@ -1,0 +1,1803 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from AttentionSlot alone."
+msgstr "避免仅从 AttentionSlot 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit AttentionSlot value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 AttentionSlot 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Attention Slot within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录注意槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Slot"
+msgstr "注意槽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The continuing identity of one agent’s named attention slot. A slot is not a history position and is not itself the record it points to."
+msgstr "一个智能体的具名注意槽的持续身份。槽既不是历史位置，也不是其指向的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:AttentionSlot explicitly."
+msgstr "记录显式命名 gmeow:AttentionSlot。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallAnswer alone."
+msgstr "避免仅从 RecallAnswer 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallAnswer value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallAnswer 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Answer within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Answer"
+msgstr "回忆回答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall activity answering a cue, parenting its retrieval activities and retaining selected records, outcome and completeness. It is not the question or a claim that the returned material is true."
+msgstr "回答线索、统辖各检索活动并保留所选记录、结果及完备性的回忆活动。它不是问题，也不声称返回材料为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallAnswer explicitly."
+msgstr "记录显式命名 gmeow:RecallAnswer。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallBudget alone."
+msgstr "避免仅从 RecallBudget 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallBudget value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallBudget 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Budget within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆预算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Budget"
+msgstr "回忆预算"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite plan-local allocation roster whose operation records share one enactment’s token budget. It is not the enactment or a second plan."
+msgstr "操作记录共享一次执行令牌预算的有限计划内分配清单。它不是执行本身，也不是第二个计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallBudget explicitly."
+msgstr "记录显式命名 gmeow:RecallBudget。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallDepth alone."
+msgstr "避免仅从 RecallDepth 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallDepth value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallDepth 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Depth"
+msgstr "回忆深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of explicitly selected retrieval capability profiles. Selecting a depth requires its declared capabilities; absence never selects a weaker profile."
+msgstr "显式选择的检索能力配置的开放词汇。选择深度即要求其声明能力；缺失绝不选择较弱配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallDepth explicitly."
+msgstr "记录显式命名 gmeow:RecallDepth。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallOperation alone."
+msgstr "避免仅从 RecallOperation 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallOperation value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallOperation 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Operation within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Operation"
+msgstr "回忆操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One plan-local recall operation schema with its own allocation identity and parameters. Reusing a template twice requires two operation records, each carrying its own share."
+msgstr "具有独立分配身份及参数的计划内回忆操作模式。模板复用两次需要两个操作记录，各自携带份额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallOperation explicitly."
+msgstr "记录显式命名 gmeow:RecallOperation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallOutcome alone."
+msgstr "避免仅从 RecallOutcome 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallOutcome value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallOutcome 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Outcome within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Outcome"
+msgstr "回忆结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of reported recall outcomes, separate from the asker’s judgement and the truth of recalled content."
+msgstr "报告回忆结果的开放词汇，区别于提问者评价及回忆内容的真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallOutcome explicitly."
+msgstr "记录显式命名 gmeow:RecallOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallScope alone."
+msgstr "避免仅从 RecallScope 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallScope value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallScope 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Scope within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Scope"
+msgstr "回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."
+msgstr "锚定到已标识注意槽、描述操作请求哪些相关记录的回忆范围规范。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallScope explicitly."
+msgstr "记录显式命名 gmeow:RecallScope。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdictValue alone."
+msgstr "避免仅从 RecallVerdictValue 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallVerdictValue value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallVerdictValue 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Verdict Value within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆判定值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Verdict Value"
+msgstr "回忆判定值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the asker’s found, partly, not-found or wrong judgement. These values neither rank people nor determine objective truth."
+msgstr "提问者找到、部分找到、未找到或错误评价的开放词汇。这些值既不对人排序，也不决定客观真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallVerdictValue explicitly."
+msgstr "记录显式命名 gmeow:RecallVerdictValue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdict alone."
+msgstr "避免仅从 RecallVerdict 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallVerdict value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecallVerdict 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Verdict"
+msgstr "回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s attributed judgement of one recall answer, preserving its exact words independently of search completeness."
+msgstr "提问者对一个回忆回答的带有归属评价，独立于搜索完备性保留其确切措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallVerdict explicitly."
+msgstr "记录显式命名 gmeow:RecallVerdict。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecalledRecordClaim alone."
+msgstr "避免仅从 RecalledRecordClaim 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecalledRecordClaim value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecalledRecordClaim 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recalled Record Claim within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆记录主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recalled Record Claim"
+msgstr "回忆记录主张"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An RDF 1.2 reifier of one recalledRecord assertion, retaining its answer-specific rank and attribution."
+msgstr "一个 recalledRecord 断言的 RDF 1.2 具体化者，保留其回答专属排名及归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecalledRecordClaim explicitly."
+msgstr "记录显式命名 gmeow:RecalledRecordClaim。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecollectionForm alone."
+msgstr "避免仅从 RecollectionForm 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecollectionForm value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 RecollectionForm 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recollection Form within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆呈现形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recollection Form"
+msgstr "回忆呈现形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary describing how recalled material is presented, independently of retrieval depth and confidence."
+msgstr "描述如何呈现回忆材料的开放词汇，独立于检索深度及置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecollectionForm explicitly."
+msgstr "记录显式命名 gmeow:RecollectionForm。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from SlotAssignmentClaim alone."
+msgstr "避免仅从 SlotAssignmentClaim 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit SlotAssignmentClaim value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 SlotAssignmentClaim 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Slot Assignment Claim within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽赋值主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Assignment Claim"
+msgstr "槽赋值主张"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed RDF 1.2 reifier of one slotState assertion. Successor claims name the claims they supersede; records and historical claims are retained."
+msgstr "一个 slotState 断言的带有归属 RDF 1.2 具体化者。后继主张命名其取代的主张；记录及历史主张均予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:SlotAssignmentClaim explicitly."
+msgstr "记录显式命名 gmeow:SlotAssignmentClaim。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from SlotPosition alone."
+msgstr "避免仅从 SlotPosition 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit SlotPosition value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 SlotPosition 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Slot Position within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Position"
+msgstr "槽位置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable position in one attention slot’s history, holding a pointer to an existing record. It specializes State as a path position rather than a mutable slot."
+msgstr "一个注意槽历史中的不可变位置，保存指向现有记录的指针。它将 State 特化为路径位置，而非可变槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:SlotPosition explicitly."
+msgstr "记录显式命名 gmeow:SlotPosition。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from answerDepth alone."
+msgstr "避免仅从 answerDepth 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit answerDepth value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 answerDepth 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record answer depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回答深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer depth"
+msgstr "回答深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall capability profile actually reported for this answer, distinct from the schema’s requested profile."
+msgstr "该回答实际报告的回忆能力配置，区别于模式请求的配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:answerDepth explicitly."
+msgstr "记录显式命名 gmeow:answerDepth。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetForPlan alone."
+msgstr "避免仅从 budgetForPlan 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetForPlan value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 budgetForPlan 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget for plan within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录预算所属计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget for plan"
+msgstr "预算所属计划"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing plan whose finite recall allocations this budget describes; it does not define another program body."
+msgstr "该预算描述其有限回忆分配的现有计划；不定义另一个程序体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetForPlan explicitly."
+msgstr "记录显式命名 gmeow:budgetForPlan。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetOperation alone."
+msgstr "避免仅从 budgetOperation 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetOperation value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 budgetOperation 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget operation within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录预算操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget operation"
+msgstr "预算操作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An individually identified operation allocation in this finite budget roster, counted once by record identity even when another operation has the same share or schema."
+msgstr "该有限预算清单中单独标识的操作分配，即使另一操作具有相同份额或模式，也按记录身份计一次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetOperation explicitly."
+msgstr "记录显式命名 gmeow:budgetOperation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetShare alone."
+msgstr "避免仅从 budgetShare 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetShare value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 budgetShare 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget share within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录预算份额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget share"
+msgstr "预算份额"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "This operation’s exact decimal share of the enactment token budget, strictly positive and at most one. Its plan-local operation identity determines its contribution to the total."
+msgstr "该操作占执行令牌预算的确切十进制份额，大于零且至多为一。其计划内操作身份确定对总和的贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetShare explicitly."
+msgstr "记录显式命名 gmeow:budgetShare。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from contextPlanCondition alone."
+msgstr "避免仅从 contextPlanCondition 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit contextPlanCondition value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 contextPlanCondition 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record context plan condition within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录上下文计划条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan condition"
+msgstr "上下文计划条件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The situation condition under which a precomposed context plan is selected, without asserting that it currently obtains."
+msgstr "选择预先组合上下文计划的情境条件，并不声明该条件当前成立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:contextPlanCondition explicitly."
+msgstr "记录显式命名 gmeow:contextPlanCondition。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from exclusionReason alone."
+msgstr "避免仅从 exclusionReason 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit exclusionReason value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 exclusionReason 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record exclusion reason within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录排除原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusion reason"
+msgstr "排除原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Language-bearing words explaining why this particular reified assemblyExcluded assertion withheld its record. The reason belongs to the record-specific exclusion, not to all exclusions at once."
+msgstr "带有语言标记的措辞，解释此特定被具体化 assemblyExcluded 断言为何排除其记录。原因属于该记录排除，而非同时属于全部排除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:exclusionReason explicitly."
+msgstr "记录显式命名 gmeow:exclusionReason。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from positionInSlot alone."
+msgstr "避免仅从 positionInSlot 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit positionInSlot value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 positionInSlot 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record position in slot within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录位置所属槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "position in slot"
+msgstr "位置所属槽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one continuing slot whose history contains this immutable position."
+msgstr "其历史包含该不可变位置的一个持续槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:positionInSlot explicitly."
+msgstr "记录显式命名 gmeow:positionInSlot。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from prescriptionKindContextPlan alone."
+msgstr "避免仅从 prescriptionKindContextPlan 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit prescriptionKindContextPlan value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 prescriptionKindContextPlan 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record context plan within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录上下文计划。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan"
+msgstr "上下文计划"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prescription kind whose precomposed recall operations assemble context when a condition on the agent’s situation holds. The agent does not choose these steps at run time."
+msgstr "当有关智能体情境的条件成立时，由预先组合的回忆操作组装上下文的处方种类。步骤并非由智能体在运行时选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:prescriptionKindContextPlan explicitly."
+msgstr "记录显式命名 gmeow:prescriptionKindContextPlan。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallAsker alone."
+msgstr "避免仅从 recallAsker 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallAsker value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallAsker 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall asker within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆提问者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall asker"
+msgstr "回忆提问者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent whose cue this recall activity answers. It does not select a global owner for the Question."
+msgstr "该回忆活动回答其线索的智能体。不为 Question 选择全局所有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallAsker explicitly."
+msgstr "记录显式命名 gmeow:recallAsker。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallBudgetTotal alone."
+msgstr "避免仅从 recallBudgetTotal 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallBudgetTotal value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallBudgetTotal 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall budget total within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆预算总和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget total"
+msgstr "回忆预算总和"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derived sum of budgetShare over operation records in a recall budget. It is a derived view, never an independently authored second share source."
+msgstr "回忆预算中各操作记录 budgetShare 的派生总和。它是派生视图，绝非独立编写的第二份额来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallBudgetTotal explicitly."
+msgstr "记录显式命名 gmeow:recallBudgetTotal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallComplete alone."
+msgstr "避免仅从 recallComplete 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallComplete value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallComplete 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall complete within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall complete"
+msgstr "回忆完整"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whether the declared recall scope was completely searched, independent of whether records were returned or the asker liked them."
+msgstr "声明回忆范围是否已被完整搜索，独立于是否返回记录或提问者是否满意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallComplete explicitly."
+msgstr "记录显式命名 gmeow:recallComplete。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthDeep alone."
+msgstr "避免仅从 recallDepthDeep 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthDeep value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallDepthDeep 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record deep recall depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录深入回忆深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deep recall depth"
+msgstr "深入回忆深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile includes ordinary recall followed by link expansion and distant-band retrieval; it promises no particular answer."
+msgstr "所选配置包含普通回忆，然后进行链接扩展及远距层检索；不承诺任何特定回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthDeep explicitly."
+msgstr "记录显式命名 gmeow:recallDepthDeep。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthOrdinary alone."
+msgstr "避免仅从 recallDepthOrdinary 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthOrdinary value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallDepthOrdinary 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record ordinary recall depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录普通回忆深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ordinary recall depth"
+msgstr "普通回忆深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile searches every declared surface with lexical and nearest-neighbour retrieval and reranking."
+msgstr "所选配置通过词法、近邻检索及重新排序搜索每个声明的表面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthOrdinary explicitly."
+msgstr "记录显式命名 gmeow:recallDepthOrdinary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthQuick alone."
+msgstr "避免仅从 recallDepthQuick 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthQuick value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallDepthQuick 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record quick recall depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录快速回忆深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quick recall depth"
+msgstr "快速回忆深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile recalls attended and recent records through lexical retrieval only."
+msgstr "所选配置仅通过词法检索回忆受到注意及最近的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthQuick explicitly."
+msgstr "记录显式命名 gmeow:recallDepthQuick。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepth alone."
+msgstr "避免仅从 recallDepth 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepth value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallDepth 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall depth within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆深度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall depth"
+msgstr "回忆深度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected capability profile required by this recall operation, not evidence that those capabilities ran."
+msgstr "该回忆操作要求的所选能力配置，并非能力已被执行的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepth explicitly."
+msgstr "记录显式命名 gmeow:recallDepth。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallLatest alone."
+msgstr "避免仅从 recallLatest 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallLatest value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallLatest 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record latest recall count within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录最新回忆数量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "latest recall count"
+msgstr "最新回忆数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive count of newest records requested within scope, not an age window or a claim that this many records exist."
+msgstr "在范围内请求的最新记录正整数数量，而非年龄窗口，也不声称存在这么多记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallLatest explicitly."
+msgstr "记录显式命名 gmeow:recallLatest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeDeadline alone."
+msgstr "避免仅从 recallOutcomeDeadline 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeDeadline value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallOutcomeDeadline 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall deadline reached within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆已达截止时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall deadline reached"
+msgstr "回忆已达截止时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall reached its deadline before completing the declared search; already selected records remain retained."
+msgstr "回忆在完成声明搜索之前达到截止时间；已选记录继续保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeDeadline explicitly."
+msgstr "记录显式命名 gmeow:recallOutcomeDeadline。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeEmptyComplete alone."
+msgstr "避免仅从 recallOutcomeEmptyComplete 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeEmptyComplete value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallOutcomeEmptyComplete 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record complete empty recall within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录完整空回忆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complete empty recall"
+msgstr "完整空回忆"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared scope was completely searched and no records were returned. This does not prove absence outside that scope."
+msgstr "已完整搜索声明范围且未返回记录。这不证明范围之外也不存在记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeEmptyComplete explicitly."
+msgstr "记录显式命名 gmeow:recallOutcomeEmptyComplete。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomePartial alone."
+msgstr "避免仅从 recallOutcomePartial 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomePartial value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallOutcomePartial 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record incomplete search within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录搜索不完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "incomplete search"
+msgstr "搜索不完整"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Some declared search scope was not searched. This is distinct from a complete empty result."
+msgstr "部分声明范围未被搜索。这区别于完整的空结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomePartial explicitly."
+msgstr "记录显式命名 gmeow:recallOutcomePartial。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeRecollections alone."
+msgstr "避免仅从 recallOutcomeRecollections 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeRecollections value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallOutcomeRecollections 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recollections returned within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录已返回回忆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollections returned"
+msgstr "已返回回忆"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall returned one or more records. This outcome alone does not assert complete search."
+msgstr "回忆返回了至少一个记录。该结果本身不声明搜索完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeRecollections explicitly."
+msgstr "记录显式命名 gmeow:recallOutcomeRecollections。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcome alone."
+msgstr "避免仅从 recallOutcome 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcome value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallOutcome 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall outcome within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall outcome"
+msgstr "回忆结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported outcome of this recall activity; complete-empty and interrupted search remain distinct."
+msgstr "来源报告的该回忆活动结果；完整空结果与中断搜索保持区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcome explicitly."
+msgstr "记录显式命名 gmeow:recallOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallRank alone."
+msgstr "避免仅从 recallRank 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallRank value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallRank 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall rank within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall rank"
+msgstr "回忆排名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-based ordering position of this particular recalledRecord assertion in its answer, never a confidence or truth score."
+msgstr "该特定 recalledRecord 断言在其回答中从一开始的顺序位置，绝非置信度或真值评分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallRank explicitly."
+msgstr "记录显式命名 gmeow:recallRank。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallSchema alone."
+msgstr "避免仅从 recallSchema 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallSchema value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallSchema 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record reused recall schema within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录复用回忆模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reused recall schema"
+msgstr "复用回忆模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reusable action schema specialized by this plan-local operation; repeated use retains distinct allocation records."
+msgstr "该计划内操作特化的可复用动作模式；重复使用保留不同的分配记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallSchema explicitly."
+msgstr "记录显式命名 gmeow:recallSchema。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallScope alone."
+msgstr "避免仅从 recallScope 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallScope value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallScope 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall scope within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall scope"
+msgstr "回忆范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit record scope requested by this recall schema, anchored through its scope slot."
+msgstr "该回忆模式请求的显式记录范围，通过范围槽锚定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallScope explicitly."
+msgstr "记录显式命名 gmeow:recallScope。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictFound alone."
+msgstr "避免仅从 recallVerdictFound 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictFound value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallVerdictFound 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record found recall verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录已找到回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "found recall verdict"
+msgstr "已找到回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer found what they sought."
+msgstr "提问者报告回忆回答找到了所寻内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictFound explicitly."
+msgstr "记录显式命名 gmeow:recallVerdictFound。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictNotFound alone."
+msgstr "避免仅从 recallVerdictNotFound 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictNotFound value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallVerdictNotFound 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record not-found recall verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录未找到回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not-found recall verdict"
+msgstr "未找到回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer did not find what they sought, without asserting complete search."
+msgstr "提问者报告回忆回答未找到所寻内容，但不声明搜索完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictNotFound explicitly."
+msgstr "记录显式命名 gmeow:recallVerdictNotFound。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictPartly alone."
+msgstr "避免仅从 recallVerdictPartly 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictPartly value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallVerdictPartly 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record partly found recall verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录部分找到回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "partly found recall verdict"
+msgstr "部分找到回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer found only part of what they sought."
+msgstr "提问者报告回忆回答仅找到了部分所寻内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictPartly explicitly."
+msgstr "记录显式命名 gmeow:recallVerdictPartly。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictWrong alone."
+msgstr "避免仅从 recallVerdictWrong 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictWrong value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallVerdictWrong 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record wrong recall verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录错误回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "wrong recall verdict"
+msgstr "错误回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker judges the recall answer to be wrong; this remains that asker’s attributed judgement."
+msgstr "提问者认为回忆回答错误；这仍是该提问者带有归属的评价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictWrong explicitly."
+msgstr "记录显式命名 gmeow:recallVerdictWrong。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdict alone."
+msgstr "避免仅从 recallVerdict 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdict value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recallVerdict 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall verdict within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall verdict"
+msgstr "回忆判定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s reported verdict value for this answer, separate from retrieval completeness and objective truth."
+msgstr "提问者对该回答报告的判定值，区别于检索完备性及客观真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdict explicitly."
+msgstr "记录显式命名 gmeow:recallVerdict。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recalledRecord alone."
+msgstr "避免仅从 recalledRecord 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recalledRecord value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recalledRecord 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recalled record within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recalled record"
+msgstr "回忆记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual record selected by this recall answer. Rank and attribution ride this assertion’s RDF 1.2 reifier."
+msgstr "该回忆回答实际选择的记录。排名及归属附于该断言的 RDF 1.2 具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recalledRecord explicitly."
+msgstr "记录显式命名 gmeow:recalledRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormSummaryHandle alone."
+msgstr "避免仅从 recollectionFormSummaryHandle 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionFormSummaryHandle value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recollectionFormSummaryHandle 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record summary and handle recollection form within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录摘要及句柄回忆形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary and handle recollection form"
+msgstr "摘要及句柄回忆形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Present a short attributed summary and a resolvable handle to the original record, retaining the original rather than replacing it."
+msgstr "呈现简短且带有归属的摘要及可解析至原记录的句柄，保留而非替换原文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionFormSummaryHandle explicitly."
+msgstr "记录显式命名 gmeow:recollectionFormSummaryHandle。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormVerbatim alone."
+msgstr "避免仅从 recollectionFormVerbatim 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionFormVerbatim value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recollectionFormVerbatim 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verbatim recollection form within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录逐字回忆形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verbatim recollection form"
+msgstr "逐字回忆形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Present the retained source wording verbatim with its provenance; verbatim does not assert truth."
+msgstr "连同溯源逐字呈现保留的来源措辞；逐字不表示真实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionFormVerbatim explicitly."
+msgstr "记录显式命名 gmeow:recollectionFormVerbatim。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionForm alone."
+msgstr "避免仅从 recollectionForm 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionForm value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 recollectionForm 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recollection form within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录回忆呈现形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollection form"
+msgstr "回忆呈现形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The presentation form requested for records found by this operation."
+msgstr "该操作找到记录时请求的呈现形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionForm explicitly."
+msgstr "记录显式命名 gmeow:recollectionForm。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from scopeSlot alone."
+msgstr "避免仅从 scopeSlot 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit scopeSlot value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 scopeSlot 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record scope slot within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录范围槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope slot"
+msgstr "范围槽"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."
+msgstr "锚定该范围记录选择的智能体注意槽，由使用方解析，而非将记录复制到范围内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:scopeSlot explicitly."
+msgstr "记录显式命名 gmeow:scopeSlot。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://purl.org/dc/terms/title"
+msgid "GMEOW Recall Context Module"
+msgstr "GMEOW 回忆上下文模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory services retaining contextual recall plans, pointer histories, selected records and attributed feedback without weakening execution contracts."
+msgstr "保留上下文回忆计划、指针历史、已选记录及带有归属反馈且不削弱执行契约的智能体记忆服务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall context"
+msgstr "回忆上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Context-plan recall parameters, immutable attention-slot claims, record-specific exclusions, recall activities and asker verdicts."
+msgstr "上下文计划回忆参数、不可变注意槽主张、逐记录排除、回忆活动及提问者判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotBearer alone."
+msgstr "避免仅从 slotBearer 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotBearer value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 slotBearer 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot bearer within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot bearer"
+msgstr "槽持有者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent whose attention slot this identity names."
+msgstr "该身份命名其注意槽的智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotBearer explicitly."
+msgstr "记录显式命名 gmeow:slotBearer。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotHistory alone."
+msgstr "避免仅从 slotHistory 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotHistory value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 slotHistory 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot history within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot history"
+msgstr "槽历史"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The history path whose positions record this slot’s changes. It grants no cross-slot causal ordering."
+msgstr "其位置记录该槽变化的历史路径。不授予跨槽因果顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotHistory explicitly."
+msgstr "记录显式命名 gmeow:slotHistory。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotPointer alone."
+msgstr "避免仅从 slotPointer 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotPointer value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 slotPointer 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot pointer within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽指针。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot pointer"
+msgstr "槽指针"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing record IRI referenced at a slot history position, never a copy of that record. Assert only while the consumer can resolve the target."
+msgstr "在槽历史位置引用的现有记录 IRI，绝非记录副本。仅在使用方能够解析目标时断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotPointer explicitly."
+msgstr "记录显式命名 gmeow:slotPointer。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotRole alone."
+msgstr "避免仅从 slotRole 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotRole value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 slotRole 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot role within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot role"
+msgstr "槽角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer-defined named role of an attention slot, such as current conversation. Roles are resources, not a fixed built-in list."
+msgstr "使用方定义的具名注意槽角色，例如当前对话。角色是资源，而非封闭内置列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotRole explicitly."
+msgstr "记录显式命名 gmeow:slotRole。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotState alone."
+msgstr "避免仅从 slotState 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotState value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 slotState 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot state within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录槽状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot state"
+msgstr "槽状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slot’s selected current history position in a consumer’s view. Each assertion has its own claim identity; competing claims are retained rather than globally overwritten."
+msgstr "使用方视图中选择的当前槽历史位置。每个断言具有独立主张身份；保留竞争主张，而非全局覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotState explicitly."
+msgstr "记录显式命名 gmeow:slotState。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from verdictOn alone."
+msgstr "避免仅从 verdictOn 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit verdictOn value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 verdictOn 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verdict on answer within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录判定所针对回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict on answer"
+msgstr "判定所针对回答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The particular recall answer judged by this verdict, not merely the shared cue text."
+msgstr "该判定评价的特定回忆回答，而非仅共同的线索文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:verdictOn explicitly."
+msgstr "记录显式命名 gmeow:verdictOn。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from verdictWords alone."
+msgstr "避免仅从 verdictWords 推断执行成功、访问权限或优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit verdictWords value with its source, scope and record identity."
+msgstr "连同来源、作用域和记录身份保留显式 verdictWords 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verdict words within an attributed recall context."
+msgstr "用于在带有归属的回忆上下文中记录判定原话。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict words"
+msgstr "判定原话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s exact language-bearing words, preserving language, base direction and source wording without paraphrase."
+msgstr "提问者带有语言标记的确切措辞，保留语言、基础方向及来源原话，不作改写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:verdictWords explicitly."
+msgstr "记录显式命名 gmeow:verdictWords。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ContextPlanHasConditionAndBudgetConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 ContextPlanHasConditionAndBudgetConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ContextPlanHasConditionAndBudgetConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 ContextPlanHasConditionAndBudgetConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve context plan condition and budget constraint."
+msgstr "用于保持上下文计划条件及预算约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan condition and budget constraint"
+msgstr "上下文计划条件及预算约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected context-plan kind names a situation condition and one finite recall budget for the same plan."
+msgstr "所选上下文计划种类命名一个情境条件及属于同一计划的有限回忆预算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:ContextPlanHasConditionAndBudgetConstraint."
+msgstr "按 gmeow:ContextPlanHasConditionAndBudgetConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ExclusionReasonLanguageConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 ExclusionReasonLanguageConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ExclusionReasonLanguageConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 ExclusionReasonLanguageConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve exclusion reason language constraint."
+msgstr "用于保持排除原因语言约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusion reason language constraint"
+msgstr "排除原因语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."
+msgstr "每个所提供措辞保留语言标记，并在存在时保留 RDF 1.2 基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:ExclusionReasonLanguageConstraint."
+msgstr "按 gmeow:ExclusionReasonLanguageConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallAskerAskedQuestionConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallAskerAskedQuestionConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallAskerAskedQuestionConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallAskerAskedQuestionConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall asker question constraint."
+msgstr "用于保持回忆提问者问题约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall asker question constraint"
+msgstr "回忆提问者问题约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer’s identified asker holds open the actual Question answered, not merely an equal cue string."
+msgstr "回答标识的提问者持有实际被回答的开放 Question，而非仅相同线索字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallAskerAskedQuestionConstraint."
+msgstr "按 gmeow:RecallAskerAskedQuestionConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallBudgetOnePerPlanConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallBudgetOnePerPlanConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallBudgetOnePerPlanConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallBudgetOnePerPlanConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve one recall budget per plan constraint."
+msgstr "用于保持每计划一个回忆预算约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one recall budget per plan constraint"
+msgstr "每计划一个回忆预算约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One plan-local budget roster owns the allocation total, so independent rosters cannot each spend the whole plan budget."
+msgstr "一个计划内预算清单拥有分配总额，防止多个独立清单各自花费整个计划预算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallBudgetOnePerPlanConstraint."
+msgstr "按 gmeow:RecallBudgetOnePerPlanConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget finite sum rule"
+msgstr "回忆预算有限求和规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive the per-budget finite sum over full operation substitutions, retaining repeated equal shares and schema reuse as distinct operation contributions."
+msgstr "按预算对完整操作替换求派生有限总和，将重复相等份额及模式复用保留为不同操作贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallBudgetTotalBoundConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallBudgetTotalBoundConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallBudgetTotalBoundConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallBudgetTotalBoundConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall budget total bound law."
+msgstr "用于保持回忆预算总和界限定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget total bound law"
+msgstr "回忆预算总和界限定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derived finite sum of operation shares must be at most one. Equal numeric shares from distinct operations contribute separately."
+msgstr "操作份额的派生有限总和至多为一。不同操作的相同数值份额分别贡献。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallBudgetTotalBoundConstraint."
+msgstr "按 gmeow:RecallBudgetTotalBoundConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallEmptyCompleteConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallEmptyCompleteConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallEmptyCompleteConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallEmptyCompleteConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve complete empty recall constraint."
+msgstr "用于保持完整空回忆约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complete empty recall constraint"
+msgstr "完整空回忆约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete-empty outcome requires recallComplete true and no recalledRecord membership."
+msgstr "完整空结果要求 recallComplete 为真且无 recalledRecord 成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallEmptyCompleteConstraint."
+msgstr "按 gmeow:RecallEmptyCompleteConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallOperationOneBudgetConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallOperationOneBudgetConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallOperationOneBudgetConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallOperationOneBudgetConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve operation allocation ownership constraint."
+msgstr "用于保持操作分配归属约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operation allocation ownership constraint"
+msgstr "操作分配归属约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operation allocation belongs to one budget roster; reuse in another plan requires another operation identity."
+msgstr "一个操作分配属于一个预算清单；在另一计划复用要求另一个操作身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallOperationOneBudgetConstraint."
+msgstr "按 gmeow:RecallOperationOneBudgetConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallRecollectionsHaveRecordsConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallRecollectionsHaveRecordsConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallRecollectionsHaveRecordsConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallRecollectionsHaveRecordsConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve returned recollections membership constraint."
+msgstr "用于保持返回回忆成员关系约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "returned recollections membership constraint"
+msgstr "返回回忆成员关系约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recollections outcome retains at least one selected record without claiming completeness."
+msgstr "返回回忆结果保留至少一个所选记录，但不声明完备性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallRecollectionsHaveRecordsConstraint."
+msgstr "按 gmeow:RecallRecollectionsHaveRecordsConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallVerdictIsAskersOwnConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallVerdictIsAskersOwnConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallVerdictIsAskersOwnConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallVerdictIsAskersOwnConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve asker verdict attribution constraint."
+msgstr "用于保持提问者判定归属约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "asker verdict attribution constraint"
+msgstr "提问者判定归属约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recall verdict is attributed to the same agent who asked the judged answer’s cue. Other agents’ judgements are separate records and do not resolve this asker’s question."
+msgstr "回忆判定归属于提出该被评回答线索的同一智能体。其他智能体的评价是独立记录，不解决该提问者的问题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallVerdictIsAskersOwnConstraint."
+msgstr "按 gmeow:RecallVerdictIsAskersOwnConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallVerdictWordsLanguageConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 RecallVerdictWordsLanguageConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallVerdictWordsLanguageConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 RecallVerdictWordsLanguageConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve verdict wording language constraint."
+msgstr "用于保持判定措辞语言约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict wording language constraint"
+msgstr "判定措辞语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."
+msgstr "每个所提供措辞保留语言标记，并在存在时保留 RDF 1.2 基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallVerdictWordsLanguageConstraint."
+msgstr "按 gmeow:RecallVerdictWordsLanguageConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying SlotPointerIsIriConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 SlotPointerIsIriConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotPointerIsIriConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 SlotPointerIsIriConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot pointer IRI constraint."
+msgstr "用于保持槽指针 IRI 约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot pointer IRI constraint"
+msgstr "槽指针 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A slot pointer names an existing record by IRI. Runtime resolution remains a consumer obligation; an IRI-shape check does not prove availability."
+msgstr "槽指针以 IRI 命名现有记录。运行时解析仍是使用方义务；IRI 形式检查不证明可用性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:SlotPointerIsIriConstraint."
+msgstr "按 gmeow:SlotPointerIsIriConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying SlotPositionBelongsToItsSlotConstraint by inventing records or selecting a weaker operation."
+msgstr "避免通过虚构记录或选择较弱操作来满足 SlotPositionBelongsToItsSlotConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotPositionBelongsToItsSlotConstraint to the explicit scoped records and retain the original evidence."
+msgstr "将 SlotPositionBelongsToItsSlotConstraint 应用于显式限定范围的记录，并保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot position owner constraint."
+msgstr "用于保持槽位置所属者约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot position owner constraint"
+msgstr "槽位置所属者约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected slotState position belongs to that same continuing slot."
+msgstr "所选 slotState 位置属于该同一持续槽。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:SlotPositionBelongsToItsSlotConstraint."
+msgstr "按 gmeow:SlotPositionBelongsToItsSlotConstraint 检查声明记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating BudgetShareBoundsConstraint as a runtime certificate."
+msgstr "避免将 BudgetShareBoundsConstraint 视为运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply BudgetShareBoundsConstraint to actual records while retaining independent obligations."
+msgstr "将 BudgetShareBoundsConstraint 应用于实际记录，同时保留独立义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve budget share bounds law."
+msgstr "用于保持预算份额界限定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget share bounds law"
+msgstr "预算份额界限定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied share is greater than zero and at most one; the separate plan-total law still applies."
+msgstr "每个所提供份额大于零且至多为一；独立计划总和定律仍然适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by gmeow:BudgetShareBoundsConstraint."
+msgstr "记录受 gmeow:BudgetShareBoundsConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallRankReifierCompletenessConstraint as a runtime certificate."
+msgstr "避免将 RecallRankReifierCompletenessConstraint 视为运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallRankReifierCompletenessConstraint to actual records while retaining independent obligations."
+msgstr "将 RecallRankReifierCompletenessConstraint 应用于实际记录，同时保留独立义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall rank reifier completeness constraint."
+msgstr "用于保持回忆排名具体化者完整性约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall rank reifier completeness constraint"
+msgstr "回忆排名具体化者完整性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every actual recalled-record reifier has a rank. Schema-level reification obligations are not returned-record occurrences."
+msgstr "每个实际回忆记录具体化者具有排名。模式层具体化义务并非返回记录发生项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by gmeow:RecallRankReifierCompletenessConstraint."
+msgstr "记录受 gmeow:RecallRankReifierCompletenessConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting schema metadata as an actual returned record or slot change."
+msgstr "避免将模式元数据当作实际返回记录或槽变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."
+msgstr "以规范具体化义务形式声明主语类、谓词及具体化者类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the typed reifier for gmeow:recalledRecord assertions."
+msgstr "用于要求 gmeow:recalledRecord 断言具有带类型的具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recalled-record reification obligation"
+msgstr "回忆记录具体化义务"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every recalledRecord assertion carries its own RecalledRecordClaim reifier, whose actual occurrence must retain its rank."
+msgstr "每个 recalledRecord 断言携带自身的 RecalledRecordClaim 具体化者，其实际发生项必须保留排名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The obligation governs gmeow:recalledRecord reifiers."
+msgstr "此义务管理 gmeow:recalledRecord 的具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting schema metadata as an actual returned record or slot change."
+msgstr "避免将模式元数据当作实际返回记录或槽变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."
+msgstr "以规范具体化义务形式声明主语类、谓词及具体化者类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the typed reifier for gmeow:slotState assertions."
+msgstr "用于要求 gmeow:slotState 断言具有带类型的具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot-state reification obligation"
+msgstr "槽状态具体化义务"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every slotState assertion carries its own SlotAssignmentClaim reifier. This schema-level obligation is not an assignment occurrence."
+msgstr "每个 slotState 断言携带自身的 SlotAssignmentClaim 具体化者。此模式层义务并非赋值发生项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The obligation governs gmeow:slotState reifiers."
+msgstr "此义务管理 gmeow:slotState 的具体化者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to derive the total from the complete finite operation roster."
+msgstr "用于从完整有限操作清单派生总和。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid independently authoring a total or collapsing equal shares from distinct operations."
+msgstr "避免独立编写总和或合并不同操作的相等份额。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain operation identity in full body substitutions and group SUM by budget identity."
+msgstr "在完整规则体替换中保留操作身份，并按预算身份对 SUM 分组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two identified operations with share 0.4 derive a budget total of 0.8."
+msgstr "两个份额为 0.4 的已标识操作派生 0.8 的预算总和。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallDeadlineIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "避免将 RecallDeadlineIsIncompleteConstraint 视为未记录执行或元组比较的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallDeadlineIsIncompleteConstraint to the actual source records without inventing missing facts."
+msgstr "将 RecallDeadlineIsIncompleteConstraint 应用于实际来源记录，不虚构缺失事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve deadline recall completeness constraint."
+msgstr "用于保持截止回忆完备性约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline recall completeness constraint"
+msgstr "截止回忆完备性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A deadline outcome requires recallComplete false, even when some records were returned."
+msgstr "截止时间结果要求 recallComplete 为假，即使已返回一些记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:RecallDeadlineIsIncompleteConstraint."
+msgstr "来源记录受 gmeow:RecallDeadlineIsIncompleteConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallPartialIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "避免将 RecallPartialIsIncompleteConstraint 视为未记录执行或元组比较的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallPartialIsIncompleteConstraint to the actual source records without inventing missing facts."
+msgstr "将 RecallPartialIsIncompleteConstraint 应用于实际来源记录，不虚构缺失事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve partial recall completeness constraint."
+msgstr "用于保持部分回忆完备性约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "partial recall completeness constraint"
+msgstr "部分回忆完备性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial-search outcome requires recallComplete false, even when some records were returned."
+msgstr "部分搜索结果要求 recallComplete 为假，即使已返回一些记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:RecallPartialIsIncompleteConstraint."
+msgstr "来源记录受 gmeow:RecallPartialIsIncompleteConstraint 约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating SlotClaimPredecessorConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "避免将 SlotClaimPredecessorConstraint 视为未记录执行或元组比较的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotClaimPredecessorConstraint to the actual source records without inventing missing facts."
+msgstr "将 SlotClaimPredecessorConstraint 应用于实际来源记录，不虚构缺失事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot claim predecessor constraint."
+msgstr "用于保持槽主张前驱约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot claim predecessor constraint"
+msgstr "槽主张前驱约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A slot-assignment successor names another actual RDF 1.2 assignment claim as predecessor. The consumer verifies same-slot history from the authoritative reified tuples; recorder attribution need not remain equal."
+msgstr "后继槽赋值命名另一个实际 RDF 1.2 赋值主张作为前驱。使用方从具有权威性的被具体化元组验证同槽历史；记录者归属不必保持相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:SlotClaimPredecessorConstraint."
+msgstr "来源记录受 gmeow:SlotClaimPredecessorConstraint 约束。"

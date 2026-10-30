@@ -14,7 +14,10 @@ use gmeow_action_cache::executable::{
     CompilationUnit, ExecutableReceipt, ExecutableRecipe, ReceiptDocument, sha256_file,
 };
 use gmeow_errors::Diag;
-use serde_json::Value;
+use purrdf_lex::json::{
+    self, Value,
+    record::{self, ToJson},
+};
 
 use gmeow_build_inputs::{
     CargoResolutionEvidence, CargoResolutionInputs, CfgContext, CompilerArtifact, CompilerInputs,
@@ -55,7 +58,7 @@ fn execute(args: &[String]) -> Result<ExitCode> {
         let resolved = resolve_context(&root)?;
         println!(
             "{}",
-            serde_json::to_string_pretty(&resolved.source_selection).map_err(fail)?
+            json::write_pretty(&resolved.source_selection.to_json())
         );
         return Ok(ExitCode::SUCCESS);
     }
@@ -301,8 +304,7 @@ fn canonicalize_compilation_graph(
             dependencies.push(identity(*dependency, units, states, identities)?);
         }
         dependencies.sort();
-        let payload =
-            serde_json::to_vec(&(normalized(unit.clone()), dependencies)).map_err(fail)?;
+        let payload = record::to_vec(&(normalized(unit.clone()), dependencies));
         let value =
             gmeow_action_cache::content_digest(&[b"gmeow-canonical-compilation-unit-v1", &payload]);
         states[index] = 2;
@@ -407,8 +409,7 @@ fn canonicalize_source_graph(units: &mut Vec<UnitSelection>, roots: &mut Vec<usi
             ));
         }
         dependencies.sort();
-        let payload =
-            serde_json::to_vec(&(normalized(unit.clone()), dependencies)).map_err(fail)?;
+        let payload = record::to_vec(&(normalized(unit.clone()), dependencies));
         let value =
             gmeow_action_cache::content_digest(&[b"gmeow-canonical-source-unit-v1", &payload]);
         states[index] = 2;
@@ -546,7 +547,7 @@ fn resolve_context(root: &Path) -> Result<ResolvedProducer> {
     let encoded = flags.join("\u{1f}");
     let mut command = cargo_build(root, &encoded, native_flags);
     command.args(["--unit-graph", "-Z", "unstable-options"]);
-    let graph: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
+    let graph: Value = record::read_document(checked_output(command)?.as_bytes()).map_err(fail)?;
     let units = graph["units"]
         .as_array()
         .ok_or_else(|| fail("Cargo unit graph has no units"))?;
@@ -666,7 +667,8 @@ fn resolve_source_selection(
         "unstable-options",
     ]);
     let controller_flags = configured_flags(root)?.join("\u{1f}");
-    let controller: Value = serde_json::from_str(&checked_output(controller)?).map_err(fail)?;
+    let controller: Value =
+        record::read_document(checked_output(controller)?.as_bytes()).map_err(fail)?;
     let mut selection = ProductionSelection {
         schema: gmeow_build_inputs::SCHEMA,
         units: Vec::new(),
@@ -798,7 +800,8 @@ fn metadata_package_ids(root: &Path) -> Result<BTreeMap<String, String>> {
     command
         .current_dir(root)
         .args(["metadata", "--format-version", "1", "--locked"]);
-    let metadata: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
+    let metadata: Value =
+        record::read_document(checked_output(command)?.as_bytes()).map_err(fail)?;
     let mut packages = BTreeMap::new();
     for package in metadata["packages"]
         .as_array()
@@ -899,7 +902,8 @@ fn metadata_manifests(root: &Path) -> Result<BTreeMap<String, String>> {
     command
         .current_dir(root)
         .args(["metadata", "--format-version", "1", "--no-deps", "--locked"]);
-    let metadata: Value = serde_json::from_str(&checked_output(command)?).map_err(fail)?;
+    let metadata: Value =
+        record::read_document(checked_output(command)?.as_bytes()).map_err(fail)?;
     metadata["packages"]
         .as_array()
         .ok_or_else(|| fail("Cargo metadata has no packages"))?
@@ -945,7 +949,7 @@ fn native_cpu_identity() -> Result<String> {
     if fields.len() != 6 {
         return Err(fail("native x86 CPU identity is incomplete"));
     }
-    serde_json::to_string(&fields).map_err(fail)
+    Ok(json::write_compact(&fields.to_json()))
 }
 
 /// Borrow a required string field from a Cargo unit, rejecting a missing or wrong-typed value.
@@ -1132,7 +1136,7 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     let selection_file = tempfile::NamedTempFile::new().map_err(fail)?;
     std::fs::write(
         selection_file.path(),
-        serde_json::to_vec(&recipe.source_inventory.selection).map_err(fail)?,
+        record::to_vec(&recipe.source_inventory.selection),
     )
     .map_err(fail)?;
     command.env(gmeow_build_inputs::SELECTION_ENV, selection_file.path());
@@ -1159,7 +1163,7 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     )
     .lines()
     {
-        let value: Value = serde_json::from_str(&line.map_err(fail)?).map_err(fail)?;
+        let value: Value = record::read_document(line.map_err(fail)?.as_bytes()).map_err(fail)?;
         if value["reason"] == "compiler-message"
             && let Some(message) = value["message"]["rendered"].as_str()
         {
@@ -1197,7 +1201,8 @@ fn build(root: &Path, staged: &Path, receipt_path: &Path, recipe: &ExecutableRec
     metadata
         .current_dir(root)
         .args(["metadata", "--format-version", "1", "--locked"]);
-    let metadata: Value = serde_json::from_str(&checked_output(metadata)?).map_err(fail)?;
+    let metadata: Value =
+        record::read_document(checked_output(metadata)?.as_bytes()).map_err(fail)?;
     let external_roots =
         selected_external_package_roots(root, &metadata, &recipe.source_inventory.selection)?;
     compiler_inputs

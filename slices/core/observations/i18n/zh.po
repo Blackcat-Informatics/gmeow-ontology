@@ -499,7 +499,7 @@ msgstr "用于区分记录中的解释进行到了哪一步。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "refinement outcome"
-msgstr "细化结果关系"
+msgstr "细化结果"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/refinementOutcome|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a refinement to the qualitative outcome of its reading. Nonfunctional so coexisting attributed outcomes are retained."

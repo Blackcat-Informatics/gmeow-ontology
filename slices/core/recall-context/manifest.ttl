@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/recall-context>
+    a gmeow:Slice ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:sliceTier gmeow:tierCore ;
+    rdfs:label "recall context"@x-gmeow-english ;
+    skos:definition "Context-plan recall parameters, immutable attention-slot claims, record-specific exclusions, recall activities and asker verdicts."@x-gmeow-english ;
+    dcterms:title "GMEOW Recall Context Module"@x-gmeow-english ;
+    gmeow:sliceConsumer "Agent memory services retaining contextual recall plans, pointer histories, selected records and attributed feedback without weakening execution contracts."@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/math>,
+        <https://blackcatinformatics.ca/gmeow/slices/kernel>,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint>,
+        <https://blackcatinformatics.ca/gmeow/slices/inquiry>,
+        <https://blackcatinformatics.ca/gmeow/slices/observations>,
+        <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/events>,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference>,
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> .

@@ -162,6 +162,7 @@ fn context(
     ))
 }
 
+/// Record every selected case and publish the complete keyed consistency evidence.
 pub(super) fn record(
     root: &Path,
     catalog: &SourceCatalog,
@@ -302,7 +303,10 @@ pub(super) fn record(
     artifacts.insert(INDEX.to_owned(), serde_json::to_vec(&index).map_err(fail)?);
     artifacts.insert(
         CONSISTENCY_CHANNEL.to_owned(),
-        serde_json::to_vec(&observations.consistency).map_err(fail)?,
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
+            &observations.consistency,
+        ))
+        .into_bytes(),
     );
     Ok(observations.admissions)
 }
@@ -348,7 +352,7 @@ pub(super) fn cached_consistency(
     path: &Path,
     store: &ActionStore,
 ) -> gmeow_errors::Result<gmeow_conformance::consistency::Observation> {
-    cached_observation(root, path, store, "native-consistency", |bytes| {
+    cached_native_observation(root, path, store, "native-consistency", |bytes| {
         let dataset =
             purrdf::parse_dataset(bytes, purrdf::NativeRdfFormat::NQuads.media_type(), None)
                 .map_err(gmeow_errors::Diag::from)?;

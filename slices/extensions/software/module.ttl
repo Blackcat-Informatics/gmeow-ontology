@@ -15,7 +15,7 @@ gmeow:AuthorIdentity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Author Identity"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A recorded author or committer string in a version-control commit — the raw git bytes (Name <email>). This is the immutable historical assertion, independent of the current canonical agent. Superseded identities are retained with gmeow:displayable false rather than deleted (Principle 10)."@x-gmeow-english ;
+    skos:definition "A recorded author, committer or tagger identity in a version-control object, retaining its historical raw bytes independently of the currently canonical agent. Superseded identities remain retained rather than rewritten."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Blob
@@ -278,7 +278,7 @@ gmeow:Ref
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Ref"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "A version-control reference — the generic superclass of Branch and any other named pointer into the commit graph."@x-gmeow-english ;
+    skos:definition "A version-control reference to an object, including commit, tree, blob or annotated tag targets. It is distinct from the immutable object it names; observed target claims retain their own provenance and scope."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Release
@@ -415,7 +415,7 @@ gmeow:TreeEntry
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Tree Entry"@x-gmeow-english ;
-    rdfs:subClassOf gmeow:InformationObject ,
+    logic:subClassOf gmeow:InformationObject ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryName ;
@@ -424,12 +424,12 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:someValuesFrom rdfs:Literal ;
+            logic:someValuesFrom xsd:string ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryObject ;
-            logic:someValuesFrom gmeow:SourceNode ;
+            logic:someValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ;
         ] ;
     logic:subClassOf
         [
@@ -440,14 +440,14 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
+            logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ;
         ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryObject ;
             logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
         ] ;
-    skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
+    skos:definition "A named pointer within a source tree, carrying a name, Git mode and content-addressed target. Regular files, executable files and symlinks target a Blob; directories target a SourceTree; gitlinks target a Commit. AnnotatedTag is never a tree-entry target. Entry identity belongs to its containing tree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:authorIdentityString
@@ -456,7 +456,7 @@ gmeow:authorIdentityString
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "author identity string"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The raw author or committer bytes as they appeared in the commit object, typically 'Name <email>'."@x-gmeow-english ;
+    skos:definition "The raw author, committer or tagger identity bytes recorded in a version-control object header, typically Name <email>, preserved independently of canonical agent resolution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:authorTime
@@ -907,7 +907,7 @@ gmeow:releaseTag
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "release tag"@x-gmeow-english ;
     rdfs:range gmeow:Tag ;
-    skos:definition "The tag associated with a release. Functional: a release is typically cut from exactly one tag."@x-gmeow-english ;
+    skos:definition "The folksonomy Tag associated with a release, retaining the existing tag classification surface. Use releaseRef for a VCS tag reference; this property neither names an AnnotatedTag object nor changes the sort of existing Tag values."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:releaseVersion
@@ -1056,8 +1056,8 @@ gmeow:treeEntryMode
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry mode"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The git file mode of a tree entry — e.g. '100644' (regular file), '100755' (executable), '040000' (directory), '160000' (submodule), '120000' (symlink). Functional: one mode per entry."@x-gmeow-english ;
+    logic:range xsd:string ;
+    skos:definition "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:treeEntryName
@@ -1074,8 +1074,8 @@ gmeow:treeEntryObject
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry object"@x-gmeow-english ;
-    rdfs:range gmeow:SourceNode ;
-    skos:definition "The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ;
+    skos:definition "The single content-addressed target of a tree entry: Blob for regular files, executables and symlinks; SourceTree for directories; Commit for gitlinks. AnnotatedTag is excluded, and Commit retains its Activity/Event sort."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:webUrl
@@ -1135,7 +1135,7 @@ gmeow:authorIdentityStringFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "authorIdentityString is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:authorIdentityString is functional: an AuthorIdentity records exactly one raw byte-string — the single 'Name <email>' line as it appeared in the commit object, an immutable historical assertion that is never re-recorded."@x-gmeow-english ;
+    skos:definition "Asserts that authorIdentityString is functional: one AuthorIdentity carries exactly one recorded raw identity byte string from a version-control object header. The same characteristic preserves historical author, committer and tagger identities."@x-gmeow-english ;
     logic:characterizes gmeow:authorIdentityString ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:authorIdentityString ;
@@ -1360,7 +1360,7 @@ gmeow:treeEntryObjectFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "treeEntryObject is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: a tree entry points to exactly one content-addressed object — the single Blob or SourceTree that one line of the tree names. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts on the canonical carrier that gmeow:treeEntryObject is functional: one tree entry names exactly one target, a Blob, SourceTree or gitlink Commit according to its recorded mode. The characteristic fixes target multiplicity; the class and mode laws govern target kind."@x-gmeow-english ;
     logic:characterizes gmeow:treeEntryObject ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:treeEntryObject ;
@@ -1372,3 +1372,644 @@ gmeow:treeEntryObjectFunctionality
     gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/software> skos:scopeNote "Suppression retains superseded records during ordinary revision. Separately authorized governed erasure removes exactly selected named objects, including its forget request, without retained deletion receipts or cascading through references. Unselected references may dangle and answer gone. Succession preserves prior fact-time validity; correction rejects the earlier claim only in the correcting standpoint."@x-gmeow-english .
+
+# Repository object formats, ordered parent occurrences and observed working views.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+
+gmeow:GitObjectFormat
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Git Object Format"@x-gmeow-english ;
+    skos:definition "An open vocabulary naming a Git repository’s object hashing format. It describes object identifiers, not a signature algorithm or verification result."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Git Object Format in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from GitObjectFormat alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit GitObjectFormat value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:GitObjectFormat explicitly."@x-gmeow-english .
+
+gmeow:gitObjectFormatSha1
+    a gmeow:GitObjectFormat ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Git SHA-1 object format"@x-gmeow-english ;
+    skos:definition "The Git object format using SHA-1 object identifiers. This value makes no claim that a signature was produced or verified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Git SHA-1 object format in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from gitObjectFormatSha1 alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit gitObjectFormatSha1 value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:gitObjectFormatSha1 explicitly."@x-gmeow-english .
+
+gmeow:gitObjectFormatSha256
+    a gmeow:GitObjectFormat ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Git SHA-256 object format"@x-gmeow-english ;
+    skos:definition "The Git object format using SHA-256 object identifiers, distinct from an RSA-SHA256 signature scheme."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Git SHA-256 object format in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from gitObjectFormatSha256 alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit gitObjectFormatSha256 value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:gitObjectFormatSha256 explicitly."@x-gmeow-english .
+
+gmeow:objectFormat
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Repository ;
+    logic:range gmeow:GitObjectFormat ;
+    rdfs:label "Git object format"@x-gmeow-english ;
+    skos:definition "The repository’s selected Git object format. A Git repository selects exactly one format; other version-control systems acquire no new required format field."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Git object format in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from objectFormat alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit objectFormat value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:objectFormat explicitly."@x-gmeow-english .
+
+gmeow:CommitParentSequence
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Commit Parent Sequence"@x-gmeow-english ;
+    skos:definition "An explicitly scoped ordered roster of parent occurrences for one commit. Its occurrence identities preserve repeated parent targets and octopus merges; the consumer relates the actual reified tuples to the owning commit."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Commit Parent Sequence in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from CommitParentSequence alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit CommitParentSequence value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:CommitParentSequence explicitly."@x-gmeow-english .
+
+gmeow:CommitParentOccurrence
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Commit Parent Occurrence"@x-gmeow-english ;
+    skos:definition "An RDF 1.2 reifier of one parentCommit assertion at one position in a declared parent sequence. The reified tuple alone identifies child and parent; entryOrdinal supplies its zero-based position."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Commit Parent Occurrence in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from CommitParentOccurrence alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit CommitParentOccurrence value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:CommitParentOccurrence explicitly."@x-gmeow-english .
+
+gmeow:commitParentSequence
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Commit ;
+    logic:range gmeow:CommitParentSequence ;
+    rdfs:label "commit parent sequence"@x-gmeow-english ;
+    skos:definition "The explicitly declared parent-order roster for this commit, without replacing its unordered parentCommit provenance edges."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain commit parent sequence in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from commitParentSequence alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit commitParentSequence value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:commitParentSequence explicitly."@x-gmeow-english .
+
+gmeow:parentOccurrence
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:CommitParentSequence ;
+    logic:range gmeow:CommitParentOccurrence ;
+    rdfs:label "parent occurrence"@x-gmeow-english ;
+    skos:definition "One separately identified occurrence in a commit’s parent sequence. Two positions may reify the same child-parent tuple without becoming one occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain parent occurrence in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from parentOccurrence alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit parentOccurrence value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:parentOccurrence explicitly."@x-gmeow-english .
+
+gmeow:TreePathOccurrence
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Tree Path Occurrence"@x-gmeow-english ;
+    skos:definition "An occurrence identified by a root SourceTree and the exact repository-relative path bytes under that root. Its terminal TreeEntry may also occur through another path when a subtree is reused."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Tree Path Occurrence in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from TreePathOccurrence alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit TreePathOccurrence value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:TreePathOccurrence explicitly."@x-gmeow-english .
+
+gmeow:rootTree
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:TreePathOccurrence ;
+    logic:range gmeow:SourceTree ;
+    rdfs:label "path root tree"@x-gmeow-english ;
+    skos:definition "The committed root tree defining this occurrence’s path frame, not merely the immediate tree containing its terminal entry."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain path root tree in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from rootTree alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit rootTree value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:rootTree explicitly."@x-gmeow-english .
+
+gmeow:pathEntry
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:TreePathOccurrence ;
+    logic:range gmeow:TreeEntry ;
+    rdfs:label "terminal path entry"@x-gmeow-english ;
+    skos:definition "The committed TreeEntry reached at this exact path from this root. The same entry identity can be reached through distinct paths under a shared root."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain terminal path entry in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from pathEntry alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit pathEntry value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:pathEntry explicitly."@x-gmeow-english .
+
+gmeow:entryInTree
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:TreeEntry ;
+    logic:range gmeow:SourceTree ;
+    rdfs:label "entry in tree"@x-gmeow-english ;
+    skos:definition "The immediate committed tree whose entry this TreeEntry is. This owner participates in entry identity and is distinct from a path occurrence’s root tree."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain entry in tree in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from entryInTree alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit entryInTree value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:entryInTree explicitly."@x-gmeow-english .
+
+gmeow:repositoryPath
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:TreePathOccurrence gmeow:WorkingTreeEntry ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ;
+    rdfs:label "repository-relative path"@x-gmeow-english ;
+    skos:definition "The exact repository-relative path bytes, carried as a UTF-8 xsd:string or as xsd:hexBinary for byte-preserving representation. No case, Unicode, separator or dot-segment normalization is permitted."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain repository-relative path in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from repositoryPath alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit repositoryPath value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:repositoryPath explicitly."@x-gmeow-english .
+
+gmeow:Checkout
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Checkout"@x-gmeow-english ;
+    skos:definition "An observed checkout working view scoped to a repository and recording time. It is an information snapshot, not a committed tree object or an instruction to run Git."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Checkout in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from Checkout alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit Checkout value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:Checkout explicitly."@x-gmeow-english .
+
+gmeow:WorkingTreeEntry
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Working Tree Entry"@x-gmeow-english ;
+    skos:definition "A repository-relative entry in one observed checkout. Dirty and untracked entries are represented without requiring a committed TreeEntry, Blob or content digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Working Tree Entry in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from WorkingTreeEntry alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit WorkingTreeEntry value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:WorkingTreeEntry explicitly."@x-gmeow-english .
+
+gmeow:checkoutRepository
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Checkout ;
+    logic:range gmeow:Repository ;
+    rdfs:label "checkout repository"@x-gmeow-english ;
+    skos:definition "The repository whose working view this checkout observation records."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain checkout repository in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from checkoutRepository alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit checkoutRepository value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:checkoutRepository explicitly."@x-gmeow-english .
+
+gmeow:checkedOutCommit
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Checkout ;
+    logic:range gmeow:Commit ;
+    rdfs:label "checked-out commit"@x-gmeow-english ;
+    skos:definition "The checked-out commit when observed and available. Absence remains unknown and also permits an unborn checkout without inventing a commit."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain checked-out commit in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from checkedOutCommit alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit checkedOutCommit value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:checkedOutCommit explicitly."@x-gmeow-english .
+
+gmeow:inCheckout
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:WorkingTreeEntry ;
+    logic:range gmeow:Checkout ;
+    rdfs:label "in checkout"@x-gmeow-english ;
+    skos:definition "The observed checkout containing this working entry. This relation does not type the entry as a committed TreeEntry."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain in checkout in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from inCheckout alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit inCheckout value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:inCheckout explicitly."@x-gmeow-english .
+
+gmeow:untracked
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:WorkingTreeEntry ;
+    logic:range xsd:boolean ;
+    rdfs:label "untracked"@x-gmeow-english ;
+    skos:definition "An explicit report that this working entry is untracked. Absence is unknown; false does not assert committed-tree membership or a clean working file."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain untracked in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from untracked alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit untracked value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:untracked explicitly."@x-gmeow-english .
+
+gmeow:holdsObject
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Repository ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ;
+    rdfs:label "holds object"@x-gmeow-english ;
+    skos:definition "A repository holds this Blob, SourceTree, Commit or AnnotatedTag in the reported scope. Holdings are nonfunctional and do not assert ownership, reachability or an exhaustive object inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain holds object in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from holdsObject alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit holdsObject value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:holdsObject explicitly."@x-gmeow-english .
+
+gmeow:AnnotatedTag
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:SourceNode ;
+    rdfs:label "Annotated Tag"@x-gmeow-english ;
+    skos:definition "A content-addressed Git tag object with its own bytes, target and recorded tag name. It is a SourceNode artifact, distinct from a mutable tag ref, a release event and a folksonomy Tag."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Annotated Tag in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from AnnotatedTag alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit AnnotatedTag value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:AnnotatedTag explicitly."@x-gmeow-english .
+
+gmeow:tagTarget
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AnnotatedTag ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ;
+    rdfs:label "annotated tag target"@x-gmeow-english ;
+    skos:definition "The immediate object named by an annotated tag. It may be a blob, tree, commit or another tag; it is not silently peeled to a commit."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain annotated tag target in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from tagTarget alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit tagTarget value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:tagTarget explicitly."@x-gmeow-english .
+
+gmeow:tagName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AnnotatedTag ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ;
+    rdfs:label "recorded tag name"@x-gmeow-english ;
+    skos:definition "The tag object’s exact recorded name bytes, retained without trimming, case folding or Unicode normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain recorded tag name in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from tagName alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit tagName value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:tagName explicitly."@x-gmeow-english .
+
+gmeow:taggerIdentity
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AnnotatedTag ;
+    logic:range gmeow:AuthorIdentity ;
+    rdfs:label "tagger identity"@x-gmeow-english ;
+    skos:definition "The recorded historical identity of the tagger, when present, using AuthorIdentity independently of a currently canonical agent."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain tagger identity in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from taggerIdentity alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit taggerIdentity value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:taggerIdentity explicitly."@x-gmeow-english .
+
+gmeow:taggerTime
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AnnotatedTag ;
+    logic:range xsd:dateTime ;
+    rdfs:label "tagger time"@x-gmeow-english ;
+    skos:definition "The recorded tagger timestamp, when present, distinct from commit author time, committer time and this record’s observation time."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain tagger time in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from taggerTime alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit taggerTime value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:taggerTime explicitly."@x-gmeow-english .
+
+gmeow:refTarget
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Ref ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ;
+    rdfs:label "reference target"@x-gmeow-english ;
+    skos:definition "An observed immediate Git object target of a Ref. It admits blobs, trees, commits and annotated tags without claiming that every reference points directly to a commit."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain reference target in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from refTarget alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit refTarget value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:refTarget explicitly."@x-gmeow-english .
+
+gmeow:TagRef
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:Ref ;
+    rdfs:label "Tag Ref"@x-gmeow-english ;
+    skos:definition "A version-control tag reference, distinct from the immutable annotated tag object it may target and from a folksonomy Tag."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain Tag Ref in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from TagRef alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit TagRef value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:TagRef explicitly."@x-gmeow-english .
+
+gmeow:releaseRef
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:Release ;
+    logic:range gmeow:TagRef ;
+    rdfs:label "release reference"@x-gmeow-english ;
+    skos:definition "A VCS tag reference associated with a release event. It does not change releaseTag’s folksonomy range or identify the release with a tag object."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain release reference in an attributed repository description."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring object completeness, ownership or successful Git execution from releaseRef alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit releaseRef value with its source and observation scope."@x-gmeow-english ;
+    skos:example "The source record names gmeow:releaseRef explicitly."@x-gmeow-english .
+
+
+# Intrinsic contracts apply to the declared record classes, not every repository snapshot.
+gmeow:Repository logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:objectFormat ; logic:allValuesFrom gmeow:GitObjectFormat ] .
+gmeow:Repository logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:holdsObject ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
+gmeow:Commit logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:commitParentSequence ; logic:allValuesFrom gmeow:CommitParentSequence ] .
+gmeow:CommitParentSequence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:parentOccurrence ; logic:allValuesFrom gmeow:CommitParentOccurrence ] .
+gmeow:CommitParentOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:CommitParentOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:CommitParentOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rootTree ; logic:allValuesFrom gmeow:SourceTree ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TreePathOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rootTree" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:rootTree ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:SourceTree ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:pathEntry ; logic:allValuesFrom gmeow:TreeEntry ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TreePathOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/pathEntry" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:pathEntry ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:TreeEntry ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:repositoryPath ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TreePathOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/repositoryPath" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TreePathOccurrence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:repositoryPath ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+gmeow:TreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryInTree ; logic:allValuesFrom gmeow:SourceTree ] .
+gmeow:TreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:entryInTree ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:SourceTree ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:checkoutRepository ; logic:allValuesFrom gmeow:Repository ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Checkout ; logic:closureKey "https://blackcatinformatics.ca/gmeow/checkoutRepository" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:checkoutRepository ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Repository ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:checkedOutCommit ; logic:allValuesFrom gmeow:Commit ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:checkedOutCommit ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Commit ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Checkout ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recordedAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Checkout logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recordedAt ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:inCheckout ; logic:allValuesFrom gmeow:Checkout ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:WorkingTreeEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/inCheckout" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:inCheckout ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Checkout ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:repositoryPath ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:WorkingTreeEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/repositoryPath" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:repositoryPath ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:untracked ; logic:allValuesFrom xsd:boolean ] .
+gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:untracked ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AnnotatedTag ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagTarget ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AnnotatedTag ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tagTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagTarget ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagName ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AnnotatedTag ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tagName" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagName ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:taggerIdentity ; logic:allValuesFrom gmeow:AuthorIdentity ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:taggerIdentity ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:AuthorIdentity ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:taggerTime ; logic:allValuesFrom xsd:dateTime ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:taggerTime ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:dateTime ] .
+gmeow:Ref logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refTarget ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
+gmeow:TagRef logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refTarget ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TagRef ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Release logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:releaseRef ; logic:allValuesFrom gmeow:TagRef ] .
+
+gmeow:repositoryPath logic:subPropertyOf lang:literalValue .
+gmeow:tagName logic:subPropertyOf lang:literalValue .
+gmeow:pointsToCommit logic:subPropertyOf gmeow:refTarget .
+gmeow:WorkingTreeEntry logic:disjointWith gmeow:TreeEntry .
+gmeow:Checkout logic:disjointWith gmeow:SourceTree .
+
+gmeow:GitRepositoryHasObjectFormatConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Git repository object format presence constraint"@x-gmeow-english ;
+    skos:definition "A repository classified as Git explicitly names its selected object format; non-Git repositories gain no required field."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve Git repository object format presence constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating GitRepositoryHasObjectFormatConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply GitRepositoryHasObjectFormatConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:GitRepositoryHasObjectFormatConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:objectFormat ;
+    logic:message "A repository classified as Git explicitly names its selected object format; non-Git repositories gain no required field." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:repositoryType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:repoTypeGit ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "format" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:objectFormat ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "format" ] ] ] ] ] .
+
+gmeow:GitRepositoryHasOneObjectFormatConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Git repository object format uniqueness constraint"@x-gmeow-english ;
+    skos:definition "One Git repository selects one object format; conflicting selections do not define a mixed format."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve Git repository object format uniqueness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating GitRepositoryHasOneObjectFormatConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply GitRepositoryHasOneObjectFormatConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:GitRepositoryHasOneObjectFormatConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:objectFormat ;
+    logic:message "One Git repository selects one object format; conflicting selections do not define a mixed format." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:repositoryType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:repoTypeGit ] ] , [ a logic:Formula ; logic:relation gmeow:objectFormat ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation gmeow:objectFormat ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:ParentOccurrenceHasReifiedTupleConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "parent occurrence reified tuple constraint"@x-gmeow-english ;
+    skos:definition "Every listed parent occurrence is an actual RDF 1.2 reifier. The consumer reads child and parent from that tuple and checks the owning commit scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve parent occurrence reified tuple constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ParentOccurrenceHasReifiedTupleConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ParentOccurrenceHasReifiedTupleConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:ParentOccurrenceHasReifiedTupleConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:parentOccurrence ;
+    logic:message "Every listed parent occurrence is an actual RDF 1.2 reifier. The consumer reads child and parent from that tuple and checks the owning commit scope." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "occurrence" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:parentOccurrence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "occurrence" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "triple" ] ; logic:exists [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "occurrence" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ] ] .
+
+gmeow:ParentOrdinalUniqueInSequenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "parent ordinal uniqueness in sequence constraint"@x-gmeow-english ;
+    skos:definition "Two different occurrence records in one parent sequence cannot claim the same ordinal. Equal parent targets at different positions remain permitted."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve parent ordinal uniqueness in sequence constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ParentOrdinalUniqueInSequenceConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ParentOrdinalUniqueInSequenceConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:ParentOrdinalUniqueInSequenceConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:parentOccurrence ;
+    logic:message "Two different occurrence records in one parent sequence cannot claim the same ordinal. Equal parent targets at different positions remain permitted." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] , [ logic:termIndex 3 ; logic:termVariable "ordinal" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:parentOccurrence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation gmeow:parentOccurrence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] , [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "ordinal" ] ] , [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ] , [ logic:termIndex 1 ; logic:termVariable "ordinal" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:ParentOccurrenceSequenceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "parent occurrence sequence scope constraint"@x-gmeow-english ;
+    skos:definition "One occurrence identity belongs to one sequence; repeated targets or another recorded sequence use distinct occurrence identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve parent occurrence sequence scope constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ParentOccurrenceSequenceScopeConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ParentOccurrenceSequenceScopeConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:ParentOccurrenceSequenceScopeConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:parentOccurrence ;
+    logic:message "One occurrence identity belongs to one sequence; repeated targets or another recorded sequence use distinct occurrence identities." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "occurrence" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:parentOccurrence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "occurrence" ] ] , [ a logic:Formula ; logic:relation gmeow:parentOccurrence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "occurrence" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+gmeow:ParentSequenceCommitScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "parent sequence commit scope constraint"@x-gmeow-english ;
+    skos:definition "One recorded parent sequence belongs to one commit. Its occurrence tuple scope is interpreted against that commit by the consumer."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve parent sequence commit scope constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating ParentSequenceCommitScopeConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply ParentSequenceCommitScopeConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:ParentSequenceCommitScopeConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:commitParentSequence ;
+    logic:message "One recorded parent sequence belongs to one commit. Its occurrence tuple scope is interpreted against that commit by the consumer." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "sequence" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:commitParentSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] , [ a logic:Formula ; logic:relation gmeow:commitParentSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "sequence" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+gmeow:TreePathEntryHasImmediateOwnerConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "tree path entry immediate owner constraint"@x-gmeow-english ;
+    skos:definition "A terminal entry selected by a path occurrence names its immediate containing tree. That tree need not equal the path root."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve tree path entry immediate owner constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating TreePathEntryHasImmediateOwnerConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply TreePathEntryHasImmediateOwnerConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:TreePathEntryHasImmediateOwnerConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:pathEntry ;
+    logic:message "A terminal entry selected by a path occurrence names its immediate containing tree. That tree need not equal the path root." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:pathEntry ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "tree" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:entryInTree ; logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] , [ logic:termIndex 1 ; logic:termVariable "tree" ] ] ] ] ] .
+
+gmeow:TreePathSameLiteralHasSameEntryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "same represented tree path terminal constraint"@x-gmeow-english ;
+    skos:definition "Within one root tree, identical represented path literals name the same terminal entry. Cross-encoding byte identity and actual traversal remain consumer obligations."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve same represented tree path terminal constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating TreePathSameLiteralHasSameEntryConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply TreePathSameLiteralHasSameEntryConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:TreePathSameLiteralHasSameEntryConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:TreePathOccurrence ;
+    logic:message "Within one root tree, identical represented path literals name the same terminal entry. Cross-encoding byte identity and actual traversal remain consumer obligations." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "root" ] , [ logic:termIndex 3 ; logic:termVariable "path" ] , [ logic:termIndex 4 ; logic:termVariable "left" ] , [ logic:termIndex 5 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:rootTree ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "root" ] ] , [ a logic:Formula ; logic:relation gmeow:rootTree ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "root" ] ] , [ a logic:Formula ; logic:relation gmeow:repositoryPath ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "path" ] ] , [ a logic:Formula ; logic:relation gmeow:repositoryPath ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "path" ] ] , [ a logic:Formula ; logic:relation gmeow:pathEntry ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation gmeow:pathEntry ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:TaggerIdentityHasTimeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "tagger identity timestamp constraint"@x-gmeow-english ;
+    skos:definition "A reported tagger identity retains its corresponding tagger timestamp; tags with no tagger header acquire no invented identity or time."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve tagger identity timestamp constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating TaggerIdentityHasTimeConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply TaggerIdentityHasTimeConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:TaggerIdentityHasTimeConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:taggerIdentity ;
+    logic:message "A reported tagger identity retains its corresponding tagger timestamp; tags with no tagger header acquire no invented identity or time." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "identity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:taggerIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "identity" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "time" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:taggerTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ] ] ] ] .
+
+gmeow:TaggerTimeHasIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "tagger timestamp identity constraint"@x-gmeow-english ;
+    skos:definition "A reported tagger timestamp retains the historical identity whose header supplied it; it is not a commit author-time statement."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve tagger timestamp identity constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating TaggerTimeHasIdentityConstraint as a traversal, hashing or Git execution certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply TaggerTimeHasIdentityConstraint to the explicitly scoped source records."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:TaggerTimeHasIdentityConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:taggerTime ;
+    logic:message "A reported tagger timestamp retains the historical identity whose header supplied it; it is not a commit author-time statement." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:taggerTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "identity" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:taggerIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "identity" ] ] ] ] ] .
+
+
+# Git object header kinds remain distinct; a tag object cannot be a tree target.
+gmeow:Blob logic:disjointWith gmeow:SourceTree , gmeow:AnnotatedTag .
+gmeow:SourceTree logic:disjointWith gmeow:AnnotatedTag .
+gmeow:TreeEntry logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryObject ;
+      logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryMode ; logic:allValuesFrom xsd:string ] .
+
+gmeow:TreeEntryDirectoryTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree directory target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with directory mode 040000 or 40000 targets a SourceTree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with directory mode 040000 or 40000 targets a SourceTree." ;
+    logic:integrity logic:gitTreeDirectoryForall .
+logic:gitTreeDirectoryForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeDirectoryImpl .
+logic:gitTreeDirectoryImpl a logic:Formula ; logic:antecedent logic:gitTreeDirectoryGuard ; logic:consequent logic:gitTreeDirectoryTarget .
+logic:gitTreeDirectoryGuard a logic:Formula ; logic:and logic:gitTreeDirectoryType , logic:gitTreeDirectoryMode , logic:gitTreeDirectoryObject .
+logic:gitTreeDirectoryType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeDirectoryMode a logic:Formula ; logic:or logic:gitTreeDirectoryMode0 , logic:gitTreeDirectoryMode1 .
+logic:gitTreeDirectoryMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "040000" ] .
+logic:gitTreeDirectoryMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "40000" ] .
+logic:gitTreeDirectoryObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeDirectoryTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SourceTree ] .
+
+gmeow:TreeEntryBlobTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree blob target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with regular-file, executable-file or symlink mode 100644, 100755 or 120000 targets a Blob." ;
+    logic:integrity logic:gitTreeBlobForall .
+logic:gitTreeBlobForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeBlobImpl .
+logic:gitTreeBlobImpl a logic:Formula ; logic:antecedent logic:gitTreeBlobGuard ; logic:consequent logic:gitTreeBlobTarget .
+logic:gitTreeBlobGuard a logic:Formula ; logic:and logic:gitTreeBlobType , logic:gitTreeBlobMode , logic:gitTreeBlobObject .
+logic:gitTreeBlobType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeBlobMode a logic:Formula ; logic:or logic:gitTreeBlobMode0 , logic:gitTreeBlobMode1 , logic:gitTreeBlobMode2 .
+logic:gitTreeBlobMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100644" ] .
+logic:gitTreeBlobMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100755" ] .
+logic:gitTreeBlobMode2 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "120000" ] .
+logic:gitTreeBlobObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeBlobTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Blob ] .
+
+gmeow:TreeEntryGitlinkTargetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree gitlink target constraint"@x-gmeow-english ;
+    skos:definition "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit\u2019s Event sort."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:TreeEntry , gmeow:treeEntryMode , gmeow:treeEntryObject ;
+    logic:message "A tree entry with gitlink mode 160000 targets a Commit, retaining the commit\u2019s Event sort." ;
+    logic:integrity logic:gitTreeGitlinkForall .
+logic:gitTreeGitlinkForall a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ;
+    logic:forall logic:gitTreeGitlinkImpl .
+logic:gitTreeGitlinkImpl a logic:Formula ; logic:antecedent logic:gitTreeGitlinkGuard ; logic:consequent logic:gitTreeGitlinkTarget .
+logic:gitTreeGitlinkGuard a logic:Formula ; logic:and logic:gitTreeGitlinkType , logic:gitTreeGitlinkMode , logic:gitTreeGitlinkObject .
+logic:gitTreeGitlinkType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
+logic:gitTreeGitlinkMode a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "160000" ] .
+logic:gitTreeGitlinkObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
+logic:gitTreeGitlinkTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
+    logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Commit ] .

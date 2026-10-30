@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
-use serde_json::json;
+use purrdf_lex::json::Object;
 
 #[test]
 fn implicit_git_package_identity_uses_cargo_metadata_without_guessing_a_name() {
@@ -44,11 +44,25 @@ fn compiler_messages_bind_implicit_and_explicit_package_owners_to_selected_input
         let packages = BTreeMap::from([(id.clone(), explicit.clone())]);
         let mut artifacts = Vec::new();
         let mut generated = Vec::new();
-        let artifact = json!({
-            "reason": "compiler-artifact", "package_id": id,
-            "filenames": [root.join("output/libfixture.rlib")],
-            "target": {"src_path": root.join("lib.rs"), "kind": ["lib"]}
-        });
+        let artifact: Value = Object::new()
+            .with("reason", "compiler-artifact")
+            .with("package_id", id.clone())
+            .with(
+                "filenames",
+                vec![
+                    root.join("output/libfixture.rlib")
+                        .to_str()
+                        .unwrap()
+                        .to_owned(),
+                ],
+            )
+            .with(
+                "target",
+                Object::new()
+                    .with("src_path", root.join("lib.rs").to_str().unwrap().to_owned())
+                    .with("kind", vec!["lib"]),
+            )
+            .into();
         capture_compiler_input(
             root,
             &packages,
@@ -77,10 +91,14 @@ fn compiler_messages_bind_implicit_and_explicit_package_owners_to_selected_input
                 &[],
             )
             .unwrap();
-        let script = json!({
-            "reason": "build-script-executed", "package_id": id,
-            "out_dir": root.join("output/generated")
-        });
+        let script: Value = Object::new()
+            .with("reason", "build-script-executed")
+            .with("package_id", id.clone())
+            .with(
+                "out_dir",
+                root.join("output/generated").to_str().unwrap().to_owned(),
+            )
+            .into();
         capture_compiler_input(
             root,
             &packages,
@@ -149,16 +167,39 @@ fn compiler_messages_external_roots_use_the_same_metadata_identity() {
         "git+https://example.test/repository?rev=pinned#1.0.0",
         "git+https://example.test/repository?rev=pinned#actual-package@1.0.0",
     ] {
-        let metadata = json!({"packages": [
-            {"id": id, "name": "actual-package", "version": "1.0.0", "manifest_path": "/selected/src/Cargo.toml"},
-            {"id": "registry+https://example.test/index#other@2", "name": "other", "version": "2", "manifest_path": "/excluded/src/Cargo.toml"}
-        ]});
+        let metadata: Value = Object::new()
+            .with(
+                "packages",
+                vec![
+                    Object::new()
+                        .with("id", id)
+                        .with("name", "actual-package")
+                        .with("version", "1.0.0")
+                        .with("manifest_path", "/selected/src/Cargo.toml"),
+                    Object::new()
+                        .with("id", "registry+https://example.test/index#other@2")
+                        .with("name", "other")
+                        .with("version", "2")
+                        .with("manifest_path", "/excluded/src/Cargo.toml"),
+                ],
+            )
+            .into();
         assert_eq!(
             selected_external_package_roots(scratch.path(), &metadata, &selection).unwrap(),
             vec![PathBuf::from("/selected/src")]
         );
     }
-    let contradictory = json!({"packages": [{"id": "git+https://example.test/repository#wrong@1.0.0", "name": "actual-package", "version": "1.0.0"}]});
+    let contradictory: Value = Object::new()
+        .with(
+            "packages",
+            vec![
+                Object::new()
+                    .with("id", "git+https://example.test/repository#wrong@1.0.0")
+                    .with("name", "actual-package")
+                    .with("version", "1.0.0"),
+            ],
+        )
+        .into();
     assert!(selected_external_package_roots(scratch.path(), &contradictory, &selection).is_err());
 }
 
@@ -176,12 +217,20 @@ fn runtime_unit(workspace: bool) -> CompilationUnit {
         mode: "build".into(),
         platform: None,
         features: vec![],
-        profile: json!({
-            "name": "pipeline", "opt_level": "3", "lto": "fat",
-            "codegen_units": 1, "debuginfo": 0, "incremental": false,
-            "debug_assertions": workspace, "overflow_checks": workspace,
-            "strip": {"resolved": {"Named": "symbols"}}
-        }),
+        profile: Object::new()
+            .with("name", "pipeline")
+            .with("opt_level", "3")
+            .with("lto", "fat")
+            .with("codegen_units", 1)
+            .with("debuginfo", 0)
+            .with("incremental", false)
+            .with("debug_assertions", workspace)
+            .with("overflow_checks", workspace)
+            .with(
+                "strip",
+                Object::new().with("resolved", Object::new().with("Named", "symbols")),
+            )
+            .into(),
         dependencies: vec![],
     }
 }
@@ -410,11 +459,11 @@ fn runtime_dependency_policy_is_checked_transitively() {
     let dependency = runtime_unit(false);
     validate_units(&[root.clone(), dependency.clone()], &[0]).expect("admitted");
     for (key, weakened) in [
-        ("opt_level", json!("2")),
-        ("lto", json!("thin")),
-        ("codegen_units", json!(16)),
-        ("debuginfo", json!(1)),
-        ("incremental", json!(true)),
+        ("opt_level", Value::from("2")),
+        ("lto", Value::from("thin")),
+        ("codegen_units", Value::from(16)),
+        ("debuginfo", Value::from(1)),
+        ("incremental", Value::from(true)),
     ] {
         let mut changed = dependency.clone();
         changed.profile[key] = weakened;
@@ -425,7 +474,7 @@ fn runtime_dependency_policy_is_checked_transitively() {
     }
     for key in ["debug_assertions", "overflow_checks"] {
         let mut changed = root.clone();
-        changed.profile[key] = json!(false);
+        changed.profile[key] = Value::from(false);
         assert!(
             validate_units(&[changed, dependency.clone()], &[0]).is_err(),
             "{key}"
@@ -440,7 +489,7 @@ fn host_build_tools_are_separate_from_runtime_code() {
     root.dependencies = vec![1];
     let mut build_tool = runtime_unit(false);
     build_tool.target_kinds = vec!["proc-macro".into()];
-    build_tool.profile["opt_level"] = json!("0");
+    build_tool.profile["opt_level"] = Value::from("0");
     validate_units(&[root.clone(), build_tool.clone()], &[0]).expect("host tool");
     build_tool.target_kinds = vec!["lib".into()];
     assert!(validate_units(&[root, build_tool], &[0]).is_err());

@@ -138,4 +138,107 @@ fn descriptor_missing_required_field_is_hard_fail() {
         "expected exactly one finding for the descriptor missing ring_fenced: {findings:?}"
     );
     assert_eq!(findings[0].code, "vendored-corpus-license-invalid");
+    let path = root.join("crates/some-crate/tests/vendored/bad-corpus/corpus.json");
+    let accepted = r#"{
+        "spdx_license":"first", "spdx_license":"MIT",
+        "source_url":"first", "source_url":"https://example.test/é中😀",
+        "attribution":"first", "attribution":"credited é中😀\n\"\\",
+        "ring_fenced":false, "ring_fenced":true,
+        "unowned_metadata":{"retained":true}
+    }"#;
+    std::fs::write(&path, accepted).unwrap();
+    let descriptor = super::load_vendored_corpus_descriptor(&path).unwrap();
+    assert_eq!(descriptor.spdx_license, "MIT");
+    assert_eq!(descriptor.source_url, "https://example.test/é中😀");
+    assert_eq!(descriptor.attribution, "credited é中😀\n\"\\");
+    assert!(descriptor.ring_fenced);
+    assert!(vendored_corpus_license_findings(&root).is_empty());
+
+    for (bytes, field) in [
+        (
+            r#"{"spdx_license":null,"source_url":"source","attribution":"credit","ring_fenced":true}"#,
+            "spdx_license",
+        ),
+        (
+            r#"{"spdx_license":"MIT","source_url":false,"attribution":"credit","ring_fenced":true}"#,
+            "source_url",
+        ),
+        (
+            r#"{"spdx_license":"MIT","source_url":"source","attribution":1,"ring_fenced":true}"#,
+            "attribution",
+        ),
+        (
+            r#"{"spdx_license":"MIT","source_url":"source","attribution":"credit","ring_fenced":"true"}"#,
+            "ring_fenced",
+        ),
+        (
+            r#"{"spdx_license":"MIT","source_url":"source","attribution":"credit","ring_fenced":null}"#,
+            "ring_fenced",
+        ),
+    ] {
+        std::fs::write(&path, bytes).unwrap();
+        let error = super::load_vendored_corpus_descriptor(&path)
+            .err()
+            .unwrap()
+            .to_string();
+        assert!(
+            error.contains("corpus.json")
+                && error.contains(&format!("missing required field {field:?}")),
+            "{error}"
+        );
+        let findings = vendored_corpus_license_findings(&root);
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].code, "vendored-corpus-license-invalid");
+    }
+    std::fs::write(&path, "not JSON").unwrap();
+    let error = super::load_vendored_corpus_descriptor(&path)
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(
+        error.contains("corpus.json") && error.contains("invalid JSON"),
+        "{error}"
+    );
+    let absent = path.with_file_name("absent.json");
+    let error = super::load_vendored_corpus_descriptor(&absent)
+        .err()
+        .unwrap()
+        .to_string();
+    assert!(
+        error.contains("absent.json") && error.contains("cannot read corpus.json"),
+        "{error}"
+    );
+}
+
+/// Preserve the complete selected audit packet without an ontology or producer.
+#[test]
+fn box_roles_json_preserves_authored_audit_packet() {
+    use gmeow_validate::box_roles::{BoxRoleAudit, RoleFinding};
+    let finding = |term: &str| RoleFinding {
+        term: term.into(),
+        kind: "class".into(),
+        source: "authored.ttl".into(),
+        message: "authored".into(),
+    };
+    let audit = BoxRoleAudit {
+        term_count: usize::MAX,
+        role_counts: std::collections::BTreeMap::from([
+            ("z-role".into(), 0),
+            ("a-role é中😀".into(), usize::MAX),
+        ]),
+        missing: vec![finding("urn:missing:z"), finding("urn:missing:a")],
+        invalid: vec![finding("urn:invalid:é中😀\n\"\\")],
+    };
+    let bytes = super::box_roles_json(&audit).unwrap().into_bytes();
+    let reference = include_str!("dev_gates/fixtures/box-roles-json-v1.txt");
+    assert_eq!(reference.lines().count(), 1);
+    let mut fields = reference.split_whitespace();
+    assert_eq!(fields.next(), Some("box-roles"));
+    let digest = fields.next().unwrap();
+    let original = purrdf_hash::hex::decode(fields.next().unwrap()).unwrap();
+    assert!(fields.next().is_none());
+    assert_eq!(purrdf::ContentDigest::of(&bytes).to_hex(), digest);
+    assert_eq!(bytes, original);
+    assert!(bytes.ends_with(b"\n"));
+    assert!(!bytes.ends_with(b"\n\n"));
 }

@@ -84,12 +84,19 @@ fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
-fn observation<T: serde::de::DeserializeOwned>(name: &str) -> T {
+/// Load authenticated producer evidence before decoding its complete typed outcome.
+fn observation<T: purrdf_lex::json::record::FromJson>(name: &str) -> T {
     let bytes = gmeow_bundle_import::load_authenticated_corpus_artifact(&repo_root(), name).expect(
         "load the exact authenticated producer coherence observation; tests never produce it",
     );
-    let result: Result<T, gmeow_errors::RecordedDiag> =
-        serde_json::from_slice(&bytes).expect("decode the selected typed coherence observation");
+    let value = purrdf_lex::json::read_slice(&bytes, purrdf_lex::json::Limits::DEFAULT)
+        .expect("parse the selected coherence observation without normalizing typed records");
+    let result = gmeow_errors::json::read_recorded_result::<T>(
+        &value,
+        "coherence observation outcome",
+        "one coherence observation outcome variant",
+    )
+    .expect("decode the selected typed coherence observation");
     result.expect("the explicit coherence producer must complete the selected observation")
 }
 
@@ -107,8 +114,200 @@ fn synthetic_verdict(
     dl_consistency(input, &domains)
 }
 
+/// Preserve complete original artifact bytes, identities and typed outcome hydration.
+fn assert_transport<T: purrdf_lex::json::record::ToJson + purrdf_lex::json::record::FromJson>(
+    name: &str,
+    outcome: &Result<T, gmeow_errors::RecordedDiag>,
+) {
+    let reference = include_str!("fixtures/coherence-native-json-v1.txt")
+        .lines()
+        .find(|line| line.starts_with(&format!("{name} ")))
+        .expect("complete original observation reference");
+    let mut fields = reference.split_whitespace();
+    assert_eq!(fields.next(), Some(name));
+    let sha256 = fields.next().unwrap();
+    let original = purrdf_hash::hex::decode(fields.next().unwrap()).unwrap();
+    let value = gmeow_errors::json::recorded_result_to_json(outcome);
+    let bytes = purrdf_lex::json::write_compact(&value).into_bytes();
+    assert_eq!(bytes, original, "{name} complete artifact bytes");
+    assert_eq!(purrdf::ContentDigest::of(&bytes).to_hex(), sha256);
+    let parsed =
+        purrdf_lex::json::read_slice(&original, purrdf_lex::json::Limits::DEFAULT).unwrap();
+    let decoded = gmeow_errors::json::read_recorded_result::<T>(
+        &parsed,
+        "coherence observation outcome",
+        "one coherence observation outcome variant",
+    )
+    .unwrap();
+    assert_eq!(gmeow_errors::json::recorded_result_to_json(&decoded), value);
+}
+
+/// Preserve coherence artifacts and require the native gate to catch a disjoint clash.
 #[test]
 fn dl_consistency_gate_catches_injected_disjoint_clash() {
+    // Authored evidence exercises the actual artifact transport without corpus production.
+    {
+        use gmeow_logic::coherence_observations::FoundationObservation;
+        use gmeow_logic::modal::{ModalEvaluation, ModalFrontier, ModalOp, ModalWorldEvidence};
+        use gmeow_logic::reason::LogicalGraph;
+        use gmeow_logic::reason::dl::{
+            DlCoverage, DlGap, DlVerdict, InconsistencyWitness, UnsatClass,
+        };
+        let text = "authored é中😀\n\"\\";
+        let modal = ModalEvaluation {
+            context: "urn:context".into(),
+            formula: "urn:formula".into(),
+            operator: ModalOp::Box,
+            body: "urn:body".into(),
+            evaluation_world: "urn:world".into(),
+            accessibility_relation: "urn:relation".into(),
+            atom_subject: "urn:subject".into(),
+            atom_predicate: "urn:predicate".into(),
+            atom_object: text.into(),
+            frontier: ModalFrontier::CompletedFinitePredecessor {
+                worlds: vec![ModalWorldEvidence {
+                    world: "urn:successor".into(),
+                    atom_present: false,
+                }],
+            },
+            conclusion_predicate: "urn:conclusion".into(),
+            conclusion_object: text.into(),
+        };
+        let row = FoundationObservation {
+            modal_evaluation: Some(modal),
+            graph: "urn:world".into(),
+            subject: "urn:subject".into(),
+            predicate: "urn:predicate".into(),
+            object: text.into(),
+            rule_iri: "urn:rule".into(),
+            source_quad_ids: vec!["urn:premise:2".into(), "urn:premise:1".into()],
+            derivation_id: "urn:derivation".into(),
+        };
+        let ordinary = FoundationObservation {
+            modal_evaluation: None,
+            graph: "urn:world".into(),
+            subject: "urn:subject".into(),
+            predicate: "urn:predicate".into(),
+            object: text.into(),
+            rule_iri: "urn:ordinary-rule".into(),
+            source_quad_ids: vec![],
+            derivation_id: "urn:ordinary-derivation".into(),
+        };
+        let verdict = DlVerdict {
+            consistent: false,
+            unsatisfiable_classes: vec![UnsatClass {
+                class: "urn:class".into(),
+                world: "urn:world".into(),
+                premises: vec![("urn:subject".into(), "urn:predicate".into(), text.into())],
+            }],
+            inconsistencies: vec![InconsistencyWitness {
+                individual: "urn:individual".into(),
+                world: "urn:world".into(),
+                premises: vec![("urn:other".into(), "urn:predicate".into(), text.into())],
+            }],
+            coverage: DlCoverage {
+                present: vec!["present".into()],
+                decided: vec!["decided".into()],
+                unsupported: vec!["unsupported".into()],
+            },
+            gaps: vec![DlGap::new("authored.gap", text)],
+            boundary_findings: vec![
+                gmeow_errors::Finding::new(
+                    gmeow_errors::Severity::Warning,
+                    "authored.boundary",
+                    text,
+                )
+                .with_tool("authored"),
+            ],
+        };
+        let named: Result<DisjointObservation, gmeow_errors::RecordedDiag> =
+            Ok(DisjointObservation {
+                disjoint_world: LogicalGraph::Named(purrdf::TermValue::iri("urn:world")),
+                verdict: verdict.clone(),
+            });
+        let default: Result<DisjointObservation, gmeow_errors::RecordedDiag> =
+            Ok(DisjointObservation {
+                disjoint_world: LogicalGraph::Default,
+                verdict,
+            });
+        let relcomp: Result<RelcompObservation, gmeow_errors::RecordedDiag> =
+            Ok(RelcompObservation {
+                clean_offenders: vec![text.into()],
+                poisoned_offenders: vec!["urn:offender:2".into(), "urn:offender:1".into()],
+            });
+        let characteristic: Result<CharacteristicObservation, gmeow_errors::RecordedDiag> =
+            Ok(CharacteristicObservation {
+                carrier_facts: [IriQuad::new(
+                    "urn:subject",
+                    "urn:predicate",
+                    "urn:object",
+                    "urn:world",
+                )]
+                .into_iter()
+                .collect(),
+                clean_violations: vec![("urn:subject".into(), text.into())],
+                clean_disagreements: vec![text.into()],
+                poisoned: vec![row, ordinary],
+            });
+        let refusal: gmeow_errors::RecordedDiag = purrdf_lex::json::record::from_slice(br#"{"root":{"fingerprint":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"stage":"authored","grade":{"severity":"error","category":"data-shape-violation","standpoint":"binding"},"code":"authored.refusal","observations":[],"frames":[],"antecedents":[],"source_ctx":{"location":{},"focus":null,"term_role":null},"attributions":[],"advice":[],"labels":[],"tags":[],"knowledge":"supported","emitted_at":{"file":"authored.rs","line":1,"column":2}},"causes":[]}"#).unwrap();
+        let refused: Result<DisjointObservation, gmeow_errors::RecordedDiag> = Err(refusal);
+        assert_transport("disjoint-named", &named);
+        assert_transport("disjoint-default", &default);
+        assert_transport("relcomp", &relcomp);
+        assert_transport("characteristic", &characteristic);
+        assert_transport("refusal", &refused);
+
+        let named_value = gmeow_errors::json::recorded_result_to_json(&named);
+        for arity in [1, 2, 4] {
+            let mut malformed = named_value.clone();
+            malformed["Ok"]["verdict"]["unsatisfiable_classes"][0]["premises"][0] =
+                purrdf_lex::json::Value::from(vec!["urn:part"; arity]);
+            let error = gmeow_errors::json::read_recorded_result::<DisjointObservation>(
+                &malformed,
+                "coherence observation outcome",
+                "one coherence observation outcome variant",
+            )
+            .unwrap_err();
+            assert!(
+                error.to_string().contains("exactly 3 string cells"),
+                "{error}"
+            );
+        }
+        let characteristic_value = gmeow_errors::json::recorded_result_to_json(&characteristic);
+        for arity in [1, 3] {
+            let mut malformed = characteristic_value.clone();
+            malformed["Ok"]["clean_violations"][0] =
+                purrdf_lex::json::Value::from(vec!["urn:part"; arity]);
+            let error = gmeow_errors::json::read_recorded_result::<CharacteristicObservation>(
+                &malformed,
+                "coherence observation outcome",
+                "one coherence observation outcome variant",
+            )
+            .unwrap_err();
+            assert!(
+                error.to_string().contains("exactly 2 string cells"),
+                "{error}"
+            );
+        }
+
+        let mut open = characteristic_value;
+        open["Ok"].as_object_mut().unwrap().insert(
+            "extension".to_owned(),
+            purrdf_lex::json::Value::from("future metadata"),
+        );
+        open["Ok"]["poisoned"][0]
+            .as_object_mut()
+            .unwrap()
+            .remove("modal_evaluation");
+        let admitted = gmeow_errors::json::read_recorded_result::<CharacteristicObservation>(
+            &open,
+            "coherence observation outcome",
+            "one coherence observation outcome variant",
+        )
+        .unwrap()
+        .unwrap();
+        assert!(admitted.poisoned[0].modal_evaluation.is_none());
+    }
     // Baseline: the same world without the disjointness is coherent.
     let benign = dataset_from_bytes(benign_nquads().as_bytes(), NativeRdfFormat::NQuads)
         .expect("parse benign N-Quads");

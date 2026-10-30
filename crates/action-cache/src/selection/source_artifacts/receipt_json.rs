@@ -3,7 +3,7 @@
 
 //! Complete native receipt payloads; hydration preserves stored fields verbatim.
 
-use super::{Payload, SourceArtifactOrigin};
+use super::{Payload, SelectedSourceArtifact, SourceArtifactOrigin, SourceArtifactSelector};
 use purrdf_lex::json::{
     Value,
     record::{DecodeError, FromJson, Record},
@@ -51,6 +51,48 @@ impl FromJson for Payload {
             })?,
         };
         fields.deny_unknown()?;
+        Ok(result)
+    }
+}
+
+::purrdf_lex::json_record! { impl ToJson for SelectedSourceArtifact {
+    "source" => source,
+    "artifact" => artifact,
+    "digest" => digest,
+    "bytes" => bytes,
+    "action" => action,
+}}
+
+impl FromJson for SelectedSourceArtifact {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct SelectedSourceArtifact")?;
+        let result = Self {
+            source: fields.required("source")?,
+            artifact: fields.required("artifact")?,
+            digest: fields.required("digest")?,
+            bytes: fields.required_with("bytes", |value| {
+                value
+                    .as_u64()
+                    .ok_or_else(|| DecodeError::invalid_value(value, "u64"))
+            })?,
+            action: fields.required("action")?,
+        };
+        fields.deny_unknown()?;
+        Ok(result)
+    }
+}
+
+::purrdf_lex::json_record! { impl ToJson for SourceArtifactSelector {
+    "source_artifacts" => source_artifacts,
+}}
+
+impl FromJson for SourceArtifactSelector {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut fields = Record::new(value, "struct SourceArtifactSelector")?;
+        let result = Self {
+            source_artifacts: fields.required("source_artifacts")?,
+        };
+        // This record projects its own fields from the shared selector root.
         Ok(result)
     }
 }

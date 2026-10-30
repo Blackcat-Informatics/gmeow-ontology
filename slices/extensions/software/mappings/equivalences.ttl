@@ -162,11 +162,11 @@ gmeow:Commit skos:closeMatch swh:Revision {|
     gmeow:comment "Software Heritage Revision is a commit/revision with author, committer, timestamp, and tree; direct correspondence to GMEOW Commit."
 |} .
 
-gmeow:Release skos:closeMatch swh:Release {|
+gmeow:Release skos:relatedMatch swh:Release {|
     gmeow:sssomFile "gmeow-software.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
-    gmeow:comment "Software Heritage Release is a named revision (tag); direct correspondence to GMEOW Release."
+    gmeow:comment "Software Heritage Release is a tagged-object artifact; GMEOW Release is the publishing event, so this is a loose domain overlap rather than object identity."
 |} .
 
 gmeow:Repository skos:closeMatch swh:Origin {|
@@ -221,4 +221,11 @@ gmeow:hasSoftwareName skos:broadMatch schema:name {|
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.6 ;
     gmeow:comment "schema:name — downcast: a software project's structured name objects flatten to the schema:name literal in projection"
+|} .
+
+gmeow:AnnotatedTag skos:closeMatch swh:Release {|
+    gmeow:sssomFile "gmeow-software.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9 ;
+    gmeow:comment "Software Heritage Release is the closest tagged-object counterpart of AnnotatedTag. This informal concept linkage does not identify Git bytes, release events or reference pointers."
 |} .

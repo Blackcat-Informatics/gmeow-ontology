@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/query-context/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+
+# An archive reports a provisional supported answer and retains what it could
+# not inspect. The reader acknowledges a locked source without removing its loss.
+ex:archiveRequest a gmeow:InformationObject .
+ex:reader a gmeow:Agent .
+ex:answer a gmeow:QueryAnswer ;
+    gmeow:queryAnswerFor ex:archiveRequest ;
+    gmeow:queryLossLedger ex:ledger ;
+    gmeow:queryInformationState logic:InfoSupported ;
+    gmeow:queryEvaluationStatus logic:BudgetExhausted ;
+    gmeow:queryCompletenessStatus logic:Incomplete .
+
+ex:ledger a gmeow:QueryLossLedger ;
+    gmeow:ledgerLoss ex:lockedLoss , ex:precisionLoss .
+ex:protectedArchive a gmeow:InformationObject .
+ex:monthIndex a gmeow:InformationObject .
+ex:requestedDatePrecision a gmeow:InformationObject .
+ex:lockedLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:protectedArchive ;
+    gmeow:lossCause gmeow:lossVaultLocked ;
+    gmeow:lossAcceptedBy ex:reader .
+ex:precisionLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:monthIndex ;
+    gmeow:lossCause gmeow:lossPrecisionCoarser ;
+    gmeow:lossConstraint ex:requestedDatePrecision .
+
+# The source declares a complete model of three indexing contexts within this
+# specific scope. It makes no claim to enumerate every global precisification.
+ex:indexingScope a gmeow:InformationObject .
+ex:interpretation a gmeow:QueryFrameInterpretation ;
+    gmeow:interpretationScope ex:indexingScope ;
+    gmeow:interpretationComplete true ;
+    gmeow:interpretationMember ex:editorialContext , ex:sharedContext , ex:technicalContext .
+ex:editorialContext a logic:World .
+ex:sharedContext a logic:World .
+ex:technicalContext a logic:World .
+
+ex:editorialView a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:technicalView a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:sharedView a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+ex:bothViews a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+
+ex:editorialExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:editorialView ;
+    gmeow:extentMember ex:editorialContext , ex:sharedContext .
+ex:technicalExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:technicalView ;
+    gmeow:extentMember ex:sharedContext , ex:technicalContext .
+ex:intersectionExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:sharedView ;
+    gmeow:extentMember ex:sharedContext .
+ex:unionExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:bothViews ;
+    gmeow:extentMember ex:editorialContext , ex:sharedContext , ex:technicalContext .
+
+# The meet admits only the shared context. Requiring universal truth in both
+# input views needs all three contexts; neither descriptor asserts a proposition true.
+ex:meet a gmeow:StandpointMeetComposition ;
+    gmeow:compositionInterpretation ex:interpretation ;
+    gmeow:compositionLeft ex:editorialExtent ;
+    gmeow:compositionRight ex:technicalExtent ;
+    gmeow:compositionResult ex:intersectionExtent ;
+    gmeow:compositionRealized true ;
+    gmeow:compositionCompatible true ;
+    gmeow:compositionFrame ex:sharedView .
+ex:trueInBothDomain a gmeow:StandpointTruthUnionComposition ;
+    gmeow:compositionInterpretation ex:interpretation ;
+    gmeow:compositionLeft ex:editorialExtent ;
+    gmeow:compositionRight ex:technicalExtent ;
+    gmeow:compositionResult ex:unionExtent ;
+    gmeow:compositionRealized true ;
+    gmeow:compositionCompatible true ;
+    gmeow:compositionFrame ex:bothViews .
+
+# A pending request can name the operands without claiming a realized result.
+ex:pendingMeet a gmeow:StandpointMeetComposition ;
+    gmeow:compositionInterpretation ex:interpretation ;
+    gmeow:compositionLeft ex:editorialExtent ;
+    gmeow:compositionRight ex:technicalExtent .
+
+# The archive also entertains disjoint scenario alternatives. Their conjunction
+# has a retained empty extent and no usable compositionFrame in this model.
+ex:firstScenario a gmeow:Scenario .
+ex:secondScenario a gmeow:Scenario .
+ex:firstScenarioExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:firstScenario ;
+    gmeow:extentMember ex:editorialContext .
+ex:secondScenarioExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation ;
+    gmeow:extentFrame ex:secondScenario ;
+    gmeow:extentMember ex:technicalContext .
+ex:emptyScenarioExtent a gmeow:QueryFrameExtent ;
+    gmeow:extentInterpretation ex:interpretation .
+ex:scenarioConjunction a gmeow:ScenarioConjunctionComposition ;
+    gmeow:compositionInterpretation ex:interpretation ;
+    gmeow:compositionLeft ex:firstScenarioExtent ;
+    gmeow:compositionRight ex:secondScenarioExtent ;
+    gmeow:compositionResult ex:emptyScenarioExtent ;
+    gmeow:compositionRealized true ;
+    gmeow:compositionCompatible false .

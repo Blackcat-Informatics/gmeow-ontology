@@ -1,0 +1,150 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/recall-context/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# An archive assistant's conversation slot has a persistent identity. The
+# pointer targets remain existing records; the history never copies them.
+ex:assistant a gmeow:Agent .
+ex:conversationRole a gmeow:InformationObject ;
+    rdfs:label "current conversation"@en .
+ex:conversationHistory a logic:Path .
+ex:conversationSlot a gmeow:AttentionSlot ;
+    gmeow:slotBearer ex:assistant ;
+    gmeow:slotRole ex:conversationRole ;
+    gmeow:slotHistory ex:conversationHistory ;
+    gmeow:slotState ex:earlierPosition , ex:currentPosition .
+ex:earlierConversation a gmeow:InformationObject .
+ex:currentConversation a gmeow:InformationObject .
+ex:earlierPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:conversationSlot ;
+    gmeow:slotPointer ex:earlierConversation .
+ex:currentPosition a gmeow:SlotPosition ;
+    gmeow:positionInSlot ex:conversationSlot ;
+    gmeow:slotPointer ex:currentConversation ;
+    logic:temporallySucceeds ex:earlierPosition .
+ex:earlierAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:conversationSlot gmeow:slotState ex:earlierPosition )>> ;
+    gmeow:wasAttributedTo ex:assistant ;
+    gmeow:displayable false .
+ex:currentAssignment a gmeow:SlotAssignmentClaim ;
+    rdf:reifies <<( ex:conversationSlot gmeow:slotState ex:currentPosition )>> ;
+    gmeow:wasAttributedTo ex:assistant ;
+    gmeow:supersedes ex:earlierAssignment .
+
+# The condition and capability are declarations for the consuming service.
+# Naming them is not evidence that the condition obtains or the service ran.
+ex:conversationReady a logic:Situation .
+ex:recallCapability a logic:EngineCapability .
+ex:turnScope a gmeow:RecallScope ;
+    rdfs:label "Recent turns of the selected conversation"@en ;
+    gmeow:scopeSlot ex:conversationSlot .
+ex:recallTemplate a logic:ActionSchema ;
+    logic:precondition ex:conversationReady ;
+    logic:capability ex:recallCapability .
+
+# Reuse one template twice with two allocation identities. Each 0.4 contributes
+# separately: RecallBudgetSumRule derives a total of 0.8, not 0.4.
+ex:firstRecall a gmeow:RecallOperation ;
+    gmeow:recallSchema ex:recallTemplate ;
+    logic:precondition ex:conversationReady ;
+    logic:capability ex:recallCapability ;
+    gmeow:recallScope ex:turnScope ;
+    gmeow:recallDepth gmeow:recallDepthOrdinary ;
+    gmeow:recollectionForm gmeow:recollectionFormSummaryHandle ;
+    gmeow:recallLatest "8"^^xsd:positiveInteger ;
+    gmeow:budgetShare 0.4 .
+ex:secondRecall a gmeow:RecallOperation ;
+    gmeow:recallSchema ex:recallTemplate ;
+    logic:precondition ex:conversationReady ;
+    logic:capability ex:recallCapability ;
+    gmeow:recallScope ex:turnScope ;
+    gmeow:recallDepth gmeow:recallDepthOrdinary ;
+    gmeow:recollectionForm gmeow:recollectionFormVerbatim ;
+    gmeow:budgetShare 0.4 .
+ex:contextPlan a logic:Plan , gmeow:InformationObject ;
+    logic:prescriptionKind gmeow:prescriptionKindContextPlan ;
+    gmeow:contextPlanCondition ex:conversationReady ;
+    logic:planBody ex:sequence ;
+    logic:planGoal ex:contextAvailable ;
+    logic:planSuccessMode logic:StrongPlanSuccess .
+ex:contextAvailable a logic:AchievementGoal .
+ex:sequence a logic:SerialConjunction ;
+    logic:leftOperand ex:firstRecall ; logic:rightOperand ex:secondRecall .
+ex:budget a gmeow:RecallBudget ;
+    gmeow:budgetForPlan ex:contextPlan ;
+    gmeow:budgetOperation ex:firstRecall , ex:secondRecall .
+
+# This version explicitly selects externally maintained immutable IRI identity.
+# Its owner retains historical versions; this graph claims no hash comparison.
+ex:version a logic:PrescriptionVersion ;
+    logic:prescriptionOf ex:contextPlan ;
+    logic:prescriptionIdentityMode logic:ImmutableIriPrescriptionIdentity .
+ex:inputs a logic:InputSnapshot ;
+    logic:snapshotDigest "blake3:6b5ac8f3454f2c1cbe8fdaf1bfc46925c48a6f10d316e7ce61929c90aa9ae421" .
+ex:enactment a logic:Enactment ;
+    logic:enactsPrescriptionVersion ex:version ;
+    logic:enactmentInputSnapshot ex:inputs .
+
+# The assembly selects per-record accounting. Neither exclusion borrows the
+# other's explanation, and there is no additional aggregate reason.
+ex:selectedNote a gmeow:InformationObject .
+ex:otherNote a gmeow:InformationObject .
+ex:largeNote a gmeow:InformationObject .
+ex:duplicateNote a gmeow:InformationObject .
+ex:guidanceVersion a gmeow:InformationObject .
+ex:assembly a logic:PerRecordExclusionAssembly ;
+    logic:assemblyForEnactment ex:enactment ;
+    logic:assemblyGuidanceVersion ex:guidanceVersion ;
+    logic:assemblyIncluded ex:selectedNote , ex:otherNote ;
+    logic:assemblyExcluded ex:largeNote , ex:duplicateNote .
+ex:largeExclusion a logic:AssemblyExclusion ;
+    rdf:reifies <<( ex:assembly logic:assemblyExcluded ex:largeNote )>> ;
+    gmeow:exclusionReason "The record exceeded the remaining token allocation."@en .
+ex:duplicateExclusion a logic:AssemblyExclusion ;
+    rdf:reifies <<( ex:assembly logic:assemblyExcluded ex:duplicateNote )>> ;
+    gmeow:exclusionReason "An earlier recall operation had already surfaced this record."@en .
+
+ex:cue a gmeow:Question ;
+    gmeow:questionText "What did we decide about the archive opening?"@en .
+ex:assistant gmeow:asks ex:cue .
+ex:answer a gmeow:RecallAnswer ;
+    gmeow:answers ex:cue ;
+    gmeow:recallAsker ex:assistant ;
+    gmeow:answerDepth gmeow:recallDepthOrdinary ;
+    gmeow:recallOutcome gmeow:recallOutcomeRecollections ;
+    gmeow:recallComplete false ;
+    gmeow:eventTime "2026-10-30T18:00:00Z"^^xsd:dateTime ;
+    gmeow:recalledRecord ex:selectedNote , ex:otherNote .
+ex:firstResult a gmeow:RecalledRecordClaim ;
+    rdf:reifies <<( ex:answer gmeow:recalledRecord ex:selectedNote )>> ;
+    gmeow:recallRank "1"^^xsd:positiveInteger .
+ex:secondResult a gmeow:RecalledRecordClaim ;
+    rdf:reifies <<( ex:answer gmeow:recalledRecord ex:otherNote )>> ;
+    gmeow:recallRank "2"^^xsd:positiveInteger .
+ex:index a gmeow:VectorIndex .
+ex:retrieval a gmeow:RetrievalEvent ;
+    gmeow:againstIndex ex:index ;
+    gmeow:subEventOf ex:answer .
+ex:verdict a gmeow:RecallVerdict ;
+    gmeow:verdictOn ex:answer ;
+    gmeow:wasAttributedTo ex:assistant ;
+    gmeow:recallVerdict gmeow:recallVerdictPartly ;
+    gmeow:verdictWords "That finds the opening time, but not the decision about admission."@en .
+
+# A second reported search was complete within its own cue scope and empty.
+# It is not represented as the incomplete answer above.
+ex:otherCue a gmeow:Question ;
+    gmeow:questionText "Did this conversation discuss a second opening date?"@en .
+ex:assistant gmeow:asks ex:otherCue .
+ex:emptyAnswer a gmeow:RecallAnswer ;
+    gmeow:answers ex:otherCue ;
+    gmeow:recallAsker ex:assistant ;
+    gmeow:answerDepth gmeow:recallDepthOrdinary ;
+    gmeow:recallOutcome gmeow:recallOutcomeEmptyComplete ;
+    gmeow:recallComplete true .

@@ -46,6 +46,229 @@ gmeow:Collection
     gmeow:howToUse "Type the aggregate gmeow:Collection and attach its members via gmeow:hasPart; an ordered streaming aggregate is the gmeow:DataFeed specialization."@x-gmeow-english ;
     gmeow:useWhen "Use for an aggregation of resources curated as a unit — an anthology, album, or gallery at the gmeow:Work tier; its members ride the universal part spine."@x-gmeow-english .
 
+# Source structural atoms and the open segment-kind vocabulary.
+gmeow:ContentBlock
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:ContentSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source Content Block"@x-gmeow-english ;
+    skos:definition "An atomic structural unit within one source division under the source's declared segmentation. It inherits ContentSegment identity; indivisibility constrains retrieval cuts rather than forbidding internal text, media or table-cell structure."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record a gmeow:ContentBlock ."@x-gmeow-english .
+
+gmeow:blockOf
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ContentBlock ;
+    logic:range gmeow:ContentSegment ;
+    logic:subPropertyOf gmeow:segmentOf ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "block of division"@x-gmeow-english ;
+    skos:definition "The immediate source division containing a ContentBlock. It specializes segmentOf without inheriting its transitivity, so the direct container remains distinct from all structural ancestors."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:record gmeow:blockOf ex:target ."@x-gmeow-english .
+
+gmeow:segmentTypeVolume
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "volume"@x-gmeow-english ;
+    skos:definition "One structural volume in a larger work or release. This segment classification does not identify a published manifestation or physical copy."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeVolume ."@x-gmeow-english .
+
+gmeow:segmentTypeHeading
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "heading"@x-gmeow-english ;
+    skos:definition "A source heading that names or introduces a division or topic, treated as one structural segment."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeHeading ."@x-gmeow-english .
+
+gmeow:segmentTypeVerse
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "verse"@x-gmeow-english ;
+    skos:definition "A source-designated verse unit, such as a poetic line or stanza, whose boundary is supplied rather than inferred from typography alone."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeVerse ."@x-gmeow-english .
+
+gmeow:segmentTypeDialogue
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "dialogue"@x-gmeow-english ;
+    skos:definition "A source-designated unit of spoken dialogue. Speaker attribution is separate from this structural classification."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeDialogue ."@x-gmeow-english .
+
+gmeow:segmentTypeStageDirection
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "stage direction"@x-gmeow-english ;
+    skos:definition "A dramatic direction about action, delivery or staging, distinct from a character's spoken dialogue."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeStageDirection ."@x-gmeow-english .
+
+gmeow:segmentTypeCodeListing
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "code listing"@x-gmeow-english ;
+    skos:definition "A displayed source-code listing retained as document content. Classification does not execute it or resolve its programming language."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeCodeListing ."@x-gmeow-english .
+
+gmeow:segmentTypeEquation
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "equation display"@x-gmeow-english ;
+    skos:definition "A source-designated mathematical display, retaining its original notation without asserting a parsed expression or a true equality."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeEquation ."@x-gmeow-english .
+
+gmeow:segmentTypeTable
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "table"@x-gmeow-english ;
+    skos:definition "A documentary table arranging source cells by rows and columns. It is not thereby a mathematical matrix of scalars."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeTable ."@x-gmeow-english .
+
+gmeow:segmentTypeFigure
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "figure"@x-gmeow-english ;
+    skos:definition "A source figure unit, which may contain a media artifact and adjacent caption while remaining distinct from the media file itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeFigure ."@x-gmeow-english .
+
+gmeow:segmentTypeFormalBlock
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "formal exposition block"@x-gmeow-english ;
+    skos:definition "A source-designated unit of formal exposition whose printed role is carried separately by formalKind. Its layout alone establishes no mathematical truth."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeFormalBlock ."@x-gmeow-english .
+
+gmeow:segmentTypeEpigraph
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "epigraph"@x-gmeow-english ;
+    skos:definition "A source-designated introductory quotation or motto associated with a work or division."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeEpigraph ."@x-gmeow-english .
+
+gmeow:segmentTypeQuotation
+    a gmeow:ContentSegmentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "quotation block"@x-gmeow-english ;
+    skos:definition "A source-designated block of quoted material. The classification does not invent an author, quotation target or endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this explicit part of the source structure or apparatus with its original evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring execution, identity, formal truth or successful verification from document layout or source wording alone."@x-gmeow-english ;
+    gmeow:howToUse "Preserve source identity and exact-statement attribution; keep unresolved or missing information explicit without invented defaults."@x-gmeow-english ;
+    skos:example "Retain this source meaning: ex:block gmeow:segmentType gmeow:segmentTypeQuotation ."@x-gmeow-english .
+
+
+
+gmeow:ContentBlockContainerAcyclicConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "source block containment acyclicity"@x-gmeow-english ;
+    skos:definition "A source block cannot reach itself through a nonempty chain of immediate block containers. The obligation preserves structural identity without executing a chunker."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:ContentBlockContainerAcyclicConstraint logic:formalizes gmeow:blockOf ."@x-gmeow-english ;
+    logic:formalizes gmeow:blockOf ;
+    logic:message "A source block cannot reach itself through a nonempty chain of immediate block containers. The obligation preserves structural identity without executing a chunker." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "parent" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:blockOf ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "parent" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:transitiveReach ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:blockOf ],
+                        [ logic:termIndex 2 ; logic:termVariable "this" ] ] ] ] ] .
+
+gmeow:ContentBlockPositionUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "source block position uniqueness"@x-gmeow-english ;
+    skos:definition "Within one immediate source division, one structural index identifies one ContentBlock. Duplicate indices are rejected as conflicting records rather than merged by identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic consistency of the supplied source inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this obligation executes a producer, parser, proof checker or table renderer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact source evidence when a supplied structure violates the obligation; never repair it with invented defaults."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:ContentBlockPositionUniquenessConstraint logic:formalizes gmeow:blockOf ."@x-gmeow-english ;
+    logic:formalizes gmeow:blockOf ;
+    logic:message "Within one immediate source division, one structural index identifies one ContentBlock. Duplicate indices are rejected as conflicting records rather than merged by identity." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "parent" ], [ logic:termIndex 2 ; logic:termVariable "index" ], [ logic:termIndex 3 ; logic:termVariable "other" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:blockOf ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "parent" ] ],
+                [ a logic:Formula ; logic:relation gmeow:segmentIndex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "index" ] ],
+                [ a logic:Formula ; logic:relation gmeow:blockOf ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ],
+                        [ logic:termIndex 1 ; logic:termVariable "parent" ] ],
+                [ a logic:Formula ; logic:relation gmeow:segmentIndex ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ],
+                        [ logic:termIndex 1 ; logic:termVariable "index" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:blockOf ; logic:allValuesFrom gmeow:ContentSegment ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ContentBlock ; logic:closureKey "https://blackcatinformatics.ca/gmeow/blockOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:blockOf ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ContentSegment ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:segmentType ; logic:allValuesFrom gmeow:ContentSegmentType ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ContentBlock ; logic:closureKey "https://blackcatinformatics.ca/gmeow/segmentType" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ContentBlock logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:segmentIndex ; logic:allValuesFrom xsd:integer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ContentBlock ; logic:closureKey "https://blackcatinformatics.ca/gmeow/segmentIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+
 gmeow:ContentSegment
     a logic:Kind ,
         logic:Class ;
@@ -363,16 +586,16 @@ gmeow:citeAs
 
 gmeow:caption
     a logic:DatatypeProperty ;
-    rdfs:domain gmeow:MediaObject ;
+    logic:domain [ logic:unionOf ( gmeow:MediaObject gmeow:ContentSegment ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "caption"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "A caption for a media object — the short text shown with an image, audio, or video (schema:caption). Non-functional."@x-gmeow-english ;
-    skos:example "ex:photo gmeow:caption \"Sunset over the harbour, 2019.\"@en ."@x-gmeow-english ;
+    skos:definition "A caption for a media object or structural content segment, displayed alongside the content. Non-functional; a caption does not make a segment a MediaObject."@x-gmeow-english ;
+    skos:example "A structural segment carries a displayed caption: ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the full verbatim transcript of audio/video (use gmeow:transcript) and avoid it for the work's title (use gmeow:hasTitle / gmeow:title)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Attach the caption literal on gmeow:caption with a language tag; it projects to schema:caption. Use gmeow:transcript for the full audio text."@x-gmeow-english ;
-    gmeow:useWhen "Use for the short descriptive text displayed alongside an image, audio, or video; non-functional, so localized captions coexist."@x-gmeow-english .
+    gmeow:howToUse "Attach the original literal with its language and direction. The schema profile uses schema:caption for actual MediaObjects and an explicitly lossy description for structural segments."@x-gmeow-english ;
+    gmeow:useWhen "Use for short descriptive text displayed alongside media or a structural figure, table or other content segment; localized captions coexist."@x-gmeow-english .
 
 gmeow:captureDevice
     a logic:ObjectProperty ;

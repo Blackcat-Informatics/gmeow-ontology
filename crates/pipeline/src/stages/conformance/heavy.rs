@@ -120,9 +120,19 @@ pub fn produce(root: &Path) -> gmeow_errors::Result<SelectedAction> {
 /// Authenticate the producer-selected action across Cargo profiles. A miss, stale
 /// input or malformed selector fails without executing any corpus operation.
 pub fn load(root: &Path) -> gmeow_errors::Result<Observations> {
-    #[derive(Deserialize)]
     struct Manifest {
         conformance_heavy: SelectedAction,
+    }
+    impl purrdf_lex::json::record::FromJson for Manifest {
+        fn from_json(
+            value: &purrdf_lex::json::Value,
+        ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+            let mut fields = purrdf_lex::json::record::Record::new(value, "struct Manifest")?;
+            // Other selector extensions belong to their respective consumers.
+            Ok(Self {
+                conformance_heavy: fields.required("conformance_heavy")?,
+            })
+        }
     }
     let manifest: Manifest = gmeow_action_cache::selection::load_manifest(root).map_err(fail)?;
     admit(root, &manifest.conformance_heavy)

@@ -463,7 +463,7 @@ msgstr "La raison déclarée par l’agent pour la disposition d’une demande d
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
-msgstr "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+msgstr "L’agent explique qu’il faut reprendre après la visite : `ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."

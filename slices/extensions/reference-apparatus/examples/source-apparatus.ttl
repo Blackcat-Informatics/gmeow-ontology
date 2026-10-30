@@ -1,0 +1,152 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/reference-apparatus/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# This scene extends the ordinary source-block inventory. It supplies source
+# records and explicit structures, not an ingest run or proof-check certificate.
+ex:editor a gmeow:Agent .
+ex:speaker a gmeow:Entity .
+ex:dialogue gmeow:speaker ex:speaker
+    {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:source |} .
+ex:code gmeow:programmingLanguageAsRecorded " ExampleLang v1 " .
+ex:figure gmeow:altText "A narrow bridge connects the two banks."@en .
+
+# Documentary coordinates preserve the source's explicit one-based origin.
+# They do not cast this arbitrary text table as a matrix of rational scalars.
+ex:table gmeow:tableIndexOrigin 1 ; gmeow:cell ex:cell11, ex:cell12 .
+ex:cell11 a gmeow:TableCell ; gmeow:cellOf ex:table ;
+    gmeow:cellRow 1 ; gmeow:cellColumn 1 ; gmeow:cellText "material"@en .
+ex:cell12 a gmeow:TableCell ; gmeow:cellOf ex:table ;
+    gmeow:cellRow 1 ; gmeow:cellColumn 2 ; gmeow:cellText "" .
+
+# Every printed formal kind is source classification, never verification.
+ex:formal gmeow:formalKind gmeow:formalKindDefinition ;
+    gmeow:formalLabel "Definition A" ; gmeow:defines ex:bridgeConcept .
+ex:bridgeConcept a gmeow:Concept ; rdfs:label "bridge as defined by this source"@en .
+ex:printedTheorem a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 13 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindTheorem ; gmeow:formalLabel "Theorem A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedLemma a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 14 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindLemma ; gmeow:formalLabel "Lemma A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedCorollary a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 15 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindCorollary ; gmeow:formalLabel "Corollary A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedProof a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 16 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindProof ; gmeow:formalLabel "Proof A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedAlgorithm a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 17 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindAlgorithm ; gmeow:formalLabel "Algorithm A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedExample a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 18 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindExample ; gmeow:formalLabel "Example A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedExercise a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 19 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindExercise ; gmeow:formalLabel "Exercise A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedSolution a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 20 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindSolution ; gmeow:formalLabel "Solution A" ;
+    gmeow:wasDerivedFrom ex:source .
+ex:printedNote a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 21 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:formalKind gmeow:formalKindNote ; gmeow:formalLabel "Note A" ;
+    gmeow:wasDerivedFrom ex:source .
+
+ex:printedProof gmeow:proves ex:printedTheorem
+    {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:source |} .
+
+# The exact display spelling is retained as a language surface. It is not
+# parsed from this string by the ontology, nor promoted to a Formula tree.
+ex:equation gmeow:equationSource "p" ;
+    gmeow:sourceNotation "local propositional notation v1" ;
+    gmeow:blockSurface ex:pSurface ; gmeow:blockRendering ex:pRendering .
+ex:notation a math:MathematicalNotation ;
+    rdfs:label "local propositional notation v1"@en .
+ex:signSystem a lang:SignSystem ;
+    lang:signSystemKind lang:notationalKind ; lang:usesScript lang:latinScript .
+ex:equationArtifact a gmeow:InformationObject ;
+    dcterms:description "The original display artifact consists of the single UTF-8 code point p."@en .
+ex:pSurface a lang:SurfaceForm, lang:UnanalyzedProse ;
+    lang:surfaceText "p" ; lang:inSignSystem ex:signSystem ;
+    lang:inScript lang:latinScript ; lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel ; lang:surfaceAnchor ex:pAnchor .
+ex:pAnchor a lang:SurfaceAnchor ; lang:anchorSource ex:equationArtifact ;
+    lang:anchorStart 0 ; lang:anchorEnd 1 ; lang:offsetSpace lang:codepointOffset .
+
+# The source ALSO supplies an actual expression node and a theory-scoped
+# derivation. No structured mathematical identity is inferred from spelling.
+ex:theory a math:MathematicalTheory ;
+    math:informalGloss "The source's local theory allowing a premise to be reiterated."@en .
+ex:pSymbol a math:MathematicalSymbol ; math:definedInTheory ex:theory ;
+    math:informalGloss "The source's proposition P."@en .
+ex:propositionType a math:ExpressionType ; math:definedInTheory ex:theory .
+ex:pExpression a math:SymbolReference ;
+    math:hasMathematicalSymbol ex:pSymbol ; math:expressionType ex:propositionType ;
+    math:denotationKind math:denotesProposition .
+ex:pRendering a math:ExpressionRendering ;
+    lang:renderedContent ex:pExpression ; lang:renderingForm ex:pSurface ;
+    lang:renderingKind lang:renderingNotation ; lang:renderingConvention ex:notation ;
+    lang:renderingPreservation logic:Unsupported .
+# Unsupported explicitly records that no semantic preservation guarantee was
+# supplied. The exact original display text remains retained independently.
+
+ex:premise a math:MathematicalStatement ;
+    math:hasConclusion ex:pExpression ; math:statementRole math:roleAxiom ;
+    math:roleInTheory ex:theory .
+ex:conclusion a math:MathematicalStatement ;
+    math:hasPremise ex:premise ; math:hasConclusion ex:pExpression ;
+    math:statementRole math:roleTheorem ; math:roleInTheory ex:theory .
+ex:sourceProof a math:Proof ; math:provesStatement ex:conclusion ; math:proofStep ex:step .
+ex:step a math:ProofStep ; math:hasPremise ex:premise ;
+    math:hasConclusion ex:conclusion ;
+    math:usesInferenceRule <https://example.org/reference-apparatus/rules/reiteration> .
+# The rule IRI is the source's named calculus rule, not a newly implemented rule.
+# No FormalVerificationResult, checker Activity or observed held verdict is asserted.
+
+ex:printedTheorem gmeow:blockRendering ex:statementRendering ;
+    gmeow:blockSurface ex:statementSurface .
+ex:printedProof gmeow:blockRendering ex:proofRendering ;
+    gmeow:blockSurface ex:proofSurface .
+ex:statementRendering a lang:Rendering ;
+    lang:renderedContent ex:conclusion ; lang:renderingForm ex:statementSurface ;
+    lang:renderingKind lang:renderingProse ; lang:renderingConvention lang:englishOrthography ;
+    lang:renderingPreservation logic:Unsupported .
+ex:proofRendering a lang:Rendering ;
+    lang:renderedContent ex:sourceProof ; lang:renderingForm ex:proofSurface ;
+    lang:renderingKind lang:renderingProse ; lang:renderingConvention lang:englishOrthography ;
+    lang:renderingPreservation logic:Unsupported .
+ex:statementSurface a lang:SurfaceForm, lang:UnanalyzedProse ;
+    lang:surfaceText "P follows under assumption P." ; lang:inSignSystem lang:english ;
+    lang:inScript lang:latinScript ; lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ; lang:analysisLevel lang:rawLevel .
+ex:proofSurface a lang:SurfaceForm, lang:UnanalyzedProse ;
+    lang:surfaceText "Assume P; reiterate P." ; lang:inSignSystem lang:english ;
+    lang:inScript lang:latinScript ; lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ; lang:analysisLevel lang:rawLevel .

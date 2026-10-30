@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sioc: <http://rdfs.org/sioc/ns#> .
+
+gmeow:mapSiocContainer a gmeow:ProjectionMapping ;
+    rdfs:label "Thread → sioc:Container"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "sthread" ;
+        gmeow:atom ( [ gmeow:subjectVar "sthread" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Thread ] ) ;
+        gmeow:edoalSource gmeow:Thread ; gmeow:edoalSourceKind "class" ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toClass sioc:Thread ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Thread ]
+            [ gmeow:tSubj "sthread" ; gmeow:tPred rdf:type ; gmeow:tObjValue sioc:Container ] ) ] .
+
+gmeow:mapSiocHasContainer a gmeow:ProjectionMapping ;
+    rdfs:label "partOfThread → sioc:has_container"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "scmsg" ; gmeow:value "scthread" ;
+        gmeow:atom ( [ gmeow:subjectVar "scmsg" ; gmeow:predicate gmeow:partOfThread ; gmeow:objectVar "scthread" ] ) ;
+        gmeow:edoalSource gmeow:partOfThread ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:has_container ; gmeow:relation "=" ; gmeow:confidence 0.9 ; gmeow:mnemomorphic true ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "scmsg" ; gmeow:tPred sioc:has_container ; gmeow:tObj "scthread" ]
+            [ gmeow:tSubj "scthread" ; gmeow:tPred sioc:container_of ; gmeow:tObj "scmsg" ] ) ] .
+
+gmeow:mapSiocReplyOf a gmeow:ProjectionMapping ;
+    rdfs:label "inReplyTo → sioc:reply_of"@x-gmeow-english ;
+    gmeow:hasMappingPattern [
+        gmeow:anchor "srmsg" ; gmeow:value "sparent" ;
+        gmeow:atom ( [ gmeow:subjectVar "srmsg" ; gmeow:predicate gmeow:inReplyTo ; gmeow:objectVar "sparent" ] ) ;
+        gmeow:edoalSource gmeow:inReplyTo ] ;
+    gmeow:hasBinding [
+        gmeow:profile "sioc" ; gmeow:toPredicate sioc:reply_of ; gmeow:relation "=" ; gmeow:confidence 0.95 ; gmeow:mnemomorphic true ;
+        gmeow:templateAtoms (
+            [ gmeow:tSubj "srmsg" ; gmeow:tPred sioc:reply_of ; gmeow:tObj "sparent" ]
+            [ gmeow:tSubj "sparent" ; gmeow:tPred sioc:has_reply ; gmeow:tObj "srmsg" ] ) ] .

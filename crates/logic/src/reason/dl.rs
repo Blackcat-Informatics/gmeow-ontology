@@ -6,6 +6,9 @@
 //! Empty classes, supported local clashes, contextual conflicts, source refusal
 //! and incomplete execution remain independent observations.
 
+// Conformance transports still serialize these shared diagnostic projections.
+mod json;
+
 use crate::physical::{LogicalGraph, WitnessStatement};
 use crate::reason::InferredAxiom;
 use crate::reason::refute::{

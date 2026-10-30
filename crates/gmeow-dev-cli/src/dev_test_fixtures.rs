@@ -13,7 +13,9 @@ use std::time::Instant;
 use gmeow_docs::i18n::ENGLISH;
 use gmeow_errors::Diag;
 use purrdf::ContentDigest;
+use purrdf_lex::json::{self, Object, Value, record::ToJson as _};
 
+use crate::dev_common::encode_metadata_json;
 use crate::{TestFixtureMode, TestFixtureScope};
 
 mod bundle_artifacts;
@@ -188,6 +190,7 @@ fn selected_bundle(root: &Path, expected: &str) -> FixtureResult<Vec<u8>> {
     Ok(bytes)
 }
 
+/// Prepare requested fixtures and telemetry before publishing one complete selector.
 fn produce(
     root: &Path,
     scope: TestFixtureScope,
@@ -201,21 +204,18 @@ fn produce(
         let prepared = prepare_fixture_selector_fields(
             root,
             None,
-            BTreeMap::from([(
-                "conformance_heavy",
-                serde_json::to_value(&selected).map_err(fail)?,
-            )]),
+            BTreeMap::from([("conformance_heavy", selected.to_json())]),
         )?;
         if let Some(path) = timings_path {
             write_json_atomic(
                 path,
-                &serde_json::json!({
-                    "schema_version": 1,
-                    "scope": scope.name(),
-                    "elapsed_ms": started.elapsed().as_millis(),
-                    "selected_action": selected,
-                    "manifest_sha256": prepared.sha256,
-                }),
+                &Object::new()
+                    .with("schema_version", 1)
+                    .with("scope", scope.name())
+                    .with("elapsed_ms", started.elapsed().as_millis())
+                    .with("selected_action", selected.to_json())
+                    .with("manifest_sha256", prepared.sha256.clone())
+                    .into(),
             )
             .map_err(fail)?;
         }
@@ -264,14 +264,15 @@ fn produce(
             outcome.verdict.flagship_manifests,
         );
         println!("test fixture producer: phase=slice-specs state=complete");
-        Some(serde_json::json!({
-            "fixture": "slice-spec-verdict",
-            "built": outcome.built,
-            "elapsed_ms": slice_started.elapsed().as_millis(),
-            "action_key": outcome.action_key,
-            "receipt_digest": outcome.receipt_digest,
-            "verdict": outcome.verdict,
-        }))
+        Some(Value::from(
+            Object::new()
+                .with("fixture", "slice-spec-verdict")
+                .with("built", outcome.built)
+                .with("elapsed_ms", slice_started.elapsed().as_millis())
+                .with("action_key", outcome.action_key)
+                .with("receipt_digest", outcome.receipt_digest)
+                .with("verdict", outcome.verdict.to_json()),
+        ))
     } else {
         None
     };
@@ -286,14 +287,15 @@ fn produce(
         );
         println!("test fixture producer: phase=docs state=complete");
         docs_selector = Some(prime.selector);
-        Some(serde_json::json!({
-            "fixture": "docs",
-            "elapsed_ms": docs_started.elapsed().as_millis(),
-            "actions": prime.action_count,
-            "built": prime.built,
-            "receipt_hits": prime.receipt_hits,
-            "parallelism": prime.parallelism,
-        }))
+        Some(Value::from(
+            Object::new()
+                .with("fixture", "docs")
+                .with("elapsed_ms", docs_started.elapsed().as_millis())
+                .with("actions", prime.action_count)
+                .with("built", prime.built)
+                .with("receipt_hits", prime.receipt_hits)
+                .with("parallelism", prime.parallelism),
+        ))
     } else {
         None
     };
@@ -348,33 +350,51 @@ fn produce(
                 receipt.digest(),
                 transferred_bytes,
             );
-            stage_observations.push(serde_json::json!({
-                "stage": stage_id,
-                "built": timing.is_some_and(|timing| !timing.cached),
-                "elapsed_ms": timing.map_or(0, |timing| timing.elapsed_ms),
-                "transferred_bytes": transferred_bytes,
-                "cache_outcome": timing.map_or("receipt-hit", |timing| timing.cache_outcome.as_str()),
-                "receipt": receipt,
-            }));
+            stage_observations.push(Value::from(
+                Object::new()
+                    .with("stage", stage_id)
+                    .with("built", timing.is_some_and(|timing| !timing.cached))
+                    .with("elapsed_ms", timing.map_or(0, |timing| timing.elapsed_ms))
+                    .with("transferred_bytes", transferred_bytes)
+                    .with(
+                        "cache_outcome",
+                        timing.map_or("receipt-hit", |timing| timing.cache_outcome.as_str()),
+                    )
+                    .with("receipt", receipt.to_json()),
+            ));
         }
         let source_exports = gmeow_pipeline::fixture::export_source_artifacts(root, &receipts)
             .map_err(|error| fail(format!("export source-stage observations: {error}")))?;
         stage_selection
             .as_mut()
-            .and_then(serde_json::Value::as_object_mut)
+            .and_then(Value::as_object_mut)
             .ok_or_else(|| fail("prepared stage selection is not an object"))?
             .insert(
                 "source_artifacts".to_owned(),
-                serde_json::to_value(&source_exports.source_artifacts).map_err(fail)?,
+                source_exports.source_artifacts.to_json(),
             );
         println!("test fixture producer: phase=pipeline-stages state=complete");
-        Some(serde_json::json!({
-            "fixture": "pipeline-stage-phase",
-            "elapsed_ms": stage_phase_started.elapsed().as_millis(),
-            "stage_count": stage_observations.len(),
-            "source_artifact_count": source_exports.source_artifacts.values().map(BTreeMap::len).sum::<usize>(),
-            "built": stage_observations.iter().filter(|entry| entry["built"] == true).count(),
-        }))
+        Some(Value::from(
+            Object::new()
+                .with("fixture", "pipeline-stage-phase")
+                .with("elapsed_ms", stage_phase_started.elapsed().as_millis())
+                .with("stage_count", stage_observations.len())
+                .with(
+                    "source_artifact_count",
+                    source_exports
+                        .source_artifacts
+                        .values()
+                        .map(BTreeMap::len)
+                        .sum::<usize>(),
+                )
+                .with(
+                    "built",
+                    stage_observations
+                        .iter()
+                        .filter(|entry| entry["built"] == true)
+                        .count(),
+                ),
+        ))
     } else {
         None
     };
@@ -421,11 +441,15 @@ fn produce(
                 publication.receipt_digest,
                 publication.product_bytes,
             );
-            artifact_observations.push(serde_json::json!({
-                "name": name, "built": admission.built, "elapsed_ms": started.elapsed().as_millis(),
-                "receipt": publication.receipt_digest, "action": publication.action_key,
-                "bytes": publication.product_bytes,
-            }));
+            artifact_observations.push(Value::from(
+                Object::new()
+                    .with("name", name)
+                    .with("built", admission.built)
+                    .with("elapsed_ms", started.elapsed().as_millis())
+                    .with("receipt", publication.receipt_digest.clone())
+                    .with("action", publication.action_key.clone())
+                    .with("bytes", publication.product_bytes),
+            ));
             if artifact_publications
                 .insert(name.to_owned(), publication)
                 .is_some()
@@ -454,14 +478,14 @@ fn produce(
             receipt: import.receipt.clone(),
             corpus_artifacts: artifact_publications,
         };
-        let observation = serde_json::json!({
-            "fixture": "bundle-import",
-            "built": import.built,
-            "elapsed_ms": bundle_started.elapsed().as_millis(),
-            "transferred_bytes": import.transferred_bytes,
-            "receipt": import.receipt,
-            "corpus_artifacts": artifact_observations,
-        });
+        let observation: Value = Object::new()
+            .with("fixture", "bundle-import")
+            .with("built", import.built)
+            .with("elapsed_ms", bundle_started.elapsed().as_millis())
+            .with("transferred_bytes", import.transferred_bytes)
+            .with("receipt", import.receipt.to_json())
+            .with("corpus_artifacts", artifact_observations)
+            .into();
         println!("test fixture producer: phase=bundle-bound state=complete");
         Some((observation, selector))
     } else {
@@ -479,32 +503,73 @@ fn produce(
     )?;
 
     if let Some(path) = timings_path {
-        let value = serde_json::json!({
-            "schema_version": 1,
-            "command": "gmeow-dev test-fixtures produce",
-            "scope": scope.name(),
-            "jobs": jobs,
-            "deterministic_work": {
-                "fixture_count": stage_observations.len()
-                    + usize::from(slice_spec_observation.is_some())
-                    + usize::from(bundle_observation.is_some()),
-                "stage_receipts": stage_observations.iter().map(|entry| &entry["receipt"]).collect::<Vec<_>>(),
-                "stage_fixture_manifest": {
-                    "path": prepared_selector.path.strip_prefix(root).unwrap_or(&prepared_selector.path),
-                    "sha256": prepared_selector.sha256,
-                },
-                "slice_spec_receipt": slice_spec_observation.as_ref().map(|entry| &entry["receipt_digest"]),
-                "bundle_import_receipt": bundle_observation.as_ref().map(|entry| &entry["receipt"]),
-            },
-            "observations": {
-                "total_elapsed_ms": started.elapsed().as_millis(),
-                "fixtures": stage_observations,
-                "slice_specs": slice_spec_observation,
-                "docs": docs_observation,
-                "pipeline_stage_phase": pipeline_stage_phase_observation,
-                "bundle_import": bundle_observation,
-            },
-        });
+        let manifest_path = prepared_selector
+            .path
+            .strip_prefix(root)
+            .unwrap_or(&prepared_selector.path);
+        let manifest_path = manifest_path.to_str().ok_or_else(|| {
+            fail(format!(
+                "write fixture telemetry {}: manifest path is not UTF-8",
+                path.display()
+            ))
+        })?;
+        let value: Value = Object::new()
+            .with("schema_version", 1)
+            .with("command", "gmeow-dev test-fixtures produce")
+            .with("scope", scope.name())
+            .with("jobs", jobs)
+            .with(
+                "deterministic_work",
+                Object::new()
+                    .with(
+                        "fixture_count",
+                        stage_observations.len()
+                            + usize::from(slice_spec_observation.is_some())
+                            + usize::from(bundle_observation.is_some()),
+                    )
+                    .with(
+                        "stage_receipts",
+                        stage_observations
+                            .iter()
+                            .map(|entry| &entry["receipt"])
+                            .collect::<Vec<_>>()
+                            .to_json(),
+                    )
+                    .with(
+                        "stage_fixture_manifest",
+                        Object::new()
+                            .with("path", manifest_path)
+                            .with("sha256", prepared_selector.sha256.clone()),
+                    )
+                    .with(
+                        "slice_spec_receipt",
+                        slice_spec_observation
+                            .as_ref()
+                            .map(|entry| &entry["receipt_digest"])
+                            .to_json(),
+                    )
+                    .with(
+                        "bundle_import_receipt",
+                        bundle_observation
+                            .as_ref()
+                            .map(|entry| &entry["receipt"])
+                            .to_json(),
+                    ),
+            )
+            .with(
+                "observations",
+                Object::new()
+                    .with("total_elapsed_ms", started.elapsed().as_millis())
+                    .with("fixtures", stage_observations)
+                    .with("slice_specs", slice_spec_observation.to_json())
+                    .with("docs", docs_observation.to_json())
+                    .with(
+                        "pipeline_stage_phase",
+                        pipeline_stage_phase_observation.to_json(),
+                    )
+                    .with("bundle_import", bundle_observation.to_json()),
+            )
+            .into();
         write_json_atomic(path, &value).map_err(|error| {
             fail(format!(
                 "write fixture telemetry {}: {error}",
@@ -652,24 +717,16 @@ struct FinalizedFixtureSelector {
 
 fn prepare_fixture_selector(
     root: &Path,
-    stage_selection: Option<serde_json::Value>,
+    stage_selection: Option<Value>,
     bundle: Option<&gmeow_bundle_import::BundleFixtureSelector>,
     docs: Option<&gmeow_docs_model::fixture::DocsFixtureSelector>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let mut fields = BTreeMap::new();
     if let Some(bundle) = bundle {
-        fields.insert(
-            "bundle_import",
-            serde_json::to_value(bundle)
-                .map_err(|error| fail(format!("encode bundle fixture selector: {error}")))?,
-        );
+        fields.insert("bundle_import", bundle.to_json());
     }
     if let Some(docs) = docs {
-        fields.insert(
-            "docs",
-            serde_json::to_value(docs)
-                .map_err(|error| fail(format!("encode docs fixture selector: {error}")))?,
-        );
+        fields.insert("docs", docs.to_json());
     }
     prepare_fixture_selector_fields(root, stage_selection, fields)
 }
@@ -679,8 +736,8 @@ fn prepare_fixture_selector(
 /// operations preserve those bindings until their own final publication succeeds.
 fn prepare_fixture_selector_fields(
     root: &Path,
-    stage_selection: Option<serde_json::Value>,
-    fields: BTreeMap<&str, serde_json::Value>,
+    stage_selection: Option<Value>,
+    fields: BTreeMap<&str, Value>,
 ) -> FixtureResult<PreparedFixtureSelector> {
     let path = root.join(gmeow_pipeline::fixture::STAGE_FIXTURE_MANIFEST_RELATIVE_PATH);
     let mut value = match stage_selection {
@@ -692,15 +749,11 @@ fn prepare_fixture_selector_fields(
                     path.display()
                 ))
             })?;
-            serde_json::from_slice(&bytes)
+            json::record::read_document(&bytes)
                 .map_err(|error| fail(format!("decode published fixture prefix: {error}")))?
         }
     };
-    if value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_u64)
-        != Some(2)
-    {
+    if value.get("schema_version").and_then(Value::as_u64) != Some(2) {
         return Err(fail(
             "pipeline fixture selection is not schema 2 before publication",
         ));
@@ -711,7 +764,7 @@ fn prepare_fixture_selector_fields(
     for (name, value) in fields {
         object.insert(name.to_owned(), value);
     }
-    let bytes = encode_json(&value)
+    let bytes = encode_metadata_json(&value)
         .map_err(|error| fail(format!("encode complete fixture selector: {error}")))?;
     let sha256 = ContentDigest::of(&bytes).to_hex();
     Ok(PreparedFixtureSelector {
@@ -744,14 +797,9 @@ impl PreparedFixtureSelector {
     }
 }
 
-fn encode_json(value: &serde_json::Value) -> std::io::Result<Vec<u8>> {
-    let mut bytes = serde_json::to_vec_pretty(value).map_err(std::io::Error::other)?;
-    bytes.push(b'\n');
-    Ok(bytes)
-}
-
-fn write_json_atomic(path: &Path, value: &serde_json::Value) -> std::io::Result<()> {
-    write_bytes_atomic(path, &encode_json(value)?)
+/// Publish fully encoded fixture metadata through the durable atomic writer.
+fn write_json_atomic(path: &Path, value: &Value) -> std::io::Result<()> {
+    write_bytes_atomic(path, &encode_metadata_json(value)?)
 }
 
 fn write_bytes_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {

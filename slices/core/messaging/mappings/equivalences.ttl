@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix schema: <https://schema.org/> .
+@prefix sioc: <http://rdfs.org/sioc/ns#> .
+@prefix nmo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#> .
+
+gmeow:mapsetMessaging a gmeow:MappingSet ;
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/messaging" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment "Shared message, thread and source-time alignments; close matches preserve narrower source and transport distinctions." .
+
+gmeow:Message skos:closeMatch schema:Message {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:Message skos:closeMatch nmo:Message {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.9
+|} .
+
+gmeow:Thread skos:closeMatch sioc:Thread {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8
+|} .
+
+gmeow:sentAt skos:closeMatch schema:dateSent {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+gmeow:sentAt skos:closeMatch nmo:sentDate {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+gmeow:receivedAt skos:closeMatch schema:dateReceived {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+gmeow:receivedAt skos:closeMatch nmo:receivedDate {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+gmeow:inReplyTo skos:closeMatch nmo:inReplyTo {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.95
+|} .
+
+gmeow:Thread skos:closeMatch sioc:Container {|
+    gmeow:sssomFile "gmeow-messaging.sssom.tsv" ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "a thread is a SIOC container of its posts; closeMatch because Container is the broader contents-holder notion"
+|} .

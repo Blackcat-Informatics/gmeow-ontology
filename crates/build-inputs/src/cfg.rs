@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod json;
+
 use crate::{Result, fail};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use syn::{Meta, Token, parse::Parser, punctuated::Punctuated};
 
@@ -17,8 +18,7 @@ pub fn cfg_excludes_production(predicate: &str) -> Result<bool> {
 
 /// Complete rustc cfg context for one selected Cargo unit. Known but absent axes
 /// are false; a custom axis without a recorded owner is an admission failure.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CfgContext {
     pub flags: BTreeSet<String>,
     pub values: BTreeMap<String, BTreeSet<String>>,

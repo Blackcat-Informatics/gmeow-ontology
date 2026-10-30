@@ -256,6 +256,7 @@
     skos:definition "The Git repository that carries the authored ontology sources, mapping DSLs, statement DSLs, examples, tests, generators, and documentation sources for GMEOW."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:objectFormat gmeow:gitObjectFormatSha1 ;
     gmeow:cloneUrl "https://github.com/Blackcat-Informatics/gmeow-ontology.git" ;
     gmeow:webUrl "https://github.com/Blackcat-Informatics/gmeow-ontology" .
 

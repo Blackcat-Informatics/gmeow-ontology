@@ -1,0 +1,795 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Scope"
+msgstr "读取范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed enumeration of the exact source records offered to a selected refiner, with their declared assertion-time chronology frame. It asserts no completeness of the surrounding store."
+msgstr "有归属的枚举，列出提供给所选细化器的确切来源记录及其声明的断言时间顺序框架。不声明周围存储的完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope a gmeow:ReadingScope ."
+msgstr "保留此限定范围报告：ex:scope a gmeow:ReadingScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope record"
+msgstr "范围记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source record offered within a reading scope, including a record later reported unreadable. Members retain their actual RDF identities, including blank nodes or triple terms when supplied."
+msgstr "读取范围内提供的来源记录，包括后来报告无法读取的记录。成员保留其实际 RDF 身份，包括所提供的空白节点或三元组项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope gmeow:scopeRecord ex:record ."
+msgstr "保留此限定范围报告：ex:scope gmeow:scopeRecord ex:record ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope chronology"
+msgstr "范围时间顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The temporal frame in which source assertion times are interpreted for this scope’s chronology. The selected reading must respect original precision and unresolved ties; this relation does not manufacture an order."
+msgstr "解释此范围时间顺序中来源断言时间的时间框架。所选解读须尊重原始精度及未解决的并列；此关系不凭空产生顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeChronology|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:scope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ."
+msgstr "保留此限定范围报告：ex:scope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reading scope"
+msgstr "读取范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit source-record scope of a finding or reading-limit aggregate. This relation does not turn its subject into an Observation or claim global source coverage."
+msgstr "发现或读取限制汇总的显式来源记录范围。此关系不将其主体转为 Observation，也不声明全局来源覆盖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/readingScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:readingScope ex:scope ."
+msgstr "保留此限定范围报告：ex:finding gmeow:readingScope ex:scope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "First Occurrence"
+msgstr "首次出现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected refiner’s reading of an earliest source record for one relation and referent among the records explicitly offered in its reading scope, under the declared source assertion-time chronology. It is not a global first or the subject’s assertion."
+msgstr "所选细化器依据声明的来源断言时间顺序，在其读取范围中显式提供的记录内，对某关系与指称对象的最早来源记录之一所作的解读。不是全局首次，也不是主体的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:first a gmeow:FirstOccurrence ."
+msgstr "保留此限定范围报告：ex:first a gmeow:FirstOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Relation Occasion"
+msgstr "关系发生次"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected refiner’s reading of one occasion of a relation to a resource or source-named referent in its declared records-read scope. It records source evidence rather than an independent world event."
+msgstr "所选细化器在其声明的已读记录范围内，对一次与资源或由来源命名的指称对象的关系发生所作的解读。记录来源证据，而非独立的现实事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:occasion a gmeow:RelationOccasion ."
+msgstr "保留此限定范围报告：ex:occasion a gmeow:RelationOccasion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation predicate"
+msgstr "关系谓词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual predicate IRI by which the source records relate to the referent. It names the source relation without asserting a new edge or evaluating a query."
+msgstr "来源记录与指称对象关联时使用的实际谓词 IRI。命名来源关系，不断言新边，也不执行查询。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationPredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationPredicate gmeow:hasParticipant ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relationPredicate gmeow:hasParticipant ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation vault"
+msgstr "关系存储"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source store containing the records for this relation reading or reading-limit aggregate. Naming the store supplies neither access authority nor a claim that every store record was read."
+msgstr "包含此关系解读或读取限制汇总所涉及记录的来源存储。命名存储不授予访问权限，也不声明已读取存储内全部记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationVault|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationVault ex:archive ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relationVault ex:archive ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related thing"
+msgstr "关联事物"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The referent identified by its actual IRI in the source relation. The IRI is retained without inferring identity from a name or minting a replacement for an unshareable source term."
+msgstr "来源关系中以其实际 IRI 标识的指称对象。保留该 IRI，不从名称推断身份，也不为无法共享的来源项创建替代物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedThing|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relatedThing ex:person ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relatedThing ex:person ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related name"
+msgstr "关联名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source-supplied name when a relation names its referent only by a literal. Language and base direction are retained when supplied; the name alone does not establish an IRI identity."
+msgstr "关系仅以字面量命名其指称对象时，由来源提供的确切名称。保留所提供的语言及基方向；仅有名称不能确立 IRI 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relatedName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relatedName \"Visitor\"@en ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relatedName \"Visitor\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation assertion time"
+msgstr "关系断言时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original assertion-time value supplied by the source record, retained at its actual precision. It is neither the refiner’s observation clock nor the record’s transaction time; a date, month or year invents no instant or timezone."
+msgstr "来源记录提供的原始断言时间值，按其实际精度保留。既非细化器的观察时钟，也非记录事务时间；日期、月份或年份不会凭空产生时刻或时区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationAt \"2026-10\"^^xsd:gYearMonth ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relationAt \"2026-10\"^^xsd:gYearMonth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation source occasion"
+msgstr "关系来源场合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source occasion or context in which the relation was found, such as a conversation. This is distinct from the refiner’s execution and from its derived RelationOccasion reading."
+msgstr "发现该关系的来源场合或上下文，例如对话。区别于细化器执行及其派生的 RelationOccasion 解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/relationIn|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:relationIn ex:conversation ."
+msgstr "保留此限定范围报告：ex:finding gmeow:relationIn ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding summary"
+msgstr "发现摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A language-bearing one-line account of what the refiner found under its own vantage. The wording retains its language and any base direction and does not become the source subject’s claim."
+msgstr "细化器在自身视角下对所发现内容的一行带语言说明。措辞保留语言及任何基方向，不会变成来源主体的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingSummary|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:finding gmeow:findingSummary \"Earliest in the supplied archive excerpt.\"@en ."
+msgstr "保留此限定范围报告：ex:finding gmeow:findingSummary \"Earliest in the supplied archive excerpt.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Milestone"
+msgstr "里程碑"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed information annotation in which a teller reads a source record as marking a milestone. It is distinct from the underlying life event and never automatically the subject’s own claim."
+msgstr "一种有归属的信息注释，其中讲述者将来源记录解读为标志里程碑。区别于底层人生事件，绝不会自动成为主体自身的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Milestone|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation a gmeow:Milestone ."
+msgstr "保留此限定范围报告：ex:annotation a gmeow:Milestone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Milestone Kind"
+msgstr "里程碑种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary of teller-defined milestone classifications. Consumers mint their own individuals; no classification is a diagnosis or an event type inferred from the source."
+msgstr "一种开放的性质值词汇表，用于讲述者定义的里程碑分类。消费者创建自己的个体；任何分类都不是诊断，也不是从来源推断出的事件类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MilestoneKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:localKind a gmeow:MilestoneKind ."
+msgstr "保留此限定范围报告：ex:localKind a gmeow:MilestoneKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "milestone kind"
+msgstr "里程碑种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The teller’s classification of a milestone annotation, drawn from the open MilestoneKind vocabulary."
+msgstr "讲述者从开放的 MilestoneKind 词汇表中选择的里程碑注释分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation gmeow:milestoneKind ex:localKind ."
+msgstr "保留此限定范围报告：ex:annotation gmeow:milestoneKind ex:localKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "milestone source"
+msgstr "里程碑来源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original record on which the teller’s milestone annotation rests. This link identifies evidence rather than declaring that the record itself is a life event."
+msgstr "讲述者的里程碑注释所依据的原始记录。此关联标识证据，不声明记录本身就是人生事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/milestoneOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:annotation gmeow:milestoneOf ex:record ."
+msgstr "保留此限定范围报告：ex:annotation gmeow:milestoneOf ex:record ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Limit"
+msgstr "读取限制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed QueryLossLedger grouping records the selected refiner could not read for one relation, store, source scope and reason. Its reported count may be zero; actual excluded records retain separate QueryLoss identities through ledgerLoss."
+msgstr "一种有归属的 QueryLossLedger，将所选细化器针对某关系、存储、来源范围及原因无法读取的记录分组。报告数量可为零；实际排除记录通过 ledgerLoss 保留独立的 QueryLoss 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimit|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit a gmeow:ReadingLimit ."
+msgstr "保留此限定范围报告：ex:limit a gmeow:ReadingLimit ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Limit Reason"
+msgstr "读取限制原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open specialization of QueryLossCause for limitations of a selected refiner and input scope. A reason describes that operation’s capability boundary, never an RDF 1.2 prohibition."
+msgstr "QueryLossCause 的开放特化，用于所选细化器及输入范围的限制。原因描述该操作的能力边界，绝非 RDF 1.2 禁令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingLimitReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:localReason a gmeow:ReadingLimitReason ."
+msgstr "保留此限定范围报告：ex:localReason a gmeow:ReadingLimitReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit reason"
+msgstr "限制原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner limitation grouping this aggregate’s excluded records. Each referenced actual loss retains this same reason through lossCause."
+msgstr "将此汇总中的排除记录分组的所选细化器限制。每个引用的实际损失通过 lossCause 保留同一原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit gmeow:limitReason gmeow:limitNoAssertionTime ."
+msgstr "保留此限定范围报告：ex:limit gmeow:limitReason gmeow:limitNoAssertionTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit count"
+msgstr "限制数量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported number of distinct source records excluded for this aggregate’s single reason and scope. Zero records no actual loss; the count is a source report whose exact arithmetic is not certified by the ontology."
+msgstr "报告的此汇总单一原因与范围内排除的不同来源记录数量。零表示无实际损失；该数量是来源报告，词汇体系不认证其精确算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:limit gmeow:limitCount \"0\"^^xsd:nonNegativeInteger ."
+msgstr "保留此限定范围报告：ex:limit gmeow:limitCount \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "no usable assertion time"
+msgstr "无可用断言时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner could not order this record because the input supplied no usable assertion time. It does not authorize substituting a refiner clock or inventing precision."
+msgstr "所选细化器因输入未提供可用断言时间而无法排序此记录。不允许替换为细化器时钟或编造精度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitNoAssertionTime|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitNoAssertionTime ."
+msgstr "保留此限定范围报告：ex:loss gmeow:lossCause gmeow:limitNoAssertionTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "record unnameable to refiner"
+msgstr "细化器无法命名记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner’s addressing contract could not retain a supplied blank-node record as a named record. RDF 1.2 can retain blank nodes; this is a limitation of the selected operation."
+msgstr "所选细化器的寻址契约无法将提供的空白节点记录保留为具名记录。RDF 1.2 可以保留空白节点；这是所选操作的限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitRecordUnnameable|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitRecordUnnameable ."
+msgstr "保留此限定范围报告：ex:loss gmeow:lossCause gmeow:limitRecordUnnameable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "referent unshareable to refiner"
+msgstr "细化器无法共享指称对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected refiner could not correlate a supplied blank-node or triple-term referent across records under its addressing contract. This neither bans those RDF 1.2 terms nor proves that no relation or shared referent exists."
+msgstr "所选细化器依其寻址契约无法跨记录关联所提供的空白节点或三元组项指称对象。这既不禁止这些 RDF 1.2 项，也不证明关系或共同指称对象不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain this part of an explicitly scoped, attributed reading."
+msgstr "用于保留显式限定范围且有归属的解读的这一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."
+msgstr "避免从该记录推断全局完整性、来源主体认可或计算成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."
+msgstr "保留原始来源身份、所提供精度及声明视角；不得以默认值替代缺失证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitThingUnshareable|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
+msgstr "保留此限定范围报告：ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reading source scope constraint"
+msgstr "解读来源范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every source observed by a first-occurrence or relation-occasion reading belongs to each explicitly declared reading scope of that reading."
+msgstr "首次出现或关系发生次解读所观察的每个来源须属于该解读显式声明的每个读取范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:ReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+msgstr "保留适用定律：gmeow:ReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "limit member scope and cause constraint"
+msgstr "限制成员范围及原因约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each actual loss included in a reading-limit aggregate retains its aggregate reason and concerns a record offered in the declared input scope."
+msgstr "读取限制汇总包含的每个实际损失须保留其汇总原因，并涉及声明的输入范围内提供的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LimitMemberScopeCauseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:LimitMemberScopeCauseConstraint logic:formalizes gmeow:ledgerLoss ."
+msgstr "保留适用定律：gmeow:LimitMemberScopeCauseConstraint logic:formalizes gmeow:ledgerLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "zero reading limit empty constraint"
+msgstr "零读取限制空成员约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reading-limit aggregate reporting zero excluded records contains no actual ledgerLoss member. It remains an aggregate report rather than a fabricated loss."
+msgstr "报告排除记录为零的读取限制汇总不得包含实际 ledgerLoss 成员。它仍是汇总报告，而非编造的损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ZeroReadingLimitEmptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:ZeroReadingLimitEmptyConstraint logic:formalizes gmeow:limitCount ."
+msgstr "保留适用定律：gmeow:ZeroReadingLimitEmptyConstraint logic:formalizes gmeow:limitCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "positive reading limit evidence constraint"
+msgstr "正读取限制证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reading-limit aggregate reporting a positive excluded-record count retains actual loss evidence rather than silently omitting all excluded records. Exact count arithmetic remains the reporting refiner’s responsibility."
+msgstr "报告排除记录数量为正的读取限制汇总须保留实际损失证据，不得静默遗漏全部排除记录。精确计数算术仍由报告的细化器负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PositiveReadingLimitEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:PositiveReadingLimitEvidenceConstraint logic:formalizes gmeow:limitCount ."
+msgstr "保留适用定律：gmeow:PositiveReadingLimitEvidenceConstraint logic:formalizes gmeow:limitCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement readings"
+msgstr "细化解读"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Scoped relational findings, attributed milestone annotations and reading-limit aggregates preserving source evidence and actual query-loss identities."
+msgstr "限定范围的关系发现、有归属的里程碑注释及读取限制汇总，保留来源证据与实际查询损失身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Readings Module"
+msgstr "GMEOW 细化解读模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-readings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners and recall adapters exposing scoped findings as process readings rather than subject assertions."
+msgstr "由消费者拥有的记录细化器与召回适配器，将限定范围发现呈现为过程解读，而非主体断言。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "first-occurrence referent presence constraint"
+msgstr "首次出现指称对象存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each first-occurrence reading supplies a related resource or an original source name, without inventing identity from the name."
+msgstr "每个首次出现解读须提供关联资源或原始来源名称，不得从名称编造身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FirstOccurrenceReferentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:FirstOccurrenceReferentConstraint logic:formalizes gmeow:FirstOccurrence ."
+msgstr "保留适用定律：gmeow:FirstOccurrenceReferentConstraint logic:formalizes gmeow:FirstOccurrence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation-occasion referent presence constraint"
+msgstr "关系发生次指称对象存在约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each relation-occasion reading supplies a related resource or an original source name, without inventing identity from the name."
+msgstr "每个关系发生次解读须提供关联资源或原始来源名称，不得从名称编造身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationOccasionReferentConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelationOccasionReferentConstraint logic:formalizes gmeow:RelationOccasion ."
+msgstr "保留适用定律：gmeow:RelationOccasionReferentConstraint logic:formalizes gmeow:RelationOccasion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "relation predicate IRI constraint"
+msgstr "关系谓词 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied relationPredicate value is an actual IRI, including on subjects without a reading type."
+msgstr "每个所提供的 relationPredicate 值须为实际 IRI，包括未标注解读类型的主体上的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelationPredicateIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelationPredicateIriConstraint logic:formalizes gmeow:relationPredicate ."
+msgstr "保留适用定律：gmeow:RelationPredicateIriConstraint logic:formalizes gmeow:relationPredicate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "related thing IRI constraint"
+msgstr "关联事物 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied relatedThing value is an actual IRI, never a fabricated lexical replacement for an unnameable source term, including on untyped subjects."
+msgstr "每个所提供的 relatedThing 值须为实际 IRI，绝非为无法命名的来源项编造的词法替代物，包括未标注类型的主体上的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic consistency of the supplied scoped record."
+msgstr "用于检查所提供限定范围记录的内在一致性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."
+msgstr "避免将此一致性定律当作来源完整性、首次性或细化器执行的认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."
+msgstr "对具名报告解读已实现公式，并在诊断违反时保留原始证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RelatedThingIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."
+msgstr "保留适用定律：gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."

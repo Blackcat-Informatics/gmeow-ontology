@@ -65,6 +65,8 @@ https://blackcatinformatics.ca/gmeow/attributedKnower
 https://blackcatinformatics.ca/gmeow/attributedProposition
 https://blackcatinformatics.ca/gmeow/attributingAgent
 https://blackcatinformatics.ca/gmeow/attributionTarget
+https://blackcatinformatics.ca/gmeow/audienceRingRank
+https://blackcatinformatics.ca/gmeow/audienceRingScheme
 https://blackcatinformatics.ca/gmeow/authMethod
 https://blackcatinformatics.ca/gmeow/authResult
 https://blackcatinformatics.ca/gmeow/authServer
@@ -243,6 +245,9 @@ https://blackcatinformatics.ca/gmeow/experiencer
 https://blackcatinformatics.ca/gmeow/expressionLanguage
 https://blackcatinformatics.ca/gmeow/expressionText
 https://blackcatinformatics.ca/gmeow/expressionValue
+https://blackcatinformatics.ca/gmeow/facetLabel
+https://blackcatinformatics.ca/gmeow/facetText
+https://blackcatinformatics.ca/gmeow/facetValue
 https://blackcatinformatics.ca/gmeow/feedPostingKind
 https://blackcatinformatics.ca/gmeow/filename
 https://blackcatinformatics.ca/gmeow/filledFrom
@@ -588,6 +593,7 @@ https://blackcatinformatics.ca/gmeow/skillProficiencyAgent
 https://blackcatinformatics.ca/gmeow/skillProficiencyLevel
 https://blackcatinformatics.ca/gmeow/skillProficiencyOf
 https://blackcatinformatics.ca/gmeow/skillProficiencyScale
+https://blackcatinformatics.ca/gmeow/slotBearer
 https://blackcatinformatics.ca/gmeow/spanOfChunk
 https://blackcatinformatics.ca/gmeow/sparseAxisCompletion
 https://blackcatinformatics.ca/gmeow/spdxLicenseId
@@ -657,6 +663,12 @@ https://blackcatinformatics.ca/gmeow/transformationParameter
 https://blackcatinformatics.ca/gmeow/transformationSource
 https://blackcatinformatics.ca/gmeow/transformationTarget
 https://blackcatinformatics.ca/gmeow/transformationType
+https://blackcatinformatics.ca/gmeow/transitionAt
+https://blackcatinformatics.ca/gmeow/transitionFrom
+https://blackcatinformatics.ca/gmeow/transitionLasted
+https://blackcatinformatics.ca/gmeow/transitionSequence
+https://blackcatinformatics.ca/gmeow/transitionSlot
+https://blackcatinformatics.ca/gmeow/transitionTo
 https://blackcatinformatics.ca/gmeow/translationOf
 https://blackcatinformatics.ca/gmeow/transliterationOf
 https://blackcatinformatics.ca/gmeow/treeEntryMode

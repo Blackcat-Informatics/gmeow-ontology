@@ -1,0 +1,145 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/environment-request/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary source scene: the source reports the work, evaluation and act.
+# This file is not an executor, receipt, test fixture or generated corpus.
+ex:agent a gmeow:Agent .
+ex:maintainer a gmeow:Agent .
+ex:friend a gmeow:Agent .
+ex:bedside a gmeow:Location .
+ex:focusObject a gmeow:Entity .
+ex:source a gmeow:InformationObject ;
+    dcterms:description "Original request, provider replies and inspection evidence."@en .
+ex:acceptanceSource a gmeow:InformationObject ;
+    dcterms:description "Original record of the agent's acceptance words."@en .
+
+ex:desire a gmeow:Desire ;
+    gmeow:intentBearer ex:agent ; gmeow:intentionGoal ex:readingGoal ;
+    gmeow:preferredLocation ex:bedside .
+ex:readingGoal a gmeow:Goal .
+# Illustrative exact request-revision bytes:
+# Please provide a readable bedside book.\n
+ex:request a gmeow:WorldObjectRequest ;
+    gmeow:contentDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:wasAttributedTo ex:agent ; gmeow:wasDerivedFrom ex:source ;
+    gmeow:requestDesire ex:desire ; gmeow:originFocus ex:focusObject ;
+    gmeow:missingCapability "I have no book I can read beside the bed."@en ;
+    gmeow:dreamEpisodeAsRecorded "episode-6" ;
+    gmeow:dreamPhaseAsRecorded " remembered " ;
+    gmeow:hasTag gmeow:tagImaginedOrigin ;
+    gmeow:requestState gmeow:requestStateRequested ;
+    gmeow:requestCondition ex:readableCondition, ex:bedsideCondition ;
+    gmeow:recordsResponse ex:acknowledgement, ex:wrongReply ;
+    gmeow:recordsFulfillment ex:fulfillment .
+ex:readableCondition a gmeow:Condition ;
+    gmeow:conditionText "The provided book can be read by the requesting agent."@en .
+ex:bedsideCondition a gmeow:Condition ;
+    gmeow:conditionText "The provided book is placed beside the agent's bed."@en .
+
+ex:acknowledgement a gmeow:RequestResponse ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source ;
+    dcterms:description "Acknowledged; I will plan the object."@en .
+ex:acknowledged a gmeow:RequestTransition ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestState gmeow:requestStateAcknowledged ;
+    gmeow:requestTransitionAt "2024-04-02T09:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+ex:planned a gmeow:RequestTransition ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestState gmeow:requestStatePlanned ;
+    gmeow:requestTransitionAt "2024-04-02T09:10:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+# A wrong source reply is retained and explicitly challenged.
+ex:wrongReply a gmeow:RequestResponse ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source ;
+    dcterms:description "The earlier reply incorrectly said that planning had been declined."@en .
+ex:wrongTransition a gmeow:RequestTransition ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestState gmeow:requestStateDeclined ;
+    gmeow:requestTransitionAt "2024-04-02T09:11:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+ex:correction a gmeow:RequestCorrection ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:defeatsResponse ex:wrongReply ; gmeow:correctsTransition ex:wrongTransition ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source ;
+    dcterms:description "The declined report was a transcription error; the planning report remains."@en .
+
+# Local open vocabulary values preserve the source's classifications.
+ex:changeReference a gmeow:WorkReferenceKind ;
+    rdfs:label "source change reference"@en ;
+    skos:definition "The source classifies this reference as a recorded environment change."@en .
+ex:sourceChecked a gmeow:WorkVerifiedStatus ;
+    rdfs:label "checked according to source"@en ;
+    skos:definition "The source reports checking the cited work; this is no native certificate."@en .
+ex:work a gmeow:CitedWorkEvidence ;
+    gmeow:workReferenceKind ex:changeReference ;
+    gmeow:workVerifiedStatus ex:sourceChecked ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+ex:providedBook a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindBook ;
+    gmeow:hasTag gmeow:tagReadable, gmeow:tagPlaceAtBedside ;
+    gmeow:besideOf ex:bed ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" .
+ex:bed a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindBed .
+
+# The functional observed feature remains each Condition, never providedBook.
+# Request and object context are repeated explicitly on each evaluation.
+ex:readableEvaluation a gmeow:ConditionEvaluation ;
+    gmeow:evaluatedCondition ex:readableCondition ;
+    gmeow:evaluationVerdict gmeow:verdictHeld ; gmeow:vantage ex:maintainer ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:recordedWorldObject ex:providedBook ; gmeow:wasDerivedFrom ex:source .
+ex:bedsideEvaluation a gmeow:ConditionEvaluation ;
+    gmeow:evaluatedCondition ex:bedsideCondition ;
+    gmeow:evaluationVerdict gmeow:verdictHeld ; gmeow:vantage ex:maintainer ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:recordedWorldObject ex:providedBook ; gmeow:wasDerivedFrom ex:source .
+ex:fulfillment a gmeow:RequestFulfillment ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:fulfilledObject ex:providedBook ; gmeow:citesWork ex:work ;
+    gmeow:meetsCondition ex:readableCondition, ex:bedsideCondition ;
+    gmeow:fulfillmentEvaluation ex:readableEvaluation, ex:bedsideEvaluation ;
+    gmeow:inspectedAt "2024-04-02T10:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+ex:fulfilledTransition a gmeow:RequestTransition ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestState gmeow:requestStateFulfilled ;
+    gmeow:requestTransitionAt "2024-04-02T10:01:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:maintainer ; gmeow:wasDerivedFrom ex:source .
+
+# Acceptance is a separate act. The object itself is not typed Event.
+ex:acceptance a gmeow:ObjectAcceptance ;
+    gmeow:acceptedFulfillment ex:fulfillment ;
+    gmeow:answersRequestRevision ex:request ;
+    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:acceptedBy ex:agent ;
+    gmeow:acceptedAt "2024-04-02T10:05:00Z"^^xsd:dateTime ;
+    gmeow:acceptanceText "Yes, I can read this here. Thank you."@en ;
+    gmeow:acceptanceEvidence ex:acceptanceSource .
+
+# Two independent informal circles, not Organizations or audience values.
+ex:readingCircle a gmeow:DisclosureCircle ;
+    gmeow:circleOwner ex:agent ; gmeow:circleMember ex:agent, ex:friend .
+ex:maintenanceCircle a gmeow:DisclosureCircle ;
+    gmeow:circleOwner ex:agent ; gmeow:circleMember ex:maintainer .
+ex:readingAudience a gmeow:CircleAudience ; gmeow:audienceCircle ex:readingCircle .
+ex:privateNote a gmeow:InformationObject ;
+    gmeow:hasDisclosurePolicy gmeow:policyAgentInternal ;
+    gmeow:disclosureOwner ex:agent ;
+    gmeow:wasAttributedTo ex:agent ; gmeow:wasDerivedFrom ex:source .
+ex:circleReport a gmeow:InformationObject ;
+    gmeow:hasDisclosurePolicy gmeow:policyCourtRealm ;
+    gmeow:disclosureOwner ex:agent ; gmeow:disclosureCircle ex:readingCircle ;
+    gmeow:eligibleForConsumer ex:readingAudience ;
+    gmeow:wasAttributedTo ex:agent ; gmeow:wasDerivedFrom ex:source .

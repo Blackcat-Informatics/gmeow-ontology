@@ -5,9 +5,11 @@
 //! docs fanout, strict checking, a whole-run clean manifest, and a worktree-local
 //! cross-process lock.
 
+use purrdf_lex::json::record::ToJson as _;
 use std::collections::BTreeSet;
 use std::fs::{File, OpenOptions, TryLockError};
 use std::io::{Read, Seek, SeekFrom, Write};
+
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Instant;
@@ -340,7 +342,7 @@ pub fn sync(
             Err(e) => return fail(format!("generator metadata failed: {e}")),
         };
         for record in records {
-            match serde_json::to_string(&record) {
+            match generator_metadata_json(&record) {
                 Ok(line) => println!("{line}"),
                 Err(e) => return fail(format!("serialize generator metadata: {e}")),
             }
@@ -395,42 +397,51 @@ pub fn sync(
         );
         if let Some(path) = timings_json {
             let output_bytes = manifest.files.iter().map(|file| file.len).sum::<u64>();
-            let payload = serde_json::json!({
-                "schema_version": TELEMETRY_SCHEMA_VERSION,
-                "command": "sync",
-                "mode": mode.as_str(),
-                "output": output.as_str(),
-                "language": language,
-                "cache_hit": true,
-                "pipeline_runs": 0,
-                "build_identity": manifest.build_identity,
-                "input_digest": manifest.input_digest,
-                "stage_receipt_root": manifest.stage_receipt_root,
-                "managed_output_root": manifest.managed_output_root,
-                "managed_output_count": manifest.files.len(),
-                "managed_output_bytes": output_bytes,
-                "critical_path_ms": 0,
-                "stages": [],
-                "stage_phases": [],
-                "stage_receipts": [],
-                "levels": [],
-                "deterministic_work": {
-                    "input_digest": manifest.input_digest,
-                    "stage_receipt_root": manifest.stage_receipt_root,
-                    "managed_output_root": manifest.managed_output_root,
-                    "managed_output_count": manifest.files.len(),
-                    "managed_output_bytes": output_bytes,
-                    "stage_receipts": [],
-                },
-                "observations": {
-                    "manifest_hit": true,
-                    "pipeline_runs": 0,
-                    "critical_path_ms": 0,
-                    "stages": [],
-                    "stage_phases": [],
-                    "levels": [],
-                },
-            });
+            let payload = purrdf_lex::json::Value::from(
+                purrdf_lex::json::Object::new()
+                    .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                    .with("command", "sync")
+                    .with("mode", mode.as_str())
+                    .with("output", output.as_str())
+                    .with("language", language)
+                    .with("cache_hit", true)
+                    .with("pipeline_runs", 0)
+                    .with("build_identity", manifest.build_identity.to_json())
+                    .with("input_digest", manifest.input_digest.as_str())
+                    .with("stage_receipt_root", manifest.stage_receipt_root.as_str())
+                    .with("managed_output_root", manifest.managed_output_root.as_str())
+                    .with("managed_output_count", manifest.files.len())
+                    .with("managed_output_bytes", output_bytes)
+                    .with("critical_path_ms", 0)
+                    .with("stages", purrdf_lex::json::Value::Array(vec![]))
+                    .with("stage_phases", purrdf_lex::json::Value::Array(vec![]))
+                    .with("stage_receipts", purrdf_lex::json::Value::Array(vec![]))
+                    .with("levels", purrdf_lex::json::Value::Array(vec![]))
+                    .with(
+                        "deterministic_work",
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("input_digest", manifest.input_digest.as_str())
+                                .with("stage_receipt_root", manifest.stage_receipt_root.as_str())
+                                .with("managed_output_root", manifest.managed_output_root.as_str())
+                                .with("managed_output_count", manifest.files.len())
+                                .with("managed_output_bytes", output_bytes)
+                                .with("stage_receipts", purrdf_lex::json::Value::Array(vec![])),
+                        ),
+                    )
+                    .with(
+                        "observations",
+                        purrdf_lex::json::Value::from(
+                            purrdf_lex::json::Object::new()
+                                .with("manifest_hit", true)
+                                .with("pipeline_runs", 0)
+                                .with("critical_path_ms", 0)
+                                .with("stages", purrdf_lex::json::Value::Array(vec![]))
+                                .with("stage_phases", purrdf_lex::json::Value::Array(vec![]))
+                                .with("levels", purrdf_lex::json::Value::Array(vec![])),
+                        ),
+                    ),
+            );
             let code = write_timings_json(path, &payload);
             if code != 0 {
                 return code;
@@ -545,50 +556,57 @@ pub fn sync(
             .timings
             .iter()
             .map(|timing| {
-                serde_json::json!({
-                    "phase": timing.phase,
-                    "elapsed_ms": timing.elapsed_ms,
-                    "metadata": timing.metadata,
-                })
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("phase", timing.phase.as_str())
+                        .with("elapsed_ms", timing.elapsed_ms)
+                        .with("metadata", timing.metadata.as_deref()),
+                )
             })
             .collect::<Vec<_>>();
         let stages = report
             .stage_timings
             .iter()
             .map(|stage| {
-                serde_json::json!({
-                    "level": stage.level,
-                    "stage": stage.stage_id,
-                    "elapsed_ms": stage.elapsed_ms,
-                    "cached": stage.cached,
-                    "cache_outcome": stage.cache_outcome,
-                    "cache_read_bytes": stage.cache_read_bytes,
-                    "cache_write_bytes": stage.cache_write_bytes,
-                    "cache_hydration_rss_delta_kib": stage.cache_hydration_rss_delta_kib,
-                })
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("level", stage.level)
+                        .with("stage", stage.stage_id.as_str())
+                        .with("elapsed_ms", stage.elapsed_ms)
+                        .with("cached", stage.cached)
+                        .with("cache_outcome", stage.cache_outcome.as_str())
+                        .with("cache_read_bytes", stage.cache_read_bytes)
+                        .with("cache_write_bytes", stage.cache_write_bytes)
+                        .with(
+                            "cache_hydration_rss_delta_kib",
+                            stage.cache_hydration_rss_delta_kib,
+                        ),
+                )
             })
             .collect::<Vec<_>>();
         let levels = report
             .level_timings
             .iter()
             .map(|level| {
-                serde_json::json!({
-                    "level": level.level,
-                    "elapsed_ms": level.elapsed_ms,
-                    "critical_stage": level.critical_stage,
-                })
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("level", level.level)
+                        .with("elapsed_ms", level.elapsed_ms)
+                        .with("critical_stage", level.critical_stage.as_str()),
+                )
             })
             .collect::<Vec<_>>();
         let stage_phases = report
             .stage_phase_timings
             .iter()
             .map(|phase| {
-                serde_json::json!({
-                    "stage": phase.stage_id,
-                    "phase": phase.phase,
-                    "elapsed_ms": phase.elapsed_ms,
-                    "work_metadata": phase.metadata,
-                })
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("stage", phase.stage_id.as_str())
+                        .with("phase", phase.phase.as_str())
+                        .with("elapsed_ms", phase.elapsed_ms)
+                        .with("work_metadata", phase.metadata.as_deref()),
+                )
             })
             .collect::<Vec<_>>();
         let stage_work = report
@@ -596,11 +614,12 @@ pub fn sync(
             .iter()
             .filter_map(|phase| {
                 phase.metadata.as_ref().map(|metadata| {
-                    serde_json::json!({
-                        "stage": phase.stage_id,
-                        "phase": phase.phase,
-                        "work_metadata": metadata,
-                    })
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("stage", phase.stage_id.as_str())
+                            .with("phase", phase.phase.as_str())
+                            .with("work_metadata", metadata),
+                    )
                 })
             })
             .collect::<Vec<_>>();
@@ -608,11 +627,12 @@ pub fn sync(
             .stage_phase_timings
             .iter()
             .map(|phase| {
-                serde_json::json!({
-                    "stage": phase.stage_id,
-                    "phase": phase.phase,
-                    "elapsed_ms": phase.elapsed_ms,
-                })
+                purrdf_lex::json::Value::from(
+                    purrdf_lex::json::Object::new()
+                        .with("stage", phase.stage_id.as_str())
+                        .with("phase", phase.phase.as_str())
+                        .with("elapsed_ms", phase.elapsed_ms),
+                )
             })
             .collect::<Vec<_>>();
         let critical_path_ms = report
@@ -641,57 +661,66 @@ pub fn sync(
             .map(|stage| stage.cache_write_bytes)
             .sum::<u64>();
         let managed_output_bytes = manifest.files.iter().map(|file| file.len).sum::<u64>();
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "sync",
-            "mode": mode.as_str(),
-            "output": output.as_str(),
-            "language": manifest.language,
-            "cache_hit": false,
-            "pipeline_runs": 1,
-            "build_identity": manifest.build_identity,
-            "input_digest": manifest.input_digest,
-            "stage_receipt_root": manifest.stage_receipt_root,
-            "managed_output_root": manifest.managed_output_root,
-            "managed_output_count": manifest.files.len(),
-            "managed_output_bytes": managed_output_bytes,
-            "executed_stage_count": executed_stage_count,
-            "hydrated_stage_count": hydrated_stage_count,
-            "cache_read_bytes": cache_read_bytes,
-            "cache_write_bytes": cache_write_bytes,
-            "critical_path_ms": critical_path_ms,
-            "produced": total_produced,
-            "written": total_written,
-            "unchanged": total_unchanged,
-            "removed": total_removed,
-            "stages": stages,
-            "stage_phases": stage_phases,
-            "stage_receipts": &report.stage_receipts,
-            "levels": levels,
-            "timings": timings,
-            "deterministic_work": {
-                "input_digest": manifest.input_digest,
-                "stage_receipt_root": manifest.stage_receipt_root,
-                "managed_output_root": manifest.managed_output_root,
-                "managed_output_count": manifest.files.len(),
-                "managed_output_bytes": managed_output_bytes,
-                "stage_receipts": &report.stage_receipts,
-                "stage_work": stage_work,
-            },
-            "observations": {
-                "manifest_hit": false,
-                "pipeline_runs": 1,
-                "executed_stage_count": executed_stage_count,
-                "hydrated_stage_count": hydrated_stage_count,
-                "cache_read_bytes": cache_read_bytes,
-                "cache_write_bytes": cache_write_bytes,
-                "critical_path_ms": critical_path_ms,
-                "stages": stages,
-                "stage_phases": stage_phase_observations,
-                "levels": levels,
-                "timings": timings,
-            },
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "sync")
+                .with("mode", mode.as_str())
+                .with("output", output.as_str())
+                .with("language", manifest.language.as_str())
+                .with("cache_hit", false)
+                .with("pipeline_runs", 1)
+                .with("build_identity", manifest.build_identity.to_json())
+                .with("input_digest", manifest.input_digest.as_str())
+                .with("stage_receipt_root", manifest.stage_receipt_root.as_str())
+                .with("managed_output_root", manifest.managed_output_root.as_str())
+                .with("managed_output_count", manifest.files.len())
+                .with("managed_output_bytes", managed_output_bytes)
+                .with("executed_stage_count", executed_stage_count)
+                .with("hydrated_stage_count", hydrated_stage_count)
+                .with("cache_read_bytes", cache_read_bytes)
+                .with("cache_write_bytes", cache_write_bytes)
+                .with("critical_path_ms", critical_path_ms)
+                .with("produced", total_produced)
+                .with("written", total_written)
+                .with("unchanged", total_unchanged)
+                .with("removed", total_removed)
+                .with("stages", stages.to_json())
+                .with("stage_phases", stage_phases.to_json())
+                .with("stage_receipts", report.stage_receipts.to_json())
+                .with("levels", levels.to_json())
+                .with("timings", timings.to_json())
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("input_digest", manifest.input_digest.as_str())
+                            .with("stage_receipt_root", manifest.stage_receipt_root.as_str())
+                            .with("managed_output_root", manifest.managed_output_root.as_str())
+                            .with("managed_output_count", manifest.files.len())
+                            .with("managed_output_bytes", managed_output_bytes)
+                            .with("stage_receipts", report.stage_receipts.to_json())
+                            .with("stage_work", stage_work.to_json()),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("manifest_hit", false)
+                            .with("pipeline_runs", 1)
+                            .with("executed_stage_count", executed_stage_count)
+                            .with("hydrated_stage_count", hydrated_stage_count)
+                            .with("cache_read_bytes", cache_read_bytes)
+                            .with("cache_write_bytes", cache_write_bytes)
+                            .with("critical_path_ms", critical_path_ms)
+                            .with("stages", stages.to_json())
+                            .with("stage_phases", stage_phase_observations.to_json())
+                            .with("levels", levels.to_json())
+                            .with("timings", timings.to_json()),
+                    ),
+                ),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
@@ -1042,6 +1071,18 @@ fn collect_files(dir: &Path, root: &Path, out: &mut Vec<String>) {
             );
         }
     }
+}
+
+/// Encode one complete metadata record; stdout supplies its terminal newline.
+fn generator_metadata_json(record: &gmeow_pipeline::GeneratorMetadata) -> std::io::Result<String> {
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    purrdf_lex::json::write_with_memory(
+        &record.to_json(),
+        purrdf_lex::json::Format::COMPACT,
+        &mut memory,
+    )
+    .map_err(std::io::Error::other)
 }
 
 fn write_manifest(path: &Path, manifest: &SyncManifest) -> std::io::Result<()> {

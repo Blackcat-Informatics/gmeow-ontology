@@ -9,14 +9,18 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 
-use serde::{Deserialize, Serialize};
+use purrdf_lex::json::{
+    self,
+    record::{FromJson, ToJson},
+};
+
+mod wire;
 use sha2::{Digest, Sha256};
 
 use crate::{ActionCacheError, content_digest};
 
 /// A resolved Cargo compilation unit, with physical checkout paths removed.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CompilationUnit {
     /// Cargo package identifier with the selected checkout root replaced by `<workspace>`.
     pub package: String,
@@ -31,15 +35,14 @@ pub struct CompilationUnit {
     /// Features resolved by Cargo for this unit.
     pub features: Vec<String>,
     /// Complete resolved Cargo unit profile, retained in its original JSON structure.
-    pub profile: serde_json::Value,
+    pub profile: json::Value,
     /// Zero-based dependency indices into the containing [`ExecutableRecipe::units`].
     pub dependencies: Vec<usize>,
 }
 
 /// Complete portable identity of an admitted build. Actual runtime policy is
 /// checked by the builder, before the recipe digest is supplied to rustc.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecutableRecipe {
     /// Recipe format version; the current receipt reader accepts version 2.
     pub schema: u32,
@@ -66,8 +69,19 @@ impl ExecutableRecipe {
     pub fn digest(&self) -> Result<String, ActionCacheError> {
         Ok(content_digest(&[
             b"executable-recipe-v2",
-            &serde_json::to_vec(self)?,
+            &json::record::to_vec(self),
         ]))
+    }
+
+    fn compilation_json(&self) -> json::Value {
+        json::Value::Array(vec![
+            self.profile.to_json(),
+            self.rustc.to_json(),
+            self.cargo.to_json(),
+            self.compiler_environment.to_json(),
+            self.units.to_json(),
+            self.roots.to_json(),
+        ])
     }
 
     /// Compilation policy for action owners that independently hash their exact
@@ -77,21 +91,13 @@ impl ExecutableRecipe {
     pub fn compilation_digest(&self) -> Result<String, ActionCacheError> {
         Ok(content_digest(&[
             b"producer-compilation-policy-v2",
-            &serde_json::to_vec(&(
-                &self.profile,
-                &self.rustc,
-                &self.cargo,
-                &self.compiler_environment,
-                &self.units,
-                &self.roots,
-            ))?,
+            &json::record::to_vec(&self.compilation_json()),
         ]))
     }
 }
 
 /// A builder-issued binding between an admitted recipe and the linked executable.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExecutableReceipt {
     /// Receipt format version; the current reader accepts version 2.
     pub schema: u32,
@@ -138,25 +144,18 @@ impl ExecutableReceipt {
                 "executable receipt exceeds its bound",
             ));
         }
-        #[derive(Deserialize)]
-        struct Header {
-            schema: u32,
-            recipe: RecipeHeader,
-        }
-        #[derive(Deserialize)]
-        struct RecipeHeader {
-            schema: u32,
-        }
-        let header: Header = serde_json::from_slice(&bytes)?;
-        if header.schema != 2 || header.recipe.schema != 2 {
+        let value = json::read_slice(&bytes, json::Limits::DEFAULT)
+            .map_err(|error| ActionCacheError::message(format!("action cache JSON: {error}")))?;
+        let (receipt_schema, recipe_schema) =
+            wire::schemas(&value).map_err(crate::receipt_json::decode_error)?;
+        if receipt_schema != 2 || recipe_schema != 2 {
             return Ok(ReceiptDocument::Unsupported {
-                receipt_schema: header.schema,
-                recipe_schema: header.recipe.schema,
+                receipt_schema,
+                recipe_schema,
             });
         }
-        Ok(ReceiptDocument::Current(Box::new(serde_json::from_slice(
-            &bytes,
-        )?)))
+        let receipt = Self::from_json(&value).map_err(crate::receipt_json::decode_error)?;
+        Ok(ReceiptDocument::Current(Box::new(receipt)))
     }
 
     /// Authenticate bytes and the recipe identity embedded in the executable.
@@ -240,7 +239,12 @@ impl ExecutableReceipt {
         })?;
         std::fs::create_dir_all(parent)?;
         let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-        temporary.write_all(&serde_json::to_vec_pretty(self)?)?;
+        let value = self.to_json();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        let bytes = json::write_with_memory(&value, json::Format::PRETTY, &mut memory)
+            .map_err(|error| ActionCacheError::message(format!("action cache JSON: {error}")))?;
+        temporary.write_all(bytes.as_bytes())?;
         temporary.as_file().sync_all()?;
         temporary
             .persist(path)

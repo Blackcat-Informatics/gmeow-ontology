@@ -33,12 +33,13 @@ pub fn fanout(
     };
     reporter.summary(&gmeow_errors::Report::new("fanout"));
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "command": "fanout",
-            "produced": report.produced,
-            "written": report.written,
-            "skipped": report.skipped,
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("command", "fanout")
+                .with("produced", report.produced)
+                .with("written", report.written)
+                .with("skipped", report.skipped),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;

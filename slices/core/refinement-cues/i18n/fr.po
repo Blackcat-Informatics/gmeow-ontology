@@ -1,0 +1,194 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echoes premise of"
+msgstr "reprend la prémisse de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."
+msgstr "Relie une réponse au Prompt concret dont un raffineur lit la réponse comme reprenant simplement la prémisse. Cette lecture attribuée de dépendance n’affirme ni fausseté ni contradiction et ne compte pas la réponse comme soutien indépendant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."
+msgstr "Utiliser lorsqu’un raffineur identifie une réponse comme reprenant la prémisse de son prompt plutôt que comme ajoutant des preuves indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."
+msgstr "Éviter d’inférer que la prémisse est fausse, que la réponse la contredit ou qu’une lecture de reprise est une affirmation de l’auteur de la réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."
+msgstr "Conserver accordingTo sur l’énoncé RDF 1.2 ou sa réification et relier l’observationResult sélectionné d’un Refinement à cette lecture attribuée. Garder distincts la réponse originale et le Prompt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+msgstr "Attribuer la lecture de dépendance : ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Lexicon"
+msgstr "Lexique d’indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed version of a named list of complete words or phrases used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; its cues do not define a text’s meaning."
+msgstr "Une version immuable et révisée d’une liste nommée de mots ou d’expressions complets utilisés comme indices par une règle de lecture. Elle conserve l’identité de version, l’empreinte du contenu, la dérivation source et une provenance de révision responsable ; ses indices ne définissent pas le sens d’un texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."
+msgstr "Utiliser pour exposer l’inventaire exact d’indices révisés employé par une règle de lecture gérée par le consommateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."
+msgstr "Éviter de modifier une version publiée, de traiter les correspondances d’indices comme des sens ou diagnostics, ou de rédiger à la main des glossaires de traduction générés comme listes d’indices."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."
+msgstr "Nommer une lignée versionOf distincte, conserver versionLabel et contentDigest, citer les sources via wasDerivedFrom, attribuer l’auteur avec wasAttributedTo et citer la révision terminée via cueReview. Les changements créent une nouvelle version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."
+msgstr "Identifier une version révisée : ex:cuesV1 a gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue word or phrase"
+msgstr "mot ou expression indice"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete source word or phrase in a CueLexicon, preserved with its language and any RDF 1.2 base direction. It is a textual cue rather than a lexical sense, stem, substring instruction or automatic interpretation."
+msgstr "Un mot ou une expression source complet dans un CueLexicon, conservé avec sa langue et toute direction de base RDF 1.2. C’est un indice textuel plutôt qu’un sens lexical, un radical, une instruction de sous-chaîne ou une interprétation automatique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every exact reviewed cue with its supplied language and direction."
+msgstr "Utiliser pour conserver chaque indice révisé exact avec sa langue et sa direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping language or direction, silently normalizing variants, or treating list order as rule priority."
+msgstr "Éviter de supprimer langue ou direction, de normaliser silencieusement les variantes ou de traiter l’ordre de la liste comme priorité des règles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a language-tagged literal, including a directional language string when supplied. Retain whole phrases without inventing tokenization or a matching policy."
+msgstr "Joindre un littéral portant une langue, y compris une chaîne de langue directionnelle lorsqu’elle est fournie. Conserver les expressions entières sans inventer de segmentation ni de politique de correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the original cue: ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
+msgstr "Conserver l’indice original : ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review"
+msgstr "révision des indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."
+msgstr "L’activité terminée de validation de la révision pour cette version exacte de CueLexicon, conservant le responsable via wasAssociatedWith et l’instant de validation via eventTime. La révision est une provenance responsable, non une approbation universelle ou une certification de sûreté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain who signed off the exact cue version and when."
+msgstr "Utiliser pour conserver qui a validé la version exacte d’indices et quand."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."
+msgstr "Éviter un nom de réviseur sans son activité, la réutilisation d’une révision pour des octets modifiés ou l’interprétation de la révision comme garantie de toute lecture ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."
+msgstr "Relier la version immuable à son Activity de validation terminée ; consigner l’Agent réviseur avec wasAssociatedWith et la date-heure réelle avec eventTime."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+msgstr "Conserver la révision responsable : ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue word language constraint"
+msgstr "contrainte de langue des mots indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueWord retains a nonempty language tag, including the base direction of a directional language string."
+msgstr "Chaque cueWord fourni conserve une étiquette de langue non vide, y compris la direction de base d’une chaîne de langue directionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "Utiliser pour vérifier le contrat intrinsèque de provenance ou de langue de la version d’indices fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "Éviter de traiter cette loi de cohérence comme une révision exécutée, une vérification d’empreinte ou une garantie d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "Lire la formule réalisée sur l’enregistrement réellement fourni et conserver les valeurs originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
+msgstr "Conserver la loi applicable : gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review evidence constraint"
+msgstr "contrainte de preuve de révision des indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."
+msgstr "Chaque cueReview fourni pointe vers une activité de validation terminée avec une association de réviseur responsable et un instant de validation consigné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "Utiliser pour vérifier le contrat intrinsèque de provenance ou de langue de la version d’indices fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "Éviter de traiter cette loi de cohérence comme une révision exécutée, une vérification d’empreinte ou une garantie d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "Lire la formule réalisée sur l’enregistrement réellement fourni et conserver les valeurs originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+msgstr "Conserver la loi applicable : gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue lexicon version identity constraint"
+msgstr "contrainte d’identité de version du lexique d’indices"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A released CueLexicon version is distinct from the lineage entity it versions."
+msgstr "Une version publiée de CueLexicon est distincte de l’entité de lignée dont elle est une version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "Utiliser pour vérifier le contrat intrinsèque de provenance ou de langue de la version d’indices fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "Éviter de traiter cette loi de cohérence comme une révision exécutée, une vérification d’empreinte ou une garantie d’interprétation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "Lire la formule réalisée sur l’enregistrement réellement fourni et conserver les valeurs originales lors du diagnostic d’une violation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "Conserver la loi applicable : gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement cues"
+msgstr "indices de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Attributed premise-dependence readings and immutable reviewed cue versions grounded in existing prompts, refinements, version lineages and provenance."
+msgstr "Lectures attribuées de dépendance aux prémisses et versions immuables d’indices révisés ancrées dans les prompts, raffinements, lignées de versions et provenances existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Cues Module"
+msgstr "Module GMEOW des indices de raffinement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."
+msgstr "Raffineurs d’enregistrements gérés par les consommateurs conservant les constatations de reprise de prémisse et l’inventaire exact de mots ou d’expressions révisés utilisés comme indices."

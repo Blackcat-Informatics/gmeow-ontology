@@ -1,0 +1,492 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:ChatMessage
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message"@x-gmeow-english ;
+    skos:definition "A message in a networked chat conversation, retaining its transport and participant occurrences, with response-turn grouping when supplied by the source. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."@x-gmeow-english ;
+    gmeow:useWhen "Use for chat communication with explicit source context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying email-address participant requirements to chat."@x-gmeow-english ;
+    gmeow:howToUse "Link chatTransport and hasChatParticipant; add chatTurn only when the source supplies response-turn grouping, and retain ordered ChatMessagePart nodes with hasBodyPart."@x-gmeow-english ;
+    skos:example "ex:message a gmeow:ChatMessage ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Message .
+
+gmeow:ChatTransport
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Transport"@x-gmeow-english ;
+    skos:definition "An open value vocabulary identifying the chat network or transport convention reported by a source. A transport value is distinct from a room, an account and the agent operating a service."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source network classification of chat artifacts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a protocol label as the identity of every deployment using it."@x-gmeow-english ;
+    gmeow:howToUse "Mint source-scoped network values when deployments differ; add values as individuals rather than subclasses."@x-gmeow-english ;
+    skos:example "ex:network a gmeow:ChatTransport ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:chatTransport
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat transport"@x-gmeow-english ;
+    skos:definition "The reported chat transport or network of a message, room or carried artifact. The domain is open so media and room identities can retain their network context without becoming messages."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope a chat resource to its source network."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring account ownership or a room identity from transport alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference every source-supported ChatTransport; qualify independent network attributions when needed."@x-gmeow-english ;
+    skos:example "ex:message gmeow:chatTransport ex:network ."@x-gmeow-english ;
+    logic:range gmeow:ChatTransport .
+
+gmeow:ChatRoom
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Room"@x-gmeow-english ;
+    skos:definition "A room or channel entity identified within a source chat transport by verbatim room identifiers. It is distinct from a conversation thread and from a globally unique identifier string."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the room in which a message was carried."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging rooms from different networks because their raw identifiers match."@x-gmeow-english ;
+    gmeow:howToUse "Give the room chatTransport and chatRoomIdentifier values; retain separate source room identities when scope is uncertain."@x-gmeow-english ;
+    skos:example "ex:room a gmeow:ChatRoom ; gmeow:chatTransport ex:network ; gmeow:chatRoomIdentifier \"room-7\" ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:chatRoom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat room"@x-gmeow-english ;
+    skos:definition "Relates a chat message to the room or channel entity reported by its source. This is a room reference rather than a literal-valued room identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use for source-supported room membership of a chat message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a room for a direct conversation with no room identifier."@x-gmeow-english ;
+    gmeow:howToUse "Reference a ChatRoom with its scoped identifier; omit this relation when the source supplies no room."@x-gmeow-english ;
+    skos:example "ex:message gmeow:chatRoom ex:room ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatRoom .
+
+gmeow:chatRoomIdentifier
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat room identifier"@x-gmeow-english ;
+    skos:definition "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve opaque source room identifiers without token normalization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this string as a global key or putting a normalized replacement in its place."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied string on the room node and retain the transport that defines its scope."@x-gmeow-english ;
+    skos:example "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."@x-gmeow-english ;
+    logic:domain gmeow:ChatRoom ;
+    logic:range xsd:string .
+
+gmeow:OutputRole
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Output Role"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the role an outgoing chat message plays in its response turn, including a terminal reply and an auxiliary message before it. Role does not assert successful delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish outgoing messages within a response turn."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a terminal role as evidence that the recipient saw the message."@x-gmeow-english ;
+    gmeow:howToUse "Use role individuals through outputRole on the relevant ChatMessage."@x-gmeow-english ;
+    skos:example "ex:role a gmeow:OutputRole ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:ChatParticipantRole
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Participant Role"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for a participant occurrence in a chat message, independent of email header and envelope roles."@x-gmeow-english ;
+    gmeow:useWhen "Use for chat author and intended-recipient occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid translating chat participants into email addresses to express their roles."@x-gmeow-english ;
+    gmeow:howToUse "Attach supported role individuals through chatParticipantRole; retain coexisting roles."@x-gmeow-english ;
+    skos:example "ex:role a gmeow:ChatParticipantRole ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:outputRoleTerminalReply
+    a gmeow:OutputRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "terminal reply"@x-gmeow-english ;
+    skos:definition "The outgoing reply designated by the source as terminal within its response turn. It does not guarantee transmission, a unique final interpretation or successful delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source-designated terminal outgoing reply."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving terminal role from timestamp order alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference outputRoleTerminalReply through outputRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:outputRole gmeow:outputRoleTerminalReply ."@x-gmeow-english .
+
+gmeow:outputRoleAuxiliary
+    a gmeow:OutputRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "auxiliary message"@x-gmeow-english ;
+    skos:definition "An outgoing message sent or intended before the terminal reply as an auxiliary contribution to the same response turn."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-labelled auxiliary outgoing message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating auxiliary role as lesser truth or lesser participant status."@x-gmeow-english ;
+    gmeow:howToUse "Reference outputRoleAuxiliary through outputRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:outputRole gmeow:outputRoleAuxiliary ."@x-gmeow-english .
+
+gmeow:chatRoleAuthor
+    a gmeow:ChatParticipantRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chat author"@x-gmeow-english ;
+    skos:definition "The participant occurrence identifies the author of this chat message according to its source. It does not imply account ownership or delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-supported authorship occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a human identity from an account-only author endpoint."@x-gmeow-english ;
+    gmeow:howToUse "Reference chatRoleAuthor through chatParticipantRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english .
+
+gmeow:chatRoleRecipient
+    a gmeow:ChatParticipantRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chat recipient"@x-gmeow-english ;
+    skos:definition "The participant occurrence identifies an intended recipient of this chat message. Intended receipt does not assert actual arrival or readership."@x-gmeow-english ;
+    gmeow:useWhen "Use for a retained intended-recipient occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating recipient role as proof of successful delivery."@x-gmeow-english ;
+    gmeow:howToUse "Reference chatRoleRecipient through chatParticipantRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleRecipient ."@x-gmeow-english .
+
+gmeow:outputRole
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "output role"@x-gmeow-english ;
+    skos:definition "An attributed role of an outgoing ChatMessage within its ChatTurn. Multiple supported role attributions coexist and none entails delivery success."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain terminal or auxiliary intent on outgoing chat records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring output roles on incoming messages or selecting one globally preferred role."@x-gmeow-english ;
+    gmeow:howToUse "Link each source-supported OutputRole and keep turn membership with chatTurn."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:outputRole gmeow:outputRoleTerminalReply ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:OutputRole .
+
+gmeow:ChatMessageParticipant
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message Participant"@x-gmeow-english ;
+    skos:definition "A reified source occurrence of an agent or online account playing one or more roles in a chat message. A known account does not fabricate an unknown agent or inherit email-address requirements."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain participants, roles and source order as separately annotatable occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying the occurrence with the person, account or email participant relator."@x-gmeow-english ;
+    gmeow:howToUse "Link the occurrence to its message and endpoint, add supported roles, and retain entryOrdinal when source order is known."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."@x-gmeow-english ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates gmeow:chatParticipantMessage , gmeow:chatParticipantEndpoint .
+
+gmeow:hasChatParticipant
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has chat participant"@x-gmeow-english ;
+    skos:definition "Relates a chat message to one of its reified participant occurrences. This is the inverse of chatParticipantMessage, not an email-address relation."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate a chat record’s source participant occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid flattening a participant occurrence into account ownership."@x-gmeow-english ;
+    gmeow:howToUse "Link each occurrence; its message link is the inverse view of this relation."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatMessageParticipant ;
+    logic:inverseOf gmeow:chatParticipantMessage .
+
+gmeow:chatParticipantMessage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant message"@x-gmeow-english ;
+    skos:definition "The ChatMessage to which this source participant occurrence belongs."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the owning message of a chat participant occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an EmailMessage-specific participant link for this occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Reference its ChatMessage; hasChatParticipant provides the inverse navigation."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantMessage ex:message ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:ChatMessage .
+
+gmeow:chatParticipantEndpoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant endpoint"@x-gmeow-english ;
+    skos:definition "The source-known Agent or OnlineAccount endpoint of this participant occurrence. An account endpoint alone asserts no holder identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chat participant is known as an agent, an account or both."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing an account information object into an Agent."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual source endpoint; the agent and account specializations retain more specific evidence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantEndpoint ex:account ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Agent gmeow:OnlineAccount ) ] .
+
+gmeow:chatParticipantAgent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant agent"@x-gmeow-english ;
+    skos:definition "An Agent explicitly identified by the source for this participant occurrence. It specializes the endpoint relation without deriving account ownership."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the acting participant itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an agent identity from an opaque account identifier."@x-gmeow-english ;
+    gmeow:howToUse "Reference the known Agent; keep any account evidence on chatParticipantAccount separately."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantAgent ex:agent ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:Agent ;
+    logic:subPropertyOf gmeow:chatParticipantEndpoint .
+
+gmeow:chatParticipantAccount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant account"@x-gmeow-english ;
+    skos:definition "An OnlineAccount identified by the source for this participant occurrence. This endpoint remains an account even when its holder is unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an account-only chat identity faithfully."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this occurrence link as a holdsAccount assertion."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual OnlineAccount; add chatParticipantAgent only with separate source evidence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantAccount ex:account ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:OnlineAccount ;
+    logic:subPropertyOf gmeow:chatParticipantEndpoint .
+
+gmeow:chatParticipantRole
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant role"@x-gmeow-english ;
+    skos:definition "A role attributed to this participant occurrence in its chat message. Supported roles coexist rather than replacing one another."@x-gmeow-english ;
+    gmeow:useWhen "Use for source-supported author, recipient or consumer-defined chat roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing the roles into the email header-role vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Reference each applicable ChatParticipantRole on the occurrence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:ChatParticipantRole .
+
+gmeow:ChatTurn
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Turn"@x-gmeow-english ;
+    skos:definition "A source-identified response unit within a conversation thread, grouping related incoming and outgoing chat messages. It is distinct from the whole room or thread and makes auxiliary and terminal roles interpretable."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the producer’s response-turn grouping."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reconstructing a turn boundary from timestamps alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the turn to its Thread with turnOfThread; place messages in it through chatTurn and preserve supplied order with entryOrdinal."@x-gmeow-english ;
+    skos:example "ex:turn a gmeow:ChatTurn ; gmeow:turnOfThread ex:conversation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:chatTurn
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat turn"@x-gmeow-english ;
+    skos:definition "The source response turn containing a chat message. The turn’s thread supplies shared partOfThread membership."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish messages contributing to the same response unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making turn membership evidence of successful output."@x-gmeow-english ;
+    gmeow:howToUse "Reference a source-provided ChatTurn and retain entryOrdinal only as local source order; omit chatTurn when the source has no response-turn grouping."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:chatTurn ex:turn ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatTurn .
+
+gmeow:turnOfThread
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "turn of thread"@x-gmeow-english ;
+    skos:definition "The conversation Thread containing a source chat response turn. It is not a network-room identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a response-turn grouping to its conversation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing room identity with thread membership."@x-gmeow-english ;
+    gmeow:howToUse "Reference each source-supported Thread; message membership follows the chatTurn path."@x-gmeow-english ;
+    skos:example "ex:turn gmeow:turnOfThread ex:conversation ."@x-gmeow-english ;
+    logic:domain gmeow:ChatTurn ;
+    logic:range gmeow:Thread .
+
+gmeow:ChatMessagePart
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message Part"@x-gmeow-english ;
+    skos:definition "An ordered body-part occurrence in a chat message. Its entryOrdinal preserves source position within that message; its content remains distinct from a reader’s diagnostic report."@x-gmeow-english ;
+    gmeow:useWhen "Use for retained typed, textual or media-bearing chat parts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing an unparsed received part with an error message."@x-gmeow-english ;
+    gmeow:howToUse "Attach with hasBodyPart and retain its zero-based entryOrdinal; identify carried media separately with partMedia."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part0 . ex:part0 a gmeow:ChatMessagePart ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:subClassOf gmeow:BodyPart .
+
+gmeow:UnreadableChatPart
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Unreadable Chat Part"@x-gmeow-english ;
+    skos:definition "A retained chat-part occurrence classified by an identified reader as unreadable when received. Its exact received bytes are named by contentDigest; the classification is reader-relative, not a claim that no reader can parse those bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep unreadable received content in the conversation without substituting diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating one reader’s parsing limit as a universal property of the payload."@x-gmeow-english ;
+    gmeow:howToUse "Retain contentDigest, chatPartReader, source order and original bytes; keep any reader fault report outside conversation content."@x-gmeow-english ;
+    skos:example "ex:retainedPart a gmeow:UnreadableChatPart ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ChatMessagePart .
+
+gmeow:DisagreeingChatText
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disagreeing Chat Text"@x-gmeow-english ;
+    skos:definition "A retained occurrence of sender text that an identified reader found to disagree with accompanying typed parts. Its exact received content is retained by digest, alongside the compared parts and the reader-relative classification."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source preserves a disagreeing plain-text mirror beside the typed content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rewriting sender text to match a reader’s interpretation of typed parts."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original contentDigest and chatPartReader, and name the compared occurrence through disagreesWithPart."@x-gmeow-english ;
+    skos:example "ex:retainedPart a gmeow:DisagreeingChatText ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ChatMessagePart .
+
+gmeow:chatPartReader
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat part classifying reader"@x-gmeow-english ;
+    skos:definition "An Agent responsible for the retained occurrence’s unreadability or disagreement classification. It identifies the actual reading context without inserting its error-report prose into the sender’s content."@x-gmeow-english ;
+    gmeow:useWhen "Use to qualify a retained chat part’s reader-relative classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting that every other reader had the same result."@x-gmeow-english ;
+    gmeow:howToUse "Reference each reporting reader and retain attribution provenance on the classification when needed."@x-gmeow-english ;
+    skos:example "ex:retainedPart gmeow:chatPartReader ex:reader ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessagePart ;
+    logic:range gmeow:Agent .
+
+gmeow:disagreesWithPart
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "disagrees with part"@x-gmeow-english ;
+    skos:definition "Relates retained sender text to the accompanying chat-part occurrence with which its reader found disagreement. It records that comparison without deleting either original."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual typed part involved in a disagreement classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this attributed comparison as a universal logical contradiction."@x-gmeow-english ;
+    gmeow:howToUse "Link the DisagreeingChatText occurrence to each compared ChatMessagePart and retain the classifying reader."@x-gmeow-english ;
+    skos:example "ex:mirror gmeow:disagreesWithPart ex:typedPart ."@x-gmeow-english ;
+    logic:domain gmeow:DisagreeingChatText ;
+    logic:range gmeow:ChatMessagePart .
+
+# Thread membership follows the source turn without duplicating its grouping.
+gmeow:partOfThread logic:propertyChainAxiom ( gmeow:chatTurn gmeow:turnOfThread ) .
+
+# Canonical value and source-presence obligations.
+
+gmeow:ChatMessage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTransport ; logic:allValuesFrom gmeow:ChatTransport ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTurn ; logic:allValuesFrom gmeow:ChatTurn ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasChatParticipant ; logic:allValuesFrom gmeow:ChatMessageParticipant ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasBodyPart ; logic:allValuesFrom gmeow:ChatMessagePart ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatRoom ; logic:allValuesFrom gmeow:ChatRoom ],
+    [ a logic:Restriction ; logic:onProperty gmeow:outputRole ; logic:allValuesFrom gmeow:OutputRole ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/hasChatParticipant" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatRoom logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTransport ; logic:allValuesFrom gmeow:ChatTransport ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatRoomIdentifier ; logic:allValuesFrom xsd:string ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatRoom ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatRoom ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatTurn logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:turnOfThread ; logic:allValuesFrom gmeow:Thread ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatTurn ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/turnOfThread" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatMessageParticipant logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantMessage ; logic:allValuesFrom gmeow:ChatMessage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantEndpoint ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Agent gmeow:OnlineAccount ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantAgent ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantAccount ; logic:allValuesFrom gmeow:OnlineAccount ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantRole ; logic:allValuesFrom gmeow:ChatParticipantRole ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantRole" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatMessagePart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessagePart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnreadableChatPart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnreadableChatPart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnreadableChatPart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatPartReader" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DisagreeingChatText logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:disagreesWithPart ; logic:allValuesFrom gmeow:ChatMessagePart ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatPartReader" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/disagreesWithPart" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatPartMessageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat part message constraint"@x-gmeow-english ;
+    skos:definition "Every ChatMessagePart is retained under at least one ChatMessage by hasBodyPart. Its ordinal is local to that containing message."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source context of an ordered chat-part occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid publishing an orphan ordered part without its conversation message."@x-gmeow-english ;
+    gmeow:howToUse "Link the existing ChatMessage to the part using hasBodyPart."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part0 ."@x-gmeow-english ;
+    logic:formalizes gmeow:ChatMessagePart ;
+    logic:message "A ChatMessagePart must be retained under a ChatMessage." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessagePart ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "message" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ] ] ] ] ] .
+
+gmeow:ChatMessageAuthorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat message author constraint"@x-gmeow-english ;
+    skos:definition "A ChatMessage retains at least one participant occurrence classified as author. That occurrence can identify an agent or an account without inventing a holder."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain source authorship evidence on a complete chat record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying a default author when source authorship is unknown."@x-gmeow-english ;
+    gmeow:howToUse "Link a source-supported author occurrence through hasChatParticipant and chatParticipantRole."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english ;
+    logic:formalizes gmeow:ChatMessage ;
+    logic:message "A ChatMessage must retain a source-supported author participant occurrence." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "participant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasChatParticipant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "participant" ] ],
+                [ a logic:Formula ; logic:relation gmeow:chatParticipantRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "participant" ], [ logic:termIndex 1 ; logic:termIri gmeow:chatRoleAuthor ] ] ] ] ] ] .
+
+gmeow:DisagreeingPartContextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disagreeing part context constraint"@x-gmeow-english ;
+    skos:definition "A disagreeing text occurrence and each compared typed-part occurrence belong to a common retained ChatMessage. The relation preserves their actual source accompaniment."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep disagreement classifications tied to the compared source message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing unrelated payloads as if they had accompanied one another."@x-gmeow-english ;
+    gmeow:howToUse "Keep both original occurrences under the same hasBodyPart context."@x-gmeow-english ;
+    skos:example "ex:mirror gmeow:disagreesWithPart ex:typedPart ."@x-gmeow-english ;
+    logic:formalizes gmeow:disagreesWithPart ;
+    logic:message "Compared disagreeing chat parts must share a containing ChatMessage." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:disagreesWithPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "message" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ] ] ] ] ] .

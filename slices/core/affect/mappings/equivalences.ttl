@@ -157,30 +157,11 @@ gmeow-hf:cardiffNegative skos:relatedMatch gmeow:dimensionValence {|
     gmeow:confidence 0.75
 |} .
 
-# ── PROV-O: the inference-output activity/entity chain ─────────────────────────
-gmeow:ModelInferenceRun skos:closeMatch prov:Activity {|
-    gmeow:sssomFile "gmeow-affect.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9 ;
-    gmeow:comment "a model run is a prov:Activity; closeMatch, since GMEOW pins richer model provenance than PROV requires"
-|} .
-
+# ── PROV-O: affect output as an enduring evidence entity ─────────────────────
 gmeow:AffectClassifierOutput skos:closeMatch prov:Entity {|
     gmeow:sssomFile "gmeow-affect.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.85
-|} .
-
-gmeow:producedBy skos:closeMatch prov:wasGeneratedBy {|
-    gmeow:sssomFile "gmeow-affect.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9
-|} .
-
-gmeow:usedInput skos:closeMatch prov:used {|
-    gmeow:sssomFile "gmeow-affect.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.9
 |} .
 
 # ── Web Annotation: evidence spans and media segments ──────────────────────────
@@ -191,11 +172,6 @@ gmeow:AffectiveExpression skos:relatedMatch oa:Annotation {|
     gmeow:comment "an affective expression observed over a span is annotation-shaped; relatedMatch — an expression is evidence, not a bare annotation"
 |} .
 
-gmeow:classifiedTarget skos:relatedMatch oa:hasTarget {|
-    gmeow:sssomFile "gmeow-affect.sssom.tsv" ;
-    gmeow:justification semapv:ManualMappingCuration ;
-    gmeow:confidence 0.7
-|} .
 
 # ── MFOEM (Emotion Ontology, BFO lineage) — linkage-only, closeMatch ───────────
 gmeow:Emotion skos:closeMatch bfo:MFOEM_000001 {|
