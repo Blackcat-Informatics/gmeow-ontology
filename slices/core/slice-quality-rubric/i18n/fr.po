@@ -241,8 +241,8 @@ msgid "inferential density"
 msgstr "densité inférentielle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionInferentialDensity|skos:definition"
-msgid "The data-quality dimension for reasoner-derived inference — how much non-trivial entailment a slice's axioms contribute to the closure, measured by the native reasoner rather than by text heuristics."
-msgstr "La dimension de qualité des données pour l'inférence dérivée par le raisonneur — combien d'implication non triviale les axiomes d'une slice apportent à la clôture, mesurée par le raisonneur natif plutôt que par des heuristiques textuelles."
+msgid "The data-quality dimension for reasoner-derived inference — whether a slice's authored axioms are load-bearing under the reasoner (not re-derivable once left out) and its declared class-disjointness counter-examples actually clash, measured by the native reasoner rather than by text heuristics."
+msgstr "La dimension de qualité des données pour l’inférence dérivée par le raisonneur : les axiomes rédigés d’une tranche jouent-ils un rôle effectif sous le raisonneur (ils ne sont pas redérivables une fois retirés) et ses contre-exemples de disjonction déclarée entre classes produisent-ils réellement des contradictions ? La mesure provient du raisonneur natif, et non d’heuristiques textuelles."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionLinkage|rdfs:label"
 msgid "linkage"
@@ -257,32 +257,32 @@ msgid "projection"
 msgstr "projection"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProjection|skos:definition"
-msgid "The data-quality dimension for maximal projection — whether a slice's content survives into every projection surface in its best configuration, with loss-ledger entries wherever a projection is lossy (Principles 4/7/17)."
-msgstr "La dimension de qualité des données pour la projection maximale — si le contenu d'une slice survit dans chaque surface de projection dans sa meilleure configuration, avec des entrées au registre de pertes partout où une projection est avec perte (Principes 4/7/17)."
+msgid "The data-quality dimension for pure validation projection and required mapping sources: canonical logic: constraints generate validation views instead of maintaining a parallel authored shape surface, and external links have their mapping source. This dimension does not certify content survival or loss-ledger completeness (Principles 4/7/17)."
+msgstr "La dimension de qualité des données pour la projection pure de la validation et les sources de correspondance requises : les contraintes canoniques logic: produisent des vues de validation au lieu de maintenir une surface de formes rédigée en parallèle, et les liens externes disposent de leur source de correspondance. Cette dimension ne certifie ni la conservation du contenu ni la complétude du registre de pertes (Principes 4/7/17)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTesting|rdfs:label"
 msgid "testing"
 msgstr "test"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTesting|skos:definition"
-msgid "The data-quality dimension for optimal testing — per-term test reach, correct competency-cell modes, pinned counter-examples, and QA bits placed in their cheapest owning layer (SLICE_GUIDE §9; SLICE_QA)."
-msgstr "La dimension de qualité des données pour le test optimal — portée de test par terme, modes de cellule de compétence corrects, contre-exemples épinglés, et bribes d'AQ placées dans leur couche propriétaire la moins coûteuse (SLICE_GUIDE §9 ; SLICE_QA)."
+msgid "The data-quality dimension for optimal testing — per-term test reach: whether each of a slice's terms is exercised by at least one test cell or competency query (SLICE_GUIDE §9; SLICE_QA)."
+msgstr "La dimension de qualité des données pour les tests optimaux : la portée des tests par terme, c’est-à-dire si chaque terme d’une tranche est exercé par au moins une cellule de test ou une requête de compétence (SLICE_GUIDE §9 ; SLICE_QA)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation|rdfs:label"
 msgid "documentation"
 msgstr "documentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionDocumentation|skos:definition"
-msgid "The data-quality dimension for documentation completeness — a narrative docs thesis plus the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is rather than redefining it."
-msgstr "La dimension de qualité des données pour la complétude de la documentation — une thèse documentaire narrative plus les dimensions de couverture du pipeline documentaire, consommant le standard de maturité documentaire par slice tel quel plutôt que de le redéfinir."
+msgid "The data-quality dimension for documentation completeness — whether a slice carries a narrative docs.md thesis; the docs-pipeline coverage dimensions and the per-slice documentation-maturity standard remain exempt until their producers land."
+msgstr "La dimension de qualité des données pour la complétude documentaire : la présence dans la tranche d’une thèse narrative dans docs.md. Les dimensions de couverture du pipeline documentaire et le standard de maturité documentaire par tranche restent exemptés jusqu’à la disponibilité de leurs producteurs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality|rdfs:label"
 msgid "prose quality"
 msgstr "qualité de la prose"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProseQuality|skos:definition"
-msgid "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions, worked examples, substantive non-template usage advice, and rationales that state the reason (SLICE_GUIDE §6.2/§6.6/§6.7)."
-msgstr "La dimension de qualité des données pour la qualité de la prose destinée aux humains — définitions qui énoncent des frontières, exemples travaillés, conseils d'usage substantiels et non stéréotypés, et justifications qui énoncent la raison (SLICE_GUIDE §6.2/§6.6/§6.7)."
+msgid "The data-quality dimension for the quality of human-facing prose — boundary-stating definitions and worked-triple examples on a slice's TBox terms (SLICE_GUIDE §6.2/§6.6)."
+msgstr "La dimension de qualité des données pour la prose destinée aux humains : des définitions qui énoncent des limites et des exemples de triplets concrets sur les termes de TBox d’une tranche (SLICE_GUIDE §6.2/§6.6)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProvenanceHonesty|rdfs:label"
 msgid "provenance honesty"
@@ -297,88 +297,88 @@ msgid "translation coverage"
 msgstr "couverture de traduction"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionTranslationCoverage|skos:definition"
-msgid "The data-quality dimension for translation coverage — the fraction of a slice's localizable literals carrying audited translations, measured per-language by per-literal-class, with full coverage requiring English, French, and Mandarin."
-msgstr "La dimension de qualité des données pour la couverture de traduction — la fraction des littéraux localisables d'une slice portant des traductions auditées, mesurée par langue et par classe de littéral, la couverture complète exigeant l'anglais, le français et le mandarin."
+msgid "The data-quality dimension for translation coverage — the fraction of every localizable literal the slice authors (each (term, predicate) over the localizable predicates: labels, comments, definitions, scope notes, examples, pref/alt labels, notes, titles, descriptions, names) carrying audited translations, measured per language, with full coverage requiring English, French, and Mandarin."
+msgstr "La dimension de qualité des données pour la couverture des traductions : la fraction de tous les littéraux localisables rédigés par la tranche (chaque couple terme-prédicat pour les prédicats localisables : étiquettes, commentaires, définitions, notes de portée, exemples, étiquettes préférées ou alternatives, notes, titres, descriptions, noms) qui portent des traductions auditées. Elle est mesurée par langue, et la couverture complète exige l’anglais, le français et le mandarin."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalGrounding|rdfs:label"
 msgid "Maximal Grounding"
 msgstr "Ancrage maximal"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalGrounding|skos:definition"
-msgid "The headline axis: per-layer, per-concept grounding on the triad — foundation stereotypes, mediates relations, OWL characteristics as logic axioms, framed quantities on math, reified denotation and lang forms on lang, and detection of domain twins of triad terms. It is NOT mere annotation presence (that is the information axis) — it measures whether concepts are thin domain layers over thick grounding references (Principle 19; SLICE_GUIDE §4)."
-msgstr "L'axe phare : ancrage par couche et par concept sur la triade — stéréotypes de fondation, relations mediates, caractéristiques OWL en tant qu'axiomes logic, quantités encadrées sur math, dénotation réifiée et formes lang sur lang, et détection de jumeaux de domaine des termes de la triade. Ce n'est PAS la simple présence d'annotations (cela relève de l'axe d'information) — il mesure si les concepts sont de minces couches de domaine posées sur d'épaisses références d'ancrage (Principe 19 ; SLICE_GUIDE §4)."
+msgid "The headline axis: the fraction of a slice's OWL Class terms carrying a logic: foundation stereotype rather than standing as a bare domain term. It is NOT mere annotation presence (that is the information axis), and it does NOT yet score mediates relations, framed math quantities, lang forms, or domain-twin detection — it measures foundation-stereotype grounding of classes (Principle 19; SLICE_GUIDE §4)."
+msgstr "L’axe phare : la fraction des termes de classe OWL d’une tranche qui portent un stéréotype de fondation logic: plutôt que de rester de simples termes de domaine. Ce n’est PAS la seule présence d’annotations, qui relève de l’axe d’information. Il ne mesure PAS encore les relations mediates, les quantités math encadrées, les formes lang ou la détection de doublons de domaine : il mesure l’ancrage des classes par stéréotype de fondation (Principe 19 ; SLICE_GUIDE §4)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisReasonerDerived|rdfs:label"
 msgid "Reasoner-Derived"
 msgstr "Dérivé par le raisonneur"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisReasonerDerived|skos:definition"
-msgid "The axis that dogfoods the native reasoner as the instrument: inferential density, closure-redundancy and asserted-derived-fact detection by proof, inferential centrality, competency-lane analysis, negative-space verification, and conjecture-backed advice. It is NOT a text heuristic — every metric reads the materialized closure and derivation graph (Principles 8/17/18)."
-msgstr "L'axe qui « mange sa propre nourriture » en prenant le raisonneur natif pour instrument : densité inférentielle, redondance de clôture et détection par preuve de faits dérivés asserted, centralité inférentielle, analyse des voies de compétence, vérification de l'espace négatif, et conseil appuyé sur des conjectures. Ce n'est PAS une heuristique textuelle — chaque métrique lit la clôture matérialisée et le graphe de dérivation (Principes 8/17/18)."
+msgid "The axis that dogfoods the native reasoner as the instrument: the fraction of met reasoner obligations over two directions — positive-space leave-one-out closure-redundancy (an authored TBox axiom the reasoner re-derives once it is left out is dead weight or an asserted derived fact) and negative-space counter-example clash verification (a fixture co-typing a SHACL-declared-disjoint class pair must force a DL clash). It is NOT a text heuristic, and it does NOT compute inferential centrality, competency-lane analysis, or conjecture-backed advice — every metric reads the reasoned closure (Principles 8/17/18)."
+msgstr "L’axe qui utilise lui-même le raisonneur natif comme instrument : la fraction d’obligations du raisonneur satisfaites dans deux directions. Dans l’espace positif, il vérifie la redondance de clôture en retirant un axiome à la fois : un axiome TBox rédigé que le raisonneur redérive après son retrait est superflu ou constitue un fait dérivé affirmé. Dans l’espace négatif, il vérifie les contradictions des contre-exemples : une donnée de test typée simultanément par deux classes déclarées disjointes en SHACL doit provoquer une contradiction DL. Ce n’est PAS une heuristique textuelle. Il ne calcule PAS la centralité inférentielle, l’analyse des voies de compétence ou des conseils fondés sur des conjectures : chaque métrique lit la clôture calculée par le raisonneur (Principes 8/17/18)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalInformation|rdfs:label"
 msgid "Maximal Information"
 msgstr "Information maximale"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalInformation|skos:definition"
-msgid "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals, epistemic-shape coverage (contested/suppressed/ambiguous/time-scoped cases), and prose-to-axiom harvest coverage. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required information is present at all (SLICE_GUIDE §6)."
-msgstr "L'axe pour l'information déplacée dans l'ontologie : complétude de l'habit d'annotations sur chaque terme y compris les individus de la A-Box, couverture des formes épistémiques (cas contestés/supprimés/ambigus/bornés dans le temps), et couverture de récolte prose-vers-axiome. Ce n'est PAS la qualité de la prose (qui juge à quel point les chaînes se lisent bien) — cet axe mesure si l'information requise est présente tout court (SLICE_GUIDE §6)."
+msgid "The axis for information moved into the ontology: annotation-coat completeness on every term including A-Box individuals — the average fraction of each term's required coat predicates (label, definition, isDefinedBy, example, and on a TBox term the useWhen/avoidWhen/howToUse/graphBoxRole usage coat) that are present. It is NOT prose quality (that judges how well the strings read) — this axis measures whether the required annotation is present at all (SLICE_GUIDE §6)."
+msgstr "L’axe de l’information intégrée à l’ontologie : la complétude des annotations de chaque terme, y compris les individus de la A-Box. Il s’agit de la fraction moyenne des prédicats d’annotation requis présents pour chaque terme : label, definition, isDefinedBy, example, et, pour un terme de la TBox, les annotations d’usage useWhen/avoidWhen/howToUse/graphBoxRole. Ce n’est PAS la qualité de la prose, qui juge la lisibilité des textes : cet axe mesure si l’annotation requise est présente (SLICE_GUIDE §6)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalLinkage|rdfs:label"
 msgid "Maximal Linkage"
 msgstr "Liaison maximale"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalLinkage|skos:definition"
-msgid "The axis for maximal linkage with explicit correspondence-calculus adoption: mapping presence and rung honesty (exactMatch vs closeMatch, the five axes kept apart), live authority links, SKOS lift, and the fraction of the alignment surface routed through the correspondence calculus with an executed law discharge and a loss-ledger judgment. It is NOT projection (that measures output surfaces) — this measures the honesty and calculus-adoption of the links themselves (Principle 17)."
-msgstr "L'axe pour la liaison maximale avec adoption explicite du calcul de correspondance : présence de correspondances et honnêteté des échelons (exactMatch vs closeMatch, les cinq axes tenus distincts), liens d'autorité vivants, remontée SKOS, et la fraction de la surface d'alignement acheminée par le calcul de correspondance avec un acquittement de loi exécuté et un jugement au registre de pertes. Ce n'est PAS la projection (qui mesure les surfaces de sortie) — il mesure l'honnêteté et l'adoption du calcul des liens eux-mêmes (Principe 17)."
+msgid "The axis for correspondence-calculus adoption: of the identity-strength correspondences a slice authors (the only alignments a lens can carry lawfully — exactMatch / equivalentClass / equivalentProperty), the fraction routed through the correspondence calculus (logic:Correspondence lenses and mnemomorphic gmeow:ProjectionMapping cells) rather than hand-authored (identity-strength alignment cells and dc: alignments the dcterms:→dc: dumb-down should derive). It is NOT projection (that measures output surfaces), and it does NOT check live authority links, SKOS lift, or an executed law discharge — it measures calculus adoption over the identity-strength alignment surface (Principle 17)."
+msgstr "L’axe d’adoption du calcul des correspondances : parmi les correspondances de force d’identité qu’une tranche rédige — les seuls alignements qu’une lentille puisse porter légitimement, exactMatch / equivalentClass / equivalentProperty —, la fraction acheminée par le calcul des correspondances (lentilles logic:Correspondence et cellules gmeow:ProjectionMapping mnémomorphes) plutôt que rédigée à la main (cellules d’alignement de force d’identité et alignements dc: que devrait dériver la simplification dcterms:→dc:). Ce n’est PAS la projection, qui mesure les surfaces de sortie. Il ne vérifie PAS les liens d’autorité actifs, la remontée SKOS ou l’exécution d’une preuve de loi : il mesure l’adoption du calcul sur la surface d’alignement de force d’identité (Principe 17)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalProjection|rdfs:label"
 msgid "Maximal Projection"
 msgstr "Projection maximale"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalProjection|skos:definition"
-msgid "The axis for whether a slice's content survives into every projection surface in its best configuration — SHACL/ShEx from logic sources, SSSOM/EDOAL/FnO, docs pages — with a loss-ledger entry wherever the projection is lossy. It is NOT linkage (the source alignments) — this measures the derived output surfaces (Principles 4/7/17)."
-msgstr "L'axe pour savoir si le contenu d'une slice survit dans chaque surface de projection dans sa meilleure configuration — SHACL/ShEx depuis des sources logic, SSSOM/EDOAL/FnO, pages de documentation — avec une entrée au registre de pertes partout où la projection est avec perte. Ce n'est PAS la liaison (les alignements sources) — il mesure les surfaces de sortie dérivées (Principes 4/7/17)."
+msgid "The axis for pure validation projection and required mapping sources. A slice carrying restriction or class-disjointness constraints earns validation credit when it has no parallel authored shapes.ttl; its canonical logic: constraints belong in module.ttl and project to generated/shapes/*. A slice whose own terms link to external vocabularies must supply mappings/equivalences.ttl. This axis checks those authoring-surface and mapping-file obligations, not content survival across SSSOM/EDOAL/FnO or loss-ledger completeness (Principles 4/7/17)."
+msgstr "L’axe de projection pure de la validation et des sources de correspondance requises. Une tranche portant des contraintes de restriction ou de disjonction entre classes reçoit le crédit de validation lorsqu’elle ne possède pas de fichier shapes.ttl rédigé en parallèle ; ses contraintes canoniques logic: appartiennent à module.ttl et sont projetées vers generated/shapes/*. Une tranche dont les propres termes sont liés à des vocabulaires externes doit fournir mappings/equivalences.ttl. Cet axe vérifie ces obligations de surface d’écriture et de fichier de correspondances, et non la conservation du contenu dans SSSOM/EDOAL/FnO ou la complétude du registre de pertes (Principes 4/7/17)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisOptimalTesting|rdfs:label"
 msgid "Optimal Testing"
 msgstr "Test optimal"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisOptimalTesting|skos:definition"
-msgid "The axis for QA depth, placement, and manifest honesty: per-term test reach, correct competency-cell cardinality modes, counter-examples pinning their (fixture, code), each hard rule mapped to exactly one cheapest owning gate, and sliceDependsOn equal to the computed ownership set. It is NOT the reasoner axis (which runs the cells) — this measures whether the cells exist and sit in the right layer (SLICE_GUIDE §9; SLICE_QA)."
-msgstr "L'axe pour la profondeur d'AQ, le placement et l'honnêteté du manifest : portée de test par terme, modes de cardinalité de cellule de compétence corrects, contre-exemples épinglant leur (fixture, code), chaque règle stricte associée à exactement une barrière propriétaire la moins coûteuse, et sliceDependsOn égal à l'ensemble de propriété calculé. Ce n'est PAS l'axe du raisonneur (qui exécute les cellules) — il mesure si les cellules existent et se trouvent dans la bonne couche (SLICE_GUIDE §9 ; SLICE_QA)."
+msgid "The axis for test reach: the fraction of a slice's terms named (at a word boundary) by at least one test cell or competency query under tests/ or queries/. It is NOT the reasoner axis (which runs the cells), and it does NOT yet check competency-cell cardinality modes, counter-example pins, gate ownership, or sliceDependsOn — it measures whether each term is exercised by some cell (SLICE_GUIDE §9; SLICE_QA)."
+msgstr "L’axe de portée des tests : la fraction des termes d’une tranche nommés, avec correspondance aux limites de mots, par au moins une cellule de test ou une requête de compétence dans tests/ ou queries/. Ce n’est PAS l’axe du raisonneur, qui exécute les cellules. Il ne vérifie PAS encore les modes de cardinalité des cellules de compétence, les contre-exemples épinglés, la responsabilité des barrières ou sliceDependsOn : il mesure si chaque terme est exercé par une cellule (SLICE_GUIDE §9 ; SLICE_QA)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisDocumentation|rdfs:label"
 msgid "Documentation"
 msgstr "Documentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisDocumentation|skos:definition"
-msgid "The axis for documentation completeness: a narrative docs thesis and the docs-pipeline coverage dimensions, consuming the per-slice documentation-maturity standard as-is. It is NOT prose quality (how well strings read) — this measures whether the documentation surfaces exist. The documentation-maturity tier and multi-format panels remain exempt until their producers land."
-msgstr "L'axe pour la complétude de la documentation : une thèse documentaire narrative et les dimensions de couverture du pipeline documentaire, consommant le standard de maturité documentaire par slice tel quel. Ce n'est PAS la qualité de la prose (à quel point les chaînes se lisent bien) — il mesure si les surfaces de documentation existent. Le palier de maturité documentaire et les panneaux multi-format restent exemptés jusqu'à ce que leurs producteurs atterrissent."
+msgid "The axis for documentation completeness: whether the slice ships a docs.md carrying a narrative thesis — substantive prose beyond its headings, not just a term listing. It is NOT prose quality (how well strings read) — this measures whether the documentation thesis exists, and it is NOT the documentation-maturity coverage fraction (that is the separate gmeow:axisDocMaturity axis, now landed). Multi-format max-info docs panels remain exempt until their producer lands."
+msgstr "L’axe de complétude documentaire : il vérifie que la tranche fournit un fichier docs.md portant une thèse narrative, avec une prose substantielle au-delà des titres plutôt qu’une simple liste de termes. Ce n’est PAS la qualité de la prose, qui juge la lisibilité des textes : il mesure l’existence de la thèse documentaire. Ce n’est pas non plus la fraction de couverture de maturité documentaire, qui relève de l’axe distinct gmeow:axisDocMaturity, désormais disponible. Les panneaux documentaires multiformats à information maximale restent exemptés jusqu’à la disponibilité de leur producteur."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisProseQuality|rdfs:label"
 msgid "Prose Quality"
 msgstr "Qualité de la prose"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisProseQuality|skos:definition"
-msgid "The axis for the quality of human-facing prose: definitions that state boundaries (the three-NOTs bar), examples that are worked triples, substantive non-template usage advice, and rationales that explain why. It carries the provenance-honesty sub-dimension. It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6/§6.7)."
-msgstr "L'axe pour la qualité de la prose destinée aux humains : définitions qui énoncent des frontières (la barre des trois NON), exemples qui sont des triplets travaillés, conseils d'usage substantiels et non stéréotypés, et justifications qui expliquent pourquoi. Il porte la sous-dimension d'honnêteté de provenance. Ce n'est PAS la présence de l'information (l'axe d'information) — il juge à quel point les chaînes présentes se lisent bien (SLICE_GUIDE §6.2/§6.6/§6.7)."
+msgid "The axis for the quality of human-facing prose on a slice's TBox terms: the fraction of definitions that state a boundary (what the term is NOT) and skos:example literals that are worked triples (a CURIE plus turtle statement structure). It does NOT score usage-coat substance or rationale honesty (that is the separate provenance-honesty axis). It is NOT information presence (the information axis) — this judges how well the present strings read (SLICE_GUIDE §6.2/§6.6)."
+msgstr "L’axe de qualité de la prose destinée aux humains sur les termes de TBox d’une tranche : la fraction des définitions qui énoncent une limite (ce que le terme N’EST PAS) et des littéraux skos:example qui présentent des triplets concrets (un CURIE accompagné d’une structure d’instruction Turtle). Il ne mesure PAS la substance des annotations d’usage ni l’honnêteté des justifications, qui relèvent de l’axe distinct d’honnêteté de provenance. Ce n’est PAS la présence de l’information, qui relève de l’axe d’information : il juge la qualité des textes présents (SLICE_GUIDE §6.2/§6.6)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisProvenanceHonesty|rdfs:label"
 msgid "Provenance Honesty"
 msgstr "Honnêteté de provenance"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisProvenanceHonesty|skos:definition"
-msgid "The prose-quality sub-axis that flags any saRationale or comment-class rationale literal naming a test artifact (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."
-msgstr "Le sous-axe de qualité de la prose qui signale tout littéral de justification de classe saRationale ou commentaire nommant un artefact de test (une fonction de test, un chemin .rs ou .py, ou une tournure 'Mirrors …') comme une erreur de catégorie — un test est la preuve qu'un axiome tient, jamais la raison pour laquelle. Consultatif uniquement. Ce n'est PAS une barrière stricte ni l'axe général de prose : il cible précisément l'anti-motif « un test n'est pas une justification » et propose une amélioration par retrait de clause (SLICE_GUIDE §6.6)."
+msgid "The prose-quality sub-axis scoring the fraction of a slice's rationale literals (gmeow:saRationale, gmeow:cqRationale, and rdfs:comment) that name no test artifact; it flags any that names one (a test function, a .rs or .py path, or a 'Mirrors …' framing) as a category error — a test is evidence that an axiom holds, never the reason why. Advisory only. It is NOT a hard gate and NOT the general prose axis: it targets exactly the test-is-not-a-rationale anti-pattern and offers a strip-clause uplift (SLICE_GUIDE §6.6)."
+msgstr "Le sous-axe de qualité de la prose qui mesure la fraction des littéraux de justification d’une tranche (gmeow:saRationale, gmeow:cqRationale et rdfs:comment) ne nommant aucun artefact de test. Il signale comme erreur de catégorie tout littéral qui en nomme un (fonction de test, chemin .rs ou .py, ou formulation « Mirrors … ») : un test prouve qu’un axiome tient, mais n’en est jamais la raison. Cet axe est uniquement consultatif. Ce n’est PAS une barrière stricte ni l’axe général de prose : il cible précisément l’erreur consistant à prendre un test pour une justification et propose une amélioration par retrait de la proposition concernée (SLICE_GUIDE §6.6)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage|rdfs:label"
 msgid "Translation Coverage"
 msgstr "Couverture de traduction"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/axisTranslationCoverage|skos:definition"
-msgid "The axis for translation coverage measured per-language by per-literal-class over every localizable literal — labels, definitions, examples, usage coats, rationales, and docs prose — with full coverage requiring English, French, and Mandarin routed through the audited-translation machinery. It is NOT a single ratio: a bare parallel literal with no translation record grades below an audited one."
-msgstr "L'axe pour la couverture de traduction mesurée par langue et par classe de littéral sur chaque littéral localisable — étiquettes, définitions, exemples, habits d'usage, justifications et prose documentaire — la couverture complète exigeant l'anglais, le français et le mandarin acheminés par la machinerie de traduction auditée. Ce n'est PAS un simple ratio : un littéral parallèle brut sans enregistrement de traduction est noté en dessous d'un littéral audité."
+msgid "The axis for translation coverage: per-language coverage of EVERY localizable literal the slice authors — each (term, predicate) that carries a literal for one of the localizable predicates (rdfs:label/comment, skos:definition/scopeNote/example/prefLabel/altLabel/note, dcterms:title/description, gmeow:name/title/description/fullName) — audited via the i18n/<stem>.po catalogs and averaged across English (authored, always full), French (fr), and Mandarin (cmn). A literal counts as covered for a language only when its catalog entry carries a real (non-empty) msgstr. It is NOT restricted to labels and definitions (it covers the whole localizable coat) and it is NOT a single ratio: coverage is computed per language and then averaged, reaching 1.0 iff every localizable literal is fully translated into both French and Mandarin."
+msgstr "L’axe de couverture des traductions : la couverture par langue de CHAQUE littéral localisable rédigé par la tranche, soit chaque couple (terme, prédicat) portant un littéral pour un prédicat localisable (rdfs:label/comment, skos:definition/scopeNote/example/prefLabel/altLabel/note, dcterms:title/description, gmeow:name/title/description/fullName). Elle est auditée à partir des catalogues i18n/<stem>.po et moyennée sur l’anglais (rédigé, toujours complet), le français (fr) et le mandarin (cmn). Un littéral compte comme traduit dans une langue seulement si son entrée de catalogue possède un véritable msgstr non vide. La mesure ne se limite PAS aux étiquettes et définitions : elle couvre toutes les annotations localisables. Ce n’est PAS un ratio unique : la couverture est calculée par langue puis moyennée, et vaut 1.0 si et seulement si chaque littéral localisable est intégralement traduit en français et en mandarin."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/exemptionGmnProjection|rdfs:label"
 msgid "GMN-projection exemption"
@@ -976,14 +976,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-n3|skos:definition"
 msgid "The Notation3 (N3) projection-surface registry entry — DOCUMENTARY-ONLY, never an enforceable gate. Per Principle 17, N3 is one of the generated lossy projections logic: enumerates, but N3's log:-rule surface (formulae, {}-quoted graphs, N3 built-ins) is NOT plain RDF triples: it cannot be hand-authored inside a TTL slice's triple surface, so no N3-rule construct can ever appear as a real triple predicate or object here. Its gmeow:vocabularyCountKind is \"countKindNonRdfSurface\", which the shared counter resolves to an always-empty enumeration, making its residue structurally 0 by construction rather than by an unenforced policy. gmeow:vocabularyNamespace is a stable documentary marker IRI under the gmeow: authority — not a dereferenceable external vocabulary namespace and never matched against any real triple — chosen precisely because it can never collide with an authored predicate or object. No counter-example fixture claims this vocabulary reds."
 msgstr "L'entrée du registre de surface de projection Notation3 (N3) — DOCUMENTAIRE SEULEMENT, jamais une barrière imposable. Selon le Principe 17, N3 est l'une des projections avec perte générées qu'énumère logic:, mais la surface de règles log: de N3 (formules, graphes cités entre {}, primitives N3) N'EST PAS constituée de simples triplets RDF : elle ne peut pas être rédigée à la main dans la surface de triplets d'une slice TTL, si bien qu'aucune construction de règle N3 ne peut jamais apparaître ici comme un véritable prédicat ou objet de triplet. Son gmeow:vocabularyCountKind vaut « countKindNonRdfSurface », que le compteur partagé résout en une énumération toujours vide, rendant son résidu structurellement à 0 par construction plutôt que par une politique non imposée. gmeow:vocabularyNamespace est une IRI de marqueur documentaire stable sous l'autorité gmeow: — non un espace de noms de vocabulaire externe déréférençable et jamais apparié à un véritable triplet — choisie précisément parce qu'elle ne peut jamais entrer en collision avec un prédicat ou objet rédigé. Aucun montage contre-exemple ne prétend faire passer ce vocabulaire au rouge."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-affect-bfo|rdfs:label"
-msgid "projection-ceiling commitment — affect / bfo"
-msgstr "engagement de plafond de projection — affect / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-affect-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the affect slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice affect ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-agentic-sh|rdfs:label"
 msgid "projection-ceiling commitment — agentic / sh"
 msgstr "engagement de plafond de projection — agentic / sh"
@@ -1024,14 +1016,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/pcc-documentation-sh|skos:definiti
 msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the documentation slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice documentation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-bfo|rdfs:label"
-msgid "projection-ceiling commitment — epistemics / bfo"
-msgstr "engagement de plafond de projection — epistemics / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the epistemics slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice epistemics ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh|rdfs:label"
 msgid "projection-ceiling commitment — epistemics / sh"
 msgstr "engagement de plafond de projection — epistemics / sh"
@@ -1039,14 +1023,6 @@ msgstr "engagement de plafond de projection — epistemics / sh"
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-epistemics-sh|skos:definition"
 msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the epistemics slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice epistemics ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gender-bfo|rdfs:label"
-msgid "projection-ceiling commitment — gender / bfo"
-msgstr "engagement de plafond de projection — gender / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-gender-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the gender slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice gender ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-graphrag-sh|rdfs:label"
 msgid "projection-ceiling commitment — graphrag / sh"
@@ -1152,14 +1128,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/pcc-notation-sh|skos:definition"
 msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the notation slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice notation ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-observations-bfo|rdfs:label"
-msgid "projection-ceiling commitment — observations / bfo"
-msgstr "engagement de plafond de projection — observations / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-observations-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the observations slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice observations ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-pipeline-sh|rdfs:label"
 msgid "projection-ceiling commitment — pipeline / sh"
 msgstr "engagement de plafond de projection — pipeline / sh"
@@ -1176,14 +1144,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/pcc-places-bfo|skos:definition"
 msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the places slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice places ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|rdfs:label"
-msgid "projection-ceiling commitment — procedures / bfo"
-msgstr "engagement de plafond de projection — procedures / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-procedures-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the procedures slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice procedures ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|rdfs:label"
 msgid "projection-ceiling commitment — rights / sh"
 msgstr "engagement de plafond de projection — rights / sh"
@@ -1191,30 +1151,6 @@ msgstr "engagement de plafond de projection — rights / sh"
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-rights-sh|skos:definition"
 msgid "The committed lower-only ungrounded-residue ceiling for the sh projection vocabulary on the rights slice; the gate reds if the slice's measured residue rises above it."
 msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection sh sur la slice rights ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-bfo|rdfs:label"
-msgid "projection-ceiling commitment — sensory-environment / bfo"
-msgstr "engagement de plafond de projection — sensory-environment / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sensory-environment-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the sensory-environment slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice sensory-environment ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sexuality-bfo|rdfs:label"
-msgid "projection-ceiling commitment — sexuality / bfo"
-msgstr "engagement de plafond de projection — sexuality / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-sexuality-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the sexuality slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice sexuality ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-bfo|rdfs:label"
-msgid "projection-ceiling commitment — standpoint / bfo"
-msgstr "engagement de plafond de projection — standpoint / bfo"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-bfo|skos:definition"
-msgid "The committed lower-only ungrounded-residue ceiling for the bfo projection vocabulary on the standpoint slice; the gate reds if the slice's measured residue rises above it."
-msgstr "Le plafond de résidu non ancré engagé, à baisse seule, pour le vocabulaire de projection bfo sur la slice standpoint ; la barrière passe au rouge si le résidu mesuré de la slice dépasse ce plafond."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pcc-standpoint-dul|rdfs:label"
 msgid "projection-ceiling commitment — standpoint / dul"
@@ -1764,14 +1700,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:vocabularySubsumedBy, et rien d'autre. Ce n'est pas une définition de gmeow:vocabularySubsumedBy (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "ceiling relocation — the week cycle, organization to temporal"
-msgstr "relocalisation de plafond — le cycle hebdomadaire, d'organization vers temporal"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
-msgstr "Le constat que le vocabulaire de valeurs du cycle hebdomadaire a quitté la tranche organization pour la tranche temporal : gmeow:DayOfWeek et ses sept individus de jour ISO-8601 relèvent de la structure calendaire, et ils ne siégeaient dans organization que parce que gmeow:openingDay avait besoin d'un domaine de valeurs. L'arête de subsomption rdfs gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue est la seule construction gardée que le déplacement emporte : organization cède donc une unité de marge rdfs et temporal reprend exactement cette unité. C'est l'enregistrement de mouvement auquel la comptabilité des plafonds se joint face à la mesure ; il ne vaut pas lui-même autorisation, et il s'éteint dès que le déplacement est absorbé à la base de fusion."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Ceiling Relocation"
 msgstr "Relocalisation de plafond"
@@ -1843,10 +1771,6 @@ msgstr "La date à laquelle une déclaration de relocalisation a été frappée 
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
 msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
-msgstr "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relocationDate is functional"
@@ -2379,3 +2303,7 @@ msgstr "Ne réduisez pas ce préfixe à la seule IRI value et n’importez pas l
 msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:howToUse"
 msgid "Admit selectors against the separate owned catalog before namespace filtering; retain only their validated virtual target witnesses in the surface count."
 msgstr "Admettez les sélecteurs avec le catalogue propriétaire séparé avant le filtrage des espaces de noms ; ne comptez que leurs témoins virtuels de cible validés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisShapeMigration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The historical axis measuring the fraction of typed sh:NodeShape / sh:PropertyShape blocks in a legacy authored shapes.ttl that carry a logic:formalizes back-reference. This presence-only measure does not prove projection equivalence or authorize deletion. Validation belongs in canonical logic: sources and shapes are generated views (Principle 17). Unlike axisMaximalProjection, which credits a constraint-bearing slice when the parallel authored file is absent, this axis measures the retained legacy inventory; it is not the foundation grounding of domain classes."
+msgstr "L’axe historique mesurant la fraction des blocs typés sh:NodeShape / sh:PropertyShape d’un ancien fichier shapes.ttl rédigé à la main qui portent une référence arrière logic:formalizes. Cette mesure de présence seule ne prouve pas l’équivalence de projection et n’autorise pas la suppression. La validation appartient aux sources canoniques logic: et les formes sont des vues produites automatiquement (Principe 17). Contrairement à axisMaximalProjection, qui accorde le crédit à une tranche portant des contraintes lorsque le fichier rédigé en parallèle est absent, cet axe mesure l’inventaire ancien conservé ; ce n’est pas l’ancrage de fondation des classes de domaine."
