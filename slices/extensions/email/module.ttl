@@ -1164,6 +1164,7 @@ gmeow:participantMessage
 gmeow:participantOrdinal
     a logic:DatatypeProperty ;
     rdfs:domain gmeow:MessageParticipant ;
+    logic:subPropertyOf gmeow:entryOrdinal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
     rdfs:label "participant ordinal"@x-gmeow-english ;
     rdfs:range xsd:nonNegativeInteger ;

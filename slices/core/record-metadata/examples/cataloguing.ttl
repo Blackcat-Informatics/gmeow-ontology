@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/catalogue/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# An imported catalogue note retains a month-level recording date and a
+# day-level last modification. The facet identifiers use positions, not keys.
+ex:record0 a gmeow:InformationObject ;
+    gmeow:recordedAt "2026-09"^^xsd:gYearMonth ;
+    gmeow:updatedAt "2026-10-12"^^xsd:date ;
+    gmeow:hasFacet ex:record0-facet0 , ex:record0-facet1 , ex:record0-facet2 ,
+        ex:record0-facet3 , ex:record0-facet4 , ex:record0-facet5 ;
+    gmeow:contextIncludedRelease ex:catalogueRelease ;
+    gmeow:contextIncludedProjection ex:searchProjection .
+
+ex:record0-facet0 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "mood.tone" ;
+    gmeow:facetText "quiet"@en ;
+    gmeow:facetConcept ex:emotionalTone ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+
+ex:record0-facet1 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "approved" ;
+    gmeow:facetValue "true"^^xsd:boolean ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger .
+
+ex:record0-facet2 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "estimatedHours" ;
+    gmeow:facetValue "2.5"^^xsd:decimal ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger .
+
+# The key was present with no payload; no synthetic null literal is introduced.
+ex:record0-facet3 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "followUp" ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger .
+
+# Repeated producer-supplied leaf paths retain separate document positions.
+ex:record0-facet4 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "refs[]" ;
+    gmeow:facetText "inventory card"@en ;
+    gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger .
+
+ex:record0-facet5 a gmeow:LabelledFacet ;
+    gmeow:facetLabel "refs[]" ;
+    gmeow:facetText "conservation report"@en ;
+    gmeow:entryOrdinal "5"^^xsd:nonNegativeInteger .
+
+ex:emotionalTone a gmeow:Concept .
+
+# Shared, digest-identified context artifacts are referenced across records.
+# These illustrative artifact identities do not copy any source text.
+ex:catalogueRelease a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" .
+
+ex:searchProjection a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7" .
+
+# This second note was exposed only to the projection. Its context says
+# nothing about whether the source release was included or actually used.
+ex:record1 a gmeow:InformationObject ;
+    gmeow:recordedAt "2026-10-29T14:32:00-06:00"^^xsd:dateTime ;
+    gmeow:contextIncludedProjection ex:searchProjection .
+
+# The historical source supplies only a year; no date or timezone is invented.
+ex:record2 a gmeow:InformationObject ;
+    gmeow:recordedAt "1998"^^xsd:gYear ;
+    gmeow:recordedDuring ex:cataloguingSeason ;
+    gmeow:updatedDuring ex:revisionSeason .
+
+# These interval bounds are independently supplied catalogue metadata,
+# rather than boundaries inferred from the coarse recording literal.
+ex:cataloguingSeason a gmeow:TimeInterval ;
+    gmeow:startedAtTime "1998-03-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "1998-05-31T17:00:00Z"^^xsd:dateTime .
+
+ex:revisionSeason a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2001-06-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2001-06-30T17:00:00Z"^^xsd:dateTime .
