@@ -13555,8 +13555,8 @@ msgid "Relates a logic:AxisTransitionLaw to the logic:Formula stating its admitt
 msgstr "Relie une logic:AxisTransitionLaw à la logic:Formula énonçant sa relation de transition admise. Porter la relation sous forme de formule plutôt que de table est ce qui rend le certificat de vivacité dérivable au lieu de maintenu à la main."
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:AxisTransitionLaw to the closed value class whose transitions it governs. Range a lifecycle axis value class (stated in prose). Functional: one law per axis, so the admitted relation is unambiguous."
-msgstr "Relie une logic:AxisTransitionLaw à la classe de valeurs close dont elle régit les transitions. Portée : une classe de valeurs d'axe de cycle de vie (énoncée en prose). Fonctionnelle : une loi par axe, de sorte que la relation admise soit non ambiguë."
+msgid "Relates a logic:AxisTransitionLaw to the closed lifecycle value class whose transitions it governs. Each law record names at most one axis. Distinct laws may govern the same axis in different declared scopes or versions; sharing an axis neither merges those laws nor selects which one applies."
+msgstr "Relie une logic:AxisTransitionLaw à la classe fermée de valeurs de cycle de vie dont elle régit les transitions. Chaque relevé de loi désigne au plus un axe. Des lois distinctes peuvent régir le même axe dans des portées ou versions déclarées différentes ; partager un axe ne fusionne pas ces lois et ne choisit pas celle qui s’applique."
 
 msgctxt "https://blackcatinformatics.ca/logic/leaseExpiry|http://www.w3.org/2004/02/skos/core#definition"
 msgid "When the lease lapses, evaluated against an attributed clock. Functional. Skew between the holder's clock and the resource's is the canonical lease failure, which is why the clock source is recorded rather than assumed."
@@ -13575,8 +13575,8 @@ msgid "Whether a revision that changes nothing declines to mint a new version �
 msgstr "Indique si une révision qui ne change rien renonce à créer une version, loi contre le renouvellement de versions sans raison. Sans elle, chaque revue sans modification produirait une nouvelle prescription et la filiation perdrait son sens. C’est une propriété du mécanisme de révision, pas un verdict sur une révision particulière."
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Functional."
-msgstr "Relie une logic:RevisionLens au plan dont elle régit la révision et la restauration. Fonctionnelle."
+msgid "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Each lens names at most one plan, so its law evidence has a specific subject. Distinct lenses may govern the same plan; this property does not select between them or merge their identities."
+msgstr "Relie une logic:RevisionLens au plan dont elle régit la révision et la restauration. Chaque lentille désigne au plus un plan, de sorte que les éléments probants relatifs à ses lois aient un sujet déterminé. Des lentilles distinctes peuvent régir le même plan ; cette propriété ne choisit pas entre elles et ne fusionne pas leurs identités."
 
 msgctxt "https://blackcatinformatics.ca/logic/lensPutGetHolds|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Whether revising to accommodate an observed state and then re-deriving yields that state — the law saying a revision actually incorporated the change it was made for. A revision that does not survive re-derivation changed the prescription without changing what it prescribes."
@@ -13755,8 +13755,8 @@ msgid "Relates a logic:ExternalEffectReceipt to the logic:EffectAttempt it repor
 msgstr "Relie un logic:ExternalEffectReceipt à la logic:EffectAttempt dont il rend compte. Fonctionnelle et OBLIGATOIRE : un reçu sans tentative nommée affirme une issue que personne n’a causée. Le contrôle type ce relevé comme défectueux, au lieu de laisser le reçu sans rattachement lisible comme preuve."
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Functional: one receipt per completed preparation step."
-msgstr "Relie un logic:PreparationReceipt à la logic:PreparationStep qu'il consigne. Fonctionnelle : un reçu par étape de préparation achevée."
+msgid "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Each receipt names at most one preparation step. Distinct receipts may record the same step across repeated runs; their source and enactment context determine which completion they evidence. This relation does not select a receipt for resumption or license reusing an earlier run's completion."
+msgstr "Relie un logic:PreparationReceipt au logic:PreparationStep qu’il consigne. Chaque reçu désigne au plus une étape de préparation. Des reçus distincts peuvent consigner la même étape lors d’exécutions répétées ; leur source et leur contexte d’exécution effective déterminent quel achèvement ils attestent. Cette relation ne sélectionne pas un reçu pour la reprise et n’autorise pas à réutiliser l’achèvement d’une exécution antérieure."
 
 msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ReconciliationResult to its exactly-one verdict. Functional: two verdicts on one probe would leave commitment knowledge with two candidate values and no rule for choosing between them, which is not a reconciliation but the very trap adjudication exists to handle."
@@ -17003,8 +17003,8 @@ msgid "ex:step-law logic:lawAdmits ex:step-transition-formula ."
 msgstr "Exemple : ex:step-law logic:lawAdmits ex:step-transition-formula ."
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Functional by design: one law per axis, so the admitted relation is unambiguous. Two laws over one axis would leave a transition admitted by one and refused by the other with no principled way to decide."
-msgstr "Fonctionnelle par conception : une loi par axe, de sorte que la relation admise soit sans ambiguïté. Deux lois sur un même axe laisseraient une transition admise par l'une et refusée par l'autre, sans moyen fondé de trancher."
+msgid "Forward single-valued only: at most one axis per law. This property imposes no inverse uniqueness and does not prove that distinct laws agree."
+msgstr "Unicité dans le sens direct uniquement : au plus un axe par loi. Cette propriété n’impose aucune unicité inverse et ne prouve pas que des lois distinctes s’accordent."
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:step-law logic:lawGovernsAxis logic:StepState ."
@@ -17019,8 +17019,8 @@ msgid "ex:lens-1 logic:lensGetPutHolds true ."
 msgstr "Exemple : ex:lens-1 logic:lensGetPutHolds true ."
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Points at the plan whose revision and restore the lens governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."
-msgstr "Désigne le plan dont la lentille régit la révision et la restauration, de sorte que les deux lois de lentille soient toujours évaluées sur un plan déterminé et non dans l'abstrait. Fonctionnelle : un plan doté de deux lentilles régissantes aurait deux réponses à la même question."
+msgid "Forward single-valued only: at most one plan per lens. A shared plan does not identify its lenses or make their revision and restore results interchangeable."
+msgstr "Unicité dans le sens direct uniquement : au plus un plan par lentille. Un plan partagé n’identifie pas ses lentilles et ne rend pas leurs résultats de révision et de restauration interchangeables."
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:lens-1 logic:lensGoverns ex:protocol-v3 ."
@@ -17883,8 +17883,8 @@ msgid "Functional and MANDATORY: a receipt with no attempt asserts an outcome no
 msgstr "Fonctionnelle et OBLIGATOIRE : un reçu sans tentative affirme une issue que personne n'a causée. C'est l'une des lois rédigées du noyau : la porte type l'enregistrement fautif au lieu de laisser le reçu orphelin passer pour une preuve."
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. Two receipts for one step would leave that question unanswerable."
-msgstr "Fonctionnelle : un reçu par étape de préparation achevée, de sorte qu'une exécution reprise distingue la préparation déjà payée de celle à refaire. Deux reçus pour une étape rendraient cette question insoluble."
+msgid "Forward single-valued only: at most one step per receipt. No inverse uniqueness or cross-run reuse follows; separate receipts remain distinct evidence."
+msgstr "Unicité dans le sens direct uniquement : au plus une étape par reçu. Aucune unicité inverse ni réutilisation entre exécutions n’en découle ; des reçus distincts restent des éléments probants distincts."
 
 msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional, so a result carries exactly one verdict. Two verdicts on one probe would leave commitment knowledge with two candidate values and no rule for choosing, which is precisely the trap adjudication exists to handle."

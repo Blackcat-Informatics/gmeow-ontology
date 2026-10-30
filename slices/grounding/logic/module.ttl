@@ -10324,12 +10324,12 @@ logic:lawGovernsAxis
     rdfs:domain logic:AxisTransitionLaw ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "law governs axis"@x-gmeow-english ;
-    skos:definition "Relates a logic:AxisTransitionLaw to the closed value class whose transitions it governs. Range a lifecycle axis value class (stated in prose). Functional: one law per axis, so the admitted relation is unambiguous. Two laws over one axis cannot be reconciled — a transition admitted by one and refused by the other leaves no principled way to decide."@x-gmeow-english ;
-    skos:scopeNote "Functional by design: one law per axis, so the admitted relation is unambiguous. Two laws over one axis would leave a transition admitted by one and refused by the other with no principled way to decide."@x-gmeow-english ;
+    skos:definition "Relates a logic:AxisTransitionLaw to the closed lifecycle value class whose transitions it governs. Each law record names at most one axis. Distinct laws may govern the same axis in different declared scopes or versions; sharing an axis neither merges those laws nor selects which one applies."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one axis per law. This property imposes no inverse uniqueness and does not prove that distinct laws agree."@x-gmeow-english ;
     skos:example "ex:step-law logic:lawGovernsAxis logic:StepState ."@x-gmeow-english ;
     gmeow:useWhen "Use to declare which closed value class an axis transition law governs."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid authoring a second law for an axis to cover a special case: fold the case into the one law's formula so the admitted relation stays single-valued."@x-gmeow-english ;
-    gmeow:howToUse "Name the axis value class, and let the certificates range over exactly the values that class closes over."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading one axis per law as one law per axis, or combining distinct laws without identifying the applicable scope and law version."@x-gmeow-english ;
+    gmeow:howToUse "Name the axis value class and retain the selected law's identity and version when interpreting its admitted transitions or certificate evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:lawAdmits
@@ -10763,12 +10763,12 @@ logic:receiptOfPreparation
     rdfs:range logic:PreparationStep ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "receipt of preparation"@x-gmeow-english ;
-    skos:definition "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. The relation cannot be multi-valued, because two receipts for one step would leave that question unanswerable."@x-gmeow-english ;
+    skos:definition "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Each receipt names at most one preparation step. Distinct receipts may record the same step across repeated runs; their source and enactment context determine which completion they evidence. This relation does not select a receipt for resumption or license reusing an earlier run's completion."@x-gmeow-english ;
     skos:example "ex:stagingReceipt logic:receiptOfPreparation ex:stageFiles ."@x-gmeow-english ;
     gmeow:useWhen "Use to evidence that a preparation activity actually completed."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring preparation from the absence of an error; a preparation that silently did nothing looks identical."@x-gmeow-english ;
-    gmeow:howToUse "Bind the receipt to the preparation step, so readiness is evidenced rather than assumed."@x-gmeow-english ;
-    skos:scopeNote "Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. Two receipts for one step would leave that question unanswerable."@x-gmeow-english ;
+    gmeow:howToUse "Bind each receipt to its preparation step and preserve the source and enactment context needed to decide whether that completion applies to the run being resumed."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one step per receipt. No inverse uniqueness or cross-run reuse follows; separate receipts remain distinct evidence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:PinnedExecutableSubgraph
@@ -13143,12 +13143,12 @@ logic:lensGoverns
     rdfs:range logic:Plan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "lens governs"@x-gmeow-english ;
-    skos:definition "Relates a logic:RevisionLens to the plan whose revision and restore it governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."@x-gmeow-english ;
-    skos:scopeNote "Points at the plan whose revision and restore the lens governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."@x-gmeow-english ;
+    skos:definition "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Each lens names at most one plan, so its law evidence has a specific subject. Distinct lenses may govern the same plan; this property does not select between them or merge their identities."@x-gmeow-english ;
+    skos:scopeNote "Forward single-valued only: at most one plan per lens. A shared plan does not identify its lenses or make their revision and restore results interchangeable."@x-gmeow-english ;
     skos:example "ex:lens-1 logic:lensGoverns ex:protocol-v3 ."@x-gmeow-english ;
     gmeow:useWhen "Use to bind a revision lens to the plan whose revision and restore behaviour it governs."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid sharing one lens across unrelated plans: the laws are checked per plan, and a shared lens would report one plan's result for another."@x-gmeow-english ;
-    gmeow:howToUse "Attach one lens per plan and record both law results on it, so revision behaviour is auditable plan by plan."@x-gmeow-english ;
+    gmeow:howToUse "Bind one plan on each lens, retain each lens's own law evidence, and identify the selected lens when interpreting a revision or restore."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:lensPutGetHolds
@@ -24408,3 +24408,11 @@ logic:CapturedPrescriptionDigestPresenceConstraint
             ]
         ]
     ] .
+
+# Forward single-valued bindings; a shared target does not identify its sources.
+logic:PreparationReceipt logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:receiptOfPreparation ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+logic:AxisTransitionLaw logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:lawGovernsAxis ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+logic:RevisionLens logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty logic:lensGoverns ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
