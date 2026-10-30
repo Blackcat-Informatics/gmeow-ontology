@@ -1,0 +1,116 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/reference-navigation/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary illustrative source records, not a resolver or extraction receipt.
+# The source revision's original bytes are the UTF-8 encoding of these six
+# LF-terminated lines, with no other bytes:
+# Ada sees X; see §2.
+# see appendix
+# ليلى
+# Bridge — arch: §2
+# Ferryman — see transport
+# §2 assumes §1
+ex:editor a gmeow:Agent .
+ex:otherReader a gmeow:Agent .
+ex:revision a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:0f5ed48194ab52aa20bef917f854fe59183f73c6cd7236f206d0546656325eb8" ;
+    gmeow:wasAttributedTo ex:editor .
+ex:section1 a gmeow:ContentSegment ;
+    gmeow:segmentType gmeow:segmentTypeSection ; gmeow:segmentIndex 1 ;
+    gmeow:segmentOf ex:revision ; gmeow:navigationSource ex:revision .
+ex:section2 a gmeow:ContentSegment ;
+    gmeow:segmentType gmeow:segmentTypeSection ; gmeow:segmentIndex 2 ;
+    gmeow:segmentOf ex:revision ; gmeow:navigationSource ex:revision .
+
+# Each block's decoded text excludes its source line terminator.
+ex:block1 a gmeow:ContentBlock ;
+    gmeow:blockOf ex:section1 ; gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:segmentIndex 1 ; gmeow:navigationSource ex:revision ;
+    dcterms:description "The exact local text is: Ada sees X; see §2."@en .
+ex:block2 a gmeow:ContentBlock ;
+    gmeow:blockOf ex:section1 ; gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:segmentIndex 2 ; gmeow:navigationSource ex:revision ;
+    dcterms:description "The exact local text is: see appendix"@en .
+ex:arabicBlock a gmeow:ContentBlock ;
+    gmeow:blockOf ex:section2 ; gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:segmentIndex 1 ; gmeow:navigationSource ex:revision .
+ex:ada a gmeow:Entity .
+
+ex:resolvedMention a gmeow:Mention ;
+    gmeow:mentionIn ex:block1 ; gmeow:navigationSource ex:revision ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "3"^^xsd:nonNegativeInteger ;
+    gmeow:surfaceForm "Ada"@en ; gmeow:occurrenceSurface ex:adaSurface ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor ;
+    gmeow:mentionOf ex:ada
+        {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:revision |} .
+ex:unresolvedMention a gmeow:Mention ;
+    gmeow:mentionIn ex:block1 ; gmeow:navigationSource ex:revision ;
+    gmeow:spanStart "9"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "10"^^xsd:nonNegativeInteger ;
+    gmeow:surfaceForm "X"@en ; gmeow:wasDerivedFrom ex:revision ;
+    gmeow:wasAttributedTo ex:editor .
+# No placeholder referent is minted for X.
+ex:rtlMention a gmeow:Mention ;
+    gmeow:mentionIn ex:arabicBlock ; gmeow:navigationSource ex:revision ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "4"^^xsd:nonNegativeInteger ;
+    gmeow:surfaceForm "ليلى"@ar--rtl ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor .
+# Direction is preserved source data. Offsets count logical code points,
+# not visual order, UTF-8 bytes or a normalized transcription.
+
+# A language surface is supplied only for the first mention. It is explicitly
+# raw prose, not an analyzed name form or a fabricated denotation.
+ex:adaSurface a lang:SurfaceForm, lang:UnanalyzedProse ;
+    lang:surfaceText "Ada"@en ; lang:inSignSystem lang:english ;
+    lang:inScript lang:latinScript ; lang:encoding "UTF-8" ;
+    lang:unicodeNormalization "NFC" ; lang:collationLocale "en" ;
+    lang:analysisLevel lang:rawLevel ; lang:surfaceAnchor ex:adaAnchor .
+ex:adaAnchor a lang:SurfaceAnchor ;
+    lang:anchorSource ex:block1 ; lang:anchorStart 0 ; lang:anchorEnd 3 ;
+    lang:offsetSpace lang:codepointOffset .
+
+ex:resolvedCrossReference a gmeow:CrossReference ;
+    gmeow:refersFrom ex:block1 ; gmeow:navigationSource ex:revision ;
+    gmeow:spanStart "12"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "18"^^xsd:nonNegativeInteger ;
+    gmeow:surfaceForm "see §2"@en ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor ;
+    gmeow:refersTo ex:section2
+        {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:revision |} .
+ex:unresolvedCrossReference a gmeow:CrossReference ;
+    gmeow:refersFrom ex:block2 ; gmeow:navigationSource ex:revision ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "12"^^xsd:nonNegativeInteger ;
+    gmeow:surfaceForm "see appendix"@en ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor .
+# A differently named edition would require a different exact revision and
+# separately bound origins and targets, not reuse of these coordinates.
+
+ex:bridgeEntry a gmeow:IndexEntry ;
+    gmeow:navigationSource ex:revision ;
+    gmeow:indexTerm "Bridge"@en ; gmeow:indexSubTerm "arch"@en ;
+    gmeow:indexLocator "§2" ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor ;
+    gmeow:indexConcept ex:bridgeConcept
+        {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:revision |} .
+ex:bridgeConcept a gmeow:Concept .
+ex:unresolvedIndexEntry a gmeow:IndexEntry ;
+    gmeow:navigationSource ex:revision ;
+    gmeow:indexTerm "Ferryman"@en ; gmeow:indexLocator "see transport"@en ;
+    gmeow:wasDerivedFrom ex:revision ; gmeow:wasAttributedTo ex:editor .
+# Locator wording remains textual; no Concept or Selector is invented.
+
+ex:section2 gmeow:assumes ex:section1
+    {| gmeow:accordingTo ex:editor ; gmeow:wasDerivedFrom ex:revision |} .
+# A different reading can coexist on its own statement. Neither is universal.
+ex:section1 gmeow:assumes ex:section2
+    {| gmeow:accordingTo ex:otherReader ; gmeow:wasDerivedFrom ex:revision |} .
