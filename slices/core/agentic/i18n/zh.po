@@ -427,7 +427,7 @@ msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "resolution outcome"
-msgstr "处理结果关系"
+msgstr "处理结果"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionOutcome|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an attention resolution event to its recorded disposition."
@@ -463,7 +463,7 @@ msgstr "行动者就注意请求处理结果陈述的理由。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
-msgstr "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
+msgstr "处理者说明应在探访结束后再返回：`ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."
