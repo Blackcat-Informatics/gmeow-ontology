@@ -13555,8 +13555,8 @@ msgid "Relates a logic:AxisTransitionLaw to the logic:Formula stating its admitt
 msgstr "把 logic:AxisTransitionLaw 关联到陈述其所准许转移关系的那条 logic:Formula。以公式而非表格来承载该关系，正是使活性证书可被推导、而无须手工维护的原因。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:AxisTransitionLaw to the closed value class whose transitions it governs. Range a lifecycle axis value class (stated in prose). Functional: one law per axis, so the admitted relation is unambiguous."
-msgstr "把 logic:AxisTransitionLaw 关联到它所统辖其转移的那个封闭值类。值域为一个生命周期轴值类（以散文陈述）。函数性：每轴一律，故所准许的关系是无歧义的。"
+msgid "Relates a logic:AxisTransitionLaw to the closed lifecycle value class whose transitions it governs. Each law record names at most one axis. Distinct laws may govern the same axis in different declared scopes or versions; sharing an axis neither merges those laws nor selects which one applies."
+msgstr "把一条 logic:AxisTransitionLaw 关联到其转移受该律治理的封闭生命周期值类。每条律记录至多指明一条轴。不同的律可以在各自声明的范围或版本中治理同一条轴；共享一条轴既不合并这些律，也不决定哪条律适用。"
 
 msgctxt "https://blackcatinformatics.ca/logic/leaseExpiry|http://www.w3.org/2004/02/skos/core#definition"
 msgid "When the lease lapses, evaluated against an attributed clock. Functional. Skew between the holder's clock and the resource's is the canonical lease failure, which is why the clock source is recorded rather than assumed."
@@ -13575,8 +13575,8 @@ msgid "Whether a revision that changes nothing declines to mint a new version �
 msgstr "修订没有改变任何内容时，是否拒绝创建新版本，即防止无谓版本更替 的定律。没有它，每次无操作复核都会产生新规定版本，修订沿革也失去意义。它是修订机制的属性，不是对某次修订的裁定。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Functional."
-msgstr "把 logic:RevisionLens 关联到它所统辖其修订与恢复的那个计划。函数性。"
+msgid "Relates a logic:RevisionLens to the plan whose revision and restore it governs. Each lens names at most one plan, so its law evidence has a specific subject. Distinct lenses may govern the same plan; this property does not select between them or merge their identities."
+msgstr "把一个 logic:RevisionLens 关联到其修订与还原受该透镜治理的计划。每个透镜至多指明一个计划，使其定律证据具有明确的对象。不同透镜可以治理同一份计划；此属性既不在它们之间作出选择，也不合并其身份。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lensPutGetHolds|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Whether revising to accommodate an observed state and then re-deriving yields that state — the law saying a revision actually incorporated the change it was made for. A revision that does not survive re-derivation changed the prescription without changing what it prescribes."
@@ -13755,8 +13755,8 @@ msgid "Relates a logic:ExternalEffectReceipt to the logic:EffectAttempt it repor
 msgstr "将 logic:ExternalEffectReceipt 关联到它所报告的 logic:EffectAttempt。具有函数性且必须存在：未指明尝试的回执断言了无人造成的结果，门禁会把此记录标为有缺陷，而不是让悬空回执继续被当作证据。"
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Functional: one receipt per completed preparation step."
-msgstr "把 logic:PreparationReceipt 关联到它所记录的那个 logic:PreparationStep。函数性：每完成一个准备步骤对应一份回执。"
+msgid "Relates a logic:PreparationReceipt to the logic:PreparationStep it records. Each receipt names at most one preparation step. Distinct receipts may record the same step across repeated runs; their source and enactment context determine which completion they evidence. This relation does not select a receipt for resumption or license reusing an earlier run's completion."
+msgstr "把一份 logic:PreparationReceipt 关联到它所记录的 logic:PreparationStep。每份回执至多指明一个准备步骤。不同回执可以在重复运行中记录同一步骤；其来源与实施语境决定各自为哪次完成提供证据。此关系不为恢复运行挑选回执，也不许可复用较早运行的完成记录。"
 
 msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ReconciliationResult to its exactly-one verdict. Functional: two verdicts on one probe would leave commitment knowledge with two candidate values and no rule for choosing between them, which is not a reconciliation but the very trap adjudication exists to handle."
@@ -17003,8 +17003,8 @@ msgid "ex:step-law logic:lawAdmits ex:step-transition-formula ."
 msgstr "示例：ex:step-law logic:lawAdmits ex:step-transition-formula 。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Functional by design: one law per axis, so the admitted relation is unambiguous. Two laws over one axis would leave a transition admitted by one and refused by the other with no principled way to decide."
-msgstr "它按设计是函数性的：每条轴只有一条律，从而使所准许的关系毫无歧义。若同一条轴上有两条律，某个转移便可能被此律准许而被彼律拒斥，且无从依理裁断。"
+msgid "Forward single-valued only: at most one axis per law. This property imposes no inverse uniqueness and does not prove that distinct laws agree."
+msgstr "仅在正向上单值：每条律至多指向一条轴。此属性不施加逆向唯一性，也不证明不同的律彼此一致。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lawGovernsAxis|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:step-law logic:lawGovernsAxis logic:StepState ."
@@ -17019,8 +17019,8 @@ msgid "ex:lens-1 logic:lensGetPutHolds true ."
 msgstr "示例：ex:lens-1 logic:lensGetPutHolds true 。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Points at the plan whose revision and restore the lens governs, so the two lens laws are always evaluated against a specific plan rather than in the abstract. Functional: a plan with two governing lenses would have two answers to the same question."
-msgstr "它指向那份由该透镜治理其修订与还原的计划，从而使两条透镜定律始终针对具体计划求值，而非泛泛而论。它是函数性的：若一份计划有两个治理透镜，同一个问题便会得到两种答案。"
+msgid "Forward single-valued only: at most one plan per lens. A shared plan does not identify its lenses or make their revision and restore results interchangeable."
+msgstr "仅在正向上单值：每个透镜至多指向一个计划。共享计划不会使这些透镜成为同一对象，也不会使其修订与还原结果可以互换。"
 
 msgctxt "https://blackcatinformatics.ca/logic/lensGoverns|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:lens-1 logic:lensGoverns ex:protocol-v3 ."
@@ -17883,8 +17883,8 @@ msgid "Functional and MANDATORY: a receipt with no attempt asserts an outcome no
 msgstr "它既是函数性的也是强制的：没有尝试的回执，是在断言一个无人造成的结果。这是内核所撰写的律之一，因此闸门会给违规记录打上类型，而不会让孤立的回执继续被当作证据来读。"
 
 msgctxt "https://blackcatinformatics.ca/logic/receiptOfPreparation|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Functional: one receipt per completed preparation step, so a resumed enactment can tell paid-for preparation from preparation it must redo. Two receipts for one step would leave that question unanswerable."
-msgstr "它是函数性的：每完成一个准备步骤只有一份回执，从而使恢复后的执行能够分辨哪些准备已经付出代价、哪些必须重做。若一个步骤有两份回执，这个问题便无从回答。"
+msgid "Forward single-valued only: at most one step per receipt. No inverse uniqueness or cross-run reuse follows; separate receipts remain distinct evidence."
+msgstr "仅在正向上单值：每份回执至多指向一个步骤。这不蕴含逆向唯一性或跨运行复用；不同回执仍是不同的证据。"
 
 msgctxt "https://blackcatinformatics.ca/logic/reconciliationVerdict|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Functional, so a result carries exactly one verdict. Two verdicts on one probe would leave commitment knowledge with two candidate values and no rule for choosing, which is precisely the trap adjudication exists to handle."
