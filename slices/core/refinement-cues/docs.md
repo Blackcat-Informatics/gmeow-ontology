@@ -1,55 +1,140 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Attributed premise echoes and cue lexicons
+# Attributed premise echoes and declared textual cues
 
 `echoesPremiseOf` relates an answer information object to the concrete `Prompt`
-whose premise a refiner reads it as merely restating. This is a dependence
-reading. It does not establish that either text is false, that they contradict
-each other or that the answer supplies independent support.
+whose premise a refiner reads it as merely restating. Retain the refiner's
+`accordingTo` on the RDF 1.2 assertion or its reifier and keep the answer's
+authorship separately. The existing `Refinement` records `observedFeature`,
+`vantage` and the selected `observationResult`. A dependence reading asserts
+neither falsehood nor independent corroboration (Principles 3 and 9).
 
-Retain the refiner’s `accordingTo` on the RDF 1.2 assertion or its reifier.
-The existing `Refinement` spine records the answer as `observedFeature`, the
-versioned process as `vantage`, the reading outcome and its selected
-`observationResult`. A reified result can carry the dependence statement without
-asserting its content as a global fact. Preserve the answer author separately
-through ordinary provenance; the refiner’s interpretation is not the author’s
-own claim (Principles 3 and 9).
+## A reviewed release and its declarations
 
-A `CueLexicon` is an immutable reviewed version of a named complete-word or
-phrase inventory. Each `cueWord` retains its exact text, language and any RDF 1.2
-base direction. A list can be empty; an empty reviewed inventory supplies no
-cue. No ordering, priority, stemming, tokenization, normalization or substring
-matching policy is inferred from these values. A consumer’s reading rule owns
-those operations. A cue is evidence for a reading, never the text’s meaning.
+A `CueLexicon` is an immutable reviewed release of `Cue` resources linked by
+`hasCue`. Empty reviewed releases remain legal. Each actual cue supplies
+`detectionGuidance`, at least one `cuePhrase` or `cuePattern`, and exactly
+one target through either `cueEvidenceFor` or `cueEvidenceAgainst`. Both
+matching alternatives may coexist; neither receives priority. The named target
+is the resource describing the reading, never the reading asserted as a fact.
 
-Version and provenance use the existing owners:
+`detectionGuidance` is the judge's rubric; the detector does not execute it.
+`cueExample` and `cueCounterExample` are synthetic illustrations, not
+executed detector results or evidence about a real person. Descriptions reuse
+`description`. Language uses `writtenInLanguage` and first-class
+`Language` resources; registry codes remain `languageCode` alignments on
+those resources. Language-tagged and directional RDF 1.2 strings retain their
+complete literal identity.
 
-| Relation | Recorded information |
+| Release relation | Preserved information |
 | --- | --- |
-| `versionOf` | Stable lineage distinct from the immutable release. |
-| `versionLabel` | Supplied release designation; no ordering is inferred. |
-| `contentDigest` | Algorithm-labelled digest of the exact released payload bytes. |
-| `wasDerivedFrom` | Original source records from which the cues were derived. |
-| `wasAttributedTo` | Authorship or accountability for the cue inventory. |
-| `cueReview` | Completed sign-off activity for this exact release. |
+| `versionOf` | Stable lineage, distinct from the immutable release. |
+| `versionLabel` | Supplied release designation, without inferred ordering. |
+| `contentDigest` | Algorithm-labelled digest of the exact released payload. |
+| `wasDerivedFrom` | Original source records. |
+| `wasAttributedTo` | Authorship or accountability for the inventory. |
+| `cueReview` | Completed sign-off activity for that exact release. |
 
-The sign-off retains its responsible reviewer through `wasAssociatedWith` and
-its actual sign-off instant through `eventTime`. This point-like sign-off is
-distinct from any longer review episode. It records accountable review, not
-universal endorsement, guaranteed accuracy or safety certification. Multiple
-reviewers, sources and digest algorithms can coexist.
+A sign-off retains `wasAssociatedWith` for the responsible reviewer and
+`eventTime` for its actual instant. Multiple sources, reviewers and digest
+algorithms can coexist. Any changed cue declaration, text, language, direction,
+guidance or scope changes the released payload and requires a new release and
+review. Declaration validation neither executes a review nor recomputes a digest.
 
-Changes to text, language, direction or the released payload create a new version
-and digest. Keep prior releases intact; `supersedes` may relate successor releases
-without deleting the old one. Review evidence must identify the changed release
-when it is reviewed. The ontology checks language presence, reviewer/time evidence
-and distinct version-versus-lineage identity; it does not execute review, verify
-cryptographic hashes or detect changes to a historical external artifact.
+## Exact comparison contracts
 
-The ordinary [review and finding scene](examples/review-and-echo.ttl) accompanies
-an actual [RDF 1.2 cue payload](examples/cue-words-v1.ttl). Read the two files
-together: the payload provides the cue values and the scene supplies their
-version, source, review and process provenance. The stated digest is over the
-payload file’s exact UTF-8 bytes, including its final newline. The example
-records a process reading and makes no executed matching or review claim.
+Phrase words are maximal runs of Unicode 16.0.0 general-category letters
+(Lu, Ll, Lt, Lm, Lo), decimal digits (Nd), and U+0027 apostrophe. U+2019
+participates as U+0027 for comparison only. Combining marks and other characters
+are separators; this deliberately declared word rule is not UAX 29 word
+segmentation. Tokenize both phrase and source before comparison. Compare a whole
+contiguous sequence of tokens, using the equivalence classes generated by the
+Unicode 16.0.0 simple C/S case-fold pairs and their symmetric/transitive closure.
+There is no locale tailoring, full F mapping, stemming or other normalization.
+Separators between tokens may differ. A phrase with no token is malformed.
+
+Keep the original text unchanged. A phrase occurrence spans the first token's
+inclusive start through the last token's exclusive end, including original
+separators. Matching alternatives form a union: retain one occurrence per
+identical cue, source literal and original half-open code-point interval.
+Do not merge occurrences from different literals, language/direction tags,
+records, fields or source versions.
+
+Patterns use the lang-owned `gmeow:linearRegex` datatype, version one:
+Rust regex 1.13.1 with regex-syntax 0.8.11, its Unicode 16.0.0 tables,
+default string-regex flags except explicit inline overrides, and leftmost-first
+non-overlapping matches. Regex input is the original text; phrase apostrophe
+replacement and folding are not applied to it. Any pattern capable of a zero-width
+match on any input is malformed; testing only the empty input is insufficient.
+
+The Rust bound is O(m*n) for each individual search, linear in text length n
+for fixed pattern size m. Enumerating leftmost-first matches can take O(m*n*n).
+The datatype name does not promise linear total enumeration. These are explicit
+design choices resolving the phrase and dialect contract; they do not claim that
+ontology validation runs a parser, matcher or complexity proof. A selected
+operation missing those capabilities fails explicitly.
+
+## Reading scope and negation
+
+`cueReadsWordsOf` selects attributed speaker identities and `cueReadsField`
+selects declared property IRIs. Multiple values in either dimension form an
+allowed set; the two dimensions both apply when present. Absence means no
+restriction in that dimension. Do not infer speaker attribution from a detector,
+reviewer, record owner or quoted text. Retain a source record, field, exact literal,
+source version and original offsets before comparing occurrences.
+
+`negatedBy` links a target cue to independent `CueNegation` rules. Each rule
+has exactly one `negatingCue` and one member of the closed `NegationScope` set:
+
+| Value | Required comparison |
+| --- | --- |
+| `negationSameSentence` | Both complete spans in one default UAX 29 sentence segment, Unicode 17.0.0, in the same exact source literal. |
+| `negationSameMessagePart` | Same retained `BodyPart` identity, with actual `hasBodyPart` membership. |
+| `negationSameMessage` | Same retained `Message` identity, potentially across parts or fields. |
+| `negationSameTurn` | Same explicitly supplied source turn identity and source membership evidence. |
+| `negationWithinWords` | Same exact source literal and symmetric intervening-word distance at most `negationWindow`. |
+
+A word-window rule carries exactly one positive-integer `negationWindow`;
+other scopes carry none. Count whole phrase-rule word tokens entirely between
+the original spans. Overlapping or adjacent spans have distance zero, as does
+a gap containing only separators. The bound is inclusive and applies in both
+directions. Do not substitute bytes, grapheme clusters or UAX 29 word boundaries.
+
+The sentence contract uses Unicode 17.0.0 separately from the Unicode 16.0.0
+word/folding contract. A span crossing a sentence boundary fails same-sentence
+scope. A thread, timestamp or reply chain does not establish a message or turn.
+Missing grouping identity or segmentation capability is unsupported evaluation,
+never a silent finding that no suppressor exists.
+
+Suppression uses detected matches before any suppression decision. It has no
+recursive cancellation or inferred priority; a suppressed negator remains a
+detected negator. Coincident occurrences are not implicitly excluded. Keep every
+applicable suppression reason and keep the target occurrence reportable.
+Suppression neither reverses evidence polarity nor judges the speaker.
+
+## Intrinsic validation and ordinary source example
+
+Canonical restrictions and realized `logic:Constraint` formulas check required
+paths, language, field-property identity, polarity choice, class-local maximum-one targets, finite
+scope membership, positive conditional windows and record predicate allowlists.
+Closed-record formulas use `logic:linkVia` plus `logic:termIn`; no shape
+surface is authored. Their allowlists admit each record's declared fields plus
+type, labels/comments, description, source attribution and provenance.
+Lexicon releases also admit their version/digest/review fields, `supersedes`
+and `writtenInLanguage`; cues admit language and version/digest metadata.
+Independent RDF 1.2 statement reifiers may retain richer attribution.
+
+This validates declarations, not actual matches, source grouping, lexical regex
+membership or linguistic interpretation. A matcher must preserve all those
+contracts independently. Existing code-point `spanStart`/`spanEnd` and
+`lang:SurfaceAnchor` remain available for source anchoring without equating
+a cue with an analyzed lexical form.
+
+The [review scene](examples/review-and-echo.ttl) references the new
+[version two declaration payload](examples/cues-v2.ttl), including French and
+directional Arabic, paired phrase/pattern alternatives, and sentence/window
+negation declarations. The digest covers that payload's exact UTF-8 bytes,
+including its final newline. The scene retains the earlier artifact's identity
+and digest rather than rewriting the prior release. It claims no executed
+matching, suppression or review.

@@ -2525,3 +2525,19 @@ msgstr "不要在本体源文件中手工编写 gmeow:Glossary 或其条目：�
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|gmeow:avoidWhen"
 msgid "Avoid pointing it at an entry projected for a different owning ontology or target language."
 msgstr "不要指向为其他所属本体或目标语言投影的条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linear regex version one"
+msgstr "线性正则表达式版本一"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The version-one Rust regex string-pattern datatype: regex 1.13.1 syntax through regex-syntax 0.8.11, Unicode 16.0.0 properties and simple case folding, default string-regex flags unless explicitly changed inline, and leftmost-first non-overlapping matches over the original Unicode text. A pattern admitting any zero-width match on any input is malformed."
+msgstr "版本一 Rust regex 字符串模式数据类型：采用 regex 1.13.1 经 regex-syntax 0.8.11 的语法、Unicode 16.0.0 属性及简单大小写折叠；除内联显式更改外使用字符串正则默认标志；在原始 Unicode 文本上作最左优先、不重叠匹配。若模式在任何输入上可产生零宽匹配，则格式不合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each individual search has the Rust O(m*n) worst-case bound, linear in text length n for a fixed pattern of size m. Leftmost-first enumeration can cost O(m*n*n). Declaring this datatype does not add a parser or matcher: ontology validation checks the declared datatype, not lexical membership, zero-width freedom, complexity or execution. A selected operation lacking those capabilities must fail explicitly."
+msgstr "每次独立搜索具有 Rust 的 O(m*n) 最坏界限，对固定大小 m 的模式而言与文本长度 n 成线性关系。最左优先枚举可能耗费 O(m*n*n)。声明此数据类型不会增加解析器或匹配器：本体校验检查声明的类型，不验证词法成员资格、无零宽性、复杂度或执行。选定操作缺少这些能力时必须显式失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#example"
+msgid "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."
+msgstr "\"(?i)cannot +continue\"^^gmeow:linearRegex 声明一个模式，不报告已执行搜索。"

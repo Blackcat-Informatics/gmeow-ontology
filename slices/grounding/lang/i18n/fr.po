@@ -2525,3 +2525,19 @@ msgstr "Évitez de rédiger un gmeow:Glossary ou ses entrées dans une source on
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|gmeow:avoidWhen"
 msgid "Avoid pointing it at an entry projected for a different owning ontology or target language."
 msgstr "Évitez de désigner une entrée projetée pour une autre ontologie propriétaire ou une autre langue cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "linear regex version one"
+msgstr "expression régulière linéaire version un"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The version-one Rust regex string-pattern datatype: regex 1.13.1 syntax through regex-syntax 0.8.11, Unicode 16.0.0 properties and simple case folding, default string-regex flags unless explicitly changed inline, and leftmost-first non-overlapping matches over the original Unicode text. A pattern admitting any zero-width match on any input is malformed."
+msgstr "Le type de motifs textuels Rust regex version un : syntaxe de regex 1.13.1 via regex-syntax 0.8.11, propriétés Unicode 16.0.0 et repli de casse simple, indicateurs par défaut des expressions textuelles sauf modification explicite en ligne, et correspondances gauche-premier sans chevauchement sur le texte Unicode original. Un motif admettant une correspondance de largeur nulle sur une entrée quelconque est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each individual search has the Rust O(m*n) worst-case bound, linear in text length n for a fixed pattern of size m. Leftmost-first enumeration can cost O(m*n*n). Declaring this datatype does not add a parser or matcher: ontology validation checks the declared datatype, not lexical membership, zero-width freedom, complexity or execution. A selected operation lacking those capabilities must fail explicitly."
+msgstr "Chaque recherche individuelle respecte la borne Rust O(m*n), linéaire en longueur n pour un motif de taille m fixé. L’énumération gauche-premier peut coûter O(m*n*n). Déclarer ce type n’ajoute ni analyseur ni moteur : la validation ontologique vérifie le type déclaré, pas l’appartenance lexicale, l’absence de largeur nulle, la complexité ou l’exécution. Une opération choisie privée de ces capacités doit échouer explicitement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#example"
+msgid "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."
+msgstr "\"(?i)cannot +continue\"^^gmeow:linearRegex déclare un motif ; il ne rapporte aucune recherche exécutée."
