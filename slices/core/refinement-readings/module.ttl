@@ -294,6 +294,42 @@ gmeow:limitThingUnshareable
     gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
     skos:example "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."@x-gmeow-english .
 
+gmeow:limitCueSuppressed
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cue match suppressed"@x-gmeow-english ;
+    skos:definition "The selected reading reports that a cue matched words it read, but a negating cue within the declared negation scope suppressed that match from counting as cue evidence. The match and its source remain retained; suppression does not establish a negative verdict about the source subject."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual in-scope negating cue suppressed an otherwise detected match under the selected reading's declared negation rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using suppression for words the cue never read, for a failed grounding attempt, or as permission to delete the match or source."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original match and the negating evidence with its declared scope and reading attribution. Use this reason on a QueryLoss through lossCause; an aggregate uses limitReason only for source records actually excluded from that selected reading."@x-gmeow-english ;
+    skos:scopeNote "This reason records a scoped suppression decision, not absence of a match. Several suppressed matches in one record do not become several excluded source records, and a retained contribution elsewhere in that record is not silently erased."@x-gmeow-english ;
+    skos:example "A reading detects an affirmation and its scoped negating cue, retains both, and reports the uncounted match. If the source record is excluded for this reason, ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . identifies that record's loss rather than a match count."@x-gmeow-english .
+
+gmeow:limitCueUngrounded
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cue match ungrounded"@x-gmeow-english ;
+    skos:definition "The selected reading reports that a cue matched words it read, but the cue's declared grounding rules did not establish the match as grounded. The detected match remains evidence of detection, not a counted cue contribution or a verdict about the person whose words were read."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected reading evaluated the declared grounding rules for a detected match and did not obtain the required grounding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an ungrounded result to conceal missing rules, an evaluation that never ran, or an execution failure; those do not establish the reported grounding outcome."@x-gmeow-english ;
+    gmeow:howToUse "Keep the detected match, the declared rule set and the supplied facts supporting the reading's reported outcome. Retain attribution independently of source authorship, and use lossCause for any actual source-record loss."@x-gmeow-english ;
+    skos:scopeNote "Non-grounding is distinct from negation suppression and speaker or field exclusion. It reports the selected rule evaluation's outcome without converting an uncounted cue into evidence that the interpreted claim is false."@x-gmeow-english ;
+    skos:example "A detected phrase lacks the record facts required by its evaluated grounding rules. The reading retains the phrase and rule outcome; ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . can retain an actual excluded-record loss."@x-gmeow-english .
+
+gmeow:limitCueUnread
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "supplied words unread by cue"@x-gmeow-english ;
+    skos:definition "The selected reading was offered words that a cue it uses does not read because those words belong to another speaker or another property under the cue's declared selection. This reason records excluded reading input, not a failed match search or proof that the words contain no cue."@x-gmeow-english ;
+    gmeow:useWhen "Use when offered source words fall outside the cue's declared speaker or field selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating unread words as searched with no matches, as suppressed matches, or as a negative finding about their author."@x-gmeow-english ;
+    gmeow:howToUse "Retain the offered source record and the selected speaker or field restriction. Attribute the exclusion to the reading, preserve the input through scopeRecord, and attach any actual record loss through ledgerLoss with this lossCause."@x-gmeow-english ;
+    skos:scopeNote "The words remain in the offered input scope even though the selected cue does not read them. Another cue or reading may legitimately read them; this reason neither removes access nor changes their authorship."@x-gmeow-english ;
+    skos:example "A cue selected for a speaker's answer field does not read the quoted words of another speaker in a different field. If this excludes the source record from the selected reading, ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . preserves the reason."@x-gmeow-english .
+
 gmeow:scopeRecord logic:domain gmeow:ReadingScope .
 gmeow:scopeChronology logic:domain gmeow:ReadingScope .
 gmeow:milestoneKind logic:domain gmeow:Milestone .
