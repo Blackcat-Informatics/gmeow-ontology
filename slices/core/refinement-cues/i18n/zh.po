@@ -1,0 +1,194 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echoes premise of"
+msgstr "复述其前提"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."
+msgstr "将回答关联到细化器认为该回答仅在复述其前提的具体 Prompt。这种有归属的依赖解读既不声明虚假或矛盾，也不将回答算作独立支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."
+msgstr "用于细化器将回答识别为复述提示前提而非增加独立证据时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."
+msgstr "避免推断前提为假、回答与前提矛盾，或复述解读是回答作者自身的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."
+msgstr "在 RDF 1.2 语句或其重述节点上保留 accordingTo，并将 Refinement 选定的 observationResult 关联到该有归属解读。分别保留原始回答与 Prompt。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+msgstr "记录依赖解读的归属：ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Lexicon"
+msgstr "线索词表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed version of a named list of complete words or phrases used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; its cues do not define a text’s meaning."
+msgstr "具名完整词语或短语列表的不可变且已审阅版本，由解读规则用作证据。保留版本身份、内容摘要、来源派生及可追责审阅溯源；其中线索不定义文本含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."
+msgstr "用于公开由消费者拥有的解读规则所使用的确切已审阅线索集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."
+msgstr "避免修改已发布版本、将线索匹配当作含义或诊断，或将生成的翻译术语表手工编写为线索列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."
+msgstr "指定不同的 versionOf 谱系，保留 versionLabel 与 contentDigest，通过 wasDerivedFrom 引用来源记录，以 wasAttributedTo 记录作者归属，并通过 cueReview 引用已完成审阅。变更须创建新版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."
+msgstr "标识已审阅版本：ex:cuesV1 a gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue word or phrase"
+msgstr "线索词语或短语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete source word or phrase in a CueLexicon, preserved with its language and any RDF 1.2 base direction. It is a textual cue rather than a lexical sense, stem, substring instruction or automatic interpretation."
+msgstr "CueLexicon 中的完整来源词语或短语，保留其语言及任何 RDF 1.2 基方向。它是文本线索，而非词义、词干、子串指令或自动解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain every exact reviewed cue with its supplied language and direction."
+msgstr "用于保留每个确切已审阅线索及其提供的语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping language or direction, silently normalizing variants, or treating list order as rule priority."
+msgstr "避免丢弃语言或方向、静默规范化变体，或将列表顺序当作规则优先级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a language-tagged literal, including a directional language string when supplied. Retain whole phrases without inventing tokenization or a matching policy."
+msgstr "附加带语言标签的字面量；若来源提供方向，则使用带方向语言字符串。保留完整短语，不编造分词或匹配策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueWord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the original cue: ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
+msgstr "保留原始线索：ex:cuesV1 gmeow:cueWord \"cannot continue\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review"
+msgstr "线索审阅"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."
+msgstr "此确切 CueLexicon 版本已完成审阅的签核活动，通过 wasAssociatedWith 保留负责审阅者，通过 eventTime 保留签核时刻。审阅是可追责溯源，而非普遍认可或安全认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain who signed off the exact cue version and when."
+msgstr "用于保留谁在何时签核了确切线索版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."
+msgstr "避免只记录审阅者名称字符串而无活动、将审阅复用于已变更字节，或将审阅解释为对所有后续解读的保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."
+msgstr "将不可变版本关联到其已完成签核 Activity；通过 wasAssociatedWith 记录审阅 Agent，通过 eventTime 记录实际日期时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+msgstr "保留可追责审阅：ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue word language constraint"
+msgstr "线索词语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueWord retains a nonempty language tag, including the base direction of a directional language string."
+msgstr "每个所提供的 cueWord 须保留非空语言标签，包括带方向语言字符串的基方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueWordLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
+msgstr "保留适用定律：gmeow:CueWordLanguageConstraint logic:formalizes gmeow:cueWord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review evidence constraint"
+msgstr "线索审阅证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."
+msgstr "每个所提供的 cueReview 须指向具有负责审阅者关联和已记录签核时刻的已完成签核活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+msgstr "保留适用定律：gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue lexicon version identity constraint"
+msgstr "线索词表版本身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A released CueLexicon version is distinct from the lineage entity it versions."
+msgstr "已发布的 CueLexicon 版本须区别于其所属谱系实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "保留适用定律：gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement cues"
+msgstr "细化线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Attributed premise-dependence readings and immutable reviewed cue versions grounded in existing prompts, refinements, version lineages and provenance."
+msgstr "有归属的前提依赖解读与不可变已审阅线索版本，以现有提示、细化、版本谱系和溯源为基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Cues Module"
+msgstr "GMEOW 细化线索模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."
+msgstr "由消费者拥有的记录细化器，保留前提复述发现及用作证据的确切已审阅词语或短语集合。"
