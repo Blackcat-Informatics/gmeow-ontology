@@ -251,3 +251,42 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## Impasse, progress and a shared thread
+
+`arcTypeBreakthrough` is a teller’s reading from an impasse to a next step that
+let the subject continue. It differs from recovery after loss. Its ordering
+claims what came next, never what caused the impasse to end.
+
+`sampleProgress` records a `ProgressState` beside `sampleState`. The latter
+remains the existing functional affect reading, so a sample can carry both an
+emotion and `progressStateImpasse` or `progressStateMoving`. Progress is a
+vantage-attributed interpretation, not a diagnosis or the subject’s assertion.
+The vocabulary is open; movement does not imply success or completion.
+
+`impasseSignal` distinguishes a reading from the subject’s own words
+(`impasseSignalOwnWords`) from one based on a parked inquiry
+(`impasseSignalInquirySuspended`). Preserve the original records through the
+existing provenance relations and retain the reviewed reading method when the
+signal comes from a rule applied to wording. The category itself supplies no
+rule, source text or proof; inquiry suspension does not entail an impasse.
+The sample’s `vantage` identifies the teller, while the arc’s `accordingTo`
+retains its interpretive scope (Principles 3 and 9).
+
+`arcThread` names the exact resource that the teller asserts both ends share.
+`arcThreadKind` classifies it with the open `ThreadKind` vocabulary: a working
+loop, question, intention or record, including the first record itself. The
+resource need not be a document; an intention is an intentional mode. The link
+records the teller’s common-thread assertion without independently proving
+endpoint links or inferring a causal connection.
+
+Explicit `threadKindNone` says the teller found no shared thread and excludes
+any supplied `arcThread`. Each of the four initial positive kinds requires an
+explicit thread resource. Those two canonical integrity laws prevent internally
+contradictory thread reports without closing the vocabulary. An absent
+`arcThreadKind` remains unknown and creates no default. These additions do not
+make progress, signal or thread fields mandatory for existing arcs or samples.
+
+The ordinary [breakthrough scene](examples/breakthrough.ttl) keeps affect and
+progress together, preserves the teller and source evidence, and distinguishes
+a shared question from a separate arc explicitly told without a shared thread.
