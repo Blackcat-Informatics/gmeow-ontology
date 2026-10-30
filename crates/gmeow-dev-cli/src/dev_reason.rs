@@ -861,7 +861,7 @@ fn resolve_profile(input_path: &Path, profile: Option<&str>) -> Result<String, i
     if sibling.is_file() {
         let text = std::fs::read_to_string(&sibling)
             .map_err(|e| fail(format!("certify: cannot read {}: {e}", sibling.display())))?;
-        let data: serde_json::Value = serde_json::from_str(&text)
+        let data = purrdf_lex::json::record::read_document(text.as_bytes())
             .map_err(|e| fail(format!("certify: cannot read {}: {e}", sibling.display())))?;
         if let Some(contract) = data.get("reasoning_contract") {
             let preset = contract.get("preset").and_then(|v| v.as_str());
