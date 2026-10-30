@@ -8863,8 +8863,8 @@ msgid "STRICT parthood: relates an entity to a whole it is part of but NOT ident
 msgstr "Parthood STRICTE : relie une entité à un tout dont elle est partie mais auquel elle n'est PAS identique. Transitive, asymétrique et irréflexive — un ordre partiel strict véritable (partie-propre-de, ancêtre). Cette combinaison exacte est illégale en OWL 2 DL, qui interdit globalement qu'une propriété soit à la fois transitive et asymétrique (critique 7, LOGIC-FOUNDATION.md §OWL 2 criticisms) ; logic: n'impose aucune telle restriction globale et raisonne complètement dessus, recouvrant la décidabilité par projection plutôt qu'en mutilant le canon. Le démonstrateur délibéré de critique-d'OWL-2."
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Un enregistrement central affirmant qu'une propriété nommée porte une sorte caractéristique — l'une de logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty ou logic:functionalProperty. Il nomme la propriété avec logic:characterizes et la sorte avec logic:characteristicSort, la paire que le contrôle de cohérence natif joint pour faire respecter la caractéristique, et porte une rétro-référence logic:formalizes vers la propriété de domaine dont il encode la prose. C'est le porteur logic: canonique d'une caractéristique de propriété : la tranche de domaine garde la déclaration tournée vers OWL, l'autorité de raisonnement la nomme et la fait respecter ici. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgid "A canonical record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the slice owning the property authors the characteristic record, and the OWL-facing declaration is derived from it rather than hand-authored as a second source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
+msgstr "Un porteur canonique affirmant qu’une propriété nommée possède un type de caractéristique — l’un de logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty ou logic:functionalProperty. Il nomme la propriété par logic:characterizes et le type par logic:characteristicSort, la paire que la porte de cohérence native joint pour appliquer la caractéristique, et porte un renvoi logic:formalizes à la propriété du domaine dont il encode le texte. C’est le porteur canonique logic: d’une caractéristique de propriété : la tranche propriétaire de la propriété rédige le porteur de caractéristique, et la déclaration destinée à OWL en est dérivée au lieu d’être rédigée à la main comme seconde source. Ce porteur n’est pas une définition de ce terme ni une forme de validation : l’obligation est raisonnée à partir du porteur, non reformulée ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/logic/PropertyPathProjection|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The projection-target value requesting that a logic:PathShape (or a rule's path-structured body) be rendered to a SPARQL property-path surface — extended by GMEOW past SPARQL 1.1 §9 with bounded depth {n,m} and a predicate wildcard. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold. A consumer restricted to standard SPARQL §9 receives the unrolled or approximated form, and that loss is declared in the loss ledger rather than hidden."
@@ -14687,8 +14687,8 @@ msgid "Avoid treating it as an ownership, import, or named-graph directive; the 
 msgstr "Évitez de le traiter comme une directive de propriété, d'importation ou de graphe nommé ; les règles canoniques de source/projection décident toujours où les données sont authorées et générées."
 
 msgctxt "https://blackcatinformatics.ca/logic/actionResourceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:actionResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:actionResource nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:actionResource names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:actionResource nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/actionResourceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14703,8 +14703,8 @@ msgid "logic:actionResourceFunctionality logic:characterizes logic:actionResourc
 msgstr "logic:actionResourceFunctionality logic:characterizes logic:actionResource ."
 
 msgctxt "https://blackcatinformatics.ca/logic/antecedentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:antecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:antecedent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:antecedent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:antecedent nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/antecedentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14719,8 +14719,8 @@ msgid "logic:antecedentFunctionality logic:characterizes logic:antecedent ."
 msgstr "logic:antecedentFunctionality logic:characterizes logic:antecedent ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateCategoryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateCategory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateCategory nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateCategory names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateCategory nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateCategoryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14735,8 +14735,8 @@ msgid "logic:candidateCategoryFunctionality logic:characterizes logic:candidateC
 msgstr "logic:candidateCategoryFunctionality logic:characterizes logic:candidateCategory ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateContract nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateContract names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateContract nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14751,8 +14751,8 @@ msgid "logic:candidateContractFunctionality logic:characterizes logic:candidateC
 msgstr "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateExtractionProvenance nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateExtractionProvenance nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14767,8 +14767,8 @@ msgid "logic:candidateExtractionProvenanceFunctionality logic:characterizes logi
 msgstr "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateFormalizes names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateFormalizes nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateFormalizes names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateFormalizes nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14783,8 +14783,8 @@ msgid "logic:candidateFormalizesFunctionality logic:characterizes logic:candidat
 msgstr "logic:candidateFormalizesFunctionality logic:characterizes logic:candidateFormalizes ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateLifecycleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateLifecycle names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateLifecycle nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateLifecycle names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateLifecycle nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateLifecycleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14799,8 +14799,8 @@ msgid "logic:candidateLifecycleFunctionality logic:characterizes logic:candidate
 msgstr "logic:candidateLifecycleFunctionality logic:characterizes logic:candidateLifecycle ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateProjectionBehavior nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateProjectionBehavior nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14815,8 +14815,8 @@ msgid "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:
 msgstr "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateScope nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateScope nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14831,8 +14831,8 @@ msgid "logic:candidateScopeFunctionality logic:characterizes logic:candidateScop
 msgstr "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateSemanticRisk nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateSemanticRisk nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14847,8 +14847,8 @@ msgid "logic:candidateSemanticRiskFunctionality logic:characterizes logic:candid
 msgstr "logic:candidateSemanticRiskFunctionality logic:characterizes logic:candidateSemanticRisk ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateSourceField nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateSourceField nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14863,8 +14863,8 @@ msgid "logic:candidateSourceFieldFunctionality logic:characterizes logic:candida
 msgstr "logic:candidateSourceFieldFunctionality logic:characterizes logic:candidateSourceField ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHashFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateSourceHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:candidateSourceHash nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:candidateSourceHash names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateSourceHash nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHashFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14879,8 +14879,8 @@ msgid "logic:candidateSourceHashFunctionality logic:characterizes logic:candidat
 msgstr "logic:candidateSourceHashFunctionality logic:characterizes logic:candidateSourceHash ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormulaFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureFormula names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:conjectureFormula nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:conjectureFormula names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:conjectureFormula nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormulaFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14895,8 +14895,8 @@ msgid "logic:conjectureFormulaFunctionality logic:characterizes logic:conjecture
 msgstr "logic:conjectureFormulaFunctionality logic:characterizes logic:conjectureFormula ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureLifecycleStateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:conjectureLifecycleState nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:conjectureLifecycleState nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureLifecycleStateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14911,8 +14911,8 @@ msgid "logic:conjectureLifecycleStateFunctionality logic:characterizes logic:con
 msgstr "logic:conjectureLifecycleStateFunctionality logic:characterizes logic:conjectureLifecycleState ."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:conjectureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:conjectureStandpoint nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:conjectureStandpoint names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:conjectureStandpoint nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureStandpointFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14927,8 +14927,8 @@ msgid "logic:conjectureStandpointFunctionality logic:characterizes logic:conject
 msgstr "logic:conjectureStandpointFunctionality logic:characterizes logic:conjectureStandpoint ."
 
 msgctxt "https://blackcatinformatics.ca/logic/consequentFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:consequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:consequent nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:consequent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:consequent nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/consequentFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14943,8 +14943,8 @@ msgid "logic:consequentFunctionality logic:characterizes logic:consequent ."
 msgstr "logic:consequentFunctionality logic:characterizes logic:consequent ."
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:effect names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:effect nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:effect names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:effect nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/effectFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14959,8 +14959,8 @@ msgid "logic:effectFunctionality logic:characterizes logic:effect ."
 msgstr "logic:effectFunctionality logic:characterizes logic:effect ."
 
 msgctxt "https://blackcatinformatics.ca/logic/evaluationModeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:evaluationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:evaluationMode nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:evaluationMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:evaluationMode nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/evaluationModeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14975,8 +14975,8 @@ msgid "logic:evaluationModeFunctionality logic:characterizes logic:evaluationMod
 msgstr "logic:evaluationModeFunctionality logic:characterizes logic:evaluationMode ."
 
 msgctxt "https://blackcatinformatics.ca/logic/existsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:exists names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:exists nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:exists names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:exists nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/existsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -14991,8 +14991,8 @@ msgid "logic:existsFunctionality logic:characterizes logic:exists ."
 msgstr "logic:existsFunctionality logic:characterizes logic:exists ."
 
 msgctxt "https://blackcatinformatics.ca/logic/feasibilityStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:feasibilityStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:feasibilityStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:feasibilityStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:feasibilityStatus nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/feasibilityStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15007,8 +15007,8 @@ msgid "logic:feasibilityStatusFunctionality logic:characterizes logic:feasibilit
 msgstr "logic:feasibilityStatusFunctionality logic:characterizes logic:feasibilityStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/forallFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:forall names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:forall nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:forall names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:forall nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/forallFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15023,8 +15023,8 @@ msgid "logic:forallFunctionality logic:characterizes logic:forall ."
 msgstr "logic:forallFunctionality logic:characterizes logic:forall ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessHorizonFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessHorizon names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:freshnessHorizon nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:freshnessHorizon names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:freshnessHorizon nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessHorizonFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15039,8 +15039,8 @@ msgid "logic:freshnessHorizonFunctionality logic:characterizes logic:freshnessHo
 msgstr "logic:freshnessHorizonFunctionality logic:characterizes logic:freshnessHorizon ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowEndFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:freshnessWindowEnd nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:freshnessWindowEnd nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowEndFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15055,8 +15055,8 @@ msgid "logic:freshnessWindowEndFunctionality logic:characterizes logic:freshness
 msgstr "logic:freshnessWindowEndFunctionality logic:characterizes logic:freshnessWindowEnd ."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowStartFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:freshnessWindowStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:freshnessWindowStart nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:freshnessWindowStart names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:freshnessWindowStart nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/freshnessWindowStartFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15071,8 +15071,8 @@ msgid "logic:freshnessWindowStartFunctionality logic:characterizes logic:freshne
 msgstr "logic:freshnessWindowStartFunctionality logic:characterizes logic:freshnessWindowStart ."
 
 msgctxt "https://blackcatinformatics.ca/logic/functionSymbolFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:functionSymbol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:functionSymbol nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:functionSymbol names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:functionSymbol nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/functionSymbolFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15087,8 +15087,8 @@ msgid "logic:functionSymbolFunctionality logic:characterizes logic:functionSymbo
 msgstr "logic:functionSymbolFunctionality logic:characterizes logic:functionSymbol ."
 
 msgctxt "https://blackcatinformatics.ca/logic/goalEvaluationStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:goalEvaluationStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:goalEvaluationStatus nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/goalEvaluationStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15103,8 +15103,8 @@ msgid "logic:goalEvaluationStatusFunctionality logic:characterizes logic:goalEva
 msgstr "logic:goalEvaluationStatusFunctionality logic:characterizes logic:goalEvaluationStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:guardsPrecondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:guardsPrecondition nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:guardsPrecondition names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:guardsPrecondition nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardsPreconditionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15119,8 +15119,8 @@ msgid "logic:guardsPreconditionFunctionality logic:characterizes logic:guardsPre
 msgstr "logic:guardsPreconditionFunctionality logic:characterizes logic:guardsPrecondition ."
 
 msgctxt "https://blackcatinformatics.ca/logic/invariantFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:invariant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:invariant nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:invariant names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:invariant nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/invariantFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15135,8 +15135,8 @@ msgid "logic:invariantFunctionality logic:characterizes logic:invariant ."
 msgstr "logic:invariantFunctionality logic:characterizes logic:invariant ."
 
 msgctxt "https://blackcatinformatics.ca/logic/lifecycleStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:lifecycleStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:lifecycleStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:lifecycleStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:lifecycleStatus nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/lifecycleStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15151,8 +15151,8 @@ msgid "logic:lifecycleStatusFunctionality logic:characterizes logic:lifecycleSta
 msgstr "logic:lifecycleStatusFunctionality logic:characterizes logic:lifecycleStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/notFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:not names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:not nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:not names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:not nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/notFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15167,8 +15167,8 @@ msgid "logic:notFunctionality logic:characterizes logic:not ."
 msgstr "logic:notFunctionality logic:characterizes logic:not ."
 
 msgctxt "https://blackcatinformatics.ca/logic/objectiveValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:objectiveValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:objectiveValue nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:objectiveValue names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:objectiveValue nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/objectiveValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15183,8 +15183,8 @@ msgid "logic:objectiveValueFunctionality logic:characterizes logic:objectiveValu
 msgstr "logic:objectiveValueFunctionality logic:characterizes logic:objectiveValue ."
 
 msgctxt "https://blackcatinformatics.ca/logic/obligationForbiddenPredicateFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:obligationForbiddenPredicate nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:obligationForbiddenPredicate nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/obligationForbiddenPredicateFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15199,8 +15199,8 @@ msgid "logic:obligationForbiddenPredicateFunctionality logic:characterizes logic
 msgstr "logic:obligationForbiddenPredicateFunctionality logic:characterizes logic:obligationForbiddenPredicate ."
 
 msgctxt "https://blackcatinformatics.ca/logic/observationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:observation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:observation nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:observation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:observation nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/observationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15215,8 +15215,8 @@ msgid "logic:observationFunctionality logic:characterizes logic:observation ."
 msgstr "logic:observationFunctionality logic:characterizes logic:observation ."
 
 msgctxt "https://blackcatinformatics.ca/logic/planGoalFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:planGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:planGoal nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:planGoal names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:planGoal nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/planGoalFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15231,8 +15231,8 @@ msgid "logic:planGoalFunctionality logic:characterizes logic:planGoal ."
 msgstr "logic:planGoalFunctionality logic:characterizes logic:planGoal ."
 
 msgctxt "https://blackcatinformatics.ca/logic/planSuccessModeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:planSuccessMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:planSuccessMode nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:planSuccessMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:planSuccessMode nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/planSuccessModeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15247,8 +15247,8 @@ msgid "logic:planSuccessModeFunctionality logic:characterizes logic:planSuccessM
 msgstr "logic:planSuccessModeFunctionality logic:characterizes logic:planSuccessMode ."
 
 msgctxt "https://blackcatinformatics.ca/logic/programQueryFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:programQuery names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:programQuery nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:programQuery names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:programQuery nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/programQueryFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15263,8 +15263,8 @@ msgid "logic:programQueryFunctionality logic:characterizes logic:programQuery ."
 msgstr "logic:programQueryFunctionality logic:characterizes logic:programQuery ."
 
 msgctxt "https://blackcatinformatics.ca/logic/recoveryTransformFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:recoveryTransform names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:recoveryTransform nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:recoveryTransform names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:recoveryTransform nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/recoveryTransformFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15279,8 +15279,8 @@ msgid "logic:recoveryTransformFunctionality logic:characterizes logic:recoveryTr
 msgstr "logic:recoveryTransformFunctionality logic:characterizes logic:recoveryTransform ."
 
 msgctxt "https://blackcatinformatics.ca/logic/relationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:relation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:relation nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:relation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:relation nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/relationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15295,8 +15295,8 @@ msgid "logic:relationFunctionality logic:characterizes logic:relation ."
 msgstr "logic:relationFunctionality logic:characterizes logic:relation ."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:satisfactionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:satisfactionDegree nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:satisfactionDegree names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:satisfactionDegree nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionDegreeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15311,8 +15311,8 @@ msgid "logic:satisfactionDegreeFunctionality logic:characterizes logic:satisfact
 msgstr "logic:satisfactionDegreeFunctionality logic:characterizes logic:satisfactionDegree ."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionStatusFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:satisfactionStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:satisfactionStatus nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:satisfactionStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:satisfactionStatus nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/satisfactionStatusFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15327,8 +15327,8 @@ msgid "logic:satisfactionStatusFunctionality logic:characterizes logic:satisfact
 msgstr "logic:satisfactionStatusFunctionality logic:characterizes logic:satisfactionStatus ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termApplicationFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termApplication names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termApplication nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termApplication names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termApplication nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termApplicationFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15343,8 +15343,8 @@ msgid "logic:termApplicationFunctionality logic:characterizes logic:termApplicat
 msgstr "logic:termApplicationFunctionality logic:characterizes logic:termApplication ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIndexFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termIndex nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termIndex names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termIndex nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIndexFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15359,8 +15359,8 @@ msgid "logic:termIndexFunctionality logic:characterizes logic:termIndex ."
 msgstr "logic:termIndexFunctionality logic:characterizes logic:termIndex ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIriFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termIri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termIri nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termIri names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termIri nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termIriFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15375,8 +15375,8 @@ msgid "logic:termIriFunctionality logic:characterizes logic:termIri ."
 msgstr "logic:termIriFunctionality logic:characterizes logic:termIri ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termLiteral names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termLiteral nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termLiteral names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termLiteral nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15391,8 +15391,8 @@ msgid "logic:termLiteralFunctionality logic:characterizes logic:termLiteral ."
 msgstr "logic:termLiteralFunctionality logic:characterizes logic:termLiteral ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralDatatypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termLiteralDatatype names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termLiteralDatatype nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termLiteralDatatype names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termLiteralDatatype nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termLiteralDatatypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15407,8 +15407,8 @@ msgid "logic:termLiteralDatatypeFunctionality logic:characterizes logic:termLite
 msgstr "logic:termLiteralDatatypeFunctionality logic:characterizes logic:termLiteralDatatype ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarkerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termSequenceMarker names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termSequenceMarker nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termSequenceMarker names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termSequenceMarker nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termSequenceMarkerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15423,8 +15423,8 @@ msgid "logic:termSequenceMarkerFunctionality logic:characterizes logic:termSeque
 msgstr "logic:termSequenceMarkerFunctionality logic:characterizes logic:termSequenceMarker ."
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariableFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:termVariable names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:termVariable nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:termVariable names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:termVariable nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/termVariableFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15439,8 +15439,8 @@ msgid "logic:termVariableFunctionality logic:characterizes logic:termVariable ."
 msgstr "logic:termVariableFunctionality logic:characterizes logic:termVariable ."
 
 msgctxt "https://blackcatinformatics.ca/logic/utilityFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:utility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:utility nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:utility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:utility nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/utilityFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15455,8 +15455,8 @@ msgid "logic:utilityFunctionality logic:characterizes logic:utility ."
 msgstr "logic:utilityFunctionality logic:characterizes logic:utility ."
 
 msgctxt "https://blackcatinformatics.ca/logic/verdictProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:verdictProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:verdictProvenance nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:verdictProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:verdictProvenance nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/verdictProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15471,8 +15471,8 @@ msgid "logic:verdictProvenanceFunctionality logic:characterizes logic:verdictPro
 msgstr "logic:verdictProvenanceFunctionality logic:characterizes logic:verdictProvenance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessIndividualFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:witnessIndividual names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:witnessIndividual nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:witnessIndividual names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:witnessIndividual nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessIndividualFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15487,8 +15487,8 @@ msgid "logic:witnessIndividualFunctionality logic:characterizes logic:witnessInd
 msgstr "logic:witnessIndividualFunctionality logic:characterizes logic:witnessIndividual ."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:witnessWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:witnessWorld nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:witnessWorld names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:witnessWorld nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15503,8 +15503,8 @@ msgid "logic:witnessWorldFunctionality logic:characterizes logic:witnessWorld ."
 msgstr "logic:witnessWorldFunctionality logic:characterizes logic:witnessWorld ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByCompetencyFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:demonstratedByCompetency nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que gmeow:demonstratedByCompetency nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByCompetencyFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15519,8 +15519,8 @@ msgid "logic:demonstratedByCompetencyFunctionality logic:characterizes gmeow:dem
 msgstr "logic:demonstratedByCompetencyFunctionality logic:characterizes gmeow:demonstratedByCompetency ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:demonstratedByExample nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que gmeow:demonstratedByExample nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByExampleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15535,8 +15535,8 @@ msgid "logic:demonstratedByExampleFunctionality logic:characterizes gmeow:demons
 msgstr "logic:demonstratedByExampleFunctionality logic:characterizes gmeow:demonstratedByExample ."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:demonstratedByProducer nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que gmeow:demonstratedByProducer nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/demonstratedByProducerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15551,8 +15551,8 @@ msgid "logic:demonstratedByProducerFunctionality logic:characterizes gmeow:demon
 msgstr "logic:demonstratedByProducerFunctionality logic:characterizes gmeow:demonstratedByProducer ."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:guardedByCounterExample nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que gmeow:guardedByCounterExample nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/guardedByCounterExampleFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -15583,8 +15583,8 @@ msgid "logic:keyProperty logic:characterizes instance ."
 msgstr "Exemple : logic:keyProperty logic:characterizes instance ."
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que logic:adviceSourceField nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use when the native coherence gate must enforce that logic:adviceSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
+msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:adviceSourceField nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
 
 msgctxt "https://blackcatinformatics.ca/logic/adviceSourceFieldFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -23885,3 +23885,67 @@ msgstr "La cible rédigée vérifie la relation gmeow:exemplifies de l’item. U
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
 msgid "An individual typed gmeow:Item without gmeow:exemplifies may receive a manifestation-link suggestion; the user still identifies the actual manifestation and any expression or work relations separately."
 msgstr "Un individu typé gmeow:Item sans gmeow:exemplifies peut recevoir une suggestion de lien vers une manifestation ; l’utilisateur identifie encore séparément la manifestation réelle et les éventuelles relations d’expression ou d’œuvre."
+
+msgctxt "https://blackcatinformatics.ca/logic/transitiveProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Transitivity adds the endpoint relation from two composable edges; it does not reverse either edge or require any edge to exist. The characteristic is retained by the current OWL DL and OWL EL grounding projections."
+msgstr "La transitivité ajoute la relation entre extrémités à partir de deux arêtes composables ; elle n’inverse aucune arête et n’exige l’existence d’aucune arête. Les projections actuelles vers OWL DL et OWL EL conservent cette caractéristique."
+
+msgctxt "https://blackcatinformatics.ca/logic/transitiveProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a transitive relation P, P(a,b) and P(b,c) entail P(a,c). The same premises do not establish P(c,a) unless another law supplies that direction."
+msgstr "Pour une relation transitive P, P(a,b) et P(b,c) entraînent P(a,c). Les mêmes prémisses n’établissent pas P(c,a), sauf si une autre loi fournit ce sens."
+
+msgctxt "https://blackcatinformatics.ca/logic/asymmetricProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Asymmetry prohibits a reverse edge and therefore also prohibits a self-edge. It imposes no existence requirement. The current OWL grounding projections omit this carrier characteristic; the canonical claim remains stronger than those views."
+msgstr "L’asymétrie interdit l’arête inverse et donc aussi une arête vers soi-même. Elle n’impose aucune existence. Les projections OWL actuelles omettent cette caractéristique du porteur ; l’énoncé canonique reste plus fort que ces vues."
+
+msgctxt "https://blackcatinformatics.ca/logic/asymmetricProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an asymmetric P, P(a,b) excludes P(b,a). Declaring P transitive as well allows a strict ordering in the canonical model without promising that the OWL view retains both characteristics."
+msgstr "Pour un P asymétrique, P(a,b) exclut P(b,a). Déclarer P également transitif permet un ordre strict dans le modèle canonique sans promettre que la vue OWL conserve les deux caractéristiques."
+
+msgctxt "https://blackcatinformatics.ca/logic/irreflexiveProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Irreflexivity excludes P(a,a) while leaving relations between distinct individuals to other axioms. It requires no relation instances. The current OWL grounding projections omit this carrier characteristic rather than preserving it for every property."
+msgstr "L’irréflexivité exclut P(a,a) tout en laissant les relations entre individus distincts aux autres axiomes. Elle n’exige aucune instance de relation. Les projections OWL actuelles omettent cette caractéristique du porteur au lieu de la préserver pour toute propriété."
+
+msgctxt "https://blackcatinformatics.ca/logic/irreflexiveProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "An irreflexive P rejects P(a,a); P(a,b) together with P(b,a) is not excluded by irreflexivity alone when a and b are distinct."
+msgstr "Un P irréflexif rejette P(a,a) ; l’irréflexivité seule n’exclut pas P(a,b) avec P(b,a) lorsque a et b sont distincts."
+
+msgctxt "https://blackcatinformatics.ca/logic/symmetricProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Symmetry reverses an existing edge without identifying its endpoints or requiring a self-edge. The current OWL DL projection retains this characteristic, while the OWL EL projection omits it."
+msgstr "La symétrie inverse une arête existante sans identifier ses extrémités ni exiger d’arête vers soi-même. La projection actuelle vers OWL DL conserve cette caractéristique, tandis que celle vers OWL EL l’omet."
+
+msgctxt "https://blackcatinformatics.ca/logic/symmetricProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "For symmetric P, P(a,b) entails P(b,a). Combining symmetry with irreflexivity can describe a two-way opposition between distinct individuals without allowing P(a,a)."
+msgstr "Pour un P symétrique, P(a,b) entraîne P(b,a). Combiner symétrie et irréflexivité peut décrire une opposition dans les deux sens entre individus distincts sans autoriser P(a,a)."
+
+msgctxt "https://blackcatinformatics.ca/logic/functionalProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Functionality constrains targets sharing one source: P(a,b) and P(a,c) entail b = c. It requires no value and does not identify different sources sharing a target. Native carrier reasoning derives resource equality; the OWL DL view retains functionality and the OWL EL view drops it."
+msgstr "La fonctionnalité contraint les cibles partageant une source : P(a,b) et P(a,c) entraînent b = c. Elle n’exige aucune valeur et n’identifie pas des sources distinctes partageant une cible. Le raisonnement natif sur les porteurs dérive l’égalité des ressources ; la vue OWL DL conserve la fonctionnalité et la vue OWL EL l’omet."
+
+msgctxt "https://blackcatinformatics.ca/logic/functionalProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "With functional P, P(a,b) and P(a,c) can identify b with c rather than reject the graph solely for using two names. P(a,b) and P(d,b) do not imply a = d."
+msgstr "Pour un P fonctionnel, P(a,b) et P(a,c) peuvent identifier b à c au lieu de rejeter le graphe au seul motif qu’il emploie deux noms. P(a,b) et P(d,b) n’impliquent pas a = d."
+
+msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record connects a property to a characteristic, with ownership following the property rather than a central list of all slice properties. Projection support is characteristic-dependent: canonical ownership does not promise that every OWL profile preserves the law."
+msgstr "Le porteur relie une propriété à une caractéristique et est rédigé dans la tranche propriétaire de cette propriété, plutôt que dans une liste centrale de toutes les propriétés des tranches. La prise en charge par les projections dépend de la caractéristique : cette source canonique ne promet pas que tout profil OWL préserve la loi."
+
+msgctxt "https://blackcatinformatics.ca/logic/PropertyCharacteristicAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A carrier containing logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . declares forward at-most-one receipt binding. It neither supplies a receipt's preparation step nor restricts a step to one receipt."
+msgstr "Un porteur contenant logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . déclare la liaison du reçu vers au plus une étape. Il ne fournit pas l’étape de préparation d’un reçu et ne réserve pas une étape à un seul reçu."
+
+msgctxt "https://blackcatinformatics.ca/logic/characterizes|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation selects the governed predicate, not the subject or object of one predicate instance. Its target and the characteristic-sort target form the carrier read by native reasoning and projection consumers."
+msgstr "Cette relation sélectionne le prédicat régi, non le sujet ou l’objet d’une de ses instances. Sa cible et la cible du type de caractéristique forment le porteur lu par le raisonnement natif et les consommateurs de projection."
+
+msgctxt "https://blackcatinformatics.ca/logic/characterizes|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:carrier logic:characterizes logic:lensGoverns . identifies the predicate whose targets are constrained; ex:carrier still needs the appropriate logic:characteristicSort declaration."
+msgstr "En Turtle, ex:carrier logic:characterizes logic:lensGoverns . identifie le prédicat dont les cibles sont contraintes ; ex:carrier nécessite encore la déclaration logic:characteristicSort appropriée."
+
+msgctxt "https://blackcatinformatics.ca/logic/characteristicSort|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker determines the law, while logic:characterizes determines its property. Selecting functionality asserts forward at-most-one behavior; selecting symmetry asserts reverse edges. Neither selection supplies relation instances."
+msgstr "Le marqueur détermine la loi, tandis que logic:characterizes détermine sa propriété. Choisir la fonctionnalité affirme une borne d’au plus une valeur dans le sens direct ; choisir la symétrie affirme les arêtes inverses. Aucun de ces choix ne fournit d’instances de relation."
+
+msgctxt "https://blackcatinformatics.ca/logic/characteristicSort|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:carrier logic:characteristicSort logic:functionalProperty . selects functionality. With logic:characterizes logic:lawGovernsAxis on the same record, the bound runs from one law to its axis, not from one axis to all its laws."
+msgstr "En Turtle, ex:carrier logic:characteristicSort logic:functionalProperty . sélectionne la fonctionnalité. Avec logic:characterizes logic:lawGovernsAxis sur le même porteur, la borne va d’une loi vers son axe, non d’un axe vers toutes ses lois."

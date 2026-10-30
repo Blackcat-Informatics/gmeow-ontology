@@ -2818,6 +2818,11 @@ logic:assessmentWhole
 logic:asymmetricProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when an asserted relation in one direction excludes the reverse relation between the same two individuals."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using asymmetry as a synonym for a relation that simply lacks a known reverse edge; absence of evidence is weaker than exclusion."@x-gmeow-english ;
+    gmeow:howToUse "Declare a separate owning-slice characteristic record for asymmetry and retain it in canonical reasoning even when an external projection cannot express the combination."@x-gmeow-english ;
+    skos:scopeNote "Asymmetry prohibits a reverse edge and therefore also prohibits a self-edge. It imposes no existence requirement. The current OWL grounding projections omit this carrier characteristic; the canonical claim remains stronger than those views."@x-gmeow-english ;
+    skos:example "For an asymmetric P, P(a,b) excludes P(b,a). Declaring P transitive as well allows a strict ordering in the canonical model without promising that the OWL view retains both characteristics."@x-gmeow-english ;
     rdfs:label "asymmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for asymmetry: a property P such that P(a,b) entails ¬P(b,a). The logic: analogue of OWL AsymmetricProperty, minted standalone so it can co-occur with logic:transitiveProperty on the same property — the transitive ∧ asymmetric combination OWL 2 DL bars for decidability but logic: keeps and reasons over (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -3155,6 +3160,11 @@ logic:invokesPathShape
 logic:irreflexiveProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when no individual may bear the selected relation to itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming irreflexivity also forbids all two-way relations between distinct individuals; that is a separate asymmetry requirement."@x-gmeow-english ;
+    gmeow:howToUse "Attach this sort to the property through its owning-slice characteristic record, then state any independent transitivity or asymmetry characteristic separately."@x-gmeow-english ;
+    skos:scopeNote "Irreflexivity excludes P(a,a) while leaving relations between distinct individuals to other axioms. It requires no relation instances. The current OWL grounding projections omit this carrier characteristic rather than preserving it for every property."@x-gmeow-english ;
+    skos:example "An irreflexive P rejects P(a,a); P(a,b) together with P(b,a) is not excluded by irreflexivity alone when a and b are distinct."@x-gmeow-english ;
     rdfs:label "irreflexive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of OWL IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -3500,6 +3510,11 @@ logic:temporalPartOf
 logic:transitiveProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when a relation must compose through a shared intermediate individual within the same interpreted scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing transitivity merely because a relation often occurs in chains; immediate succession need not hold between the chain's endpoints."@x-gmeow-english ;
+    gmeow:howToUse "Author an owning-slice characteristic record naming the relation and this sort, and distinguish any additional asymmetry or irreflexivity obligations."@x-gmeow-english ;
+    skos:scopeNote "Transitivity adds the endpoint relation from two composable edges; it does not reverse either edge or require any edge to exist. The characteristic is retained by the current OWL DL and OWL EL grounding projections."@x-gmeow-english ;
+    skos:example "For a transitive relation P, P(a,b) and P(b,c) entail P(a,c). The same premises do not establish P(c,a) unless another law supplies that direction."@x-gmeow-english ;
     rdfs:label "transitive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for transitivity: a property P such that P(a,b) ∧ P(b,c) entails P(a,c). The logic: analogue of OWL TransitiveProperty, minted standalone so logic: can combine it with logic:asymmetricProperty — a combination OWL 2 DL forbids globally (criticism 7) but logic: reasons over fully."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -5162,6 +5177,11 @@ logic:wemiChainCons a logic:Formula ; logic:relation gmeow:exemplifies ;
 logic:symmetricProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use when every relation instance entails its counterpart with subject and object exchanged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating bidirectional implication as transitivity or as a requirement that every individual participate in the relation."@x-gmeow-english ;
+    gmeow:howToUse "Name the relation in an owning-slice characteristic record with this sort and review the target projection's loss before relying on reverse-edge entailments outside the canonical model."@x-gmeow-english ;
+    skos:scopeNote "Symmetry reverses an existing edge without identifying its endpoints or requiring a self-edge. The current OWL DL projection retains this characteristic, while the OWL EL projection omits it."@x-gmeow-english ;
+    skos:example "For symmetric P, P(a,b) entails P(b,a). Combining symmetry with irreflexivity can describe a two-way opposition between distinct individuals without allowing P(a,a)."@x-gmeow-english ;
     rdfs:label "symmetric property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for symmetry: a property P such that P(a,b) entails P(b,a). The logic: analogue of OWL SymmetricProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others and reasoned over natively — including together with logic:irreflexiveProperty, for a constitutive-opposition relation that holds both ways but never of a thing and itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -5169,6 +5189,11 @@ logic:symmetricProperty
 logic:functionalProperty
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to require at most one target value for each source individual under the selected property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading functionality as required presence, inverse uniqueness, or an automatic error merely because two target IRIs have different spellings."@x-gmeow-english ;
+    gmeow:howToUse "Author the functional characteristic through the property's owning-slice record; state any required presence or explicit target distinction independently."@x-gmeow-english ;
+    skos:scopeNote "Functionality constrains targets sharing one source: P(a,b) and P(a,c) entail b = c. It requires no value and does not identify different sources sharing a target. Native carrier reasoning derives resource equality; the OWL DL view retains functionality and the OWL EL view drops it."@x-gmeow-english ;
+    skos:example "With functional P, P(a,b) and P(a,c) can identify b with c rather than reject the graph solely for using two names. P(a,b) and P(d,b) do not imply a = d."@x-gmeow-english ;
     rdfs:label "functional property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for functionality: a property P such that P(a,b) ∧ P(a,c) entails b = c. The logic: analogue of OWL FunctionalProperty, minted standalone so the characteristic can be asserted on the canonical reasoning carrier alongside the others; functionality is already lifted into the foundation chase for the relator-mediation count, so a functional carrier records the characteristic centrally rather than adding a second enforcement path."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -5176,14 +5201,24 @@ logic:functionalProperty
 logic:PropertyCharacteristicAssertion
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to carry one property's declared characteristic as canonical data owned by the slice that owns the property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid duplicating the characteristic as a hand-authored OWL declaration or treating the record as the property's definition."@x-gmeow-english ;
+    gmeow:howToUse "Supply the characterized property, one supported characteristic sort and a formalizes link; keep semantic annotations on the property and derive external views from the record."@x-gmeow-english ;
+    skos:scopeNote "The record connects a property to a characteristic, with ownership following the property rather than a central list of all slice properties. Projection support is characteristic-dependent: canonical ownership does not promise that every OWL profile preserves the law."@x-gmeow-english ;
+    skos:example "A carrier containing logic:characterizes logic:receiptOfPreparation ; logic:characteristicSort logic:functionalProperty . declares forward at-most-one receipt binding. It neither supplies a receipt's preparation step nor restricts a step to one receipt."@x-gmeow-english ;
     rdfs:label "property characteristic assertion"@x-gmeow-english ;
-    skos:definition "A central record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the domain slice keeps the OWL-facing declaration, the reasoning authority names and enforces it here. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "A canonical record asserting that a named property bears a characteristic sort — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. It names the property with logic:characterizes and the sort with logic:characteristicSort, the pair the native coherence gate joins to enforce the characteristic, and carries a logic:formalizes back-reference to the domain property whose prose it encodes. This is the canonical logic: carrier of a property characteristic: the slice owning the property authors the characteristic record, and the OWL-facing declaration is derived from it rather than hand-authored as a second source. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:characterizes
     a logic:ObjectProperty ;
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to identify the property whose behavior a characteristic assertion constrains."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking to a property value, an example subject, or the characteristic marker itself instead of the governed property."@x-gmeow-english ;
+    gmeow:howToUse "Place the governed property IRI on the assertion record and pair it with characteristicSort on that same record; preserve the formalizes link to the property's semantic description."@x-gmeow-english ;
+    skos:scopeNote "This relation selects the governed predicate, not the subject or object of one predicate instance. Its target and the characteristic-sort target form the carrier read by native reasoning and projection consumers."@x-gmeow-english ;
+    skos:example "In Turtle, ex:carrier logic:characterizes logic:lensGoverns . identifies the predicate whose targets are constrained; ex:carrier still needs the appropriate logic:characteristicSort declaration."@x-gmeow-english ;
     rdfs:label "characterizes"@x-gmeow-english ;
     skos:definition "Relates a logic:PropertyCharacteristicAssertion to the property it characterises (a gmeow: or logic: property, stated in prose). Read together with logic:characteristicSort, it tells the native coherence gate which property bears which characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -5192,6 +5227,11 @@ logic:characteristicSort
     a logic:ObjectProperty ;
     rdfs:domain logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:useWhen "Use to select which supported relational law a property-characteristic record asserts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a prose label or the property itself as the characteristic-sort value, or assuming every characteristic survives the selected projection."@x-gmeow-english ;
+    gmeow:howToUse "Point to the canonical characteristic marker on the same record that characterizes the property; use separate records when asserting independent characteristics."@x-gmeow-english ;
+    skos:scopeNote "The marker determines the law, while logic:characterizes determines its property. Selecting functionality asserts forward at-most-one behavior; selecting symmetry asserts reverse edges. Neither selection supplies relation instances."@x-gmeow-english ;
+    skos:example "In Turtle, ex:carrier logic:characteristicSort logic:functionalProperty . selects functionality. With logic:characterizes logic:lawGovernsAxis on the same record, the bound runs from one law to its axis, not from one axis to all its laws."@x-gmeow-english ;
     rdfs:label "characteristic sort"@x-gmeow-english ;
     skos:definition "Relates a logic:PropertyCharacteristicAssertion to the characteristic-sort marker it asserts — one of logic:transitiveProperty, logic:symmetricProperty, logic:irreflexiveProperty, logic:asymmetricProperty or logic:functionalProperty. Co-present with logic:characterizes: a characteristic assertion carrying one without the other names no enforceable characteristic. Domain logic:PropertyCharacteristicAssertion; single-valued. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -5216,7 +5256,7 @@ logic:actionResourceFunctionality
     logic:characterizes logic:actionResource ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:actionResource ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:actionResource names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:actionResource names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:actionResource, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:actionResource and nothing else. It is not a definition of logic:actionResource (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5231,7 +5271,7 @@ logic:antecedentFunctionality
     logic:characterizes logic:antecedent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:antecedent ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:antecedent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:antecedent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:antecedent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:antecedent and nothing else. It is not a definition of logic:antecedent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5246,7 +5286,7 @@ logic:candidateCategoryFunctionality
     logic:characterizes logic:candidateCategory ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateCategory ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateCategory names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateCategory names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateCategory, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateCategory and nothing else. It is not a definition of logic:candidateCategory (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5261,7 +5301,7 @@ logic:candidateContractFunctionality
     logic:characterizes logic:candidateContract ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateContract ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateContract names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateContract names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateContract, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateContract and nothing else. It is not a definition of logic:candidateContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5276,7 +5316,7 @@ logic:candidateExtractionProvenanceFunctionality
     logic:characterizes logic:candidateExtractionProvenance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateExtractionProvenance ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateExtractionProvenance and nothing else. It is not a definition of logic:candidateExtractionProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5291,7 +5331,7 @@ logic:candidateFormalizesFunctionality
     logic:characterizes logic:candidateFormalizes ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateFormalizes ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateFormalizes names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateFormalizes names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateFormalizes, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateFormalizes and nothing else. It is not a definition of logic:candidateFormalizes (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5306,7 +5346,7 @@ logic:candidateLifecycleFunctionality
     logic:characterizes logic:candidateLifecycle ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateLifecycle ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateLifecycle names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateLifecycle names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateLifecycle, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateLifecycle and nothing else. It is not a definition of logic:candidateLifecycle (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5321,7 +5361,7 @@ logic:candidateProjectionBehaviorFunctionality
     logic:characterizes logic:candidateProjectionBehavior ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateProjectionBehavior ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateProjectionBehavior names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateProjectionBehavior, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateProjectionBehavior and nothing else. It is not a definition of logic:candidateProjectionBehavior (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5336,7 +5376,7 @@ logic:candidateScopeFunctionality
     logic:characterizes logic:candidateScope ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateScope ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateScope and nothing else. It is not a definition of logic:candidateScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5351,7 +5391,7 @@ logic:candidateSemanticRiskFunctionality
     logic:characterizes logic:candidateSemanticRisk ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSemanticRisk ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSemanticRisk, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSemanticRisk and nothing else. It is not a definition of logic:candidateSemanticRisk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5366,7 +5406,7 @@ logic:candidateSourceFieldFunctionality
     logic:characterizes logic:candidateSourceField ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceField ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSourceField and nothing else. It is not a definition of logic:candidateSourceField (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5381,7 +5421,7 @@ logic:candidateSourceHashFunctionality
     logic:characterizes logic:candidateSourceHash ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:candidateSourceHash ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceHash names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateSourceHash names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateSourceHash, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateSourceHash and nothing else. It is not a definition of logic:candidateSourceHash (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5396,7 +5436,7 @@ logic:conjectureFormulaFunctionality
     logic:characterizes logic:conjectureFormula ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureFormula ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureFormula names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureFormula names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureFormula, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureFormula and nothing else. It is not a definition of logic:conjectureFormula (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5411,7 +5451,7 @@ logic:conjectureLifecycleStateFunctionality
     logic:characterizes logic:conjectureLifecycleState ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureLifecycleState ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureLifecycleState names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureLifecycleState, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureLifecycleState and nothing else. It is not a definition of logic:conjectureLifecycleState (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5426,7 +5466,7 @@ logic:conjectureStandpointFunctionality
     logic:characterizes logic:conjectureStandpoint ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:conjectureStandpoint ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureStandpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:conjectureStandpoint names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:conjectureStandpoint, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:conjectureStandpoint and nothing else. It is not a definition of logic:conjectureStandpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5441,7 +5481,7 @@ logic:consequentFunctionality
     logic:characterizes logic:consequent ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:consequent ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:consequent names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:consequent names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:consequent, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:consequent and nothing else. It is not a definition of logic:consequent (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5456,7 +5496,7 @@ logic:effectFunctionality
     logic:characterizes logic:effect ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:effect ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:effect names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:effect names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:effect, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:effect and nothing else. It is not a definition of logic:effect (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5471,7 +5511,7 @@ logic:evaluationModeFunctionality
     logic:characterizes logic:evaluationMode ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:evaluationMode ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:evaluationMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:evaluationMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:evaluationMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:evaluationMode and nothing else. It is not a definition of logic:evaluationMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5486,7 +5526,7 @@ logic:existsFunctionality
     logic:characterizes logic:exists ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:exists ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:exists names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:exists names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:exists, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:exists and nothing else. It is not a definition of logic:exists (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5501,7 +5541,7 @@ logic:feasibilityStatusFunctionality
     logic:characterizes logic:feasibilityStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:feasibilityStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:feasibilityStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:feasibilityStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:feasibilityStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:feasibilityStatus and nothing else. It is not a definition of logic:feasibilityStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5516,7 +5556,7 @@ logic:forallFunctionality
     logic:characterizes logic:forall ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:forall ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:forall names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:forall names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:forall, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:forall and nothing else. It is not a definition of logic:forall (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5531,7 +5571,7 @@ logic:freshnessHorizonFunctionality
     logic:characterizes logic:freshnessHorizon ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessHorizon ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessHorizon names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessHorizon names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessHorizon, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessHorizon and nothing else. It is not a definition of logic:freshnessHorizon (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5546,7 +5586,7 @@ logic:freshnessWindowEndFunctionality
     logic:characterizes logic:freshnessWindowEnd ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowEnd ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowEnd names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowEnd, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessWindowEnd and nothing else. It is not a definition of logic:freshnessWindowEnd (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5561,7 +5601,7 @@ logic:freshnessWindowStartFunctionality
     logic:characterizes logic:freshnessWindowStart ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:freshnessWindowStart ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowStart names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:freshnessWindowStart names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:freshnessWindowStart, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:freshnessWindowStart and nothing else. It is not a definition of logic:freshnessWindowStart (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5576,7 +5616,7 @@ logic:functionSymbolFunctionality
     logic:characterizes logic:functionSymbol ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:functionSymbol ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:functionSymbol names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:functionSymbol names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:functionSymbol, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:functionSymbol and nothing else. It is not a definition of logic:functionSymbol (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5591,7 +5631,7 @@ logic:goalEvaluationStatusFunctionality
     logic:characterizes logic:goalEvaluationStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:goalEvaluationStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:goalEvaluationStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:goalEvaluationStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:goalEvaluationStatus and nothing else. It is not a definition of logic:goalEvaluationStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5606,7 +5646,7 @@ logic:guardsPreconditionFunctionality
     logic:characterizes logic:guardsPrecondition ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:guardsPrecondition ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:guardsPrecondition names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:guardsPrecondition names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:guardsPrecondition, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:guardsPrecondition and nothing else. It is not a definition of logic:guardsPrecondition (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5621,7 +5661,7 @@ logic:invariantFunctionality
     logic:characterizes logic:invariant ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:invariant ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:invariant names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:invariant names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:invariant, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:invariant and nothing else. It is not a definition of logic:invariant (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5636,7 +5676,7 @@ logic:lifecycleStatusFunctionality
     logic:characterizes logic:lifecycleStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:lifecycleStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:lifecycleStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:lifecycleStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:lifecycleStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:lifecycleStatus and nothing else. It is not a definition of logic:lifecycleStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5651,7 +5691,7 @@ logic:notFunctionality
     logic:characterizes logic:not ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:not ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:not names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:not names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:not, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:not and nothing else. It is not a definition of logic:not (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5666,7 +5706,7 @@ logic:objectiveValueFunctionality
     logic:characterizes logic:objectiveValue ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:objectiveValue ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:objectiveValue names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:objectiveValue names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:objectiveValue, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:objectiveValue and nothing else. It is not a definition of logic:objectiveValue (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5681,7 +5721,7 @@ logic:obligationForbiddenPredicateFunctionality
     logic:characterizes logic:obligationForbiddenPredicate ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:obligationForbiddenPredicate ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:obligationForbiddenPredicate names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:obligationForbiddenPredicate, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:obligationForbiddenPredicate and nothing else. It is not a definition of logic:obligationForbiddenPredicate (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5696,7 +5736,7 @@ logic:observationFunctionality
     logic:characterizes logic:observation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:observation ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:observation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:observation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:observation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:observation and nothing else. It is not a definition of logic:observation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5711,7 +5751,7 @@ logic:overAccessibilityFunctionality
     logic:characterizes logic:overAccessibility ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:overAccessibility ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:overAccessibility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:overAccessibility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:overAccessibility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:overAccessibility and nothing else. It is not a definition of logic:overAccessibility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5726,7 +5766,7 @@ logic:planGoalFunctionality
     logic:characterizes logic:planGoal ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:planGoal ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planGoal names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planGoal names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planGoal, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:planGoal and nothing else. It is not a definition of logic:planGoal (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5741,7 +5781,7 @@ logic:planSuccessModeFunctionality
     logic:characterizes logic:planSuccessMode ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:planSuccessMode ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planSuccessMode names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:planSuccessMode names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:planSuccessMode, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:planSuccessMode and nothing else. It is not a definition of logic:planSuccessMode (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5756,7 +5796,7 @@ logic:programQueryFunctionality
     logic:characterizes logic:programQuery ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:programQuery ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:programQuery names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:programQuery names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:programQuery, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:programQuery and nothing else. It is not a definition of logic:programQuery (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5771,7 +5811,7 @@ logic:recoveryTransformFunctionality
     logic:characterizes logic:recoveryTransform ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:recoveryTransform ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:recoveryTransform names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:recoveryTransform names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:recoveryTransform, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:recoveryTransform and nothing else. It is not a definition of logic:recoveryTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5786,7 +5826,7 @@ logic:relationFunctionality
     logic:characterizes logic:relation ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:relation ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:relation names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:relation names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:relation, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:relation and nothing else. It is not a definition of logic:relation (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5801,7 +5841,7 @@ logic:satisfactionDegreeFunctionality
     logic:characterizes logic:satisfactionDegree ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:satisfactionDegree ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionDegree names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionDegree names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionDegree, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:satisfactionDegree and nothing else. It is not a definition of logic:satisfactionDegree (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5816,7 +5856,7 @@ logic:satisfactionStatusFunctionality
     logic:characterizes logic:satisfactionStatus ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:satisfactionStatus ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionStatus names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:satisfactionStatus names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:satisfactionStatus, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:satisfactionStatus and nothing else. It is not a definition of logic:satisfactionStatus (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5831,7 +5871,7 @@ logic:termApplicationFunctionality
     logic:characterizes logic:termApplication ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termApplication ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termApplication names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termApplication names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termApplication, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termApplication and nothing else. It is not a definition of logic:termApplication (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5846,7 +5886,7 @@ logic:termIndexFunctionality
     logic:characterizes logic:termIndex ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIndex ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIndex names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIndex names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIndex, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termIndex and nothing else. It is not a definition of logic:termIndex (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5861,7 +5901,7 @@ logic:termIriFunctionality
     logic:characterizes logic:termIri ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termIri ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIri names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termIri names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termIri, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termIri and nothing else. It is not a definition of logic:termIri (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5876,7 +5916,7 @@ logic:termLiteralFunctionality
     logic:characterizes logic:termLiteral ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteral ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteral names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteral names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteral, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termLiteral and nothing else. It is not a definition of logic:termLiteral (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5891,7 +5931,7 @@ logic:termLiteralDatatypeFunctionality
     logic:characterizes logic:termLiteralDatatype ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termLiteralDatatype ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteralDatatype names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termLiteralDatatype names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termLiteralDatatype, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termLiteralDatatype and nothing else. It is not a definition of logic:termLiteralDatatype (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5906,7 +5946,7 @@ logic:termSequenceMarkerFunctionality
     logic:characterizes logic:termSequenceMarker ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termSequenceMarker ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termSequenceMarker names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termSequenceMarker names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termSequenceMarker, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termSequenceMarker and nothing else. It is not a definition of logic:termSequenceMarker (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5921,7 +5961,7 @@ logic:termVariableFunctionality
     logic:characterizes logic:termVariable ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:termVariable ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termVariable names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:termVariable names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:termVariable, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:termVariable and nothing else. It is not a definition of logic:termVariable (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5936,7 +5976,7 @@ logic:utilityFunctionality
     logic:characterizes logic:utility ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:utility ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:utility names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:utility names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:utility, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:utility and nothing else. It is not a definition of logic:utility (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5951,7 +5991,7 @@ logic:verdictProvenanceFunctionality
     logic:characterizes logic:verdictProvenance ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:verdictProvenance ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:verdictProvenance names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:verdictProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:verdictProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:verdictProvenance and nothing else. It is not a definition of logic:verdictProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5966,7 +6006,7 @@ logic:witnessIndividualFunctionality
     logic:characterizes logic:witnessIndividual ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:witnessIndividual ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessIndividual names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessIndividual names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessIndividual, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:witnessIndividual and nothing else. It is not a definition of logic:witnessIndividual (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5981,7 +6021,7 @@ logic:witnessWorldFunctionality
     logic:characterizes logic:witnessWorld ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:witnessWorld ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessWorld names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:witnessWorld names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:witnessWorld, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:witnessWorld and nothing else. It is not a definition of logic:witnessWorld (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -5996,7 +6036,7 @@ logic:demonstratedByCompetencyFunctionality
     logic:characterizes gmeow:demonstratedByCompetency ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByCompetency ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByCompetency names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByCompetency, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByCompetency and nothing else. It is not a definition of gmeow:demonstratedByCompetency (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -6011,7 +6051,7 @@ logic:demonstratedByExampleFunctionality
     logic:characterizes gmeow:demonstratedByExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByExample ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByExample and nothing else. It is not a definition of gmeow:demonstratedByExample (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -6026,7 +6066,7 @@ logic:demonstratedByProducerFunctionality
     logic:characterizes gmeow:demonstratedByProducer ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:demonstratedByProducer ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:demonstratedByProducer names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:demonstratedByProducer, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:demonstratedByProducer and nothing else. It is not a definition of gmeow:demonstratedByProducer (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -6041,7 +6081,7 @@ logic:guardedByCounterExampleFunctionality
     logic:characterizes gmeow:guardedByCounterExample ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:guardedByCounterExample ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:guardedByCounterExample names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:guardedByCounterExample, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:guardedByCounterExample and nothing else. It is not a definition of gmeow:guardedByCounterExample (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -7002,7 +7042,7 @@ logic:adviceSourceFieldFunctionality
     logic:characterizes logic:adviceSourceField ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes logic:adviceSourceField ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:adviceSourceField names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use when the native coherence gate must enforce that logic:adviceSourceField names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:adviceSourceField, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:adviceSourceField and nothing else. It is not a definition of logic:adviceSourceField (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
