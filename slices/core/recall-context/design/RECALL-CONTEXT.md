@@ -76,6 +76,12 @@ identity retains the existing digest-required law. The immutable IRI mode is an
 explicit external-owner contract for immutable resolution, durable retention and
 supersession. It is not evidence of byte equality. It changes no checkpoint fold,
 approval binding, snapshot requirement or digest-bearing immutability comparison.
+Once an enactment captures a prescription digest, the presence law requires a
+current version digest under every identity mode. The unchanged immutability law
+compares that value with the captured witness. Their separate presence and
+comparison duties prevent IRI selection from bypassing the captured contract
+without duplicating mismatch findings. Fresh IRI-only versions without a captured
+digest retain their explicit external-owner contract.
 No runtime fallback, hash substitute or new model lifecycle operation is introduced.
 
 Canonical declarations, restrictions, closure entries, productive sum rule and

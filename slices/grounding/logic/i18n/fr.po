@@ -23717,3 +23717,27 @@ msgstr "Déclarer classe de sujet, prédicat et classe contrainte du réificateu
 msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#example"
 msgid "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."
 msgstr "Une exclusion d’assemblage par relevé respecte le contrat du réificateur AssemblyExclusion."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a captured prescription digest requires a current digest"
+msgstr "un condensat de prescription capturé exige un condensat actuel"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prescription version whose enactment captured a digest must retain a current prescriptionDigest under every identity mode. This law checks presence only; PrescriptionVersionImmutabilityConstraint separately compares the current value with the captured witness."
+msgstr "Une version dont l’exécution a capturé un condensat conserve un prescriptionDigest actuel sous tout mode d’identité. Cette loi vérifie seulement la présence ; PrescriptionVersionImmutabilityConstraint compare séparément la valeur actuelle au témoin capturé."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an enactment recorded enactedPrescriptionDigest and absence of the version’s current digest would otherwise bypass the comparison law."
+msgstr "Utiliser lorsqu’une exécution a enregistré enactedPrescriptionDigest et que l’absence du condensat actuel permettrait autrement d’éviter la loi de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating the immutability law’s mismatch finding here; a present but different digest is that law’s comparison failure."
+msgstr "Éviter de dupliquer ici le constat de divergence de la loi d’immutabilité ; un condensat présent mais différent relève de son échec de comparaison."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the pinned version and captured digest, then require some current prescriptionDigest without a mode or current-digest guard. Let the existing immutability law require the matching value."
+msgstr "Joindre la version épinglée et le condensat capturé, puis exiger un prescriptionDigest actuel sans garde de mode ni de condensat actuel. Laisser la loi d’immutabilité existante exiger la valeur correspondante."
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."
+msgstr "Supprimer le condensat actuel après capture échoue au contrôle de présence ; changer sa valeur échoue à l’immutabilité. Une nouvelle version IRI sans condensat capturé reste admissible."

@@ -179,7 +179,14 @@ verification certificate.
 `PrescriptionVersionIsContentAddressedConstraint` keeps its digest obligation
 unless that explicit mode is selected. The digest-bearing
 `PrescriptionVersionImmutabilityConstraint` still compares a supplied current
-digest with the independent value a run froze at pin time. This selection changes
+digest with the independent value a run froze at pin time.
+`CapturedPrescriptionDigestPresenceConstraint` additionally requires a current
+prescription digest whenever a run has captured one, regardless of identity mode.
+It checks presence only; the existing immutability law owns the value comparison.
+Removing the current digest cannot make that comparison vacuous, and a different
+current value produces the existing immutability finding without a second mismatch
+finding from the presence law. A fresh IRI-only version with no captured digest
+remains admitted by its explicit identity contract. This selection changes
 no checkpoint descriptor, restore identity, snapshot digest, intent digest,
 approval binding or other selected operation's admission requirements. A caller
 requesting any such operation must supply its original mandatory evidence.

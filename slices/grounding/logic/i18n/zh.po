@@ -23717,3 +23717,27 @@ msgstr "声明主语类、谓词及受约束具体化者类；实际排除使用
 msgctxt "https://blackcatinformatics.ca/logic/perRecordExclusionReificationObligation|http://www.w3.org/2004/02/skos/core#example"
 msgid "A per-record assembly exclusion conforms to the AssemblyExclusion reifier contract."
 msgstr "逐记录组装排除符合 AssemblyExclusion 具体化者契约。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "a captured prescription digest requires a current digest"
+msgstr "已捕获的处方摘要要求当前摘要"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prescription version whose enactment captured a digest must retain a current prescriptionDigest under every identity mode. This law checks presence only; PrescriptionVersionImmutabilityConstraint separately compares the current value with the captured witness."
+msgstr "其执行捕获了摘要的处方版本，在任何身份模式下都必须保留当前 prescriptionDigest。此定律仅检查存在性；PrescriptionVersionImmutabilityConstraint 独立比较当前值与已捕获见证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an enactment recorded enactedPrescriptionDigest and absence of the version’s current digest would otherwise bypass the comparison law."
+msgstr "用于执行记录了 enactedPrescriptionDigest，而版本当前摘要缺失可能绕过比较定律时。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid duplicating the immutability law’s mismatch finding here; a present but different digest is that law’s comparison failure."
+msgstr "避免在此重复不可变性定律的不匹配发现；摘要存在但不同是该定律的比较失败。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the pinned version and captured digest, then require some current prescriptionDigest without a mode or current-digest guard. Let the existing immutability law require the matching value."
+msgstr "关联固定版本及已捕获摘要，然后要求存在某个当前 prescriptionDigest，不以模式或当前摘要为前置条件。由现有不可变性定律要求匹配值。"
+
+msgctxt "https://blackcatinformatics.ca/logic/CapturedPrescriptionDigestPresenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Removing a version’s current digest after capture fails presence; changing its value fails immutability. A fresh IRI-only version without a captured digest remains admissible."
+msgstr "捕获后移除版本当前摘要违反存在性要求；改变其值违反不可变性要求。尚无已捕获摘要的新 IRI 版本仍可准入。"
