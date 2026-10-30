@@ -13955,8 +13955,8 @@ msgid "abductive repair schema"
 msgstr "溯因修复模式"
 
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A constructive-advice carrier: it marks a modeling discipline as abductively repairable and supplies the machinery for deriving the minimal 'what to ADD' addition that completes an under-specified subject. It logic:formalizes the governed term, names its repair mechanism with logic:repairStrategy (how the candidate addition is read off the declared structure), optionally back-links the discipline it repairs with logic:repairsDiscipline, and carries a logic:completenessFormula — the discipline-satisfied condition, authored as a first-class logic:Formula so the abductive suggestion is warranted by a native conjecture-engine corroboration rather than by hand-authored prose. Unlike a logic:Constraint it neither gates nor projects to a shape surface; it is consumed by the abductive advice producer, which instantiates the completeness formula at a gap subject and tests a candidate addition in an isolated scenario world."
-msgstr "一个建设性建议载体：它将一个建模纪律标记为可溯因修复的，并提供用于推导出补全某个欠规约主体的最小'应添加什么'添加项的机制。它以 logic:formalizes 形式化所治理的术语，用 logic:repairStrategy 命名其修复机制（即如何从已声明的结构中读出候选添加项），并可选地用 logic:repairsDiscipline 反向链接其所修复的纪律，且携带一个 logic:completenessFormula —— 即纪律满足条件，作为一等 logic:Formula 编写，从而使溯因建议由原生猜想引擎的确证、而非由手工编写的散文所担保。与 logic:Constraint 不同，它既不进行门控也不投射到形状表面；它由溯因建议生产者消费，后者在缺口主体处实例化完整性公式，并在一个隔离的情景世界中测试候选添加项。"
+msgid "A constructive-advice carrier marking a modeling discipline as repairable through candidate additions. It logic:formalizes the governed term, selects a supported logic:repairStrategy, may identify the repaired discipline through logic:repairsDiscipline, and carries a schema-owned logic:completenessFormula. The advice producer reads that formula to identify gaps and proposed additions without mutating the input graph or running a reasoner per candidate. For the supported conjunctive cases it warrants each missing relation separately by fresh-witness construction; for the supported sortal case it filters candidate types using the supplied type and disjointness information. A suggestion remains advisory and does not assert completion of every obligation."
+msgstr "一种建设性建议载体，将建模规范标记为可通过候选添加项修复。它以 logic:formalizes 指定所辖术语，选择受支持的 logic:repairStrategy，可通过 logic:repairsDiscipline 标识所修复的规范，并携带模式自身的 logic:completenessFormula。建议生成器读取该公式以识别缺口和拟议添加项，不修改输入图，也不对每个候选运行推理器。对于受支持的合取情形，它通过新见证构造分别论证各缺失关系；对于受支持的本体分类情形，它使用所提供的类型和不相交信息筛选候选类型。建议仍属建议，不断言每项义务都已完成。"
 
 msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "abductive repair strategy"
@@ -13987,8 +13987,8 @@ msgid "sortal specialization"
 msgstr "sortal 特化"
 
 msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — of which the engine keeps only those consistent with the subject's other assertions."
-msgstr "纯 gmeow:Entity 实例的修复策略：候选添加项是顶层种类特化 gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject，即“特化为种类 X”；引擎只保留与主体其他断言一致的候选项。"
+msgid "The repair strategy for a bare gmeow:Entity instance: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X' — filtered using the subject's supplied types and the candidates' class-disjointness information. Advice retains non-refuted candidates only when at least one offered candidate is refuted; this screen does not certify consistency with arbitrary other assertions."
+msgstr "针对裸 gmeow:Entity 实例的修复策略：候选添加项是顶层本体分类特化（gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject），即“特化为本体分类 X”，依据主体所提供的类型及候选的类不相交信息进行筛选。只有至少一个候选被排除时，建议才保留未被排除的候选；此筛选不认证与任意其他断言的一致性。"
 
 msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "frame declaration"
@@ -14019,16 +14019,16 @@ msgid "completeness formula"
 msgstr "完整性公式"
 
 msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The discipline-SATISFIED condition a logic:AbductiveSchema carries: a first-class logic:Formula over one free subject variable (\"this\") that holds exactly when the governed subject is no longer under-specified for the discipline. The abductive producer instantiates it at a gap subject and asks the native conjecture engine whether a candidate addition makes it hold in a consistent scenario world; a corroboration is the warrant for the emitted 'add X' recommendation. Reached only through this property (never asserted as a free-standing axiom), so authoring the completeness condition never changes what the reasoner entails about the live model."
-msgstr "一个 logic:AbductiveSchema 所携带的纪律已满足条件：一个作用于单个自由主体变量（\"this\"）的一等 logic:Formula，当所治理主体对该纪律不再欠规约时它恰好为真。溯因生产者在缺口主体处将其实例化，并询问原生猜想引擎某个候选添加项是否使其在一个一致的情景世界中为真；一次确证即所发出的 '添加 X' 建议的担保。仅经由该属性抵达（绝不作为独立公理断言），因此编写该完整性条件绝不会改变推理器就活动模型所蕴涵的内容。"
+msgid "Relates a logic:AbductiveSchema to its discipline-satisfied target, authored as a logic:Formula over the subject variable this. The formula supplies the guard and the conjunctive missing-relation or disjunctive sortal structure consumed by the advice producer. Current warranting constructs a fresh witness for each missing relation in the supported conjunctive cases or filters supported sortal candidates through supplied type and disjointness information; it does not run a conjecture engine for each addition. A per-conjunct suggestion need not satisfy the whole target when other conjuncts remain missing. Reaching this formula through the schema does not assert it as a free-standing axiom or change the live model."
+msgstr "将 logic:AbductiveSchema 关联到表示其规范已满足的目标，该目标以主体变量 this 上的 logic:Formula 编写。公式提供建议生成器使用的守卫条件，以及缺失关系的合取结构或本体分类的析取结构。当前论证在受支持的合取情形中为每个缺失关系构造新见证，或依据所提供的类型和不相交信息筛选受支持的本体分类候选；它不为每项添加运行猜想引擎。当其他合取项仍缺失时，针对单个合取项的建议不一定满足整个目标。通过模式访问此公式既不将其断言为独立公理，也不改变当前模型。"
 
 msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relator-mediation abductive schema"
 msgstr "关系子中介溯因模式"
 
 msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator: when a Commitment leaves at least one of its declared logic:mediates relata (gmeow:committedAgent, gmeow:commitmentBeneficiary, gmeow:intentionGoal) unfilled, each missing relatum is its own candidate addition, warranted independently against its own ground completeness condition — so a Commitment missing two or even all three relata still yields one corroborated suggestion per missing relatum. The completeness formula holds, for the Commitment as a whole, once all three relata are filled."
-msgstr "针对某个中介化不足的 gmeow:Commitment 关系子的建设性修复模式：当一个 Commitment 使其已声明的 logic:mediates 关系项（gmeow:committedAgent、gmeow:commitmentBeneficiary、gmeow:intentionGoal）中至少一个未被填充时，每个缺失的关系项都是它自己的候选添加项，独立地依其自身的基态完整性条件得到担保 —— 因此一个缺失两个甚至全部三个关系项的 Commitment 仍会为每个缺失的关系项产生一条经确证的建议。就整个 Commitment 而言，一旦三个关系项全部填充，完整性公式即为真。"
+msgid "The constructive-repair schema for an under-mediated gmeow:Commitment relator. Each absent relation among gmeow:committedAgent, gmeow:commitmentBeneficiary and gmeow:intentionGoal yields its own candidate addition with a fresh witness, warranted separately by construction for that missing conjunct in the supported strategy. This is not a per-candidate reasoner run or a claim that the other relata are present. The schema's full completeness target requires all three relations, so a commitment missing several relata can receive several independent suggestions without any single suggestion completing the entire target."
+msgstr "针对中介不足的 gmeow:Commitment 关系体的建设性修复模式。gmeow:committedAgent、gmeow:commitmentBeneficiary 和 gmeow:intentionGoal 中每个缺失关系分别产生带有新见证的候选添加项，由受支持策略对该缺失合取项单独给出构造论证。这既不表示对每个候选运行推理器，也不断言其他关系项已经存在。模式的完整完备性目标要求三个关系全部存在，因此缺少多个关系项的承诺可获得多条独立建议，而其中任何一条都不单独完成整个目标。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "reference-frame abductive schema"
@@ -14051,8 +14051,8 @@ msgid "bare-entity sortal abductive schema"
 msgstr "裸实体 sortal 溯因模式"
 
 msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The engine keeps only the specializations consistent with the subject's other assertions."
-msgstr "为仅具有 gmeow:Entity 类型的个体提供构造性修复的模式：候选添加项是顶层种类特化 gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject，即“特化为种类 X”。其依据目标 logic:besSortalCandidateForall 是自身的完备性公式，仅与 gmeow:BareEntitySortalAdviceConstraint 共享纯 Entity 守卫。修复必须指明候选项才可执行，而建议守卫必须涵盖所有特化，包括枚举未预料到的特化，因此两者分别编写，不能彼此代替。引擎只保留与主体其他断言一致的特化。"
+msgid "The constructive-repair schema for an individual typed bare gmeow:Entity: the candidate additions are the top-sortal specializations (gmeow:Agent, gmeow:InformationObject, gmeow:PhysicalObject, gmeow:SocialObject) — 'specialize to sortal X'. Its warrant target (logic:besSortalCandidateForall) is its OWN completeness formula, sharing only the bare-Entity guard with gmeow:BareEntitySortalAdviceConstraint: a repair must NAME its candidates to be actionable, while the advice guard must be complete over every specialization including ones no enumeration anticipates, so the two are authored separately rather than one standing in for the other. The producer screens specializations using the subject's supplied types and class-disjointness information, and emits non-refuted alternatives only when at least one offered candidate is refuted. This discriminating-choice screen is not a general consistency proof."
+msgstr "针对仅被定为裸 gmeow:Entity 的个体的建设性修复模式：候选添加项是顶层本体分类特化（gmeow:Agent、gmeow:InformationObject、gmeow:PhysicalObject、gmeow:SocialObject），即“特化为本体分类 X”。其论证目标 logic:besSortalCandidateForall 是自身的完备性公式，仅与 gmeow:BareEntitySortalAdviceConstraint 共享裸实体守卫条件：修复必须明确列出候选才可行动，而建议守卫条件必须覆盖所有特化，包括枚举未预料的特化，因此两者分别编写，不互相替代。生成器依据主体所提供的类型和类不相交信息筛选特化，且只有至少一个候选被排除时才输出未被排除的其他候选。这种产生有区分选项的筛选并非一般一致性证明。"
 
 msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "WEMI-chain abductive schema"
@@ -23773,3 +23773,115 @@ msgstr "此上限沿透镜到计划的方向适用。函数性推理可将同一
 msgctxt "https://blackcatinformatics.ca/logic/lensGovernsFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."
 msgstr "Turtle 语句 ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . 保留同一计划的两个透镜；解释一次修订仍须指明所选透镜及其自身的定律证据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema supplies advisory candidate structure. Its completeness formula is a target read by the advice producer, not a free-standing axiom, and producing advice does not mutate the supplied graph. Candidate subjects must carry gmeow:graphBoxRole gmeow:boxABox."
+msgstr "该模式提供建议候选的结构。其完备性公式是建议生成器读取的目标，而非独立公理；生成建议不修改所提供的图。 候选主体必须带有 gmeow:graphBoxRole gmeow:boxABox。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "A schema for an incomplete commitment names logic:StrategyRelatumCompletion and a formula describing its required relata; the resulting missing-party suggestion remains advice until deliberately applied."
+msgstr "不完整承诺的模式指定 logic:StrategyRelatumCompletion 和描述其必需关系项的公式；生成的缺失参与方建议在被有意应用前仍只是建议。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A strategy names candidate derivation, not a confidence level or permission to repair. The existing strategies distinguish missing relation targets from candidate sortal types."
+msgstr "策略指定候选的推导方式，不表示置信度或修复许可。现有策略区分缺失的关系目标与候选本体分类类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/AbductiveRepairStrategy|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two schemas may both choose logic:StrategyFrameDeclaration while their formulas require different predicates: gmeow:hasReferenceFrame for an expression and logic:referenceFrame for a unit-bearing value."
+msgstr "两个模式都可选择 logic:StrategyFrameDeclaration，但其公式要求不同谓词：表达式使用 gmeow:hasReferenceFrame，带单位的值使用 logic:referenceFrame。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each absent relation yields its own fresh-witness candidate. A warrant for one added relatum is narrower than satisfaction of the full conjunction when other relata remain absent."
+msgstr "每个缺失关系产生各自带有新见证的候选。当其他关系项仍缺失时，对一个新增关系项的论证范围小于整个合取式的满足范围。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyRelatumCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "A commitment lacking both gmeow:commitmentBeneficiary and gmeow:intentionGoal can receive two separate suggestions; adding the beneficiary alone leaves the goal requirement unsatisfied."
+msgstr "同时缺少 gmeow:commitmentBeneficiary 和 gmeow:intentionGoal 的承诺可获得两条独立建议；仅添加受益方仍未满足目标要求。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy derives the missing link named by the schema formula. Its fresh target witness identifies a proposed addition, not an independently established bibliographic resource."
+msgstr "该策略推导模式公式指定的缺失链接。其新目标见证标识一个拟议添加项，而非已独立确证的书目资源。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyChainCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "For an isolated gmeow:Item, a proposed gmeow:exemplifies relation supplies the next link; it does not also establish the manifestation's expression or work."
+msgstr "对于孤立的 gmeow:Item，拟议的 gmeow:exemplifies 关系提供下一链接；它并不同时确立该载体表现的表达形态或作品。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Candidate filtering reads the supplied type and disjointness information. It neither selects a unique surviving sortal nor invents entailed user types when the caller supplies asserted data only."
+msgstr "候选筛选读取所提供的类型和不相交信息。它既不从剩余候选中选定唯一的本体分类，也不在调用方仅提供断言数据时虚构用户的蕴涵类型。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategySortalSpecialization|http://www.w3.org/2004/02/skos/core#example"
+msgid "If supplied types refute gmeow:PhysicalObject among the offered sortals, advice may retain compatible alternatives; if no offered sortal is refuted, the undifferentiated menu is withheld."
+msgstr "若所提供类型排除了候选中的 gmeow:PhysicalObject，建议可保留兼容的其他候选；若未排除任何候选本体分类，则不输出无区分的选项列表。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy is shared by distinct frame disciplines; the completeness formula determines which frame predicate is missing. A frame proposal is not evidence that the value has already been interpreted in that frame."
+msgstr "不同参照框架规范共享此策略；完备性公式决定缺失的是哪个框架谓词。框架提议并不证明该值已经在该框架中得到解释。"
+
+msgctxt "https://blackcatinformatics.ca/logic/StrategyFrameDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "An expression may need gmeow:hasReferenceFrame, while a value with logic:unit may need logic:referenceFrame; using one strategy does not make these relations interchangeable."
+msgstr "表达式可能需要 gmeow:hasReferenceFrame，而具有 logic:unit 的值可能需要 logic:referenceFrame；使用同一策略并不使这两个关系可互换。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link explains the repair's disciplinary provenance. It neither imports the discipline's constraints nor makes a candidate addition satisfy all obligations of that discipline."
+msgstr "此链接说明修复所依据的规范来源。它既不导入该规范的约束，也不使候选添加项满足该规范的全部义务。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairsDiscipline|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:MeasurementFrameAbductiveSchema logic:repairsDiscipline logic:MeasurementFrameMissing . records the missing-frame discipline; the schema still supplies its own completeness target."
+msgstr "Turtle 语句 logic:MeasurementFrameAbductiveSchema logic:repairsDiscipline logic:MeasurementFrameMissing . 记录缺失框架规范；模式仍提供其自身的完备性目标。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The strategy link selects how candidates are read from a schema. It does not replace the guard, the completeness consequent, or the individual warrant attached to a suggestion."
+msgstr "策略链接选择从模式读取候选的方式。它不替代守卫条件、完备性后件或建议所附的单独论证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/repairStrategy|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:WemiChainAbductiveSchema logic:repairStrategy logic:StrategyChainCompletion . chooses chain completion; the schema's formula identifies gmeow:exemplifies as the required relation."
+msgstr "Turtle 语句 logic:WemiChainAbductiveSchema logic:repairStrategy logic:StrategyChainCompletion . 选择链补全；模式公式将 gmeow:exemplifies 指定为必需关系。"
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula is an advisory target reached through its schema. Current candidate warranting uses fresh-witness construction for missing relations or disjointness filtering for sortals; this link does not itself request a separate reasoning run."
+msgstr "该公式是通过其模式访问的建议目标。当前候选论证对缺失关系采用新见证构造，对本体分类采用不相交性筛选；此链接本身不请求单独运行推理。"
+
+msgctxt "https://blackcatinformatics.ca/logic/completenessFormula|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, logic:ReferenceFrameAbductiveSchema logic:completenessFormula logic:referenceFrameComplete . identifies the expression-frame target without asserting that every expression already has a frame."
+msgstr "Turtle 语句 logic:ReferenceFrameAbductiveSchema logic:completenessFormula logic:referenceFrameComplete . 指定表达式框架目标，而不断言每个表达式已经具有框架。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema's whole-subject target conjoins all three commitment relata. Current advice warrants each missing relation separately, so a suggested beneficiary does not prove that a committed agent or intention goal is present."
+msgstr "此模式针对整个主体的目标合取了承诺的三个关系项。当前建议分别论证每个缺失关系，因此拟议的受益方不证明承诺主体或意向目标已经存在。"
+
+msgctxt "https://blackcatinformatics.ca/logic/RelatorMediationAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "For a commitment with gmeow:committedAgent but neither gmeow:commitmentBeneficiary nor gmeow:intentionGoal, the schema can propose one addition for each absent predicate while leaving the original graph intact."
+msgstr "对于具有 gmeow:committedAgent 但缺少 gmeow:commitmentBeneficiary 和 gmeow:intentionGoal 的承诺，该模式可为每个缺失谓词提出一项添加，同时保持原图不变。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard is expression typing and the required relation is gmeow:hasReferenceFrame. Advice identifies an absent declaration; it does not identify the correct language or notation from the expression's bytes."
+msgstr "守卫条件是表达式类型，必需关系是 gmeow:hasReferenceFrame。建议指出缺失的声明，不从表达式字节确定正确的语言或记法。"
+
+msgctxt "https://blackcatinformatics.ca/logic/ReferenceFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "An individual typed gmeow:Expression with no supplied gmeow:hasReferenceFrame relation can receive a frame-declaration proposal; choosing a specific notation still requires evidence about that expression."
+msgstr "类型为 gmeow:Expression 且未提供 gmeow:hasReferenceFrame 关系的个体可获得框架声明提议；选择具体记法仍需关于该表达式的证据。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard is presence of an IRI-valued property, not measurement-class membership: logic:unit activates the missing-frame check. The proposed logic:referenceFrame relation supplies a declaration target without establishing calibration or a measured outcome."
+msgstr "守卫条件是IRI 值属性存在而非测量类成员资格：logic:unit 触发缺失框架检查。拟议的 logic:referenceFrame 关系提供声明目标，但不确立校准或测量结果。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MeasurementFrameAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "In Turtle, ex:reading logic:unit ex:metre . supplies the guard even without a measurement type; absence of logic:referenceFrame can then yield a separate frame proposal."
+msgstr "Turtle 语句 ex:reading logic:unit ex:metre . 即使没有测量类型也提供守卫条件；缺少 logic:referenceFrame 随后可产生单独的框架提议。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The schema's explicit candidate formula supports actionable alternatives, while the separate advice guard recognizes specializations beyond that enumeration. An unfiltered menu is suppressed and no surviving alternative is automatically asserted."
+msgstr "此模式的显式候选公式支持可行动的选项，而独立的建议守卫条件识别枚举以外的特化。不经筛选的列表被抑制，剩余候选不会被自动断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/BareEntitySortalAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "A bare gmeow:Entity whose supplied types exclude one offered top sortal can receive compatible alternatives; a subject typed only gmeow:Entity receives no undifferentiated four-way menu."
+msgstr "若裸 gmeow:Entity 的所提供类型排除了一个候选顶层本体分类，则可获得兼容的其他候选；仅被定为 gmeow:Entity 的主体不会收到无区分的四选项列表。"
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The authored target checks the item's gmeow:exemplifies relation. A fresh witness fills the proposed relation for advice purposes; it does not establish the target's bibliographic identity or the rest of the realization chain."
+msgstr "所编写的目标检查单件的 gmeow:exemplifies 关系。新见证为建议目的填充拟议关系；它不确立目标的书目身份或其余实现链。"
+
+msgctxt "https://blackcatinformatics.ca/logic/WemiChainAbductiveSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "An individual typed gmeow:Item without gmeow:exemplifies may receive a manifestation-link suggestion; the user still identifies the actual manifestation and any expression or work relations separately."
+msgstr "类型为 gmeow:Item 且没有 gmeow:exemplifies 的个体可获得载体表现链接建议；用户仍须分别识别实际载体表现以及任何表达形态或作品关系。"
