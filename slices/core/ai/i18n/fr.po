@@ -1262,21 +1262,41 @@ msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3
 msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
 msgstr "L’empreinte contentDigest choisie de l’artefact chunkingSource exact, conservée comme valeur fixée sur ce résultat. Elle hache les octets source, non ce dossier de résultat. D’autres empreintes source nommant leur algorithme peuvent coexister."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "chunking contract artifact"
-msgstr "artefact de contrat de segmentation"
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking rules artifact"
+msgstr "artefact de règles de segmentation"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2004/02/skos/core#definition"
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."
 msgstr "L’artefact de règles figé utilisé pour cette segmentation et présent dans son contexte de création. Il identifie les véritables octets du contrat, non une description d’enveloppe ni une affirmation d’exécution ou de preuve du contrat opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the exact information artifact containing the rules applied to one recorded segmentation."
+msgstr "Utiliser pour identifier l’artefact informationnel exact contenant les règles appliquées à une segmentation consignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an opaque configuration string, digest literal or reasoner contract in place of the actual rules artifact."
+msgstr "Éviter de substituer une chaîne de configuration opaque, une empreinte littérale ou un contrat de raisonneur au véritable artefact de règles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Chunking to its frozen InformationObject. Retain the artifact’s contentDigest and select its pin with chunkingContractDigest."
+msgstr "Relier la Chunking à son InformationObject figé. Conserver la contentDigest de l’artefact et sélectionner sa valeur fixée avec chunkingContractDigest."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Specializes contextIncluded for the rules present in the chunking’s creation context. This artifact relation is distinct from the literal chunkingContract on an EmbeddingFamily; neither relation entails execution or verification of the rules."
+msgstr "Spécialise contextIncluded pour les règles présentes dans le contexte de création de la segmentation. Cette relation vers un artefact se distingue de la propriété littérale chunkingContract d’une EmbeddingFamily ; aucune des deux relations n’entraîne l’exécution ni la vérification des règles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."
+msgstr "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "chunking contract digest"
 msgstr "empreinte du contrat de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
-msgstr "L’empreinte contentDigest choisie de l’artefact chunkingContract nommé. Elle fixe ces octets de règles et n’est pas une contentDigest de la Chunking englobante. Aucun IRI, chemin ou hachage de résultat ne remplace cette empreinte obligatoire."
+msgid "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
+msgstr "L’empreinte contentDigest choisie de l’artefact relié par chunkingRulesArtifact. Elle fixe ces octets de règles et n’est pas une contentDigest de la Chunking englobante. Aucun IRI, chemin ou hachage de résultat ne remplace cette empreinte obligatoire."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "in chunking"
@@ -1327,8 +1347,8 @@ msgid "Chunking contract digest witness constraint"
 msgstr "Contrainte de témoin d’empreinte du contrat de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
-msgstr "La chunkingContractDigest choisie doit être une contentDigest du véritable artefact chunkingContract nommé. Le hachage du résultat lui-même ne remplace pas l’identité de l’artefact de règles."
+msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
+msgstr "La chunkingContractDigest choisie doit être une contentDigest du véritable artefact de règles relié par chunkingRulesArtifact. Le hachage du résultat lui-même ne remplace pas l’identité de l’artefact de règles."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking member source constraint"

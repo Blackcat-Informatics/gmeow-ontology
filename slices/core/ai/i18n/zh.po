@@ -1262,21 +1262,41 @@ msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3
 msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
 msgstr "确切 chunkingSource 制品的选定 contentDigest，作为本结果的固定值保存。它散列源字节，而非此结果记录。其他带算法标识的源摘要可以并存。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "chunking contract artifact"
-msgstr "分块契约制品"
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chunking rules artifact"
+msgstr "分块规则制品"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|http://www.w3.org/2004/02/skos/core#definition"
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."
 msgstr "本次分块使用且存在于创建上下文中的冻结规则制品。它标识实际契约字节，而非描述封装的文字，也不声称不透明契约已被执行或证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the exact information artifact containing the rules applied to one recorded segmentation."
+msgstr "用于标识包含某次已记录分块所采用规则的确切信息制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an opaque configuration string, digest literal or reasoner contract in place of the actual rules artifact."
+msgstr "避免用不透明配置字符串、摘要字面量或推理器契约替代实际规则制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Chunking to its frozen InformationObject. Retain the artifact’s contentDigest and select its pin with chunkingContractDigest."
+msgstr "将 Chunking 关联到其冻结的 InformationObject。保留制品的 contentDigest，并用 chunkingContractDigest 选定其固定摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Specializes contextIncluded for the rules present in the chunking’s creation context. This artifact relation is distinct from the literal chunkingContract on an EmbeddingFamily; neither relation entails execution or verification of the rules."
+msgstr "将 contextIncluded 专门用于分块创建上下文中存在的规则。此制品关系不同于 EmbeddingFamily 上取字面量的 chunkingContract；两者均不蕴含规则已被执行或验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."
+msgstr "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "chunking contract digest"
 msgstr "分块契约摘要"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
-msgstr "指定 chunkingContract 制品的选定 contentDigest。它固定规则字节，并非外围 Chunking 的 contentDigest。IRI、路径或结果散列均不能替代必需的契约摘要。"
+msgid "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
+msgstr "通过 chunkingRulesArtifact 关联的制品的选定 contentDigest。它固定规则字节，并非外围 Chunking 的 contentDigest。IRI、路径或结果散列均不能替代必需的契约摘要。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "in chunking"
@@ -1327,8 +1347,8 @@ msgid "Chunking contract digest witness constraint"
 msgstr "分块契约摘要见证约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
-msgstr "选定 chunkingContractDigest 必须是实际指定 chunkingContract 制品的 contentDigest。结果记录自身的内容散列不能替代规则制品的标识。"
+msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
+msgstr "选定 chunkingContractDigest 必须是通过 chunkingRulesArtifact 关联的实际规则制品的 contentDigest。结果记录自身的内容散列不能替代规则制品的标识。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking member source constraint"

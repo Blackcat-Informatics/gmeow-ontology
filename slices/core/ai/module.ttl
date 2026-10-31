@@ -1986,21 +1986,27 @@ gmeow:chunkingSourceDigest
     logic:subPropertyOf lang:literalValue ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:chunkingContract
+gmeow:chunkingRulesArtifact
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    rdfs:label "chunking contract artifact"@x-gmeow-english ;
+    rdfs:label "chunking rules artifact"@x-gmeow-english ;
     skos:definition "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."@x-gmeow-english ;
     logic:domain gmeow:Chunking ;
     logic:range gmeow:InformationObject ;
     logic:subPropertyOf gmeow:contextIncluded ;
+    rdfs:seeAlso gmeow:chunkingContractDigest ;
+    gmeow:useWhen "Use to identify the exact information artifact containing the rules applied to one recorded segmentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an opaque configuration string, digest literal or reasoner contract in place of the actual rules artifact."@x-gmeow-english ;
+    gmeow:howToUse "Link the Chunking to its frozen InformationObject. Retain the artifact’s contentDigest and select its pin with chunkingContractDigest."@x-gmeow-english ;
+    skos:scopeNote "Specializes contextIncluded for the rules present in the chunking’s creation context. This artifact relation is distinct from the literal chunkingContract on an EmbeddingFamily; neither relation entails execution or verification of the rules."@x-gmeow-english ;
+    skos:example "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:chunkingContractDigest
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunking contract digest"@x-gmeow-english ;
-    skos:definition "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."@x-gmeow-english ;
+    skos:definition "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."@x-gmeow-english ;
     logic:domain gmeow:Chunking ;
     logic:range rdfs:Literal ;
     logic:subPropertyOf lang:literalValue ;
@@ -2047,14 +2053,14 @@ gmeow:Chunking logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:allValuesFrom rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:allValuesFrom gmeow:InformationObject ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingRulesArtifact ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingRulesArtifact ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:allValuesFrom rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:allValuesFrom gmeow:GranularityLevel ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSource" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContract" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContractDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasGranularity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -2114,10 +2120,10 @@ gmeow:ChunkingContractDigestWitnessConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking contract digest witness constraint"@x-gmeow-english ;
-    skos:definition "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."@x-gmeow-english ;
+    skos:definition "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    logic:formalizes gmeow:Chunking , gmeow:chunkingContractDigest ;
-    logic:message "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity." ;
+    logic:formalizes gmeow:Chunking , gmeow:chunkingContractDigest , gmeow:chunkingRulesArtifact ;
+    logic:message "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity." ;
     logic:integrity logic:chunkingContractWitnessForall .
 logic:chunkingContractWitnessForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] , [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
@@ -2126,7 +2132,7 @@ logic:chunkingContractWitnessImpl a logic:Formula ; logic:antecedent logic:chunk
 logic:chunkingContractWitnessGuard a logic:Formula ; logic:and logic:chunkingContractWitnessGuard0 , logic:chunkingContractWitnessGuard1 , logic:chunkingContractWitnessGuard2 .
 logic:chunkingContractWitnessGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Chunking ] .
-logic:chunkingContractWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingContract ;
+logic:chunkingContractWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingRulesArtifact ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] .
 logic:chunkingContractWitnessGuard2 a logic:Formula ; logic:relation gmeow:chunkingContractDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
