@@ -107,7 +107,7 @@ gmeow:mapDcatChecksum a gmeow:ProjectionMapping ;
                     "-" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:contentDigest ] ;
     gmeow:hasBinding [
-        gmeow:profile "dcat" ; gmeow:toPredicate spdx:checksumValue ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
+        gmeow:profile "dcat" ; gmeow:toPredicate spdx:checksumValue ; gmeow:edoalTargetKind "property" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
         gmeow:lossyDrop "the native digest datatype becomes a named SPDX algorithm and xsd:hexBinary pair; source literal term identity is not retained" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "doc" ; gmeow:tPred spdx:checksum ; gmeow:tObj "chk" ]
