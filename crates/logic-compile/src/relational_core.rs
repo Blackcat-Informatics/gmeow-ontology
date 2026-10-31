@@ -50,6 +50,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use gmeow_errors::Diag;
 #[cfg(test)]
 use purrdf::RdfLiteral;
+use purrdf_hash::Domain;
 
 use crate::graphutil::sha256_12;
 use crate::ir::{
@@ -67,6 +68,9 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// Reserved transient predicates for compiler-owned existential satisfaction rows.
 /// Authored facts and rules may not populate this namespace.
 pub const CONSTRAINT_SUPPORT_NAMESPACE: &str = "urn:gmeow:private:constraint-satisfied:";
+
+/// Frozen domain of the framed source-law, position and typed satisfaction pattern.
+const CONSTRAINT_SATISFACTION_DOMAIN: Domain = Domain::new(b"constraint-satisfaction-v1");
 
 /// Whether an atom occupies the head or a body position of the clause being
 /// lowered. n-ary reification differs by position: a body n-ary atom binds a fresh
@@ -1062,7 +1066,7 @@ fn lower_existential_join(
     body.sort_unstable();
     body.dedup();
     let key = crate::ir::atomic::frame(
-        "constraint-satisfaction-v1",
+        CONSTRAINT_SATISFACTION_DOMAIN.as_str(),
         [
             constraint.iri.clone(),
             format!("{}:{}:{}", position[0], position[1], position[2]),

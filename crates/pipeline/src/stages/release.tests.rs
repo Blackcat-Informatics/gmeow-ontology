@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, emit_gts};
 use purrdf_ed25519::SigningKey;
+
+const BLAKE3_256_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/blake3_256Digest";
 
 /// Ingest RDF text of `media_type` into a fresh builder via the native carrier
 /// path (`parse_dataset` → `add_dataset`) — the single-exit ingestion these
