@@ -152,3 +152,219 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSubjectStageFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:sessionSubjectStage and nothing else. It is not a definition of gmeow:sessionSubjectStage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:sessionSubjectStage, et rien d'autre. Ce n'est pas une définition de gmeow:sessionSubjectStage (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LearnedModelArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Learned Model Artifact"
+msgstr "Artefact de modèle appris"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LearnedModelArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A served information artifact embodying a separately identified math:LearnedModel. Selecting this profile requires that mathematical model link; the artifact is not the mathematical object."
+msgstr "Un artefact informationnel servi qui incarne un math:LearnedModel identifié séparément. Ce profil exige le lien vers le modèle mathématique sans confondre leurs identités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LearnedModelArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact a gmeow:LearnedModelArtifact ; gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."
+msgstr "ex:artifact a gmeow:LearnedModelArtifact ; gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorModelArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor Model Artifact"
+msgstr "Artefact de modèle tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorModelArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A learned artifact declaring a mathematical forward TensorComputationGraph and WeightTensor parameters. This selected profile does not apply to every tokenizer, adapter or non-neural artifact."
+msgstr "Un artefact appris déclarant un TensorComputationGraph direct et des paramètres WeightTensor. Ce profil sélectionné ne concerne pas tous les tokenizers, adaptateurs ou artefacts non neuronaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorModelArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact a gmeow:TensorModelArtifact ; gmeow:artifactLearnedModel ex:model ; gmeow:artifactComputationGraph ex:graph ; gmeow:artifactWeightTensor ex:weight ."
+msgstr "ex:artifact a gmeow:TensorModelArtifact ; gmeow:artifactLearnedModel ex:model ; gmeow:artifactComputationGraph ex:graph ; gmeow:artifactWeightTensor ex:weight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Metric Observation"
+msgstr "Observation de métrique de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly selected finite numeric-literal metric observation about a model artifact: a vantage applies an ObservationMethod and a ModelMetric to obtain Quantity results with quantityValue and the declared metric dimension. Protocol, mathematical model, artifact, invocation and result retain distinct identities."
+msgstr "Une observation de métrique à littéral numérique fini explicitement sélectionnée au sujet d’un artefact : un point de vue applique une ObservationMethod et une ModelMetric pour obtenir des résultats Quantity avec quantityValue et la dimension déclarée. Protocole, modèle, artefact, invocation et résultat gardent des identités distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading a gmeow:ModelMetricObservation ; gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ; gmeow:observationMethod ex:protocol ; gmeow:evaluatedMetric ex:accuracy ; gmeow:observationResult ex:score ."
+msgstr "ex:reading a gmeow:ModelMetricObservation ; gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ; gmeow:observationMethod ex:protocol ; gmeow:evaluatedMetric ex:accuracy ; gmeow:observationResult ex:score ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Metric"
+msgstr "Métrique de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary naming an evaluation metric and its expected mathematical Dimension. Individuals may declare different dimensions; a metric is neither a physical metric tensor nor a measured result."
+msgstr "Un vocabulaire ouvert de valeurs désignant une métrique d’évaluation et sa Dimension mathématique attendue. Les individus peuvent déclarer des dimensions différentes ; une métrique n’est ni un tenseur métrique physique ni un résultat mesuré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."
+msgstr "ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactLearnedModel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact learned model"
+msgstr "modèle appris de l’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactLearnedModel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a LearnedModelArtifact to the separately identified math:LearnedModel embodied by its content."
+msgstr "Relie un LearnedModelArtifact au math:LearnedModel distinct incarné par son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactLearnedModel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."
+msgstr "ex:artifact gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComputationGraph|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact computation graph"
+msgstr "graphe de calcul de l’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComputationGraph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a TensorModelArtifact to its forward TensorComputationGraph, whose architectureOf names the same learned model declared by the artifact."
+msgstr "Relie un TensorModelArtifact à son TensorComputationGraph direct, dont architectureOf désigne le même modèle appris déclaré par l’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComputationGraph|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:artifactComputationGraph ex:graph . ex:graph a math:TensorComputationGraph ; math:architectureOf ex:model ."
+msgstr "ex:artifact gmeow:artifactComputationGraph ex:graph . ex:graph a math:TensorComputationGraph ; math:architectureOf ex:model ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactWeightTensor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact weight tensor"
+msgstr "tenseur de poids de l’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactWeightTensor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a TensorModelArtifact to a WeightTensor in a ParameterSpace declared for the same learned model or its forward graph. This relation carries no tensor payload."
+msgstr "Relie un TensorModelArtifact à un WeightTensor dans un ParameterSpace déclaré pour le même modèle appris ou son graphe direct. Cette relation ne transporte aucun contenu tensoriel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactWeightTensor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:artifactWeightTensor ex:weight . ex:weight a math:WeightTensor ; math:inParameterSpace ex:parameters ."
+msgstr "ex:artifact gmeow:artifactWeightTensor ex:weight . ex:weight a math:WeightTensor ; math:inParameterSpace ex:parameters ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactTrainingProblem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact training problem"
+msgstr "problème d’apprentissage de l’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactTrainingProblem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Optionally records an OptimizationProblem for a learned artifact. When declared its objectiveFunction is a LossFunction; inference-only or undocumented training does not imply a training objective."
+msgstr "Consigne facultativement un OptimizationProblem pour un artefact appris. Si déclaré, son objectiveFunction est une LossFunction ; l’inférence seule ou un apprentissage non documenté n’implique aucun objectif déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactTrainingProblem|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:artifactTrainingProblem ex:problem . ex:problem a math:OptimizationProblem ; math:objectiveFunction ex:loss . ex:loss a math:LossFunction ."
+msgstr "ex:artifact gmeow:artifactTrainingProblem ex:problem . ex:problem a math:OptimizationProblem ; math:objectiveFunction ex:loss . ex:loss a math:LossFunction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMetric|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluated metric"
+msgstr "métrique évaluée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMetric|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the ModelMetric applied by a ModelMetricObservation. Its declared dimension agrees with every observation result."
+msgstr "Nomme la ModelMetric appliquée par une ModelMetricObservation. Sa dimension déclarée concorde avec chaque résultat d’observation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMetric|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reading gmeow:evaluatedMetric ex:accuracy . ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."
+msgstr "ex:reading gmeow:evaluatedMetric ex:accuracy . ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "metric dimension"
+msgstr "dimension de métrique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the single mathematical Dimension expected for a ModelMetric result. Dimensionless accuracy and time-valued latency remain different metric declarations."
+msgstr "Nomme l’unique Dimension mathématique attendue pour le résultat d’une ModelMetric. Exactitude sans dimension et latence temporelle gardent des déclarations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:latency gmeow:metricDimension math:timeDimension ."
+msgstr "ex:latency gmeow:metricDimension math:timeDimension ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorArtifactCoherenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor artifact coherence constraint"
+msgstr "Contrainte de cohérence d’artefact tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorArtifactCoherenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every artifact graph describes its learned model, every computation node is an ApplicationExpression, and every weight parameter space names only that model or graph."
+msgstr "Chaque graphe d’artefact décrit son modèle appris, chaque nœud de calcul est une ApplicationExpression et chaque espace de paramètres de poids nomme uniquement ce modèle ou ce graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorArtifactCoherenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:graph math:architectureOf ex:model . ex:parameters math:parameterSpaceOf ex:model ."
+msgstr "ex:graph math:architectureOf ex:model . ex:parameters math:parameterSpaceOf ex:model ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactTrainingObjectiveConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Artifact mathematical identity and objective constraint"
+msgstr "Contrainte d’identité mathématique et d’objectif d’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactTrainingObjectiveConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The learned model has a distinct identity from its served artifact; every declared training problem names a typed LossFunction objective."
+msgstr "Le modèle appris possède une identité distincte de son artefact servi ; chaque problème d’apprentissage déclaré nomme un objectif typé LossFunction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactTrainingObjectiveConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:problem math:objectiveFunction ex:loss . ex:loss a math:LossFunction ; math:domain ex:pairs ; math:codomain ex:values ."
+msgstr "ex:problem math:objectiveFunction ex:loss . ex:loss a math:LossFunction ; math:domain ex:pairs ; math:codomain ex:values ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricResultConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model metric result constraint"
+msgstr "Contrainte de résultat de métrique de modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricResultConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every metric result carries exactly one finite numeric magnitude and the dimension declared by its metric."
+msgstr "Chaque résultat de métrique porte exactement une grandeur numérique finie et la dimension déclarée par sa métrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricResultConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:accuracy gmeow:metricDimension math:dimensionless . ex:score a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.91 ."
+msgstr "ex:accuracy gmeow:metricDimension math:dimensionless . ex:score a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.91 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LearnedModelArtifact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only the selected learned profile requires the model role; generic ModelArtifact instances remain legal without mathematical disclosure."
+msgstr "Seul le profil appris sélectionné exige ce rôle ; les ModelArtifact génériques restent licites sans déclaration mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorModelArtifact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Tensor extents and element types reuse the canonical math owner; the profile carries references rather than payload bytes."
+msgstr "Les dimensions d’axes et formats réutilisent le propriétaire mathématique canonique ; le profil transporte des références, pas des octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricObservation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This selected profile requires finite numeric-literal quantityValue results. Rational-only carriers, vector, interval, unbounded and categorical results remain legal as ordinary Observations under their appropriate contracts; do not force them into this subtype or manufacture approximations."
+msgstr "Ce profil sélectionné exige des résultats quantityValue à littéral numérique fini. Les porteurs rationnels seuls, vecteurs, intervalles, résultats non bornés et catégoriels restent licites comme Observations ordinaires sous leurs contrats appropriés ; ne pas les forcer dans ce sous-type ni fabriquer d’approximations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Metric identity is open and shared; a declared dimension is not a measured magnitude, tensor shape or preferred assessment."
+msgstr "L’identité d’une métrique est ouverte et partagée ; sa dimension déclarée n’est ni une grandeur mesurée, ni une forme tensorielle, ni une évaluation privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactLearnedModel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Single-valued on LearnedModelArtifact; artifact content identity remains distinct from mathematical model identity."
+msgstr "Monovalué sur LearnedModelArtifact ; l’identité du contenu de l’artefact reste distincte de celle du modèle mathématique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactComputationGraph|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Single-valued on TensorModelArtifact; architecture ownership is checked against the separately declared learned model."
+msgstr "Monovalué sur TensorModelArtifact ; l’appartenance de l’architecture est vérifiée contre le modèle appris déclaré séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactWeightTensor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple declared weights are permitted. Each parameter-space reference retains the inherited AlgebraicStructure requirements."
+msgstr "Plusieurs poids déclarés sont permis. Chaque espace de paramètres conserve les exigences héritées d’AlgebraicStructure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/artifactTrainingProblem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Absence means no training specification is declared; it does not infer that no training occurred."
+msgstr "L’absence signifie qu’aucune spécification n’est déclarée ; elle n’implique pas qu’aucun apprentissage n’a eu lieu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evaluatedMetric|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The metric is exactly one per observation; independent observations and held results may coexist."
+msgstr "Chaque observation porte exactement une métrique ; les observations indépendantes et leurs résultats tenus peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/metricDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The declaration applies to every result of observations naming this metric; incompatible declarations require distinct metric individuals."
+msgstr "La déclaration s’applique à chaque résultat d’observations nommant cette métrique ; les déclarations incompatibles exigent des individus distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TensorArtifactCoherenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks all supplied graph and parameter-space owners; an expected owner cannot hide a malformed additional owner."
+msgstr "La loi vérifie toutes les appartenances fournies ; une appartenance attendue ne masque pas une appartenance supplémentaire mal formée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactTrainingObjectiveConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional training problems are checked only when declared; the mathematical Function owner supplies loss domain and codomain requirements."
+msgstr "Les problèmes facultatifs ne sont vérifiés que s’ils sont déclarés ; Function fournit les exigences de domaine et codomaine de la perte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelMetricResultConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each guard follows one observation to its own metric and result; neighboring observations cannot supply missing dimensions or values."
+msgstr "Chaque garde suit une observation vers sa métrique et son résultat propres ; les voisines ne fournissent ni dimensions ni valeurs manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/model-serving|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "The model-serving topology: the served model artifact, its deployment (a relator binding artifact·service·host·endpoint·configuration·interval), the runtime execution (an occurrent), and the agent session (an event aggregate) — each with an explicit identity criterion rather than collapsed onto a gmeow:AwarenessTenure. Reusable beyond inhabitation; its mathematical profiles reuse core observations and canonical mathematics. The multi-hop de-conflation path is projected flat for the hot path by computed, drift-gated upper-projections (Principle 12)."
+msgstr "La topologie de service de modèle : l’artefact servi, son déploiement (un relateur liant artefact·service·hôte·point de terminaison·configuration·intervalle), l’exécution opérationnelle (un occurrent) et la session d’agent (un agrégat d’événements) possèdent chacun un critère d’identité explicite, au lieu d’être confondus avec une gmeow:AwarenessTenure. Réutilisable au-delà de l’inhabitation ; ses profils mathématiques réutilisent les observations du cœur et les mathématiques canoniques. Le chemin de désambiguïsation à plusieurs sauts est projeté à plat pour le chemin fréquent par des projections supérieures calculées dont la dérive est contrôlée (Principe 12)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/model-serving|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The model-serving slice of the GMEOW ontology (extension tier): a thin, standalone LLM-operations vocabulary reusable by anyone modelling model serving, with nothing to do with inhabitation. It gives the served model artifact, its deployment (a relator), a runtime execution (an occurrent), and an agent session (an event aggregate) each an explicit identity — rather than collapsing them onto a single gmeow:AwarenessTenure — and splits the gmeow:ModelCard relations so a distribution is not inferred a software agent. gmeow:ModelInvocation (core ai) is reused at the instance level (Principle 5). Depends on core and canonical mathematics, so its declared dependency graph remains acyclic: gmeow:sliceDependsOn names core and grounding owners, and no artifact that carries a semantic dependency edge — module, shapes, mappings, competency or verify queries — names a sibling extension's term. The CQ5 capability-versus-delegation question, whose delegation half is the agentic slice's gmeow:ToolCall / gmeow:usedTool, is therefore answered one level out in slices/profile/agent-runtime, the profile that selects both extensions and mints nothing. Authored from the ratified design set (INHABITED-RUNTIME-STACK.md)."
+msgstr "La tranche model-serving de l’ontologie GMEOW (niveau extension) : un vocabulaire léger et autonome d’exploitation de grands modèles de langage, réutilisable pour modéliser leur service, indépendamment de l’inhabitation. Elle donne à l’artefact servi, à son déploiement (un relateur), à son exécution (un occurrent) et à sa session d’agent (un agrégat d’événements) une identité explicite, au lieu de les confondre avec une gmeow:AwarenessTenure, et sépare les relations de gmeow:ModelCard pour ne pas inférer qu’une distribution est un agent logiciel. gmeow:ModelInvocation (cœur ai) est réutilisé au niveau des instances (Principe 5). Les dépendances portent sur le cœur et les mathématiques canoniques ; leur graphe reste acyclique : gmeow:sliceDependsOn nomme les propriétaires du cœur et du fondement, et aucun artefact portant une dépendance sémantique — module, formes, correspondances, requêtes de compétence ou de vérification — ne nomme un terme d’une extension sœur. La question CQ5 sur l’usage d’une capacité ou la délégation, dont la délégation relève de gmeow:ToolCall et gmeow:usedTool dans la tranche agentic, reçoit donc sa réponse dans slices/profile/agent-runtime, le profil qui sélectionne les deux extensions sans créer de termes. Rédigée à partir de l’ensemble de conception ratifié (INHABITED-RUNTIME-STACK.md)."

@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix unit: <http://qudt.org/vocab/unit/> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/model-serving/mathematical/> .
+
+# A content artifact, a mathematical model, and its forward expression are distinct.
+ex:artifact a gmeow:TensorModelArtifact ;
+    gmeow:artifactLearnedModel ex:model ;
+    gmeow:artifactComputationGraph ex:graph ;
+    gmeow:artifactWeightTensor ex:weights ;
+    gmeow:artifactTrainingProblem ex:trainingProblem .
+ex:model a math:LearnedModel .
+ex:graph a math:TensorComputationGraph ;
+    math:architectureOf ex:model ; math:computationNode ex:forward .
+ex:forward a math:ApplicationExpression ; math:operator math:matrixProduct ;
+    math:argumentSlot ex:slot0, ex:slot1 .
+ex:slot0 a math:ArgumentSlot ; math:slotIndex 0 ; math:slotExpression ex:weightExpression .
+ex:slot1 a math:ArgumentSlot ; math:slotIndex 1 ; math:slotExpression ex:inputExpression .
+ex:weightExpression a math:SymbolReference ; math:hasMathematicalSymbol ex:weightSymbol .
+ex:inputExpression a math:SymbolReference ; math:hasMathematicalSymbol ex:inputSymbol .
+ex:weightSymbol a math:MathematicalSymbol .
+ex:inputSymbol a math:MathematicalSymbol .
+ex:weights a math:WeightTensor ; math:weightOf ex:layer ;
+    math:inParameterSpace ex:parameters ; math:tensorShape ex:shape ;
+    math:tensorElementType ex:float32 ; math:hasMathematicalSymbol ex:weightSymbol .
+ex:layer a math:NeuralLayer .
+ex:parameters a math:ParameterSpace ; math:parameterSpaceOf ex:model ;
+    math:underlyingSet ex:parameterSet ; math:structureOperation ex:addition ;
+    math:satisfiesAxiom ex:commutativeAddition .
+ex:parameterSet a math:Set .
+ex:addition a math:Operation .
+# One explicitly recorded vector-addition law; this is not a tautology standing
+# in for a complete vector-space axiomatisation or a proof of the declaration.
+ex:commutativeAddition a math:Axiom, logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "x" ],
+        [ logic:termIndex 1 ; logic:termVariable "y" ],
+        [ logic:termIndex 2 ; logic:termVariable "sum" ] ;
+    logic:forall [ a logic:Formula ;
+        logic:antecedent [ a logic:Formula ; logic:relation ex:addition ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "x" ],
+                [ logic:termIndex 1 ; logic:termVariable "y" ],
+                [ logic:termIndex 2 ; logic:termVariable "sum" ] ] ;
+        logic:consequent [ a logic:Formula ; logic:relation ex:addition ;
+            logic:argument [ logic:termIndex 0 ; logic:termVariable "y" ],
+                [ logic:termIndex 1 ; logic:termVariable "x" ],
+                [ logic:termIndex 2 ; logic:termVariable "sum" ] ] ] .
+ex:shape a math:TensorShape ; math:tensorRank "2"^^xsd:nonNegativeInteger ;
+    math:shapeAxis ex:row, ex:column .
+ex:row a math:TensorAxis ; math:axisIndex "0"^^xsd:nonNegativeInteger ;
+    math:axisExtent "2"^^xsd:nonNegativeInteger .
+ex:column a math:TensorAxis ; math:axisIndex "1"^^xsd:nonNegativeInteger ;
+    math:axisExtent "2"^^xsd:nonNegativeInteger .
+ex:float32 a math:TensorElementType .
+
+# Training specification, not an inference invocation or held result.
+ex:trainingProblem a math:OptimizationProblem ; math:objectiveFunction ex:loss .
+ex:loss a math:LossFunction ; math:domain ex:predictionTargetPairs ; math:codomain ex:nonnegativeReals .
+ex:predictionTargetPairs a math:Set .
+ex:nonnegativeReals a math:Set .
+
+# Two independently held metrics, with independently declared dimensions.
+ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless .
+ex:latency a gmeow:ModelMetric ; gmeow:metricDimension math:timeDimension .
+ex:benchmark a gmeow:ObservationMethod .
+ex:evaluator a gmeow:Entity .
+ex:accuracyObservation a gmeow:ModelMetricObservation ;
+    gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ;
+    gmeow:observationMethod ex:benchmark ; gmeow:evaluatedMetric ex:accuracy ;
+    gmeow:observationResult ex:accuracyValue .
+ex:accuracyValue a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.91 .
+ex:latencyObservation a gmeow:ModelMetricObservation ;
+    gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ;
+    gmeow:observationMethod ex:benchmark ; gmeow:evaluatedMetric ex:latency ;
+    gmeow:observationResult ex:latencyValue .
+ex:latencyValue a math:Quantity ; math:hasDimension math:timeDimension ; math:quantityValue 0.024 ;
+    gmeow:unit unit:SEC ; gmeow:hasReferenceFrame ex:latencyFrame .
+# A scalar duration in seconds; this is not an absolute timestamp or a calendar.
+ex:latencyFrame a gmeow:ReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmTemporal ; gmeow:frameKind gmeow:frameKindScalar ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ; gmeow:hasAxis gmeow:axisSecond ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ; gmeow:requiresHost false .
+
+# No learned/tensor/evaluation profile is inferred merely from being an artifact.
+ex:tokenizer a gmeow:ModelArtifact .
+ex:nonTensorModel a gmeow:LearnedModelArtifact ; gmeow:artifactLearnedModel ex:otherModel .
+ex:otherModel a math:LearnedModel .
