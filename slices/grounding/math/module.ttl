@@ -5940,7 +5940,7 @@ math:TensorShape
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Tensor Shape"@x-gmeow-english ;
-    skos:definition "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."@x-gmeow-english ;
+    skos:definition "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by an incomplete shape object with no declared rank. An explicit rank-zero shape with no axes is a scalar."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Use whenever a tensor's per-axis extents are stated by the source or by the author, so the shape is queryable axis by axis rather than readable only from a label."@x-gmeow-english ;
     gmeow:avoidWhen "Do not mint one to record that a rank is UNKNOWN — that is the absence of a math:tensorShape edge, not a shape with no axis (which is rank 0, a scalar). Do not use it as a stand-in for a vector space's math:spaceDimension or a quantity's physical math:hasDimension."@x-gmeow-english ;
@@ -5989,7 +5989,7 @@ math:tensorRank
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "tensor rank"@x-gmeow-english ;
-    skos:definition "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."@x-gmeow-english ;
+    skos:definition "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than inferred from axis presence: rank 0 positively declares a scalar shape with no axes, while a shape with no rank is incomplete. The canonical count law checks the declared value against the distinct math:shapeAxis nodes; it does not infer a missing rank."@x-gmeow-english ;
     skos:example "exf:shapeScalar a math:TensorShape ; math:tensorRank 0 ."@x-gmeow-english ;
     skos:scopeNote "Not math:rankValue: that is the value of a math:Rank, the dimension of the IMAGE of a math:LinearMap, a wholly different invariant that happens to share the English word."@x-gmeow-english ;
     gmeow:avoidWhen "Do not use it for the rank of a linear map (math:Rank / math:rankValue) nor for a root system's math:rootSystemRank, and never emit a rank that disagrees with the number of math:shapeAxis edges."@x-gmeow-english ;
@@ -16633,3 +16633,110 @@ math:expressionValueSpace
 math:ExpressionType logic:subClassOf
     [ a logic:Restriction ; logic:onProperty math:expressionValueSpace ; logic:allValuesFrom math:Set ],
     [ a logic:Restriction ; logic:onProperty math:expressionValueSpace ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Set ] .
+
+# Canonical tensor shape integrity; unknown shape remains an absent declaration.
+math:TensorShape logic:subClassOf [ a logic:Restriction ; logic:onProperty math:tensorRank ; logic:allValuesFrom [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ], [ a logic:Restriction ; logic:onProperty math:tensorRank ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass math:TensorShape ; logic:closureKey "https://blackcatinformatics.ca/math/tensorRank" ; logic:closureValue logic:ClosedWorldClosure ] .
+math:TensorShape logic:subClassOf [ a logic:Restriction ; logic:onProperty math:shapeAxis ; logic:allValuesFrom math:TensorAxis ] .
+math:TensorAxis logic:subClassOf [ a logic:Restriction ; logic:onProperty math:axisIndex ; logic:allValuesFrom [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ], [ a logic:Restriction ; logic:onProperty math:axisIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass math:TensorAxis ; logic:closureKey "https://blackcatinformatics.ca/math/axisIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+math:TensorAxis logic:subClassOf [ a logic:Restriction ; logic:onProperty math:axisExtent ; logic:allValuesFrom [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ], [ a logic:Restriction ; logic:onProperty math:axisExtent ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:integer xsd:nonPositiveInteger xsd:negativeInteger xsd:long xsd:int xsd:short xsd:byte xsd:nonNegativeInteger xsd:unsignedLong xsd:unsignedInt xsd:unsignedShort xsd:unsignedByte xsd:positiveInteger ) ] ] .
+math:TensorAxis logic:subClassOf [ a logic:Restriction ; logic:onProperty math:symbolicExtent ; logic:allValuesFrom math:FreeVariableDeclaration ], [ a logic:Restriction ; logic:onProperty math:symbolicExtent ; logic:maxQualifiedCardinality 1 ; logic:onClass math:FreeVariableDeclaration ] .
+math:WeightTensor logic:subClassOf [ a logic:Restriction ; logic:onProperty math:tensorShape ; logic:allValuesFrom math:TensorShape ], [ a logic:Restriction ; logic:onProperty math:tensorShape ; logic:maxQualifiedCardinality 1 ; logic:onClass math:TensorShape ] .
+math:ExpressionType logic:subClassOf [ a logic:Restriction ; logic:onProperty math:tensorShape ; logic:allValuesFrom math:TensorShape ], [ a logic:Restriction ; logic:onProperty math:tensorShape ; logic:maxQualifiedCardinality 1 ; logic:onClass math:TensorShape ] .
+
+math:TensorRankNonNegativeConstraint a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor rank nonnegative constraint"@x-gmeow-english ;
+    skos:definition "Every supplied math:tensorRank is nonnegative; its tensor profile separately requires an integer-family literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject negative tensorRank values in declared tensor metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a negative sentinel for unknown rank, position or extent."@x-gmeow-english ;
+    gmeow:howToUse "Give math:tensorRank a nonnegative integer value; omit an unknown optional shape or extent."@x-gmeow-english ;
+    skos:scopeNote "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."@x-gmeow-english ;
+    skos:example "ex:shape math:tensorRank 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass math:TensorShape ; logic:valuePath math:tensorRank ; logic:minInclusiveBound 0 ; logic:formalizes math:TensorShape ; logic:message "Tensor tensorRank values must be nonnegative." .
+
+math:TensorAxisIndexNonNegativeConstraint a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor axis index nonnegative constraint"@x-gmeow-english ;
+    skos:definition "Every supplied math:axisIndex is nonnegative; its tensor profile separately requires an integer-family literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject negative axisIndex values in declared tensor metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a negative sentinel for unknown rank, position or extent."@x-gmeow-english ;
+    gmeow:howToUse "Give math:axisIndex a nonnegative integer value; omit an unknown optional shape or extent."@x-gmeow-english ;
+    skos:scopeNote "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."@x-gmeow-english ;
+    skos:example "ex:axis math:axisIndex 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass math:TensorAxis ; logic:valuePath math:axisIndex ; logic:minInclusiveBound 0 ; logic:formalizes math:TensorAxis ; logic:message "Tensor axisIndex values must be nonnegative." .
+
+math:TensorAxisExtentNonNegativeConstraint a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor concrete extent nonnegative constraint"@x-gmeow-english ;
+    skos:definition "Every supplied math:axisExtent is nonnegative; its tensor profile separately requires an integer-family literal."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject negative axisExtent values in declared tensor metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not use a negative sentinel for unknown rank, position or extent."@x-gmeow-english ;
+    gmeow:howToUse "Give math:axisExtent a nonnegative integer value; omit an unknown optional shape or extent."@x-gmeow-english ;
+    skos:scopeNote "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."@x-gmeow-english ;
+    skos:example "ex:axis math:axisExtent 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass math:TensorAxis ; logic:valuePath math:axisExtent ; logic:minInclusiveBound 0 ; logic:formalizes math:TensorAxis ; logic:message "Tensor axisExtent values must be nonnegative." .
+
+math:TensorShapeCountConstraint a logic:AggregateConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor shape axis-count constraint"@x-gmeow-english ;
+    skos:definition "A declared tensor rank equals the number of distinct axis nodes belonging to that shape."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject disagreement between rank and the declared axis family."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not count axis labels or require any axis for a scalar rank-zero shape."@x-gmeow-english ;
+    gmeow:howToUse "Declare one tensorRank and one shapeAxis per axis; the positive-rank presence law covers empty aggregate groups."@x-gmeow-english ;
+    skos:scopeNote "COUNT is an existing structured aggregate satellite, not a new first-order counting builtin."@x-gmeow-english ;
+    skos:example "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass math:TensorShape ; logic:aggFunction "COUNT" ; logic:aggDistinct true ; logic:aggPath math:shapeAxis ; logic:aggComparator "=" ; logic:aggCompareTo math:tensorRank ; logic:formalizes math:TensorShape ; logic:message "Tensor rank must equal the number of distinct shape axes." .
+
+math:TensorPositiveRankAxisConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Positive tensor rank axis-presence constraint"@x-gmeow-english ;
+    skos:definition "A TensorShape with a positive rank declares at least one axis, closing the zero-row aggregate case."@x-gmeow-english ;
+    gmeow:useWhen "Use when a positive rank would otherwise escape an aggregate query because it has no axes."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not require an axis when rank is zero or infer rank zero from an absent tensorShape."@x-gmeow-english ;
+    gmeow:howToUse "Declare shapeAxis for positive rank; an explicit rank-zero TensorShape carries no axes."@x-gmeow-english ;
+    skos:scopeNote "Together with count agreement this rule preserves scalar rank zero and rejects an empty positive-rank family."@x-gmeow-english ;
+    skos:example "ex:scalar a math:TensorShape ; math:tensorRank 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:TensorShape ; logic:message "A positive tensor rank requires an axis." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "rank" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termIri math:TensorShape ] ], [ a logic:Formula ; logic:relation math:tensorRank ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "rank" ] ] ], [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rank" ], [ logic:termIndex 1 ; logic:termLiteral 0 ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "axis" ] ; logic:exists [ a logic:Formula ; logic:relation math:shapeAxis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "axis" ] ] ] ] ] .
+
+math:TensorAxisIndexRangeConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor axis index upper-bound constraint"@x-gmeow-english ;
+    skos:definition "Every axis index is strictly below the rank of its own parent TensorShape."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject an axis index outside the declared shape rank."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not compare an index against a neighboring shape rank or a tensor extent."@x-gmeow-english ;
+    gmeow:howToUse "Require index less than the parent rank; the index profile supplies integer and nonnegative requirements."@x-gmeow-english ;
+    skos:scopeNote "Count agreement and numeric uniqueness then force the exact contiguous index family zero through rank minus one."@x-gmeow-english ;
+    skos:example "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:TensorShape ; logic:message "Tensor axis index must be below its parent rank." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "rank" ], [ logic:termIndex 2 ; logic:termVariable "axis" ], [ logic:termIndex 3 ; logic:termVariable "index" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termIri math:TensorShape ] ], [ a logic:Formula ; logic:relation math:tensorRank ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "rank" ] ] ], [ a logic:Formula ; logic:relation math:shapeAxis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "axis" ] ], [ a logic:Formula ; logic:relation math:axisIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "axis" ], [ logic:termIndex 1 ; logic:termVariable "index" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "index" ], [ logic:termIndex 1 ; logic:termVariable "rank" ] ] ] ] .
+
+math:TensorAxisIndexUniquenessConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor axis numeric-index uniqueness constraint"@x-gmeow-english ;
+    skos:definition "Two axes of the same TensorShape with numerically equal indices are the same axis node."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject duplicate numeric positions within one shape, including alternate integer lexical forms."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not impose global axis-index uniqueness across independent shapes or compare only RDF literal identity."@x-gmeow-english ;
+    gmeow:howToUse "Bind separate index values and compare them with termEqual under one shared shape guard."@x-gmeow-english ;
+    skos:scopeNote "The existing self-join sugar shares an RDF term; this law deliberately uses separate values and numeric equality."@x-gmeow-english ;
+    skos:example "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes math:TensorShape ; logic:message "Distinct axes of one tensor shape must have different numeric indices." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "i" ], [ logic:termIndex 4 ; logic:termVariable "j" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termIri math:TensorShape ] ], [ a logic:Formula ; logic:relation math:shapeAxis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ], [ a logic:Formula ; logic:relation math:shapeAxis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "shape" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ], [ a logic:Formula ; logic:relation math:axisIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "i" ] ], [ a logic:Formula ; logic:relation math:axisIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "j" ] ], [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "i" ], [ logic:termIndex 1 ; logic:termVariable "j" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+math:TensorAxisExtentChoiceConstraint a logic:ChoiceGroupConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    rdfs:label "Tensor axis extent-choice constraint"@x-gmeow-english ;
+    skos:definition "A TensorAxis carries at most one of concrete axisExtent and symbolicExtent; either may remain absent."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject simultaneous concrete and symbolic claims about the same axis extent."@x-gmeow-english ;
+    gmeow:avoidWhen "Do not require an extent when the source states only the existence of an axis."@x-gmeow-english ;
+    gmeow:howToUse "Supply axisExtent, symbolicExtent, or neither; a symbolic declaration also satisfies its complete free-variable owner profile."@x-gmeow-english ;
+    skos:scopeNote "This is property-presence exclusion, separate from the at-most-one value contract of each extent role."@x-gmeow-english ;
+    skos:example "ex:axis a math:TensorAxis ; math:axisIndex 0 ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:onClass math:TensorAxis ; logic:choicePredicate math:axisExtent, math:symbolicExtent ; logic:choiceMode "at-most-one" ; logic:formalizes math:TensorAxis ; logic:message "A tensor axis cannot have both concrete and symbolic extents." .

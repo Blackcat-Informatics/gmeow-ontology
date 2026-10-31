@@ -2915,8 +2915,8 @@ msgid "Tensor Shape"
 msgstr "Forme de tenseur"
 
 msgctxt "https://blackcatinformatics.ca/math/TensorShape|skos:definition"
-msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."
-msgstr "La forme déclarée d'un tenseur : son math:tensorRank accompagné d'un math:TensorAxis par axe, chacun portant un math:axisIndex commençant à zéro et son étendue. Une sous-classe de math:MathematicalObject partagée par tout ce qui A cette forme — le math:ExpressionType typant un emplacement de tenseur et le math:WeightTensor qui l'occupe nomment le même objet de forme, de sorte que « ces deux tenseurs ont la même forme » relève de l'identité dans le graphe et non de l'égalité de deux étiquettes rendues. C'est une forme, jamais une charge utile : une étendue dit la longueur d'un axe et ne dit rien du contenu du tenseur. L'absence de forme est une affirmation réelle et plus faible que le rang 0 ; elle s'écrit en ne nommant aucun math:tensorShape, jamais par un objet de forme sans axe."
+msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by an incomplete shape object with no declared rank. An explicit rank-zero shape with no axes is a scalar."
+msgstr "La forme déclarée d'un tenseur : son math:tensorRank accompagné d'un math:TensorAxis par axe, chacun portant un math:axisIndex commençant à zéro et son étendue. Une sous-classe de math:MathematicalObject partagée par tout ce qui A cette forme — le math:ExpressionType typant un emplacement de tenseur et le math:WeightTensor qui l'occupe nomment le même objet de forme, de sorte que « ces deux tenseurs ont la même forme » relève de l'identité dans le graphe et non de l'égalité de deux étiquettes rendues. C'est une forme, jamais une charge utile : une étendue dit la longueur d'un axe et ne dit rien du contenu du tenseur. L'absence de forme est une affirmation réelle et plus faible que le rang 0 ; elle s'écrit en ne nommant aucun math:tensorShape, jamais par un objet de forme incomplet sans rang déclaré. Une forme de rang zéro explicite sans axe est un scalaire."
 
 msgctxt "https://blackcatinformatics.ca/math/TensorAxis|rdfs:label"
 msgid "Tensor Axis"
@@ -2947,8 +2947,8 @@ msgid "tensor rank"
 msgstr "rang de tenseur"
 
 msgctxt "https://blackcatinformatics.ca/math/tensorRank|skos:definition"
-msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."
-msgstr "Le nombre d'axes qu'un math:TensorShape déclare. Domaine math:TensorShape, portée xsd:nonNegativeInteger (précisé en prose). Porté explicitement plutôt que laissé à compter, pour deux raisons : le rang 0 (un scalaire — une forme sans axe) doit pouvoir être affirmé positivement et ne pas être indiscernable d'un nœud de forme dont les axes auraient été perdus, et un agrégat de comptage est hors du fragment décidable dans lequel les contraintes natives sont écrites, de sorte qu'un rang qu'une contrainte doit comparer à la famille math:shapeAxis doit être présent comme valeur."
+msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than inferred from axis presence: rank 0 positively declares a scalar shape with no axes, while a shape with no rank is incomplete. The canonical count law checks the declared value against the distinct math:shapeAxis nodes; it does not infer a missing rank."
+msgstr "Le nombre d’axes qu’un math:TensorShape déclare. Domaine math:TensorShape, portée xsd:nonNegativeInteger, énoncés en prose. Il est porté explicitement, pas inféré de la présence d’axes : le rang 0 déclare positivement un scalaire sans axe, tandis qu’une forme sans rang est incomplète. La loi canonique de comptage confronte la valeur déclarée aux nœuds math:shapeAxis distincts ; elle n’infère pas un rang absent."
 
 msgctxt "https://blackcatinformatics.ca/math/shapeAxis|rdfs:label"
 msgid "shape axis"
@@ -3448,3 +3448,131 @@ msgstr "Le lien vers la norme enregistre pourquoi cette distance possède une in
 msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
 msgstr "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor rank nonnegative constraint"
+msgstr "Contrainte de rang tensoriel non négatif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:tensorRank is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:tensorRank fourni est non négatif ; le profil tensoriel exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 0 ."
+msgstr "ex:shape math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index nonnegative constraint"
+msgstr "Contrainte d’indice d’axe tensoriel non négatif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisIndex is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:axisIndex fourni est non négatif ; le profil d’axe exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisIndex 0 ."
+msgstr "ex:axis math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor concrete extent nonnegative constraint"
+msgstr "Contrainte d’étendue tensorielle concrète non négative"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisExtent is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:axisExtent fourni est non négatif ; le profil d’axe exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisExtent 0 ."
+msgstr "ex:axis math:axisExtent 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor shape axis-count constraint"
+msgstr "Contrainte de nombre d’axes tensoriels"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared tensor rank equals the number of distinct axis nodes belonging to that shape."
+msgstr "Le rang tensoriel déclaré égale le nombre de nœuds d’axes distincts appartenant à cette forme."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "COUNT is an existing structured aggregate satellite, not a new first-order counting builtin."
+msgstr "COUNT est un satellite agrégé structuré existant, pas une nouvelle primitive de comptage du premier ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Positive tensor rank axis-presence constraint"
+msgstr "Contrainte de présence d’axe pour un rang positif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorShape with a positive rank declares at least one axis, closing the zero-row aggregate case."
+msgstr "Une TensorShape de rang positif déclare au moins un axe, fermant le cas agrégé sans ligne."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with count agreement this rule preserves scalar rank zero and rejects an empty positive-rank family."
+msgstr "Avec l’accord de comptage, cette règle préserve le scalaire de rang zéro et rejette une famille positive vide."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+msgstr "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index upper-bound constraint"
+msgstr "Contrainte de borne supérieure d’indice tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every axis index is strictly below the rank of its own parent TensorShape."
+msgstr "Chaque indice d’axe est strictement inférieur au rang de sa propre TensorShape parente."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Count agreement and numeric uniqueness then force the exact contiguous index family zero through rank minus one."
+msgstr "L’accord de comptage et l’unicité numérique forcent alors exactement les indices contigus de zéro au rang moins un."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis numeric-index uniqueness constraint"
+msgstr "Contrainte d’unicité numérique des indices tensoriels"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two axes of the same TensorShape with numerically equal indices are the same axis node."
+msgstr "Deux axes d’une même TensorShape ayant des indices numériquement égaux sont le même nœud d’axe."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing self-join sugar shares an RDF term; this law deliberately uses separate values and numeric equality."
+msgstr "Le sucre d’auto-jointure partage un terme RDF ; cette loi emploie volontairement des valeurs séparées et l’égalité numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+msgstr "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis extent-choice constraint"
+msgstr "Contrainte de choix d’étendue d’axe tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorAxis carries at most one of concrete axisExtent and symbolicExtent; either may remain absent."
+msgstr "Une TensorAxis porte au plus un des rôles axisExtent concret et symbolicExtent ; chacun peut rester absent."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is property-presence exclusion, separate from the at-most-one value contract of each extent role."
+msgstr "L’exclusion de présence des propriétés est distincte de la cardinalité au plus un de chaque rôle d’étendue."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+msgstr "ex:axis a math:TensorAxis ; math:axisIndex 0 ."

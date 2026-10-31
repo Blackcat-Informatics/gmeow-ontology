@@ -372,3 +372,45 @@ identity: symbolic `3` differs from concrete 3, symbolic `?` differs from an
 unstated extent, and delimiters inside symbol names cannot change the axis family.
 These repairs preserve typed metadata independently of display spelling and
 payload omission.
+
+## Tensor shape and axis integrity
+
+The canonical tensor profile declares one nonnegative integer `tensorRank`
+per `TensorShape` and one nonnegative integer `axisIndex` per `TensorAxis`.
+The datatype unions admit the base and derived XSD integer types; separate
+`ValueRangeConstraint` laws reject negative values. Decimal, floating-point,
+string and malformed integer literals do not satisfy the integer-family profile.
+
+The supplied rank equals the count of distinct `shapeAxis` nodes. Each index
+is less than its own parent shape's rank, and numeric indices are unique within
+that parent. With nonnegative integer positions, these conditions imply exactly
+the contiguous family zero through rank minus one. Independent shapes can each
+use axis zero. Equality compares numeric values, so alternate integer lexical
+forms or datatypes do not create distinct positions.
+
+The count law uses the existing `AggregateConstraint` COUNT/DISTINCT satellite.
+Its projection has no group for a shape with no axis rows; the separate
+positive-rank presence law covers that empty-group case. Explicit rank zero
+with no axes is a scalar. Rank zero with an axis violates the index bound;
+a shape with no declared rank is incomplete. An absent `tensorShape` remains
+an unknown shape, not an inferred scalar.
+
+An axis has at most one concrete nonnegative integer `axisExtent`, at most
+one `symbolicExtent` naming a `FreeVariableDeclaration`, or neither.
+Concrete and symbolic declarations cannot coexist. A disclosed zero length is
+a concrete extent; an unstated length has neither property. Symbolic declarations
+retain their existing typed `variableDomain` obligation; the example uses
+`math:naturalNumbers` for an unresolved counting length. This does not assign
+that domain to arbitrary tensor values or expression declarations.
+
+Shape disclosure remains optional on `WeightTensor` and `ExpressionType`.
+The object maxima name their actual `TensorShape` filler, and the symbolic
+extent maximum names `FreeVariableDeclaration`. No new global functionality,
+shape engine, counting builtin or authored validation surface is introduced.
+
+See [the ordinary shape declarations](examples/tensor-shapes.ttl) and
+[the design contract](design/MATHEMATICS-LINEAR-ALGEBRA-AND-LEARNING.md#declared-tensor-shape-consistency).
+These laws describe source consistency; they do not load tensor payloads,
+execute operators, prove symbolic dimensions equal or establish whole-graph
+shape inference. Native, produced and installed-consumer acceptance requires
+its own actual evidence; no such execution is claimed by these declarations.

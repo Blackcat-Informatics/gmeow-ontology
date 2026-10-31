@@ -238,3 +238,42 @@ symmetric (every `math:MatrixEntry` has a transpose entry of equal value).
    self-reflection carried?
 6. Which symmetric bilinear forms are positive-definite, what Gram matrix represents each, and what
    norm do they induce (the exact numeric layer grounding √(xᵀGx))?
+
+## Declared tensor-shape consistency
+
+`TensorShape` is reusable metadata over the existing mathematical-object owner,
+not a tensor payload or an alias for a rendered type string. `TensorAxis`
+retains the separate indexed-axis identity already defined by the expression
+model; it is not an `ArgumentSlot` requiring a slot expression. An unknown shape
+is an omitted `tensorShape`; a declared rank-zero shape with no axes is a scalar.
+
+Eight canonical laws and their class-local profiles state the source contract:
+nonnegative rank, index and concrete extent; distinct-axis count equal to rank;
+positive-rank axis presence; per-parent index bounds and numeric uniqueness;
+and at-most-one concrete/symbolic extent choice. Rank and index are required
+only on their declared shape and axis objects. Extent disclosure remains
+optional, and shape disclosure remains optional on the existing tensor and
+type descriptors.
+
+For rank n, the profile gives n distinct axis nodes with unique nonnegative
+integer indices strictly below n. Therefore the index set is exactly
+0 through n minus one, with no inferred predecessor arithmetic. The rank-zero
+case needs no axis; the separate positive-rank law closes the aggregate's empty
+group without turning missing shape metadata into zero.
+
+Integer-family unions preserve the source literal datatypes, while value-range
+laws express nonnegativity. Numeric equality deliberately compares separately
+bound index values, including alternate integer lexical spellings. The extent
+choice concerns property presence; it neither resolves symbolic lengths nor
+fills an unknown extent with a sentinel. A symbolic length points to a typed
+free-variable declaration, preserving the existing declaration/value-domain
+distinction rather than assigning a tensor's value space to its axis length.
+
+The source uses existing logic validation and aggregate primitives. Their
+validation projections are derived, never second authoring surfaces.
+The [ordinary example](../examples/tensor-shapes.ttl) records unknown shape,
+scalar rank zero, symbolic and concrete axes, an unstated extent and a disclosed
+zero extent. It is source data, not an executed validation result. The
+`expressionValueSpace` seam and ONNX construction behavior remain separate
+existing owners; these laws claim no tensor payload/operator validation or
+native, produced or installed-consumer completion.
