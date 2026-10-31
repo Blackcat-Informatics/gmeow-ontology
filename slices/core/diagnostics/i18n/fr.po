@@ -188,3 +188,87 @@ msgstr "À utiliser pour conserver le sujet source original ou un autre jeton de
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Do not substitute the diagnostics graph, the finding fingerprint, the primary logical location or a term guessed from the token's spelling."
 msgstr "Ne pas leur substituer le graphe des diagnostics, l'empreinte du constat, la localisation logique principale ou un terme déduit par supposition de l'écriture du jeton."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding code"
+msgstr "code de constat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable machine key identifying the rule that produced a Finding, used as its SARIF ruleId and for grouping, routing and suppression. It names the check, while findingMessage explains the particular occurrence. A supplied string or token retains its original lexical form and datatype."
+msgstr "La clé machine stable identifiant la règle qui a produit un Finding, utilisée comme ruleId SARIF et pour le regroupement, l’acheminement et la suppression. Elle nomme le contrôle, tandis que findingMessage explique l’occurrence particulière. Une chaîne ou un jeton fourni conserve sa forme lexicale et son type d’origine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the stable rule key on a finding so consumers can resolve catalog guidance and group diagnostic occurrences."
+msgstr "Utiliser pour conserver la clé de règle stable sur un constat afin que les consommateurs retrouvent les consignes du catalogue et regroupent les occurrences de diagnostic."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the human message, a translated label or a run-specific value in the finding code. Keep explanation in findingMessage and do not change the code to force a catalog match."
+msgstr "Éviter de placer le message humain, un libellé traduit ou une valeur propre à une exécution dans le code du constat. Garder l’explication dans findingMessage et ne pas modifier le code pour forcer une correspondance au catalogue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and at-most-one obligations across the admitted union; they add no explicit closed-world missing-path check."
+msgstr "Conserver le code du constat exactement tel qu’il est fourni, y compris son type xsd:string ou xsd:token. Les projections natives des constats Rust gardent leur sortie chaîne existante. Les axiomes Finding existants conservent leurs obligations existentielle et d’au plus une valeur dans l’union admise ; ils n’ajoutent aucun contrôle explicite de chemin manquant en monde fermé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Catalog resolution compares the lexical spelling of findingCode with ruleCode. That application lookup does not assert RDF same-term equality between different datatypes. Do not normalize whitespace, infer token typing or stack a second typed code. This declaration installs no token lexical checker."
+msgstr "La résolution du catalogue compare la graphie lexicale de findingCode à ruleCode. Cette recherche applicative n’affirme pas l’identité de terme RDF entre types distincts. Ne pas normaliser les espaces, déduire le type jeton ni ajouter un second code typé. Cette déclaration n’installe aucun vérificateur lexical de jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rule code"
+msgstr "code de règle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable machine key of a standing ValidationRule, in the same code space as findingCode. Native check implementations supply the code; lexical lookup uses it to connect diagnostic occurrences to catalog guidance. The code is separate from the rule description, severity and help URI."
+msgstr "La clé machine stable d’une ValidationRule permanente, dans le même espace de codes que findingCode. Les implémentations natives des contrôles fournissent le code ; la recherche lexicale le relie aux consignes du catalogue pour les occurrences de diagnostic. Le code est distinct de la description, de la gravité et de l’URI d’aide de la règle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the catalog rule key that finding-code lookup resolves to the check description, governed terms and remediation."
+msgstr "Utiliser pour conserver la clé de règle du catalogue par laquelle la recherche du code de constat retrouve la description du contrôle, les termes régis et la correction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting translated rule prose, a severity grade or an execution identifier in ruleCode. Do not infer a new rule identity merely from a different datatype on the same lexical code."
+msgstr "Éviter de placer le texte traduit de la règle, un degré de gravité ou un identifiant d’exécution dans ruleCode. Ne pas déduire une nouvelle identité de règle du seul changement de type sur le même code lexical."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the validator-supplied rule code and its xsd:string or xsd:token datatype. The native constraint catalog keeps its existing string output. Keep the lexical spelling stable for findingCode lookup and for the ruleHelpUri anchor derived by the catalog producer."
+msgstr "Conserver le code de règle fourni par le validateur et son type xsd:string ou xsd:token. Le catalogue natif des contraintes garde sa sortie chaîne existante. Maintenir la graphie lexicale pour la recherche par findingCode et pour l’ancre ruleHelpUri dérivée par le producteur du catalogue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The catalog lookup of ruleCode uses lexical keys and preserves the RDF declaration separately. A string and a token with matching text remain different RDF terms. Do not collapse whitespace or retype either literal to manufacture equality. No token lexical checker is installed by this declaration."
+msgstr "La recherche de ruleCode dans le catalogue utilise des clés lexicales et conserve séparément la déclaration RDF. Une chaîne et un jeton de même texte restent des termes RDF distincts. Ne pas réduire les espaces ni changer le type d’un littéral pour fabriquer une égalité. Cette déclaration n’installe aucun vérificateur lexical de jetons."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding tool"
+msgstr "outil du constat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producing tool’s short machine key retained on a Finding, such as shacl, validate or clippy. It supports filtering and SARIF driver attribution. It is separate from a human tool label and from the validator agent identified through vantage and a generating ToolCall’s usedTool."
+msgstr "La courte clé machine de l’outil producteur conservée sur un Finding, comme shacl, validate ou clippy. Elle permet le filtrage et l’attribution au pilote SARIF. Elle est distincte du libellé humain de l’outil et de l’agent validateur identifié par vantage et par usedTool de la ToolCall génératrice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the producing tool key directly on a finding for filtering and driver attribution alongside the full execution provenance."
+msgstr "Utiliser pour conserver directement la clé de l’outil producteur sur un constat, pour le filtrage et l’attribution au pilote, avec la provenance complète de l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid translating the tool key as prose or treating it as a resolved SoftwareAgent. The ToolCall and its usedTool relation retain the auditable execution provenance; the key alone does not supply it."
+msgstr "Éviter de traduire la clé de l’outil comme du texte ou de la traiter comme une SoftwareAgent résolue. La ToolCall et sa relation usedTool conservent la provenance d’exécution vérifiable ; la clé seule ne la fournit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied tool key with its xsd:string or xsd:token datatype. Keep the native finding projection’s existing string output. Also link the finding to its generating ToolCall and retain the validator agent as vantage."
+msgstr "Conserver la clé d’outil fournie avec son type xsd:string ou xsd:token. Garder la sortie chaîne existante de la projection native des constats. Relier également le constat à sa ToolCall génératrice et conserver l’agent validateur comme vantage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Tool filtering uses the key’s lexical spelling; it does not equate RDF literals with different datatypes or identify an agent globally. Preserve case and whitespace without inferred token typing. This declaration supplies no token lexical checker and adds no required tool key."
+msgstr "Le filtrage des outils utilise la graphie lexicale de la clé ; il n’assimile pas les littéraux RDF de types distincts et n’identifie pas globalement un agent. Conserver la casse et les espaces sans déduire le type jeton. Cette déclaration ne fournit aucun vérificateur lexical de jetons et n’impose aucune clé d’outil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."
+msgstr "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."
+msgstr "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingTool \"shacl\" ."
+msgstr "ex:f1 gmeow:findingTool \"shacl\" ."

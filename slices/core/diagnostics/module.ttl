@@ -29,15 +29,11 @@ gmeow:Finding
     rdfs:subClassOf gmeow:Observation ,
         [
             a logic:Restriction ;
-            logic:onProperty gmeow:findingCode ;
-            logic:someValuesFrom xsd:string ;
-        ] ,
-        [
-            a logic:Restriction ;
             logic:onProperty gmeow:findingMessage ;
             logic:someValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
         ] ;
     logic:subClassOf
+        [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:someValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
         [
             a logic:Restriction ;
             logic:onProperty gmeow:findingSeverity ;
@@ -105,13 +101,14 @@ gmeow:findingCode
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The stable rule identifier of a finding (e.g. \"shacl.MinCountConstraintComponent\", \"validate.error\") — the SARIF ruleId and the key by which findings are grouped and suppressed. Short and stable across runs."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The stable machine key identifying the rule that produced a Finding, used as its SARIF ruleId and for grouping, routing and suppression. It names the check, while findingMessage explains the particular occurrence. A supplied string or token retains its original lexical form and datatype."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid putting the human message here (use gmeow:findingMessage) and avoid run-varying values; the code is the stable rule key."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing the human message, a translated label or a run-specific value in the finding code. Keep explanation in findingMessage and do not change the code to force a catalog match."@x-gmeow-english ;
+    skos:scopeNote "Catalog resolution compares the lexical spelling of findingCode with ruleCode. That application lookup does not assert RDF same-term equality between different datatypes. Do not normalize whitespace, infer token typing or stack a second typed code. This declaration installs no token lexical checker."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set it to the Rust finding's code verbatim; it becomes the SARIF ruleId and participates in the partial-fingerprint dedup."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the stable rule code of a finding so consumers can group, route, and suppress by rule."@x-gmeow-english .
+    gmeow:howToUse "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and at-most-one obligations across the admitted union; they add no explicit closed-world missing-path check."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the stable rule key on a finding so consumers can resolve catalog guidance and group diagnostic occurrences."@x-gmeow-english .
 
 gmeow:findingHelpUri
     a logic:DatatypeProperty ;
@@ -185,13 +182,14 @@ gmeow:findingTool
     rdfs:domain gmeow:Finding ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "finding tool"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The short name of the tool that produced a finding (e.g. \"shacl\", \"validate\", \"clippy\") — the flat 80% provenance surface. The richer provenance is gmeow:wasGeneratedBy a gmeow:ToolCall whose gmeow:usedTool is the validator agent (the agentic idiom, Principle 5); gmeow:findingTool is the cheap denormalized name, and the tool agent is also the finding's gmeow:vantage."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The producing tool’s short machine key retained on a Finding, such as shacl, validate or clippy. It supports filtering and SARIF driver attribution. It is separate from a human tool label and from the validator agent identified through vantage and a generating ToolCall’s usedTool."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingTool \"shacl\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as the full provenance — the auditable record is the gmeow:ToolCall the finding gmeow:wasGeneratedBy — and avoid drift from the tool's gmeow:vantage agent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid translating the tool key as prose or treating it as a resolved SoftwareAgent. The ToolCall and its usedTool relation retain the auditable execution provenance; the key alone does not supply it."@x-gmeow-english ;
+    skos:scopeNote "Tool filtering uses the key’s lexical spelling; it does not equate RDF literals with different datatypes or identify an agent globally. Preserve case and whitespace without inferred token typing. This declaration supplies no token lexical checker and adds no required tool key."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set it to the Rust finding's tool name; for full provenance also mint a gmeow:ToolCall and link the finding back with gmeow:wasGeneratedBy."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the producing tool's short name on a finding for cheap filtering and SARIF driver attribution."@x-gmeow-english .
+    gmeow:howToUse "Retain the supplied tool key with its xsd:string or xsd:token datatype. Keep the native finding projection’s existing string output. Also link the finding to its generating ToolCall and retain the validator agent as vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the producing tool key directly on a finding for filtering and driver attribution alongside the full execution provenance."@x-gmeow-english .
 
 gmeow:gtsFrameIndex
     a logic:DatatypeProperty ;
@@ -264,13 +262,14 @@ gmeow:ruleCode
     rdfs:domain gmeow:ValidationRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "rule code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The stable identifier of an enforced check (e.g. \"discipline/relator-mediation\", \"frame-completeness\", \"shacl.MinCountConstraintComponent\") — the SAME string space as gmeow:findingCode, asserted on the standing gmeow:ValidationRule. It is the join key by which a finding resolves to its catalog entry: a gmeow:Finding's gmeow:findingCode equals exactly one ValidationRule's gmeow:ruleCode. Short and stable across runs; minted by the Rust check that emits it, never derived from the ontology."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The stable machine key of a standing ValidationRule, in the same code space as findingCode. Native check implementations supply the code; lexical lookup uses it to connect diagnostic occurrences to catalog guidance. The code is separate from the rule description, severity and help URI."@x-gmeow-english ;
     skos:example "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid putting the human description here (that is the generated skos:definition) and avoid run-varying values; the code is the stable rule key that a finding's gmeow:findingCode matches."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting translated rule prose, a severity grade or an execution identifier in ruleCode. Do not infer a new rule identity merely from a different datatype on the same lexical code."@x-gmeow-english ;
+    skos:scopeNote "The catalog lookup of ruleCode uses lexical keys and preserves the RDF declaration separately. A string and a token with matching text remain different RDF terms. Do not collapse whitespace or retype either literal to manufacture equality. No token lexical checker is installed by this declaration."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Set it to the validator's finding code verbatim so gmeow:findingCode = gmeow:ruleCode is the resolution join; the code also slugifies into the rule's gmeow:ruleHelpUri anchor."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the stable code of an enforced check on its ValidationRule so findings can resolve to their catalog entry by code."@x-gmeow-english .
+    gmeow:howToUse "Retain the validator-supplied rule code and its xsd:string or xsd:token datatype. The native constraint catalog keeps its existing string output. Keep the lexical spelling stable for findingCode lookup and for the ruleHelpUri anchor derived by the catalog producer."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the catalog rule key that finding-code lookup resolves to the check description, governed terms and remediation."@x-gmeow-english .
 
 gmeow:ruleHelpUri
     a logic:DatatypeProperty ;
@@ -1371,8 +1370,9 @@ DOCTRINE.
 # antecedent and remain the procedural fragment .
 # =========================================================================== #
 
+gmeow:Finding logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 gmeow:Finding rdfs:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:findingMessage ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 
 # gmeow:CrossNodeGlutWitnessShape wants EXACTLY TWO gmeow:glutWitnessOf links.

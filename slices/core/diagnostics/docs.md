@@ -127,6 +127,27 @@ record is the `gmeow:ToolCall` the finding `gmeow:wasGeneratedBy`, whose `gmeow:
 validator agent (the agentic idiom, Principle 5, no forward output property); that same agent is the
 finding's `gmeow:vantage`.
 
+`findingCode`, the catalog's `ruleCode`, and `findingTool` are machine keys.
+Each admits a verbatim `xsd:string` or an explicitly supplied `xsd:token`.
+Keep the supplied lexical form and datatype. Do not collapse whitespace, infer
+token typing, or translate a code or tool key as prose. This admission does not
+install a token lexical checker. Finding codes retain their existing existential and at-most-one obligations
+over the whole string/token union. These axioms add no explicit closed-world
+missing-path check; another
+datatype spelling is not a reason to add a second code to the same finding.
+
+The native finding and constraint-catalog producers continue to emit their
+existing string values. The bundle reader, guidance lookup and documentation
+catalog resolve machine keys by lexical spelling. A lexical match between a
+finding code and a rule code is an application lookup; it does not assert RDF
+same-term equality between differently typed literals. Retain the original
+terms in RDF rather than retyping them to force a join (Principles 4 and 7).
+
+The human message remains `findingMessage`, with language and direction where
+supplied. A tool key does not resolve the validator agent or replace the ToolCall
+provenance. Exact source-focus identities and logical-location strings retain
+their own declarations and spacing contracts (Principles 2, 5 and 19).
+
 ## GTS wire coordinates
 
 A finding's location node carries the **wire coordinates** that pin its exact position inside a GTS

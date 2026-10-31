@@ -188,3 +188,87 @@ msgstr "当诊断构件还具有不同的逻辑或物理锚点时，用于保留
 msgctxt "https://blackcatinformatics.ca/gmeow/findingSourceFocusIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Do not substitute the diagnostics graph, the finding fingerprint, the primary logical location or a term guessed from the token's spelling."
 msgstr "不要以诊断图、诊断构件指纹、主要逻辑位置或根据标记拼写猜测的术语替代它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding code"
+msgstr "诊断代码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable machine key identifying the rule that produced a Finding, used as its SARIF ruleId and for grouping, routing and suppression. It names the check, while findingMessage explains the particular occurrence. A supplied string or token retains its original lexical form and datatype."
+msgstr "标识生成 Finding 的规则的稳定机器键，用作其 SARIF ruleId，并用于分组、路由和抑制。它命名检查项，而 findingMessage 解释具体诊断。所提供的字符串或标记保留原始词法形式和数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the stable rule key on a finding so consumers can resolve catalog guidance and group diagnostic occurrences."
+msgstr "用于在诊断上保留稳定规则键，使使用方能够查找目录指引并归组诊断记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the human message, a translated label or a run-specific value in the finding code. Keep explanation in findingMessage and do not change the code to force a catalog match."
+msgstr "不要把面向人的消息、翻译标签或特定运行值放入诊断代码。解释应置于 findingMessage，不要为强行匹配目录而修改代码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and at-most-one obligations across the admitted union; they add no explicit closed-world missing-path check."
+msgstr "按提供形式完整保留诊断代码，包括其 xsd:string 或 xsd:token 数据类型。原生 Rust 诊断投影继续输出既有字符串。现有 Finding 公理保留允许类型并集上的存在性和至多一个值约束；它们不添加显式闭世界缺失路径检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Catalog resolution compares the lexical spelling of findingCode with ruleCode. That application lookup does not assert RDF same-term equality between different datatypes. Do not normalize whitespace, infer token typing or stack a second typed code. This declaration installs no token lexical checker."
+msgstr "目录解析比较 findingCode 与 ruleCode 的词法写法。这种应用查找不声称不同数据类型之间具有 RDF 同项标识。不要规范化空白、推断标记类型或叠加第二个带类型代码。此声明不安装标记词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rule code"
+msgstr "规则代码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable machine key of a standing ValidationRule, in the same code space as findingCode. Native check implementations supply the code; lexical lookup uses it to connect diagnostic occurrences to catalog guidance. The code is separate from the rule description, severity and help URI."
+msgstr "常设 ValidationRule 的稳定机器键，与 findingCode 属于同一代码空间。原生检查实现提供该代码；词法查找通过它将诊断记录连接到目录指引。代码与规则描述、严重程度及帮助 URI 分离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the catalog rule key that finding-code lookup resolves to the check description, governed terms and remediation."
+msgstr "用于保留目录规则键，使诊断代码查找能够取得检查说明、受约束术语和修复指引。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting translated rule prose, a severity grade or an execution identifier in ruleCode. Do not infer a new rule identity merely from a different datatype on the same lexical code."
+msgstr "不要把翻译后的规则文字、严重等级或执行标识放入 ruleCode。不要仅因同一词法代码使用了不同数据类型，就推断新的规则标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the validator-supplied rule code and its xsd:string or xsd:token datatype. The native constraint catalog keeps its existing string output. Keep the lexical spelling stable for findingCode lookup and for the ruleHelpUri anchor derived by the catalog producer."
+msgstr "保留验证器提供的规则代码及其 xsd:string 或 xsd:token 数据类型。原生约束目录继续输出既有字符串。保持词法写法稳定，以供 findingCode 查找及目录生成器派生 ruleHelpUri 锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The catalog lookup of ruleCode uses lexical keys and preserves the RDF declaration separately. A string and a token with matching text remain different RDF terms. Do not collapse whitespace or retype either literal to manufacture equality. No token lexical checker is installed by this declaration."
+msgstr "目录中的 ruleCode 查找使用词法键，并独立保留 RDF 声明。文本相同的字符串和标记仍是不同 RDF 项。不要折叠空白或重定字面量类型来制造相等关系。此声明不安装标记词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finding tool"
+msgstr "诊断工具"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producing tool’s short machine key retained on a Finding, such as shacl, validate or clippy. It supports filtering and SARIF driver attribution. It is separate from a human tool label and from the validator agent identified through vantage and a generating ToolCall’s usedTool."
+msgstr "保留在 Finding 上的生成工具短机器键，例如 shacl、validate 或 clippy，用于筛选及 SARIF 驱动归属。它与面向人的工具标签分离，也不同于通过 vantage 和生成 ToolCall 的 usedTool 标识的验证器代理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the producing tool key directly on a finding for filtering and driver attribution alongside the full execution provenance."
+msgstr "用于直接在诊断上保留生成工具键，以供筛选和驱动归属，同时保留完整执行来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid translating the tool key as prose or treating it as a resolved SoftwareAgent. The ToolCall and its usedTool relation retain the auditable execution provenance; the key alone does not supply it."
+msgstr "不要将工具键当作文字翻译，或将其视为已解析的 SoftwareAgent。ToolCall 及其 usedTool 关系保留可审计的执行来源；仅有该键并不能提供此来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied tool key with its xsd:string or xsd:token datatype. Keep the native finding projection’s existing string output. Also link the finding to its generating ToolCall and retain the validator agent as vantage."
+msgstr "保留所提供的工具键及其 xsd:string 或 xsd:token 数据类型。保持原生诊断投影的既有字符串输出。还应将诊断连接到其生成 ToolCall，并保留验证器代理作为 vantage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Tool filtering uses the key’s lexical spelling; it does not equate RDF literals with different datatypes or identify an agent globally. Preserve case and whitespace without inferred token typing. This declaration supplies no token lexical checker and adds no required tool key."
+msgstr "工具筛选使用键的词法写法；它不等同不同数据类型的 RDF 字面量，也不在全局标识代理。保留大小写和空白，不推断标记类型。此声明不提供标记词法检查器，也不要求必须提供工具键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."
+msgstr "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."
+msgstr "ex:ruleRelatorMediation gmeow:ruleCode \"discipline/relator-mediation\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:f1 gmeow:findingTool \"shacl\" ."
+msgstr "ex:f1 gmeow:findingTool \"shacl\" ."
