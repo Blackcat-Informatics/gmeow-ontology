@@ -2303,3 +2303,135 @@ logic:chunkingCoverageIntersectionRequired0 a logic:Formula ; logic:relation log
     logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ] , [ logic:termIndex 1 ; logic:termVariable "blockEnd" ] .
 logic:chunkingCoverageIntersectionRequired1 a logic:Formula ; logic:relation logic:termLess ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "blockStart" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] .
+
+# Record intake: preserve source meaning and representation.
+gmeow:HeldRecord
+    a logic:Class , logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held Record"@x-gmeow-english ;
+    skos:definition "An occurrence of a machine record cut out of a particular source text and decomposed into facts. Surrounding words are retained verbatim, its original code-point span is recorded, and its content and other fields become facts; its own serialized text, whitespace, escapes and key order are not retained."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the occurrence and decomposed meaning of a machine record held among prose."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming that the original text can be reconstructed from the unwrapped words and decomposed fields."@x-gmeow-english ;
+    gmeow:howToUse "Attach the occurrence to its text carrier with textHeldRecord; retain original spanStart/spanEnd, heldContentStatement and explicit rdf:reifies evidence; use hasFacet for other fields."@x-gmeow-english ;
+    skos:scopeNote "The span refers to the original text before extraction, never the shortened retained text. These declarations neither parse a record nor certify a generic triple-term kind check."@x-gmeow-english ;
+    skos:example "ex:text gmeow:textHeldRecord ex:held . ex:held a gmeow:HeldRecord ; gmeow:spanStart \"7\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"20\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:textHeldRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "text held record"@x-gmeow-english ;
+    skos:definition "Relates one text occurrence to a machine-record occurrence removed from among its words and decomposed into facts. The text carrier retains the surrounding words; each removed occurrence has its own original code-point span."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the text occurrence and each extracted record occurrence connected."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid sharing one HeldRecord occurrence between different source text occurrences."@x-gmeow-english ;
+    gmeow:howToUse "Point from the exact text carrier, such as a labelled text facet, to each HeldRecord; retain order and original coordinates separately."@x-gmeow-english ;
+    skos:scopeNote "Several held records may belong to one text occurrence. The link does not retain the removed serialization or establish parsing success."@x-gmeow-english ;
+    skos:example "ex:text gmeow:textHeldRecord ex:held ."@x-gmeow-english ;
+    logic:range gmeow:HeldRecord .
+
+gmeow:heldContentStatement
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "held content statement"@x-gmeow-english ;
+    skos:definition "The distinguished RDF 1.2 triple term representing a held record's decomposed content. The same term is supplied through explicit rdf:reifies on the HeldRecord occurrence, preserving the existing statement-metadata production path."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish the decomposed content statement from the held record's other fields."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a stringified triple, an invented content value or a claim that quotation alone asserts truth."@x-gmeow-english ;
+    gmeow:howToUse "Supply one actual triple term and the identical explicit rdf:reifies link; keep other decomposed fields as facets."@x-gmeow-english ;
+    skos:scopeNote "The binding law checks identical graph-term joins to explicit reifier evidence. It does not add a generic triple-term validator, authenticate decomposition or assert a quoted statement."@x-gmeow-english ;
+    skos:example "ex:held gmeow:heldContentStatement <<( ex:item gmeow:description \"ready\"@en )>> ; rdf:reifies <<( ex:item gmeow:description \"ready\"@en )>> ."@x-gmeow-english ;
+    logic:domain gmeow:HeldRecord .
+
+
+# Canonical record-intake integrity.
+gmeow:HeldRecordEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held record evidence constraint"@x-gmeow-english ;
+    skos:definition "Every HeldRecord has a containing text occurrence and a distinguished content term shared with explicit rdf:reifies evidence on that same record."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared held record evidence constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Shared graph-term bindings preserve the explicit reifier path. They do not implement parsing or a generic triple-term kind test."@x-gmeow-english ;
+    skos:example "gmeow:HeldRecordEvidenceConstraint logic:formalizes gmeow:HeldRecord ."@x-gmeow-english ;
+    logic:formalizes gmeow:HeldRecord ;
+    logic:message "Every HeldRecord has a containing text occurrence and a distinguished content term shared with explicit rdf:reifies evidence on that same record." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "content" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:textHeldRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation gmeow:heldContentStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "content" ] ] , [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "content" ] ] ] ] ] ] .
+
+gmeow:HeldRecordReifierBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held record reifier binding constraint"@x-gmeow-english ;
+    skos:definition "Every heldContentStatement term and every explicit rdf:reifies term on a HeldRecord agree through identical graph-term joins."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared held record reifier binding constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The two source roles retain the same RDF term without relying on a subproperty inference before statement-metadata extraction."@x-gmeow-english ;
+    skos:example "gmeow:HeldRecordReifierBindingConstraint logic:formalizes gmeow:heldContentStatement ."@x-gmeow-english ;
+    logic:formalizes gmeow:heldContentStatement ;
+    logic:message "Every heldContentStatement term and every explicit rdf:reifies term on a HeldRecord agree through identical graph-term joins." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "content" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] , [ a logic:Formula ; logic:relation gmeow:heldContentStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "content" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "content" ] ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reified" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] , [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reified" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:heldContentStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reified" ] ] ] ] ] ] ] .
+
+gmeow:HeldRecordParentUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held record parent uniqueness constraint"@x-gmeow-english ;
+    skos:definition "A HeldRecord occurrence belongs to only one containing text occurrence. Several held records may belong to the same text."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared held record parent uniqueness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Occurrence identity is source-local; shared content does not merge independent occurrences."@x-gmeow-english ;
+    skos:example "gmeow:HeldRecordParentUniquenessConstraint logic:formalizes gmeow:textHeldRecord ."@x-gmeow-english ;
+    logic:formalizes gmeow:textHeldRecord ;
+    logic:message "A HeldRecord occurrence belongs to only one containing text occurrence. Several held records may belong to the same text." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] , [ a logic:Formula ; logic:relation gmeow:textHeldRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation gmeow:textHeldRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:HeldRecordSpanOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held record span order constraint"@x-gmeow-english ;
+    skos:definition "The original half-open code-point span of a HeldRecord has a start strictly before its end."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared held record span order constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "No upper bound is compared with shortened retained text. Original source length is not reconstructed or invented."@x-gmeow-english ;
+    skos:example "gmeow:HeldRecordSpanOrderConstraint logic:formalizes gmeow:HeldRecord ."@x-gmeow-english ;
+    logic:formalizes gmeow:HeldRecord ;
+    logic:message "The original half-open code-point span of a HeldRecord has a start strictly before its end." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "start" ] , [ logic:termIndex 2 ; logic:termVariable "end" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:HeldRecord ] ] , [ a logic:Formula ; logic:relation gmeow:spanStart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "start" ] ] , [ a logic:Formula ; logic:relation gmeow:spanEnd ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termLess ; logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ] , [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] .
+
+gmeow:HeldContentCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Held content count constraint"@x-gmeow-english ;
+    skos:definition "A HeldRecord supplies exactly one distinct RDF term through heldContentStatement. The separate evidence law requires presence when the aggregate has no rows."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared held content count constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "COUNT DISTINCT uses graph-term identity, keeping alternate literal spellings inside triple terms distinct; it does not compare decoded values."@x-gmeow-english ;
+    skos:example "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."@x-gmeow-english ;
+    logic:formalizes gmeow:heldContentStatement ;
+    logic:message "A HeldRecord supplies exactly one distinct RDF term through heldContentStatement. The separate evidence law requires presence when the aggregate has no rows." ;
+    logic:onClass gmeow:HeldRecord ; logic:aggFunction "COUNT" ; logic:aggDistinct true ; logic:aggPath gmeow:heldContentStatement ; logic:aggComparator "=" ; logic:aggCompareTo 1 .
+
+
+
+gmeow:HeldRecord logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanStart ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HeldRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanStart" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HeldRecord logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:spanEnd ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HeldRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/spanEnd" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+
+# Explicit property-range validation; no required path on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/textHeldRecord" ; logic:closureValue logic:ClosedWorldClosure ] .

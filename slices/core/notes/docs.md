@@ -170,3 +170,12 @@ moderating. Co-equal and open: no motivation is primary or default.
 - `tests/test_notes.py` — structural, SHACL, projection-parse, and orthogonality guards.
 - the native reasoner (`make reason`) — the backlink graph (inverse + symmetric, no cardinality)
   stays OWL 2 DL regular.
+
+## Preserve a purpose as written
+
+`purposeAsWritten` specializes the tags owner's `tagAsWritten` for a `Note`.
+It retains an unresolved purpose in the writer's exact words, with supplied
+language and RDF 1.2 direction. Untagged text remains a string; no language,
+`Tag` or `AnnotationMotivation` is invented. A resolved motivation or purpose
+can be recorded independently when justified. Several attributed wordings may
+coexist; none is preferred.
