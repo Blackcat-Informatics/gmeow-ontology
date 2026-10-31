@@ -13730,3 +13730,61 @@ repo:README.md a gmeow:CreativeWork ;
     skos:definition "The repository source locator of the logic-owned close-match bridge from general actual usage to PROV-O used."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "slices/grounding/logic/mappings/provenance-usage.ttl" .
+
+<https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf> a gmeow:CreativeWork ;
+    rdfs:label "BLAKE3: one function, fast everywhere"@en ;
+    skos:definition "The official BLAKE3 specification, analysis and design rationale, pinned to its PDF at repository revision ac784c9f22a48327782f042ec2f4d8126b3b1744; the PDF prints version 20211102173700."@en ;
+    gmeow:bibliographicCitation "O’Connor, Jack; Aumasson, Jean-Philippe; Neves, Samuel; Wilcox-O’Hearn, Zooko. BLAKE3: one function, fast everywhere. PDF version 20211102173700. Sections 2.1, 2.3 and 2.6." ;
+    gmeow:sourceLocation "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3-specs/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf" .
+
+<https://doi.org/10.6028/NIST.FIPS.180-4> a gmeow:CreativeWork ;
+    rdfs:label "Secure Hash Standard (SHS), FIPS PUB 180-4"@en ;
+    skos:definition "The National Institute of Standards and Technology standard specifying the secure hash algorithms, including SHA-256 in section 6.2, in its August 2015 edition."@en ;
+    dcterms:issued "2015-08-04"^^xsd:date ;
+    gmeow:bibliographicCitation "National Institute of Standards and Technology. Secure Hash Standard (SHS). Federal Information Processing Standards Publication 180-4. August 2015. DOI 10.6028/NIST.FIPS.180-4. Section 6.2." ;
+    gmeow:sourceLocation "https://csrc.nist.gov/pubs/fips/180-4/upd1/final" , "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-blake3-256> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "BLAKE3 sections 2.1, 2.3 and 2.6 ground the plain unkeyed default-length digest meaning."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-blake3-256> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-blake3-256> a gmeow:Selector ;
+    rdfs:label "math-digest-blake3-256 authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:382" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-sha256> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "NIST FIPS 180-4 section 6.2 grounds the SHA-256 digest meaning."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://doi.org/10.6028/NIST.FIPS.180-4> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-sha256> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-sha256> a gmeow:Selector ;
+    rdfs:label "math-digest-sha256 authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:388" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-rdf-term-equality> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "RDF 1.2 Concepts section 3.4 grounds literal term equality with lexical form and datatype IRI both preserved."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-rdf-term-equality> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-rdf-term-equality> a gmeow:Selector ;
+    rdfs:label "math-digest-rdf-term-equality authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:391" .

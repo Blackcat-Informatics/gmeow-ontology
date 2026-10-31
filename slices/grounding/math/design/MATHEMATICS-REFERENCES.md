@@ -363,3 +363,46 @@ gaps to apologize for:
 Every alignment (S/L) is recorded as a `logic:Correspondence` with a `logic:preservationKind`; every
 projection (P) carries its loss in the same ledger; every citation (R) is staged for
 `metadata/references.ttl`. This appendix is the input to the subsumption plan.
+
+## Algorithm-tagged digest datatypes
+
+The mathematics owner declares `gmeow:blake3_256Digest` and
+`gmeow:sha256Digest` as named RDF datatypes. The algorithm identity is part of
+each value alongside its ordered 32 digest bytes. This is a declaration of
+meaning, following the named-datatype pattern of `gmeow:linearRegex`; it is not
+a `logic:Datarange` restriction or an equivalence with a string datatype.
+`math:Sequence` is the existing reference for ordered values. No signed
+`xsd:byte` value space is misidentified as an octet alphabet, and no new
+function individual is introduced without a genuine domain and codomain.
+
+The normative references are:
+
+- Jack O’Connor, Jean-Philippe Aumasson, Samuel Neves and Zooko Wilcox-O’Hearn,
+  *BLAKE3: one function, fast everywhere*, PDF version `20211102173700`,
+  [pinned official specification](https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf).
+  Sections 2.1 and 2.3 define the default 32-byte output and distinguish the
+  plain hash mode from keyed hashing and key derivation; section 2.6 specifies
+  extendable output. The datatype selects the default output length only.
+- National Institute of Standards and Technology, *Secure Hash Standard (SHS)*,
+  FIPS PUB 180-4, August 2015,
+  [DOI 10.6028/NIST.FIPS.180-4](https://doi.org/10.6028/NIST.FIPS.180-4).
+  Section 6.2 specifies SHA-256. The official publication page dates this edition
+  to 2015-08-04. SHA-512/256 is a distinct algorithm and is excluded.
+- [RDF 1.2 Concepts and Abstract Syntax](https://www.w3.org/TR/rdf12-concepts/),
+  section 3.4, supplies literal term equality: exact lexical form and datatype
+  IRI both participate. The existing citation-ledger work is reused.
+
+The local lexical convention is exactly 64 lowercase hexadecimal digits in
+output-byte order, without a prefix or language tag. The algorithm specifications
+ground the digest operations; RDF grounds term identity. The lowercase spelling
+is this vocabulary’s explicit representation contract, not a claim that either
+algorithm rejects a different display convention. A scheme’s domain-tagged input
+can be hashed as actual bytes, but its identifier must not lose its scheme
+meaning or become an assertion about different bytes.
+
+The canonical citation ledger is `metadata/references.ttl`. These are by-reference
+authorities, not imported algorithm implementations. Declaring the datatypes adds
+no parser, hash executor, artifact verifier or native custom-value interpretation.
+No lexical validation rule is claimed without an actual governed property
+contract. Existing `contentDigest` ranges, producers and consumers retain their
+current contracts.

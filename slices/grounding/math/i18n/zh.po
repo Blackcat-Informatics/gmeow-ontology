@@ -3576,3 +3576,59 @@ msgstr "此属性存在性互斥与各长度角色自身的至多一个值契约
 msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
 msgstr "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "BLAKE3-256 digest"
+msgstr "BLAKE3-256 摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A plain unkeyed BLAKE3 hash result with the default 256-bit output, computed over the exact supplied input bytes. Its value pairs the BLAKE3 hash-mode identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "对提供的确切输入字节计算的普通无密钥 BLAKE3 哈希结果，采用默认 256 位输出。其值由 BLAKE3 哈希模式的身份与有序的 32 个摘要字节共同组成。词法形式恰为 64 个小写十六进制数字，按输出字节顺序每字节两个数字，不含算法前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the default-length plain BLAKE3 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "当来源提供指定字节的默认长度普通 BLAKE3 摘要，且算法必须保留为字面量身份的一部分时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid keyed_hash, derive_key, other output lengths, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "不用于 keyed_hash、derive_key、其他输出长度，也不要把方案标识符或规范模型标识符改称为其他制品字节的摘要。若域标签字节确实属于所提供的输入，则允许包含它们；不要抹去标识方案的含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "保留来源的 64 个小写十六进制数字及此数据类型 IRI。另行保留确切输入字节的身份；不要进行规范化、添加算法标签前缀，也不要从类型化字面量推断已经验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "此声明规定带算法身份的摘要值及其词法形式；它不安装数据类型解析器、不计算哈希，也不验证制品字节。原生 RDF 传输可以不解释其值而保留该类型化字面量。使用 RDF sameTerm 比较提供的字面量，同时保留词法形式和数据类型 IRI；不声明其与 xsd:string、xsd:hexBinary 或其他算法数据类型相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest declares BLAKE3 hash-mode identity; it does not assert that an artifact was checked."
+msgstr "所提供的 \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest 这样的字面量声明 BLAKE3 哈希模式的身份；它不表示已经检查制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SHA-256 digest"
+msgstr "SHA-256 摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A SHA-256 hash result as specified by NIST FIPS 180-4, computed over the exact supplied input bytes. Its value pairs the SHA-256 algorithm identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "按照 NIST FIPS 180-4 对提供的确切输入字节计算的 SHA-256 哈希结果。其值由 SHA-256 算法的身份与有序的 32 个摘要字节共同组成。词法形式恰为 64 个小写十六进制数字，按输出字节顺序每字节两个数字，不含算法前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a SHA-256 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "当来源提供指定字节的 SHA-256 摘要，且算法必须保留为字面量身份的一部分时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid SHA-512/256, truncated hashes, HMAC results, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "不用于 SHA-512/256、截断哈希、HMAC 结果，也不要把方案标识符或规范模型标识符改称为其他制品字节的摘要。若域标签字节确实属于所提供的输入，则允许包含它们；不要抹去标识方案的含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "保留来源的 64 个小写十六进制数字及此数据类型 IRI。另行保留确切输入字节的身份；不要进行规范化、添加算法标签前缀，也不要从类型化字面量推断已经验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "此声明规定带算法身份的摘要值及其词法形式；它不安装数据类型解析器、不计算哈希，也不验证制品字节。原生 RDF 传输可以不解释其值而保留该类型化字面量。使用 RDF sameTerm 比较提供的字面量，同时保留词法形式和数据类型 IRI；不声明其与 xsd:string、xsd:hexBinary 或其他算法数据类型相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
+msgstr "所提供的 \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest 这样的字面量保留 SHA-256 的身份，即使另一种算法的字面量具有相同的十六进制写法。"
