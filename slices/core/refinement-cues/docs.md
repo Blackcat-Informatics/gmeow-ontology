@@ -212,3 +212,91 @@ authenticate substring offsets, or prove external inventory completeness. A
 selected operation requiring those capabilities must supply them or fail
 explicitly; a successful declaration check cannot replace them (Principles 4,
 9, 11 and 17).
+
+## Selected grounding rules and operational records
+
+`GroundingRuleSet` names a nonempty collection of actual `logic:Rule` members
+through `groundingRule`. These carry native RDF 1.2 reified heads and positive
+or negative body atoms, not prose-only instructions. A cue may select at most
+one set through `cueGrounding`; it is not required to select a set. The selected
+operation must compile and evaluate every required member or fail explicitly.
+Set membership is not execution, and a set is not a `ReasoningProgram`, whose
+query, evaluation mode and sorted-variable contracts remain separate.
+
+Rule declarations can be loaded globally. Each rule of the supplied
+`operationalCueGrounding` policy therefore positively checks both its own
+`groundingRule` membership and `groundingSelectedBy(set, reader)` before
+deriving anything. This separate selection input does not grant authority or
+claim that execution occurred. `cueGroundingReader` identifies the actual reader
+of a match whose cue declares a grounding set, with a local maximum of one.
+Unrelated matches acquire no unconditional reader requirement. Keep separate
+reports for independently grounded readings of the same source occurrence.
+
+The reader supplies `machineryAdmittedBy` only for actual operational-record
+admissions. Preserve its standpoint and statement provenance separately from
+source authorship. An attempt can be human; an event kind, a SoftwareAgent type
+or a `derivedBy` assertion cannot supply admission or identify an author.
+The declared policy derives `machineryForReader(record, reader)` only through
+these finite relation choices:
+
+| Rule family | Required source and admission |
+| --- | --- |
+| Attempt root | An actual Event with `eventTypeAttempt` and explicit admission. |
+| Intention-transition roots | An actual Event with one of the five agency transition kinds, an actual `intentionTransitionOf` Intention and explicit admission. |
+| Event descendants | `subEventOf` to a reader-specific machinery Event, with the same reader's admission at both ends. |
+| Generated information records | An InformationObject with `wasGeneratedBy` a reader-specific machinery Activity, with the same reader's admission at both ends. |
+
+`subEventOf` is transitive: a descendant may be nested several containment
+levels below an admitted root. The finite policy selects relation kinds, not a
+single physical hop. `used`, `readArtifact`, `receiptArtifact`, `wasDerivedFrom`
+and `derivedBy` do not propagate the role. Even an actual generated output needs
+its own admission, preserving human-authored drafts and original source words.
+Tool calls and operation receipts remain activities, not information objects.
+`logic:EffectAttempt` is an externally dispatched enactment record and is not
+a substitute for the agency owner's prose attempt event.
+
+`MachineryRecord` is a cross-kind Mixin. A separate rule can publish that unary
+type from derived reader-specific state, but no recurrence or negative grounding
+guard reads the unary type. Both propagation and exclusion retain the same
+reader coordinate, so one reader's classification cannot decide another's
+result even when their facts coexist. Select the actual input world and the
+reader's operation facts before evaluation; do not union independent worlds
+or different policy evaluations and present them as one completed reading.
+Retain or derive the owning Event, Activity, Intention and InformationObject
+type facts required by these rules. A graph-free evaluator does not acquire
+ontology closure merely by receiving a ToolCall type. If a selected operation
+needs that closure and cannot supply it, fail explicitly before the negative
+stratum rather than silently treating an unclassified record as eligible.
+
+The final policy rule binds the match's actual cue, source record, field and
+reader, together with the cue's active selected set. After positive machinery
+closure, it derives `cueGrounded(match, cue)` when that same reader's machinery
+state is absent from the completed selected interpretation. This is eligibility
+under this specific exclusion policy, not proof of human authorship or a verdict
+about the speaker. Other policies may supply other real grounding rules. The
+derivation does not change suppression, evidence polarity or source text.
+
+`cueGrounded` and `machineryForReader` are derived outputs, never source inputs;
+unary `MachineryRecord` publication likewise belongs to the derived result.
+Keep source facts and derivations distinct and retain selected set, reader and
+world evidence. A reported `matchGrounding` value does not itself derive
+`cueGrounded`. The binding law checks an actual grounded fact against the same
+matched cue, selected reader/set and reported held outcome. Ordinary union-graph
+integrity cannot authenticate source-versus-derived origin or execution
+completion; no such admission checker or executor is introduced here.
+
+Required membership, local cue/reader maxima, real reifier evidence and closed
+set fields are canonical declaration contracts. The existing closed cue and
+match records admit their grounding fields, and closed records admit explicit
+operational admission/state metadata. Full AST validity, supported rule
+capabilities, stratification and complete selected evaluation remain with the
+canonical compiler and selected native operation. Missing inputs, capabilities
+or incomplete evaluation must fail rather than turn silence into a negative.
+
+The [ordinary selected-grounding scene](examples/selected-grounding.ttl) retains
+an unadmitted human attempt, an admitted operational attempt and tool call, an
+input read and two differently admitted outputs. It preserves the writer and
+original literals and records two illustrative match outcomes. It asserts no
+derived machinery or grounded fact and claims no executed evaluation. Existing
+released cue payloads remain unchanged; no input artifact identity or digest is
+fabricated (Principles 4, 9, 11, 17 and 19).
