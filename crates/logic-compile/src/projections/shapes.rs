@@ -1792,7 +1792,7 @@ fn aggregate_balance_select(bal: &AggregateBalance) -> String {
 fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     crate::relational_core::admit_component_constraint(c).map_err(|gap| {
         proj_err(format!(
-            "component identity constraint <{}> failed bound integrity admission: {}",
+            "constraint <{}> failed bound integrity admission: {}",
             c.iri,
             gap.as_str()
         ))

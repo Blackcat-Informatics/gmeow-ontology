@@ -368,3 +368,57 @@ literals and supported consequent patterns share one typed test. Its recorded
 truth is the violation body's required truth, so it bypasses the older
 dimension-consequent inversion. Plan identity includes both complete operands,
 both selectors and polarity. Regex syntax and execution are unchanged.
+
+## Positive existential integrity joins
+
+Only a law whose integrity carries `termSameComponent` selects this native
+joined-support profile. Its consequent may require a positive existential
+conjunction whose only free variable is the law's focus. The conjunction reads
+existing binary source relations and may test already-bound operands with
+`termSameComponent`. It neither creates a domain witness nor binds an output
+through a component accessor. An existential ending in one atom retains the
+existing lowering. Nonidentity laws retain their prior native lowering residue
+and their existing SPARQL-supported source fragment; they are not subjected to
+this profile's extra projection admission.
+
+The joined profile requires the focus to be bound by a positive stored relation
+inside the witness pattern. Every variable operand of a component comparison
+must also have a positive stored binding there. The only permitted correlation
+with the enclosing law is the focus itself. Wider correlation is refused with
+`existential-support-requires-focus-only-correlation`. Existential binder names
+must be fresh throughout the selected law: every existential, including an
+enclosing guard, is checked against all source names outside its own subtree,
+including enclosing and sibling binders and variable occurrences. Reused or
+shadowing names are refused with
+`existential-support-requires-fresh-binder-names`. This narrow naming boundary
+keeps the existing SPARQL existential projection faithful while the native
+collector retains its capture-avoiding renaming. Negated component tests are
+boolean filters; negated stored patterns, disjunctions, universal alternation,
+other intrinsic operations and nonbinary stored atoms are outside this joined
+profile. Support-pattern admission uses the existing interpreted-relation
+classifier also used by the Datalog projection. A value-set filter, selection
+marker or other unsupported intrinsic therefore cannot become a stored binary
+join. These refusals are explicit lowering residue, never weaker success.
+
+The native lowering creates a private positive support rule for the admitted
+join. Its head records satisfaction for the original focus and source law;
+it does not mint an RDF witness. The final violation rule probes absence of
+that satisfaction row using the existing stratified negation machinery. The
+private predicate identity is derived from the framed source law IRI, formula
+position and complete typed pattern key. The public failure-class marker and
+`violatedLaw` provenance remain those of the authored law.
+
+Support rules have their own prepared inventory and are excluded from final
+marker counts and violation-head collision checks. Both inventories contribute
+their read predicates to source promotion and run in one ordinary native
+stratified execution. Input assertions and preexisting derived closure rows
+using the reserved support predicate namespace are refused before promotion,
+so a counterfeit satisfaction fact cannot suppress an obligation. Support rows
+exist only inside that transient execution and are not published as violations.
+
+SPARQL continues to render the admitted existential as a correlated
+`FILTER NOT EXISTS` over the positive join and bound filters. Before rendering,
+it uses the same focus, operand and binder admission as native lowering,
+without requiring or fabricating a failure class. This adds no general
+expression evaluator, endpoint index, new Formula syntax or alternate engine
+(Principles 4, 17 and 19).

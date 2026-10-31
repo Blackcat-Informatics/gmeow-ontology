@@ -24,7 +24,7 @@ pub(super) fn lower(
             .map(str::to_owned),
     );
     let mut used = bound.clone();
-    collect_names(head, &mut used);
+    collect_names(head, &mut used, None);
     let mut lowering = Head {
         bound,
         used,
