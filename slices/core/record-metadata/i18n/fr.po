@@ -802,3 +802,33 @@ msgstr "L’abaissement des métadonnées d’énoncé doit être achevé. Le co
 msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
 msgstr "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stated rationale"
+msgstr "justification déclarée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source's verbatim stated reason for the record or claim bearing it. The wording is an attributed explanation, not a computed cause, independently verified fact or proof that the explanation is true."
+msgstr "Raison déclarée textuellement par une source pour l’enregistrement ou l’énoncé qui la porte. La formulation est une explication attribuée, non une cause calculée, un fait vérifié indépendamment ou une preuve de sa véracité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a reason on an event, information record or exact statement reifier without a narrower applicable rationale relation."
+msgstr "À employer lorsqu’une source fournit une raison sur un événement, un enregistrement informationnel ou un réificateur d’énoncé exact sans relation de justification plus précise applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an unstated reason, converting explanation text into causation or forcing its bearer into Entity through description."
+msgstr "Éviter d’inventer une raison non déclarée, de convertir une explication en causalité ou de forcer son porteur dans Entity par description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve exact text and supplied language or RDF 1.2 base direction. Keep writer and standpoint attribution on the original statement when supplied; specialized rationale statements retain their own source identity."
+msgstr "Conserver le texte exact et la langue ou direction de base RDF 1.2 fournie. Garder l’attribution du rédacteur et du point de vue sur l’énoncé original lorsqu’elle est fournie ; les justifications spécialisées conservent leur identité source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property has no domain or description superproperty and is nonfunctional. Untagged source strings and competing attributed explanations remain valid; an inferred general rationale is not a newly authored source assertion."
+msgstr "La propriété n’a ni domaine ni superpropriété description et n’est pas fonctionnelle. Les chaînes source sans langue et explications attribuées concurrentes restent valides ; une justification générale déduite n’est pas une nouvelle assertion source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+msgstr "Un événement conserve sa raison déclarée : ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."

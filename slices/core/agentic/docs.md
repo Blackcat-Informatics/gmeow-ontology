@@ -162,3 +162,11 @@ extension. The extension's ordinary
 [`goal-attempt-satisfaction.ttl`](../../extensions/dreaming/examples/goal-attempt-satisfaction.ttl)
 scene shows the message alongside a dream-derived request, a separate
 intention and source-attributed goal-evaluation evidence.
+
+## A general path for stated rationale
+
+resolutionRationale specializes core record-metadata's statedRationale while
+retaining its AttentionResolution Event domain. General record reasons use
+statedRationale directly. Neither path proves a cause or turns its Event into
+an Entity through description. Source attribution belongs to the original
+statement, including when the general relation is inferred from specialization.

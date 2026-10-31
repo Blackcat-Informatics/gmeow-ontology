@@ -144,3 +144,22 @@ reuse the existing AI-owned code-point span properties without a reverse
 dependency from record metadata to AI.
 The [ordinary intake scene](../ai/examples/record-intake.ttl) brings all seven surfaces
 together as source declarations, without claiming execution.
+
+## Stated reasons on records and claims
+
+statedRationale preserves a source's verbatim reason on an event, information
+record or exact statement reifier. It has no domain and no description
+superproperty, so an Event is not turned into an enduring Entity merely to
+retain its reason. Untagged strings, supplied language and RDF 1.2 base
+direction remain intact; no language or explanation is guessed.
+
+Several attributed reasons can coexist. Keep the actual writer and standpoint
+on their exact native statements when supplied. A reason is not a computed
+cause or independently verified fact. resolutionRationale specializes this
+relation for an AttentionResolution and keeps that narrower domain.
+Its inferred general edge is not a new assertion by the source; no mandatory
+reifier is demanded for an inferred edge.
+
+The [ordinary operation account](../agency-records/examples/stated-reasons-and-operation-reports.ttl)
+keeps a record's rationale, an event's rationale and the source's competing
+operation reports separate.

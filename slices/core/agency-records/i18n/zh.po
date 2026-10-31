@@ -4593,6 +4593,36 @@ msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapRe
 msgid "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
 msgstr "将事件分类为“梦境阶段轮次上限跟踪”：ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
 
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt operation complete as reported"
+msgstr "回执所报操作完成"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer-reported boolean that the operation represented by an ArtifactOperationReceipt completed or remained incomplete. It concerns that operation, independently of artifact content completeness, invocation outcome, goal satisfaction, receipt-document coverage and verification."
+msgstr "生产者报告的布尔值，表示 ArtifactOperationReceipt 所代表的操作已完成或仍不完整。它涉及该操作，独立于制品内容完整性、调用结果、目标满足、回执文档覆盖及验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an explicitly supplied operation-completion bit on the actual artifact-operation receipt occurrence."
+msgstr "仅用于实际制品操作回执事件上明确提供的操作完成标志。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting an absent bit to false or true, deriving it from errors or outcomes, or moving it onto the artifact or a proof receipt."
+msgstr "避免将缺失标志默认为 false 或 true、从错误或结果推导该值，或将它移到制品或证明回执上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:boolean on ArtifactOperationReceipt with its actual receiptOperation, receiptArtifact and containing attempt or ToolCall. Attribute the exact boolean statement to its reporting source; retain readArtifact for an actual read."
+msgstr "将已提供 xsd:boolean 保留在 ArtifactOperationReceipt 上，连同实际 receiptOperation、receiptArtifact 及所属尝试或 ToolCall。将精确布尔陈述归属于报告来源；实际读取保留 readArtifact。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The field is optional and nonfunctional: missing remains unknown and differently attributed true/false reports may coexist. A complete reported write can leave an unfinished artifact; neither value establishes success, rollback, read-back proof or complete receipt contents."
+msgstr "字段可缺省且非函数性：缺失保持未知，不同归属的 true/false 报告可并存。报告已完成的写入可以留下未完成制品；任一值都不证明成功、回滚、读回证明或回执内容完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operation report keeps the supplied bit: ex:receipt gmeow:receiptOperationComplete true ."
+msgstr "操作报告保留已提供标志：ex:receipt gmeow:receiptOperationComplete true ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Demand Kind"
 msgstr "需求种类"

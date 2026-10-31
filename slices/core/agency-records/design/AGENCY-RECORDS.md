@@ -52,9 +52,19 @@ booleans. Digest roles reuse the existing algorithm-labelled literal convention;
 no custom digest datatype or provider is introduced.
 
 A receipt is an actual subordinate activity occurrence, not a free-floating claim
-of success. `artifactComplete` expresses the originally requested artifact bit.
-The ambiguous local name `receiptComplete` is handled by an explicit semantic
-migration, not by inventing a second completeness axis.
+of success. `artifactComplete` expresses content completeness of the identified
+artifact. `receiptOperationComplete` separately preserves the producer's boolean
+report about the operation represented by ArtifactOperationReceipt. Its named
+domain and xsd:boolean range have a property-global closed-world reading for
+supplied values, without requiring the field on every receipt or making it
+functional. Existing receipt operation, artifact, parent and read-target laws
+continue to apply; no new receipt class or duplicate integrity law is needed.
+
+Migrate a local `receiptComplete` only after distinguishing these meanings.
+Completeness of a receipt document, proof discharge, invocation outcome, tool
+outcome and goal satisfaction remain different assertions. No status, error,
+absence or artifact bit computes the reported operation bit, and that bit
+produces no artifact-completeness or verification inference.
 
 ## Verification and byte identity
 
@@ -136,6 +146,22 @@ source identities. Property-global ClosedWorldClosure entries explicitly opt
 the supplied domain/range readings into validation; they impose no universal
 presence requirement. All laws and property semantics stay in logic:, with no
 hand-authored shape or external equivalence assertion (Principles 17 and 19).
+
+## RDF consumers and API limits
+
+These fields add ontology vocabulary, not a new custom receipt or claim API.
+The existing generic MCP query_local path parses the caller's declared RDF
+format, and its query-result envelope delegates RDF term transport to PurRDF,
+including typed booleans, language, base direction and native triple terms.
+That source path has no per-field rationale or completion allowlist.
+
+The fixed store_claim input and store_segment Claim/ToolCall DTO export do not
+gain these fields from an ontology change. No support for those fields through
+that API, automatic local-field migration or adoption by an unseen downstream
+adapter is claimed. Existing proof and pipeline receipt serializers retain
+their own contracts; their completeness or execution status is not repurposed
+as this producer-reported operation bit. Consumer source inspection establishes
+the available generic RDF path, not executed downstream qualification.
 
 ## Creature interactions reuse mental modes and events
 
