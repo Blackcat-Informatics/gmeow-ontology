@@ -291,7 +291,8 @@ fn minted_attestations_satisfy_the_assertional_contract() {
         "https://blackcatinformatics.ca/gmeow/agent/release-lane",
         "2026-06-25T00:00:00Z",
         "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
-    );
+    )
+    .expect("mint typed evidence attestations");
 
     // The bundle supplies `gmeow:boxABox a gmeow:GraphBoxRole` from the kernel
     // slice; add it here so the role-typing check has its declaration.
@@ -369,8 +370,13 @@ fn round_trip_carries_signature_attestations_and_blobs() {
     //          the original base graph survived the replay.
     for digest in &digests {
         assert!(
-            nquads.contains(digest),
-            "evidence digest {digest} must appear as a gmeow:contentDigest"
+            nquads.contains(&format!(
+                "\"{}\"^^<{BLAKE3_256_DIGEST}>",
+                digest
+                    .strip_prefix("blake3:")
+                    .expect("computed blob address")
+            )),
+            "evidence digest {digest} must appear as a typed gmeow:contentDigest"
         );
     }
     assert!(
@@ -544,8 +550,13 @@ fn evidence_colliding_with_committed_blob_is_not_double_folded() {
             "blob {digest} must be recoverable from the bundle"
         );
         assert!(
-            nquads.contains(digest.as_str()),
-            "attestation envelope must bind {digest} by gmeow:contentDigest"
+            nquads.contains(&format!(
+                "\"{}\"^^<{BLAKE3_256_DIGEST}>",
+                digest
+                    .strip_prefix("blake3:")
+                    .expect("computed blob address")
+            )),
+            "attestation envelope must bind {digest} by typed gmeow:contentDigest"
         );
     }
     // The colliding artifact keeps the COMMITTED rep (the twin was suppressed).
@@ -837,16 +848,26 @@ fn release_fold_attests_the_packed_docs_artifacts() {
         "a documentation-artifact attestation must be minted for the packed docs"
     );
     assert!(
-        nquads.contains(&print_digest),
-        "the docs-print archive must be bound by gmeow:contentDigest {print_digest}"
+        nquads.contains(&format!(
+            "\"{}\"^^<{BLAKE3_256_DIGEST}>",
+            print_digest
+                .strip_prefix("blake3:")
+                .expect("computed archive address")
+        )),
+        "the docs-print archive must be bound by typed gmeow:contentDigest {print_digest}"
     );
     assert!(
         nquads.contains("\"application/pdf\""),
         "the compiled gmeow.pdf must carry its own application/pdf attestation"
     );
     assert!(
-        nquads.contains(&pdf_digest),
-        "the compiled gmeow.pdf bytes must be bound by gmeow:contentDigest {pdf_digest} \
+        nquads.contains(&format!(
+            "\"{}\"^^<{BLAKE3_256_DIGEST}>",
+            pdf_digest
+                .strip_prefix("blake3:")
+                .expect("computed PDF address")
+        )),
+        "the compiled gmeow.pdf bytes must be bound by typed gmeow:contentDigest {pdf_digest} \
              (distinct from the archive-level digest {print_digest})"
     );
     assert_ne!(
@@ -899,7 +920,8 @@ fn verify_rejects_docs_attestation_without_backing_blob() {
         "https://blackcatinformatics.ca/gmeow/agent/release-lane",
         "2026-06-25T00:00:00Z",
         "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
-    );
+    )
+    .expect("mint typed evidence attestations");
     let att = parse_dataset(nq.as_bytes(), "application/n-quads", None).expect("parse att");
     builder.add_dataset(&att).expect("add att");
 

@@ -53,6 +53,7 @@ pub use gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
 
 use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+const BLAKE3_256_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/blake3_256Digest";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
@@ -154,7 +155,7 @@ pub fn fold_release_bundle(
     sorted.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.rep.cmp(&b.1.rep)));
 
     let attestations_nq =
-        build_attestations_nquads(&sorted, attester_iri, issued_at, release_subject_iri);
+        build_attestations_nquads(&sorted, attester_iri, issued_at, release_subject_iri)?;
     let att_dataset = parse_dataset(
         attestations_nq.as_bytes(),
         NativeRdfFormat::NQuads.media_type(),
@@ -427,10 +428,39 @@ pub fn verify_release_bundle(
             {
                 saw_manifest = true;
             }
-        } else if q.predicate == content_digest_pred
-            && let RdfTerm::Literal(lit) = &q.object
-        {
-            digests.push(lit.lexical_form.clone());
+        } else if q.predicate == content_digest_pred {
+            let RdfTerm::Literal(lit) = &q.object else {
+                return Err(Diag::of_kind(Release {
+                    message: format!(
+                        "release contentDigest on {} requires a typed BLAKE3-256 literal",
+                        q.subject
+                    ),
+                }));
+            };
+            if lit.datatype_iri() != BLAKE3_256_DIGEST
+                || lit.language.is_some()
+                || lit.direction.is_some()
+            {
+                return Err(Diag::of_kind(Release {
+                    message: format!(
+                        "release contentDigest on {} requires datatype <{BLAKE3_256_DIGEST}> \
+                         without language or direction",
+                        q.subject
+                    ),
+                }));
+            }
+            if !valid_blake3_hex(&lit.lexical_form) {
+                return Err(Diag::of_kind(Release {
+                    message: format!(
+                        "release contentDigest on {} requires exactly 64 lowercase \
+                         hexadecimal digits without a prefix",
+                        q.subject
+                    ),
+                }));
+            }
+            // The validated RDF literal names bytes; the blob channel retains its
+            // existing prefixed internal address without changing its wire identity.
+            digests.push(format!("blake3:{}", lit.lexical_form));
         }
     }
 
@@ -671,7 +701,7 @@ fn build_attestations_nquads(
     attester_iri: &str,
     issued_at: &str,
     release_subject_iri: &str,
-) -> String {
+) -> gmeow_errors::Result<String> {
     let g = format!("<{GRAPH_ATTESTATIONS}>");
     let mut lines: Vec<String> = Vec::new();
 
@@ -750,7 +780,12 @@ fn build_attestations_nquads(
             &gmeow("artifactMediaType"),
             &literal(&ev.media_type),
         );
-        quad(&artifact, &gmeow("contentDigest"), &literal(digest));
+        let digest_literal = purrdf::RdfTerm::literal(artifact_digest_literal(digest)?);
+        quad(
+            &artifact,
+            &gmeow("contentDigest"),
+            &digest_literal.to_string(),
+        );
         // Always carry a label: the evidence's own subject label when present,
         // else a content-derived fallback, so the artifact is never an
         // under-specified A-Box subject.
@@ -791,13 +826,38 @@ fn build_attestations_nquads(
     }
 
     if lines.is_empty() {
-        String::new()
+        Ok(String::new())
     } else {
         // Sort for byte-stability independent of authoring order; the builder
         // re-sorts by content anyway, but a stable text keeps the parse cheap.
         lines.sort();
-        format!("{}\n", lines.join("\n"))
+        Ok(format!("{}\n", lines.join("\n")))
     }
+}
+
+/// The lexical contract of the selected release digest datatype.
+fn valid_blake3_hex(lexical: &str) -> bool {
+    lexical.len() == 64
+        && lexical
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+}
+
+/// Convert an internally computed blob address to its native RDF digest literal.
+fn artifact_digest_literal(digest: &str) -> gmeow_errors::Result<purrdf::RdfLiteral> {
+    let Some(hex) = digest.strip_prefix("blake3:") else {
+        return Err(Diag::of_kind(Release {
+            message: "release evidence has no blake3: internal blob-address prefix".to_owned(),
+        }));
+    };
+    if !valid_blake3_hex(hex) {
+        return Err(Diag::of_kind(Release {
+            message:
+                "release evidence blob address requires exactly 64 lowercase hexadecimal digits"
+                    .to_owned(),
+        }));
+    }
+    Ok(purrdf::RdfLiteral::typed(hex, BLAKE3_256_DIGEST))
 }
 
 /// Resolve an evidence row's `attestation_type` into a full IRI. A value that is
