@@ -21,7 +21,7 @@ fn axis(local: &str, weight: f64) -> Axis {
         thresholds: vec![],
         weight,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

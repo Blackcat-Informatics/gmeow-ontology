@@ -17,7 +17,7 @@ use crate::diag::{
 };
 use crate::{
     DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule,
-    Severity, Standpoint,
+    Severity, SourceAnnotation, Standpoint,
 };
 
 /// The existing persistent decoder permits 256 nested containers. For this
@@ -404,6 +404,91 @@ fn read_report(value: &Value) -> Result<Report, DiagnosticCborError> {
     })
 }
 
+fn write_source_annotation<W: Write + ?Sized>(
+    annotation: &SourceAnnotation,
+    out: &mut W,
+) -> io::Result<()> {
+    head::write_head(out, head::MAP, 3)?;
+    head::write_text(out, "subject")?;
+    head::write_text(out, annotation.subject().as_str())?;
+    head::write_text(out, "predicate")?;
+    head::write_text(out, annotation.predicate().as_str())?;
+    head::write_text(out, "object")?;
+    head::write_head(out, head::MAP, 4)?;
+    head::write_text(out, "lexical_form")?;
+    head::write_text(out, &annotation.object().lexical_form)?;
+    for (name, value) in [
+        ("datatype", annotation.object().datatype.as_deref()),
+        ("language", annotation.object().language.as_deref()),
+        (
+            "direction",
+            annotation
+                .object()
+                .direction
+                .map(|direction| direction.as_str()),
+        ),
+    ] {
+        head::write_text(out, name)?;
+        match value {
+            Some(text) => head::write_text(out, text)?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+    }
+    Ok(())
+}
+
+/// Admit each closed source-statement record before reading its required fields.
+fn source_fields<'a>(
+    value: &'a Value,
+    expected: &[&str],
+) -> Result<BTreeMap<&'a str, &'a Value>, DiagnosticCborError> {
+    let mut fields = BTreeMap::new();
+    for (key, value) in read_map(value)? {
+        let key = read_text(key)?;
+        if !expected.contains(&key) {
+            return Err(DiagnosticCborError::invalid(format!(
+                "unknown source annotation field {key}"
+            )));
+        }
+        if fields.insert(key, value).is_some() {
+            return Err(DiagnosticCborError::invalid(format!(
+                "duplicate source annotation field {key}"
+            )));
+        }
+    }
+    for key in expected {
+        if !fields.contains_key(key) {
+            return Err(DiagnosticCborError::invalid(format!(
+                "missing source annotation field {key}"
+            )));
+        }
+    }
+    Ok(fields)
+}
+
+fn read_source_annotation(value: &Value) -> Result<SourceAnnotation, DiagnosticCborError> {
+    let fields = source_fields(value, &["subject", "predicate", "object"])?;
+    let literal = source_fields(
+        fields["object"],
+        &["lexical_form", "datatype", "language", "direction"],
+    )?;
+    let optional = |key: &str| match literal[key] {
+        Value::Null => Ok(None),
+        value => read_text(value).map(|text| Some(text.to_owned())),
+    };
+    let wire = crate::model::SourceAnnotationWire {
+        subject: read_text(fields["subject"])?.to_owned(),
+        predicate: read_text(fields["predicate"])?.to_owned(),
+        object: crate::model::SourceLiteralWire {
+            lexical_form: read_text(literal["lexical_form"])?.to_owned(),
+            datatype: optional("datatype")?,
+            language: optional("language")?,
+            direction: optional("direction")?,
+        },
+    };
+    wire.try_into().map_err(DiagnosticCborError::invalid)
+}
+
 impl Finding {
     /// Stream the complete Finding in its original sparse declaration order.
     ///
@@ -411,6 +496,7 @@ impl Finding {
     /// Returns the sink's original failure without reporting partial success.
     fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
         let length = 3_usize
+            + usize::from(!self.source_annotations.is_empty())
             + usize::from(self.source_graph.is_some())
             + usize::from(self.source_focus.is_some())
             + usize::from(self.tool.is_some())
@@ -444,6 +530,13 @@ impl Finding {
         head::write_text(out, &self.code)?;
         head::write_text(out, "message")?;
         head::write_text(out, &self.message)?;
+        if !self.source_annotations.is_empty() {
+            head::write_text(out, "source_annotations")?;
+            head::write_head(out, head::ARRAY, self.source_annotations.len() as u64)?;
+            for annotation in &self.source_annotations {
+                write_source_annotation(annotation, out)?;
+            }
+        }
         if let Some(value) = &self.source_graph {
             head::write_text(out, "source_graph")?;
             head::write_text(out, value.as_str())?;
@@ -599,6 +692,7 @@ fn read_finding(value: &Value) -> Result<Finding, DiagnosticCborError> {
     let mut severity = None;
     let mut code = None;
     let mut message = None;
+    let mut source_annotations = None;
     let mut source_graph = None;
     let mut source_focus = None;
     let mut tool = None;
@@ -650,6 +744,20 @@ fn read_finding(value: &Value) -> Result<Finding, DiagnosticCborError> {
                 message = Some(
                     (read_text(value).map(str::to_owned))
                         .map_err(|error| error.at("Finding.message"))?,
+                );
+            }
+            "source_annotations" => {
+                if source_annotations.is_some() {
+                    return Err(DiagnosticCborError::invalid(
+                        "duplicate Finding.source_annotations",
+                    ));
+                }
+                source_annotations = Some(
+                    read_array(value)?
+                        .iter()
+                        .map(read_source_annotation)
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|error| error.at("Finding.source_annotations"))?,
                 );
             }
             "source_graph" => {
@@ -1039,6 +1147,7 @@ fn read_finding(value: &Value) -> Result<Finding, DiagnosticCborError> {
             .ok_or_else(|| DiagnosticCborError::invalid("missing Finding.severity"))?,
         code: code.ok_or_else(|| DiagnosticCborError::invalid("missing Finding.code"))?,
         message: message.ok_or_else(|| DiagnosticCborError::invalid("missing Finding.message"))?,
+        source_annotations: source_annotations.unwrap_or_default(),
         source_graph: source_graph.unwrap_or_default(),
         source_focus: source_focus.unwrap_or_default(),
         tool: tool.unwrap_or_default(),

@@ -51,6 +51,7 @@ pub use ledger::{
     fingerprint_iri,
 };
 pub use model::{
-    DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule, Severity,
+    DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule,
+    Severity, SourceAnnotation,
 };
 pub use rdf::severity_from_rdf;

@@ -107,8 +107,8 @@ pub struct Axis {
     pub weight: f64,
     /// The read-breadth coeffect (`gmeow:axisContextScope`).
     pub scope: ContextScope,
-    /// The opinionated uplift advice (`gmeow:axisAdviceTemplate`).
-    pub advice: String,
+    /// All uplift advice literals (`gmeow:axisAdviceTemplate`), including language and direction.
+    pub advice: Vec<purrdf::RdfLiteral>,
 }
 
 /// A dated, self-cleaning exemption — a `gmeow:AxisExemption` individual.

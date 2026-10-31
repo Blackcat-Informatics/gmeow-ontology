@@ -35,7 +35,7 @@ fn mk_axis(producer: &str) -> crate::model::Axis {
         thresholds: vec![],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 
@@ -145,7 +145,7 @@ fn completeness_gate_reds_on_empty_exemption_reason() {
         }],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     };
     let rubric = Rubric {
         standard: MeasurementStandard {
@@ -368,7 +368,7 @@ fn co_axis(iri: &str) -> Axis {
         ],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

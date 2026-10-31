@@ -994,6 +994,8 @@ fn axis_floor_advisory_report(
     use gmeow_errors::{DiagLedger, StageId};
     let stage = StageId::new("slice-quality-gate");
     let mut ledger = DiagLedger::new();
+    let mut source_annotations =
+        std::collections::BTreeMap::<String, Vec<gmeow_errors::SourceAnnotation>>::new();
     // The fallback anchor when an advisory concerns no single documented term (an
     // axis-level advice template, a whole-catalog parse error): the failing cell
     // itself, so the witness still lands somewhere joinable rather than nowhere.
@@ -1048,9 +1050,30 @@ fn axis_floor_advisory_report(
         for term in &advisory.documented_terms {
             diag = diag.with_documented_term(term.clone());
         }
+        if !advisory.source_annotations.is_empty() {
+            let fingerprint = gmeow_errors::DiagFingerprint::compute(
+                &advisory.code,
+                diag.grade().category,
+                &diag.inner().source_ctx,
+            );
+            source_annotations
+                .entry(gmeow_errors::fingerprint_iri(&fingerprint))
+                .or_default()
+                .extend(advisory.source_annotations.iter().cloned());
+        }
         ledger.attach(diag, stage.clone());
     }
-    ledger.project_report("gmeow-dev").normalized()
+    let mut report = ledger.project_report("gmeow-dev");
+    for finding in &mut report.findings {
+        if let Some(annotations) = finding
+            .finding_iri
+            .as_ref()
+            .and_then(|iri| source_annotations.remove(iri))
+        {
+            finding.source_annotations.extend(annotations);
+        }
+    }
+    report.normalized()
 }
 
 /// The finding code every ACCEPTED relocation transfer is interned under.

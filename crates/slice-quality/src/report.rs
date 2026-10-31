@@ -585,7 +585,11 @@ fn score_with_context(
             continue;
         }
         let local = axis.iri.rsplit(['/', '#']).next().unwrap_or(&axis.iri);
-        let finding = if axis.advice.trim().is_empty() {
+        let mut finding = if !axis
+            .advice
+            .iter()
+            .any(|literal| !literal.lexical_form.trim().is_empty())
+        {
             // A deficient axis with an empty template is a latent rubric data gap.
             // Do not silently swallow it (hard-fail discipline): surface it as its
             // own visible advisory so the missing remediation text is caught and
@@ -599,9 +603,30 @@ fn score_with_context(
         } else {
             advisory(
                 "slice-quality.axis-advice",
-                format!("{local}: {}", axis.advice),
+                format!(
+                    "{local}: {}",
+                    axis.advice
+                        .iter()
+                        .map(|literal| literal.lexical_form.as_str())
+                        .collect::<Vec<_>>()
+                        .join("\n")
+                ),
             )
         };
+        finding.source_focus = Some(axis.iri.clone());
+        let subject = purrdf_core::BaseIri::parse(&axis.iri)?;
+        let predicate =
+            purrdf_core::BaseIri::parse("https://blackcatinformatics.ca/gmeow/axisAdviceTemplate")?;
+        for literal in &axis.advice {
+            finding.source_annotations.push(
+                gmeow_errors::SourceAnnotation::new(
+                    subject.clone(),
+                    predicate.clone(),
+                    literal.clone(),
+                )
+                .map_err(crate::rubric::rubric_err)?,
+            );
+        }
         templates.push((axis.iri.clone(), axis.weight, ADVICE_KIND_TEMPLATE, finding));
     }
     advisories.extend(templates);

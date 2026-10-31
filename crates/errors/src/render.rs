@@ -195,6 +195,29 @@ fn stable_fingerprint(finding: &Finding) -> String {
         hasher.update(graph.as_str().as_bytes());
     }
 
+    if !finding.source_annotations.is_empty() {
+        hasher.update(&[0x1b]);
+        let mut annotations: Vec<_> = finding.source_annotations.iter().collect();
+        annotations.sort_by(|a, b| a.sort_key().cmp(&b.sort_key()));
+        annotations.dedup_by(|a, b| a.sort_key() == b.sort_key());
+        for annotation in annotations {
+            let literal = annotation.object();
+            for part in [
+                annotation.subject().as_str(),
+                annotation.predicate().as_str(),
+                &literal.lexical_form,
+                literal.datatype_iri(),
+                literal.language.as_deref().unwrap_or(""),
+                literal
+                    .direction
+                    .map(|direction| direction.as_str())
+                    .unwrap_or(""),
+            ] {
+                hasher.update(&(part.len() as u64).to_be_bytes());
+                hasher.update(part.as_bytes());
+            }
+        }
+    }
     purrdf_hash::hex::encode(&hasher.finalize().as_bytes()[..8])
 }
 
@@ -962,6 +985,12 @@ fn sarif_result(finding: &Finding) -> Value {
     // slice attributions (§9 / S5). Uses a single json!() call so both fields
     // land in the same "properties" object.
     let mut props = serde_json::Map::new();
+    if !finding.source_annotations.is_empty() {
+        props.insert(
+            "gmeow.sourceAnnotations".to_owned(),
+            json!(finding.source_annotations),
+        );
+    }
     if let Some(graph) = &finding.source_graph {
         props.insert("gmeow.sourceGraph".to_owned(), json!(graph.as_str()));
     }
