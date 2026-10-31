@@ -348,9 +348,10 @@ fn native_fragment_coverage_every_family_reaches_exactly_one_pole_and_decides_li
     let surface = load_registry_surface();
     // Preserve the complete bidirectional registry proof: every pattern, fragment,
     // deciding pattern, bound, boundary and reason, with no extra source entries.
-    assert_eq!(
-        surface,
-        gmeow_logic::reason::native_fragment_registry(),
+    assert!(
+        surface
+            .matches_native_inventory(&gmeow_logic::reason::native_fragment_registry())
+            .unwrap(),
         "the authenticated authored registry must exactly match the native kernel"
     );
     assert!(!surface.decided_ids.contains("malformed-rdf-list"));
@@ -415,7 +416,11 @@ fn native_fragment_coverage_retained_boundaries_free_of_process_references() {
             continue;
         }
         match surface.boundary_reasons.get(*id) {
-            Some(reason) if !reason.trim().is_empty() => {}
+            Some(reasons)
+                if !reasons.is_empty()
+                    && reasons
+                        .iter()
+                        .all(|reason| !reason.object().lexical_form.trim().is_empty()) => {}
             _ => failures.push(format!(
                 "retained boundary {id:?} has no non-empty logic:fragmentBoundaryReason"
             )),
@@ -425,28 +430,35 @@ fn native_fragment_coverage_retained_boundaries_free_of_process_references() {
     // (2) No shipped technical characterization carries a process reference. The
     // boundary reasons are the acceptance-criterion target; the completeness bounds
     // are swept too, since they are the same class of shipped technical text.
-    for (id, reason) in &surface.boundary_reasons {
-        if let Some(pat) = process_reference(reason) {
-            failures.push(format!(
-                "boundary reason for {id:?} contains a process reference ({pat:?}) — technical \
-                 characterizations must be free of issue/PR references"
-            ));
+    for (id, values) in &surface.boundary_reasons {
+        for value in values {
+            if let Some(pat) = process_reference(&value.object().lexical_form) {
+                failures.push(format!(
+                    "boundary reason for {id:?} contains a process reference ({pat:?}) — technical \
+                     characterizations must be free of issue/PR references"
+                ));
+            }
         }
     }
-    for (id, bound) in &surface.completeness_bounds {
-        if let Some(pat) = process_reference(bound) {
-            failures.push(format!(
-                "completeness bound for {id:?} contains a process reference ({pat:?}) — technical \
-                 characterizations must be free of issue/PR references"
-            ));
+    for (id, values) in &surface.completeness_bounds {
+        for value in values {
+            if let Some(pat) = process_reference(&value.object().lexical_form) {
+                failures.push(format!(
+                    "completeness bound for {id:?} contains a process reference ({pat:?}) — technical \
+                     characterizations must be free of issue/PR references"
+                ));
+            }
         }
     }
 
-    for (id, requirement) in &surface.source_admission_requirements {
-        if requirement.trim().is_empty() || process_reference(requirement).is_some() {
-            failures.push(format!(
-                "source admission {id:?} requires a nonempty technical characterization"
-            ));
+    for (id, requirements) in &surface.source_admission_requirements {
+        for requirement in requirements {
+            let lexical = &requirement.object().lexical_form;
+            if lexical.trim().is_empty() || process_reference(lexical).is_some() {
+                failures.push(format!(
+                    "source admission {id:?} requires a nonempty technical characterization"
+                ));
+            }
         }
     }
 

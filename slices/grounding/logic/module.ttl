@@ -17553,7 +17553,7 @@ logic:fragmentCompletenessBound
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "fragment completeness bound"@x-gmeow-english ;
     rdfs:domain logic:DecidedFragment ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The technical completeness bound of a logic:DecidedFragment: the precise fragment characterization under which the kernel's decision is complete, free of any process reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17561,7 +17561,7 @@ logic:fragmentBoundaryReason
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "fragment boundary reason"@x-gmeow-english ;
-    logic:range [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The technical reason a retained-withhold record lies outside the certified-complete refutation fragment: the construct the kernel deliberately does not decide and why, free of any process reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -17583,7 +17583,7 @@ logic:sourceAdmissionRequirement
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:domain logic:SourceAdmissionContract ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     rdfs:label "source admission requirement"@x-gmeow-english ;
     skos:definition "The exact technical source-selection boundary and grammar requirement of a source admission contract."@x-gmeow-english ;
     gmeow:useWhen "Use to publish the selected source grammar beside the native semantic capability inventory."@x-gmeow-english ;
