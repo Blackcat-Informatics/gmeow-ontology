@@ -1986,3 +1986,149 @@ msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni ré
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcSpecificNextRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Record the supplied reading: gmeow:ArcSpecificNextRecordConstraint logic:formalizes gmeow:arcNextRecord ."
 msgstr "Conserver la lecture fournie : gmeow:ArcSpecificNextRecordConstraint logic:formalizes gmeow:arcNextRecord ."
+
+# Story-building and witness-purpose vocabulary.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "accepted as story"
+msgstr "accepté comme récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a proposed story candidate to the story a person accepted it as. The acceptance is that person's attributed claim, not the storyteller's authority or a preferred story shared by every reader."
+msgstr "Relie une proposition de récit au récit qu’une personne a accepté d’y voir. L’acceptation est une affirmation attribuée à cette personne, non l’autorité du conteur ni un récit privilégié commun à tous les lecteurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The attribution laws inspect completed statement-metadata lowering. They neither authenticate the acceptor nor turn quotation into an asserted fact."
+msgstr "Les lois d’attribution examinent l’abaissement achevé des métadonnées d’énoncé. Elles n’authentifient pas la personne et ne transforment pas une citation en fait affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acceptedAsStory|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:candidate gmeow:acceptedAsStory ex:story ."
+msgstr "ex:candidate gmeow:acceptedAsStory ex:story ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story focus"
+msgstr "centre du récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A person's original name or phrase for what a story is to gather around. It can initiate gathering without a proposed candidate and does not itself assert acceptance or a completed story."
+msgstr "Le nom ou la phrase d’origine qu’une personne donne au sujet autour duquel rassembler un récit. Peut amorcer le rassemblement sans candidat proposé et n’affirme ni acceptation ni récit achevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several attributed focuses and wordings may coexist. Neither a candidate nor an acceptance link is required by this property."
+msgstr "Plusieurs centres et formulations attribués peuvent coexister. Cette propriété n’exige ni candidat ni lien d’acceptation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyFocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:story gmeow:storyFocus \"The crossing\"@en ."
+msgstr "ex:story gmeow:storyFocus \"La traversée\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyGathered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story gathered"
+msgstr "récit rassemblé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyGathered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a story to the activity reported to have completed its gathering, recorded after the selected members have been written. The members themselves remain explicit parts of the curated collection."
+msgstr "Relie un récit à l’activité déclarée avoir achevé son rassemblement, consignée après l’écriture des membres sélectionnés. Les membres eux-mêmes restent des parties explicites de la collection organisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyGathered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks the supplied completed-activity boundary. It cannot certify transaction order, enumerate unknown members or prove global completeness; no minimum member count is imposed."
+msgstr "La règle vérifie la borne d’activité achevée fournie. Elle ne certifie ni ordre des transactions, ni énumération des membres inconnus, ni complétude globale ; aucun nombre minimal de membres n’est imposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyGathered|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:story gmeow:storyGathered ex:gathering ."
+msgstr "ex:story gmeow:storyGathered ex:gathering ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyStructured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "story structured"
+msgstr "récit structuré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyStructured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a gathered story to the activity reported to have completed its structuring, recorded after its supplied events, narrative seams and citations have been written."
+msgstr "Relie un récit rassemblé à l’activité déclarée avoir achevé sa structuration, consignée après l’écriture des événements, liens narratifs et citations fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyStructured|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The prerequisite law checks the same story's gathered marker and the structuring activity's boundary. It does not certify write order, generate missing structure or impose a universal beat pattern."
+msgstr "La règle de préalable vérifie le marqueur de rassemblement du même récit et la borne de l’activité de structuration. Elle ne certifie pas l’ordre d’écriture, ne génère pas de structure manquante et n’impose pas de trame universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/storyStructured|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:story gmeow:storyStructured ex:structuring ."
+msgstr "ex:story gmeow:storyStructured ex:structuring ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollection cue"
+msgstr "indice de remémoration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source word or short phrase by which a later remembrance may recall an event of a story, including the event's short name. It retains a possible recall handle rather than a successful retrieval or a preferred event name."
+msgstr "Un mot ou une courte phrase source par lesquels un souvenir ultérieur peut rappeler un événement d’un récit, notamment son nom court. Conserve un indice possible de rappel, non une recherche réussie ni un nom d’événement privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several cues, names and standpoints coexist. This property does not execute the refinement-cue matcher or assert that any cue matched."
+msgstr "Plusieurs indices, noms et points de vue coexistent. Cette propriété n’exécute pas le moteur de correspondance des indices de raffinement et n’affirme aucune correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:event gmeow:recollectionCue \"Bridge crossing\"@en ."
+msgstr "ex:event gmeow:recollectionCue \"Traversée du pont\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryAcceptanceAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Story acceptance attribution constraint"
+msgstr "Contrainte d’attribution de l’acceptation du récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every asserted acceptedAsStory link retains an exact matching statement reifier attributed to an accepting Person."
+msgstr "Chaque lien acceptedAsStory affirmé conserve un réificateur d’énoncé correspondant exactement et attribué à une Person qui accepte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering supplies the statement components; this checks attribution binding, not authenticity or a preferred acceptance."
+msgstr "L’abaissement achevé des métadonnées d’énoncé fournit les composants ; la vérification porte sur la liaison d’attribution, non l’authenticité ou une acceptation privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."
+msgstr "gmeow:StoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuotedStoryAcceptanceAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quoted story acceptance attribution constraint"
+msgstr "Contrainte d’attribution de l’acceptation citée du récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuotedStoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit statement reifier describing acceptedAsStory retains its candidate and story components and an attribution to the accepting Person, even when the quoted acceptance is not asserted."
+msgstr "Un réificateur explicite d’énoncé décrivant acceptedAsStory conserve ses composants candidat et récit ainsi qu’une attribution à la Person qui accepte, même si l’acceptation citée n’est pas affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuotedStoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard reads the lowered acceptance predicate on that reifier; quotation alone never asserts the described acceptance."
+msgstr "La garde lit le prédicat d’acceptation abaissé sur ce réificateur ; la citation seule n’affirme jamais l’acceptation décrite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QuotedStoryAcceptanceAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:QuotedStoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."
+msgstr "gmeow:QuotedStoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryGatheringBoundaryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Story gathering boundary constraint"
+msgstr "Contrainte de borne du rassemblement du récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryGatheringBoundaryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A storyGathered marker names an activity with an explicitly supplied Closed occurrent boundary."
+msgstr "Un marqueur storyGathered nomme une activité portant une borne d’occurrent Closed explicitement fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryGatheringBoundaryConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A missing marker does not imply failure or completion. This law checks the stated activity boundary, not member enumeration or transaction order."
+msgstr "L’absence de marqueur n’implique ni échec ni achèvement. Cette règle vérifie la borne d’activité déclarée, non l’énumération des membres ou l’ordre des transactions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryGatheringBoundaryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StoryGatheringBoundaryConstraint logic:formalizes gmeow:storyGathered ."
+msgstr "gmeow:StoryGatheringBoundaryConstraint logic:formalizes gmeow:storyGathered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryStructuringPrerequisiteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Story structuring prerequisite constraint"
+msgstr "Contrainte de préalable à la structuration du récit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryStructuringPrerequisiteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A storyStructured marker retains the same story's gathered stage and a Closed boundary on the structuring activity."
+msgstr "Un marqueur storyStructured conserve l’étape de rassemblement du même récit et une borne Closed sur l’activité de structuration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryStructuringPrerequisiteConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing gathering law checks its own activity boundary. These source prerequisites do not certify chronological or transaction order and do not invent missing narrative structure."
+msgstr "La règle existante de rassemblement vérifie sa propre borne d’activité. Ces préalables source ne certifient pas l’ordre chronologique ou transactionnel et n’inventent pas de structure narrative manquante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StoryStructuringPrerequisiteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."
+msgstr "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."

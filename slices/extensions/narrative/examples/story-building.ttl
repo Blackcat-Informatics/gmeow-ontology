@@ -1,0 +1,93 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/story-building/> .
+
+# One ordinary synthetic source scene, not an execution or validation receipt.
+ex:person a gmeow:Person .
+ex:otherPerson a gmeow:Person .
+ex:agent a gmeow:Agent .
+ex:candidate a gmeow:InformationObject ;
+    gmeow:acceptedAsStory ex:story, ex:otherStory .
+ex:acceptance rdf:reifies <<( ex:candidate gmeow:acceptedAsStory ex:story )>> ;
+    gmeow:wasAttributedTo ex:person .
+ex:otherAcceptance rdf:reifies <<( ex:candidate gmeow:acceptedAsStory ex:otherStory )>> ;
+    gmeow:wasAttributedTo ex:otherPerson .
+ex:otherStory a gmeow:InformationObject .
+
+# A focus can exist without any proposed candidate or inferred stage completion.
+ex:focusedStory a gmeow:InformationObject ;
+    gmeow:storyFocus "The crossing"@en .
+ex:focusClaim rdf:reifies <<( ex:focusedStory gmeow:storyFocus "The crossing"@en )>> ;
+    gmeow:wasAttributedTo ex:person .
+
+# Offered records and selected collection members are explicit, separate facts.
+ex:offered a gmeow:ReadingScope ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ;
+    gmeow:scopeRecord ex:eventRecord, ex:unselectedRecord .
+ex:eventRecord a gmeow:InformationObject ;
+    rdf:reifies <<( ex:crossing gmeow:eventTime "2026-01-02T09:00:00Z"^^xsd:dateTime )>> ;
+    gmeow:wasAttributedTo ex:agent .
+ex:unselectedRecord a gmeow:InformationObject .
+ex:story a gmeow:Collection ;
+    gmeow:title "The crossing remembered"@en ;
+    gmeow:hasPart ex:eventRecord .
+ex:gathering a gmeow:Activity ;
+    gmeow:readingScope ex:offered ; gmeow:wasAssociatedWith ex:agent ;
+    gmeow:eventTime "2026-01-03T10:00:00Z"^^xsd:dateTime ;
+    logic:occurrentBoundary logic:Closed .
+# The gathering marker follows this scene's supplied member and activity facts.
+ex:story gmeow:storyGathered ex:gathering .
+
+# Actual structure and citation remain independent of the completion markers.
+ex:story gmeow:hasSegment ex:segment ; gmeow:cites ex:sourceWork .
+ex:sourceWork a gmeow:CreativeWork ; gmeow:title "The recorded crossing"@en .
+ex:segment a gmeow:ContentSegment ; gmeow:segmentOf ex:story ;
+    gmeow:narrates ex:crossing ; gmeow:atNarrativePosition ex:beat ;
+    gmeow:wasDerivedFrom ex:eventRecord ; gmeow:cites ex:sourceWork .
+ex:order a gmeow:Axis ; rdfs:label "order of telling"@en .
+ex:telling a gmeow:NarrativeTimeFrame ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ; gmeow:discourseTimeOf ex:story ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ; gmeow:hasAxis ex:order ;
+    gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:beat a gmeow:NarrativePosition ; gmeow:positionFrame ex:telling ;
+    gmeow:positionOrdinal "0"^^xsd:integer ;
+    gmeow:beatFunction gmeow:beatFunctionThreshold .
+ex:crossing a gmeow:Event ;
+    gmeow:eventTime "2026-01-02T09:00:00Z"^^xsd:dateTime ;
+    gmeow:recollectionCue "Bridge crossing"@en, "The crossing"@en .
+ex:structuring a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:eventTime "2026-01-03T11:00:00Z"^^xsd:dateTime ;
+    logic:occurrentBoundary logic:Closed .
+# This records the producer's completion claim, not a certified transaction order.
+ex:story gmeow:storyStructured ex:structuring .
+
+# A recorded system defect and its reported repair are not inferred from absence.
+ex:defectRecord a gmeow:InformationObject ; gmeow:defectFixedBy ex:fixArtifact .
+ex:resolution rdf:reifies <<( ex:defectRecord gmeow:defectFixedBy ex:fixArtifact )>> ;
+    gmeow:wasAttributedTo ex:agent .
+ex:fixArtifact a gmeow:InformationObject ; gmeow:wasGeneratedBy ex:repair .
+ex:repair a gmeow:Activity ; gmeow:wasAssociatedWith ex:agent ;
+    gmeow:eventTime "2026-01-03T08:00:00Z"^^xsd:dateTime ;
+    logic:occurrentBoundary logic:Closed .
+
+# This purpose link records why the observation was gathered, not goal satisfaction.
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:agent ; gmeow:intentionGoal ex:inspectionGoal .
+ex:inspectionGoal a gmeow:Goal .
+ex:simulatedGate a gmeow:Entity .
+ex:simulationContext a gmeow:Standpoint .
+ex:witness a gmeow:Observation ;
+    gmeow:observedFeature ex:simulatedGate ; gmeow:vantage ex:agent ;
+    gmeow:accordingTo ex:simulationContext ;
+    gmeow:observationMethod gmeow:methodComputationalModel ;
+    gmeow:observationType gmeow:observationTypeSimulation ;
+    gmeow:witnessedForIntention ex:intention .
