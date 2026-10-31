@@ -675,7 +675,7 @@ gmeow:cqRationale
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq rationale"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The human-readable \"why the ontology must answer this\" of a competency question, carried on its gmeow:DocumentedCompetency record — never the query mechanics it motivates (that is gmeow:cqQueryText). Absent when the question authors none."@x-gmeow-english ;
     skos:example "ex:cqCatsRecord gmeow:cqRationale \"Every cat must classify as an animal.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating a rationale where the question authors none (leave it absent) and avoid overloading it with the query text — that is gmeow:cqQueryText."@x-gmeow-english ;
@@ -1383,6 +1383,7 @@ gmeow:DocumentedTermOwnerIriConstraint
         gmeow:boxTBox .
 
 # Natural-language values retain language and direction; plain text declares no language.
+gmeow:DocumentedCompetency logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:cqRationale ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 gmeow:DocEvidence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docClaim ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 gmeow:DocFixture logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:conformanceRationale ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
