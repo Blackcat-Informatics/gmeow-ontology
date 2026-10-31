@@ -303,13 +303,10 @@ fn static_planning_units(rules: &[EvalRule]) -> u64 {
     })
 }
 
-fn frame(hasher: &mut purrdf_hash::blake3::Hasher, bytes: &[u8]) {
-    hasher.update(&(bytes.len() as u64).to_le_bytes());
-    hasher.update(bytes);
-}
-
 fn frame_str(hasher: &mut purrdf_hash::blake3::Hasher, value: &str) {
-    frame(hasher, value.as_bytes());
+    purrdf_hash::frame::frame_le_with(value.as_bytes(), &mut |part| {
+        hasher.update(part);
+    });
 }
 
 fn hash_eval_term(hasher: &mut purrdf_hash::blake3::Hasher, term: &EvalTerm) {
@@ -324,7 +321,9 @@ fn hash_eval_term(hasher: &mut purrdf_hash::blake3::Hasher, term: &EvalTerm) {
         }
         EvalTerm::ConstLit(value) => {
             hasher.update(&[2]);
-            frame(hasher, &value.to_canonical_bytes());
+            purrdf_hash::frame::frame_le_with(&value.to_canonical_bytes(), &mut |part| {
+                hasher.update(part);
+            });
         }
     }
 }
