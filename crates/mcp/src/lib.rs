@@ -7996,8 +7996,12 @@ fn sha256_hex(bytes: &[u8]) -> String {
 /// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /
 /// predicate / object paths and by a typed literal's datatype-IRI leg.
 #[cfg(feature = "reasoning")]
-fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String, usize>) -> usize {
-    let sig = format!("I\u{1}{iri}");
+fn intern_nt_iri(
+    iri: &str,
+    terms: &mut Vec<GtsTerm>,
+    seen: &mut HashMap<purrdf::TermValue, usize>,
+) -> usize {
+    let sig = purrdf::TermValue::Iri(iri.to_owned());
     if let Some(&id) = seen.get(&sig) {
         return id;
     }
@@ -8006,8 +8010,9 @@ fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String,
     id
 }
 
-/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or typed literal) into the GTS
-/// term table (deduplicated by semantic value); a literal first interns its datatype IRI so
+/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or literal) into the GTS
+/// term table using native term identity, including literal language and direction.
+/// A literal first interns its effective datatype IRI so
 /// the literal term references a live datatype id — reproducing the exact encounter order the
 /// append-only, content-addressed GTS segment bytes are keyed on. A quoted-triple term is
 /// rejected fail-closed via `reject`: the projection's closed subset never emits one.
@@ -8015,13 +8020,13 @@ fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String,
 fn intern_nt_term(
     node: &RdfTerm,
     terms: &mut Vec<GtsTerm>,
-    seen: &mut HashMap<String, usize>,
+    seen: &mut HashMap<purrdf::TermValue, usize>,
     reject: impl FnOnce() -> gmeow_errors::Diag,
 ) -> gmeow_errors::Result<usize> {
     match node {
         RdfTerm::Iri(iri) => Ok(intern_nt_iri(iri, terms, seen)),
         RdfTerm::BlankNode(label) => {
-            let sig = format!("B\u{1}{label}");
+            let sig = purrdf::TermValue::from_rdf_term(node);
             if let Some(&id) = seen.get(&sig) {
                 return Ok(id);
             }
@@ -8039,14 +8044,17 @@ fn intern_nt_term(
             Ok(id)
         }
         RdfTerm::Literal(lit) => {
-            // The projection always emits `"lex"^^<dt>`, so purrdf carries an explicit datatype.
-            let datatype = lit.datatype.as_deref().ok_or_else(reject)?;
-            let sig = format!("L\u{1}{datatype}\u{1}{}", lit.lexical_form);
+            // Native owned terms omit datatypes implied by plain or tagged strings.
+            let datatype = lit.datatype_iri();
+            let sig = purrdf::TermValue::from_rdf_term(node);
             if let Some(&id) = seen.get(&sig) {
                 return Ok(id);
             }
             let dt_id = intern_nt_iri(datatype, terms, seen);
-            let id = push_gts_term(terms, gts_literal_dt(&lit.lexical_form, dt_id));
+            let mut term = gts_literal_dt(&lit.lexical_form, dt_id);
+            term.lang = lit.language.clone();
+            term.direction = lit.direction.map(|value| value.as_str().to_owned());
+            let id = push_gts_term(terms, term);
             seen.insert(sig, id);
             Ok(id)
         }
@@ -8058,7 +8066,7 @@ fn intern_nt_term(
 /// verdict carrying its authoring-role + provenance triples) into a GTS `ai-package` segment's
 /// serialized bytes — the PURE, side-effect-free segment builder shared by the conjecture and
 /// candidate libraries. The body is parsed into `(subject, predicate, object)` triples, interned
-/// as RDF-1.2-native GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
+/// as RDF-1.2-native GTS terms (IRIs, blank nodes, and complete native literals), and
 /// written via [`GtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
@@ -8071,7 +8079,7 @@ fn build_nt_segment(
 ) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
-    let mut seen: HashMap<String, usize> = HashMap::new();
+    let mut seen: HashMap<purrdf::TermValue, usize> = HashMap::new();
 
     for (lineno, raw) in nt_body.lines().enumerate() {
         let line = raw.trim();
