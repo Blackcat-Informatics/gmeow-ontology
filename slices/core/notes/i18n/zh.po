@@ -114,3 +114,7 @@ msgstr "未标记的来源文本仍为 xsd:string。多种拼写及带归属的�
 msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:note gmeow:purposeAsWritten \"think this through later\"@en ."
 msgstr "ex:note gmeow:purposeAsWritten \"以后再仔细思考\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/notes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Core notes and annotation records over shared evidence, naming and tagging foundations. Logical and kernel dependencies support this domain-independent vocabulary. This manifest declares slice identity, tier, dependencies and consumer."
+msgstr "基于共享证据、命名和标签基础的核心笔记与注释记录词汇。逻辑与内核依赖支持这一独立于领域的词汇。本清单声明切片身份、层级、依赖项和使用方。"

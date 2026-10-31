@@ -114,3 +114,7 @@ msgstr "Le texte sans étiquette reste xsd:string. Plusieurs graphies et interpr
 msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:note gmeow:purposeAsWritten \"think this through later\"@en ."
 msgstr "ex:note gmeow:purposeAsWritten \"y réfléchir plus tard\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/notes|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Core notes and annotation records over shared evidence, naming and tagging foundations. Logical and kernel dependencies support this domain-independent vocabulary. This manifest declares slice identity, tier, dependencies and consumer."
+msgstr "Vocabulaire central des notes et des enregistrements d’annotation, fondé sur les vocabulaires partagés des preuves, des noms et des étiquettes. Les dépendances logiques et le noyau étayent ce vocabulaire indépendant des domaines. Ce manifeste déclare l’identité, le niveau, les dépendances et le consommateur de la tranche."
