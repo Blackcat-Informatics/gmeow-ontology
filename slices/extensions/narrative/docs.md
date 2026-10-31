@@ -338,3 +338,28 @@ a source record carrying “rising” without an invented ArcSample.
 [The design](design/FICTIONAL-CHARACTERS.md) explains the frame and language
 boundaries. These are source semantics and intrinsic consistency laws; they
 do not claim that contextual reasoning or interpretation has been executed.
+
+## Qualified breakthrough readings
+
+`arcTypeInsight`, `arcTypeDecision` and `arcTypeSettledQuestion` name more
+specific breakthroughs supported only by the exact next-step record. Open,
+wording-only or multiply classified steps retain `arcTypeBreakthrough`.
+`threadKindConversation` retains a bound conversation root and every message of
+every structurally continuing conversation, without requiring internal reply
+links or inferring cause.
+
+`resolutionSignal` on an `ArcSample` distinguishes an attributed act from
+the subject's own words read under a reviewed cue rule. Configure numeric degrees
+on per-rule-version `SignalConfidenceSetting` records; annotate actual signal
+statements with existing `confidence`, teller attribution, the selected setting,
+source evidence and a reason. Shared signal vocabulary individuals acquire no
+global numeric value.
+
+`arcBetweenCount` and `arcUndatedCount` retain counts over an explicit finite
+thread cohort, exact endpoint records and a selected source clock. Keep undated
+records, original time precision and unavailable counts visible rather than
+inventing dates or zeros. These declarations do not execute aggregate counting.
+
+[The source contract](design/QUALIFIED-BREAKTHROUGHS.md) explains all boundaries
+and the [ordinary qualified scene](examples/qualified-breakthrough.ttl), including
+its exact retained-source and reviewed-confidence payloads.

@@ -1318,8 +1318,8 @@ msgid "known thread resource requirement"
 msgstr "exigence de ressource de fil connu"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcKnownThreadResourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An arc classified with a seeded loop, question, intention or record thread kind supplies an arcThread resource. The vocabulary remains open."
-msgstr "Un arc classé avec un type initial de fil de boucle, question, intention ou enregistrement fournit une ressource arcThread. Le vocabulaire reste ouvert."
+msgid "An arc classified with a seeded loop, question, intention, record or conversation thread kind supplies an arcThread resource. The vocabulary remains open."
+msgstr "Un arc classé par un genre de fil prédéfini de boucle, question, intention, enregistrement ou conversation fournit une ressource arcThread. Le vocabulaire reste ouvert."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcKnownThreadResourceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to validate explicit thread assertions without inferring missing values."
@@ -1506,3 +1506,483 @@ msgstr "Fournir hasReferenceFrame avec un NarrativeReferenceFrame sur le personn
 msgctxt "https://blackcatinformatics.ca/gmeow/ArcPositionLabelFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."
 msgstr "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeInsight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "insight breakthrough arc"
+msgstr "arc de percée par prise de conscience"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeInsight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A narrower breakthrough whose next-step record is a note attributed to the subject and explicitly tagged as insight, realization or discovery under the selected reading rule. It says the subject came to see something; it does not assert objective discovery or a causal remedy."
+msgstr "Une percée plus précise dont le prochain enregistrement est une note attribuée au sujet et explicitement marquée comme prise de conscience, réalisation ou découverte selon la règle choisie. Elle ne déclare ni découverte objective ni remède causal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeInsight|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The exact source tag identities and rule version are evidence. A record also tagged as decision, an untagged wording-only step or an open arc keeps arcTypeBreakthrough."
+msgstr "Les identités exactes des étiquettes sources et la version de règle sont des preuves. Un enregistrement aussi marqué comme décision, une étape de mots seuls ou un arc ouvert conserve arcTypeBreakthrough."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeInsight|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeInsight ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcType gmeow:arcTypeInsight ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeDecision|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "decision breakthrough arc"
+msgstr "arc de percée par décision"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeDecision|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A narrower breakthrough whose next-step record is a note attributed to the subject and explicitly tagged as a decision under the selected reading rule. It records a choice, not its implementation or success."
+msgstr "Une percée plus précise dont le prochain enregistrement est une note attribuée au sujet et explicitement marquée comme décision selon la règle choisie. Elle consigne un choix, pas sa réalisation ni sa réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeDecision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A note tagged both as decision and as insight, realization or discovery retains arcTypeBreakthrough. Tag labels alone do not identify source tag meaning."
+msgstr "Une note marquée à la fois comme décision et prise de conscience, réalisation ou découverte conserve arcTypeBreakthrough. Les seules étiquettes textuelles n’identifient pas le sens des marqueurs sources."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeDecision|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeDecision ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcType gmeow:arcTypeDecision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeSettledQuestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "settled-question breakthrough arc"
+msgstr "arc de percée par question réglée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeSettledQuestion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A narrower breakthrough whose next step records the subject setting the exact inquiry selected as the arc's thread to inquiryStatusResolved. The inquiry is settled as a pursuit; no answer is thereby asserted true."
+msgstr "Une percée plus précise dont l’étape suivante consigne le sujet passant à inquiryStatusResolved l’enquête exacte choisie comme fil de l’arc. La poursuite est réglée, sans affirmer la vérité d’une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeSettledQuestion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the subject's attributed status-setting record and exact question identity. Mere current resolved status or an unrelated resolved inquiry supplies neither the act nor the thread."
+msgstr "Conserver l’enregistrement attribué de l’acte du sujet et l’identité exacte de la question. Un simple statut actuel résolu ou une enquête étrangère ne fournit ni acte ni fil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcTypeSettledQuestion|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeSettledQuestion ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcType gmeow:arcTypeSettledQuestion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/threadKindConversation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conversation continuation thread"
+msgstr "fil de conversations continuées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/threadKindConversation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conversation-rooted thread containing every message of that conversation and every structurally continuing conversation. Message membership is partOfThread with the conversation bound. A conversation continues another when one of its messages inReplyTo or groundedIn a message of the other; take the directed transitive continuation closure."
+msgstr "Un fil enraciné dans une conversation comprenant chacun de ses messages et ceux des conversations qui la continuent structurellement. L’appartenance utilise partOfThread avec la conversation liée. Une conversation en continue une autre quand un de ses messages est inReplyTo ou groundedIn un message de l’autre ; prendre la fermeture transitive orientée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/threadKindConversation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The root is included by zero continuation steps. Continuing conversations can belong to several root threads; keep exact identities and deduplicate messages by identity, never by text. Cycles terminate by visited conversation identity."
+msgstr "La racine est incluse sans étape de continuation. Une conversation peut relever de plusieurs racines ; conserver les identités et dédupliquer les messages par identité, jamais par texte. Les cycles se terminent par l’identité des conversations déjà visitées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/threadKindConversation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcThreadKind gmeow:threadKindConversation ; gmeow:arcThread ex:conversation ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcThreadKind gmeow:threadKindConversation ; gmeow:arcThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionSignal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Resolution Signal"
+msgstr "signal de prochaine étape"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionSignal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary naming what source signal a teller used to read a next step from an impasse. It distinguishes an attributed act from a reading of the subject's own words, without asserting that the impasse was causally resolved."
+msgstr "Un vocabulaire ouvert de valeurs qualitatives nommant le signal source utilisé pour lire une prochaine étape après une impasse. Il distingue un acte attribué d’une lecture des propres mots du sujet, sans affirmer de résolution causale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionSignal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These values classify the teller's reading, not the subject's truth, and assert sequence without cause."
+msgstr "Ces valeurs classent la lecture du narrateur, pas la vérité du sujet, et affirment une séquence sans cause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ResolutionSignal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+msgstr "Conserver la lecture fournie : ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "act next-step signal"
+msgstr "signal de prochaine étape par acte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A teller's next-step reading grounded in a retained act of the subject on the selected thread: a decision or insight note, or the subject's setting of the exact inquiry to resolved."
+msgstr "Une lecture de prochaine étape fondée sur un acte conservé du sujet sur le fil choisi : note de décision ou prise de conscience, ou passage par le sujet de l’enquête exacte au statut résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An act classification records the stronger kind of source evidence, not a universal numerical confidence, objective truth or successful execution."
+msgstr "La classification par acte consigne un genre de preuve plus fort, pas une confiance numérique universelle, une vérité objective ou une exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+msgstr "Conserver la lecture fournie : ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalOwnWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "own-words next-step signal"
+msgstr "signal de prochaine étape par propos propres"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalOwnWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A teller's next-step reading from the subject's own recorded words matched through an exact reviewed cue release and reading rule. Word evidence does not manufacture an act or its type."
+msgstr "Une lecture de prochaine étape tirée des propres mots enregistrés du sujet, appariés selon une version exacte et révisée d’indices et une règle de lecture. Les mots ne fabriquent ni acte ni type d’acte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalOwnWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain the matched source literal, source attribution, cue release and rule identity; a label or paraphrase alone is insufficient evidence of a match."
+msgstr "Conserver le littéral source apparié, son attribution, la version d’indices et l’identité de règle ; une étiquette ou paraphrase seule ne prouve pas une correspondance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignalOwnWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalOwnWords ."
+msgstr "Conserver la lecture fournie : ex:sample gmeow:resolutionSignal gmeow:resolutionSignalOwnWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "resolution signal"
+msgstr "signal de prochaine étape"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an ArcSample to the source-signal category used by its teller to read a next step. This relation adds evidence classification beside sampleProgress; it does not retype the sample as a Refinement."
+msgstr "Relie un ArcSample à la catégorie de signal source utilisée par le narrateur pour lire une prochaine étape. Cette relation ajoute une classification probante à sampleProgress sans transformer l’échantillon en Refinement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These values classify the teller's reading, not the subject's truth, and assert sequence without cause."
+msgstr "Ces valeurs classent la lecture du narrateur, pas la vérité du sujet, et affirment une séquence sans cause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/resolutionSignal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+msgstr "Conserver la lecture fournie : ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signal Confidence Rule"
+msgstr "Règle de confiance des signaux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable reviewed version of the signal-confidence configuration used by a teller's reading rule. Its settings map signal categories to decimal degrees for that exact version; it is source configuration, not an executable logic:Rule or a calibrated probability model."
+msgstr "Une version immuable et révisée de la configuration de confiance utilisée par la règle du narrateur. Ses réglages associent des catégories de signaux à des degrés décimaux pour cette version ; c’est une configuration source, pas une logic:Rule exécutable ni un modèle probabiliste calibré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
+msgstr "Chaque version de règle est indépendante ; les réglages numériques ne résident jamais sur les individus partagés du vocabulaire des signaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:ruleV1 a gmeow:SignalConfidenceRule ; gmeow:versionOf ex:ruleLineage ."
+msgstr "Conserver la lecture fournie : ex:ruleV1 a gmeow:SignalConfidenceRule ; gmeow:versionOf ex:ruleLineage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSetting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Signal Confidence Setting"
+msgstr "Réglage de confiance de signal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSetting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One signal category's decimal confidence setting in one exact reviewed rule version. The category may be a ResolutionSignal or an ImpasseSignal; the setting is not the signal singleton and does not assign a global value to every teller."
+msgstr "Le degré décimal de confiance d’une catégorie de signal dans une version exacte de règle révisée. La catégorie peut être ResolutionSignal ou ImpasseSignal ; le réglage n’est pas le signal partagé et ne donne aucune valeur globale à tous les narrateurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSetting|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
+msgstr "Chaque version de règle est indépendante ; les réglages numériques ne résident jamais sur les individus partagés du vocabulaire des signaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSetting|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:actSetting a gmeow:SignalConfidenceSetting ; gmeow:confidenceRule ex:ruleV1 ."
+msgstr "Conserver la lecture fournie : ex:actSetting a gmeow:SignalConfidenceSetting ; gmeow:confidenceRule ex:ruleV1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "confidence rule version"
+msgstr "version de règle de confiance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one reviewed SignalConfidenceRule version that owns this SignalConfidenceSetting. Several tellers may explicitly use the same version; differing policies retain distinct version identities."
+msgstr "La version unique de SignalConfidenceRule révisée à laquelle appartient ce réglage. Plusieurs narrateurs peuvent utiliser explicitement une même version ; des politiques différentes conservent des identités de version distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
+msgstr "Chaque version de règle est indépendante ; les réglages numériques ne résident jamais sur les individus partagés du vocabulaire des signaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:actSetting gmeow:confidenceRule ex:ruleV1 ."
+msgstr "Conserver la lecture fournie : ex:actSetting gmeow:confidenceRule ex:ruleV1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceSignal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "confidence signal category"
+msgstr "catégorie de signal de confiance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceSignal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one ResolutionSignal or ImpasseSignal category covered by a rule-version setting. It names the category, not the source record or an observed match."
+msgstr "La catégorie unique ResolutionSignal ou ImpasseSignal couverte par un réglage de version. Elle nomme la catégorie, pas l’enregistrement source ni une correspondance observée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceSignal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
+msgstr "Chaque version de règle est indépendante ; les réglages numériques ne résident jamais sur les individus partagés du vocabulaire des signaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/confidenceSignal|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:actSetting gmeow:confidenceSignal gmeow:resolutionSignalAct ."
+msgstr "Conserver la lecture fournie : ex:actSetting gmeow:confidenceSignal gmeow:resolutionSignalAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signal confidence"
+msgstr "confiance du signal"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one decimal degree in the closed interval [0,1] supplied by a reviewed rule-version setting for its signal category. It is the teller's confidence in its own reading, not the subject's truth or a claim of calibrated frequency."
+msgstr "Le degré décimal unique dans l’intervalle fermé [0,1] fourni par un réglage de version révisée pour sa catégorie de signal. C’est la confiance du narrateur dans sa lecture, pas la vérité du sujet ni une fréquence calibrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The decimal bound is checked by a canonical ValueRangeConstraint. Existing statement confidence remains the output carrier; no probability distribution, causal probability or statistical confidence interval is asserted."
+msgstr "La borne décimale est vérifiée par une ValueRangeConstraint canonique. La confiance de déclaration existante reste le porteur de sortie ; aucune distribution, probabilité causale ni intervalle de confiance statistique n’est affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:actSetting gmeow:signalConfidence \"0.9\"^^xsd:decimal ."
+msgstr "Conserver la lecture fournie : ex:actSetting gmeow:signalConfidence \"0.9\"^^xsd:decimal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signal confidence review"
+msgstr "révision de confiance des signaux"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The completed review activity for the exact confidence-rule version. Reviewer association and sign-off instant are retained through wasAssociatedWith and eventTime, without claiming universal endorsement or executing a review."
+msgstr "L’activité de révision achevée pour la version exacte de règle de confiance. L’association du réviseur et l’instant de signature sont conservés par wasAssociatedWith et eventTime, sans approbation universelle ni exécution de révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
+msgstr "Chaque version de règle est indépendante ; les réglages numériques ne résident jamais sur les individus partagés du vocabulaire des signaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:ruleV1 gmeow:signalConfidenceReview ex:review ."
+msgstr "Conserver la lecture fournie : ex:ruleV1 gmeow:signalConfidenceReview ex:review ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcBetweenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc intervening record count"
+msgstr "nombre d’enregistrements intermédiaires de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcBetweenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative count of distinct selected-thread source records strictly between arcFirstRecord and arcNextRecord under arcCountTimeProperty. Exclude both endpoint records and records tied with either endpoint; count each remaining record identity once."
+msgstr "Le nombre non négatif d’enregistrements sources distincts du fil choisi strictement entre arcFirstRecord et arcNextRecord selon arcCountTimeProperty. Exclure les deux enregistrements terminaux et les égalités temporelles avec eux ; compter chaque autre identité une seule fois."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcBetweenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcBetweenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcBetweenCount \"1\"^^xsd:nonNegativeInteger ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcBetweenCount \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcUndatedCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc undated record count"
+msgstr "nombre d’enregistrements non datés de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcUndatedCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative count of distinct arcCountRecord cohort members carrying no value of the selected arcCountTimeProperty. It covers the selected thread cohort, not only records already placed between the ends, and includes undated endpoint records if present."
+msgstr "Le nombre non négatif de membres distincts de la cohorte arcCountRecord sans valeur pour arcCountTimeProperty. Il couvre la cohorte du fil choisi, pas seulement les enregistrements déjà placés entre les bornes, et inclut les bornes non datées s’il y en a."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcUndatedCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcUndatedCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcUndatedCount \"1\"^^xsd:nonNegativeInteger ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcUndatedCount \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFirstRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc first record"
+msgstr "premier enregistrement de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFirstRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source record selected as this telling's impasse endpoint. It identifies evidence, not the first record in a corpus or an inferred cause."
+msgstr "L’enregistrement source exact choisi comme borne d’impasse de ce récit. Il identifie une preuve, pas le premier enregistrement d’un corpus ni une cause inférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFirstRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcFirstRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcFirstRecord ex:impasseRecord ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcFirstRecord ex:impasseRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcNextRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc next-step record"
+msgstr "enregistrement de prochaine étape de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcNextRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source record selected as this telling's next step after its impasse. Its source evidence supports a narrower breakthrough type where justified; absence leaves an open arc rather than fabricating an end."
+msgstr "L’enregistrement source exact choisi comme prochaine étape après l’impasse dans ce récit. Ses preuves peuvent justifier une percée plus précise ; son absence laisse l’arc ouvert sans fabriquer de borne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcNextRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcNextRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcNextRecord ex:decisionNote ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcNextRecord ex:decisionNote ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count cohort record"
+msgstr "enregistrement de la cohorte de compte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One source record in the explicitly retained finite cohort used for this arc's counts. The cohort contains every selected-thread record in the retained source snapshot, including endpoints and undated records; membership is not inferred from arcEvidence alone."
+msgstr "Un enregistrement source de la cohorte finie explicitement conservée pour les comptes de l’arc. Elle contient chaque enregistrement du fil choisi dans l’instantané source, bornes et enregistrements non datés compris ; l’appartenance n’est pas déduite de arcEvidence seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcCountRecord ex:impasseRecord, ex:interveningRecord, ex:decisionNote, ex:undatedRecord ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcCountRecord ex:impasseRecord, ex:interveningRecord, ex:decisionNote, ex:undatedRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountThread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc selected count thread"
+msgstr "fil choisi pour le compte de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountThread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one supplied arcThread resource selected for an arc's reported counts. Selection does not replace other coexisting thread assertions or claim a globally preferred thread."
+msgstr "L’unique ressource arcThread fournie choisie pour les comptes de l’arc. Le choix ne remplace pas les autres fils coexistants et ne désigne aucun fil globalement privilégié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountThread|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountThread|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcCountThread ex:conversation ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcCountThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountTimeProperty|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count time property"
+msgstr "propriété temporelle du compte de l’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountTimeProperty|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one source time-property IRI selected for an arc's counts. It fixes which clock is read; record creation, event occurrence and statement assertion clocks are not interchangeable."
+msgstr "L’IRI unique de propriété temporelle source choisi pour les comptes de l’arc. Il fixe l’horloge lue ; création d’enregistrement, occurrence et assertion ne sont pas interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountTimeProperty|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."
+msgstr "Les comptes sont fournis sur une cohorte source finie choisie ; ces déclarations ne les calculent pas. Les temps absents ou incomparables restent visibles ; aucun zéro ni horodatage n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/arcCountTimeProperty|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: ex:arc gmeow:arcCountTimeProperty gmeow:recordedAt ."
+msgstr "Conserver la lecture fournie : ex:arc gmeow:arcCountTimeProperty gmeow:recordedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "signal confidence unit-range constraint"
+msgstr "contrainte d’intervalle unitaire de confiance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied signalConfidence value on a SignalConfidenceSetting lies in the closed decimal interval [0,1]. This validates the degree without asserting calibration or a probability distribution."
+msgstr "Chaque valeur signalConfidence d’un SignalConfidenceSetting appartient à l’intervalle décimal fermé [0,1]. Cela valide le degré sans affirmer de calibration ni de distribution probabiliste."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The bounds are ordinary numeric comparisons in the canonical validation vocabulary; statement confidence remains a separate provenance carrier."
+msgstr "Les bornes sont des comparaisons numériques du vocabulaire canonique de validation ; la confiance de déclaration reste un porteur de provenance distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:SignalConfidenceRangeConstraint logic:valuePath gmeow:signalConfidence ."
+msgstr "Conserver la lecture fournie : gmeow:SignalConfidenceRangeConstraint logic:valuePath gmeow:signalConfidence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "confidence review evidence constraint"
+msgstr "contrainte de preuve de révision de confiance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied signalConfidenceReview retains a responsible reviewer association and a sign-off instant on the actual review activity."
+msgstr "Chaque signalConfidenceReview fourni conserve une association au réviseur responsable et un instant de signature sur l’activité réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:SignalConfidenceReviewEvidenceConstraint logic:formalizes gmeow:signalConfidenceReview ."
+msgstr "Conserver la lecture fournie : gmeow:SignalConfidenceReviewEvidenceConstraint logic:formalizes gmeow:signalConfidenceReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRuleIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "confidence rule version identity"
+msgstr "identité de version de règle de confiance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRuleIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A SignalConfidenceRule version differs from every lineage resource named by its versionOf relation."
+msgstr "Une version SignalConfidenceRule diffère de chaque lignée nommée par sa relation versionOf."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRuleIdentityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceRuleIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:SignalConfidenceRuleIdentityConstraint logic:formalizes gmeow:SignalConfidenceRule ."
+msgstr "Conserver la lecture fournie : gmeow:SignalConfidenceRuleIdentityConstraint logic:formalizes gmeow:SignalConfidenceRule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSettingUniqueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "confidence setting per-version uniqueness"
+msgstr "unicité du réglage de confiance par version"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSettingUniqueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One confidence-rule version has at most one setting identity for a given signal category. Different versions may configure that same signal independently."
+msgstr "Une version de règle de confiance possède au plus une identité de réglage pour une catégorie de signal. Des versions distinctes peuvent régler ce signal indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSettingUniqueConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SignalConfidenceSettingUniqueConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:SignalConfidenceSettingUniqueConstraint logic:formalizes gmeow:SignalConfidenceSetting ."
+msgstr "Conserver la lecture fournie : gmeow:SignalConfidenceSettingUniqueConstraint logic:formalizes gmeow:SignalConfidenceSetting ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count scope constraint"
+msgstr "contrainte de portée du compte d’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arc supplying either count retains a selected thread, a time-property IRI and its first record in the explicit count cohort."
+msgstr "Un arc fournissant un des comptes conserve un fil choisi, un IRI de propriété temporelle et son premier enregistrement dans la cohorte explicite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:ArcCountScopeConstraint logic:formalizes gmeow:arcBetweenCount ."
+msgstr "Conserver la lecture fournie : gmeow:ArcCountScopeConstraint logic:formalizes gmeow:arcBetweenCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountThreadConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count selected thread membership"
+msgstr "appartenance du fil choisi pour le compte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountThreadConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied arcCountThread is one of the same arc's actual arcThread resources, rather than a silently substituted thread."
+msgstr "Un arcCountThread fourni est une ressource arcThread réelle du même arc, pas un fil substitué silencieusement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountThreadConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountThreadConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:ArcCountThreadConstraint logic:formalizes gmeow:arcCountThread ."
+msgstr "Conserver la lecture fournie : gmeow:ArcCountThreadConstraint logic:formalizes gmeow:arcCountThread ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcBetweenEndpointsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count endpoint bindings"
+msgstr "liaisons des bornes du compte d’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcBetweenEndpointsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied between count retains both exact endpoint records in its cohort and comparable selected-clock endpoint values in nondecreasing order. Unknown time does not manufacture an interval."
+msgstr "Un compte intermédiaire conserve les deux bornes exactes dans sa cohorte et des valeurs comparables de l’horloge choisie dans l’ordre non décroissant. Un temps inconnu ne fabrique pas d’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcBetweenEndpointsConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcBetweenEndpointsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:ArcBetweenEndpointsConstraint logic:formalizes gmeow:arcBetweenCount ."
+msgstr "Conserver la lecture fournie : gmeow:ArcBetweenEndpointsConstraint logic:formalizes gmeow:arcBetweenCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountClockConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "arc count clock identity"
+msgstr "identité d’horloge du compte d’arc"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountClockConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied arcCountTimeProperty is an IRI. On an arc reporting a between count, selected-clock values of each cohort record agree under value comparison. Distinct original literal terms denoting the same temporal value remain retained."
+msgstr "Un arcCountTimeProperty fourni est un IRI. Pour un arc déclarant un compte intermédiaire, les valeurs temporelles choisies de chaque membre concordent par comparaison de valeurs. Les termes littéraux originaux distincts désignant la même valeur temporelle restent conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountClockConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcCountClockConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:ArcCountClockConstraint logic:formalizes gmeow:arcCountTimeProperty ."
+msgstr "Conserver la lecture fournie : gmeow:ArcCountClockConstraint logic:formalizes gmeow:arcCountTimeProperty ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcSpecificNextRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "specific breakthrough next record"
+msgstr "prochain enregistrement de percée spécifique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcSpecificNextRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arc classified as insight, decision or settled-question breakthrough retains its exact arcNextRecord. A narrower label alone is not next-step evidence."
+msgstr "Un arc classé comme percée par prise de conscience, décision ou question réglée conserve son arcNextRecord exact. Une étiquette plus précise seule ne constitue pas une preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcSpecificNextRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This consistency law does not execute a teller, matcher, review or aggregate count."
+msgstr "Cette loi de cohérence n’exécute ni narrateur, ni détecteur, ni révision, ni compte agrégé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ArcSpecificNextRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the supplied reading: gmeow:ArcSpecificNextRecordConstraint logic:formalizes gmeow:arcNextRecord ."
+msgstr "Conserver la lecture fournie : gmeow:ArcSpecificNextRecordConstraint logic:formalizes gmeow:arcNextRecord ."
