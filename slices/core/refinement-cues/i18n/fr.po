@@ -374,8 +374,8 @@ msgid "Negation Scope"
 msgstr "portée de négation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."
-msgstr "Le vocabulaire fermé de cinq portées de suppression : même phrase, même partie de message, même message, même tour source ou fenêtre symétrique de mots."
+msgid "The closed six-value scope vocabulary for cue suppression: complete containment in one sentence, overlap with a shared sentence, same message part, same message, same source turn, or a symmetric word window."
+msgstr "Le vocabulaire fermé de six portées pour la suppression des indices : confinement complet dans une phrase, chevauchement avec une phrase partagée, même partie de message, même message, même tour source ou fenêtre de mots symétrique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."
@@ -394,8 +394,8 @@ msgid "The exactly-one member of NegationScope controlling where a detected nega
 msgstr "L’unique membre de NegationScope déterminant où une correspondance négatrice détectée supprime une correspondance cible."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."
-msgstr "Les portées de phrase et de mots comparent les intervalles originaux d’un même littéral source exact. Les portées de partie, message et tour comparent des identités de regroupement source explicites et peuvent couvrir plusieurs champs."
+msgid "Sentence and word scopes compare original spans in one exact source literal. Sentence scopes distinguish complete containment from overlap with a shared segment. Part, message and turn scopes compare explicit source grouping identities and may span fields."
+msgstr "Les portées de phrase et de mots comparent les intervalles originaux dans un même littéral source exact. Les portées de phrase distinguent le confinement complet du chevauchement avec un segment partagé. Les portées de partie, de message et de tour comparent des identités de regroupement source explicites et peuvent couvrir plusieurs champs."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
@@ -1826,3 +1826,31 @@ msgstr "Cela compte les termes RDF sans interpréter ni affaiblir leurs types de
 msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
 msgstr "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "shared sentence"
+msgstr "phrase partagée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both original match spans have a nonempty intersection with at least one common default UAX 29 sentence segment of the same exact source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "Les deux intervalles de correspondance originaux ont une intersection non vide avec au moins un même segment de phrase UAX 29 par défaut du même littéral source exact, selon les limites de phrase Unicode 17.0.0."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a crossing occurrence participates in every sentence segment it overlaps."
+msgstr "Utiliser lorsqu’une occurrence traversant une limite participe à chaque segment de phrase qu’elle recoupe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating endpoint contact alone as overlap or substituting this scope for complete containment in negationSameSentence."
+msgstr "Éviter de traiter le seul contact à une extrémité comme un chevauchement ou de remplacer par cette portée le confinement complet de negationSameSentence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference it through negationScope. For match interval [a,b) and sentence interval [s,e), require a < e and s < b for both matches against the same segment."
+msgstr "Référencer cette valeur par negationScope. Pour l’intervalle de correspondance [a,b) et celui de phrase [s,e), exiger a < e et s < b pour les deux correspondances dans le même segment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Keep each original occurrence and its half-open code-point interval intact; sentence participation does not split or duplicate CueMatch reports. Missing sentence segmentation is unsupported evaluation, never proof that no negator applies. This scope does not execute segmentation or suppression."
+msgstr "Conserver chaque occurrence originale et son intervalle semi-ouvert en points de code ; la participation aux phrases ne divise ni ne duplique les rapports CueMatch. L’absence de segmentation en phrases rend l’évaluation non prise en charge ; elle ne prouve jamais qu’aucun négateur ne s’applique. Cette portée n’exécute ni segmentation ni suppression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."

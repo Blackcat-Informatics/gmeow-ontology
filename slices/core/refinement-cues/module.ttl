@@ -296,7 +296,7 @@ gmeow:NegationScope
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:subClassOf logic:QualityValue ;
     rdfs:label "Negation Scope"@x-gmeow-english ;
-    skos:definition "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."@x-gmeow-english ;
+    skos:definition "The closed six-value scope vocabulary for cue suppression: complete containment in one sentence, overlap with a shared sentence, same message part, same message, same source turn, or a symmetric word window."@x-gmeow-english ;
     gmeow:useWhen "Use to state the exact comparison boundary of a negation rule."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid adding local scope values or equating a conversation thread with one source turn."@x-gmeow-english ;
     gmeow:howToUse "Select one seeded scope and retain the source identities needed to evaluate it."@x-gmeow-english ;
@@ -314,7 +314,7 @@ gmeow:negationScope
     gmeow:useWhen "Use to retain the suppression rule's declared scope."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring a scope from textual proximity or from an absent window value."@x-gmeow-english ;
     gmeow:howToUse "Name a declared scope; for negationWithinWords also record one positive negationWindow."@x-gmeow-english ;
-    skos:scopeNote "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."@x-gmeow-english ;
+    skos:scopeNote "Sentence and word scopes compare original spans in one exact source literal. Sentence scopes distinguish complete containment from overlap with a shared segment. Part, message and turn scopes compare explicit source grouping identities and may span fields."@x-gmeow-english ;
     skos:example "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."@x-gmeow-english .
 
 gmeow:negationWindow
@@ -342,6 +342,18 @@ gmeow:negationSameSentence
     gmeow:howToUse "Reference it through negationScope and retain all source identities and offsets needed by its contract."@x-gmeow-english ;
     skos:scopeNote "A span crossing a sentence boundary does not satisfy same-sentence scope. Sentence segmentation is a declared execution requirement, not an inference from punctuation alone."@x-gmeow-english ;
     skos:example "ex:rule gmeow:negationScope gmeow:negationSameSentence ."@x-gmeow-english .
+
+gmeow:negationSharedSentence
+    a logic:NamedIndividual, gmeow:NegationScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "shared sentence"@x-gmeow-english ;
+    skos:definition "Both original match spans have a nonempty intersection with at least one common default UAX 29 sentence segment of the same exact source literal, using Unicode 17.0.0 sentence boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use when a crossing occurrence participates in every sentence segment it overlaps."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating endpoint contact alone as overlap or substituting this scope for complete containment in negationSameSentence."@x-gmeow-english ;
+    gmeow:howToUse "Reference it through negationScope. For match interval [a,b) and sentence interval [s,e), require a < e and s < b for both matches against the same segment."@x-gmeow-english ;
+    skos:scopeNote "Keep each original occurrence and its half-open code-point interval intact; sentence participation does not split or duplicate CueMatch reports. Missing sentence segmentation is unsupported evaluation, never proof that no negator applies. This scope does not execute segmentation or suppression."@x-gmeow-english ;
+    skos:example "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."@x-gmeow-english .
 
 gmeow:negationSameMessagePart
     a logic:NamedIndividual, gmeow:NegationScope ;
@@ -509,7 +521,7 @@ gmeow:CueNegationClosedRecordConstraint
     logic:formalizes gmeow:CueNegation ; logic:message "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueNegation ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:negatingCue ], [ logic:termIndex 9 ; logic:termIri gmeow:negationScope ], [ logic:termIndex 10 ; logic:termIri gmeow:negationWindow ], [ logic:termIndex 11 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 12 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
 
 # Intrinsic field types and required paths; matching remains an execution boundary.
-gmeow:NegationScope logic:equivalentClass [ a logic:Enumeration ; logic:oneOf ( gmeow:negationSameSentence gmeow:negationSameMessagePart gmeow:negationSameMessage gmeow:negationSameTurn gmeow:negationWithinWords ) ] .
+gmeow:NegationScope logic:equivalentClass [ a logic:Enumeration ; logic:oneOf ( gmeow:negationSameSentence gmeow:negationSharedSentence gmeow:negationSameMessagePart gmeow:negationSameMessage gmeow:negationSameTurn gmeow:negationWithinWords ) ] .
 gmeow:Cue logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:detectionGuidance ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:cuePhrase ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ],

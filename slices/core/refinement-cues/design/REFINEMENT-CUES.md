@@ -71,7 +71,16 @@ Evidence targets name readings, not asserted facts or verdicts.
 
 `CueNegation` reifies one negator and one finite scope. A positive window is
 present exactly for word-window scope. Comparison is symmetric, inclusive and
-counts complete intervening words. Detected negators are considered before
+counts complete intervening words. The sentence choices share the existing
+Unicode 17.0.0 UAX 29 segmentation contract: `negationSameSentence` requires
+complete containment, while `negationSharedSentence` requires both original
+spans to have a positive interval overlap with one common actual segment of the
+same exact source literal. A crossing occurrence participates in every segment
+it overlaps; endpoint contact alone is excluded. Retain the original occurrence
+and half-open code-point interval without splitting or duplicating reports.
+Missing segmentation remains unsupported evaluation. This adds a declared scope
+choice, not a segmentation implementation or a change to the Unicode 16.0.0
+phrase word and folding contract. Detected negators are considered before
 suppression, including suppressed or coincident occurrences; no recursive
 priority or subject-truth model is invented. Part/message identities come from
 the source's `BodyPart`/`Message` structure. Source turn identity is explicit,
