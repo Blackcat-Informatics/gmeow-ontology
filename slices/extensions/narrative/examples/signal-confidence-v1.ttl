@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/narrative-breakthrough/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Illustrative reviewed configuration, not built-in defaults or a calibration claim.
+ex:confidenceRuleV1 gmeow:description "For these synthetic records, the reader recognizes the exact decisionTag and insightTag source resources. Both tags retain general breakthrough. The exact question status-setting record supports settled-question. The following degrees are this rule version's own judgments."@en .
+ex:actSetting a gmeow:SignalConfidenceSetting ;
+    gmeow:confidenceRule ex:confidenceRuleV1 ;
+    gmeow:confidenceSignal gmeow:resolutionSignalAct ;
+    gmeow:signalConfidence "0.9"^^xsd:decimal ;
+    gmeow:description "An attributed act supplies direct evidence of the recorded next step."@en .
+ex:wordsSetting a gmeow:SignalConfidenceSetting ;
+    gmeow:confidenceRule ex:confidenceRuleV1 ;
+    gmeow:confidenceSignal gmeow:resolutionSignalOwnWords ;
+    gmeow:signalConfidence "0.6"^^xsd:decimal ;
+    gmeow:description "A cue match supports a provisional reading of the subject's words."@en .
+ex:impasseWordsSetting a gmeow:SignalConfidenceSetting ;
+    gmeow:confidenceRule ex:confidenceRuleV1 ;
+    gmeow:confidenceSignal gmeow:impasseSignalOwnWords ;
+    gmeow:signalConfidence "0.6"^^xsd:decimal ;
+    gmeow:description "This version also configures the existing impasse signal family."@en .

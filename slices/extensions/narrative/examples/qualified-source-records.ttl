@@ -1,0 +1,55 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/narrative-breakthrough/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Synthetic retained source, not output from an executed teller.
+ex:rootConversation a gmeow:Thread ; rdfs:label "Shutter discussion"@en .
+ex:followupConversation a gmeow:Thread ; rdfs:label "Clearance follow-up"@en .
+ex:impasseMessage a gmeow:Message ;
+    gmeow:partOfThread ex:rootConversation ;
+    gmeow:wasAttributedTo ex:subject ;
+    gmeow:description "I cannot continue with the current approach."@en ;
+    gmeow:recordedAt "2026-10-30T10:00:00Z"^^xsd:dateTime .
+ex:interveningMessage a gmeow:Message ;
+    gmeow:partOfThread ex:rootConversation ;
+    gmeow:wasAttributedTo ex:subject ;
+    gmeow:description "I retained the hinge sketch."@en ;
+    gmeow:recordedAt "2026-10-30T10:30:00Z"^^xsd:dateTime .
+ex:nextMessage a gmeow:Message ;
+    gmeow:partOfThread ex:followupConversation ;
+    gmeow:inReplyTo ex:impasseMessage ;
+    gmeow:wasAttributedTo ex:subject ;
+    gmeow:description "I will measure the hinge clearance before trying again."@en ;
+    gmeow:recordedAt "2026-10-30T11:00:00Z"^^xsd:dateTime .
+ex:undatedMessage a gmeow:Message ;
+    gmeow:partOfThread ex:followupConversation ;
+    gmeow:wasAttributedTo ex:subject ;
+    gmeow:description "The earlier drawing is still in the archive."@en .
+
+# These exact tag resources are retained, not recognized by matching their labels.
+ex:decisionTag a gmeow:Tag ; rdfs:label "decision"@en .
+ex:insightTag a gmeow:Tag ; rdfs:label "insight"@en .
+ex:decisionNote a gmeow:Note ;
+    gmeow:wasAttributedTo ex:subject ; gmeow:isAbout ex:question ;
+    gmeow:hasTag ex:decisionTag ;
+    gmeow:description "I chose to measure the clearance first."@en .
+ex:insightNote a gmeow:Note ;
+    gmeow:wasAttributedTo ex:subject ; gmeow:isAbout ex:question ;
+    gmeow:hasTag ex:insightTag ;
+    gmeow:description "I realized the latch moves along a second axis."@en .
+ex:ambiguousNote a gmeow:Note ;
+    gmeow:wasAttributedTo ex:subject ; gmeow:isAbout ex:question ;
+    gmeow:hasTag ex:decisionTag, ex:insightTag ;
+    gmeow:description "The source retained both tags without choosing a reading."@en .
+
+# Preserve the source's status-setting statement without asserting it as global truth
+# or overwriting the earlier suspended question in breakthrough.ttl.
+ex:resolvedStatusRecord a gmeow:InformationObject ;
+    rdf:reifies <<( ex:question gmeow:inquiryStatus gmeow:inquiryStatusResolved )>> ;
+    gmeow:accordingTo ex:subject ; gmeow:wasAttributedTo ex:subject ;
+    gmeow:description "The subject recorded setting this exact inquiry to resolved."@en .
