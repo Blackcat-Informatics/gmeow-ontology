@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requested by dream"
+msgstr "demandée à partir d’un récit de rêve"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual DreamReport recollection episode from which an AttentionRequest was derived. This extension-owned provenance link does not turn the episode into an enduring document or assert that dream content occurred externally."
+msgstr "Épisode réel de remémoration DreamReport dont une AttentionRequest est dérivée. Ce lien de provenance appartenant à l’extension ne transforme pas l’épisode en document durable et n’affirme pas la réalité externe du rêve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:requestedByDream ex:target ."
+msgstr "ex:record gmeow:requestedByDream ex:target ."

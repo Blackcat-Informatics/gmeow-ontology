@@ -112,3 +112,17 @@ See the slice examples for composed dream episodes and reports:
 - `lucid-dream.ttl` — lucid-dreaming composition with online metacognition.
 - `ai-offline-replay.ttl` — agent memory replay modelled as offline consolidation and
   counterfactual rehearsal.
+
+## Attention derived from a recollection
+
+`requestedByDream` links an AttentionRequest to the actual DreamReport
+recollection episode from which it was derived, specializing `wasDerivedFrom`.
+The DreamReport remains an occurrent; it is not an enduring report document.
+The core-owned `attentionMessage` retains the request's exact wording,
+language and direction. Derivation neither proves external occurrence of the
+dreamed content nor acknowledges or executes the request (Principles 4, 9 and 17).
+
+See [attention provenance](design/ATTENTION-PROVENANCE.md) and the ordinary
+[`goal-attempt-satisfaction.ttl`](examples/goal-attempt-satisfaction.ttl)
+composition scene. The extension consumes the core request and agency-record
+vocabularies; neither core owner acquires a dreaming dependency.

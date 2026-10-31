@@ -58,3 +58,20 @@ DOCTRINE.
     skos:definition "The GMEOW Dreaming Module — a published extension-tier composition over the experiential/mentation layer: dreams, dream reports, and dream elements are built from gmeow:Experience, gmeow:AwarenessMode, gmeow:ContentOrigin, gmeow:LearningEvent, gmeow:Analogy, and metacognition with no new primitives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Source-faithful goals, attempts and self-commitments (Principles 4, 9, 17).
+
+gmeow:requestedByDream
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "requested by dream"@x-gmeow-english ;
+    skos:definition "The actual DreamReport recollection episode from which an AttentionRequest was derived. This extension-owned provenance link does not turn the episode into an enduring document or assert that dream content occurred externally."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:requestedByDream ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:AttentionRequest ;
+    logic:range gmeow:DreamReport ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .

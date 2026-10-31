@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/goal-attempt-satisfaction/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary illustrative source data, not a verifier invocation or an acceptance case.
+# A recollection motivates attention; its dream content is not an external event.
+ex:agent a gmeow:SoftwareAgent .
+ex:writer a gmeow:SoftwareAgent .
+ex:user a gmeow:Person .
+ex:provider a gmeow:SoftwareAgent .
+ex:readTool a gmeow:SoftwareAgent .
+ex:sourceContext a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:sourceArchive a gmeow:InformationObject .
+
+ex:dream a gmeow:Experience ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:contentOrigin gmeow:originImagined .
+ex:recollection a gmeow:DreamReport ;
+    gmeow:experiencer ex:agent ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:recollects ex:dream .
+ex:request a gmeow:AttentionRequest ;
+    gmeow:requestedByDream ex:recollection ;
+    gmeow:attentionMessage "Please preserve and examine the quiet-bell recollection."@en .
+
+ex:goal a gmeow:Goal ;
+    gmeow:hasSatisfactionCondition ex:artifactCondition, ex:externalCondition, ex:userCondition, ex:memoryCondition, ex:reflectionCondition, ex:worldCondition, ex:foregroundCondition ;
+    gmeow:hasConditionVerifier ex:artifactVerifier, ex:externalVerifier, ex:userVerifier, ex:memoryVerifier, ex:reflectionVerifier, ex:worldVerifier, ex:foregroundVerifier .
+
+ex:artifactCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: artifact" ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The morning report artifact is present."@en .
+
+ex:artifactVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: artifact" ;
+    gmeow:conditionVerifierKind gmeow:verifierArtifactExists ;
+    gmeow:verifierTitle "Morning bell report"@en .
+
+ex:externalCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: external" ;
+    gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The observation reports a quiet bell."@en .
+
+ex:externalVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: external" ;
+    gmeow:conditionVerifierKind gmeow:verifierExternalObservation ;
+    gmeow:expectedStatement <<( ex:bell gmeow:description "quiet"@en )>> ;
+    rdf:reifies <<( ex:bell gmeow:description "quiet"@en )>> .
+
+ex:userCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: user" ;
+    gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The user confirms the report can be displayed."@en .
+
+ex:userVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: user" ;
+    gmeow:conditionVerifierKind gmeow:verifierUserAssertion ;
+    gmeow:expectedStatement <<( ex:report gmeow:displayable true )>> ;
+    rdf:reifies <<( ex:report gmeow:displayable true )>> .
+
+ex:memoryCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: memory" ;
+    gmeow:entryOrdinal "3"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The retained memory contains the prior bell account."@en .
+
+ex:memoryVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: memory" ;
+    gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ;
+    gmeow:expectedText "The bell was quiet in the retained account."@en .
+
+ex:reflectionCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: reflection" ;
+    gmeow:entryOrdinal "4"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The agent records its reflective appraisal."@en .
+
+ex:reflectionVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: reflection" ;
+    gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ;
+    gmeow:expectedText "I can distinguish recollection from external observation."@en .
+
+ex:worldCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: world" ;
+    gmeow:entryOrdinal "5"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The simulated marker exists in the specified world."@en .
+
+ex:worldVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: world" ;
+    gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ;
+    gmeow:expectedWorldObject "marker  17" ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world .
+
+ex:foregroundCondition a gmeow:Condition ;
+    gmeow:verifierKey "condition: foreground" ;
+    gmeow:entryOrdinal "6"^^xsd:nonNegativeInteger ;
+    gmeow:conditionText "The attempt explicitly yields to foreground work."@en .
+
+ex:foregroundVerifier a gmeow:ConditionVerifier ;
+    gmeow:verifierKey "condition: foreground" ;
+    gmeow:conditionVerifierKind gmeow:verifierForegroundYield .
+
+# A prose plan and a self-commitment do not become executable or contractual plans.
+ex:desire a gmeow:Desire ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:goal .
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:goal ;
+    gmeow:adoptedFrom ex:desire ;
+    gmeow:commitmentText "I will preserve the report and its evidence."@en ;
+    gmeow:commitmentOrigin "Adopted after the morning recollection."@en ;
+    gmeow:deadlineAt "2030-05-01T12:00:00+00:00"^^xsd:dateTime ;
+    gmeow:nextReviewAt "2030-05-01T10:00:00+00:00"^^xsd:dateTime ;
+    gmeow:motivates ex:attempt .
+ex:plan a gmeow:InformationObject ;
+    gmeow:planText "Read the source account, preserve the report, then record the evidence."@en .
+ex:attempt a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeAttempt ;
+    gmeow:wasAssociatedWith ex:agent .
+ex:start a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttemptStart ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:followedPlan ex:plan ;
+    gmeow:intentionTransitionOf ex:intention ;
+    gmeow:intentionEventSequence "1"^^xsd:nonNegativeInteger ;
+    gmeow:eventReason "The source report is available for review."@en ;
+    gmeow:engineContract "intention-events/v2  source-A" .
+ex:finish a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeAttemptFinish ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:intentionTransitionOf ex:intention ;
+    gmeow:intentionEventSequence "2"^^xsd:nonNegativeInteger ;
+    gmeow:attemptStop gmeow:stopYieldedToForeground ;
+    gmeow:attemptSummary "The report and its cited evidence were retained."@en ;
+    gmeow:bodyCause "The runtime handed control to foreground work."@en ;
+    gmeow:nextAction "Review the source account at the scheduled time."@en .
+
+# Attribution is to the actual writer of the exact number statement, not its performer.
+ex:firstNumber rdf:reifies <<( ex:start gmeow:intentionEventSequence "1"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:accordingTo ex:sourceContext .
+ex:secondNumber rdf:reifies <<( ex:finish gmeow:intentionEventSequence "2"^^xsd:nonNegativeInteger )>> ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:accordingTo ex:sourceContext .
+
+ex:readCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:readTool ;
+    gmeow:subEventOf ex:attempt ;
+    gmeow:auditText "source-A: report.read returned the requested report."@en .
+
+# The actual cited records remain distinct from configuration and fallback prose.
+ex:report a gmeow:InformationObject ;
+    rdfs:label "Morning bell report"@en ;
+    gmeow:displayable true ;
+    gmeow:wasAttributedTo ex:agent .
+ex:artifactObservation a gmeow:ArtifactVerificationObservation ;
+    gmeow:verifiesArtifact ex:report ;
+    gmeow:verifierKind gmeow:verifierArtifactExists ;
+    gmeow:vantage ex:readTool ;
+    gmeow:observationResult gmeow:verdictHeld ;
+    gmeow:wasDerivedFrom ex:readCall .
+
+ex:bell a gmeow:Entity ; gmeow:description "quiet"@en .
+ex:externalObservation a gmeow:Observation ;
+    gmeow:observationMethod gmeow:verifierExternalObservation ;
+    gmeow:observedFeature ex:bell ;
+    gmeow:vantage ex:provider ;
+    gmeow:observationResult gmeow:verdictHeld ;
+    rdf:reifies <<( ex:bell gmeow:description "quiet"@en )>> .
+ex:userAssertion a gmeow:Observation ;
+    gmeow:observationMethod gmeow:verifierUserAssertion ;
+    gmeow:observedFeature ex:report ;
+    gmeow:vantage ex:user ;
+    gmeow:observationResult gmeow:verdictHeld ;
+    rdf:reifies <<( ex:report gmeow:displayable true )>> .
+ex:memory a gmeow:MemoryItem ;
+    gmeow:memoryText "The bell was quiet in the retained account."@en ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:wasDerivedFrom ex:sourceArchive .
+ex:appraisal a gmeow:Note ;
+    gmeow:noteContent "I can distinguish recollection from external observation."@en ;
+    gmeow:wasAttributedTo ex:agent .
+ex:world a logic:Situation .
+ex:evaluationState a logic:Situation ; gmeow:providerWorld ex:world .
+ex:marker a gmeow:Entity .
+ex:objectRecord a gmeow:WorldObjectRecord ;
+    gmeow:recordedWorldObject ex:marker ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world ;
+    gmeow:providerHandle "marker  17" ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:wasDerivedFrom ex:sourceArchive .
+
+# This is a source-attributed judgment with all seven cited evidence paths.
+# It does not claim that loading this scene executes any verifier or private-store read.
+ex:evaluation a logic:GoalEvaluation ;
+    logic:evaluatesGoal ex:goal ;
+    logic:evaluatedAgainst ex:evaluationState ;
+    gmeow:providerWorld ex:world ;
+    logic:evaluationEvaluator ex:agent ;
+    logic:evaluationCriterion ex:sourceStandard ;
+    logic:evaluationTime "2030-05-01T09:30:00+00:00"^^xsd:dateTime ;
+    logic:satisfactionStatus logic:Satisfied ;
+    logic:goalEvaluationStatus logic:GoalEvaluationCompleted ;
+    gmeow:conditionKey "condition: artifact", "condition: external", "condition: user", "condition: memory", "condition: reflection", "condition: world", "condition: foreground" ;
+    gmeow:evidenceItem "The source evaluation cited the retained evidence records."@en ;
+    gmeow:wasDerivedFrom ex:artifactObservation, ex:externalObservation,
+        ex:userAssertion, ex:memory, ex:appraisal, ex:objectRecord, ex:finish .
+
+# Each citation binds the exact evaluation and source to its own condition key.
+ex:artifactCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:artifactObservation )>> ;
+    gmeow:verifierKey "condition: artifact" ;
+    gmeow:accordingTo ex:agent .
+
+ex:externalCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:externalObservation )>> ;
+    gmeow:verifierKey "condition: external" ;
+    gmeow:accordingTo ex:agent .
+
+ex:userCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:userAssertion )>> ;
+    gmeow:verifierKey "condition: user" ;
+    gmeow:accordingTo ex:agent .
+
+ex:memoryCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:memory )>> ;
+    gmeow:verifierKey "condition: memory" ;
+    gmeow:accordingTo ex:agent .
+
+ex:reflectionCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:appraisal )>> ;
+    gmeow:verifierKey "condition: reflection" ;
+    gmeow:accordingTo ex:agent .
+
+ex:worldCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:objectRecord )>> ;
+    gmeow:verifierKey "condition: world" ;
+    gmeow:accordingTo ex:agent .
+
+ex:foregroundCitation rdf:reifies <<( ex:evaluation gmeow:wasDerivedFrom ex:finish )>> ;
+    gmeow:verifierKey "condition: foreground" ;
+    gmeow:accordingTo ex:agent .
+
+ex:sourceStandard a gmeow:InformationObject ;
+    gmeow:description "The source standard requires all seven stated conditions."@en ;
+    gmeow:wasDerivedFrom ex:sourceArchive .
+
+# Source commitment history is retained when its holding interval closes.
+ex:tenure a gmeow:IntentionTenure ;
+    gmeow:tenureAgent ex:agent ;
+    gmeow:tenureIntention ex:intention ;
+    gmeow:duringInterval ex:holdingInterval ;
+    gmeow:releaseReason "The source self-commitment was released after the recorded review."@en .
+ex:holdingInterval a gmeow:TimeInterval ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2030-05-01T09:00:00+00:00"^^xsd:dateTime ;
+    gmeow:endedAtTime "2030-05-01T09:35:00+00:00"^^xsd:dateTime .

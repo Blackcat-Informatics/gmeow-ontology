@@ -1374,20 +1374,20 @@ msgid "Verifier Kind"
 msgstr "Type de vérificateur"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An open vocabulary of methods used to assess a condition on an artifact. Selecting a method is not a verdict that its condition holds."
-msgstr "Vocabulaire ouvert de méthodes évaluant une condition sur un artefact. Choisir une méthode n’est pas un verdict que sa condition tient."
+msgid "An open vocabulary of methods used to assess satisfaction conditions, including artifact checks, observations, assertions, retained memory, reflective appraisals, environment records and foreground yields. Selecting a method is not a verdict that its condition holds."
+msgstr "Vocabulaire ouvert de méthodes d’évaluation des conditions de satisfaction, dont contrôles d’artefacts, observations, assertions, mémoire conservée, appréciations réflexives, fiches d’environnement et cessions au premier plan. Choisir une méthode n’est pas un verdict que sa condition est remplie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to retain which verification method a source observation selected."
-msgstr "Utiliser pour conserver la méthode choisie par une observation source."
+msgid "Use to retain a configured condition-verification method or an actual observation's verification method without conflating those records."
+msgstr "Utiliser pour conserver une méthode configurée de vérification de condition ou celle d’une observation réelle, sans confondre ces enregistrements."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating verifier kind as a successful outcome or an agent identity."
 msgstr "Éviter de traiter le type de vérificateur comme réussite ou identité d’agent."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Use method individuals through verifierKind and retain verdicts separately through observationResult."
-msgstr "Utiliser les individus de méthode par verifierKind et conserver les verdicts séparément par observationResult."
+msgid "Use conditionVerifierKind on configuration descriptors and verifierKind on actual artifact verification observations; retain reported observation verdicts separately through observationResult."
+msgstr "Utiliser conditionVerifierKind sur les descripteurs de configuration et verifierKind sur les observations réelles de vérification d’artefact ; conserver séparément les verdicts observés par observationResult."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
@@ -1850,3 +1850,1633 @@ msgstr "L’abaissement achevé des métadonnées d’énoncé fournit les compo
 msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
 msgstr "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has satisfaction condition"
+msgstr "a pour condition de satisfaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A goal's source-stated satisfaction condition, ordered by entryOrdinal on the condition occurrence. It is prose criteria, independent of the executable logic:hasGoalCondition expression."
+msgstr "Condition de satisfaction énoncée par la source pour un but, ordonnée par entryOrdinal sur son occurrence. Ce critère en prose est indépendant de l’expression exécutable logic:hasGoalCondition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasSatisfactionCondition ex:target ."
+msgstr "ex:record gmeow:hasSatisfactionCondition ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Condition Verifier"
+msgstr "Vérificateur de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information-object descriptor naming a condition key, verification method and expected content. It configures verification without being a Criterion, an observation, an executable check or a satisfaction verdict."
+msgstr "Objet informationnel décrivant une clé de condition, une méthode de vérification et le contenu attendu. Il configure la vérification sans être un Criterion, une observation, un contrôle exécutable ou un verdict de satisfaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records a configured condition-verification descriptor."
+msgstr "Utiliser lorsque la source consigne explicitement un descripteur configuré de vérification de condition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor a gmeow:ConditionVerifier ."
+msgstr "ex:descriptor a gmeow:ConditionVerifier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has condition verifier"
+msgstr "a pour vérificateur de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A goal's configured condition verifier. Matching source keys associate the descriptor with a condition of this same goal; selecting it supplies no evidence or verdict."
+msgstr "Vérificateur de condition configuré pour un but. Les clés source correspondantes l’associent à une condition de ce même but ; sa sélection ne fournit ni preuve ni verdict."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasConditionVerifier ex:target ."
+msgstr "ex:record gmeow:hasConditionVerifier ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition verifier kind"
+msgstr "type de vérificateur de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The configured method of a condition verifier, distinct from verifierKind on an actual artifact verification observation. A method selection never asserts that it ran or succeeded."
+msgstr "Méthode configurée d’un vérificateur de condition, distincte de verifierKind sur une observation réelle de vérification d’artefact. Sa sélection n’affirme jamais son exécution ni sa réussite."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:conditionVerifierKind ex:target ."
+msgstr "ex:record gmeow:conditionVerifierKind ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifier key"
+msgstr "clé de vérificateur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source key naming a checked condition, retained on its Condition occurrence, ConditionVerifier descriptor and reified goal-evaluation evidence citation. Equality is scoped to the containing goal and exact evaluation citation, never global identity or whitespace normalization."
+msgstr "Clé source exacte de la condition contrôlée, conservée sur son occurrence Condition, son descripteur ConditionVerifier et la citation réifiée de preuve d’évaluation du but. L’égalité est limitée au but contenant et à la citation exacte d’évaluation, sans identité globale ni normalisation des espaces."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifierKey \"source-value\" ."
+msgstr "ex:record gmeow:verifierKey \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifier title"
+msgstr "titre du vérificateur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's artifact title used by a verifier, verbatim. A title does not identify artifact bytes, prove existence or replace a versioned artifact reference."
+msgstr "Titre d’artefact employé par le vérificateur, conservé textuellement. Un titre n’identifie pas les octets, ne prouve pas l’existence et ne remplace pas une référence de version."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifierTitle \"source-value\" ."
+msgstr "ex:record gmeow:verifierTitle \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected text"
+msgstr "texte attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Expected source wording, retained verbatim with its supplied language and direction. Expectation is independent of observed content and does not become evidence by repetition."
+msgstr "Formulation attendue de la source, conservée textuellement avec sa langue et sa direction fournies. L’attente est indépendante du contenu observé ; sa répétition ne constitue pas une preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:expectedText \"source-value\" ."
+msgstr "ex:record gmeow:expectedText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected statement"
+msgstr "énoncé attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An expected observation statement represented as a native RDF 1.2 triple term, shared with an explicit rdf:reifies binding. Quotation preserves structure without asserting the quoted proposition or implementing a checker."
+msgstr "Énoncé d’observation attendu représenté par un terme de triplet RDF 1.2 natif, partagé avec un lien rdf:reifies explicite. La citation conserve la structure sans affirmer la proposition ni implémenter un contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the expected triple term and its explicit reification: ex:descriptor gmeow:expectedStatement <<( ex:item gmeow:displayable true )>> ; rdf:reifies <<( ex:item gmeow:displayable true )>> ."
+msgstr "Conserver le terme de triplet attendu et sa réification explicite : ex:descriptor gmeow:expectedStatement <<( ex:item gmeow:displayable true )>> ; rdf:reifies <<( ex:item gmeow:displayable true )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected world object"
+msgstr "objet de monde attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact unresolved simulated-object identifier supplied by the source. Resolution requires a provider-and-world-scoped WorldObjectRecord; matching text alone never creates an object identity."
+msgstr "Identifiant exact non résolu d’objet simulé fourni par la source. Sa résolution exige un WorldObjectRecord situé dans un fournisseur et un monde ; une égalité textuelle seule ne crée aucune identité d’objet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:expectedWorldObject \"source-value\" ."
+msgstr "ex:record gmeow:expectedWorldObject \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact exists verifier"
+msgstr "vérification d’existence d’artefact"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited artifact observation and identified artifact. A configured title or a successful tool invocation alone does not establish artifact existence."
+msgstr "Vérification exigeant une observation réelle d’artefact citée et un artefact identifié. Un titre configuré ou une invocation d’outil réussie ne suffit pas à établir son existence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierArtifactExists ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierArtifactExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "external observation verifier"
+msgstr "vérification par observation externe"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited held observation with its actual vantage and the expected statement binding. Expected text and an uncited summary are not external observation evidence."
+msgstr "Vérification exigeant une observation citée et tenue pour vraie, avec son point de vue réel et le lien vers l’énoncé attendu. Texte attendu et résumé sans citation ne sont pas des preuves d’observation externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierExternalObservation ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierExternalObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "user assertion verifier"
+msgstr "vérification par assertion de l’utilisateur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited assertion observation attributed to the asserting user and bound to the expected statement. A model's paraphrase does not replace that assertion."
+msgstr "Vérification exigeant une observation d’assertion réelle citée, attribuée à l’utilisateur qui affirme et liée à l’énoncé attendu. La paraphrase d’un modèle ne remplace pas cette assertion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierUserAssertion ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierUserAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memory evidenced verifier"
+msgstr "vérification étayée par la mémoire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited retained MemoryItem and its actual memoryText content and attribution. Free evidence wording is not a memory citation, retrieval receipt or proof that a private store was consulted."
+msgstr "Vérification exigeant un MemoryItem conservé et cité, son contenu memoryText réel et son attribution. Un texte libre de preuve n’est ni citation de mémoire, ni reçu de recherche, ni preuve de consultation d’un dépôt privé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reflective appraisal verifier"
+msgstr "vérification par appréciation réflexive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited Note containing the agent's reflective appraisal with actual noteContent and agent attribution. The appraisal remains a situated judgment rather than an external fact."
+msgstr "Vérification exigeant une Note citée contenant l’appréciation réflexive de l’agent, son noteContent réel et son attribution. Cette appréciation reste un jugement situé plutôt qu’un fait externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object exists verifier"
+msgstr "vérification d’existence d’objet de monde"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited environment-owned WorldObjectRecord with actual provider, world, object and exact matching provider handle. An expected handle alone does not evidence existence."
+msgstr "Vérification exigeant un WorldObjectRecord cité appartenant à l’environnement, avec fournisseur, monde, objet réels et identifiant fournisseur exactement correspondant. Un identifiant attendu seul ne prouve pas l’existence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "foreground yield verifier"
+msgstr "vérification de cession au premier plan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited attempt-finish event whose attemptStop is stopYieldedToForeground and whose actor is identified. Silence, elapsed time or an interrupted code alone does not evidence a foreground yield."
+msgstr "Vérification exigeant un événement réel cité de fin de tentative dont attemptStop vaut stopYieldedToForeground et dont l’acteur est identifié. Silence, temps écoulé ou code d’interruption seul ne prouvent pas cette cession."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "Utiliser lorsque la source choisit explicitement cette méthode de vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierForegroundYield ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierForegroundYield ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition key"
+msgstr "clé de condition"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."
+msgstr "Clé source exacte de preuve de condition sur une évaluation de but. Elle relie un vérificateur configuré et une condition au sein du but évalué, sans normaliser la chaîne en jeton."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:conditionKey \"source-value\" ."
+msgstr "ex:record gmeow:conditionKey \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence item"
+msgstr "élément de preuve textuel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source evidence wording on a goal evaluation when no evidence span is available. This fallback text preserves the claim but is never interchangeable with a cited observation, memory, note, actor or environment record."
+msgstr "Formulation source de preuve sur une évaluation de but lorsqu’aucun segment de preuve n’est disponible. Ce texte conserve la déclaration sans remplacer une observation, mémoire, note, personne ou fiche d’environnement citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceItem \"source-value\" ."
+msgstr "ex:record gmeow:evidenceItem \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adopted from"
+msgstr "adoptée à partir de"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Desire from which an Intention was adopted, specializing wasDerivedFrom. This provenance link does not assert that every desire is adopted or that the intention succeeds."
+msgstr "Desire réel à partir duquel une Intention a été adoptée, spécialisation de wasDerivedFrom. Ce lien de provenance n’affirme ni l’adoption de tout désir ni la réussite de l’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:adoptedFrom ex:target ."
+msgstr "ex:record gmeow:adoptedFrom ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "followed plan"
+msgstr "plan suivi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source prose plan followed at an attempt start. Its information object carries planText without requiring an executable logic:Plan, compiled prescription or fabricated prescription version."
+msgstr "Plan en prose suivi au début d’une tentative. Son objet informationnel porte planText sans exiger de logic:Plan exécutable, de prescription compilée ou de version inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:followedPlan ex:target ."
+msgstr "ex:record gmeow:followedPlan ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "plan text"
+msgstr "texte du plan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source wording of a prose plan, preserving supplied language and direction. It is neither a compiled program nor a claim that the plan was executed."
+msgstr "Formulation source textuelle d’un plan en prose, conservant la langue et la direction fournies. Elle n’est ni programme compilé ni affirmation de son exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:planText \"source-value\" ."
+msgstr "ex:record gmeow:planText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt summary"
+msgstr "résumé de tentative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim summary on an attempt-finish event. It reports the attempt without entailing goal satisfaction and does not specialize the Entity-domain description property."
+msgstr "Résumé textuel fourni par la source sur un événement de fin de tentative. Il relate la tentative sans entraîner la satisfaction du but ni spécialiser description dont le domaine est Entity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptSummary \"source-value\" ."
+msgstr "ex:record gmeow:attemptSummary \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "body cause"
+msgstr "cause d’arrêt du corps"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime's exact source wording for why an attempt body stopped. It remains independent of the controlled attemptStop code, intention lifecycle and goal verdict."
+msgstr "Formulation source exacte de l’environnement d’exécution expliquant l’arrêt du corps d’une tentative. Elle reste indépendante du code attemptStop, du cycle de l’intention et du verdict de but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:bodyCause \"source-value\" ."
+msgstr "ex:record gmeow:bodyCause \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next action"
+msgstr "action suivante"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposed next action recorded verbatim on an attempt finish. A proposal is neither an executed event nor an adopted intention."
+msgstr "Action suivante proposée, conservée textuellement à la fin d’une tentative. Une proposition n’est ni un événement exécuté ni une intention adoptée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:nextAction \"source-value\" ."
+msgstr "ex:record gmeow:nextAction \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention event sequence"
+msgstr "numéro d’événement d’intention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The writer's original nonnegative event numbering within an actual intention and source context. The exact statement is attributed to its actual writer; numbering need not be zero-based and is never inferred from clocks."
+msgstr "Numérotation originale non négative des événements par le rédacteur, pour une intention et un contexte source réels. L’énoncé exact est attribué au rédacteur réel ; elle peut commencer ailleurs qu’à zéro et ne se déduit jamais des horloges."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:intentionEventSequence \"1\"^^xsd:nonNegativeInteger ."
+msgstr "ex:record gmeow:intentionEventSequence \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline at"
+msgstr "échéance à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-stated deadline instant of an intention. Preserve supplied precision, timezone and temporal frame; no date, timezone or deadline completion is inferred from missing fields."
+msgstr "Instant d’échéance d’une intention indiqué par la source. Conserver précision, fuseau et cadre temporel fournis ; aucun champ absent ne justifie d’inventer une date, un fuseau ou une réalisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:deadlineAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:record gmeow:deadlineAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next review at"
+msgstr "prochaine révision à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-stated next review instant of an intention. A scheduled review does not assert a review occurred, and missing precision or timezone is never invented."
+msgstr "Instant de prochaine révision d’une intention indiqué par la source. Une révision prévue n’affirme pas sa réalisation ; précision ou fuseau manquants ne sont jamais inventés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:nextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:record gmeow:nextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event reason"
+msgstr "motif d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source reason for an intention-related event, independently attributed and retaining language and direction. It neither replaces event type nor proves the stated cause."
+msgstr "Motif source textuel d’un événement lié à l’intention, attribué séparément avec sa langue et sa direction. Il ne remplace pas le type d’événement et ne prouve pas la cause annoncée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:eventReason \"source-value\" ."
+msgstr "ex:record gmeow:eventReason \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "engine contract"
+msgstr "identifiant de contrat moteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source engine-contract identifier governing a recorded event. Preserve all code points and spacing; the identifier alone supplies neither an implemented contract nor an execution receipt."
+msgstr "Identifiant source exact du contrat moteur régissant un événement enregistré. Conserver points de code et espaces ; l’identifiant seul ne fournit ni implémentation ni reçu d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:engineContract \"source-value\" ."
+msgstr "ex:record gmeow:engineContract \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audit text"
+msgstr "texte d’audit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's unparsed tool audit line, verbatim with supplied language and direction. Retaining the line neither parses a contract nor turns an unrecognized audit into success or a malformed value."
+msgstr "Ligne d’audit d’outil non analysée de la source, conservée textuellement avec langue et direction fournies. La conserver n’analyse aucun contrat et ne transforme pas une ligne inconnue en réussite ou en valeur mal formée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:auditText \"source-value\" ."
+msgstr "ex:record gmeow:auditText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitment text"
+msgstr "texte d’engagement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The self-commitment wording of an intention, verbatim. It records the agent's own commitment without manufacturing another party, contractual Commitment or achieved goal."
+msgstr "Formulation textuelle d’engagement envers soi d’une intention. Elle consigne l’engagement propre de l’agent sans inventer autre partie, Commitment contractuel ou but atteint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentText \"source-value\" ."
+msgstr "ex:record gmeow:commitmentText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitment origin"
+msgstr "origine de l’engagement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim wording for the origin of a self-commitment. It is a source claim, distinct from structured adoption provenance and contractual authority."
+msgstr "Formulation source textuelle de l’origine d’un engagement envers soi. Cette déclaration est distincte de la provenance structurée d’adoption et de l’autorité contractuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentOrigin \"source-value\" ."
+msgstr "ex:record gmeow:commitmentOrigin \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "release reason"
+msgstr "motif de libération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source reason a self-commitment was released, attached to its closed IntentionTenure. Retain the actual interval end and history rather than erasing the intention or inventing an end date."
+msgstr "Motif source textuel de libération d’un engagement envers soi, porté par son IntentionTenure fermé. Conserver la fin réelle de l’intervalle et l’historique sans effacer l’intention ni inventer de date."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:releaseReason \"source-value\" ."
+msgstr "ex:record gmeow:releaseReason \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition occurrence constraint"
+msgstr "Contrainte d’occurrence de condition de but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."
+msgstr "Chaque occurrence de condition liée conserve son texte source, sa clé locale exacte, son rang à partir de zéro et un vérificateur configuré du même but avec cette clé exacte ; aucune expression de but exécutable n’est inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de hasSatisfactionCondition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionOccurrenceConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionOccurrenceConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal verifier condition binding constraint"
+msgstr "Contrainte de liaison du vérificateur à la condition du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A configured goal verifier names an actual condition of that same goal through the identical source key."
+msgstr "Un vérificateur de but configuré nomme une condition réelle de ce même but par une clé source identique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasConditionVerifier."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de hasConditionVerifier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalVerifierConditionBindingConstraint logic:formalizes gmeow:hasConditionVerifier ."
+msgstr "gmeow:GoalVerifierConditionBindingConstraint logic:formalizes gmeow:hasConditionVerifier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal evaluation condition binding constraint"
+msgstr "Contrainte de liaison de condition d’évaluation de but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."
+msgstr "Une évaluation de but munie d’une clé identifie son but réel évalué ainsi qu’un vérificateur configuré et une condition correspondants dans ce but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of conditionKey."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de conditionKey."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalEvaluationConditionBindingConstraint logic:formalizes gmeow:conditionKey ."
+msgstr "gmeow:GoalEvaluationConditionBindingConstraint logic:formalizes gmeow:conditionKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition key uniqueness constraint"
+msgstr "Contrainte d’unicité de clé de condition de but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."
+msgstr "Une clé source identifie une occurrence de condition dans un même but, sans identifier les conditions entre buts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de hasSatisfactionCondition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionKeyUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionKeyUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition ordinal uniqueness constraint"
+msgstr "Contrainte d’unicité de rang de condition de but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."
+msgstr "Une position à partir de zéro identifie une occurrence de condition dans la séquence ordonnée d’un même but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de hasSatisfactionCondition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionOrdinalUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionOrdinalUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Expected statement reifier constraint"
+msgstr "Contrainte de réification de l’énoncé attendu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."
+msgstr "Chaque expectedStatement partage son terme de triplet natif exact avec un rdf:reifies explicite sur le descripteur ; citer n’est ni affirmer ni valider génériquement les termes de triplet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of expectedStatement."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de expectedStatement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExpectedStatementReifierConstraint logic:formalizes gmeow:expectedStatement ."
+msgstr "gmeow:ExpectedStatementReifierConstraint logic:formalizes gmeow:expectedStatement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Followed prose plan constraint"
+msgstr "Contrainte de plan en prose suivi"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."
+msgstr "Un plan en prose suivi est conservé sur un événement de début de tentative et porte un planText réel, sans introduire de Plan exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of followedPlan."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de followedPlan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FollowedProsePlanConstraint logic:formalizes gmeow:followedPlan ."
+msgstr "gmeow:FollowedProsePlanConstraint logic:formalizes gmeow:followedPlan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attempt summary phase constraint"
+msgstr "Contrainte de phase du résumé de tentative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of attemptSummary."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de attemptSummary."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:AttemptSummaryPhaseConstraint logic:formalizes gmeow:attemptSummary ."
+msgstr "gmeow:AttemptSummaryPhaseConstraint logic:formalizes gmeow:attemptSummary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Body cause phase constraint"
+msgstr "Contrainte de phase de cause d’arrêt du corps"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of bodyCause."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de bodyCause."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:BodyCausePhaseConstraint logic:formalizes gmeow:bodyCause ."
+msgstr "gmeow:BodyCausePhaseConstraint logic:formalizes gmeow:bodyCause ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Next action phase constraint"
+msgstr "Contrainte de phase d’action suivante"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of nextAction."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de nextAction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:NextActionPhaseConstraint logic:formalizes gmeow:nextAction ."
+msgstr "gmeow:NextActionPhaseConstraint logic:formalizes gmeow:nextAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention sequence source constraint"
+msgstr "Contrainte de source du numéro d’intention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."
+msgstr "Chaque numéro fourni lie une intention réelle et la réification exacte de l’énoncé source identifiant le rédacteur et le contexte réels ; les composants d’abaissement sont lus, jamais écrits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of intentionEventSequence."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de intentionEventSequence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionSequenceSourceConstraint logic:formalizes gmeow:intentionEventSequence ."
+msgstr "gmeow:IntentionSequenceSourceConstraint logic:formalizes gmeow:intentionEventSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention sequence local uniqueness constraint"
+msgstr "Contrainte d’unicité locale du numéro d’intention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."
+msgstr "Un numéro identifie un seul événement uniquement pour la même intention, le même rédacteur et le même contexte source réels. Les autres rédacteurs et contextes gardent leur numérotation ; les horloges ne déterminent pas cet ordre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of intentionEventSequence."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de intentionEventSequence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionSequenceLocalUniquenessConstraint logic:formalizes gmeow:intentionEventSequence ."
+msgstr "gmeow:IntentionSequenceLocalUniquenessConstraint logic:formalizes gmeow:intentionEventSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Released intention tenure constraint"
+msgstr "Contrainte de tenue d’intention libérée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."
+msgstr "Un motif de libération appartient à une tenue dont l’intervalle réel possède un instant ou horodatage de fin explicite ; le motif n’invente jamais la clôture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of releaseReason."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de releaseReason."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReleasedIntentionTenureConstraint logic:formalizes gmeow:releaseReason ."
+msgstr "gmeow:ReleasedIntentionTenureConstraint logic:formalizes gmeow:releaseReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal artifact existence evidence constraint"
+msgstr "Contrainte de preuve d’existence d’artefact du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."
+msgstr "Une évaluation positive achevée d’existence d’artefact dérive d’une observation réelle tenue pour vraie identifiant l’artefact et son point de vue ; un titre ou une invocation réussie ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierArtifactExists."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierArtifactExists."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalArtifactExistenceEvidenceConstraint logic:formalizes gmeow:verifierArtifactExists ."
+msgstr "gmeow:GoalArtifactExistenceEvidenceConstraint logic:formalizes gmeow:verifierArtifactExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal external observation evidence constraint"
+msgstr "Contrainte de preuve d’observation externe du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."
+msgstr "Une évaluation positive achevée par observation externe dérive d’une observation réelle tenue pour vraie, avec son point de vue réel et le lien exact vers l’énoncé attendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierExternalObservation."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierExternalObservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalExternalObservationEvidenceConstraint logic:formalizes gmeow:verifierExternalObservation ."
+msgstr "gmeow:GoalExternalObservationEvidenceConstraint logic:formalizes gmeow:verifierExternalObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal user assertion evidence constraint"
+msgstr "Contrainte de preuve d’assertion d’utilisateur du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."
+msgstr "Une évaluation positive achevée par assertion d’utilisateur dérive d’une assertion réelle tenue pour vraie, avec le point de vue Agent de son auteur et le lien exact vers l’énoncé attendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierUserAssertion."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierUserAssertion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalUserAssertionEvidenceConstraint logic:formalizes gmeow:verifierUserAssertion ."
+msgstr "gmeow:GoalUserAssertionEvidenceConstraint logic:formalizes gmeow:verifierUserAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal memory evidence constraint"
+msgstr "Contrainte de preuve mémorielle du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."
+msgstr "Une évaluation positive achevée étayée par la mémoire dérive d’un MemoryItem conservé et cité avec memoryText réel et attribution à un agent. La prose seule ne satisfait pas cette loi et ne certifie aucune recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierMemoryEvidenced."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierMemoryEvidenced."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalMemoryEvidenceConstraint logic:formalizes gmeow:verifierMemoryEvidenced ."
+msgstr "gmeow:GoalMemoryEvidenceConstraint logic:formalizes gmeow:verifierMemoryEvidenced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal reflective appraisal evidence constraint"
+msgstr "Contrainte de preuve d’appréciation réflexive du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."
+msgstr "Une appréciation réflexive positive achevée dérive de la Note réelle citée de l’agent évaluateur, avec noteContent et attribution à ce même agent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierReflectiveAppraisal."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierReflectiveAppraisal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalReflectiveAppraisalEvidenceConstraint logic:formalizes gmeow:verifierReflectiveAppraisal ."
+msgstr "gmeow:GoalReflectiveAppraisalEvidenceConstraint logic:formalizes gmeow:verifierReflectiveAppraisal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal world object existence evidence constraint"
+msgstr "Contrainte de preuve d’existence d’objet de monde du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."
+msgstr "Une évaluation positive achevée d’objet de monde dérive d’une fiche réelle du fournisseur correspondant à l’identifiant attendu dans le fournisseur et le monde exacts du vérificateur ; une égalité textuelle entre mondes ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierWorldObjectExists."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierWorldObjectExists."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalWorldObjectExistenceEvidenceConstraint logic:formalizes gmeow:verifierWorldObjectExists ."
+msgstr "gmeow:GoalWorldObjectExistenceEvidenceConstraint logic:formalizes gmeow:verifierWorldObjectExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal foreground yield evidence constraint"
+msgstr "Contrainte de preuve de cession au premier plan du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."
+msgstr "Une évaluation positive achevée de cession au premier plan dérive d’une fin réelle de tentative avec stopYieldedToForeground explicite et acteur associé réel ; silence et état interrompu n’établissent pas cet événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierForegroundYield."
+msgstr "Utiliser pour faire respecter l’obligation de preuve source de verifierForegroundYield."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "Éviter de satisfaire cette loi avec des valeurs source inventées ou un texte de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "Conserver les liens source réels exprimés par cette formule canonique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "Cette loi contraint les enregistrements fournis ; elle n’exécute aucun vérificateur et n’authentifie aucune source externe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalForegroundYieldEvidenceConstraint logic:formalizes gmeow:verifierForegroundYield ."
+msgstr "gmeow:GoalForegroundYieldEvidenceConstraint logic:formalizes gmeow:verifierForegroundYield ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Completed goal condition coverage constraint"
+msgstr "Contrainte de couverture des conditions de but achevé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."
+msgstr "Une évaluation achevée et satisfaite d’un but avec conditions source conserve chaque clé de condition et un vérificateur correspondant de ce même but ; omettre une condition configurée ne permet pas d’éluder sa preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce complete condition coverage for a conclusive positive goal judgment."
+msgstr "Utiliser pour imposer la couverture de toutes les conditions d’un jugement de but positif et concluant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid certifying a goal by selecting only the easiest condition or omitting its condition keys."
+msgstr "Éviter de certifier un but en ne choisissant que la condition la plus facile ou en omettant ses clés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual condition key and its configured verifier; keep incomplete evaluations explicitly incomplete."
+msgstr "Conserver chaque clé de condition réelle et son vérificateur configuré ; garder les évaluations incomplètes explicitement incomplètes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coverage constrains the supplied judgment; it does not execute conditions or infer their truth."
+msgstr "La couverture contraint le jugement fourni ; elle n’exécute pas les conditions et n’en déduit pas la vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompletedGoalConditionCoverageConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:CompletedGoalConditionCoverageConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal read-after-write evidence constraint"
+msgstr "Contrainte de preuve de relecture après écriture du but"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."
+msgstr "Une évaluation positive achevée de relecture après écriture cite une observation réelle tenue pour vraie de ce même procédé et de cette clé de condition. La loi existante exige alors des reçus distincts et concordants d’écriture et de lecture ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the existing read-after-write evidence contract when this method is configured for a goal."
+msgstr "Utiliser pour conserver le contrat existant de preuve de relecture après écriture lorsque cette méthode est configurée pour un but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bypassing actual read and write evidence by configuring a method without a cited observation."
+msgstr "Éviter de contourner les preuves réelles de lecture et d’écriture en configurant une méthode sans observation citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Cite the actual held observation under the same condition key and retain its versioned read and write receipts."
+msgstr "Citer l’observation réelle tenue pour vraie sous la même clé de condition et conserver ses reçus de lecture et d’écriture versionnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Configuration neither executes the check nor replaces the existing artifact-byte-identity and later-read obligations."
+msgstr "La configuration n’exécute pas le contrôle et ne remplace pas les obligations existantes d’identité des octets et de lecture ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+msgstr "gmeow:GoalReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."
+msgstr "Chaque occurrence de condition liée conserve son texte source, sa clé locale exacte, son rang à partir de zéro et un vérificateur configuré du même but avec cette clé exacte ; aucune expression de but exécutable n’est inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A configured goal verifier names an actual condition of that same goal through the identical source key."
+msgstr "Un vérificateur de but configuré nomme une condition réelle de ce même but par une clé source identique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."
+msgstr "Une évaluation de but munie d’une clé identifie son but réel évalué ainsi qu’un vérificateur configuré et une condition correspondants dans ce but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."
+msgstr "Une clé source identifie une occurrence de condition dans un même but, sans identifier les conditions entre buts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."
+msgstr "Une position à partir de zéro identifie une occurrence de condition dans la séquence ordonnée d’un même but."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."
+msgstr "Chaque expectedStatement partage son terme de triplet natif exact avec un rdf:reifies explicite sur le descripteur ; citer n’est ni affirmer ni valider génériquement les termes de triplet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."
+msgstr "Un plan en prose suivi est conservé sur un événement de début de tentative et porte un planText réel, sans introduire de Plan exécutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "Le texte source appartient à un événement réel de fin de tentative ; il ne fournit ni verdict de but ni exécution ultérieure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."
+msgstr "Chaque numéro fourni lie une intention réelle et la réification exacte de l’énoncé source identifiant le rédacteur et le contexte réels ; les composants d’abaissement sont lus, jamais écrits."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."
+msgstr "Un numéro identifie un seul événement uniquement pour la même intention, le même rédacteur et le même contexte source réels. Les autres rédacteurs et contextes gardent leur numérotation ; les horloges ne déterminent pas cet ordre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."
+msgstr "Un motif de libération appartient à une tenue dont l’intervalle réel possède un instant ou horodatage de fin explicite ; le motif n’invente jamais la clôture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."
+msgstr "Une évaluation positive achevée d’existence d’artefact dérive d’une observation réelle tenue pour vraie identifiant l’artefact et son point de vue ; un titre ou une invocation réussie ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."
+msgstr "Une évaluation positive achevée par observation externe dérive d’une observation réelle tenue pour vraie, avec son point de vue réel et le lien exact vers l’énoncé attendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."
+msgstr "Une évaluation positive achevée par assertion d’utilisateur dérive d’une assertion réelle tenue pour vraie, avec le point de vue Agent de son auteur et le lien exact vers l’énoncé attendu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."
+msgstr "Une évaluation positive achevée étayée par la mémoire dérive d’un MemoryItem conservé et cité avec memoryText réel et attribution à un agent. La prose seule ne satisfait pas cette loi et ne certifie aucune recherche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."
+msgstr "Une appréciation réflexive positive achevée dérive de la Note réelle citée de l’agent évaluateur, avec noteContent et attribution à ce même agent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."
+msgstr "Une évaluation positive achevée d’objet de monde dérive d’une fiche réelle du fournisseur correspondant à l’identifiant attendu dans le fournisseur et le monde exacts du vérificateur ; une égalité textuelle entre mondes ne suffit pas."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."
+msgstr "Une évaluation positive achevée de cession au premier plan dérive d’une fin réelle de tentative avec stopYieldedToForeground explicite et acteur associé réel ; silence et état interrompu n’établissent pas cet événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."
+msgstr "Une évaluation achevée et satisfaite d’un but avec conditions source conserve chaque clé de condition et un vérificateur correspondant de ce même but ; omettre une condition configurée ne permet pas d’éluder sa preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."
+msgstr "Une évaluation positive achevée de relecture après écriture cite une observation réelle tenue pour vraie de ce même procédé et de cette clé de condition. La loi existante exige alors des reçus distincts et concordants d’écriture et de lecture ultérieure."

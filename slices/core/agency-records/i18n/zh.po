@@ -1374,20 +1374,20 @@ msgid "Verifier Kind"
 msgstr "验证器种类"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An open vocabulary of methods used to assess a condition on an artifact. Selecting a method is not a verdict that its condition holds."
-msgstr "用于评估制品上条件的方法开放词汇。选择方法不是条件成立的判定。"
+msgid "An open vocabulary of methods used to assess satisfaction conditions, including artifact checks, observations, assertions, retained memory, reflective appraisals, environment records and foreground yields. Selecting a method is not a verdict that its condition holds."
+msgstr "用于评估满足条件的开放方法词汇，包括制品检查、观察、断言、保留记忆、反思评估、环境记录及前台让出。选择方法不表示其条件已满足。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to retain which verification method a source observation selected."
-msgstr "用于保留来源观测选择的验证方法。"
+msgid "Use to retain a configured condition-verification method or an actual observation's verification method without conflating those records."
+msgstr "用于保留配置的条件验证方法或实际观察的验证方法，而不混淆两类记录。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid treating verifier kind as a successful outcome or an agent identity."
 msgstr "避免将验证器种类当作成功结果或行动者身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Use method individuals through verifierKind and retain verdicts separately through observationResult."
-msgstr "通过 verifierKind 使用方法个体，通过 observationResult 独立保留判定。"
+msgid "Use conditionVerifierKind on configuration descriptors and verifierKind on actual artifact verification observations; retain reported observation verdicts separately through observationResult."
+msgstr "在配置描述符上使用 conditionVerifierKind，在实际制品验证观察上使用 verifierKind；通过 observationResult 独立保留报告的观察判定。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/VerifierKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."
@@ -1850,3 +1850,1633 @@ msgstr "已完成的语句元数据降级提供确切组成部分。归属不证
 msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
 msgstr "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has satisfaction condition"
+msgstr "具有满足条件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A goal's source-stated satisfaction condition, ordered by entryOrdinal on the condition occurrence. It is prose criteria, independent of the executable logic:hasGoalCondition expression."
+msgstr "来源陈述的目标满足条件，通过条件出现项上的 entryOrdinal 排序。这是文字标准，独立于可执行的 logic:hasGoalCondition 表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasSatisfactionCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasSatisfactionCondition ex:target ."
+msgstr "ex:record gmeow:hasSatisfactionCondition ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Condition Verifier"
+msgstr "条件验证描述符"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information-object descriptor naming a condition key, verification method and expected content. It configures verification without being a Criterion, an observation, an executable check or a satisfaction verdict."
+msgstr "用于描述条件键、验证方法和预期内容的信息对象。它配置验证，但并非 Criterion、观察、可执行检查或满足判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records a configured condition-verification descriptor."
+msgstr "用于来源明确记录配置的条件验证描述符时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConditionVerifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor a gmeow:ConditionVerifier ."
+msgstr "ex:descriptor a gmeow:ConditionVerifier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has condition verifier"
+msgstr "具有条件验证描述符"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A goal's configured condition verifier. Matching source keys associate the descriptor with a condition of this same goal; selecting it supplies no evidence or verdict."
+msgstr "目标配置的条件验证描述符。匹配的来源键将其与同一目标的条件关联；选择描述符并不提供证据或判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasConditionVerifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasConditionVerifier ex:target ."
+msgstr "ex:record gmeow:hasConditionVerifier ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition verifier kind"
+msgstr "条件验证方法种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The configured method of a condition verifier, distinct from verifierKind on an actual artifact verification observation. A method selection never asserts that it ran or succeeded."
+msgstr "条件验证描述符配置的方法，区别于实际制品验证观察上的 verifierKind。选择方法不表示已经执行或成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionVerifierKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:conditionVerifierKind ex:target ."
+msgstr "ex:record gmeow:conditionVerifierKind ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifier key"
+msgstr "验证条件键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source key naming a checked condition, retained on its Condition occurrence, ConditionVerifier descriptor and reified goal-evaluation evidence citation. Equality is scoped to the containing goal and exact evaluation citation, never global identity or whitespace normalization."
+msgstr "命名待检查条件的精确来源键，保存在 Condition 出现项、ConditionVerifier 描述符以及重述的目标评估证据引用上。相等仅限于所属目标及精确评估引用，不表示全局身份，也不规范化空白。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifierKey \"source-value\" ."
+msgstr "ex:record gmeow:verifierKey \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verifier title"
+msgstr "验证制品标题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's artifact title used by a verifier, verbatim. A title does not identify artifact bytes, prove existence or replace a versioned artifact reference."
+msgstr "验证描述符使用的制品标题，逐字保留。标题不标识制品字节、不证明存在，也不能替代版本化制品引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierTitle|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:verifierTitle \"source-value\" ."
+msgstr "ex:record gmeow:verifierTitle \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected text"
+msgstr "预期文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Expected source wording, retained verbatim with its supplied language and direction. Expectation is independent of observed content and does not become evidence by repetition."
+msgstr "逐字保留的预期来源措辞，包括提供的语言和方向。预期独立于观察到的内容；重复预期不能成为证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:expectedText \"source-value\" ."
+msgstr "ex:record gmeow:expectedText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected statement"
+msgstr "预期陈述"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An expected observation statement represented as a native RDF 1.2 triple term, shared with an explicit rdf:reifies binding. Quotation preserves structure without asserting the quoted proposition or implementing a checker."
+msgstr "以原生 RDF 1.2 三元组项表示的预期观察陈述，与显式 rdf:reifies 绑定共享。引用保留结构，但不断言被引用的命题，也不实现检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the expected triple term and its explicit reification: ex:descriptor gmeow:expectedStatement <<( ex:item gmeow:displayable true )>> ; rdf:reifies <<( ex:item gmeow:displayable true )>> ."
+msgstr "保留预期三元组项及其显式重述绑定：ex:descriptor gmeow:expectedStatement <<( ex:item gmeow:displayable true )>> ; rdf:reifies <<( ex:item gmeow:displayable true )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "expected world object"
+msgstr "预期世界对象标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact unresolved simulated-object identifier supplied by the source. Resolution requires a provider-and-world-scoped WorldObjectRecord; matching text alone never creates an object identity."
+msgstr "来源提供的尚未解析的模拟对象精确标识符。解析需要限定提供方和世界的 WorldObjectRecord；仅文本相同不能建立对象身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:expectedWorldObject \"source-value\" ."
+msgstr "ex:record gmeow:expectedWorldObject \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "artifact exists verifier"
+msgstr "制品存在验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited artifact observation and identified artifact. A configured title or a successful tool invocation alone does not establish artifact existence."
+msgstr "要求引用真实制品观察及其标识制品的验证。仅配置标题或工具调用成功不能证明制品存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierArtifactExists|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierArtifactExists ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierArtifactExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "external observation verifier"
+msgstr "外部观察验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited held observation with its actual vantage and the expected statement binding. Expected text and an uncited summary are not external observation evidence."
+msgstr "要求引用被持有的观察、其实际视角及预期陈述绑定的验证。预期文本和没有引用的摘要不是外部观察证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierExternalObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierExternalObservation ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierExternalObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "user assertion verifier"
+msgstr "用户断言验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited assertion observation attributed to the asserting user and bound to the expected statement. A model's paraphrase does not replace that assertion."
+msgstr "要求引用真实断言观察、绑定预期陈述并注明作出断言的用户。模型的转述不能替代该断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierUserAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierUserAssertion ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierUserAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "memory evidenced verifier"
+msgstr "记忆证据验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited retained MemoryItem and its actual memoryText content and attribution. Free evidence wording is not a memory citation, retrieval receipt or proof that a private store was consulted."
+msgstr "要求引用已保留的 MemoryItem、其真实 memoryText 内容和归属。自由证据措辞不是记忆引用、检索回执，也不能证明访问了私有存储。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierMemoryEvidenced|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reflective appraisal verifier"
+msgstr "反思评估验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited Note containing the agent's reflective appraisal with actual noteContent and agent attribution. The appraisal remains a situated judgment rather than an external fact."
+msgstr "要求引用包含智能体反思评估的 Note、真实 noteContent 及智能体归属。评估仍是有情境的判断，而非外部事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierReflectiveAppraisal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object exists verifier"
+msgstr "世界对象存在验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring a cited environment-owned WorldObjectRecord with actual provider, world, object and exact matching provider handle. An expected handle alone does not evidence existence."
+msgstr "要求引用环境负责的 WorldObjectRecord，包括实际提供方、世界、对象和精确匹配的提供方句柄。预期句柄本身不是存在证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierWorldObjectExists|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "foreground yield verifier"
+msgstr "前台让出验证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Verification requiring an actual cited attempt-finish event whose attemptStop is stopYieldedToForeground and whose actor is identified. Silence, elapsed time or an interrupted code alone does not evidence a foreground yield."
+msgstr "要求引用真实的尝试结束事件，其 attemptStop 为 stopYieldedToForeground，并标识执行者。沉默、经过的时间或仅有中断代码均不能证明向前台让出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly selects this verification method."
+msgstr "用于来源明确选择此验证方法时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verifierForegroundYield|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierForegroundYield ."
+msgstr "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierForegroundYield ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "condition key"
+msgstr "条件键"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."
+msgstr "目标评估上的精确来源条件证据键。它在被评估目标内关联配置的验证描述符和条件，保留原始字符串而不作词元规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:conditionKey \"source-value\" ."
+msgstr "ex:record gmeow:conditionKey \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence item"
+msgstr "证据措辞项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source evidence wording on a goal evaluation when no evidence span is available. This fallback text preserves the claim but is never interchangeable with a cited observation, memory, note, actor or environment record."
+msgstr "缺少证据片段时，目标评估上保留的来源证据措辞。此后备文本保留主张，但不能替代引用的观察、记忆、笔记、参与者或环境记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceItem|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceItem \"source-value\" ."
+msgstr "ex:record gmeow:evidenceItem \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "adopted from"
+msgstr "采纳自"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual Desire from which an Intention was adopted, specializing wasDerivedFrom. This provenance link does not assert that every desire is adopted or that the intention succeeds."
+msgstr "Intention 实际采纳来源的 Desire，是 wasDerivedFrom 的专门化。此来源链接不表示所有愿望都被采纳，也不表示意图成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/adoptedFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:adoptedFrom ex:target ."
+msgstr "ex:record gmeow:adoptedFrom ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "followed plan"
+msgstr "遵循的文字计划"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source prose plan followed at an attempt start. Its information object carries planText without requiring an executable logic:Plan, compiled prescription or fabricated prescription version."
+msgstr "尝试开始时遵循的来源文字计划。其信息对象承载 planText，不要求可执行的 logic:Plan、已编译指令或虚构指令版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/followedPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:followedPlan ex:target ."
+msgstr "ex:record gmeow:followedPlan ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "plan text"
+msgstr "计划文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source wording of a prose plan, preserving supplied language and direction. It is neither a compiled program nor a claim that the plan was executed."
+msgstr "逐字保留的来源文字计划，包括提供的语言和方向。它不是已编译程序，也不表示计划已经执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/planText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:planText \"source-value\" ."
+msgstr "ex:record gmeow:planText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt summary"
+msgstr "尝试总结"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim summary on an attempt-finish event. It reports the attempt without entailing goal satisfaction and does not specialize the Entity-domain description property."
+msgstr "尝试结束事件上逐字保留的来源总结。它报告尝试而不蕴含目标满足，也不是以 Entity 为定义域的 description 属性的专门化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attemptSummary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attemptSummary \"source-value\" ."
+msgstr "ex:record gmeow:attemptSummary \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "body cause"
+msgstr "运行体停止原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime's exact source wording for why an attempt body stopped. It remains independent of the controlled attemptStop code, intention lifecycle and goal verdict."
+msgstr "运行时说明尝试体停止原因的精确来源措辞。它独立于受控 attemptStop 代码、意图生命周期和目标判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/bodyCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:bodyCause \"source-value\" ."
+msgstr "ex:record gmeow:bodyCause \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next action"
+msgstr "下一步行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The proposed next action recorded verbatim on an attempt finish. A proposal is neither an executed event nor an adopted intention."
+msgstr "尝试结束时逐字保留的下一步行动建议。建议既不是已执行事件，也不是已采纳意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:nextAction \"source-value\" ."
+msgstr "ex:record gmeow:nextAction \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "intention event sequence"
+msgstr "意图事件序号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The writer's original nonnegative event numbering within an actual intention and source context. The exact statement is attributed to its actual writer; numbering need not be zero-based and is never inferred from clocks."
+msgstr "实际意图和来源情境内，记录者提供的原始非负事件编号。精确陈述注明真实记录者；编号不必从零开始，也绝不从时钟推导。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/intentionEventSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:intentionEventSequence \"1\"^^xsd:nonNegativeInteger ."
+msgstr "ex:record gmeow:intentionEventSequence \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline at"
+msgstr "截止时刻"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-stated deadline instant of an intention. Preserve supplied precision, timezone and temporal frame; no date, timezone or deadline completion is inferred from missing fields."
+msgstr "来源陈述的意图截止时刻。保留提供的精度、时区和时间框架；缺失字段不能用于推断日期、时区或按期完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deadlineAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:deadlineAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:record gmeow:deadlineAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "next review at"
+msgstr "下次复查时刻"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-stated next review instant of an intention. A scheduled review does not assert a review occurred, and missing precision or timezone is never invented."
+msgstr "来源陈述的意图下次复查时刻。安排复查不表示复查已经发生，缺失的精度或时区不得补造。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/nextReviewAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:nextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:record gmeow:nextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event reason"
+msgstr "事件理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source reason for an intention-related event, independently attributed and retaining language and direction. It neither replaces event type nor proves the stated cause."
+msgstr "与意图有关的事件的逐字来源理由，独立注明归属并保留语言和方向。它不替代事件类型，也不证明所述因果关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:eventReason \"source-value\" ."
+msgstr "ex:record gmeow:eventReason \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "engine contract"
+msgstr "引擎契约标识"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source engine-contract identifier governing a recorded event. Preserve all code points and spacing; the identifier alone supplies neither an implemented contract nor an execution receipt."
+msgstr "约束记录事件的精确来源引擎契约标识符。保留所有码点和空白；仅有标识符不提供契约实现或执行回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:engineContract \"source-value\" ."
+msgstr "ex:record gmeow:engineContract \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audit text"
+msgstr "审计原文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's unparsed tool audit line, verbatim with supplied language and direction. Retaining the line neither parses a contract nor turns an unrecognized audit into success or a malformed value."
+msgstr "工具审计行的未解析来源原文，保留提供的语言和方向。保留该行既不解析契约，也不把未知审计内容变成成功或格式错误值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/auditText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:auditText \"source-value\" ."
+msgstr "ex:record gmeow:auditText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitment text"
+msgstr "自我承诺文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The self-commitment wording of an intention, verbatim. It records the agent's own commitment without manufacturing another party, contractual Commitment or achieved goal."
+msgstr "意图的逐字自我承诺措辞。它记录智能体自身承诺，不虚构其他参与方、契约性 Commitment 或已达成目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentText \"source-value\" ."
+msgstr "ex:record gmeow:commitmentText \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "commitment origin"
+msgstr "自我承诺来源措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim wording for the origin of a self-commitment. It is a source claim, distinct from structured adoption provenance and contractual authority."
+msgstr "来源对自我承诺起源的逐字措辞。这是来源主张，区别于结构化采纳来源和契约权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/commitmentOrigin|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:commitmentOrigin \"source-value\" ."
+msgstr "ex:record gmeow:commitmentOrigin \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "release reason"
+msgstr "解除承诺理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source reason a self-commitment was released, attached to its closed IntentionTenure. Retain the actual interval end and history rather than erasing the intention or inventing an end date."
+msgstr "自我承诺被解除的逐字来源理由，附在已关闭的 IntentionTenure 上。保留真实区间终点和历史，不删除意图，也不虚构结束日期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/releaseReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:releaseReason \"source-value\" ."
+msgstr "ex:record gmeow:releaseReason \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition occurrence constraint"
+msgstr "目标条件出现项约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."
+msgstr "每个关联条件出现项保留来源文字、精确局部键、从零开始的位置，以及同一目标中使用该精确键的配置验证描述符；不得虚构可执行目标表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "用于强制执行 hasSatisfactionCondition 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionOccurrenceConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionOccurrenceConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal verifier condition binding constraint"
+msgstr "目标验证描述符条件绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A configured goal verifier names an actual condition of that same goal through the identical source key."
+msgstr "配置的目标验证描述符通过相同来源键指明同一目标的实际条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasConditionVerifier."
+msgstr "用于强制执行 hasConditionVerifier 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalVerifierConditionBindingConstraint logic:formalizes gmeow:hasConditionVerifier ."
+msgstr "gmeow:GoalVerifierConditionBindingConstraint logic:formalizes gmeow:hasConditionVerifier ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal evaluation condition binding constraint"
+msgstr "目标评估条件绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."
+msgstr "带条件键的目标评估标识实际被评估目标，以及该目标内匹配的配置验证描述符和条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of conditionKey."
+msgstr "用于强制执行 conditionKey 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalEvaluationConditionBindingConstraint logic:formalizes gmeow:conditionKey ."
+msgstr "gmeow:GoalEvaluationConditionBindingConstraint logic:formalizes gmeow:conditionKey ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition key uniqueness constraint"
+msgstr "目标条件键唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."
+msgstr "来源键在同一目标内标识一个条件出现项，不据此跨目标识别条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "用于强制执行 hasSatisfactionCondition 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionKeyUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionKeyUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal condition ordinal uniqueness constraint"
+msgstr "目标条件序位唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."
+msgstr "从零开始的位置在同一目标的有序条件序列内标识一个条件出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of hasSatisfactionCondition."
+msgstr "用于强制执行 hasSatisfactionCondition 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalConditionOrdinalUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:GoalConditionOrdinalUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Expected statement reifier constraint"
+msgstr "预期陈述重述绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."
+msgstr "每个 expectedStatement 与描述符上显式 rdf:reifies 共享精确原生三元组项；引用不等于断言，也不是通用三元组项验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of expectedStatement."
+msgstr "用于强制执行 expectedStatement 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExpectedStatementReifierConstraint logic:formalizes gmeow:expectedStatement ."
+msgstr "gmeow:ExpectedStatementReifierConstraint logic:formalizes gmeow:expectedStatement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Followed prose plan constraint"
+msgstr "遵循文字计划约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."
+msgstr "遵循的文字计划保留在尝试开始事件上，承载真实 planText，而不引入可执行 Plan。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of followedPlan."
+msgstr "用于强制执行 followedPlan 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FollowedProsePlanConstraint logic:formalizes gmeow:followedPlan ."
+msgstr "gmeow:FollowedProsePlanConstraint logic:formalizes gmeow:followedPlan ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attempt summary phase constraint"
+msgstr "尝试总结阶段约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of attemptSummary."
+msgstr "用于强制执行 attemptSummary 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:AttemptSummaryPhaseConstraint logic:formalizes gmeow:attemptSummary ."
+msgstr "gmeow:AttemptSummaryPhaseConstraint logic:formalizes gmeow:attemptSummary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Body cause phase constraint"
+msgstr "运行体停止原因阶段约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of bodyCause."
+msgstr "用于强制执行 bodyCause 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:BodyCausePhaseConstraint logic:formalizes gmeow:bodyCause ."
+msgstr "gmeow:BodyCausePhaseConstraint logic:formalizes gmeow:bodyCause ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Next action phase constraint"
+msgstr "下一步行动阶段约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of nextAction."
+msgstr "用于强制执行 nextAction 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:NextActionPhaseConstraint logic:formalizes gmeow:nextAction ."
+msgstr "gmeow:NextActionPhaseConstraint logic:formalizes gmeow:nextAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention sequence source constraint"
+msgstr "意图序号来源约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."
+msgstr "每个已提供的事件编号关联真实意图及精确来源陈述重述项，标识实际记录者和情境；降阶组成仅供读取，不得手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of intentionEventSequence."
+msgstr "用于强制执行 intentionEventSequence 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionSequenceSourceConstraint logic:formalizes gmeow:intentionEventSequence ."
+msgstr "gmeow:IntentionSequenceSourceConstraint logic:formalizes gmeow:intentionEventSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Intention sequence local uniqueness constraint"
+msgstr "意图序号局部唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."
+msgstr "事件编号仅在相同实际意图、记录者和来源情境内唯一标识一个事件。其他记录者和情境保留独立编号，时钟不能决定此顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of intentionEventSequence."
+msgstr "用于强制执行 intentionEventSequence 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IntentionSequenceLocalUniquenessConstraint logic:formalizes gmeow:intentionEventSequence ."
+msgstr "gmeow:IntentionSequenceLocalUniquenessConstraint logic:formalizes gmeow:intentionEventSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Released intention tenure constraint"
+msgstr "已解除意图持有期约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."
+msgstr "解除理由属于真实区间具有明确结束瞬间或时间戳的持有期；理由不能虚构关闭。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of releaseReason."
+msgstr "用于强制执行 releaseReason 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReleasedIntentionTenureConstraint logic:formalizes gmeow:releaseReason ."
+msgstr "gmeow:ReleasedIntentionTenureConstraint logic:formalizes gmeow:releaseReason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal artifact existence evidence constraint"
+msgstr "目标制品存在证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."
+msgstr "完成的制品存在正面评估派生于被持有的真实制品观察，标识制品及其视角；标题或调用成功并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierArtifactExists."
+msgstr "用于强制执行 verifierArtifactExists 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalArtifactExistenceEvidenceConstraint logic:formalizes gmeow:verifierArtifactExists ."
+msgstr "gmeow:GoalArtifactExistenceEvidenceConstraint logic:formalizes gmeow:verifierArtifactExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal external observation evidence constraint"
+msgstr "目标外部观察证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."
+msgstr "完成的外部观察正面评估派生于真实且被持有的观察，具有实际视角并精确绑定预期陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierExternalObservation."
+msgstr "用于强制执行 verifierExternalObservation 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalExternalObservationEvidenceConstraint logic:formalizes gmeow:verifierExternalObservation ."
+msgstr "gmeow:GoalExternalObservationEvidenceConstraint logic:formalizes gmeow:verifierExternalObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal user assertion evidence constraint"
+msgstr "目标用户断言证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."
+msgstr "完成的用户断言正面评估派生于真实且被持有的断言，具有断言用户的 Agent 视角并精确绑定预期陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierUserAssertion."
+msgstr "用于强制执行 verifierUserAssertion 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalUserAssertionEvidenceConstraint logic:formalizes gmeow:verifierUserAssertion ."
+msgstr "gmeow:GoalUserAssertionEvidenceConstraint logic:formalizes gmeow:verifierUserAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal memory evidence constraint"
+msgstr "目标记忆证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."
+msgstr "完成的记忆证据正面评估派生于引用的已保留 MemoryItem，具有真实 memoryText 和智能体归属。仅证据文字不能满足该法则，也不能证明检索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierMemoryEvidenced."
+msgstr "用于强制执行 verifierMemoryEvidenced 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalMemoryEvidenceConstraint logic:formalizes gmeow:verifierMemoryEvidenced ."
+msgstr "gmeow:GoalMemoryEvidenceConstraint logic:formalizes gmeow:verifierMemoryEvidenced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal reflective appraisal evidence constraint"
+msgstr "目标反思评估证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."
+msgstr "完成的反思评估正面判定派生于评估智能体实际引用的 Note，具有 noteContent 并归属于同一智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierReflectiveAppraisal."
+msgstr "用于强制执行 verifierReflectiveAppraisal 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalReflectiveAppraisalEvidenceConstraint logic:formalizes gmeow:verifierReflectiveAppraisal ."
+msgstr "gmeow:GoalReflectiveAppraisalEvidenceConstraint logic:formalizes gmeow:verifierReflectiveAppraisal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal world object existence evidence constraint"
+msgstr "目标世界对象存在证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."
+msgstr "完成的世界对象正面评估派生于提供方负责的真实记录，在验证描述符的精确提供方和世界范围内匹配预期句柄；跨世界文本相同并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierWorldObjectExists."
+msgstr "用于强制执行 verifierWorldObjectExists 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalWorldObjectExistenceEvidenceConstraint logic:formalizes gmeow:verifierWorldObjectExists ."
+msgstr "gmeow:GoalWorldObjectExistenceEvidenceConstraint logic:formalizes gmeow:verifierWorldObjectExists ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal foreground yield evidence constraint"
+msgstr "目标前台让出证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."
+msgstr "完成的前台让出正面评估派生于真实尝试结束，明确具有 stopYieldedToForeground 及实际关联执行者；沉默和中断状态不能证明此事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the source-evidence obligation of verifierForegroundYield."
+msgstr "用于强制执行 verifierForegroundYield 的来源证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with invented source values or fallback prose."
+msgstr "避免使用虚构来源值或后备文字满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual source bindings expressed by this canonical formula."
+msgstr "保留此规范公式表达的实际来源绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."
+msgstr "此法则约束已提供的记录；既不运行验证器，也不认证外部来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalForegroundYieldEvidenceConstraint logic:formalizes gmeow:verifierForegroundYield ."
+msgstr "gmeow:GoalForegroundYieldEvidenceConstraint logic:formalizes gmeow:verifierForegroundYield ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Completed goal condition coverage constraint"
+msgstr "已完成目标条件覆盖约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."
+msgstr "对于具有来源条件的目标，已完成且满足的评估保留每个条件的键和同一目标内匹配的验证描述符；省略配置条件不能规避证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce complete condition coverage for a conclusive positive goal judgment."
+msgstr "用于要求确定的目标正面判断覆盖所有条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid certifying a goal by selecting only the easiest condition or omitting its condition keys."
+msgstr "避免仅选择最容易的条件或省略条件键来确认目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each actual condition key and its configured verifier; keep incomplete evaluations explicitly incomplete."
+msgstr "保留每个真实条件键及其配置验证描述符；明确保持未完成评估的未完成状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coverage constrains the supplied judgment; it does not execute conditions or infer their truth."
+msgstr "覆盖要求约束已提供的判断；不执行条件，也不推断条件为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompletedGoalConditionCoverageConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+msgstr "gmeow:CompletedGoalConditionCoverageConstraint logic:formalizes gmeow:hasSatisfactionCondition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Goal read-after-write evidence constraint"
+msgstr "目标写后读取证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."
+msgstr "完成的写后读取正面评估引用真实且被持有的制品观察，绑定同一方法和条件键。现有写后读取法则进一步要求彼此不同且匹配的写入回执和稍后读取回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the existing read-after-write evidence contract when this method is configured for a goal."
+msgstr "用于目标配置此方法时保留现有写后读取证据契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bypassing actual read and write evidence by configuring a method without a cited observation."
+msgstr "避免仅配置方法而不引用观察来规避实际读写证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Cite the actual held observation under the same condition key and retain its versioned read and write receipts."
+msgstr "在同一条件键下引用真实且被持有的观察，并保留其版本化读写回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Configuration neither executes the check nor replaces the existing artifact-byte-identity and later-read obligations."
+msgstr "配置既不执行检查，也不替代现有制品字节身份和稍后读取义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GoalReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+msgstr "gmeow:GoalReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOccurrenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."
+msgstr "每个关联条件出现项保留来源文字、精确局部键、从零开始的位置，以及同一目标中使用该精确键的配置验证描述符；不得虚构可执行目标表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalVerifierConditionBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A configured goal verifier names an actual condition of that same goal through the identical source key."
+msgstr "配置的目标验证描述符通过相同来源键指明同一目标的实际条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalEvaluationConditionBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."
+msgstr "带条件键的目标评估标识实际被评估目标，以及该目标内匹配的配置验证描述符和条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionKeyUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."
+msgstr "来源键在同一目标内标识一个条件出现项，不据此跨目标识别条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalConditionOrdinalUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."
+msgstr "从零开始的位置在同一目标的有序条件序列内标识一个条件出现项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExpectedStatementReifierConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."
+msgstr "每个 expectedStatement 与描述符上显式 rdf:reifies 共享精确原生三元组项；引用不等于断言，也不是通用三元组项验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FollowedProsePlanConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."
+msgstr "遵循的文字计划保留在尝试开始事件上，承载真实 planText，而不引入可执行 Plan。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttemptSummaryPhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyCausePhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NextActionPhaseConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."
+msgstr "来源文本属于真实尝试结束事件，不提供目标判定或后续执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceSourceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."
+msgstr "每个已提供的事件编号关联真实意图及精确来源陈述重述项，标识实际记录者和情境；降阶组成仅供读取，不得手工编写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IntentionSequenceLocalUniquenessConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."
+msgstr "事件编号仅在相同实际意图、记录者和来源情境内唯一标识一个事件。其他记录者和情境保留独立编号，时钟不能决定此顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReleasedIntentionTenureConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."
+msgstr "解除理由属于真实区间具有明确结束瞬间或时间戳的持有期；理由不能虚构关闭。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalArtifactExistenceEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."
+msgstr "完成的制品存在正面评估派生于被持有的真实制品观察，标识制品及其视角；标题或调用成功并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalExternalObservationEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."
+msgstr "完成的外部观察正面评估派生于真实且被持有的观察，具有实际视角并精确绑定预期陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalUserAssertionEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."
+msgstr "完成的用户断言正面评估派生于真实且被持有的断言，具有断言用户的 Agent 视角并精确绑定预期陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalMemoryEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."
+msgstr "完成的记忆证据正面评估派生于引用的已保留 MemoryItem，具有真实 memoryText 和智能体归属。仅证据文字不能满足该法则，也不能证明检索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReflectiveAppraisalEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."
+msgstr "完成的反思评估正面判定派生于评估智能体实际引用的 Note，具有 noteContent 并归属于同一智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalWorldObjectExistenceEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."
+msgstr "完成的世界对象正面评估派生于提供方负责的真实记录，在验证描述符的精确提供方和世界范围内匹配预期句柄；跨世界文本相同并不足够。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalForegroundYieldEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."
+msgstr "完成的前台让出正面评估派生于真实尝试结束，明确具有 stopYieldedToForeground 及实际关联执行者；沉默和中断状态不能证明此事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompletedGoalConditionCoverageConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."
+msgstr "对于具有来源条件的目标，已完成且满足的评估保留每个条件的键和同一目标内匹配的验证描述符；省略配置条件不能规避证据义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."
+msgstr "完成的写后读取正面评估引用真实且被持有的制品观察，绑定同一方法和条件键。现有写后读取法则进一步要求彼此不同且匹配的写入回执和稍后读取回执。"
