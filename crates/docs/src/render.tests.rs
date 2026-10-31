@@ -833,7 +833,7 @@ fn per_term_card_json_and_full_md_are_emitted() {
         terms_referenced: vec!["gmeow:Foo".to_string()],
         expected_outcome: Some("conforms".to_string()),
         violation_code: None,
-        rationale: None,
+        rationales: Vec::new(),
         catalog_slug: None,
     });
     model.fixtures.push(DocFixture {
@@ -845,7 +845,7 @@ fn per_term_card_json_and_full_md_are_emitted() {
         terms_referenced: vec!["gmeow:Foo".to_string()],
         expected_outcome: Some("violates".to_string()),
         violation_code: Some("shacl.MinCountConstraintComponent".to_string()),
-        rationale: None,
+        rationales: Vec::new(),
         catalog_slug: None,
     });
 

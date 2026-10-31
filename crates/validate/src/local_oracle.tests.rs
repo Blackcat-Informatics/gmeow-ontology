@@ -12,7 +12,9 @@ fn fixture(title: &str, code: Option<&str>) -> FixtureView {
         text: "<urn:s> <urn:p> <urn:o> .".to_string(),
         expected_outcome: Some("nonconforming".to_string()),
         violation_code: code.map(str::to_string),
-        rationale: Some("min-count under the required floor".to_string()),
+        rationales: vec![LiteralView::from(&purrdf::RdfLiteral::simple(
+            "min-count under the required floor",
+        ))],
     }
 }
 

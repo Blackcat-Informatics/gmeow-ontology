@@ -38,6 +38,32 @@ use crate::rule_catalog::help_uri_for;
 /// finding that was never a ledger witness.
 const MINTED_FINDING_BASE: &str = "https://blackcatinformatics.ca/gmeow/finding/local/";
 
+/// Complete RDF literal identity at the structured advisory JSON boundary.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct LiteralView {
+    /// The source lexical form, without normalization.
+    pub lexical_form: String,
+    /// The effective RDF datatype IRI, including implicit string datatypes.
+    pub datatype: String,
+    /// The source language tag, or explicit absence of a language.
+    pub language: Option<String>,
+    /// The source base direction (`ltr` or `rtl`), when stated.
+    pub direction: Option<String>,
+}
+
+impl From<&purrdf::RdfLiteral> for LiteralView {
+    fn from(value: &purrdf::RdfLiteral) -> Self {
+        Self {
+            lexical_form: value.lexical_form.clone(),
+            datatype: value.datatype_iri().to_owned(),
+            language: value.language.clone(),
+            direction: value
+                .direction
+                .map(|direction| direction.as_str().to_owned()),
+        }
+    }
+}
+
 /// A conformance fixture projected to the shape the enrichment envelope carries — a
 /// self-contained teaching artifact (title + the full Turtle body + the authored
 /// conformance metadata). Field order is fixed for deterministic serialization.
@@ -55,8 +81,8 @@ pub struct FixtureView {
     /// key for a counter-example. `None` on a well-formed exemplar (it violates
     /// nothing).
     pub violation_code: Option<String>,
-    /// The authored conformance rationale (`gmeow:conformanceRationale`), when present.
-    pub rationale: Option<String>,
+    /// Every authored conformance rationale, preserving complete RDF literal identity.
+    pub rationales: Vec<LiteralView>,
 }
 
 /// One entailment (a single derivation step) projected for a documented term — the
@@ -165,16 +191,27 @@ pub fn finding_json_schema() -> serde_json::Value {
                     "anchor_iri": nullable_string()
                 }
             },
+            "literal": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["lexical_form", "datatype", "language", "direction"],
+                "properties": {
+                    "lexical_form": { "type": "string" },
+                    "datatype": { "type": "string" },
+                    "language": nullable_string(),
+                    "direction": { "enum": ["ltr", "rtl", null] }
+                }
+            },
             "fixture": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["title", "text", "expected_outcome", "violation_code", "rationale"],
+                "required": ["title", "text", "expected_outcome", "violation_code", "rationales"],
                 "properties": {
                     "title": { "type": "string" },
                     "text": { "type": "string" },
                     "expected_outcome": nullable_string(),
                     "violation_code": nullable_string(),
-                    "rationale": nullable_string()
+                    "rationales": { "type": "array", "items": { "$ref": "#/$defs/literal" } }
                 }
             },
             "entailment": {

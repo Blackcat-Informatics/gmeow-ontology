@@ -999,6 +999,7 @@ impl Stage for DocsRenderStage {
         CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
+        // v14: conformance fixture rationales retain complete native literal records.
         // v11: full native diagnostic reports replace JSON transport parsing.
         // v10: documentation verdicts require the pinned native reasoning result,
         // complete payload identity and an actually decided consistency judgment.
@@ -1022,7 +1023,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v13-native-term-panels"
+        "docs_render.v14-conformance-rationale-literals"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /

@@ -175,7 +175,8 @@ pub struct ExampleConformance {
     /// [`crate::exec`], and `shapes/test-dsl-shapes.ttl` rejects the same pairing
     /// declaratively.
     pub expected_sole_finding: Option<bool>,
-    pub rationale: Option<String>,
+    /// All coexisting rationale literals, sorted by complete RDF term identity.
+    pub rationales: Vec<purrdf::RdfLiteral>,
 }
 
 /// `gmeow:saPolarity` value.
@@ -265,7 +266,7 @@ SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
 }";
 
 const Q_CONFORMANCE: &str = "
-SELECT ?ec ?file ?outcome ?code ?shape ?failureClass ?sole ?rationale WHERE {
+SELECT ?ec ?file ?outcome ?code ?shape ?failureClass ?sole WHERE {
   ?ec a gmeow:ExampleConformance ;
       gmeow:exampleFile ?file ;
       gmeow:expectedOutcome ?outcome .
@@ -273,7 +274,6 @@ SELECT ?ec ?file ?outcome ?code ?shape ?failureClass ?sole ?rationale WHERE {
   OPTIONAL { ?ec gmeow:expectedSourceShape ?shape }
   OPTIONAL { ?ec gmeow:expectedFailureClass ?failureClass }
   OPTIONAL { ?ec gmeow:expectedSoleFinding ?sole }
-  OPTIONAL { ?ec gmeow:conformanceRationale ?rationale }
 }";
 
 // ── Public entry point ─────────────────────────────────────────────────────────
@@ -354,48 +354,14 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>> 
         }
     }
 
-    // Rationale is nonfunctional. Keep it out of the scalar OPTIONAL join so
-    // coexisting literal terms cannot masquerade as conflicting query definitions.
-    let mut rationales = BTreeMap::<String, BTreeMap<_, purrdf::RdfLiteral>>::new();
-    for solution in select(
-        store,
-        &with_prefix(
-            "SELECT ?cq ?value WHERE { ?cq a gmeow:CompetencyQuestion ; gmeow:cqRationale ?value . }",
-        ),
-    )? {
-        let cq = require_iri(&solution, "cq")?;
-        let Some(value) = solution.get("value") else {
-            return Err(Diag::of_kind(SpecCell {
-                detail: format!("competency question <{cq}> has an unbound cqRationale"),
-            }));
-        };
-        let purrdf::RdfTerm::Literal(literal) = value.to_rdf_term().map_err(|error| {
-            Diag::of_kind(SpecCell {
-                detail: error.to_string(),
-            })
-        })?
-        else {
-            return Err(Diag::of_kind(SpecCell {
-                detail: format!("competency question <{cq}> cqRationale must be a literal"),
-            }));
-        };
-        let key = (
-            literal.lexical_form.clone(),
-            literal.datatype_iri().to_owned(),
-            literal.language.clone(),
-            literal
-                .direction
-                .map(|direction| direction.as_str().to_owned()),
-        );
-        rationales.entry(cq).or_default().insert(key, literal);
-    }
+    let rationales = rationale_literals(store, "CompetencyQuestion", "cqRationale")?;
     for (cq, values) in rationales {
         let Some(question) = by_iri.get_mut(&cq) else {
             return Err(Diag::of_kind(SpecCell {
                 detail: format!("cqRationale subject <{cq}> has no competency definition"),
             }));
         };
-        question.rationales = values.into_values().collect();
+        question.rationales = values;
     }
 
     // 2. Rows: group cells by (cq, row), preserving one cell per variable.
@@ -494,8 +460,53 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>>
     Ok(out)
 }
 
+fn rationale_literals(
+    store: &Arc<RdfDataset>,
+    class: &str,
+    path: &str,
+) -> Result<BTreeMap<String, Vec<purrdf::RdfLiteral>>> {
+    let mut rationales = BTreeMap::<String, BTreeMap<_, purrdf::RdfLiteral>>::new();
+    for solution in select(
+        store,
+        &with_prefix(&format!(
+            "SELECT ?cq ?value WHERE {{ ?cq a gmeow:{class} ; gmeow:{path} ?value . }}"
+        )),
+    )? {
+        let cq = require_iri(&solution, "cq")?;
+        let Some(value) = solution.get("value") else {
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("{class} <{cq}> has an unbound {path}"),
+            }));
+        };
+        let purrdf::RdfTerm::Literal(literal) = value.to_rdf_term().map_err(|error| {
+            Diag::of_kind(SpecCell {
+                detail: error.to_string(),
+            })
+        })?
+        else {
+            return Err(Diag::of_kind(SpecCell {
+                detail: format!("{class} <{cq}> {path} must be a literal"),
+            }));
+        };
+        let key = (
+            literal.lexical_form.clone(),
+            literal.datatype_iri().to_owned(),
+            literal.language.clone(),
+            literal
+                .direction
+                .map(|direction| direction.as_str().to_owned()),
+        );
+        rationales.entry(cq).or_default().insert(key, literal);
+    }
+    Ok(rationales
+        .into_iter()
+        .map(|(iri, values)| (iri, values.into_values().collect()))
+        .collect())
+}
+
 fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>> {
     let mut out = Vec::new();
+    let rationales = rationale_literals(store, "ExampleConformance", "conformanceRationale")?;
     for sol in select(store, &with_prefix(Q_CONFORMANCE))? {
         let iri = require_iri(&sol, "ec")?;
         let outcome = match local_name(&require_iri(&sol, "outcome")?) {
@@ -507,6 +518,7 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
                 }));
             }
         };
+        let values = rationales.get(&iri).cloned().unwrap_or_default();
         out.push(ExampleConformance {
             iri,
             file: opt_string(&sol, "file").ok_or_else(|| {
@@ -521,7 +533,7 @@ fn parse_conformance(store: &Arc<RdfDataset>) -> Result<Vec<ExampleConformance>>
             expected_source_shape: sol.get("shape").and_then(term_iri),
             expected_failure_class: sol.get("failureClass").and_then(term_iri),
             expected_sole_finding: opt_bool(&sol, "sole")?,
-            rationale: opt_string(&sol, "rationale"),
+            rationales: values,
         });
     }
     Ok(out)

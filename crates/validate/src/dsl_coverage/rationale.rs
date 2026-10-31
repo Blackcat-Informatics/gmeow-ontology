@@ -17,10 +17,17 @@ const REQUIRED: &str =
 
 pub(super) fn compose(vocabulary: &[u8], residual: &str) -> gmeow_errors::Result<String> {
     let source = purrdf::parse_dataset(vocabulary, "text/turtle", None)?;
-    let property = rationale_property(source.as_ref())?;
+    let properties = vec![
+        rationale_property(source.as_ref(), CLASS, PATH)?,
+        rationale_property(
+            source.as_ref(),
+            "https://blackcatinformatics.ca/gmeow/ExampleConformance",
+            "https://blackcatinformatics.ca/gmeow/conformanceRationale",
+        )?,
+    ];
     let required = rationale_requiredness(source.as_ref())?;
     let program = LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None)
-        .with_validation_shapes(vec![property])
+        .with_validation_shapes(properties)
         .with_constraints(vec![required]);
     Ok(format!(
         "{residual}\n{}\n{}",
@@ -90,15 +97,19 @@ fn rationale_requiredness(source: &purrdf::RdfDataset) -> gmeow_errors::Result<C
     Ok(required)
 }
 
-fn rationale_property(source: &purrdf::RdfDataset) -> gmeow_errors::Result<ValidationShapeIr> {
+fn rationale_property(
+    source: &purrdf::RdfDataset,
+    class: &str,
+    path: &str,
+) -> gmeow_errors::Result<ValidationShapeIr> {
     let mut selected = Vec::new();
     for mut shape in frontend::derive_validation_shapes(source)? {
-        if shape.target != ShapeTarget::Class(CLASS.to_owned()) {
+        if shape.target != ShapeTarget::Class(class.to_owned()) {
             continue;
         }
         shape
             .properties
-            .retain(|property| property.path == PATH && !property.inverse);
+            .retain(|property| property.path == path && !property.inverse);
         if !shape.properties.is_empty() {
             if !shape.node_components.is_empty() {
                 return Err(super::io_err(
@@ -109,9 +120,9 @@ fn rationale_property(source: &purrdf::RdfDataset) -> gmeow_errors::Result<Valid
         }
     }
     if selected.len() != 1 || selected[0].properties.len() != 1 {
-        return Err(super::io_err(
-            "requires exactly one canonical CQ rationale property obligation".to_owned(),
-        ));
+        return Err(super::io_err(format!(
+            "requires exactly one canonical rationale property obligation for <{class}> <{path}>"
+        )));
     }
     if !shapes::shacl_residue(&selected[0]).is_empty() {
         return Err(super::io_err(

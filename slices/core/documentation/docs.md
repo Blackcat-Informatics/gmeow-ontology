@@ -77,3 +77,11 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+Conformance rationales retain every authored literal through the model cache,
+RDF projection and MCP fixture records. Language tags, datatypes and base
+directions remain attached to their original lexical forms. Multiple
+conformance cells citing one specimen contribute all their rationales to its
+documentation record; their individual executable cells remain distinct.
+MCP fixture records expose a `rationales` array of complete literal records,
+including an empty array when no rationale was authored.

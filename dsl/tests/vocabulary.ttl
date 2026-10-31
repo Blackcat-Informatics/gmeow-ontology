@@ -478,12 +478,18 @@ gmeow:expectedSoleFinding a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:conformanceRationale a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range rdfs:Literal ;
     rdfs:label "conformance rationale"@x-gmeow-english ;
     skos:definition "The human-readable rationale for an example-conformance fixture: why this example is expected to conform, or why the counter-example is expected to violate the named code. Optional."@x-gmeow-english ;
     skos:example "ex:ec gmeow:conformanceRationale \"This counter-example omits the required name, so MinCount must fire.\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to record why a particular conformance or violation is the expected outcome, documenting the constraint the fixture guards."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:ExampleConformance logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty gmeow:conformanceRationale ;
+    logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ]
+] .
 
 # =============================================================================
 # Migrated procedural + declarative constraints: the closed-world
