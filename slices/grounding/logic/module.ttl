@@ -14545,16 +14545,21 @@ logic:careXForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:careXImpl .
 logic:careXImpl a logic:Formula ; logic:antecedent logic:careXGuard ; logic:consequent logic:careXCons .
-logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded , logic:careXUsesAggregate .
-logic:careXUsesAggregate a logic:Formula ; logic:not logic:careXPerRecord .
+logic:careXGuard a logic:Formula ; logic:and logic:careXIsAssembly , logic:careXExcluded .
 logic:careXPerRecord a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PerRecordExclusionAssembly ] .
 logic:careXIsAssembly a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ContextAssembly ] .
 logic:careXExcluded a logic:Formula ; logic:relation logic:assemblyExcluded ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "withheld" ] .
-logic:careXCons a logic:Formula ; logic:relation logic:assemblyExclusionReason ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] .
+logic:careXCons a logic:Formula ; logic:or logic:careXPerRecord , [
+    a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reason" ] ;
+    logic:exists [
+        a logic:Formula ; logic:relation logic:assemblyExclusionReason ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ]
+    ]
+] .
 
 logic:ContextAssemblyExclusionIsNotInclusionConstraint
     a logic:Constraint ;
@@ -14776,15 +14781,19 @@ logic:PrescriptionVersionIsContentAddressedConstraint
 logic:pviForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall logic:pviImpl .
-logic:pviImpl a logic:Formula ; logic:antecedent logic:pviGuard ; logic:consequent logic:pviCons .
-logic:pviGuard a logic:Formula ; logic:and logic:pviVersionType , logic:pviNeedsContentIdentity .
+logic:pviImpl a logic:Formula ; logic:antecedent logic:pviVersionType ; logic:consequent logic:pviCons .
 logic:pviVersionType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:PrescriptionVersion ] .
-logic:pviNeedsContentIdentity a logic:Formula ; logic:not logic:pviIriSelection .
 logic:pviIriSelection a logic:Formula ; logic:relation logic:prescriptionIdentityMode ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri logic:ImmutableIriPrescriptionIdentity ] .
-logic:pviCons a logic:Formula ; logic:relation logic:prescriptionDigest ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
+logic:pviCons a logic:Formula ; logic:or logic:pviIriSelection , [
+    a logic:Formula ;
+    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+    logic:exists [
+        a logic:Formula ; logic:relation logic:prescriptionDigest ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ]
+    ]
+] .
 
 logic:enactedPrescriptionDigest
     a logic:DatatypeProperty ;
