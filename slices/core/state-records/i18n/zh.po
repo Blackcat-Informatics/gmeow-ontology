@@ -1,0 +1,290 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Assignment Claim"
+msgstr "状态赋值声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record reifying one exact RDF assignment tuple. The original tuple supplies the state bearer, property IRI and assigned RDF value; the record does not copy them into slot fields or assert the quoted assignment."
+msgstr "重述一个确切 RDF 赋值三元组的信息记录。原始三元组提供状态承载者、属性 IRI 和所赋 RDF 值；记录不将它们复制为槽位字段，也不断言所引用的赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source claim about the value of a property on a bearer."
+msgstr "用于保留来源对承载者某属性值的声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this information object as an assertion act, a preferred value or proof that the quoted assignment is asserted."
+msgstr "避免将此信息对象当作断言行为、首选值或所引用赋值已被断言的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the native RDF 1.2 reifier and retain its exact rdf:reifies tuple, attribution and source. The bearer and property together identify the state position."
+msgstr "为原生 RDF 1.2 重述节点赋予类型，并保留其确切 rdf:reifies 三元组、归属和来源。承载者与属性共同确定状态位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim a gmeow:StateAssignmentClaim ; rdf:reifies <<( ex:agent ex:mode ex:quiet )>> ."
+msgstr "ex:claim a gmeow:StateAssignmentClaim ; rdf:reifies <<( ex:agent ex:mode ex:quiet )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Transition Claim"
+msgstr "状态转换声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A successor state assignment record that supersedes one or more predecessor assignment records for the same original bearer and property. Its assigned value may differ; every replaced record remains identified and retained."
+msgstr "替代同一原始承载者和属性的一个或多个先前赋值记录的后继状态赋值记录。所赋值可以不同；每个被替代的记录都保持可识别并被保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when one successor assignment replaces one or several recorded assignments for a property."
+msgstr "用于一个后继赋值替代某属性的一条或多条已记录赋值时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing one predecessor, deriving replacement order from clocks or erasing concurrent claims."
+msgstr "避免只选择一个前驱、从时钟推导替代顺序或删除并发声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the successor assignment and link this record through supersedes to every replaced StateAssignmentClaim. Compare bearer and property on the original tuples, without a separate slot node."
+msgstr "重述后继赋值，并通过 supersedes 将本记录关联到每条被替代的 StateAssignmentClaim。在原始三元组上比较承载者和属性，无需独立槽位节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:next a gmeow:StateTransitionClaim ; rdf:reifies <<( ex:agent ex:mode ex:ready )>> ; gmeow:supersedes ex:priorA, ex:priorB ."
+msgstr "ex:next a gmeow:StateTransitionClaim ; rdf:reifies <<( ex:agent ex:mode ex:ready )>> ; gmeow:supersedes ex:priorA, ex:priorB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Supersession Claim"
+msgstr "状态替代声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record reifying one exact successor supersedes predecessor edge between state assignment records. The successor is a StateTransitionClaim; the original edge tuple supplies both endpoints and the supersedes predicate."
+msgstr "重述状态赋值记录之间一条确切的后继 supersedes 前驱边的信息记录。后继是 StateTransitionClaim；原始边三元组提供两个端点和 supersedes 谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to attribute evidence or a replaced-state duration to one particular replacement edge."
+msgstr "用于将证据或被替代状态的持续时间归属于某条确切替代边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying endpoints onto the edge record or putting one predecessor’s duration on a transition replacing several predecessors."
+msgstr "避免将端点复制到边记录上，或把某个前驱的持续时间放在替代多个前驱的转换上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact supersedes edge and retain that asserted edge between its actual records. Attach optional supersededStateLasted to this reifier; retain source attribution separately for each edge."
+msgstr "重述确切的 supersedes 边，并保留实际记录之间这条已断言的边。可将 supersededStateLasted 附于此重述节点；逐边保留来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:edge a gmeow:StateSupersessionClaim ; rdf:reifies <<( ex:next gmeow:supersedes ex:priorA )>> ."
+msgstr "ex:edge a gmeow:StateSupersessionClaim ; rdf:reifies <<( ex:next gmeow:supersedes ex:priorA )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded state lasted"
+msgstr "被替代状态持续时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied duration for which the predecessor state lasted before the exact supersession edge recorded by this reifier. A computed duration retains its stated derivation; GMEOW neither subtracts clocks nor certifies the arithmetic."
+msgstr "来源提供的、前驱状态在此重述节点记录的确切替代边之前持续的时间。计算所得的持续时间须保留所述推导；GMEOW 不做时钟相减，也不认证算术。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a measured or explicitly derived duration for one replaced assignment."
+msgstr "用于来源为某条被替代赋值提供测得或明确推导的持续时间时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a duration, a timezone or precision, or sharing one duration across distinct replacement edges."
+msgstr "避免虚构持续时间、时区或精度，或在不同替代边之间共用一个持续时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied xsd:duration to the StateSupersessionClaim. For a computed span, reify this exact duration assertion, link wasDerivedFrom to its opening and closing assignment claims, and record the calculation and input roles with statedRationale."
+msgstr "将来源提供的 xsd:duration 附于 StateSupersessionClaim。对于计算所得的时间跨度，重述这条确切的持续时间断言，通过 wasDerivedFrom 关联其起止赋值声明，并用 statedRationale 记录计算和输入角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:edge gmeow:supersededStateLasted \"PT15M\"^^xsd:duration ."
+msgstr "ex:edge gmeow:supersededStateLasted \"PT15M\"^^xsd:duration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Record Integrity Failure"
+msgstr "状态记录完整性失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A well-formedness failure of an exact state assignment, transition or supersession record. It concerns retained tuple identity and replacement evidence, independently of whether the source’s state claim is true."
+msgstr "确切状态赋值、转换或替代记录的良构性失败。它涉及所保留三元组的同一性和替代证据，与来源状态声明是否真实无关。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the failure marker raised by the state-record integrity laws."
+msgstr "用作状态记录完整性法则产生的失败标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a malformed record as proof that its source claim is false."
+msgstr "避免将记录格式错误视为其来源声明为假的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the violated law and focus record with the diagnostic; repair the original evidence rather than fabricate a matching tuple."
+msgstr "随诊断保留被违反的法则和焦点记录；修正原始证据，勿虚构匹配三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleConstraint gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ."
+msgstr "gmeow:StateAssignmentTupleConstraint gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State assignment tuple constraint"
+msgstr "状态赋值三元组约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every state assignment record reifies an original quoted triple with available subject, predicate and object components."
+msgstr "每条状态赋值记录重述一个原始引用三元组，且其主语、谓词和宾语组件均可用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual assignment tuple for a state record."
+msgstr "用于要求状态记录具有实际赋值三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with copied slot fields or a non-triple reified value."
+msgstr "避免使用复制的槽位字段或非三元组的重述值满足此法则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the existing rdf:reifies term and compare each native tuple component with itself; an unavailable component fails."
+msgstr "绑定已有 rdf:reifies 项，并将每个原生三元组组件与其自身比较；组件不可用即失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+msgstr "gmeow:StateAssignmentTupleConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State assignment tuple identity constraint"
+msgstr "状态赋值三元组同一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every tuple reified by one StateAssignmentClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."
+msgstr "同一 StateAssignmentClaim 重述的所有三元组都具有相同的完整 RDF 同一性。记录不能用第一个有效三元组掩盖第二个赋值或边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the single exact tuple recorded by this claim."
+msgstr "用于保留此声明记录的唯一确切三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."
+msgstr "避免值强制转换，或只接受一个匹配三元组而忽略其他被重述三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of positively bound rdf:reifies terms with componentWhole."
+msgstr "用 componentWhole 比较每一对已通过正向关系绑定的 rdf:reifies 项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleIdentityConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+msgstr "gmeow:StateAssignmentTupleIdentityConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State supersession tuple identity constraint"
+msgstr "状态替代三元组同一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every tuple reified by one StateSupersessionClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."
+msgstr "同一 StateSupersessionClaim 重述的所有三元组都具有相同的完整 RDF 同一性。记录不能用第一个有效三元组掩盖第二个赋值或边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the single exact tuple recorded by this claim."
+msgstr "用于保留此声明记录的唯一确切三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."
+msgstr "避免值强制转换，或只接受一个匹配三元组而忽略其他被重述三元组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of positively bound rdf:reifies terms with componentWhole."
+msgstr "用 componentWhole 比较每一对已通过正向关系绑定的 rdf:reifies 项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateSupersessionTupleIdentityConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+msgstr "gmeow:StateSupersessionTupleIdentityConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State transition predecessor constraint"
+msgstr "状态转换前驱约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every transition has an existing predecessor assignment with the same original tuple subject and predicate. The witness joins the actual supersedes edge and both existing reified assignments."
+msgstr "每个转换都具有已存在的前驱赋值，且原始三元组的主语和谓词相同。见证连接实际 supersedes 边和两个已有重述赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual replaced assignment for a transition record."
+msgstr "用于要求转换记录具有实际被替代的赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a predecessor or joining assignments merely because their values coincide."
+msgstr "避免虚构前驱，或仅因值相同而连接赋值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the successor and predecessor tuples through stored relations, then compare their subject and predicate components by RDF identity."
+msgstr "通过已存储关系绑定后继和前驱三元组，再按 RDF 同一性比较其主语和谓词组件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateTransitionPredecessorConstraint logic:formalizes gmeow:StateTransitionClaim ."
+msgstr "gmeow:StateTransitionPredecessorConstraint logic:formalizes gmeow:StateTransitionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State transition position identity constraint"
+msgstr "状态转换位置同一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every predecessor edge of a transition connects distinct records whose original assignment subjects and predicates are identical. Multiple predecessors cannot hide a replacement concerning another bearer or property."
+msgstr "转换的每条前驱边都连接不同记录，且原始赋值的主语和谓词相同。多个前驱不能掩盖涉及其他承载者或属性的替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check every supplied predecessor independently, including a transition with several predecessors."
+msgstr "用于独立检查每个已提供的前驱，包括具有多个前驱的转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting one matching predecessor as evidence that every other predecessor matches."
+msgstr "避免将一个匹配前驱当作所有其他前驱都匹配的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Universally bind each supersedes edge and its existing assignment tuples; require both component identities and distinct record identities."
+msgstr "全称绑定每条 supersedes 边及其已有赋值三元组；要求两个组件同一，并且记录身份不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateTransitionSlotIdentityConstraint logic:formalizes gmeow:StateTransitionClaim ."
+msgstr "gmeow:StateTransitionSlotIdentityConstraint logic:formalizes gmeow:StateTransitionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State supersession edge constraint"
+msgstr "状态替代边约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supersession record reifies the exact existing successor supersedes predecessor edge, with its actual typed transition and assignment endpoints. A quoted edge alone does not establish an asserted replacement."
+msgstr "每条替代记录都重述确切且已有的后继 supersedes 前驱边，其实际端点分别具有转换和赋值类型。仅引用一条边并不确立已断言的替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind edge-specific evidence to the exact replacement it describes."
+msgstr "用于将边专属证据绑定到其描述的确切替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid admitting copied endpoints, reversed edges or a different predicate between the same records."
+msgstr "避免接纳复制的端点、反向边或同一对记录间的其他谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the record’s original rdf:reifies tuple with an existing supersedes edge and its typed endpoints; compare all three tuple components against the bound edge."
+msgstr "将记录的原始 rdf:reifies 三元组与已有 supersedes 边及其有类型端点连接；将三个三元组组件逐一与已绑定边比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateSupersessionEdgeConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+msgstr "gmeow:StateSupersessionEdgeConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "state records"
+msgstr "状态记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Exact property-named assignment records, multi-predecessor state transitions and evidence on individual supersession edges."
+msgstr "按属性命名的确切赋值记录、多前驱状态转换以及逐条替代边的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://purl.org/dc/terms/title"
+msgid "GMEOW State Records Module"
+msgstr "GMEOW 状态记录模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Memory services retaining original RDF state assignments and exact replacement edges without copied slots or clock-derived order."
+msgstr "保留原始 RDF 状态赋值和确切替代边的记忆服务，无需复制槽位或从时钟推导顺序。"

@@ -1,0 +1,290 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Assignment Claim"
+msgstr "Déclaration d’affectation d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record reifying one exact RDF assignment tuple. The original tuple supplies the state bearer, property IRI and assigned RDF value; the record does not copy them into slot fields or assert the quoted assignment."
+msgstr "Un enregistrement informationnel réifiant un unique triplet RDF d’affectation exact. Le triplet original fournit le porteur d’état, l’IRI de propriété et la valeur RDF affectée ; l’enregistrement ne les copie pas dans des champs de case et n’affirme pas l’affectation citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source claim about the value of a property on a bearer."
+msgstr "Utiliser pour conserver une déclaration source sur la valeur d’une propriété d’un porteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this information object as an assertion act, a preferred value or proof that the quoted assignment is asserted."
+msgstr "Éviter de traiter cet objet informationnel comme un acte d’affirmation, une valeur préférée ou la preuve que l’affectation citée est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the native RDF 1.2 reifier and retain its exact rdf:reifies tuple, attribution and source. The bearer and property together identify the state position."
+msgstr "Typer le réificateur RDF 1.2 natif et conserver son triplet rdf:reifies exact, son attribution et sa source. Le porteur et la propriété identifient ensemble la position d’état."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:claim a gmeow:StateAssignmentClaim ; rdf:reifies <<( ex:agent ex:mode ex:quiet )>> ."
+msgstr "ex:claim a gmeow:StateAssignmentClaim ; rdf:reifies <<( ex:agent ex:mode ex:quiet )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Transition Claim"
+msgstr "Déclaration de transition d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A successor state assignment record that supersedes one or more predecessor assignment records for the same original bearer and property. Its assigned value may differ; every replaced record remains identified and retained."
+msgstr "Un enregistrement successeur d’affectation d’état qui remplace un ou plusieurs enregistrements antérieurs pour le même porteur et la même propriété d’origine. Sa valeur affectée peut différer ; chaque enregistrement remplacé reste identifié et conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when one successor assignment replaces one or several recorded assignments for a property."
+msgstr "Utiliser lorsqu’une affectation successeur remplace une ou plusieurs affectations consignées d’une propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid choosing one predecessor, deriving replacement order from clocks or erasing concurrent claims."
+msgstr "Éviter de choisir un seul prédécesseur, de déduire l’ordre de remplacement des horloges ou d’effacer les déclarations concurrentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the successor assignment and link this record through supersedes to every replaced StateAssignmentClaim. Compare bearer and property on the original tuples, without a separate slot node."
+msgstr "Réifier l’affectation successeur et relier cet enregistrement par supersedes à chaque StateAssignmentClaim remplacée. Comparer le porteur et la propriété des triplets originaux, sans nœud de case distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:next a gmeow:StateTransitionClaim ; rdf:reifies <<( ex:agent ex:mode ex:ready )>> ; gmeow:supersedes ex:priorA, ex:priorB ."
+msgstr "ex:next a gmeow:StateTransitionClaim ; rdf:reifies <<( ex:agent ex:mode ex:ready )>> ; gmeow:supersedes ex:priorA, ex:priorB ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Supersession Claim"
+msgstr "Déclaration de remplacement d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record reifying one exact successor supersedes predecessor edge between state assignment records. The successor is a StateTransitionClaim; the original edge tuple supplies both endpoints and the supersedes predicate."
+msgstr "Un enregistrement informationnel réifiant une arête exacte où un successeur remplace un prédécesseur parmi des enregistrements d’affectation d’état. Le successeur est une StateTransitionClaim ; le triplet original de l’arête fournit ses deux extrémités et le prédicat supersedes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to attribute evidence or a replaced-state duration to one particular replacement edge."
+msgstr "Utiliser pour attribuer des éléments probants ou une durée d’état remplacé à une arête précise de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying endpoints onto the edge record or putting one predecessor’s duration on a transition replacing several predecessors."
+msgstr "Éviter de copier les extrémités sur l’enregistrement d’arête ou de placer la durée d’un prédécesseur sur une transition qui en remplace plusieurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact supersedes edge and retain that asserted edge between its actual records. Attach optional supersededStateLasted to this reifier; retain source attribution separately for each edge."
+msgstr "Réifier l’arête supersedes exacte et conserver cette arête affirmée entre ses enregistrements réels. Attacher facultativement supersededStateLasted à ce réificateur ; conserver séparément l’attribution source de chaque arête."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:edge a gmeow:StateSupersessionClaim ; rdf:reifies <<( ex:next gmeow:supersedes ex:priorA )>> ."
+msgstr "ex:edge a gmeow:StateSupersessionClaim ; rdf:reifies <<( ex:next gmeow:supersedes ex:priorA )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded state lasted"
+msgstr "durée de l’état remplacé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-supplied duration for which the predecessor state lasted before the exact supersession edge recorded by this reifier. A computed duration retains its stated derivation; GMEOW neither subtracts clocks nor certifies the arithmetic."
+msgstr "Une durée fournie par la source pendant laquelle l’état prédécesseur a persisté avant l’arête exacte de remplacement consignée par ce réificateur. Une durée calculée conserve sa dérivation déclarée ; GMEOW ne soustrait pas les horloges et ne certifie pas le calcul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies a measured or explicitly derived duration for one replaced assignment."
+msgstr "Utiliser lorsque la source fournit une durée mesurée ou explicitement dérivée pour une affectation remplacée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a duration, a timezone or precision, or sharing one duration across distinct replacement edges."
+msgstr "Éviter d’inventer une durée, un fuseau horaire ou une précision, ou de partager une durée entre des arêtes distinctes de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the supplied xsd:duration to the StateSupersessionClaim. For a computed span, reify this exact duration assertion, link wasDerivedFrom to its opening and closing assignment claims, and record the calculation and input roles with statedRationale."
+msgstr "Attacher la valeur xsd:duration fournie à la StateSupersessionClaim. Pour une durée calculée, réifier cette assertion exacte de durée, relier wasDerivedFrom aux déclarations d’affectation d’ouverture et de clôture, puis consigner le calcul et les rôles des entrées avec statedRationale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/supersededStateLasted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:edge gmeow:supersededStateLasted \"PT15M\"^^xsd:duration ."
+msgstr "ex:edge gmeow:supersededStateLasted \"PT15M\"^^xsd:duration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State Record Integrity Failure"
+msgstr "Échec d’intégrité d’enregistrement d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A well-formedness failure of an exact state assignment, transition or supersession record. It concerns retained tuple identity and replacement evidence, independently of whether the source’s state claim is true."
+msgstr "Un défaut de bonne formation d’un enregistrement exact d’affectation, de transition ou de remplacement d’état. Il concerne l’identité des triplets conservés et les éléments probants du remplacement, indépendamment de la vérité de la déclaration source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the failure marker raised by the state-record integrity laws."
+msgstr "Utiliser comme marqueur d’échec produit par les lois d’intégrité des enregistrements d’état."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a malformed record as proof that its source claim is false."
+msgstr "Éviter de traiter un enregistrement mal formé comme la preuve que sa déclaration source est fausse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the violated law and focus record with the diagnostic; repair the original evidence rather than fabricate a matching tuple."
+msgstr "Conserver la loi violée et l’enregistrement ciblé avec le diagnostic ; corriger les éléments probants originaux sans fabriquer de triplet correspondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateRecordIntegrityFailure|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleConstraint gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ."
+msgstr "gmeow:StateAssignmentTupleConstraint gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State assignment tuple constraint"
+msgstr "Contrainte de triplet d’affectation d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every state assignment record reifies an original quoted triple with available subject, predicate and object components."
+msgstr "Chaque enregistrement d’affectation d’état réifie un triplet cité original dont les composantes sujet, prédicat et objet sont disponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual assignment tuple for a state record."
+msgstr "Utiliser pour exiger un véritable triplet d’affectation pour un enregistrement d’état."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying this law with copied slot fields or a non-triple reified value."
+msgstr "Éviter de satisfaire cette loi avec des champs de case copiés ou une valeur réifiée qui n’est pas un triplet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the existing rdf:reifies term and compare each native tuple component with itself; an unavailable component fails."
+msgstr "Lier le terme rdf:reifies existant et comparer chaque composante native du triplet avec elle-même ; une composante indisponible échoue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+msgstr "gmeow:StateAssignmentTupleConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State assignment tuple identity constraint"
+msgstr "Contrainte d’identité du triplet d’affectation d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every tuple reified by one StateAssignmentClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."
+msgstr "Tous les triplets réifiés par une StateAssignmentClaim ont la même identité RDF complète. Un enregistrement ne peut cacher une seconde affectation ou arête derrière un premier triplet valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the single exact tuple recorded by this claim."
+msgstr "Utiliser pour préserver l’unique triplet exact consigné par cette déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."
+msgstr "Éviter la coercition de valeurs ou l’acceptation d’un triplet correspondant en ignorant les autres triplets réifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of positively bound rdf:reifies terms with componentWhole."
+msgstr "Comparer chaque paire de termes rdf:reifies liés positivement avec componentWhole."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateAssignmentTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateAssignmentTupleIdentityConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+msgstr "gmeow:StateAssignmentTupleIdentityConstraint logic:formalizes gmeow:StateAssignmentClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State supersession tuple identity constraint"
+msgstr "Contrainte d’identité du triplet de remplacement d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every tuple reified by one StateSupersessionClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."
+msgstr "Tous les triplets réifiés par une StateSupersessionClaim ont la même identité RDF complète. Un enregistrement ne peut cacher une seconde affectation ou arête derrière un premier triplet valide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the single exact tuple recorded by this claim."
+msgstr "Utiliser pour préserver l’unique triplet exact consigné par cette déclaration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."
+msgstr "Éviter la coercition de valeurs ou l’acceptation d’un triplet correspondant en ignorant les autres triplets réifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare every pair of positively bound rdf:reifies terms with componentWhole."
+msgstr "Comparer chaque paire de termes rdf:reifies liés positivement avec componentWhole."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionTupleIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateSupersessionTupleIdentityConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+msgstr "gmeow:StateSupersessionTupleIdentityConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State transition predecessor constraint"
+msgstr "Contrainte de prédécesseur de transition d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every transition has an existing predecessor assignment with the same original tuple subject and predicate. The witness joins the actual supersedes edge and both existing reified assignments."
+msgstr "Chaque transition possède une affectation prédécesseur existante avec le même sujet et le même prédicat de triplet original. Le témoin joint l’arête supersedes réelle et les deux affectations réifiées existantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require an actual replaced assignment for a transition record."
+msgstr "Utiliser pour exiger une affectation réellement remplacée pour un enregistrement de transition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a predecessor or joining assignments merely because their values coincide."
+msgstr "Éviter de fabriquer un prédécesseur ou de joindre des affectations uniquement parce que leurs valeurs coïncident."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the successor and predecessor tuples through stored relations, then compare their subject and predicate components by RDF identity."
+msgstr "Lier les triplets successeur et prédécesseur par des relations stockées, puis comparer leurs composantes sujet et prédicat par identité RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateTransitionPredecessorConstraint logic:formalizes gmeow:StateTransitionClaim ."
+msgstr "gmeow:StateTransitionPredecessorConstraint logic:formalizes gmeow:StateTransitionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State transition position identity constraint"
+msgstr "Contrainte d’identité de position de transition d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every predecessor edge of a transition connects distinct records whose original assignment subjects and predicates are identical. Multiple predecessors cannot hide a replacement concerning another bearer or property."
+msgstr "Chaque arête prédécesseur d’une transition relie des enregistrements distincts dont les sujets et prédicats d’affectation originaux sont identiques. Plusieurs prédécesseurs ne peuvent masquer un remplacement concernant un autre porteur ou une autre propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check every supplied predecessor independently, including a transition with several predecessors."
+msgstr "Utiliser pour vérifier séparément chaque prédécesseur fourni, y compris pour une transition à plusieurs prédécesseurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting one matching predecessor as evidence that every other predecessor matches."
+msgstr "Éviter de considérer un prédécesseur correspondant comme la preuve que tous les autres correspondent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Universally bind each supersedes edge and its existing assignment tuples; require both component identities and distinct record identities."
+msgstr "Lier universellement chaque arête supersedes et ses triplets d’affectation existants ; exiger les deux identités de composantes et des identités d’enregistrement distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateTransitionSlotIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateTransitionSlotIdentityConstraint logic:formalizes gmeow:StateTransitionClaim ."
+msgstr "gmeow:StateTransitionSlotIdentityConstraint logic:formalizes gmeow:StateTransitionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "State supersession edge constraint"
+msgstr "Contrainte d’arête de remplacement d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supersession record reifies the exact existing successor supersedes predecessor edge, with its actual typed transition and assignment endpoints. A quoted edge alone does not establish an asserted replacement."
+msgstr "Chaque enregistrement de remplacement réifie l’arête existante exacte où un successeur remplace un prédécesseur, avec ses extrémités réelles typées transition et affectation. Une arête citée seule n’établit pas un remplacement affirmé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind edge-specific evidence to the exact replacement it describes."
+msgstr "Utiliser pour lier les éléments probants propres à une arête au remplacement exact qu’ils décrivent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid admitting copied endpoints, reversed edges or a different predicate between the same records."
+msgstr "Éviter d’admettre des extrémités copiées, des arêtes inversées ou un autre prédicat entre les mêmes enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the record’s original rdf:reifies tuple with an existing supersedes edge and its typed endpoints; compare all three tuple components against the bound edge."
+msgstr "Joindre le triplet rdf:reifies original de l’enregistrement à une arête supersedes existante et à ses extrémités typées ; comparer les trois composantes du triplet à l’arête liée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StateSupersessionEdgeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StateSupersessionEdgeConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+msgstr "gmeow:StateSupersessionEdgeConstraint logic:formalizes gmeow:StateSupersessionClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "state records"
+msgstr "enregistrements d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Exact property-named assignment records, multi-predecessor state transitions and evidence on individual supersession edges."
+msgstr "Enregistrements exacts d’affectation nommée par propriété, transitions d’état à plusieurs prédécesseurs et éléments probants sur chaque arête de remplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|http://purl.org/dc/terms/title"
+msgid "GMEOW State Records Module"
+msgstr "Module GMEOW d’enregistrements d’état"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/state-records|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Memory services retaining original RDF state assignments and exact replacement edges without copied slots or clock-derived order."
+msgstr "Services de mémoire conservant les affectations RDF originales et les arêtes exactes de remplacement sans cases copiées ni ordre déduit des horloges."
