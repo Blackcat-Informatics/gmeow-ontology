@@ -8,6 +8,66 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/fnBirthEventToDate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Extracts a person's birth placement through the principal Participation and eventTime while retaining the source path. The owning target mapping selects its calendar-component projection: schema.org retains a date or natively casts a timestamp to a date; vCard retains a timestamp or year and explicitly coarsens date/month values. The source placement is never padded or rewritten."
+msgstr "Extrait le repérage de naissance d’une personne par la Participation principale et eventTime en conservant le chemin source. Le mapping cible propriétaire sélectionne sa projection de composante calendaire : schema.org conserve une date ou convertit nativement un horodatage en date ; vCard conserve un horodatage ou une année et réduit explicitement la précision des valeurs de date ou de mois. Le repérage source n’est jamais complété ni réécrit."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "xsd:date"
+msgstr "xsd:date"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Cast one supported calendar value to xsd:date through the native XML Schema calendar cast, preserving its date and timezone and applying the parsed dateTime calendar rollover."
+msgstr "Convertit une valeur calendaire prise en charge en xsd:date au moyen de la conversion calendaire XML Schema native, en conservant sa date et son fuseau horaire et en appliquant le changement de jour du dateTime analysé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a projection selects the calendar date of a source timestamp."
+msgstr "À utiliser lorsqu’une projection sélectionne la date calendaire d’un horodatage source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substring extraction, padding an incomplete date, or using this cast to validate arbitrary source text."
+msgstr "Éviter l’extraction de sous-chaînes, le remplissage d’une date incomplète ou l’emploi de cette conversion pour valider un texte source arbitraire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one native calendar expression. The selected cast must succeed; the projection declares the loss of clock precision."
+msgstr "Fournir exactement une expression calendaire native. La conversion sélectionnée doit réussir ; la projection déclare la perte de précision horaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|http://www.w3.org/2004/02/skos/core#example"
+msgid "A dateTime at 24:00:00 casts to the following calendar date."
+msgstr "Un dateTime à 24:00:00 se convertit en la date calendaire suivante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opDate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The cast changes the projected datatype and may canonicalize its lexical form; it does not change the source literal or convert a non-default calendar frame."
+msgstr "La conversion change le type de données projeté et peut canoniser sa forme lexicale ; elle ne modifie pas le littéral source et ne convertit pas un cadre calendaire non standard."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "xsd:gYear"
+msgstr "xsd:gYear"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Cast one supported calendar value to xsd:gYear through the native XML Schema calendar cast, preserving the parsed year and timezone."
+msgstr "Convertit une valeur calendaire prise en charge en xsd:gYear au moyen de la conversion calendaire XML Schema native, en conservant l’année analysée et le fuseau horaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a selected projection deliberately retains only the year of a date."
+msgstr "À utiliser lorsqu’une projection sélectionnée ne conserve délibérément que l’année d’une date."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid supplying gYearMonth to this native cast; that source datatype is outside the current cast contract."
+msgstr "Éviter de fournir gYearMonth à cette conversion native ; ce type source sort du contrat de conversion actuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one supported native calendar expression and declare the lost month, day or clock precision in the owning projection."
+msgstr "Fournir exactement une expression calendaire native prise en charge et déclarer la précision de mois, de jour ou d’heure perdue dans la projection propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied xsd:date can project to its xsd:gYear while retaining the timezone."
+msgstr "Une xsd:date fournie peut être projetée vers son xsd:gYear tout en conservant le fuseau horaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/opGYear|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This operator supplies no missing date fields and performs no calendar-frame conversion. A separate declared component projection is needed for validated gYearMonth values."
+msgstr "Cet opérateur ne fournit aucun champ de date manquant et n’effectue aucune conversion de cadre calendaire. Les valeurs gYearMonth validées nécessitent une projection de composante distincte et déclarée."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/tPredFromCorrespondence|rdfs:label"
 msgid "template predicate from correspondence"
 msgstr "prédicat de modèle issu d’une correspondance"

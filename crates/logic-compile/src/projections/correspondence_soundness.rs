@@ -25,7 +25,8 @@
 //! The two **FnO back-end soundness** checks:
 //!
 //! * [`fno_type_mismatches`] — an `fno:Parameter`/`fno:Output` whose `fno:predicate` is a
-//!   GMEOW property with a declared `rdfs:range` must declare an `fno:type` equal to it.
+//!   GMEOW property must use its projected source-range carrier, including the
+//!   explicitly disclosed Literal carrier for supported anonymous datatype unions.
 //! * [`fno_reference_integrity`] — every FnO function an EDOAL cell invokes via
 //!   `edoal:transformation` must be a defined `fno:Function`.
 //!
@@ -1482,7 +1483,7 @@ fn target_inverses(graph: &DslView<'_>, term: &str) -> Vec<String> {
 
 // ── FnO back-end soundness: fno:type ↔ rdfs:range ─────────────────────────────
 
-/// FnO param/output `fno:type`s that disagree with their predicate's `rdfs:range`.
+/// FnO parameter/output types that disagree with the declared source-range projection.
 pub fn fno_type_mismatches(onto: &DslView<'_>, fno: &DslView<'_>) -> Vec<ProjectionDiagnostic> {
     let mut params: BTreeSet<String> = BTreeSet::new();
     params.extend(fno.subjects_of_type(FNO_PARAMETER));
@@ -1496,7 +1497,17 @@ pub fn fno_type_mismatches(onto: &DslView<'_>, fno: &DslView<'_>) -> Vec<Project
         let Some(ftype) = fno.object_iri(param, FNO_TYPE) else {
             continue;
         };
-        let mut ranges: Vec<String> = onto.object_iris(&predicate, RDFS_RANGE);
+        let mut ranges = match super::fno::projected_predicate_types(onto, &predicate) {
+            Ok(projection) => projection.types,
+            Err(error) => {
+                problems.push(ProjectionDiagnostic::error(
+                    "fno-type",
+                    format!("{param}: {error}"),
+                    Some(param.clone()),
+                ));
+                continue;
+            }
+        };
         if ranges.is_empty() {
             continue;
         }

@@ -47,22 +47,22 @@ pub fn temporal_queries() -> BTreeMap<&'static str, TemporalQuery> {
         TemporalQuery {
             name: "before-event",
             parameters: &["focus"],
-            summary: "events temporally before a focus event",
+            summary: "qualitative before closure plus zoned default-frame dateTime comparison",
         },
         TemporalQuery {
             name: "during-event",
             parameters: &["focus"],
-            summary: "events temporally within a focus event",
+            summary: "qualitative during closure plus zoned default-frame dateTime containment",
         },
         TemporalQuery {
             name: "timeline",
             parameters: &[],
-            summary: "every event with its effective start instant, ordered",
+            summary: "typed event placements grouped by frame/datatype/lexical form; not cross-precision chronology",
         },
         TemporalQuery {
             name: "overlapping-window",
             parameters: &["windowStart", "windowEnd"],
-            summary: "events overlapping a [windowStart, windowEnd] span",
+            summary: "zoned default-frame dateTime overlap; requires zoned dateTime window parameters",
         },
         TemporalQuery {
             name: "bitemporal",
@@ -162,6 +162,50 @@ pub fn run_temporal_query(
                 missing.join(", ")
             ),
         }));
+    }
+
+    if name == "overlapping-window" {
+        const DATE_TIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+        for parameter in ["windowStart", "windowEnd"] {
+            let values: Vec<_> = bindings
+                .iter()
+                .filter(|(key, _)| key == parameter)
+                .map(|(_, value)| value)
+                .collect();
+            let parameter_error = |detail: String| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "temporal-query".to_owned(),
+                    message: format!(
+                        "{parameter} requires one well-formed zoned xsd:dateTime: {detail}"
+                    ),
+                })
+            };
+            if values.len() != 1 {
+                return Err(parameter_error(format!(
+                    "received {} bindings",
+                    values.len()
+                )));
+            }
+            let term = values[0]
+                .to_rdf_term()
+                .map_err(|error| parameter_error(error.to_string()))?;
+            let purrdf::RdfTerm::Literal(value) = term else {
+                return Err(parameter_error("received a nonliteral term".to_owned()));
+            };
+            if value.datatype_iri() != DATE_TIME {
+                return Err(parameter_error(format!(
+                    "received datatype {}",
+                    value.datatype_iri()
+                )));
+            }
+            let parsed = purrdf::xsd::parse_by_iri(&value.lexical_form, DATE_TIME)
+                .map_err(|error| parameter_error(error.to_string()))?;
+            match parsed {
+                Some(purrdf::xsd::XsdValue::DateTime(datetime))
+                    if datetime.timezone_minutes().is_some() => {}
+                _ => return Err(parameter_error("the timestamp has no timezone".to_owned())),
+            }
+        }
     }
 
     let text = query_text(query_dir, name)?;

@@ -1,20 +1,31 @@
-# TQL — events overlapping a time window. Parameters: ?windowStart, ?windowEnd
-# (xsd:dateTime). An event's effective extent (point / crisp interval / fuzzy
-# bounds) overlaps the window iff it starts no later than the window ends AND ends
-# no earlier than the window begins.
+# TQL — quantitative underapproximation over a selected zoned dateTime window.
+# The caller admits both window parameters explicitly. Only compatible
+# absent/default UTC-Gregorian event and interval frames are compared.
+# Source-presence precedence is point, interval, fuzzy; a coarse point cannot
+# fall through to unrelated bounds. No implicit day/month/year interval expansion.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT ?event WHERE {
     ?event rdf:type/rdfs:subClassOf* gmeow:Event .
-    OPTIONAL { ?event gmeow:eventTime ?t . }
-    OPTIONAL { ?event gmeow:eventInterval/gmeow:startedAtTime ?is . }
-    OPTIONAL { ?event gmeow:eventInterval/gmeow:endedAtTime ?ie . }
-    OPTIONAL { ?event gmeow:earliestStart ?es . }
-    OPTIONAL { ?event gmeow:latestEnd ?le . }
-    BIND(COALESCE(?t, ?is, ?es) AS ?start)
-    BIND(COALESCE(?ie, ?le, ?t, ?is, ?es) AS ?end)
-    FILTER(BOUND(?start) && ?start <= ?windowEnd && ?end >= ?windowStart)
+    FILTER NOT EXISTS { ?event gmeow:eventTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+    {
+        ?event gmeow:eventTime ?start .
+        BIND(?start AS ?end)
+    } UNION {
+        FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+        ?event gmeow:eventInterval ?iv .
+        ?iv gmeow:startedAtTime ?start ; gmeow:endedAtTime ?end .
+        FILTER NOT EXISTS { ?iv gmeow:hasTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+    } UNION {
+        FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+        FILTER NOT EXISTS { ?event gmeow:eventInterval ?intervalPresent . }
+        ?event gmeow:earliestStart ?start ; gmeow:latestEnd ?end .
+    }
+    FILTER(DATATYPE(?start) = xsd:dateTime && REGEX(STR(?start), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && DATATYPE(?end) = xsd:dateTime && REGEX(STR(?end), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") &&
+           DATATYPE(?windowStart) = xsd:dateTime && REGEX(STR(?windowStart), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && DATATYPE(?windowEnd) = xsd:dateTime && REGEX(STR(?windowEnd), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") &&
+           ?start <= ?windowEnd && ?end >= ?windowStart)
 }
 ORDER BY ?event

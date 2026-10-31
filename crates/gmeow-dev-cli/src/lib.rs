@@ -377,15 +377,17 @@ pub enum Commands {
         #[arg(long = "timings-json")]
         timings_json: Option<PathBuf>,
     },
-    /// Run a TQL (Temporal Query Language) query over the events model.
+    /// Run TQL: typed placement display or scoped zoned UTC-Gregorian timestamp comparisons.
     Temporal {
         query: String,
         #[arg(long = "data")]
         data: Option<PathBuf>,
         #[arg(long = "focus")]
         focus: Option<String>,
+        /// Zoned xsd:dateTime window start in the default UTC-Gregorian frame.
         #[arg(long = "window-start")]
         window_start: Option<String>,
+        /// Zoned xsd:dateTime window end in the default UTC-Gregorian frame.
         #[arg(long = "window-end")]
         window_end: Option<String>,
         #[arg(long = "valid-at")]

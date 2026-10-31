@@ -1,28 +1,31 @@
-# TQL — events before a focus event. Parameter: ?focus (an event IRI). Combines the
-# qualitative Allen closure (gmeow:before+, no reasoner needed) with a quantitative
-# datetime test over EFFECTIVE bounds: an event qualifies if its effective end (point
-# time, else crisp interval end, else fuzzy latestEnd) is at or before the focus's
-# effective start (point time, else interval start, else fuzzy earliestStart).
+# TQL — qualitative before closure plus a scoped quantitative underapproximation.
+# Quantitative operands must be zoned xsd:dateTime in the absent/default
+# UTC-Gregorian frame; interval frames must also be compatible. A supplied coarse
+# point never falls through to interval/fuzzy bounds. No coarse/calendar expansion.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT ?event WHERE {
     { ?event (gmeow:before|^gmeow:after)+ ?focus . }
-    UNION
-    {
+    UNION {
         ?event rdf:type/rdfs:subClassOf* gmeow:Event .
-        OPTIONAL { ?event gmeow:eventTime ?xt . }
-        OPTIONAL { ?event gmeow:eventInterval/gmeow:endedAtTime ?xie . }
-        OPTIONAL { ?event gmeow:latestEnd ?xle . }
-        BIND(COALESCE(?xt, ?xie, ?xle) AS ?xend)
-
-        OPTIONAL { ?focus gmeow:eventTime ?ft . }
-        OPTIONAL { ?focus gmeow:eventInterval/gmeow:startedAtTime ?fis . }
-        OPTIONAL { ?focus gmeow:earliestStart ?fes . }
-        BIND(COALESCE(?ft, ?fis, ?fes) AS ?fstart)
-
-        FILTER(?event != ?focus && BOUND(?xend) && BOUND(?fstart) && ?xend <= ?fstart)
+        FILTER NOT EXISTS { ?event gmeow:eventTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+        FILTER NOT EXISTS { ?focus gmeow:eventTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+        { { ?event gmeow:eventTime ?xend . } UNION { FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+            ?event gmeow:eventInterval ?xendInterval .
+            ?xendInterval gmeow:endedAtTime ?xend .
+            FILTER NOT EXISTS { ?xendInterval gmeow:hasTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) } } UNION { FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+            FILTER NOT EXISTS { ?event gmeow:eventInterval ?intervalPresent . }
+            ?event gmeow:latestEnd ?xend . } }
+        { { ?focus gmeow:eventTime ?fstart . } UNION { FILTER NOT EXISTS { ?focus gmeow:eventTime ?pointPresent . }
+            ?focus gmeow:eventInterval ?fstartInterval .
+            ?fstartInterval gmeow:startedAtTime ?fstart .
+            FILTER NOT EXISTS { ?fstartInterval gmeow:hasTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) } } UNION { FILTER NOT EXISTS { ?focus gmeow:eventTime ?pointPresent . }
+            FILTER NOT EXISTS { ?focus gmeow:eventInterval ?intervalPresent . }
+            ?focus gmeow:earliestStart ?fstart . } }
+        FILTER(?event != ?focus && DATATYPE(?xend) = xsd:dateTime && REGEX(STR(?xend), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && DATATYPE(?fstart) = xsd:dateTime && REGEX(STR(?fstart), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && ?xend <= ?fstart)
     }
 }
 ORDER BY ?event

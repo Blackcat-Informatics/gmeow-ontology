@@ -12,6 +12,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event time"
+msgstr "事件时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The placement of a point-like event at the precision supplied by its source: xsd:dateTime, xsd:date, xsd:gYearMonth or xsd:gYear. Competing standpoint-indexed placements coexist; no value supplies an unstated clock time or event duration."
+msgstr "以来源提供的精度定位点状事件：xsd:dateTime、xsd:date、xsd:gYearMonth 或 xsd:gYear。按立场索引的竞争性定位可以共存；任何值都不提供未陈述的时钟时间或事件持续时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:birth gmeow:eventTime \"1947-06-14\"^^xsd:date ."
+msgstr "ex:birth gmeow:eventTime \"1947-06-14\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source dates a point-like occurrence to a timestamp, day, month or year without asserting a complete event interval."
+msgstr "当来源以时间戳、日、月或年为点状发生事件定时，而未断言事件的完整时间区间时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid padding a coarse placement to midnight, treating its calendar extent as the event's duration, or selecting one competing placement as preferred. Use eventDuring for placement in an established period."
+msgstr "避免将粗粒度定位补成午夜、将其日历范围视为事件持续时长，或优先选择某个竞争性定位。对于已确立时期内的定位，使用 eventDuring。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each source literal's lexical form, datatype and timezone. Annotate competing statements with accordingTo and confidence; retain a supplied eventTemporalFrame. A frame does not reinterpret the Gregorian semantics of an XSD datatype."
+msgstr "保留每个来源字面量的词法形式、数据类型和时区。用 accordingTo 和 confidence 注释竞争性陈述；保留所提供的 eventTemporalFrame。参考框架不重新解释 XSD 数据类型的公历语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An absent eventTemporalFrame retains the existing UTC-Gregorian default. No more precise timestamp, interval boundary or calendar conversion follows from a day, month or year placement. Precision-aware consumers must declare the fragment they support."
+msgstr "缺少 eventTemporalFrame 时保留既有的 UTC 公历默认框架。日、月或年定位不推出更精确的时间戳、区间边界或日历转换。精度敏感的使用者必须声明所支持的片段。"
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "event during"

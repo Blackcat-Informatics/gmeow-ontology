@@ -27,36 +27,54 @@ queries reach `gmeow:LifeEvent` / `gmeow:Activity` occurrences over the **assert
 graph (the TBox subclass axioms are queried directly), and `(gmeow:during|^gmeow:contains)+`
 traverses the declared `owl:inverseOf` pairs without materialization.
 
+## Precision and frame scope
+
+`timeline` retains every supplied point placement, including its datatype and
+frame, and preserves the native literal value. It falls back to interval starts
+only when no point value exists, then to fuzzy starts only when neither point
+nor interval exists. Frame/datatype/lexical grouping is deterministic display,
+not chronology across precisions, timezones or calendars. Explicit event and
+interval frames remain separate result columns.
+
+The numeric branches of `before-event`, `during-event` and
+`overlapping-window` are an underapproximation: they compare only zoned
+`xsd:dateTime` values in absent or canonical UTC-Gregorian event frames and,
+where relevant, interval `hasTemporalFrame` values. Coarse points never become
+midnight, full calendar extents or unrelated interval/fuzzy bounds. A supplied
+point takes precedence even when it is outside this numeric fragment.
+Qualitative Allen branches remain independent of numeric admission.
+
+The overlap caller requires exactly one well-formed, zoned `xsd:dateTime`
+binding for each window endpoint and reports malformed, unzoned or wrongly typed
+inputs as errors. No implicit timezone or calendar conversion is performed.
+
 ## The query toolkit
 
 | Query | Parameters | Answers |
 |---|---|---|
 | `allen-closure` | — | every transitively-ordered `(earlier, later)` event pair |
-| `before-event` | `focus` | events temporally before a focus event (Allen closure ∪ effective-datetime) |
-| `during-event` | `focus` | events temporally within a focus event |
-| `timeline` | — | every event with its effective start instant, ordered |
-| `overlapping-window` | `windowStart`, `windowEnd` | events overlapping a time window |
+| `before-event` | `focus` | qualitative before closure plus scoped zoned timestamp comparison |
+| `during-event` | `focus` | qualitative during closure plus scoped strict timestamp containment |
+| `timeline` | — | full typed placements grouped by frame, datatype and lexical form |
+| `overlapping-window` | `windowStart`, `windowEnd` | compatible zoned timestamp extents overlapping a zoned timestamp window |
 | `bitemporal` | `validAt`, `asOf` | claims valid at `validAt` and asserted by `asOf` — standpoint-indexed, **no winner** |
 
 ## Running it
 
 ```bash
-gmeow temporal timeline --data my-events.ttl
-gmeow temporal before-event --data my-events.ttl --focus https://example.org/e/reception
-gmeow temporal overlapping-window --data my-events.ttl \
+gmeow-dev temporal timeline --data my-events.ttl
+gmeow-dev temporal before-event --data my-events.ttl --focus https://example.org/e/reception
+gmeow-dev temporal overlapping-window --data my-events.ttl \
     --window-start 2015-06-20T00:00:00Z --window-end 2015-06-20T23:59:59Z
-gmeow temporal bitemporal --data my-claims.ttl \
+gmeow-dev temporal bitemporal --data my-claims.ttl \
     --valid-at 1895-01-01T00:00:00Z --as-of 2020-01-01T00:00:00Z
 ```
 
-Parameters are bound via rdflib `initBindings` — values never touch the query text,
-so there is **no injection surface**. The Python API is `gmeow_tools.temporal_query`:
-
-```python
-from rdflib import URIRef
-from gmeow_tools.temporal_query import run_temporal_query
-rows = run_temporal_query("before-event", graph, {"focus": URIRef("…/reception")})
-```
+Parameters use native `SparqlRequest::substitutions`; values never enter query
+text. The Rust entry point is
+`gmeow_pipeline::cli_ops::temporal::run_temporal_query`, with an explicit query
+directory, source Turtle and typed parameter bindings. Its native `Solutions`
+retain datatype, language and direction rather than flattening terms to text.
 
 ## Why not a new query language?
 
@@ -69,9 +87,9 @@ queries, the temporal counterpart of the projection layer's closed algebra.
 
 ## See also
 
-- `ontology/modules/events.ttl` — the Allen relations, `Duration`, `RecurrenceRule`,
+- [`slices/core/events/module.ttl`](../slices/core/events/module.ttl) — the Allen relations, `Duration`, `RecurrenceRule`,
   and the ISO-TimeML tense/aspect attributes.
-- `mapping-dsl/equivalences/events.ttl` — the OWL-Time / TEO / ISO-TimeML alignments.
+- [`slices/core/events/mappings/equivalences.ttl`](../slices/core/events/mappings/equivalences.ttl) — the OWL-Time / TEO / ISO-TimeML alignments.
 - `dist/gmeow-example-owl-time.ttl` — the events projected to pure OWL-Time
   `interval*` relations (an OWL-Time-aware reasoner runs interval-algebra inference
   over it).

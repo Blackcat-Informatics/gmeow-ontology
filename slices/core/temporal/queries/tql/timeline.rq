@@ -1,15 +1,27 @@
-# TQL — the event timeline. Every event with an effective START instant (the point
-# eventTime, else the crisp interval start, else the fuzzy earliestStart), ordered.
+# TQL — all supplied point placements; interval/fuzzy starts only without a point.
+# Display groups by frame, datatype and lexical form: this is not chronology
+# across different precision, timezone or frame. Native result terms are unchanged.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?event ?start WHERE {
+SELECT DISTINCT ?event ?start ?datatype ?frame ?eventFrame ?intervalFrame WHERE {
     ?event rdf:type/rdfs:subClassOf* gmeow:Event .
-    OPTIONAL { ?event gmeow:eventTime ?t . }
-    OPTIONAL { ?event gmeow:eventInterval/gmeow:startedAtTime ?is . }
-    OPTIONAL { ?event gmeow:earliestStart ?es . }
-    BIND(COALESCE(?t, ?is, ?es) AS ?start)
-    FILTER(BOUND(?start))
+    {
+        ?event gmeow:eventTime ?start .
+    } UNION {
+        FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+        ?event gmeow:eventInterval ?interval .
+        ?interval gmeow:startedAtTime ?start .
+        OPTIONAL { ?interval gmeow:hasTemporalFrame ?intervalFrame . }
+    } UNION {
+        FILTER NOT EXISTS { ?event gmeow:eventTime ?pointPresent . }
+        FILTER NOT EXISTS { ?event gmeow:eventInterval ?intervalPresent . }
+        ?event gmeow:earliestStart ?start .
+    }
+    OPTIONAL { ?event gmeow:eventTemporalFrame ?eventFrame . }
+    BIND(DATATYPE(?start) AS ?datatype)
+    BIND(COALESCE(?intervalFrame, ?eventFrame, gmeow:temporalFrameUTCGregorian) AS ?frame)
 }
-ORDER BY ?start ?event
+ORDER BY STR(?frame) STR(?datatype) STR(?start) STR(?event)

@@ -50,12 +50,16 @@ ex:partOfficiant a gmeow:Participation ;
     gmeow:participationParticipant ex:officiant ;
     gmeow:participationRole gmeow:roleOfficiant .
 
-# A separate source places an earlier wedding only within its reporting window.
+# Separate source records place an earlier wedding in a reporting window and
+# at their supplied day, month and year precisions.
 # The window's boundaries describe the window, never an inferred event instant.
 # The existing Holocene individual supplies an independently named period.
 ex:earlierWedding a gmeow:Event ;
     rdfs:label "an earlier wedding in the archive"@x-gmeow-english ;
-    gmeow:eventDuring ex:reportingWindow , gmeow:periodHolocene .
+    gmeow:eventDuring ex:reportingWindow , gmeow:periodHolocene ;
+    # Independent source precision statements coexist without invented clock fields.
+    gmeow:eventTime "2025-06-14"^^xsd:date ,
+        "2025-06"^^xsd:gYearMonth , "2025"^^xsd:gYear .
 
 ex:reportingWindow a gmeow:TimeInterval ;
     rdfs:label "the archive's reporting window"@x-gmeow-english ;

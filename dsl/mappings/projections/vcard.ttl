@@ -133,12 +133,16 @@ gmeow:mapVcardBday a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "b" ]
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "ent" ]
-            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ] ) ;
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ]
+            [ gmeow:subjectVar "b" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "bdateFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] <http://www.w3.org/2001/XMLSchema#dateTime> <http://www.w3.org/2001/XMLSchema#date> <http://www.w3.org/2001/XMLSchema#gYearMonth> <http://www.w3.org/2001/XMLSchema#gYear> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "bdateFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "bdateFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "bdateProjected" ; gmeow:bindExpr [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] <http://www.w3.org/2001/XMLSchema#dateTime> <http://www.w3.org/2001/XMLSchema#gYear> ) ] [ gmeow:exprVar "bdate" ] [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> ) ] [ gmeow:exprOp gmeow:opGYear ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opReplace ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opReplace ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] "^[ \\t\\r\\n]+|[ \\t\\r\\n]+$" "" ) ] "^(-?[0-9]{4,})-[0-9]{2}" "$1" ) ] <http://www.w3.org/2001/XMLSchema#gYear> ) ] ) ] ) ] ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "vcard" ; gmeow:toPredicate vcard:bday ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ;
-        gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as vcard:bday" ] .
+        gmeow:lossyDrop "event and Participation context, confidence, standpoint and fuzzy-date bounds are omitted; the vCard RDF profile retains dateTime and gYear literals unchanged; dates cast natively to gYear with month/day loss, and validated gYearMonth values project their year and timezone with explicit month loss; no padding or non-default calendar conversion occurs, other frames are omitted; this RDF projection does not claim lossless RFC 6350 text serialization" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "ent" ; gmeow:tPred vcard:bday ; gmeow:tObj "bdateProjected" ] ) ] .
 
 gmeow:mapVcardTitle a gmeow:ProjectionMapping ;
     rdfs:label "Membership Role → vcard:title"@x-gmeow-english ;

@@ -24,7 +24,7 @@ ex:confidenceRuleV1 a gmeow:SignalConfidenceRule ;
     rdfs:seeAlso ex:unitRange .
 ex:confidenceReview a gmeow:Activity ;
     gmeow:wasAssociatedWith ex:reviewer ;
-    gmeow:eventTime "2026-10-30T12:00:00Z"^^xsd:dateTime .
+    gmeow:atTime "2026-10-30T12:00:00Z"^^xsd:dateTime .
 ex:unitRange a math:Interval ;
     math:lowerEndpoint "0"^^xsd:decimal ; math:lowerInclusion math:closedEndpoint ;
     math:upperEndpoint "1"^^xsd:decimal ; math:upperInclusion math:closedEndpoint .

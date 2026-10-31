@@ -453,16 +453,22 @@ gmeow:eventTense
 
 gmeow:eventTime
     a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Event ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "event time"@x-gmeow-english ;
-    rdfs:range xsd:dateTime ;
-    skos:definition "The instant at which a point-like event occurred (xsd:dateTime — DL-clean, never xsd:date). Replaces the former free-text gmeow:eventDate. Non-functional: competing standpoint-indexed dates coexist as confidence-weighted statements."@x-gmeow-english ;
-    skos:example "ex:birth gmeow:eventTime \"1947-06-14T09:30:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid xsd:date literals (Principle 3 — always xsd:dateTime), avoid it for a spanning event (use gmeow:eventInterval) or a fuzzy date (use gmeow:earliestStart / gmeow:latestEnd), and never collapse competing dates — keep it non-functional."@x-gmeow-english ;
+    skos:definition "The placement of a point-like event at the precision supplied by its source: xsd:dateTime, xsd:date, xsd:gYearMonth or xsd:gYear. Competing standpoint-indexed placements coexist; no value supplies an unstated clock time or event duration."@x-gmeow-english ;
+    skos:example "ex:birth gmeow:eventTime \"1947-06-14\"^^xsd:date ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source dates a point-like occurrence to a timestamp, day, month or year without asserting a complete event interval."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid padding a coarse placement to midnight, treating its calendar extent as the event's duration, or selecting one competing placement as preferred. Use eventDuring for placement in an established period."@x-gmeow-english ;
+    gmeow:howToUse "Retain each source literal's lexical form, datatype and timezone. Annotate competing statements with accordingTo and confidence; retain a supplied eventTemporalFrame. A frame does not reinterpret the Gregorian semantics of an XSD datatype."@x-gmeow-english ;
+    skos:scopeNote "An absent eventTemporalFrame retains the existing UTC-Gregorian default. No more precise timestamp, interval boundary or calendar conversion follows from a day, month or year placement. Precision-aware consumers must declare the fragment they support."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert an xsd:dateTime literal; carry a disputed date on its own statement with gmeow:accordingTo + gmeow:confidence, and a non-default calendar on gmeow:eventTemporalFrame."@x-gmeow-english ;
-    gmeow:useWhen "Use for the instant of a point-like event whose date is known crisply — a birth time, a commit timestamp; the DL-clean replacement for the retired free-text gmeow:eventDate."@x-gmeow-english .
+    logic:domain gmeow:Event ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/eventTime" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:eventToLocation
     a logic:ObjectProperty ;

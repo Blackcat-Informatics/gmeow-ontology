@@ -440,12 +440,16 @@ gmeow:mapSchemaBirthDate a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "birth" ]
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
             [ gmeow:subjectVar "p" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "person" ]
-            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ] ) ;
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "bdate" ]
+            [ gmeow:subjectVar "birth" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "bdateFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "bdateFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "bdateFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "bdateProjected" ; gmeow:bindExpr [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> ) ] [ gmeow:exprVar "bdate" ] [ gmeow:exprOp gmeow:opDate ; gmeow:exprArgs ( [ gmeow:exprVar "bdate" ] ) ] ) ] ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:birthDate ; gmeow:relation "<=" ;
         gmeow:transform gmeow:fnBirthEventToDate ; gmeow:confidence 0.95 ;
-        gmeow:lossyDrop "the birth Participation (role, period, confidence, standpoint) and fuzzy-date bounds are dropped; only the principal's birth instant survives as schema:birthDate" ] .
+        gmeow:lossyDrop "event and Participation context, confidence, standpoint and fuzzy-date bounds are omitted; this schema-org profile retains xsd:date literals unchanged and casts dateTime to xsd:date natively, dropping clock precision while retaining its parsed date and timezone; reduced year/month values and non-default frames are omitted by profile choice, without implying a prohibition in schema.org" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "person" ; gmeow:tPred schema:birthDate ; gmeow:tObj "bdateProjected" ] ) ] .
 
 gmeow:mapSchemaJobTitle a gmeow:ProjectionMapping ;
     rdfs:label "Membership Role → schema:jobTitle"@x-gmeow-english ;
@@ -566,12 +570,16 @@ gmeow:mapSchemaFoundingDate a gmeow:ProjectionMapping ;
         gmeow:atom (
             [ gmeow:subjectVar "org" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Organization ]
             [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasCreationEvent ; gmeow:objectVar "cevent" ]
-            [ gmeow:subjectVar "cevent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "fdate" ] ) ;
+            [ gmeow:subjectVar "cevent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "fdate" ]
+            [ gmeow:subjectVar "cevent" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "fdateFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "fdate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "fdateFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "fdateFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "fdateProjected" ; gmeow:bindExpr [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "fdate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> ) ] [ gmeow:exprVar "fdate" ] [ gmeow:exprOp gmeow:opDate ; gmeow:exprArgs ( [ gmeow:exprVar "fdate" ] ) ] ) ] ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:foundingDate ; gmeow:relation "<=" ;
         gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "the creation event's place, participants, and standpoint are dropped; only the instant survives as schema:foundingDate" ] .
+        gmeow:lossyDrop "event and Participation context, confidence, standpoint and fuzzy-date bounds are omitted; this schema-org profile retains xsd:date literals unchanged and casts dateTime to xsd:date natively, dropping clock precision while retaining its parsed date and timezone; reduced year/month values and non-default frames are omitted by profile choice, without implying a prohibition in schema.org" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "org" ; gmeow:tPred schema:foundingDate ; gmeow:tObj "fdateProjected" ] ) ] .
 
 gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
     rdfs:label "Organization destruction event → schema:dissolutionDate"@x-gmeow-english ;
@@ -580,12 +588,16 @@ gmeow:mapSchemaDissolutionDate a gmeow:ProjectionMapping ;
         gmeow:atom (
             [ gmeow:subjectVar "org" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:Organization ]
             [ gmeow:subjectVar "org" ; gmeow:predicate gmeow:hasDestructionEvent ; gmeow:objectVar "devent" ]
-            [ gmeow:subjectVar "devent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddate" ] ) ;
+            [ gmeow:subjectVar "devent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddate" ]
+            [ gmeow:subjectVar "devent" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "ddateFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "ddate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "ddateFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "ddateFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "ddateProjected" ; gmeow:bindExpr [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "ddate" ] ) ] <http://www.w3.org/2001/XMLSchema#date> ) ] [ gmeow:exprVar "ddate" ] [ gmeow:exprOp gmeow:opDate ; gmeow:exprArgs ( [ gmeow:exprVar "ddate" ] ) ] ) ] ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:dissolutionDate ; gmeow:relation "<=" ;
         gmeow:confidence 0.9 ;
-        gmeow:lossyDrop "the destruction event's place, participants, and standpoint are dropped; only the instant survives as schema:dissolutionDate" ] .
+        gmeow:lossyDrop "event and Participation context, confidence, standpoint and fuzzy-date bounds are omitted; this schema-org profile retains xsd:date literals unchanged and casts dateTime to xsd:date natively, dropping clock precision while retaining its parsed date and timezone; reduced year/month values and non-default frames are omitted by profile choice, without implying a prohibition in schema.org" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "org" ; gmeow:tPred schema:dissolutionDate ; gmeow:tObj "ddateProjected" ] ) ] .
 
 # --------------------------------------------------------------------------- #
 # Capacity / occupancy projections.
@@ -994,11 +1006,15 @@ gmeow:mapSchemaDeathDate a gmeow:ProjectionMapping ;
             [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationEvent ; gmeow:objectVar "ddEvent" ]
             [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationRole ; gmeow:objectValue gmeow:roleParticipantPrincipal ]
             [ gmeow:subjectVar "ddPart" ; gmeow:predicate gmeow:participationParticipant ; gmeow:objectVar "ddPerson" ]
-            [ gmeow:subjectVar "ddEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddWhen" ] ) ;
+            [ gmeow:subjectVar "ddEvent" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "ddWhen" ]
+            [ gmeow:subjectVar "ddEvent" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "ddWhenFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "ddWhen" ] ) ] <http://www.w3.org/2001/XMLSchema#date> <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "ddWhenFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "ddWhenFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
+        gmeow:mint [ gmeow:bindVar "ddWhenProjected" ; gmeow:bindExpr [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "ddWhen" ] ) ] <http://www.w3.org/2001/XMLSchema#date> ) ] [ gmeow:exprVar "ddWhen" ] [ gmeow:exprOp gmeow:opDate ; gmeow:exprArgs ( [ gmeow:exprVar "ddWhen" ] ) ] ) ] ] ;
         gmeow:edoalPath true ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:toPredicate schema:deathDate ; gmeow:relation "<=" ; gmeow:confidence 0.95 ;
-        gmeow:lossyDrop "the death Participation (role, period, confidence, standpoint) is dropped; only the principal's death instant survives" ] .
+        gmeow:lossyDrop "event and Participation context, confidence, standpoint and fuzzy-date bounds are omitted; this schema-org profile retains xsd:date literals unchanged and casts dateTime to xsd:date natively, dropping clock precision while retaining its parsed date and timezone; reduced year/month values and non-default frames are omitted by profile choice, without implying a prohibition in schema.org" ;
+        gmeow:templateAtoms ( [ gmeow:tSubj "ddPerson" ; gmeow:tPred schema:deathDate ; gmeow:tObj "ddWhenProjected" ] ) ] .
 
 gmeow:mapSchemaBirthPlace a gmeow:ProjectionMapping ;
     rdfs:label "Birth life-event place → schema:birthPlace"@x-gmeow-english ;
