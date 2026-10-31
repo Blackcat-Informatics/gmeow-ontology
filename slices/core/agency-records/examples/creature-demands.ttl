@@ -1,0 +1,221 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/creature-demands/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Illustrative retained simulation reports. The actor is an actual acting
+# software participant, separate from its provider and descriptive records.
+# No Person, Character, animal, physical body or executed simulation is inferred.
+ex:creature a gmeow:SoftwareAgent .
+ex:provider a gmeow:SoftwareAgent .
+ex:reader a gmeow:Agent .
+ex:writer a gmeow:SoftwareAgent .
+ex:companion a gmeow:Agent .
+ex:source a gmeow:InformationObject ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world ;
+    gmeow:recordedWorldObject ex:creature ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:description "The provider reports a creature’s genesis, renaming, movement, utterance, recollection, mood shift, demands and answering interactions within this world. It supplies no location identities, precise times or satisfaction judgments."@en .
+
+# Reported occurrence kinds do not turn the source document into an Event.
+ex:genesis a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureGenesis ;
+    gmeow:hasParticipant ex:creature .
+
+ex:renaming a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureRenamed ;
+    gmeow:hasParticipant ex:creature .
+
+ex:crossing a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureTransition ;
+    gmeow:hasParticipant ex:creature .
+
+ex:utterance a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureUtterance ;
+    gmeow:hasParticipant ex:creature .
+
+ex:remembering a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureMemory ;
+    gmeow:hasParticipant ex:creature .
+
+ex:shift a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureMoodShift ;
+    gmeow:hasParticipant ex:creature .
+
+ex:asking a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureDemand ;
+    gmeow:hasParticipant ex:creature .
+
+ex:cuddleAnswer a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeCreatureDemandResolved ;
+    gmeow:hasParticipant ex:creature .
+
+ex:genesisClaim rdf:reifies <<( ex:genesis gmeow:eventType gmeow:eventTypeCreatureGenesis )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:renamingClaim rdf:reifies <<( ex:renaming gmeow:eventType gmeow:eventTypeCreatureRenamed )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:crossingClaim rdf:reifies <<( ex:crossing gmeow:eventType gmeow:eventTypeCreatureTransition )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:utteranceClaim rdf:reifies <<( ex:utterance gmeow:eventType gmeow:eventTypeCreatureUtterance )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:rememberingClaim rdf:reifies <<( ex:remembering gmeow:eventType gmeow:eventTypeCreatureMemory )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:shiftClaim rdf:reifies <<( ex:shift gmeow:eventType gmeow:eventTypeCreatureMoodShift )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:askingClaim rdf:reifies <<( ex:asking gmeow:eventType gmeow:eventTypeCreatureDemand )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:cuddleAnswerClaim rdf:reifies <<( ex:cuddleAnswer gmeow:eventType gmeow:eventTypeCreatureDemandResolved )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+# Actual wanted states and actual wanting modes remain separate.
+# These are five complete Desires, not plans or request documents.
+ex:newsGoal a gmeow:Goal .
+ex:newsWish a gmeow:Desire ;
+    gmeow:intentBearer ex:creature ;
+    gmeow:intentionGoal ex:newsGoal ;
+    gmeow:demandKind gmeow:demandKindAnnouncement .
+ex:newsWishClaim rdf:reifies <<( ex:newsWish gmeow:demandKind gmeow:demandKindAnnouncement )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:cuddleGoal a gmeow:Goal .
+ex:cuddleWish a gmeow:Desire ;
+    gmeow:intentBearer ex:creature ;
+    gmeow:intentionGoal ex:cuddleGoal ;
+    gmeow:demandKind gmeow:demandKindCuddles .
+ex:cuddleWishClaim rdf:reifies <<( ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:lapGoal a gmeow:Goal .
+ex:lapWish a gmeow:Desire ;
+    gmeow:intentBearer ex:creature ;
+    gmeow:intentionGoal ex:lapGoal ;
+    gmeow:demandKind gmeow:demandKindLap .
+ex:lapWishClaim rdf:reifies <<( ex:lapWish gmeow:demandKind gmeow:demandKindLap )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:petGoal a gmeow:Goal .
+ex:petWish a gmeow:Desire ;
+    gmeow:intentBearer ex:creature ;
+    gmeow:intentionGoal ex:petGoal ;
+    gmeow:demandKind gmeow:demandKindPets .
+ex:petWishClaim rdf:reifies <<( ex:petWish gmeow:demandKind gmeow:demandKindPets )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:playGoal a gmeow:Goal .
+ex:playWish a gmeow:Desire ;
+    gmeow:intentBearer ex:creature ;
+    gmeow:intentionGoal ex:playGoal ;
+    gmeow:demandKind gmeow:demandKindPlay .
+ex:playWishClaim rdf:reifies <<( ex:playWish gmeow:demandKind gmeow:demandKindPlay )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+# The source explicitly attributes the demanding act to this wanting.
+ex:cuddleWish gmeow:motivates ex:asking .
+
+# Answering acts are Events, not Desire mutations, request revisions,
+# documentary fulfillment records or automatic acceptance judgments.
+ex:cuddleAnswer a gmeow:Event ;
+    gmeow:hasParticipant ex:creature, ex:companion ;
+    gmeow:answersDemand ex:cuddleWish ;
+    gmeow:demandResponse gmeow:demandResponseCuddle .
+ex:cuddleAnswerBinding rdf:reifies <<( ex:cuddleAnswer gmeow:answersDemand ex:cuddleWish )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:cuddleAnswerResponse rdf:reifies <<( ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:lapAnswer a gmeow:Event ;
+    gmeow:hasParticipant ex:creature, ex:companion ;
+    gmeow:answersDemand ex:lapWish ;
+    gmeow:demandResponse gmeow:demandResponseLap .
+ex:lapAnswerBinding rdf:reifies <<( ex:lapAnswer gmeow:answersDemand ex:lapWish )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:lapAnswerResponse rdf:reifies <<( ex:lapAnswer gmeow:demandResponse gmeow:demandResponseLap )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:petAnswer a gmeow:Event ;
+    gmeow:hasParticipant ex:creature, ex:companion ;
+    gmeow:answersDemand ex:petWish ;
+    gmeow:demandResponse gmeow:demandResponsePet .
+ex:petAnswerBinding rdf:reifies <<( ex:petAnswer gmeow:answersDemand ex:petWish )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:petAnswerResponse rdf:reifies <<( ex:petAnswer gmeow:demandResponse gmeow:demandResponsePet )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+# The source also supplies background modes. Its shift report does not
+# itself infer either mode, a latest-state rule or causal improvement.
+ex:reservedMode a gmeow:Mood ;
+    gmeow:moodBearer ex:creature ;
+    gmeow:moodType gmeow:moodTypeAloof .
+ex:contentMode a gmeow:Mood ;
+    gmeow:moodBearer ex:creature ;
+    gmeow:moodType gmeow:moodTypeContent .
+ex:reservedModeClaim rdf:reifies <<( ex:reservedMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:contentModeClaim rdf:reifies <<( ex:contentMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+# The actual recollection occurrence has its own experiencer and process kind;
+# no remembered Experience or MemoryItem is fabricated.
+ex:remembering a gmeow:MentalProcess ;
+    gmeow:experiencer ex:creature ;
+    gmeow:mentalProcessType gmeow:processRecollection .
+
+# Spoken words belong to the actual communicative artifact, not its Event.
+ex:utterance a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:creature .
+ex:message a gmeow:Message ;
+    gmeow:utteranceText "Hello, companion."@en ;
+    gmeow:wasGeneratedBy ex:utterance ;
+    gmeow:wasAttributedTo ex:creature .

@@ -103,10 +103,28 @@ The label prefixes are registered in **both** the Rust (`prefixes.rs`) and Pytho
 
 ## Scope of the current module
 
-Still absent (see `design/AFFECT-DESIGN.md`), landing in later work:
+`Mood` now supplies the diffuse background mode alongside Emotion. Its open
+`MoodType` vocabulary is seeded with affectionate, aloof, content and restless.
+The actual mode has exactly one Agent `moodBearer` and at least one `moodType`.
+Class-local canonical cardinalities, typed value restrictions and explicit
+closure preserve those obligations without a new global functional carrier.
+No separate mood tenure is introduced; supplied statement validity remains
+on the exact claim (Principles 4, 9, 11 and 17).
 
-- **Mood/tenure** has no named surface; a diffuse, long-lived `gmeow:Mood` and its
-  tenure are described in `design/AFFECT-DESIGN.md`.
+Persistence, relative intensity and object focus distinguish the ordinary
+reading; they create no numeric duration threshold or Mood/Emotion disjointness.
+Do not attach Emotion-domain affectiveTarget, affectiveElicitor or emotionBearer
+to a Mood. A felt experience may manifest a Mood through feltAffect, with its
+experiencer matching moodBearer. The mode remains distinct from the felt event.
+
+An exact native Mood type claim retains accordingTo naming its actual reader
+and wasDerivedFrom naming its documentary source. The recording writer is a
+separate identity. Classifier outputs remain evidence: the existing canonical
+guards now exclude MoodType label identities and direct moodType/moodBearer
+assertions on classifier outputs as well as their emotion counterparts.
+The native affect producer and EmotionML projection still accept EmotionType
+categories only; these mood declarations add no routing, export or mapping.
+See the [ordinary mood scene](examples/background-moods.ttl).
 
 Permanent stances (true regardless of how the model grows): **no emotion or
 aesthetic hierarchies** — open value vocabularies, contested by design (P9);

@@ -136,3 +136,62 @@ source identities. Property-global ClosedWorldClosure entries explicitly opt
 the supplied domain/range readings into validation; they impose no universal
 presence requirement. All laws and property semantics stay in logic:, with no
 hand-authored shape or external equivalence assertion (Principles 17 and 19).
+
+## Creature interactions reuse mental modes and events
+
+DemandKind, DemandResponse and the eight creature event kinds belong here as
+source vocabulary for situated agency. Mood and MoodType remain affect-owned;
+the direct affect dependency supports the ordinary scene without copying
+affective semantics. Its Message artifact also consumes messaging directly.
+Desire, intentBearer and intentionGoal remain teleology’s
+actual wanting contract. There is no new demand class or lifecycle engine.
+
+DemandKind and DemandResponse are separate AbstractIndividualType classes
+under QualityValue. Their selectors are nonfunctional. demandKind has Desire
+domain; demandResponse has Event domain. The sole new binding answersDemand
+names the exact Desire addressed by an answering Event. It is nonfunctional,
+so explicitly shared answers are possible without a latest-demand heuristic.
+Source reports may omit the response category while retaining the actual
+answered Desire. A reported answer does not entail satisfaction.
+
+The existing motivates relation is a motive claim from an IntentionalMoment
+to an Event undertaken because of it. It can document a source-supported
+motive for demanding, but it does not identify which demand another agent
+answered. answersRequestRevision targets a WorldObjectRequest information
+record; borrowing it would confuse the request document with Desire.
+RequestResponse and RequestFulfillment are likewise object-request records,
+not general answering occurrences or cuddlings. No wider alias or fallback
+is added to those existing surfaces.
+
+DemandKindEvidenceConstraint requires a supplied kind to belong to an actual
+Desire with an actual Agent bearer and Goal. DemandResponseEvidenceConstraint
+requires an actual answering Event with an answersDemand target.
+AnsweredDemandBindingConstraint checks that target’s actual Desire, bearer,
+Goal and typed kind. Each law joins the exact native field claim’s reader
+and documentary source. CreatureDemandAnsweredConstraint requires the binding
+for the answered-event kind even without a response category. All four laws
+have direct binary field guards and use the existing canonical target path;
+property-global closure validates supplied selector types without requiring
+the fields on unrelated Desires or Events.
+
+An actual acting software creature can be a SoftwareAgent. Its provider
+program remains a separate SoftwareAgent, and its descriptive source remains
+an InformationObject. A provider record’s recordedWorldObject, providerProgram
+and providerWorld bindings preserve those distinctions. A passive model,
+sprite or world record is not thereby an Agent; neither a creature label nor
+a matching name identifies a Character, Person or actual-world organism.
+Fictional identity and context interpretation retain their existing owners.
+
+EventType individuals classify reported occurrences rather than mode or
+artifact subclasses. Genesis is not automatically biological birth.
+Renaming is not identity replacement. Transition is movement, not arbitrary
+state change. Utterance is distinct from message content; remembering is
+distinct from MemoryItem or documentary prose. A mood-shift report does not
+derive a new Mood or erase an older claim. Source attribution remains on exact
+native reifiers, without asserting the source document generated its subjects.
+
+The ordinary scenes introduce no ActionSchema, plan, executor, new fixtures
+or acceptance machinery. All semantic obligations live in canonical logic:
+declarations, explicit closure and realized Formula trees. Their authoring
+does not claim a completed contextual evaluation, provider execution or
+runtime qualification (Principles 4, 9, 11, 17 and 19).

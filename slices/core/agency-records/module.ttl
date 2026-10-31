@@ -2435,3 +2435,330 @@ gmeow:eventTypeTraceDreamPhaseRoundCapReached
     gmeow:howToUse "Keep the source runtime phase context separate from dream content and classify only the reported cap occurrence."@x-gmeow-english ;
     skos:scopeNote "This shared runtime-report value creates no core dependency on the dreaming extension and executes no phase controller."@x-gmeow-english ;
     skos:example "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."@x-gmeow-english .
+
+# Attributed moods and demand interactions.
+
+gmeow:DemandKind
+    a logic:AbstractIndividualType, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Demand Kind"@x-gmeow-english ;
+    skos:definition "An open vocabulary of interactions or provisions wanted by the bearer of a Desire."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify what is demanded while retaining the actual Desire and its Goal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a kind as an order, an obligation or an answering occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Define additional values individually and select them through demandKind on the wanting mode."@x-gmeow-english ;
+    skos:scopeNote "The inventory is open and applies beyond simulated creatures; it creates no Creature class."@x-gmeow-english ;
+    skos:example "Extend wanted kinds: ex:demandKindCompany a gmeow:DemandKind ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:demandKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "demand kind"@x-gmeow-english ;
+    skos:definition "The source-classified kind of interaction or provision wanted by an actual Desire’s bearer."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies what a particular agent wants."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching this field to a demand message, a response Event or the creature itself."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Desire’s actual intentBearer and intentionGoal, plus the exact kind claim’s reader and source."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional; a composite request may have several kinds without implying any answer or commitment."@x-gmeow-english ;
+    skos:example "Classify the wanting: ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."@x-gmeow-english ;
+    logic:domain gmeow:Desire ;
+    logic:range gmeow:DemandKind .
+
+gmeow:DemandResponse
+    a logic:AbstractIndividualType, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Demand Response Kind"@x-gmeow-english ;
+    skos:definition "An open vocabulary describing how an actual answering occurrence responded to a Desire."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish cuddling, offering a lap and petting as reported responses."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing a response kind with the answer artifact or a successful satisfaction verdict."@x-gmeow-english ;
+    gmeow:howToUse "Add source-defined response values without a closed enumeration; bind each answering Event to its exact Desire."@x-gmeow-english ;
+    skos:scopeNote "Response kinds are independent of demand kinds; a demand for play need not receive play."@x-gmeow-english ;
+    skos:example "Extend answer kinds: ex:responseKindSpokenReply a gmeow:DemandResponse ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:demandResponse
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "demand response kind"@x-gmeow-english ;
+    skos:definition "How a source reports that an actual Event answered the exact Desire named by answersDemand."@x-gmeow-english ;
+    gmeow:useWhen "Use on the actual answering occurrence when its response kind is supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the response code on the Desire, report document or desired Goal."@x-gmeow-english ;
+    gmeow:howToUse "Supply answersDemand with the actual Desire and retain the exact response claim’s source and standpoint."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional; reported response does not entail acceptance, pleasure, consent or goal satisfaction."@x-gmeow-english ;
+    skos:example "Describe the answer: ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ; gmeow:answersDemand ex:cuddleWish ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:DemandResponse .
+
+gmeow:answersDemand
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "answers demand"@x-gmeow-english ;
+    skos:definition "The exact actual Desire to which an answering Event responds, independently of whether that Desire was satisfied."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve which wanting a response addressed when several similar demands exist."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing this link with a matching category, an object-request revision or an inferred motive."@x-gmeow-english ;
+    gmeow:howToUse "Identify the existing Desire with its actual bearer and Goal; retain supplied response evidence without fabricating a resolution record."@x-gmeow-english ;
+    skos:scopeNote "Nonfunctional; an Event may answer several explicitly identified desires, with no latest-demand rule."@x-gmeow-english ;
+    skos:example "Bind the exact wanting: ex:lapAnswer gmeow:answersDemand ex:lapWish ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:Desire .
+
+gmeow:demandKindAnnouncement
+    a gmeow:DemandKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "announcement demand"@x-gmeow-english ;
+    skos:definition "A Desire for an announcement to be made, with its content and intended speaker left to the source."@x-gmeow-english ;
+    gmeow:useWhen "Use when the wanted interaction is explicitly an announcement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing announcement wording, an audience or who must speak."@x-gmeow-english ;
+    gmeow:howToUse "Select on the actual Desire and retain any supplied announcement content separately."@x-gmeow-english ;
+    skos:scopeNote "Wanting an announcement is neither an utterance occurrence nor proof of delivery."@x-gmeow-english ;
+    skos:example "Record the announcement wish: ex:newsWish gmeow:demandKind gmeow:demandKindAnnouncement ."@x-gmeow-english .
+
+gmeow:demandKindCuddles
+    a gmeow:DemandKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cuddles demand"@x-gmeow-english ;
+    skos:definition "A Desire for cuddling or close affectionate holding, under the source’s interaction convention."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported wish for cuddling."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading an affectionate mood or generic contact as this demand."@x-gmeow-english ;
+    gmeow:howToUse "Keep the wanting agent on intentBearer; record any actual cuddle as a separate answering Event."@x-gmeow-english ;
+    skos:scopeNote "The value grants no consent and does not imply that contact occurred."@x-gmeow-english ;
+    skos:example "Record the cuddle wish: ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."@x-gmeow-english .
+
+gmeow:demandKindLap
+    a gmeow:DemandKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "lap demand"@x-gmeow-english ;
+    skos:definition "A Desire to be offered a lap or lap-like resting interaction as described by the source."@x-gmeow-english ;
+    gmeow:useWhen "Use when the request specifically concerns resting on a lap."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a physical body, geographic place or actual seating arrangement."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source’s lap meaning on the Desire, including its simulated context when supplied."@x-gmeow-english ;
+    skos:scopeNote "A lap request is not a movement event or evidence that a place was reached."@x-gmeow-english ;
+    skos:example "Record the lap wish: ex:lapWish gmeow:demandKind gmeow:demandKindLap ."@x-gmeow-english .
+
+gmeow:demandKindPets
+    a gmeow:DemandKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "petting demand"@x-gmeow-english ;
+    skos:definition "A Desire for petting or affectionate stroking, not a request to acquire an animal."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source’s pets wording means requested petting."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing petting with cuddling, animal ownership or an accepted response."@x-gmeow-english ;
+    gmeow:howToUse "Classify the actual wanting and preserve the original wording in its source record."@x-gmeow-english ;
+    skos:scopeNote "No body, touching mechanism or permission is manufactured by the kind."@x-gmeow-english ;
+    skos:example "Record the petting wish: ex:petWish gmeow:demandKind gmeow:demandKindPets ."@x-gmeow-english .
+
+gmeow:demandKindPlay
+    a gmeow:DemandKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "play demand"@x-gmeow-english ;
+    skos:definition "A Desire for playful interaction without choosing a particular game, partner or outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-reported wish to play."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a play demand from restlessness or assuming a game was started."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Desire’s stated Goal and any supplied play context independently."@x-gmeow-english ;
+    skos:scopeNote "The open response vocabulary imposes no matching play response or guaranteed satisfaction."@x-gmeow-english ;
+    skos:example "Record the play wish: ex:playWish gmeow:demandKind gmeow:demandKindPlay ."@x-gmeow-english .
+
+gmeow:demandResponseCuddle
+    a gmeow:DemandResponse ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cuddle response"@x-gmeow-english ;
+    skos:definition "The source reports cuddling as the answering interaction."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual answering occurrence is reported as cuddling."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving cuddling merely from a cuddles demand or an affectionate mood."@x-gmeow-english ;
+    gmeow:howToUse "Select on the answering Event and use answersDemand for its exact addressed Desire."@x-gmeow-english ;
+    skos:scopeNote "A reported cuddle neither proves enjoyment nor completes a GoalEvaluation."@x-gmeow-english ;
+    skos:example "Classify the cuddle answer: ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ."@x-gmeow-english .
+
+gmeow:demandResponseLap
+    a gmeow:DemandResponse ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "lap response"@x-gmeow-english ;
+    skos:definition "The source reports that a lap was offered as the answering interaction."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly records a lap being given or offered in response."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a response label as actual relocation, a body or acceptance of the offer."@x-gmeow-english ;
+    gmeow:howToUse "Keep the offer occurrence distinct from the wanted lap and any later resting occurrence."@x-gmeow-english ;
+    skos:scopeNote "The source’s simulated or physical interaction convention remains explicit rather than universal."@x-gmeow-english ;
+    skos:example "Classify the lap answer: ex:lapAnswer gmeow:demandResponse gmeow:demandResponseLap ."@x-gmeow-english .
+
+gmeow:demandResponsePet
+    a gmeow:DemandResponse ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "petting response"@x-gmeow-english ;
+    skos:definition "The source reports petting or affectionate stroking as the answering interaction."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-recorded petting response to an identified Desire."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading pet as an animal acquired or assuming a petting request was satisfied."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual response occurrence and its attribution separately from contact evidence and judgment."@x-gmeow-english ;
+    skos:scopeNote "No permission, affective improvement or accepted fulfillment follows from this kind alone."@x-gmeow-english ;
+    skos:example "Classify the petting answer: ex:petAnswer gmeow:demandResponse gmeow:demandResponsePet ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureGenesis
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature genesis"@x-gmeow-english ;
+    skos:definition "The source reports that a creature came into being within its stated environment."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported origin occurrence of the represented creature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring biological birth, a new software process or an actual-world organism from genesis wording."@x-gmeow-english ;
+    gmeow:howToUse "Classify the occurrence through eventType; retain the source’s creature identity and provider-world scope."@x-gmeow-english ;
+    skos:scopeNote "A simulated origin remains scoped to its source environment; it does not generate an entity or initialize a runtime."@x-gmeow-english ;
+    skos:example "Classify the reported origin: ex:genesis gmeow:eventType gmeow:eventTypeCreatureGenesis ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureRenamed
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature renamed"@x-gmeow-english ;
+    skos:definition "The source reports a change of a creature’s name while retaining that creature’s identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies a renaming occurrence rather than a newly created creature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging creatures with matching names or deleting an older name claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact old and new source names with their own validity and displayability evidence when supplied."@x-gmeow-english ;
+    skos:scopeNote "This is not the organization-specific eventTypeRename and supplies no universal name resolver."@x-gmeow-english ;
+    skos:example "Classify the name change: ex:renaming gmeow:eventType gmeow:eventTypeCreatureRenamed ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureTransition
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature movement"@x-gmeow-english ;
+    skos:definition "The source reports a creature moving from one place to another."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reported place-to-place transition, not every generic state change."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a mood shift or demand response as movement without location evidence."@x-gmeow-english ;
+    gmeow:howToUse "Use actual eventFromLocation and eventToLocation endpoints when known, preserving their reference frame."@x-gmeow-english ;
+    skos:scopeNote "The kind supplies no route, coordinate, speed or actual-world travel inference."@x-gmeow-english ;
+    skos:example "Classify the movement: ex:crossing gmeow:eventType gmeow:eventTypeCreatureTransition ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureUtterance
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature utterance"@x-gmeow-english ;
+    skos:definition "The source reports that a creature spoke or produced an utterance under its interaction convention."@x-gmeow-english ;
+    gmeow:useWhen "Use for the uttering occurrence rather than the retained utterance text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a Message as the speech Event or inferring a real voice, understanding or delivery."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual speaker distinct from its provider; retain words, language and direction on the actual message artifact."@x-gmeow-english ;
+    skos:scopeNote "The kind asserts no truth of the uttered content and executes no speech synthesizer."@x-gmeow-english ;
+    skos:example "Classify the utterance: ex:utterance gmeow:eventType gmeow:eventTypeCreatureUtterance ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureMemory
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature recollection"@x-gmeow-english ;
+    skos:definition "The source reports a creature remembering a moment, distinct from the stored memory claim or report."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reported recollection occurrence, including contested memories."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making a MemoryItem the recollection Event or inferring that remembered content is true."@x-gmeow-english ;
+    gmeow:howToUse "Use MentalProcess and processRecollection only with an actual experiencer; recollects targets an actual Experience when supplied."@x-gmeow-english ;
+    skos:scopeNote "A reported memory neither runs retrieval nor certifies historical accuracy or completeness."@x-gmeow-english ;
+    skos:example "Classify the recollection: ex:remembering gmeow:eventType gmeow:eventTypeCreatureMemory ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureMoodShift
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature mood shift"@x-gmeow-english ;
+    skos:definition "The source reports a change in a creature’s background mood."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-reported mood transition rather than the enduring mood itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a new mood from a response code, expression or classifier label alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep actual before and after Mood claims separately attributed and scoped when the source supplies them."@x-gmeow-english ;
+    skos:scopeNote "The kind neither overwrites earlier mood claims nor chooses a globally latest state."@x-gmeow-english ;
+    skos:example "Classify the mood change: ex:shift gmeow:eventType gmeow:eventTypeCreatureMoodShift ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureDemand
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature demand occurrence"@x-gmeow-english ;
+    skos:definition "The source reports a creature expressing a demand; the occurrence is distinct from the underlying Desire."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reported demanding occurrence, retaining actual wanting separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the Desire or source request document as this Event."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual Desire’s bearer and Goal; use motivates only for a source-supported motive for the demanding act."@x-gmeow-english ;
+    skos:scopeNote "Demanding does not impose an obligation or show that an answer was given."@x-gmeow-english ;
+    skos:example "Classify the demand act: ex:asking gmeow:eventType gmeow:eventTypeCreatureDemand ."@x-gmeow-english .
+
+gmeow:eventTypeCreatureDemandResolved
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "creature demand answered"@x-gmeow-english ;
+    skos:definition "The source reports that a creature’s demand was answered; resolved denotes answering, not proven satisfaction."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reported answering occurrence even when acceptance or satisfaction is unknown."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring GoalEvaluation, object acceptance or a terminal success outcome from this label."@x-gmeow-english ;
+    gmeow:howToUse "Bind the actual answering Event to its exact Desire with answersDemand; retain a supplied demandResponse independently."@x-gmeow-english ;
+    skos:scopeNote "Several answers may address one Desire. Their order and finality remain source facts, never clock-selected defaults."@x-gmeow-english ;
+    skos:example "Classify the answer occurrence: ex:answer gmeow:eventType gmeow:eventTypeCreatureDemandResolved ; gmeow:answersDemand ex:wish ."@x-gmeow-english .
+
+gmeow:DemandKindEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Demand kind evidence constraint"@x-gmeow-english ;
+    skos:definition "A supplied demand kind belongs to an actual Desire with an actual bearer and Goal, and its exact field claim retains reader and source."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep what is wanted attached to the actual wanting mode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying Desire requirements with a category code or anonymous invented goal."@x-gmeow-english ;
+    gmeow:howToUse "Supply intentBearer and intentionGoal and reify the exact demandKind assertion with its reader and retained source."@x-gmeow-english ;
+    skos:scopeNote "The law demands retained identities; it never manufactures a bearer, goal or demanded action."@x-gmeow-english ;
+    skos:example "Name the wanting law: gmeow:DemandKindEvidenceConstraint logic:formalizes gmeow:demandKind ."@x-gmeow-english ;
+    logic:message "A supplied demand kind belongs to an actual Desire with an actual bearer and Goal, and its exact field claim retains reader and source."@x-gmeow-english ;
+    logic:formalizes gmeow:demandKind ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "kind" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:demandKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "kind" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bearer" ], [ logic:termIndex 1 ; logic:termVariable "goal" ], [ logic:termIndex 2 ; logic:termVariable "claim" ], [ logic:termIndex 3 ; logic:termVariable "reader" ], [ logic:termIndex 4 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Desire ] ], [ a logic:Formula ; logic:relation gmeow:intentBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "bearer" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bearer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termIri gmeow:Goal ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termIri gmeow:demandKind ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "kind" ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+gmeow:DemandResponseEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Demand response evidence constraint"@x-gmeow-english ;
+    skos:definition "A supplied response kind belongs to an actual answering Event bound to an actual Desire, with reader and source on the exact response claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a reported answering act from a response label on a document."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid taking a bare cuddle, lap or pet code as sufficient evidence of an answering act."@x-gmeow-english ;
+    gmeow:howToUse "Name the Event and its answersDemand target, then retain the exact demandResponse reifier’s reader and source."@x-gmeow-english ;
+    skos:scopeNote "Structural evidence does not authenticate the interaction or establish the creature’s acceptance."@x-gmeow-english ;
+    skos:example "Name the answer law: gmeow:DemandResponseEvidenceConstraint logic:formalizes gmeow:demandResponse ."@x-gmeow-english ;
+    logic:message "A supplied response kind belongs to an actual answering Event bound to an actual Desire, with reader and source on the exact response claim."@x-gmeow-english ;
+    logic:formalizes gmeow:demandResponse ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "response" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:demandResponse ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "response" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termVariable "claim" ], [ logic:termIndex 2 ; logic:termVariable "reader" ], [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ], [ a logic:Formula ; logic:relation gmeow:answersDemand ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "demand" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termIri gmeow:Desire ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termIri gmeow:demandResponse ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "response" ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+gmeow:AnsweredDemandBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Answered demand binding constraint"@x-gmeow-english ;
+    skos:definition "An answersDemand Event identifies an actual classified Desire with its actual bearer and Goal, retaining source and reader on the exact binding claim."@x-gmeow-english ;
+    gmeow:useWhen "Use when similar demands must remain separately addressable by answering events."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid matching by demandKind alone or coercing a WorldObjectRequest into Desire."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact answersDemand claim, the Desire’s demandKind, its Agent bearer and its Goal."@x-gmeow-english ;
+    skos:scopeNote "This is an evidence binding, not an inferred motive, acceptance record or satisfaction verdict."@x-gmeow-english ;
+    skos:example "Name the exact-binding law: gmeow:AnsweredDemandBindingConstraint logic:formalizes gmeow:answersDemand ."@x-gmeow-english ;
+    logic:message "An answersDemand Event identifies an actual classified Desire with its actual bearer and Goal, retaining source and reader on the exact binding claim."@x-gmeow-english ;
+    logic:formalizes gmeow:answersDemand ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "demand" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:answersDemand ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "demand" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bearer" ], [ logic:termIndex 1 ; logic:termVariable "goal" ], [ logic:termIndex 2 ; logic:termVariable "kind" ], [ logic:termIndex 3 ; logic:termVariable "claim" ], [ logic:termIndex 4 ; logic:termVariable "reader" ], [ logic:termIndex 5 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termIri gmeow:Desire ] ], [ a logic:Formula ; logic:relation gmeow:intentBearer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termVariable "bearer" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "bearer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termIri gmeow:Goal ] ], [ a logic:Formula ; logic:relation gmeow:demandKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termVariable "kind" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ], [ logic:termIndex 1 ; logic:termIri gmeow:DemandKind ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termIri gmeow:answersDemand ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "demand" ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+gmeow:CreatureDemandAnsweredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Creature demand answer target constraint"@x-gmeow-english ;
+    skos:definition "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."@x-gmeow-english ;
+    gmeow:useWhen "Use even when the source reports an answer but supplies no response-kind code."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a response kind merely to identify which demand was answered."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact Desire through answersDemand; that relation’s own law preserves its bearer, Goal and source."@x-gmeow-english ;
+    skos:scopeNote "The target law imposes no successful outcome, final answer or exclusive response."@x-gmeow-english ;
+    skos:example "Name the target law: gmeow:CreatureDemandAnsweredConstraint logic:formalizes gmeow:eventTypeCreatureDemandResolved ."@x-gmeow-english ;
+    logic:message "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."@x-gmeow-english ;
+    logic:formalizes gmeow:eventTypeCreatureDemandResolved ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeCreatureDemandResolved ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "demand" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:answersDemand ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "demand" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "demand" ], [ logic:termIndex 1 ; logic:termIri gmeow:Desire ] ] ] ] ] ] .
+
+# Validate supplied selectors without requiring a category on every Desire/Event.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demandKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demandResponse" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/answersDemand" ; logic:closureValue logic:ClosedWorldClosure ] .
