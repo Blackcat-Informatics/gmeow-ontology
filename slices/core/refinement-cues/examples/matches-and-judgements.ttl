@@ -12,15 +12,16 @@ ex:exampleWriter a gmeow:Agent ; rdfs:label "Synthetic source author"@en .
 ex:exampleJudge a gmeow:Agent ; rdfs:label "Illustrative cue judge"@en .
 ex:otherJudge a gmeow:Agent ; rdfs:label "Joint illustrative judge"@en .
 ex:matchSource gmeow:wasAttributedTo ex:exampleWriter ;
-    gmeow:description "not cannot continue. cannot continue."@en,
+    gmeow:description "not cannot continue. Cannot continue."@en,
         "A different literal on the same field."@en .
 
 # Both reports select the same whole source literal, not either substring.
 # The first interval is [4,19); the second is [21,36), in code points.
+# Uppercase after the period keeps the reports in separate default sentences.
 ex:suppressedHit a gmeow:CueMatch ;
     gmeow:matchedCue ex:blockedEnglish ;
     gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
-    gmeow:matchSourceLiteral "not cannot continue. cannot continue."@en ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
     gmeow:spanStart "4"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "19"^^xsd:nonNegativeInteger ;
     gmeow:matchGrounding gmeow:verdictHeld ;
@@ -32,7 +33,7 @@ ex:suppressedHit a gmeow:CueMatch ;
 ex:ungroundedHit a gmeow:CueMatch ;
     gmeow:matchedCue ex:blockedEnglish ;
     gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
-    gmeow:matchSourceLiteral "not cannot continue. cannot continue."@en ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
     gmeow:spanStart "21"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "36"^^xsd:nonNegativeInteger ;
     gmeow:matchGrounding gmeow:verdictNotHeld ;
@@ -42,7 +43,7 @@ ex:ungroundedHit a gmeow:CueMatch ;
 ex:negatingHit a gmeow:CueMatch ;
     gmeow:matchedCue ex:notCue ;
     gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
-    gmeow:matchSourceLiteral "not cannot continue. cannot continue."@en ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
     gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "3"^^xsd:nonNegativeInteger ;
     gmeow:matchGrounding gmeow:verdictHeld ;
@@ -52,7 +53,7 @@ ex:negatingHit a gmeow:CueMatch ;
 # The negator is a different cue and therefore is not a member of this case.
 ex:reportedCase a gmeow:CueEvalCase ;
     gmeow:evalCue ex:blockedEnglish ;
-    gmeow:evalText "not cannot continue. cannot continue."@en ;
+    gmeow:evalText "not cannot continue. Cannot continue."@en ;
     gmeow:evalMatch ex:suppressedHit, ex:ungroundedHit ;
     gmeow:wasDerivedFrom ex:matchSource, ex:cuesV2 .
 
