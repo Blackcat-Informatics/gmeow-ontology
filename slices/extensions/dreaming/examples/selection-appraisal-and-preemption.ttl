@@ -1,0 +1,114 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/dream-cycle/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary illustrative source records, not a draw replay or runtime receipt.
+ex:dreamer a gmeow:Agent .
+ex:writer a gmeow:SoftwareAgent .
+ex:sourceContext a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:archive a gmeow:InformationObject .
+ex:category a gmeow:InquiryCategory .
+
+ex:question a gmeow:Question ;
+    gmeow:questionType gmeow:typeWhy ;
+    gmeow:questionText "Why did the quiet pier stay with me?"@en ;
+    gmeow:questionContext "The question was recorded before the dreaming cycle."@en .
+ex:selection a gmeow:DreamSelection ;
+    gmeow:selectionQuestion ex:question ;
+    gmeow:selectedAwarenessMode gmeow:modeImmersiveDreaming ;
+    gmeow:inquiryCategory ex:category ;
+    gmeow:lotteryDigest "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" ;
+    gmeow:wasDerivedFrom ex:archive .
+
+# The selected mode and actual reported mode are separately retained.
+ex:dream a gmeow:Experience ;
+    gmeow:experiencer ex:dreamer ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:awarenessMode gmeow:modeImmersiveDreaming ;
+    gmeow:selectedBy ex:selection ;
+    gmeow:dreamSequence "12"^^xsd:nonNegativeInteger ;
+    gmeow:preemptedAfter ex:integrationAgain .
+ex:sequenceClaim rdf:reifies <<( ex:dream gmeow:dreamSequence "12"^^xsd:nonNegativeInteger )>> ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasAttributedTo ex:writer .
+
+# Repeated kinds name distinct occurrences. Membership supplies no total order.
+ex:integration a gmeow:EventType .
+ex:integrationFirst a gmeow:Event ;
+    gmeow:eventType ex:integration ;
+    gmeow:subEventOf ex:dream .
+ex:integrationAgain a gmeow:Event ;
+    gmeow:eventType ex:integration ;
+    gmeow:subEventOf ex:dream ;
+    gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim .
+ex:partialOutput a gmeow:InformationObject ;
+    gmeow:description "The pier and its quiet bell suggested..."@en ;
+    gmeow:wasDerivedFrom ex:integrationAgain .
+ex:completionClaim rdf:reifies <<( ex:integrationAgain gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim )>> ;
+    gmeow:accordingTo ex:dreamer ;
+    gmeow:wasAttributedTo ex:writer .
+ex:preemptionClaim rdf:reifies <<( ex:dream gmeow:preemptedAfter ex:integrationAgain )>> ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasAttributedTo ex:writer .
+
+ex:recollection a gmeow:DreamReport ;
+    gmeow:experiencer ex:dreamer ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:recollects ex:dream ;
+    gmeow:hasWakingAppraisal ex:appraisal .
+ex:appraisal a gmeow:WakingAppraisal ;
+    gmeow:appraisalText "The quiet pier recalled a walk."@en ;
+    gmeow:carryForward "Keep the contrast between quiet and urgency."@en ;
+    gmeow:selfInquiryAddress "I considered why this scene persisted."@en ;
+    gmeow:selfInquiryResponse "Perhaps the pause mattered more than the destination."@en ;
+    gmeow:hasPart ex:unresolvedConnection, ex:structuredAnalogy ;
+    gmeow:wasDerivedFrom ex:recollection .
+
+# The source raw output contained a warning omitted from the parsed appraisal.
+# It is retained for that extra content, not for JSON field order or whitespace.
+ex:appraisal gmeow:rawAppraisalText "Warning: source ended before the terminal record. Parsed appraisal: The quiet pier recalled a walk."@en .
+ex:rawClaim rdf:reifies <<( ex:appraisal gmeow:rawAppraisalText "Warning: source ended before the terminal record. Parsed appraisal: The quiet pier recalled a walk."@en )>> ;
+    gmeow:accordingTo ex:dreamer ;
+    gmeow:wasAttributedTo ex:writer .
+
+# A textual candidate does not manufacture an unknown waking entity.
+ex:unresolvedConnection a gmeow:InformationObject ;
+    gmeow:connectionText "The still pier may connect to a remembered pause."@en ;
+    gmeow:connectionRelation "may recall"@en ;
+    gmeow:wakingCandidate "an earlier walk whose record I have not located"@en ;
+    gmeow:wakingEvidence "I recall a similar sense of waiting."@en .
+
+# Where the source supplies an actual mapping, preserve its complete structure.
+# Both domains and mapped elements are retained descriptions, not external dream facts.
+ex:dreamScene a gmeow:InformationObject .
+ex:walkAccount a gmeow:InformationObject .
+ex:dreamBellDescription a gmeow:InformationObject .
+ex:heardBellNote a gmeow:InformationObject .
+ex:correspondence a gmeow:Correspondence ;
+    gmeow:correspondingSource ex:dreamBellDescription ;
+    gmeow:correspondingTarget ex:heardBellNote .
+ex:structuredAnalogy a gmeow:Analogy ;
+    gmeow:analogicalSource ex:dreamScene ;
+    gmeow:analogicalTarget ex:walkAccount ;
+    gmeow:hasCorrespondence ex:correspondence ;
+    gmeow:connectionText "The bell in the dream resembles the bell described in the walk account."@en .
+ex:connectionClaim rdf:reifies <<( ex:structuredAnalogy gmeow:connectionText "The bell in the dream resembles the bell described in the walk account."@en )>> ;
+    gmeow:accordingTo ex:dreamer ;
+    gmeow:wasAttributedTo ex:writer .
+
+# Description-derived wording stays on artifacts, preserving Event categories.
+ex:continuationRecord a gmeow:InformationObject ;
+    gmeow:continuationReason "The source says another integration pass was needed."@en ;
+    gmeow:wasDerivedFrom ex:dream .
+ex:overrideRecord a gmeow:InformationObject ;
+    gmeow:wakingOverrideText "Return attention to the waiting conversation."@en ;
+    gmeow:wasDerivedFrom ex:archive .
+ex:cycleRecord a gmeow:InformationObject ;
+    gmeow:hasPart ex:partialOutput, ex:continuationRecord, ex:overrideRecord ;
+    gmeow:wasDerivedFrom ex:dream .

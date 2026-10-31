@@ -200,3 +200,33 @@ msgstr "按追索某个 gmeow:Question 之探究的操作类型对该问题分�
 msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
 msgstr "示例：ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan 。"
+
+# Retained source context of a question.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "question context"
+msgstr "问题情境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A question's source context, verbatim, with supplied language and direction. It is distinct from questionText and the answerhood condition that identifies the question."
+msgstr "问题的原样来源情境，包括提供的语言和方向。它区别于 questionText 以及标识问题的回答条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's surrounding context of a Question."
+msgstr "用于来源中围绕 Question 的情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing questionText or asserting a presupposition from context wording."
+msgstr "避免替代 questionText 或从情境措辞断言预设。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original context literal with its supplied language and base direction."
+msgstr "保留原始情境字面量及其已有语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several contexts may coexist; no context identifies the Question or establishes an accepted answer."
+msgstr "多个情境可以并存；情境不标识 Question，也不建立已接受答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
+msgstr "例如：ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
