@@ -686,10 +686,10 @@ gmeow:VerifierKind
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Verifier Kind"@x-gmeow-english ;
-    skos:definition "An open vocabulary of methods used to assess a condition on an artifact. Selecting a method is not a verdict that its condition holds."@x-gmeow-english ;
-    gmeow:useWhen "Use to retain which verification method a source observation selected."@x-gmeow-english ;
+    skos:definition "An open vocabulary of methods used to assess satisfaction conditions, including artifact checks, observations, assertions, retained memory, reflective appraisals, environment records and foreground yields. Selecting a method is not a verdict that its condition holds."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a configured condition-verification method or an actual observation's verification method without conflating those records."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating verifier kind as a successful outcome or an agent identity."@x-gmeow-english ;
-    gmeow:howToUse "Use method individuals through verifierKind and retain verdicts separately through observationResult."@x-gmeow-english ;
+    gmeow:howToUse "Use conditionVerifierKind on configuration descriptors and verifierKind on actual artifact verification observations; retain reported observation verdicts separately through observationResult."@x-gmeow-english ;
     skos:example "ex:check gmeow:verifierKind gmeow:verifierArtifactReadAfterWrite ."@x-gmeow-english ;
     logic:subClassOf gmeow:ObservationMethod .
 
@@ -1101,3 +1101,815 @@ gmeow:DefectResolutionAttributionConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/defectFixedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/witnessedForIntention" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-faithful goals, attempts and self-commitments (Principles 4, 9, 17).
+
+gmeow:hasSatisfactionCondition
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has satisfaction condition"@x-gmeow-english ;
+    skos:definition "A goal's source-stated satisfaction condition, ordered by entryOrdinal on the condition occurrence. It is prose criteria, independent of the executable logic:hasGoalCondition expression."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasSatisfactionCondition ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Goal ;
+    logic:range gmeow:Condition .
+
+gmeow:ConditionVerifier
+    a logic:Kind, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Condition Verifier"@x-gmeow-english ;
+    skos:definition "An information-object descriptor naming a condition key, verification method and expected content. It configures verification without being a Criterion, an observation, an executable check or a satisfaction verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly records a configured condition-verification descriptor."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor a gmeow:ConditionVerifier ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:hasConditionVerifier
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has condition verifier"@x-gmeow-english ;
+    skos:definition "A goal's configured condition verifier. Matching source keys associate the descriptor with a condition of this same goal; selecting it supplies no evidence or verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasConditionVerifier ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Goal ;
+    logic:range gmeow:ConditionVerifier .
+
+gmeow:conditionVerifierKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition verifier kind"@x-gmeow-english ;
+    skos:definition "The configured method of a condition verifier, distinct from verifierKind on an actual artifact verification observation. A method selection never asserts that it ran or succeeded."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:conditionVerifierKind ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:ConditionVerifier ;
+    logic:range gmeow:VerifierKind .
+
+gmeow:verifierKey
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verifier key"@x-gmeow-english ;
+    skos:definition "The exact source key naming a checked condition, retained on its Condition occurrence, ConditionVerifier descriptor and reified goal-evaluation evidence citation. Equality is scoped to the containing goal and exact evaluation citation, never global identity or whitespace normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verifierKey \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range xsd:string .
+
+gmeow:verifierTitle
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verifier title"@x-gmeow-english ;
+    skos:definition "The source's artifact title used by a verifier, verbatim. A title does not identify artifact bytes, prove existence or replace a versioned artifact reference."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:verifierTitle \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ConditionVerifier ;
+    logic:range rdfs:Literal .
+
+gmeow:ConditionVerifier logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:verifierTitle ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:expectedText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expected text"@x-gmeow-english ;
+    skos:definition "Expected source wording, retained verbatim with its supplied language and direction. Expectation is independent of observed content and does not become evidence by repetition."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:expectedText \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ConditionVerifier ;
+    logic:range rdfs:Literal .
+
+gmeow:ConditionVerifier logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:expectedText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:expectedStatement
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expected statement"@x-gmeow-english ;
+    skos:definition "An expected observation statement represented as a native RDF 1.2 triple term, shared with an explicit rdf:reifies binding. Quotation preserves structure without asserting the quoted proposition or implementing a checker."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "Retain the expected triple term and its explicit reification: ex:descriptor gmeow:expectedStatement <<( ex:item gmeow:displayable true )>> ; rdf:reifies <<( ex:item gmeow:displayable true )>> ."@x-gmeow-english ;
+    logic:domain gmeow:ConditionVerifier .
+
+gmeow:expectedWorldObject
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "expected world object"@x-gmeow-english ;
+    skos:definition "The exact unresolved simulated-object identifier supplied by the source. Resolution requires a provider-and-world-scoped WorldObjectRecord; matching text alone never creates an object identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:expectedWorldObject \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ConditionVerifier ;
+    logic:range xsd:string .
+
+gmeow:verifierArtifactExists
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "artifact exists verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring an actual cited artifact observation and identified artifact. A configured title or a successful tool invocation alone does not establish artifact existence."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierArtifactExists ."@x-gmeow-english .
+
+gmeow:verifierExternalObservation
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "external observation verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring a cited held observation with its actual vantage and the expected statement binding. Expected text and an uncited summary are not external observation evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierExternalObservation ."@x-gmeow-english .
+
+gmeow:verifierUserAssertion
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "user assertion verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring an actual cited assertion observation attributed to the asserting user and bound to the expected statement. A model's paraphrase does not replace that assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierUserAssertion ."@x-gmeow-english .
+
+gmeow:verifierMemoryEvidenced
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "memory evidenced verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring a cited retained MemoryItem and its actual memoryText content and attribution. Free evidence wording is not a memory citation, retrieval receipt or proof that a private store was consulted."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierMemoryEvidenced ."@x-gmeow-english .
+
+gmeow:verifierReflectiveAppraisal
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reflective appraisal verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring a cited Note containing the agent's reflective appraisal with actual noteContent and agent attribution. The appraisal remains a situated judgment rather than an external fact."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierReflectiveAppraisal ."@x-gmeow-english .
+
+gmeow:verifierWorldObjectExists
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "world object exists verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring a cited environment-owned WorldObjectRecord with actual provider, world, object and exact matching provider handle. An expected handle alone does not evidence existence."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierWorldObjectExists ."@x-gmeow-english .
+
+gmeow:verifierForegroundYield
+    a gmeow:VerifierKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "foreground yield verifier"@x-gmeow-english ;
+    skos:definition "Verification requiring an actual cited attempt-finish event whose attemptStop is stopYieldedToForeground and whose actor is identified. Silence, elapsed time or an interrupted code alone does not evidence a foreground yield."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly selects this verification method."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:descriptor gmeow:conditionVerifierKind gmeow:verifierForegroundYield ."@x-gmeow-english .
+
+gmeow:conditionKey
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "condition key"@x-gmeow-english ;
+    skos:definition "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:conditionKey \"source-value\" ."@x-gmeow-english ;
+    logic:domain logic:GoalEvaluation ;
+    logic:range xsd:string .
+
+gmeow:evidenceItem
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evidence item"@x-gmeow-english ;
+    skos:definition "Source evidence wording on a goal evaluation when no evidence span is available. This fallback text preserves the claim but is never interchangeable with a cited observation, memory, note, actor or environment record."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:evidenceItem \"source-value\" ."@x-gmeow-english ;
+    logic:domain logic:GoalEvaluation ;
+    logic:range rdfs:Literal .
+
+logic:GoalEvaluation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:evidenceItem ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:adoptedFrom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "adopted from"@x-gmeow-english ;
+    skos:definition "The actual Desire from which an Intention was adopted, specializing wasDerivedFrom. This provenance link does not assert that every desire is adopted or that the intention succeeds."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:adoptedFrom ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range gmeow:Desire ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .
+
+gmeow:followedPlan
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "followed plan"@x-gmeow-english ;
+    skos:definition "The source prose plan followed at an attempt start. Its information object carries planText without requiring an executable logic:Plan, compiled prescription or fabricated prescription version."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:followedPlan ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:InformationObject .
+
+gmeow:planText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "plan text"@x-gmeow-english ;
+    skos:definition "The verbatim source wording of a prose plan, preserving supplied language and direction. It is neither a compiled program nor a claim that the plan was executed."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:planText \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range rdfs:Literal .
+
+gmeow:InformationObject logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:planText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:attemptSummary
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attempt summary"@x-gmeow-english ;
+    skos:definition "The source's verbatim summary on an attempt-finish event. It reports the attempt without entailing goal satisfaction and does not specialize the Entity-domain description property."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attemptSummary \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range rdfs:Literal .
+
+gmeow:Event logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:attemptSummary ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:bodyCause
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "body cause"@x-gmeow-english ;
+    skos:definition "The runtime's exact source wording for why an attempt body stopped. It remains independent of the controlled attemptStop code, intention lifecycle and goal verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:bodyCause \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range rdfs:Literal .
+
+gmeow:Event logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:bodyCause ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:nextAction
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "next action"@x-gmeow-english ;
+    skos:definition "The proposed next action recorded verbatim on an attempt finish. A proposal is neither an executed event nor an adopted intention."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:nextAction \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range rdfs:Literal .
+
+gmeow:Event logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:nextAction ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:intentionEventSequence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "intention event sequence"@x-gmeow-english ;
+    skos:definition "The writer's original nonnegative event numbering within an actual intention and source context. The exact statement is attributed to its actual writer; numbering need not be zero-based and is never inferred from clocks."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:intentionEventSequence \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:deadlineAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "deadline at"@x-gmeow-english ;
+    skos:definition "The source-stated deadline instant of an intention. Preserve supplied precision, timezone and temporal frame; no date, timezone or deadline completion is inferred from missing fields."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:deadlineAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range xsd:dateTime .
+
+gmeow:nextReviewAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "next review at"@x-gmeow-english ;
+    skos:definition "The source-stated next review instant of an intention. A scheduled review does not assert a review occurred, and missing precision or timezone is never invented."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:nextReviewAt \"2030-05-01T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range xsd:dateTime .
+
+gmeow:eventReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "event reason"@x-gmeow-english ;
+    skos:definition "The verbatim source reason for an intention-related event, independently attributed and retaining language and direction. It neither replaces event type nor proves the stated cause."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:eventReason \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range rdfs:Literal .
+
+gmeow:Event logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:eventReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:engineContract
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "engine contract"@x-gmeow-english ;
+    skos:definition "The exact source engine-contract identifier governing a recorded event. Preserve all code points and spacing; the identifier alone supplies neither an implemented contract nor an execution receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:engineContract \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range xsd:string .
+
+gmeow:auditText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "audit text"@x-gmeow-english ;
+    skos:definition "The source's unparsed tool audit line, verbatim with supplied language and direction. Retaining the line neither parses a contract nor turns an unrecognized audit into success or a malformed value."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:auditText \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ;
+    logic:range rdfs:Literal .
+
+gmeow:ToolCall logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:auditText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:commitmentText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "commitment text"@x-gmeow-english ;
+    skos:definition "The self-commitment wording of an intention, verbatim. It records the agent's own commitment without manufacturing another party, contractual Commitment or achieved goal."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentText \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range rdfs:Literal .
+
+gmeow:Intention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:commitmentText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:commitmentOrigin
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "commitment origin"@x-gmeow-english ;
+    skos:definition "The source's verbatim wording for the origin of a self-commitment. It is a source claim, distinct from structured adoption provenance and contractual authority."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:commitmentOrigin \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:Intention ;
+    logic:range rdfs:Literal .
+
+gmeow:Intention logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:commitmentOrigin ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:releaseReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "release reason"@x-gmeow-english ;
+    skos:definition "The verbatim source reason a self-commitment was released, attached to its closed IntentionTenure. Retain the actual interval end and history rather than erasing the intention or inventing an end date."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:releaseReason \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:IntentionTenure ;
+    logic:range rdfs:Literal .
+
+gmeow:IntentionTenure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:releaseReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# Configured descriptor fields are mandatory, without manufacturing source values.
+gmeow:ConditionVerifier logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:verifierKey ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:conditionVerifierKind ; logic:allValuesFrom gmeow:VerifierKind ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConditionVerifier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/verifierKey" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ConditionVerifier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/conditionVerifierKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:GoalConditionOccurrenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal condition occurrence constraint"@x-gmeow-english ;
+    skos:definition "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of hasSatisfactionCondition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalConditionOccurrenceConstraint logic:formalizes gmeow:hasSatisfactionCondition ."@x-gmeow-english ;
+    logic:formalizes gmeow:hasSatisfactionCondition ;
+    logic:message "Each linked condition occurrence retains its source prose, exact local key, zero-based ordinal and a configured verifier of the same goal with that exact key; no executable goal expression is manufactured."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "key" ], [ logic:termIndex 1 ; logic:termVariable "ordinal" ], [ logic:termIndex 2 ; logic:termVariable "text" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "ordinal" ] ], [ a logic:Formula ; logic:relation gmeow:conditionText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ] ] ] .
+
+gmeow:GoalVerifierConditionBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal verifier condition binding constraint"@x-gmeow-english ;
+    skos:definition "A configured goal verifier names an actual condition of that same goal through the identical source key."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of hasConditionVerifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalVerifierConditionBindingConstraint logic:formalizes gmeow:hasConditionVerifier ."@x-gmeow-english ;
+    logic:formalizes gmeow:hasConditionVerifier ;
+    logic:message "A configured goal verifier names an actual condition of that same goal through the identical source key."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "key" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ] ] ] .
+
+gmeow:GoalEvaluationConditionBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal evaluation condition binding constraint"@x-gmeow-english ;
+    skos:definition "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of conditionKey."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalEvaluationConditionBindingConstraint logic:formalizes gmeow:conditionKey ."@x-gmeow-english ;
+    logic:formalizes gmeow:conditionKey ;
+    logic:message "A keyed goal evaluation identifies its actual evaluated goal and a matching configured verifier and condition within that goal."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ], [ logic:termIndex 2 ; logic:termVariable "condition" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ] ] ] .
+
+gmeow:GoalConditionKeyUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal condition key uniqueness constraint"@x-gmeow-english ;
+    skos:definition "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of hasSatisfactionCondition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalConditionKeyUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."@x-gmeow-english ;
+    logic:formalizes gmeow:hasSatisfactionCondition ;
+    logic:message "A source key identifies one condition occurrence within one goal, without identifying conditions across goals."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ], [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:GoalConditionOrdinalUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal condition ordinal uniqueness constraint"@x-gmeow-english ;
+    skos:definition "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of hasSatisfactionCondition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalConditionOrdinalUniquenessConstraint logic:formalizes gmeow:hasSatisfactionCondition ."@x-gmeow-english ;
+    logic:formalizes gmeow:hasSatisfactionCondition ;
+    logic:message "A zero-based position identifies one condition occurrence within one goal's ordered condition sequence."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ], [ logic:termIndex 2 ; logic:termVariable "right" ], [ logic:termIndex 3 ; logic:termVariable "leftValue" ], [ logic:termIndex 4 ; logic:termVariable "rightValue" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "left" ] ], [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ], [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "leftValue" ] ], [ a logic:Formula ; logic:relation gmeow:entryOrdinal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "rightValue" ] ], [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftValue" ], [ logic:termIndex 1 ; logic:termVariable "rightValue" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:ExpectedStatementReifierConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Expected statement reifier constraint"@x-gmeow-english ;
+    skos:definition "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of expectedStatement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:ExpectedStatementReifierConstraint logic:formalizes gmeow:expectedStatement ."@x-gmeow-english ;
+    logic:formalizes gmeow:expectedStatement ;
+    logic:message "Each expectedStatement shares its exact native triple term with explicit rdf:reifies on the descriptor; quotation is not assertion or a generic triple-term validator."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:expectedStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ] ] ] .
+
+gmeow:FollowedProsePlanConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Followed prose plan constraint"@x-gmeow-english ;
+    skos:definition "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of followedPlan."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:FollowedProsePlanConstraint logic:formalizes gmeow:followedPlan ."@x-gmeow-english ;
+    logic:formalizes gmeow:followedPlan ;
+    logic:message "A followed prose plan is retained on an attempt-start event and carries actual planText, without introducing an executable Plan."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "plan" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:followedPlan ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "plan" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptStart ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "text" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:planText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "plan" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ] ] .
+
+gmeow:AttemptSummaryPhaseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Attempt summary phase constraint"@x-gmeow-english ;
+    skos:definition "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of attemptSummary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:AttemptSummaryPhaseConstraint logic:formalizes gmeow:attemptSummary ."@x-gmeow-english ;
+    logic:formalizes gmeow:attemptSummary ;
+    logic:message "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:attemptSummary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptFinish ] ] ] ] .
+
+gmeow:BodyCausePhaseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Body cause phase constraint"@x-gmeow-english ;
+    skos:definition "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of bodyCause."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:BodyCausePhaseConstraint logic:formalizes gmeow:bodyCause ."@x-gmeow-english ;
+    logic:formalizes gmeow:bodyCause ;
+    logic:message "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:bodyCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptFinish ] ] ] ] .
+
+gmeow:NextActionPhaseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Next action phase constraint"@x-gmeow-english ;
+    skos:definition "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of nextAction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:NextActionPhaseConstraint logic:formalizes gmeow:nextAction ."@x-gmeow-english ;
+    logic:formalizes gmeow:nextAction ;
+    logic:message "The source text belongs to an actual attempt-finish event; it supplies neither a goal verdict nor a later execution."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:nextAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptFinish ] ] ] ] .
+
+gmeow:IntentionSequenceSourceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Intention sequence source constraint"@x-gmeow-english ;
+    skos:definition "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of intentionEventSequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:IntentionSequenceSourceConstraint logic:formalizes gmeow:intentionEventSequence ."@x-gmeow-english ;
+    logic:formalizes gmeow:intentionEventSequence ;
+    logic:message "Each supplied event number binds an actual intention and an exact source-statement reifier identifying the actual writer and context; lowering components are read, never authored."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "number" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:intentionEventSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "number" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "source" ], [ logic:termIndex 2 ; logic:termVariable "writer" ], [ logic:termIndex 3 ; logic:termVariable "context" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:intentionEventSequence ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "number" ] ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "writer" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "writer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termVariable "context" ] ] ] ] ] ] .
+
+gmeow:IntentionSequenceLocalUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Intention sequence local uniqueness constraint"@x-gmeow-english ;
+    skos:definition "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of intentionEventSequence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:IntentionSequenceLocalUniquenessConstraint logic:formalizes gmeow:intentionEventSequence ."@x-gmeow-english ;
+    logic:formalizes gmeow:intentionEventSequence ;
+    logic:message "One event number identifies one event only within the same actual intention, writer and source context. Other writers and contexts retain independent numbering; clocks do not determine this order."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "other" ], [ logic:termIndex 2 ; logic:termVariable "leftNumber" ], [ logic:termIndex 3 ; logic:termVariable "rightNumber" ], [ logic:termIndex 4 ; logic:termVariable "intention" ], [ logic:termIndex 5 ; logic:termVariable "leftSource" ], [ logic:termIndex 6 ; logic:termVariable "rightSource" ], [ logic:termIndex 7 ; logic:termVariable "writer" ], [ logic:termIndex 8 ; logic:termVariable "context" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:intentionEventSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftNumber" ] ], [ a logic:Formula ; logic:relation gmeow:intentionEventSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "rightNumber" ] ], [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ], [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSource" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSource" ], [ logic:termIndex 1 ; logic:termIri gmeow:intentionEventSequence ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSource" ], [ logic:termIndex 1 ; logic:termVariable "leftNumber" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSource" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSource" ], [ logic:termIndex 1 ; logic:termIri gmeow:intentionEventSequence ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSource" ], [ logic:termIndex 1 ; logic:termVariable "rightNumber" ] ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSource" ], [ logic:termIndex 1 ; logic:termVariable "writer" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSource" ], [ logic:termIndex 1 ; logic:termVariable "writer" ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftSource" ], [ logic:termIndex 1 ; logic:termVariable "context" ] ], [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rightSource" ], [ logic:termIndex 1 ; logic:termVariable "context" ] ], [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftNumber" ], [ logic:termIndex 1 ; logic:termVariable "rightNumber" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+gmeow:ReleasedIntentionTenureConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Released intention tenure constraint"@x-gmeow-english ;
+    skos:definition "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of releaseReason."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:ReleasedIntentionTenureConstraint logic:formalizes gmeow:releaseReason ."@x-gmeow-english ;
+    logic:formalizes gmeow:releaseReason ;
+    logic:message "A release reason belongs to a tenure whose actual interval has an explicit end instant or end timestamp; the reason never fabricates closure."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:releaseReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "interval" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:duringInterval ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "interval" ] ], [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "end" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:endedAtTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interval" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "instant" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:hasEndInstant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "interval" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ] ] ] ] ] ] ] .
+
+gmeow:GoalArtifactExistenceEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal artifact existence evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierArtifactExists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalArtifactExistenceEvidenceConstraint logic:formalizes gmeow:verifierArtifactExists ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierArtifactExists ;
+    logic:message "A completed positive artifact-existence evaluation derives from a held actual artifact observation identifying the artifact and its vantage; a title or invocation success is insufficient."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactExists ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ], [ logic:termIndex 2 ; logic:termVariable "observer" ], [ logic:termIndex 3 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:ArtifactVerificationObservation ] ], [ a logic:Formula ; logic:relation gmeow:verifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactExists ] ], [ a logic:Formula ; logic:relation gmeow:verifiesArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ] ] ] ] ] .
+
+gmeow:GoalExternalObservationEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal external observation evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierExternalObservation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalExternalObservationEvidenceConstraint logic:formalizes gmeow:verifierExternalObservation ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierExternalObservation ;
+    logic:message "A completed positive external-observation evaluation derives from an actual held observation with an actual vantage and exactly the expected statement binding."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierExternalObservation ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ], [ logic:termIndex 2 ; logic:termVariable "feature" ], [ logic:termIndex 3 ; logic:termVariable "statement" ], [ logic:termIndex 4 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ], [ a logic:Formula ; logic:relation gmeow:observationMethod ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierExternalObservation ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ], [ a logic:Formula ; logic:relation gmeow:expectedStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ], [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ] ] ] ] ] .
+
+gmeow:GoalUserAssertionEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal user assertion evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierUserAssertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalUserAssertionEvidenceConstraint logic:formalizes gmeow:verifierUserAssertion ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierUserAssertion ;
+    logic:message "A completed positive user-assertion evaluation derives from an actual held assertion with the asserting user's Agent vantage and exactly the expected statement binding."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierUserAssertion ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ], [ logic:termIndex 2 ; logic:termVariable "feature" ], [ logic:termIndex 3 ; logic:termVariable "statement" ], [ logic:termIndex 4 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ], [ a logic:Formula ; logic:relation gmeow:observationMethod ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierUserAssertion ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ], [ a logic:Formula ; logic:relation gmeow:expectedStatement ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ], [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "statement" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] ] ] ] ] .
+
+gmeow:GoalMemoryEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal memory evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierMemoryEvidenced."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalMemoryEvidenceConstraint logic:formalizes gmeow:verifierMemoryEvidenced ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierMemoryEvidenced ;
+    logic:message "A completed positive memory-evidenced evaluation derives from a cited retained MemoryItem with actual memoryText and agent attribution. Evidence prose alone cannot meet this law or certify retrieval."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierMemoryEvidenced ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "memory" ], [ logic:termIndex 1 ; logic:termVariable "text" ], [ logic:termIndex 2 ; logic:termVariable "agent" ], [ logic:termIndex 3 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "memory" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "memory" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memory" ], [ logic:termIndex 1 ; logic:termIri gmeow:MemoryItem ] ], [ a logic:Formula ; logic:relation gmeow:memoryText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memory" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "memory" ], [ logic:termIndex 1 ; logic:termVariable "agent" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "agent" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] ] ] ] ] .
+
+gmeow:GoalReflectiveAppraisalEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal reflective appraisal evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierReflectiveAppraisal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalReflectiveAppraisalEvidenceConstraint logic:formalizes gmeow:verifierReflectiveAppraisal ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierReflectiveAppraisal ;
+    logic:message "A completed positive reflective appraisal derives from the evaluating agent's actual cited Note with noteContent and attribution to that same agent."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierReflectiveAppraisal ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "note" ], [ logic:termIndex 1 ; logic:termVariable "text" ], [ logic:termIndex 2 ; logic:termVariable "agent" ], [ logic:termIndex 3 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "note" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "note" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "note" ], [ logic:termIndex 1 ; logic:termIri gmeow:Note ] ], [ a logic:Formula ; logic:relation gmeow:noteContent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "note" ], [ logic:termIndex 1 ; logic:termVariable "text" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "note" ], [ logic:termIndex 1 ; logic:termVariable "agent" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "agent" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ], [ a logic:Formula ; logic:relation logic:evaluationEvaluator ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "agent" ] ] ] ] ] ] .
+
+gmeow:GoalWorldObjectExistenceEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal world object existence evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierWorldObjectExists."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalWorldObjectExistenceEvidenceConstraint logic:formalizes gmeow:verifierWorldObjectExists ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierWorldObjectExists ;
+    logic:message "A completed positive world-object evaluation derives from an actual provider-owned record matching the expected handle within the verifier's exact provider and world scope; equal text across worlds is insufficient."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierWorldObjectExists ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "handle" ], [ logic:termIndex 2 ; logic:termVariable "provider" ], [ logic:termIndex 3 ; logic:termVariable "world" ], [ logic:termIndex 4 ; logic:termVariable "object" ], [ logic:termIndex 5 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:providerWorld ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termIri gmeow:WorldObjectRecord ] ], [ a logic:Formula ; logic:relation gmeow:expectedWorldObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "handle" ] ], [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "provider" ] ], [ a logic:Formula ; logic:relation gmeow:providerWorld ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ], [ a logic:Formula ; logic:relation gmeow:providerHandle ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "handle" ] ], [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "provider" ] ], [ a logic:Formula ; logic:relation gmeow:providerWorld ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "world" ] ], [ a logic:Formula ; logic:relation gmeow:recordedWorldObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "object" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "provider" ] ] ] ] ] ] .
+
+gmeow:GoalForegroundYieldEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal foreground yield evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the source-evidence obligation of verifierForegroundYield."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with invented source values or fallback prose."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual source bindings expressed by this canonical formula."@x-gmeow-english ;
+    skos:scopeNote "This law constrains supplied records; it neither runs a verifier nor authenticates an external source."@x-gmeow-english ;
+    skos:example "gmeow:GoalForegroundYieldEvidenceConstraint logic:formalizes gmeow:verifierForegroundYield ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierForegroundYield ;
+    logic:message "A completed positive foreground-yield evaluation derives from an actual attempt finish with explicit stopYieldedToForeground and an actual associated actor; silence and interrupted status do not establish this event."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierForegroundYield ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "finish" ], [ logic:termIndex 1 ; logic:termVariable "actor" ], [ logic:termIndex 2 ; logic:termVariable "citation" ], [ logic:termIndex 3 ; logic:termVariable "intention" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "finish" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "finish" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:intentionTransitionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finish" ], [ logic:termIndex 1 ; logic:termVariable "intention" ] ], [ a logic:Formula ; logic:relation gmeow:intentionGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "intention" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ] ], [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finish" ], [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptFinish ] ], [ a logic:Formula ; logic:relation gmeow:attemptStop ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finish" ], [ logic:termIndex 1 ; logic:termIri gmeow:stopYieldedToForeground ] ], [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ; logic:argument [ logic:termIndex 0 ; logic:termVariable "finish" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] ] ] ] ] .
+
+gmeow:CompletedGoalConditionCoverageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Completed goal condition coverage constraint"@x-gmeow-english ;
+    skos:definition "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce complete condition coverage for a conclusive positive goal judgment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid certifying a goal by selecting only the easiest condition or omitting its condition keys."@x-gmeow-english ;
+    gmeow:howToUse "Retain each actual condition key and its configured verifier; keep incomplete evaluations explicitly incomplete."@x-gmeow-english ;
+    skos:scopeNote "Coverage constrains the supplied judgment; it does not execute conditions or infer their truth."@x-gmeow-english ;
+    skos:example "gmeow:CompletedGoalConditionCoverageConstraint logic:formalizes gmeow:hasSatisfactionCondition ."@x-gmeow-english ;
+    logic:formalizes gmeow:hasSatisfactionCondition ;
+    logic:message "A completed satisfied evaluation of a goal with source conditions retains every condition's key and a matching verifier of that same goal, so omitting a configured condition cannot evade its evidence obligation."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ], [ logic:termIndex 2 ; logic:termVariable "condition" ], [ logic:termIndex 3 ; logic:termVariable "key" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ], [ a logic:Formula ; logic:relation gmeow:hasSatisfactionCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "condition" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "verifier" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ] ] ] ] .
+
+gmeow:GoalReadAfterWriteEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Goal read-after-write evidence constraint"@x-gmeow-english ;
+    skos:definition "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the existing read-after-write evidence contract when this method is configured for a goal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bypassing actual read and write evidence by configuring a method without a cited observation."@x-gmeow-english ;
+    gmeow:howToUse "Cite the actual held observation under the same condition key and retain its versioned read and write receipts."@x-gmeow-english ;
+    skos:scopeNote "Configuration neither executes the check nor replaces the existing artifact-byte-identity and later-read obligations."@x-gmeow-english ;
+    skos:example "gmeow:GoalReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."@x-gmeow-english ;
+    logic:formalizes gmeow:verifierArtifactReadAfterWrite ;
+    logic:message "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactReadAfterWrite ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ], [ logic:termIndex 2 ; logic:termVariable "observer" ], [ logic:termIndex 3 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:ArtifactVerificationObservation ] ], [ a logic:Formula ; logic:relation gmeow:verifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactReadAfterWrite ] ], [ a logic:Formula ; logic:relation gmeow:verifiesArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ] ] ] ] ] .

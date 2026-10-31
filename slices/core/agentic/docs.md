@@ -146,3 +146,19 @@ request. There is no mutable winning status, forced last-write choice, logical
 EvaluationStatus alias or new general ticket framework. The rationale and evidence
 remain attributable to the resolving actor; recording a disposition does not
 certify that the underlying concern was solved or erase the original request.
+
+## Attention request wording
+
+`attentionMessage` preserves the source message on an AttentionRequest as
+xsd:string, rdf:langString or rdf:dirLangString. Preserve exact wording and any
+supplied language or base direction; do not guess an absent language. Recording
+the message does not acknowledge the request, resolve it or perform the
+requested work. Existing request acknowledgment and resolution events retain
+their own semantics (Principles 2, 3, 4 and 17).
+
+The dreaming extension owns `requestedByDream`, its derivation link to an
+actual DreamReport recollection episode. Core agentic has no dependency on that
+extension. The extension's ordinary
+[`goal-attempt-satisfaction.ttl`](../../extensions/dreaming/examples/goal-attempt-satisfaction.ttl)
+scene shows the message alongside a dream-derived request, a separate
+intention and source-attributed goal-evaluation evidence.

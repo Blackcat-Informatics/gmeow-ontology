@@ -172,3 +172,34 @@ nor proves the intention's goal was satisfied. A simulated observation retains
 its simulation provenance rather than acquiring a real-world truth claim.
 See the [complete story-building scene](../../extensions/narrative/examples/story-building.ttl)
 for these records alongside story-stage and recollection metadata.
+
+## Goal conditions, verifier configuration and self-commitments
+
+Goals retain ordered source Condition occurrences through
+`hasSatisfactionCondition`. A ConditionVerifier is a configuration descriptor
+with an exact source key and `conditionVerifierKind`, distinct from an actual
+ArtifactVerificationObservation or a rubric Criterion. The seven additional
+method values preserve artifact existence, external observations, user
+assertions, retained-memory evidence, reflective appraisals, simulated-world
+existence and foreground yields. Configuration never becomes execution.
+
+Actual `logic:GoalEvaluation` records retain `conditionKey` and fallback
+`evidenceItem` wording. Conclusive positive evaluations must cover every source
+condition and retain the kind-specific structured evidence sources; fallback
+prose cannot substitute for a cited observation, memory, note, provider record
+or actual foreground-yield event. Existing read-after-write contracts remain
+separate and unchanged.
+
+Attempt starts can retain a prose `followedPlan` with `planText`; finishes
+carry `attemptSummary`, `bodyCause` and `nextAction`. An Intention can preserve
+`adoptedFrom`, its self-`commitmentText` and `commitmentOrigin`, source
+`deadlineAt` and `nextReviewAt`. A closed IntentionTenure carries
+`releaseReason`. Source events retain `eventReason`, exact `engineContract`
+and writer-scoped `intentionEventSequence`; ToolCalls retain unparsed
+`auditText`. Original numbering is scoped by actual intention, writer and
+source context, independent of zero-based list ordinals and clock order.
+
+Prose retains supplied language and direction; opaque identifiers preserve all
+source code points as strings. See
+[`GOALS-AND-SATISFACTION.md`](design/GOALS-AND-SATISFACTION.md) for the canonical
+laws, evidence paths and honest limits (Principles 2, 3, 4, 9 and 17).

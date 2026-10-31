@@ -536,3 +536,33 @@ msgstr "Conserver la demande, sa description et sa source, ainsi que les acteurs
 msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
 msgstr "À employer pour enregistrer le cycle explicite d’une demande d’attention plutôt que le déduire du silence."
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention message"
+msgstr "message d’attention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source message of an AttentionRequest, retaining supplied language and direction. A message neither acknowledges the request nor asserts that its requested work was performed."
+msgstr "Message source textuel d’une AttentionRequest, conservant langue et direction fournies. Le message n’accuse pas réception et n’affirme pas l’exécution du travail demandé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "Utiliser lorsque la source fournit explicitement cette relation et son contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attentionMessage \"source-value\" ."
+msgstr "ex:record gmeow:attentionMessage \"source-value\" ."

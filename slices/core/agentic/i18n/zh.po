@@ -536,3 +536,33 @@ msgstr "保留请求、其描述与来源，以及独立事件的行动者、时
 msgctxt "https://blackcatinformatics.ca/gmeow/attentionRequestedAt|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."
 msgstr "用于明确记录注意请求的生命周期，而不是从沉默推断状态时。"
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention message"
+msgstr "注意请求消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source message of an AttentionRequest, retaining supplied language and direction. A message neither acknowledges the request nor asserts that its requested work was performed."
+msgstr "AttentionRequest 的逐字来源消息，保留提供的语言和方向。消息本身既不是确认收悉，也不表示请求的工作已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:attentionMessage \"source-value\" ."
+msgstr "ex:record gmeow:attentionMessage \"source-value\" ."

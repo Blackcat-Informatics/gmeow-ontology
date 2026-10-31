@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requested by dream"
+msgstr "由梦境回忆请求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual DreamReport recollection episode from which an AttentionRequest was derived. This extension-owned provenance link does not turn the episode into an enduring document or assert that dream content occurred externally."
+msgstr "AttentionRequest 实际派生来源的 DreamReport 回忆事件。此由扩展拥有的来源链接不将事件变成持久文档，也不表示梦境内容在外部发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:requestedByDream ex:target ."
+msgstr "ex:record gmeow:requestedByDream ex:target ."

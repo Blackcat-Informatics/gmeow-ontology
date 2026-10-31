@@ -32,4 +32,8 @@
         <https://blackcatinformatics.ca/gmeow/slices/norms>,
         <https://blackcatinformatics.ca/gmeow/slices/record-metadata>,
         <https://blackcatinformatics.ca/gmeow/slices/sources>,
-        <https://blackcatinformatics.ca/gmeow/slices/lifecycle> .
+        <https://blackcatinformatics.ca/gmeow/slices/lifecycle>,
+        <https://blackcatinformatics.ca/gmeow/slices/memory-records>,
+        <https://blackcatinformatics.ca/gmeow/slices/notes>,
+        <https://blackcatinformatics.ca/gmeow/slices/environment-records>,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> .
