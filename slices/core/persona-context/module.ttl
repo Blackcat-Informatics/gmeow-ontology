@@ -114,10 +114,10 @@ gmeow:transitionLasted
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "replaced persona lasted"@x-gmeow-english ;
-    skos:definition "The producer-reported duration for which the replaced persona lasted before this change. The source xsd:duration is retained; it is not computed by subtracting producer-clock timestamps."@x-gmeow-english ;
-    gmeow:useWhen "Use when the source reports the tenure duration of the persona being replaced."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inventing a zero duration when elapsed time was not measured."@x-gmeow-english ;
-    gmeow:howToUse "Keep the supplied duration and its units; omit this value when the source gives no elapsed-duration observation."@x-gmeow-english ;
+    skos:definition "The source-reported duration for which the replaced persona lasted before this change, including a source-computed span when its derivation is stated on the exact duration claim. GMEOW retains the supplied xsd:duration and does not compute or verify timestamp subtraction."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports a measured tenure duration or supplies a computed tenure duration with its stated derivation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a duration, timestamp precision or timezone, or treating a retained source calculation as verified arithmetic."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied duration and units. For a source-computed span, link its exact RDF 1.2 statement reifier by wasDerivedFrom to the actual opening and closing state-claim reifiers, and preserve the source’s calculation and input roles with statedRationale. Omit when no duration is supplied."@x-gmeow-english ;
     skos:example "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."@x-gmeow-english ;
     logic:domain gmeow:ModeTransition ;
     logic:range xsd:duration .

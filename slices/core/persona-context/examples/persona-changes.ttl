@@ -3,6 +3,7 @@
 
 @prefix ex: <https://example.org/persona-context/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 # One agent uses two co-equal expression policies while recording a conversation.
@@ -66,6 +67,23 @@ ex:change10 a gmeow:ModeTransition ;
     gmeow:transitionAt "2026-10-29T10:02:00Z"^^xsd:dateTime ;
     gmeow:transitionSequence "10"^^xsd:nonNegativeInteger ;
     gmeow:transitionCause gmeow:transitionCauseHoldResumed .
+
+# The source states that change9 opened this formal-persona tenure and change10
+# closed it. Both actual state claims retain their writer; the source reports
+# subtracting their unchanged clock readings to obtain the supplied PT3M value.
+ex:formalOpeningClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change9 gmeow:transitionTo ex:formalPersona )>> ;
+    gmeow:wasAttributedTo ex:agent .
+
+ex:formalClosingClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change10 gmeow:transitionFrom ex:formalPersona )>> ;
+    gmeow:wasAttributedTo ex:agent .
+
+ex:formalDurationClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change10 gmeow:transitionLasted "PT3M"^^xsd:duration )>> ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:wasDerivedFrom ex:formalOpeningClaim , ex:formalClosingClaim ;
+    gmeow:statedRationale "formalOpeningClaim opens the formal-persona tenure at change9, whose supplied transitionAt is 2026-10-29T09:59:00Z; formalClosingClaim closes it at change10, whose supplied transitionAt is 2026-10-29T10:02:00Z. I computed PT3M by subtracting the opening clock reading from the closing clock reading."@en .
 
 # A retained note attributes its own making to the casual policy. Its recording
 # date was supplied only to day precision and is independent of the clock above.

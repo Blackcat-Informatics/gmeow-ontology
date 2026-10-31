@@ -206,20 +206,20 @@ msgid "replaced persona lasted"
 msgstr "durée de la persona remplacée"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The producer-reported duration for which the replaced persona lasted before this change. The source xsd:duration is retained; it is not computed by subtracting producer-clock timestamps."
-msgstr "Durée rapportée par le producteur pendant laquelle la persona remplacée a persisté avant ce changement. Le xsd:duration source est conservé ; il n’est pas calculé par soustraction d’horodatages de l’horloge du producteur."
+msgid "The source-reported duration for which the replaced persona lasted before this change, including a source-computed span when its derivation is stated on the exact duration claim. GMEOW retains the supplied xsd:duration and does not compute or verify timestamp subtraction."
+msgstr "Durée rapportée par la source pendant laquelle la persona remplacée a persisté avant ce changement, y compris une durée calculée par la source lorsque sa dérivation est énoncée sur l’assertion exacte de durée. GMEOW conserve le xsd:duration fourni et ne calcule ni ne vérifie la soustraction d’horodatages."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the source reports the tenure duration of the persona being replaced."
-msgstr "Utiliser lorsque la source rapporte la durée de maintien de la persona remplacée."
+msgid "Use when the source reports a measured tenure duration or supplies a computed tenure duration with its stated derivation."
+msgstr "Utiliser lorsque la source rapporte une durée de maintien mesurée ou fournit une durée de maintien calculée avec sa dérivation énoncée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inventing a zero duration when elapsed time was not measured."
-msgstr "Éviter d’inventer une durée nulle lorsque le temps écoulé n’a pas été mesuré."
+msgid "Avoid inventing a duration, timestamp precision or timezone, or treating a retained source calculation as verified arithmetic."
+msgstr "Éviter d’inventer une durée, une précision d’horodatage ou un fuseau horaire, ou de traiter un calcul conservé de la source comme une opération arithmétique vérifiée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the supplied duration and its units; omit this value when the source gives no elapsed-duration observation."
-msgstr "Conserver la durée fournie et ses unités ; omettre cette valeur lorsque la source ne fournit aucune observation de durée écoulée."
+msgid "Keep the supplied duration and units. For a source-computed span, link its exact RDF 1.2 statement reifier by wasDerivedFrom to the actual opening and closing state-claim reifiers, and preserve the source’s calculation and input roles with statedRationale. Omit when no duration is supplied."
+msgstr "Conserver la durée fournie et ses unités. Pour une durée calculée par la source, relier le réificateur RDF 1.2 de son assertion exacte aux réificateurs des assertions réelles d’ouverture et de clôture de l’état par wasDerivedFrom, et conserver le calcul et le rôle des entrées énoncés par la source avec statedRationale. Omettre si aucune durée n’est fournie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."
