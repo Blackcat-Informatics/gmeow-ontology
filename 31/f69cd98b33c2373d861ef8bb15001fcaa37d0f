@@ -1,0 +1,18 @@
+ghprsq source head backlink metadata
+
+parent_hashes: 31f69cd98b33c2373d861ef8bb15001fcaa37d0f
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash-head-backlink
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2175
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2175
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: fbae302eb34314fe169e4ed846c59634e9e469f0
+GhpRsq-Head-Ref: paudley/2156-storytelling-story-candidates-gathering
+GhpRsq-Head-OID: 31f69cd98b33c2373d861ef8bb15001fcaa37d0f
+GhpRsq-Result-Tree: 6e440910f83609f6aa783c49df69221c72942b13
+GhpRsq-Result-Commit: 1ea99948c0784143abeb7c4ffc40eeba68d45d07
+GhpRsq-Parent-Hashes: 31f69cd98b33c2373d861ef8bb15001fcaa37d0f
+GhpRsq-Squash-Notes-SHA256: 3633a8c9945a529aa522acc188601b90382ac7b8b71ef209ad9ae74198f4e588
+GhpRsq-Stage-Evidence: none
