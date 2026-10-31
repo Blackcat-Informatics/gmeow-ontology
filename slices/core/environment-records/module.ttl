@@ -2426,7 +2426,7 @@ gmeow:eventTypeWorldNotificationDelivery
     gmeow:graphBoxRole gmeow:boxABox ;
     rdfs:label "world notice delivery occurrence"@x-gmeow-english ;
     skos:definition "The source reports a notice-delivery occurrence, which may be an attempt or actual delivery."@x-gmeow-english ;
-    gmeow:useWhen "Use for the recorded world notice delivery occurrence occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use for the recorded world notice delivery occurrence."@x-gmeow-english ;
     gmeow:avoidWhen "Retain noticeDeliveryState separately; the event kind alone does not prove receipt."@x-gmeow-english ;
     gmeow:howToUse "Classify the actual Event or Activity with eventType eventTypeWorldNotificationDelivery; attribute the exact source statement."@x-gmeow-english ;
     skos:scopeNote "This is an EventType value for world notice delivery occurrence, not an occurrence or an executable operation."@x-gmeow-english ;
@@ -3452,15 +3452,15 @@ gmeow:AffordanceTargetScopeConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Affordance target scope constraint"@x-gmeow-english ;
-    skos:definition "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."@x-gmeow-english ;
+    skos:definition "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."@x-gmeow-english ;
     gmeow:useWhen "Use to validate the source's advertised action-to-part binding."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying a shared entry with one convenient owner's unrelated target."@x-gmeow-english ;
-    gmeow:howToUse "Require an actual owner and check hasPart for all affordsAction owners of this entry."@x-gmeow-english ;
+    gmeow:howToUse "Check hasPart for every affordsAction owner of this entry; use WorldAffordanceCatalogConstraint for owner existence and tool naming."@x-gmeow-english ;
     skos:scopeNote "The binary target checks source structure, not whether an advertised tool executed successfully."@x-gmeow-english ;
     skos:example "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."@x-gmeow-english ;
-    logic:message "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."@x-gmeow-english ;
+    logic:message "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."@x-gmeow-english ;
     logic:formalizes gmeow:affordanceTarget ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "owner" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] , [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "owner" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordanceTarget ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "owner" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:affordsAction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:hasPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] ] ] ] ] ] .
 
 gmeow:RecordedCognitionModeCarrierConstraint
     a logic:Constraint ;

@@ -248,9 +248,10 @@ WorldAffordance is an InformationObject catalog entry. affordsAction connects it
 owning object representation, also an InformationObject. Keep an actual physical
 object separate from that representation. A qualified entry has its supplied
 affordanceToolName; this exact string is not a resolved endpoint or ToolCall.
-affordanceTarget names a supplied part of that owner. The target law requires
-an actual owner and checks hasPart for every catalog owner advertising a shared
-entry, preventing targets from leaking across object catalogs.
+affordanceTarget names a supplied part of that owner. The catalog class law
+requires an actual owner and tool name; the target law checks hasPart for every
+catalog owner advertising a shared entry, preventing targets from leaking across
+object catalogs.
 
 tagReadOnlyAction and tagDreamEligible annotate the catalog entry. Their laws
 check WorldAffordance carriers, not effect purity, access permission or runtime

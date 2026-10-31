@@ -167,9 +167,11 @@ remain contextual to supplied partOf membership and source attribution.
 
 WorldAffordance specializes InformationObject as an actual catalog-entry kind.
 Its class-guarded law requires a catalog owner and supplied tool name, while
-incomplete fragments can remain plain InformationObjects. The target law has
-both an owner-existence clause and universal agreement over every advertising
-owner's hasPart inventory. A convenient owner cannot validate a shared entry's
+incomplete fragments can remain plain InformationObjects. The target law checks
+universal agreement over every advertising owner's hasPart inventory. The named
+affordanceTarget domain and closure admit the WorldAffordance subject; its
+catalog class law separately requires owner existence and tool naming.
+A convenient owner cannot validate a shared entry's
 foreign target. These are source-record laws, not an implementation, purity
 proof or access-control mechanism. Tags are checked as affordance metadata and
 do not replace ActionPolicy or admit a call.

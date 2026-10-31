@@ -3746,8 +3746,8 @@ msgid "The source reports a notice-delivery occurrence, which may be an attempt 
 msgstr "来源报告通知投递事件，可能是尝试或实际送达。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use for the recorded world notice delivery occurrence occurrence."
-msgstr "用于已记录的“世界通知投递事件”事件。"
+msgid "Use for the recorded world notice delivery occurrence."
+msgstr "用于已记录的世界通知投递事件。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Retain noticeDeliveryState separately; the event kind alone does not prove receipt."
@@ -5892,8 +5892,8 @@ msgid "Affordance target scope constraint"
 msgstr "可供行动目标范围约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."
-msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个实际目录所属者，并至少有一个已提供所属者。目标不能跨对象目录泄漏。"
+msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个目录所属者。WorldAffordanceCatalogConstraint 另行要求实际所属者及工具名。目标不能跨对象目录泄漏。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to validate the source's advertised action-to-part binding."
@@ -5904,8 +5904,8 @@ msgid "Avoid satisfying a shared entry with one convenient owner's unrelated tar
 msgstr "避免用某个方便所属者的无关目标满足共享条目。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Require an actual owner and check hasPart for all affordsAction owners of this entry."
-msgstr "要求实际所属者，并检查该条目所有 affordsAction 所属者的 hasPart。"
+msgid "Check hasPart for every affordsAction owner of this entry; use WorldAffordanceCatalogConstraint for owner existence and tool naming."
+msgstr "检查该条目每个 affordsAction 所属者的 hasPart；由 WorldAffordanceCatalogConstraint 检查所属者存在及工具名。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The binary target checks source structure, not whether an advertised tool executed successfully."
@@ -5916,8 +5916,8 @@ msgid "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:p
 msgstr "例如：ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/logic/message"
-msgid "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."
-msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个实际目录所属者，并至少有一个已提供所属者。目标不能跨对象目录泄漏。"
+msgid "Every affordanceTarget belongs through hasPart to every catalog owner advertising that affordance. WorldAffordanceCatalogConstraint separately requires an actual owner and tool name. Targets cannot leak between object catalogs."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个目录所属者。WorldAffordanceCatalogConstraint 另行要求实际所属者及工具名。目标不能跨对象目录泄漏。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Recorded cognition mode carrier constraint"
