@@ -38,9 +38,20 @@ this property with its existing zero-based `participantOrdinal`.
 ## Treat run-time keys as content
 
 Attach a `LabelledFacet` using `hasFacet`. Each facet has exactly one
-`facetLabel`, preserving the source key as `xsd:string`. This retains case,
-whitespace and punctuation. It deliberately avoids `xsd:token`, whose whitespace
-normalization would weaken verbatim preservation.
+`facetLabel`, preserving the source key as its supplied `xsd:string` or
+`xsd:token`. Retain case, whitespace, punctuation and datatype. Do not convert
+a verbatim string to token or normalize its source whitespace.
+
+`facetLabelAsWritten` separately retains label wording supplied by the source.
+It accepts an untagged string, a language string or a directional language
+string, preserving the exact lexical form and any supplied language and
+direction. Unspecified language or direction remains unspecified. Several
+attributed wordings may coexist; no wording is required or preferred.
+Keep the required `facetLabel` key or path separately. This relation neither
+creates a normalized token key nor counts as `facetText` or `facetValue`
+payload. It specializes the domain-free `lang:literalValue` carrier, preserving
+the complete supplied literal without changing the existing key or payload
+constraints (Principles 2, 4, 9 and 17).
 
 A facet has at most one payload in total: `facetText` for text, or `facetValue`
 for a typed literal such as a number or boolean. Text retains supplied language
@@ -107,8 +118,9 @@ established; the literal reference neither invents a node nor proves resolution.
 A `MalformedValue` is a rejected field occurrence, specializing `LabelledFacet`.
 Attach it with `hasMalformedValue`, a specialization of `hasFacet`.
 Its required `malformedField` specializes `facetLabel`; required `valueAsSent`
-specializes `facetText`. Both are single `xsd:string` values preserving the
-producer's field spelling and chosen character representation. Apply the
+specializes `facetText`. The field admits `xsd:string` or explicitly supplied
+`xsd:token`, retaining its datatype and spelling. The rejected representation remains a single
+`xsd:string` preserving the chosen source characters. Apply the
 existing type and subproperty closure when consuming the inherited facet
 contracts. Repeated keys are distinct occurrences, named by source position.
 The existing text/value exclusion prevents a simultaneous typed scalar payload.

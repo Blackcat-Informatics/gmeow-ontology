@@ -298,3 +298,8 @@ not automatically a physical desk.
 [Object catalogs and request words](examples/object-catalogs-and-request-words.ttl)
 are ordinary generic source scenes. They make no execution, proof, delivery or
 authorization claim beyond their explicit attributed example records.
+
+The `providerHandle` and `worldIdentifier` source identifiers admit `xsd:string`
+and explicitly supplied `xsd:token`. Keep the original datatype and lexical
+form; do not trim, collapse whitespace or infer token typing. Their range
+unions add no requiredness or closed-world validation boundary.

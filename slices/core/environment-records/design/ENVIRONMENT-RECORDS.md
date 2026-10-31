@@ -31,9 +31,11 @@ selected input description; inference never fabricates self-assertion.
 ## Identity and state have explicit scope
 
 Provider programs are SoftwareAgents; provider worlds are resources, without
-a forced InformationObject type. Opaque codes use `xsd:string` because token
-whitespace collapse would lose source identity. This deliberately refines the
-issue’s provisional token suggestion. Existing identifierScheme is literal
+a forced InformationObject type. The providerHandle and worldIdentifier fields
+admit verbatim `xsd:string` and explicitly supplied `xsd:token` through datatype
+unions, preserving the supplied datatype and lexical form. Do not convert
+strings or collapse whitespace; these fields keep their open-world range
+semantics without new required paths or validation closures. Existing identifierScheme is literal
 metadata and cannot serve as an object-property bridge to a provider agent.
 Explicit provider/world scope is smaller and preserves the actual meaning.
 

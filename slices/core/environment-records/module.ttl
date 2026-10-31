@@ -877,7 +877,7 @@ gmeow:worldObjectState
 
 gmeow:providerHandle
     a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "provider handle"@x-gmeow-english ;
@@ -885,6 +885,7 @@ gmeow:providerHandle
     gmeow:useWhen "Use for an explicitly attributed environment record with exact source identities."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authority, acceptance or global completeness from a source record alone."@x-gmeow-english ;
     gmeow:howToUse "Retain the provider, world, original source and recorded scope; preserve conflicting reports without defaults."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain this documented meaning: The exact opaque handle supplied by a provider for an object or part. Preserve it verbatim within explicit provider/world scope; identical handles in other scopes imply no identity."@x-gmeow-english .
 
 gmeow:worldObjectCapability
@@ -925,7 +926,7 @@ gmeow:semanticTypeAsRecorded
 
 gmeow:worldIdentifier
     a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "created world identifier"@x-gmeow-english ;
@@ -933,6 +934,7 @@ gmeow:worldIdentifier
     gmeow:useWhen "Use for an explicitly attributed environment record with exact source identities."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authority, acceptance or global completeness from a source record alone."@x-gmeow-english ;
     gmeow:howToUse "Retain the provider, world, original source and recorded scope; preserve conflicting reports without defaults."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain this documented meaning: The source's exact identifier of the environment brought into being by a reported creation event. The code is provider-scoped and does not certify event execution."@x-gmeow-english .
 
 gmeow:missingCapability

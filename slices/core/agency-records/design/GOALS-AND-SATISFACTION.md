@@ -122,8 +122,9 @@ neither contract execution nor automatically a MalformedValue.
 
 Prose accepts xsd:string, rdf:langString and rdf:dirLangString. Supplied
 language and base direction survive verbatim; missing language is not guessed.
-Opaque keys, handles and engine codes use exact xsd:string rather than token
-normalization. These fidelity choices preserve source information without
+Opaque keys, handles and engine codes preserve exact source strings. The named
+toolName and toolCallId fields also admit explicitly supplied xsd:token through
+a datatype union, without string conversion or whitespace normalization. These fidelity choices preserve source information without
 creating a parser or executor (Principles 2, 3, 9 and 17).
 
 The ordinary composition scene is

@@ -80,6 +80,8 @@ JSON envelope and the artifact it describes have different byte identities;
 `resultDigest` is not automatically the artifact’s `contentDigest`.
 
 A `ToolCall` can retain its verbatim `toolName` and source-scoped `toolCallId`.
+Both admit `xsd:string` and explicitly supplied `xsd:token`, retaining the source
+datatype and lexical form without whitespace normalization or inferred typing.
 It still requires `usedTool` pointing to the actual `SoftwareAgent`. A minimally
 described, source-scoped tool agent is enough when only the tool’s name is known.
 Do not invent a holder, provider, executable path or cross-call identity from that

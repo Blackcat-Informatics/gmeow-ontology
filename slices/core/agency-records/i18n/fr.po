@@ -5338,3 +5338,11 @@ msgstr "Nommer la loi de cible : gmeow:CreatureDemandAnsweredConstraint logic:fo
 msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."
 msgstr "Une occurrence classifiée comme demande de créature répondue conserve un lien answersDemand vers son Desire réel exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."

@@ -20,7 +20,8 @@ ShEx remain generated projections; this slice authors none of those surfaces.
 | Recording and modification literals | Anonymous data-range union of four standard XSD temporal datatypes; explicit property-global closed-world range reading. |
 | Period references | Range union of the existing `TimeInterval` and `NamedPeriod` classes. |
 | Ordinal | Standard `xsd:nonNegativeInteger` range with explicit property-global closed-world reading. |
-| Facet label | Universal `xsd:string` restriction, class-scoped closed-world required path and canonical functionality assertion. |
+| Facet label | Universal `xsd:string` / `xsd:token` union restriction, class-scoped closed-world required path and canonical functionality assertion. |
+| Facet label wording | Optional, nonfunctional literal relation with property range and class-local universal restriction over `xsd:string`, `rdf:langString` and `rdf:dirLangString`. |
 | Facet payload | Literal restrictions, separate functionality assertions and a realized integrity formula excluding simultaneous text and value. |
 | Concept interpretation | Nonfunctional relation to existing `Concept`; no preferred interpretation. |
 | Context identity | Realized guarded-existence formula requiring `contentDigest` on every referenced context artifact. |
@@ -73,10 +74,35 @@ separately without obtaining it from mere co-presence in a context.
 ## Content fidelity
 
 A label is a literal, including any producer-supplied relative-path notation.
-`xsd:string` preserves its whitespace; `xsd:token` would normalize it. Position
+Both `facetLabel` and its `malformedField` specialization admit the supplied
+`xsd:string` or `xsd:token` datatype through explicit unions. Retain the original
+lexical form without string conversion or whitespace normalization. The
+malformed-field universal and qualified maximum use the same union. Position
 names prevent key spelling from determining vocabulary or identity. No reversible
 object reconstruction is promised from ambiguous path labels alone. A consumer
 requiring the original serialization retains that artifact separately.
+
+`facetLabelAsWritten` distinguishes supplied label wording from the required
+machine key or relative path. Its anonymous datatype union and the
+`LabelledFacet` all-values restriction preserve untagged, language and
+directional language strings. Neither a required path nor a cardinality bound
+is added. Several source wordings may coexist with their own statement
+provenance; missing language or direction is not guessed.
+
+The property specializes the existing `lang:literalValue` carrier, whose range
+is `rdfs:Literal` and whose subject has no domain restriction. This preserves
+the complete label literal without coercing the facet into a different subject
+class. The manifest declares the direct dependency on the language grounding
+owner. This is a semantic specialization, not property equivalence or a
+literal conversion.
+
+No subproperty bridge to `facetLabel` is asserted: that key's machine-datatype
+contract must not erase language or direction from wording. No bridge to
+`facetText` is asserted either: label wording is metadata about the label,
+not the field's payload. The required key closure and functionality, both
+payload functionality records and their mutual exclusion remain unchanged.
+Retaining wording does not synthesize a key, select a preferred interpretation
+or promise source serialization reconstruction (Principles 2, 4, 9 and 17).
 
 Typed scalars keep their source datatype and lexical form. Text keeps source
 language and direction when known. No language, missing value or digest is

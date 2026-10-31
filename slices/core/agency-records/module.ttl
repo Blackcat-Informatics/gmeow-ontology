@@ -560,9 +560,10 @@ gmeow:toolName
     gmeow:useWhen "Use when the source exposes a name without a rich tool-agent description."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid replacing required usedTool with this literal or inferring a holder from the name."@x-gmeow-english ;
     gmeow:howToUse "Keep the string and link usedTool to a minimally described actual source-scoped SoftwareAgent."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:record gmeow:toolName \"source value\" ."@x-gmeow-english ;
     logic:domain gmeow:ToolCall ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:toolCallId
     a logic:DatatypeProperty ;
@@ -573,9 +574,10 @@ gmeow:toolCallId
     gmeow:useWhen "Use to retain the source identifier by which records referred to the call."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid widening unrelated identifier domains or merging calls by a reused local id."@x-gmeow-english ;
     gmeow:howToUse "Keep the source string and link assertions with existing derivedBy only when they came from that call."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:record gmeow:toolCallId \"source value\" ."@x-gmeow-english ;
     logic:domain gmeow:ToolCall ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:receiptTool
     a logic:DatatypeProperty ;
@@ -802,8 +804,8 @@ gmeow:ArtifactOperationReceipt logic:subClassOf
     logic:closureKey "https://blackcatinformatics.ca/gmeow/subEventOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ToolCall logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:toolName ; logic:allValuesFrom xsd:string ],
-    [ a logic:Restriction ; logic:onProperty gmeow:toolCallId ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:toolName ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:toolCallId ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 gmeow:ModelInvocation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:invocationOutcome ; logic:allValuesFrom gmeow:ModelInvocationOutcome ],

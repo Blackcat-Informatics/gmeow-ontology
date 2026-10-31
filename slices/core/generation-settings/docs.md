@@ -14,16 +14,16 @@ or output relation is introduced (Principle 5).
 | `generationSeed` | `xsd:integer` | Seed used to initialize this run’s sampler. |
 | `generationSteps` | `xsd:nonNegativeInteger` | Sampling or denoising steps the run was given. |
 | `guidanceScale` | `xsd:decimal` | Classifier-free guidance parameter supplied for the run. |
-| `samplerName` | `xsd:string` | Engine’s exact sampler name, including whitespace. |
+| `samplerName` | `xsd:string` or supplied `xsd:token` | Engine’s exact sampler name and datatype, including source whitespace. |
 | `modelMode` | `ModelMode` | Named settings profile requested by the caller. |
 
 The step setting does not report how many steps actually completed and is not
 an agent’s step budget. Guidance scale is neither confidence nor a guidance
 rubric. Its numerical interpretation depends on the model and engine.
 
-`samplerName` deliberately uses `xsd:string`: `xsd:token` collapses whitespace
-and could alter an engine’s exact designation. Preserve case, spaces and
-punctuation. This string names the sampler, not the model, and does not imply
+`samplerName` admits verbatim `xsd:string` and explicitly supplied `xsd:token`.
+Preserve the supplied datatype, case, spaces and punctuation. Do not convert
+a string to token or collapse whitespace in an engine’s exact designation. This string names the sampler, not the model, and does not imply
 that differently named samplers are equivalent.
 
 `ModelMode` is an open `logic:QualityValue` vocabulary. Its four initial values

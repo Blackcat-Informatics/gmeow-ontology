@@ -5338,3 +5338,11 @@ msgstr "指定目标法则：gmeow:CreatureDemandAnsweredConstraint logic:formal
 msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."
 msgstr "分类为生物需求获回应的事件应保留指向其确切实际 Desire 的 answersDemand 关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
