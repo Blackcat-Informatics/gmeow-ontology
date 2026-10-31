@@ -672,7 +672,7 @@ fn the_dictionaries_are_carried_exactly_once(
     module: &MediumRegistry,
 ) {
     // The realization records, keyed by the dictionary id they realize.
-    let digest_by_id: BTreeMap<String, String> = subjects_of_type(
+    let digest_by_id: BTreeMap<String, RdfTerm> = subjects_of_type(
         registry_quads,
         &format!("{GMEOW}CompressionDictionaryRealization"),
     )
@@ -687,7 +687,15 @@ fn the_dictionaries_are_carried_exactly_once(
             .clone();
         (
             id,
-            literal_of(registry_quads, subject, "dictionaryContentDigest"),
+            registry_quads
+                .iter()
+                .find(|quad| {
+                    quad.subject == RdfTerm::iri(subject)
+                        && quad.predicate == format!("{GMEOW}dictionaryContentDigest")
+                })
+                .expect("the realization carries its dictionary digest")
+                .object
+                .clone(),
         )
     })
     .collect();
@@ -703,9 +711,14 @@ fn the_dictionaries_are_carried_exactly_once(
         let in_band = pinned
             .get(id)
             .unwrap_or_else(|| panic!("the header pins no {id:?} dictionary"));
+        let address = blake3(in_band);
+        let expected = RdfTerm::literal(purrdf::RdfLiteral::typed(
+            address.strip_prefix("blake3:").unwrap(),
+            format!("{GMEOW}blake3_256Digest"),
+        ));
         assert_eq!(
-            digest_by_id.get(id).map(String::as_str),
-            Some(blake3(in_band).as_str()),
+            digest_by_id.get(id),
+            Some(&expected),
             "the in-band {id} dictionary must match its recorded content digest"
         );
     }

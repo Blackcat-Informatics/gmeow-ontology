@@ -394,8 +394,8 @@ msgid "dictionary content digest"
 msgstr "empreinte de contenu du dictionnaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The byte-exact identity of a TRAINED dictionary, written 'blake3:<hex>' — a realization field. It is deliberately NOT gmeow:contentDigest reused: gmeow:contentDigest identifies the artifact a record is ABOUT, while this identifies the dictionary the record's artifact was primed WITH, and collapsing them would make an envelope's own identity indistinguishable from its dictionary's. A decoder that holds a dictionary whose digest differs from the one the frame cites raises gmeow:MediumDigestMismatch and refuses; it never retries dictionary-less."
-msgstr "L'identité exacte à l'octet d'un dictionnaire ENTRAÎNÉ, notée 'blake3:<hex>' — un champ de réalisation. Ce n'est délibérément PAS une reprise de gmeow:contentDigest : gmeow:contentDigest identifie l'artefact dont un enregistrement PARLE, tandis que celle-ci identifie le dictionnaire AVEC lequel l'artefact de l'enregistrement a été amorcé, et les confondre rendrait l'identité propre d'une enveloppe indiscernable de celle de son dictionnaire. Un décodeur qui détient un dictionnaire dont l'empreinte diffère de celle que cite la trame lève gmeow:MediumDigestMismatch et refuse ; il ne réessaie jamais sans dictionnaire."
+msgid "The BLAKE3-256 hash of the exact trained compression-dictionary bytes, carried on their realization as a gmeow:blake3_256Digest literal with 64 lowercase hexadecimal digits and no prefix. It identifies the dictionary used to prime a payload, independently of the payload, source corpus and numeric zstd Dictionary_ID. A mismatch with the held dictionary raises gmeow:MediumDigestMismatch before decoding."
+msgstr "L’empreinte BLAKE3-256 des octets exacts du dictionnaire de compression entraîné, portée par sa réalisation sous forme d’un littéral gmeow:blake3_256Digest de 64 chiffres hexadécimaux minuscules sans préfixe. Elle identifie le dictionnaire utilisé pour amorcer une charge utile, indépendamment de cette charge utile, du corpus source et du Dictionary_ID numérique de zstd. Une différence avec le dictionnaire détenu déclenche gmeow:MediumDigestMismatch avant le décodage."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryId|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "dictionary id"
@@ -1070,3 +1070,55 @@ msgstr "Les liaisons d’énoncés et les annotations natives conservent leurs p
 msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."
 msgstr "Une source de règles natives conserve ses liaisons de réificateurs lors de son admission dans l’instantané aux côtés des énoncés RDF ordinaires."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:realCoreV1 gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:realCoreV1 gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this property identifies the DICTIONARY BYTES a payload was primed with. It is not gmeow:contentDigest, which identifies the artifact a record is about; it is not gmeow:strataDigest, which commits to a named sub-payload of that artifact; and it is not the numeric wire identity the frame header cites (gmeow:zstdDictionaryId). A reader compares it before priming, never as a diagnosis after a failed decode."
+msgstr "Portée : cette propriété identifie les OCTETS DU DICTIONNAIRE avec lequel une charge utile a été amorcée. Ce n’est pas gmeow:contentDigest, qui identifie l’artefact décrit par un enregistrement ; ni gmeow:strataDigest, qui engage une sous-charge utile nommée de cet artefact ; ni l’identité numérique sur le fil citée par l’en-tête de trame (gmeow:zstdDictionaryId). Le lecteur la compare avant l’amorçage, jamais comme diagnostic après un échec de décodage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it on an authored gmeow:CompressionDictionary (an unsatisfiable obligation — the digest is a build product) and avoid substituting it for gmeow:contentDigest, which identifies the artifact rather than its priming dictionary."
+msgstr "Éviter de l’asserter sur un gmeow:CompressionDictionary rédigé (obligation impossible à satisfaire, car l’empreinte est un produit de construction) et de la substituer à gmeow:contentDigest, qui identifie l’artefact plutôt que son dictionnaire d’amorçage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit the exact-byte BLAKE3-256 hash using gmeow:blake3_256Digest; compare its complete typed literal with the held dictionary before priming. Internal blake3: blob addresses retain their prefix at the transport boundary."
+msgstr "Émettre l’empreinte BLAKE3-256 des octets exacts avec gmeow:blake3_256Digest ; comparer son littéral typé complet au dictionnaire détenu avant l’amorçage. Les adresses internes de blobs blake3: conservent leur préfixe à la frontière de transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin exactly which trained dictionary bytes a primed decode requires."
+msgstr "Utiliser pour fixer exactement les octets de dictionnaire entraîné requis par un décodage amorcé."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Medium dictionary-digest form constraint"
+msgstr "Contrainte de forme de l’empreinte du dictionnaire de médium"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required lexical check for a realization's gmeow:dictionaryContentDigest: exactly 64 lowercase hexadecimal digits without an algorithm prefix. The property's mathematics-owned gmeow:blake3_256Digest range supplies algorithm identity; this check neither computes a hash nor proves that dictionary bytes match it."
+msgstr "Le contrôle lexical requis pour gmeow:dictionaryContentDigest d’une réalisation : exactement 64 chiffres hexadécimaux minuscules sans préfixe d’algorithme. La portée de valeurs gmeow:blake3_256Digest, propriété de la couche mathématique, fournit l’identité de l’algorithme ; ce contrôle ne calcule pas d’empreinte et ne prouve pas que les octets du dictionnaire lui correspondent."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when admitting the required typed dictionary-byte digest on a generated realization."
+msgstr "Utiliser lors de l’admission de l’empreinte typée obligatoire des octets du dictionnaire sur une réalisation générée."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying the former blake3: prefixed-string grammar to the typed literal or treating lexical validity as verification of dictionary bytes."
+msgstr "Éviter d’appliquer au littéral typé l’ancienne grammaire de chaîne préfixée blake3: ou de considérer la validité lexicale comme une vérification des octets du dictionnaire."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require the bare hexadecimal form alongside the BLAKE3-256 datatype range and the realization's existing single-value obligations; compare against actual dictionary bytes before decoding."
+msgstr "Exiger la forme hexadécimale sans préfixe, avec la portée de type BLAKE3-256 et les obligations existantes de valeur unique de la réalisation ; comparer aux octets réels du dictionnaire avant le décodage."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This constraint checks the lexical form of supplied values on compression-dictionary realizations; the separate cardinality obligation requires presence. Corpus identities, numeric wire IDs and payload-envelope digests retain their own contracts."
+msgstr "Cette contrainte vérifie la forme lexicale des valeurs fournies sur les réalisations de dictionnaires de compression ; l’obligation de cardinalité distincte exige leur présence. Les identités de corpus, les identifiants numériques sur le fil et les empreintes d’enveloppes de charge utile conservent leurs propres contrats."
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A dictionary digest literal whose lexical value starts with blake3: fails this check even if its datatype names BLAKE3-256."
+msgstr "Un littéral d’empreinte de dictionnaire dont la valeur lexicale commence par blake3: échoue à ce contrôle, même si son type nomme BLAKE3-256."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."

@@ -514,7 +514,9 @@ impl Stage for MediumDictionariesStage {
         // v6: declare the carrier-materialization resource shared with the two
         // whole-dataset exporters. A measured cold run showed their otherwise valid
         // same-wave overlap crossing 16 GiB; serialization changes, not output bytes.
-        "medium-dictionaries.v6-serialized-carrier-materialization"
+        // v7: project exact dictionary byte hashes as BLAKE3-256 typed literals.
+        // Internal blob addresses, training inputs and dictionary bytes are unchanged.
+        "medium-dictionaries.v7-typed-dictionary-byte-digests"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let registry = registry_from_carrier(input.upstream)?;

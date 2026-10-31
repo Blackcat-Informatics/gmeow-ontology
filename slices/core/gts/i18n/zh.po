@@ -534,3 +534,63 @@ msgstr "原生陈述绑定和注释保留各自的表；此合同绝不授权通
 msgctxt "https://blackcatinformatics.ca/gmeow/NativeSnapshotInputAdmission|http://www.w3.org/2004/02/skos/core#example"
 msgid "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."
 msgstr "原生规则源与普通 RDF 陈述一同准入快照时，保留其重述器绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dictionary content digest"
+msgstr "字典内容摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 hash of the exact trained compression-dictionary bytes, carried on their realization as a gmeow:blake3_256Digest literal with 64 lowercase hexadecimal digits and no prefix. It identifies the dictionary used to prime a payload, independently of the payload, source corpus and numeric zstd Dictionary_ID. A mismatch with the held dictionary raises gmeow:MediumDigestMismatch before decoding."
+msgstr "训练所得压缩字典的精确字节的 BLAKE3-256 哈希，以 gmeow:blake3_256Digest 字面量记录在其实现记录上，词法形式为不带前缀的 64 位小写十六进制数字。它标识用于预置载荷的字典，与载荷、源语料库及 zstd 的数字 Dictionary_ID 各自独立。若与所持字典不匹配，则在解码前引发 gmeow:MediumDigestMismatch。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:realCoreV1 gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:realCoreV1 gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Scope: this property identifies the DICTIONARY BYTES a payload was primed with. It is not gmeow:contentDigest, which identifies the artifact a record is about; it is not gmeow:strataDigest, which commits to a named sub-payload of that artifact; and it is not the numeric wire identity the frame header cites (gmeow:zstdDictionaryId). A reader compares it before priming, never as a diagnosis after a failed decode."
+msgstr "范围：此属性标识预置载荷所用的字典字节。它不是标识记录所述工件的 gmeow:contentDigest，不是承诺该工件中具名子载荷的 gmeow:strataDigest，也不是帧头引用的数字线级标识（gmeow:zstdDictionaryId）。读取者在预置前比较该值，而不会在解码失败后才将其用于诊断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting it on an authored gmeow:CompressionDictionary (an unsatisfiable obligation — the digest is a build product) and avoid substituting it for gmeow:contentDigest, which identifies the artifact rather than its priming dictionary."
+msgstr "避免在人工编写的 gmeow:CompressionDictionary 上断言此值（摘要是构建产物，这种义务无法满足），也避免用它替代标识工件而非其预置字典的 gmeow:contentDigest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit the exact-byte BLAKE3-256 hash using gmeow:blake3_256Digest; compare its complete typed literal with the held dictionary before priming. Internal blake3: blob addresses retain their prefix at the transport boundary."
+msgstr "使用 gmeow:blake3_256Digest 输出精确字节的 BLAKE3-256 哈希；在预置前将其完整的带类型字面量与所持字典进行比较。内部 blake3: 二进制对象地址在传输边界保留其前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dictionaryContentDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin exactly which trained dictionary bytes a primed decode requires."
+msgstr "用于精确固定预置解码所需的训练所得字典字节。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Medium dictionary-digest form constraint"
+msgstr "媒介字典摘要形式约束"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The required lexical check for a realization's gmeow:dictionaryContentDigest: exactly 64 lowercase hexadecimal digits without an algorithm prefix. The property's mathematics-owned gmeow:blake3_256Digest range supplies algorithm identity; this check neither computes a hash nor proves that dictionary bytes match it."
+msgstr "实现记录的 gmeow:dictionaryContentDigest 所需的词法检查：恰好 64 位小写十六进制数字，不带算法前缀。该属性由数学层拥有的 gmeow:blake3_256Digest 值域提供算法身份；此检查既不计算哈希，也不证明字典字节与其匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when admitting the required typed dictionary-byte digest on a generated realization."
+msgstr "用于准入生成的实现记录上必需的带类型字典字节摘要。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying the former blake3: prefixed-string grammar to the typed literal or treating lexical validity as verification of dictionary bytes."
+msgstr "避免将先前带 blake3: 前缀的字符串语法应用于带类型字面量，也避免将词法有效性视为字典字节验证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require the bare hexadecimal form alongside the BLAKE3-256 datatype range and the realization's existing single-value obligations; compare against actual dictionary bytes before decoding."
+msgstr "要求无前缀的十六进制形式，同时保留 BLAKE3-256 数据类型值域及实现记录现有的单值义务；在解码前与实际字典字节比较。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This constraint checks the lexical form of supplied values on compression-dictionary realizations; the separate cardinality obligation requires presence. Corpus identities, numeric wire IDs and payload-envelope digests retain their own contracts."
+msgstr "此约束检查压缩字典实现记录上所提供值的词法形式；独立的基数义务要求该值存在。语料库身份、数字线级标识及载荷信封摘要保留各自的合同。"
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumDictionaryDigestFormConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "A dictionary digest literal whose lexical value starts with blake3: fails this check even if its datatype names BLAKE3-256."
+msgstr "词法值以 blake3: 开头的字典摘要字面量无法通过此检查，即使其数据类型指明 BLAKE3-256。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
