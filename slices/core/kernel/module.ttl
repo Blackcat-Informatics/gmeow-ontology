@@ -1412,3 +1412,29 @@ gmeow:levelScaleFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:levelScale and nothing else. It is not a definition of gmeow:levelScale (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:levelScaleFunctionality logic:characterizes gmeow:levelScale ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:slotBearer
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "slot bearer"@x-gmeow-english ;
+    skos:definition "The Agent whose state a source-scoped slot tracks. Each slot record has one bearer; this relation does not classify the slot as a particular kind of record."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the agent whose state a slot records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an arbitrary entity as the bearer or inferring a slot class from this relation alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference the source’s Agent and type the slot explicitly; the owning slot class supplies its required fields and consistency obligations."@x-gmeow-english ;
+    skos:example "ex:sourceSlot gmeow:slotBearer ex:agent ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:range gmeow:Agent .
+
+gmeow:slotBearerFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    rdfs:label "slotBearer is functional"@x-gmeow-english ;
+    skos:definition "The intrinsic at-most-one Agent bearer of a source-scoped slot record. Independently sourced slots retain distinct identities; this obligation does not choose a preferred state."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep each slot record’s Agent bearer singular."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using bearer functionality to merge independently sourced slot identities."@x-gmeow-english ;
+    gmeow:howToUse "Read this as an at-most-one obligation on slotBearer; the owning slot class specifies whether the bearer is required."@x-gmeow-english ;
+    skos:example "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    logic:characterizes gmeow:slotBearer ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:slotBearer .
