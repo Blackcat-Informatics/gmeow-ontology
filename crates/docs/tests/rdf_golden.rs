@@ -102,7 +102,7 @@ fn small_model() -> DocsModel {
             terms_referenced: vec!["gmeow:Cat".to_string()],
             expected_outcome: Some("conforms".to_string()),
             violation_code: None,
-            rationale: None,
+            rationales: Vec::new(),
             catalog_slug: None,
         }],
         shapes: Vec::new(),

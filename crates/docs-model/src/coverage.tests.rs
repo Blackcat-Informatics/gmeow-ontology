@@ -273,7 +273,7 @@ fn demonstration_dims_are_existential_per_term_dims_universal() {
                 terms_referenced: vec!["gmeow:One".to_string()],
                 expected_outcome: None,
                 violation_code: None,
-                rationale: None,
+                rationales: Vec::new(),
                 catalog_slug: None,
             },
             DocFixture {
@@ -285,7 +285,7 @@ fn demonstration_dims_are_existential_per_term_dims_universal() {
                 terms_referenced: vec!["gmeow:One".to_string()],
                 expected_outcome: None,
                 violation_code: None,
-                rationale: None,
+                rationales: Vec::new(),
                 catalog_slug: None,
             },
         ],

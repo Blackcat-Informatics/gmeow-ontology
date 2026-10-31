@@ -215,7 +215,7 @@ use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 // As with lang-bridge, `gmeow-validate` stays linked in the reasoning image through
 // `gmeow-slice-quality`; only these readers are gated.
 #[cfg(feature = "core")]
-use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
+use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView, LiteralView};
 // `recall` is a core read over the grounded-memory triad; the three WRITE option types
 // belong to the WRITE tools, which are segment tools because their commit gate is a TR
 // transaction.
@@ -736,19 +736,19 @@ fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget
 
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
-/// authored outcome/rationale, and each referenced documented term (repeatable).
+/// authored outcome, and each referenced documented term (repeatable). Rationales
+/// are read separately as complete native literals.
 #[cfg(feature = "core")]
 const COUNTER_EXAMPLE_FIXTURE_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?f ?code ?text ?label ?outcome ?rationale ?term WHERE {
+SELECT ?f ?code ?text ?label ?outcome ?term WHERE {
   ?f a gm:DocFixture ;
      gm:docFixtureKind gm:docFixtureKindCounterExample ;
      gm:docViolationCode ?code ;
      gm:docFixtureText ?text .
   OPTIONAL { ?f rdfs:label ?label }
   OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
-  OPTIONAL { ?f gm:conformanceRationale ?rationale }
   OPTIONAL { ?f gm:documents ?term }
 }";
 
@@ -795,7 +795,7 @@ fn fixtures_by_term_query(term_iri: &str) -> String {
         "\
 PREFIX gm: <{GMEOW_NS}>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
+SELECT ?f ?kind ?text ?label ?outcome ?code WHERE {{
   ?f a gm:DocFixture ;
      gm:documents <{term_iri}> ;
      gm:docFixtureKind ?kind ;
@@ -803,7 +803,6 @@ SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
   OPTIONAL {{ ?f rdfs:label ?label }}
   OPTIONAL {{ ?f gm:docExpectedOutcome ?outcome }}
   OPTIONAL {{ ?f gm:docViolationCode ?code }}
-  OPTIONAL {{ ?f gm:conformanceRationale ?rationale }}
 }}"
     )
 }
@@ -1324,9 +1323,9 @@ fn value_str_array(value: &Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Render one fixture record as the tool's JSON object. The advisory fields are
-/// emitted as `null` when the slice authored none (a stable shape callers can read
-/// without probing for key presence).
+/// Render one fixture record as the tool's JSON object, with nullable scalar
+/// metadata and a complete literal array for rationales.
+/// No authored rationales is an empty array.
 #[cfg(feature = "core")]
 fn fixture_json(view: &FixtureView) -> Value {
     json!({
@@ -1334,7 +1333,7 @@ fn fixture_json(view: &FixtureView) -> Value {
         "text": view.text,
         "expected_outcome": view.expected_outcome,
         "violation_code": view.violation_code,
-        "rationale": view.rationale,
+        "rationales": view.rationales,
     })
 }
 
@@ -1521,14 +1520,16 @@ impl McpView {
     /// read from the `gmeow:graph/documentation` projection and split by
     /// `gmeow:docFixtureKind`. Each fixture is one record carrying its title, full
     /// Turtle body, and the authored advisory fields (expected outcome, violation
-    /// code, conformance rationale) — `null` when the slice authored none. Both lists
+    /// code, and all conformance rationales). Missing scalar values are null; missing
+    /// rationales form an empty array. Both lists
     /// are ordered by fixture IRI, so the surface is deterministic. A term that
     /// documents no fixtures yields two empty lists (honest empty-but-ok).
     #[cfg(feature = "core")]
     fn term_fixtures(&self, term_iri: &str) -> gmeow_errors::Result<(Vec<Value>, Vec<Value>)> {
         let query = fixtures_by_term_query(term_iri);
-        // One record per fixture IRI: the fixture-scoped columns are single-valued,
-        // so first-row-wins is the whole record. BTreeMap → fixture-IRI order.
+        let rationales = self.fixture_rationales()?;
+        // Aggregate scalar fixture fields by IRI. Rationales are read separately
+        // with full term identity. BTreeMap gives fixture-IRI order.
         let mut by_fixture: BTreeMap<String, (String, FixtureView)> = BTreeMap::new();
         for row in self.docs_select_rows(&query)? {
             let (Some(fixture), Some(kind), Some(text)) =
@@ -1544,7 +1545,7 @@ impl McpView {
                         text: text.clone(),
                         expected_outcome: row.get("outcome").cloned(),
                         violation_code: row.get("code").cloned(),
-                        rationale: row.get("rationale").cloned(),
+                        rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                     },
                 )
             });
@@ -1834,6 +1835,64 @@ impl McpView {
         Ok(select_rows(&value))
     }
 
+    /// Read rationale terms separately from scalar fixture fields and term joins.
+    #[cfg(feature = "core")]
+    fn fixture_rationales(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<LiteralView>>> {
+        let docs = self.documentation()?;
+        let result = gmeow_bundle_view::native_query::query(
+            docs,
+            "PREFIX gm: <https://blackcatinformatics.ca/gmeow/> SELECT ?f ?rationale WHERE { ?f a gm:DocFixture ; gm:conformanceRationale ?rationale . }",
+        )?;
+        let invalid = |message: &str| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("fixture rationales: {message}"),
+            })
+        };
+        let purrdf::SparqlResult::Solutions {
+            variables, rows, ..
+        } = result
+        else {
+            return Err(invalid("expected native SELECT solutions"));
+        };
+        if variables != ["f", "rationale"] {
+            return Err(invalid("unexpected native SELECT columns"));
+        }
+        let mut values = BTreeMap::<String, BTreeSet<LiteralView>>::new();
+        for row in rows {
+            if row.len() != variables.len() {
+                return Err(invalid("malformed native SELECT row width"));
+            }
+            let terms = row
+                .into_iter()
+                .map(|value| value.map(|term| term.to_rdf_term()).transpose())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|why| invalid(&format!("malformed native term: {why}")))?;
+            let [
+                Some(purrdf::RdfTerm::Iri(subject)),
+                Some(purrdf::RdfTerm::Literal(literal)),
+            ] = terms.as_slice()
+            else {
+                return Err(invalid(
+                    "fixture must be an IRI and rationale must be a literal",
+                ));
+            };
+            purrdf::RdfLiteral::validate_components(
+                literal.datatype_iri(),
+                literal.language.as_deref(),
+                literal.direction,
+            )
+            .map_err(|why| invalid(&format!("malformed rationale: {why}")))?;
+            values
+                .entry(subject.clone())
+                .or_default()
+                .insert(LiteralView::from(literal));
+        }
+        Ok(values
+            .into_iter()
+            .map(|(iri, values)| (iri, values.into_iter().collect()))
+            .collect())
+    }
+
     /// Build the two fixture correspondence maps from the `gmeow:graph/documentation`
     /// projection: `finding-code → counter-example` (keyed on the authored
     /// `gmeow:docViolationCode`) and `finding-code → positive exemplar` (the
@@ -1846,6 +1905,7 @@ impl McpView {
         if let Some(maps) = self.fixture_maps.get() {
             return Ok(maps);
         }
+        let rationales = self.fixture_rationales()?;
         // Counter-example fixtures: aggregate the (possibly multi-`documents`) rows
         // back per fixture IRI so a fixture is one record with its full referenced-term
         // set. BTreeMap keeps the fixture IRIs sorted → deterministic first-wins.
@@ -1866,7 +1926,7 @@ impl McpView {
                             text: text.clone(),
                             expected_outcome: row.get("outcome").cloned(),
                             violation_code: Some(code.clone()),
-                            rationale: row.get("rationale").cloned(),
+                            rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                         },
                         BTreeSet::new(),
                     )
@@ -1893,7 +1953,7 @@ impl McpView {
                             text: text.clone(),
                             expected_outcome: row.get("outcome").cloned(),
                             violation_code: None,
-                            rationale: row.get("rationale").cloned(),
+                            rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                         },
                         BTreeSet::new(),
                     )

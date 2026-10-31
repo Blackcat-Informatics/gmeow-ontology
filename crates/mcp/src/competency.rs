@@ -108,16 +108,9 @@ pub(super) fn records(result: SparqlResult) -> gmeow_errors::Result<Vec<Value>> 
             let rationales: Vec<_> = question
                 .rationales
                 .into_values()
-                .map(|literal| {
-                    json!({
-                        "lexical_form": literal.lexical_form,
-                        "datatype": literal.datatype_iri(),
-                        "language": literal.language,
-                        "direction": literal.direction.map(|direction| direction.as_str()),
-                    })
-                })
+                .map(|literal| gmeow_validate::local_oracle::LiteralView::from(&literal))
                 .collect();
-            object.insert("rationales".into(), Value::Array(rationales));
+            object.insert("rationales".into(), json!(rationales));
             Ok(Value::Object(object))
         })
         .collect()

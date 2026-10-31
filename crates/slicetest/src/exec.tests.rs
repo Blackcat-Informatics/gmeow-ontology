@@ -384,7 +384,7 @@ fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
         expected_source_shape: pin.map(ToOwned::to_owned),
         expected_sole_finding: sole,
         expected_failure_class: None,
-        rationale: None,
+        rationales: Vec::new(),
     };
     std::fs::write(
         directory.path().join("case.ttl"),

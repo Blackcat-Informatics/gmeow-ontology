@@ -5205,8 +5205,11 @@ fn push_fixture_binding_bullets(
             ),
         );
     }
-    if let Some(rationale) = &fixture.rationale {
-        push_line(out, &format!("  - {}", md_escape(&one_line(rationale))));
+    for rationale in &fixture.rationales {
+        push_line(
+            out,
+            &format!("  - {}", md_escape(&one_line(&rationale.lexical_form))),
+        );
     }
 }
 

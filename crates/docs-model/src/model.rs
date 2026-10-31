@@ -426,10 +426,10 @@ pub enum DocsError {
         /// The second document's `slice-iri :: source-path` identity.
         second: String,
     },
-    /// A competency question's rationale path carries a nonliteral value, which the
+    /// An authored rationale path carries a nonliteral value, which the
     /// documentation would otherwise silently lose. Carries the subject and predicate.
     NonliteralRationale {
-        /// The competency question IRI.
+        /// The rationale subject IRI.
         subject: String,
         /// The rationale predicate IRI.
         predicate: String,
@@ -1215,8 +1215,9 @@ pub struct DocFixture {
     /// `None` for a well-formed fixture or an unbound counter-example.
     pub violation_code: Option<String>,
     /// `gmeow:conformanceRationale` — the human-readable "why" the fixture
-    /// conforms or violates. `None` when unbound.
-    pub rationale: Option<String>,
+    /// conforms or violates, retaining every complete literal. Empty when unbound.
+    #[serde(with = "literal_values")]
+    pub rationales: Vec<purrdf::RdfLiteral>,
     /// The constraint-catalog rule slug [`violation_code`](Self::violation_code)
     /// resolves to, when a genuine [`ConstraintRule::code`] match exists in
     /// [`DocsModel::constraint_rules`]. `None` when the fixture is unbound,
@@ -2117,7 +2118,8 @@ impl DocsModel {
     /// v19: terms with validated ownership are documented from their owning
     /// slice, rather than also publishing foreign type redeclarations as owners.
     /// v20: competency rationales retain all complete native RDF literal records.
-    pub const VERSION: &'static str = "20";
+    /// v21: fixture rationales retain every native literal and its source language/direction.
+    pub const VERSION: &'static str = "21";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2399,7 +2401,7 @@ impl DocsModel {
                 let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
                     panic!("example-conformance.ttl for slice {owner} failed to parse: {e}")
                 });
-                bindings.extend(extract_fixture_bindings(&store));
+                bindings.extend(extract_fixture_bindings(&store)?);
             }
             for artifact in &record.artifacts {
                 let kind = match artifact.role {
@@ -4262,23 +4264,23 @@ fn render_worked_instance_turtle(
     out
 }
 
-/// One `gmeow:ExampleConformance` binding read from a slice's
-/// `tests/example-conformance.ttl`: the expected outcome / violation code /
-/// rationale it asserts for the fixture path its `gmeow:exampleFile` pins.
+type RationaleKey = (String, String, Option<String>, Option<String>);
+
+/// Conformance bindings for one fixture path, retaining every rationale term.
 struct FixtureBinding {
     /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`).
     expected_outcome: Option<String>,
     /// `gmeow:expectedViolationCode`.
     violation_code: Option<String>,
     /// `gmeow:conformanceRationale`.
-    rationale: Option<String>,
+    rationales: BTreeMap<RationaleKey, purrdf::RdfLiteral>,
 }
 
 /// Extract the per-fixture-path conformance bindings from a slice's
 /// `tests/example-conformance.ttl` store, keyed by the slice-relative
 /// `gmeow:exampleFile` path each `gmeow:ExampleConformance` cell pins.
-fn extract_fixture_bindings(store: &Store) -> BTreeMap<String, FixtureBinding> {
-    let mut out = BTreeMap::new();
+fn extract_fixture_bindings(store: &Store) -> Result<BTreeMap<String, FixtureBinding>, DocsError> {
+    let mut out: BTreeMap<String, FixtureBinding> = BTreeMap::new();
     for cell in subjects_of_type(store, GMEOW_EXAMPLE_CONFORMANCE) {
         let Some(file) = first_literal(store, &cell, GMEOW_EXAMPLE_FILE) else {
             continue;
@@ -4290,17 +4292,29 @@ fn extract_fixture_bindings(store: &Store) -> BTreeMap<String, FixtureBinding> {
             .min()
             .map(|iri| local_name(&iri).to_string());
         let violation_code = first_literal(store, &cell, GMEOW_EXPECTED_VIOLATION_CODE);
-        let rationale = first_literal(store, &cell, GMEOW_CONFORMANCE_RATIONALE);
-        out.insert(
-            file,
-            FixtureBinding {
-                expected_outcome,
-                violation_code,
-                rationale,
-            },
-        );
+        let rationales = store.rdf_literals(&cell, GMEOW_CONFORMANCE_RATIONALE)?;
+        // Several conformance cells can cite one specimen. Keep every rationale;
+        // the existing deterministic scalar projection remains per fixture path.
+        let binding = out.entry(file).or_insert_with(|| FixtureBinding {
+            expected_outcome: None,
+            violation_code: None,
+            rationales: BTreeMap::new(),
+        });
+        binding.expected_outcome = expected_outcome;
+        binding.violation_code = violation_code;
+        for literal in rationales {
+            let key = (
+                literal.lexical_form.clone(),
+                literal.datatype_iri().to_owned(),
+                literal.language.clone(),
+                literal
+                    .direction
+                    .map(|direction| direction.as_str().to_owned()),
+            );
+            binding.rationales.insert(key, literal);
+        }
     }
-    out
+    Ok(out)
 }
 
 /// Extract a single conformance fixture, reusing [`extract_example`]'s title /
@@ -4316,13 +4330,13 @@ fn extract_fixture(
     binding: Option<&FixtureBinding>,
 ) -> DocFixture {
     let example = extract_example(artifact, owner_slice);
-    let (expected_outcome, violation_code, rationale) = match binding {
+    let (expected_outcome, violation_code, rationales) = match binding {
         Some(b) => (
             b.expected_outcome.clone(),
             b.violation_code.clone(),
-            b.rationale.clone(),
+            b.rationales.values().cloned().collect(),
         ),
-        None => (None, None, None),
+        None => (None, None, Vec::new()),
     };
     DocFixture {
         slice: example.slice,
@@ -4333,7 +4347,7 @@ fn extract_fixture(
         terms_referenced: example.terms_referenced,
         expected_outcome,
         violation_code,
-        rationale,
+        rationales,
         catalog_slug: None,
     }
 }
