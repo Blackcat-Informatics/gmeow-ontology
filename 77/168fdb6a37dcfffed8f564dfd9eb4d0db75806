@@ -1,0 +1,18 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 18c8fcd66117c66e9eb7945a6059247942bd2958
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2146
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2146
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: 42bbf0d8fe25e930d9cf4ef1c75df0fea3b28617
+GhpRsq-Head-Ref: paudley/1810-term-agency-without-plans-attempt-stops
+GhpRsq-Head-OID: 18c8fcd66117c66e9eb7945a6059247942bd2958
+GhpRsq-Result-Tree: 4f14b1980102db330dcfdd596649ff9728663580
+GhpRsq-Result-Commit: 77168fdb6a37dcfffed8f564dfd9eb4d0db75806
+GhpRsq-Parent-Hashes: 18c8fcd66117c66e9eb7945a6059247942bd2958
+GhpRsq-Squash-Notes-SHA256: f53c46763155dbdb640a15d242815fdc510358bab6c1cd787bd07d10849d389d
+GhpRsq-Stage-Evidence: none
