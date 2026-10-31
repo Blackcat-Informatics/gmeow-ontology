@@ -124,7 +124,8 @@ pub(super) fn read_patterns(
 ) -> impl Iterator<Item = (&'static str, Option<&'static str>)> {
     use crate::query_ir::QBuiltin;
     let (predicates, reads_types): (&[&str], bool) = match builtin {
-        QBuiltin::TermEqual { .. }
+        QBuiltin::TermIdentity { .. }
+        | QBuiltin::TermEqual { .. }
         | QBuiltin::TermCompare { .. }
         | QBuiltin::TermKind { .. }
         | QBuiltin::Is { .. }
@@ -423,6 +424,19 @@ pub(crate) fn render_builtin_op(builtin: &QBuiltin) -> String {
             "{comparison:?}({}, {}) = {expected}",
             left.key(),
             right.key()
+        ),
+        QBuiltin::TermIdentity {
+            left,
+            left_component,
+            right,
+            right_component,
+            expected,
+        } => format!(
+            "termSameComponent({}, {}, {}, {}) = {expected}",
+            left.key(),
+            left_component.local_name(),
+            right.key(),
+            right_component.local_name()
         ),
         QBuiltin::TermEqual {
             left,
@@ -1327,6 +1341,23 @@ fn eval_inputs<'a>(
                 _ => false,
             };
             BuiltinOutcome::Filter(holds == *expected)
+        }
+        QBuiltin::TermIdentity {
+            left,
+            left_component,
+            right,
+            right_component,
+            expected,
+        } => {
+            let (Some(left), Some(right)) = (
+                resolve_native_term(left, lookup),
+                resolve_native_term(right, lookup),
+            ) else {
+                return BuiltinOutcome::Unbound;
+            };
+            BuiltinOutcome::Filter(
+                left_component.same_component(&left, *right_component, &right) == *expected,
+            )
         }
         QBuiltin::TermEqual {
             left,

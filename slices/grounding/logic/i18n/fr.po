@@ -23958,3 +23958,199 @@ msgstr "Plusieurs descriptions n’impliquent pas plusieurs contrats de raisonne
 msgctxt "https://blackcatinformatics.ca/logic/candidateScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:candidate logic:candidateScope \"Transitivity over the recorded relation.\"@en ."
 msgstr "ex:candidate logic:candidateScope \"Transitivité sur la relation enregistrée.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term same component"
+msgstr "même composante de terme"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bound integrity predicate comparing selected components of original RDF terms by RDF identity. Four ordered arguments name the left term, left selector IRI, right term and right selector IRI. It binds nothing; an unavailable component makes the predicate false."
+msgstr "Un prédicat d’intégrité sur des termes liés comparant des composantes choisies de termes RDF originaux selon leur identité RDF. Quatre arguments ordonnés nomment le terme gauche, l’IRI du sélecteur gauche, le terme droit et l’IRI du sélecteur droit. Il ne lie rien ; une composante indisponible rend le prédicat faux."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for bound component comparisons in termSameComponent integrity formulas."
+msgstr "Utiliser pour comparer des composantes liées dans les formules d’intégrité termSameComponent."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion, free selector variables or treating the intrinsic as a stored relation. termEqual retains its separate value-equality meaning."
+msgstr "Éviter la conversion de valeurs, les variables libres de sélecteur ou le traitement de cet intrinsèque comme relation stockée. termEqual conserve son sens distinct d’égalité de valeurs."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Order the arguments as term, selector IRI, term, selector IRI. Use componentWhole, componentDatatype, componentTripleSubject, componentTriplePredicate or componentTripleObject; bind every variable operand through a positive stored relation."
+msgstr "Ordonner les arguments ainsi : terme, IRI de sélecteur, terme, IRI de sélecteur. Utiliser componentWhole, componentDatatype, componentTripleSubject, componentTriplePredicate ou componentTripleObject ; lier chaque opérande variable par une relation stockée positive."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Whole selectors compare original RDF terms; a datatype selector paired with a whole selector compares against an explicit datatype IRI."
+msgstr "Les sélecteurs entiers comparent les termes RDF originaux ; un sélecteur de type associé à un sélecteur entier compare un IRI de type explicite."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Term Component"
+msgstr "Composante de terme"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed five-selector vocabulary for bound RDF identity: complete term, literal datatype IRI, quoted subject, quoted predicate or quoted object. Selection neither generates nor normalizes terms."
+msgstr "Le vocabulaire fermé de cinq sélecteurs pour l’identité RDF liée : terme complet, IRI de type littéral, sujet cité, prédicat cité ou objet cité. La sélection ne produit ni ne normalise de termes."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare which original RDF component each side of a bound identity comparison inspects."
+msgstr "Utiliser pour déclarer la composante RDF originale inspectée de chaque côté d’une comparaison d’identité liée."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending the closed selector set locally or inferring executable selector support from asserted class membership."
+msgstr "Éviter d’étendre localement l’ensemble fermé des sélecteurs ou d’inférer leur prise en charge exécutable d’une appartenance de classe affirmée."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose one of the five seeded selector IRIs for each selector position of termSameComponent. Select the whole term for identity, the datatype for literal typing, or a quoted tuple component for subject, predicate or object identity."
+msgstr "Choisir l’un des cinq IRI de sélecteurs fournis pour chaque position de sélecteur de termSameComponent. Sélectionner le terme entier pour l’identité, le type pour le typage littéral ou une composante de triplet cité pour l’identité du sujet, du prédicat ou de l’objet."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The closed vocabulary distinguishes complete-term identity from datatype and quoted-subject, quoted-predicate or quoted-object comparisons; choosing one never requests an output binding."
+msgstr "Le vocabulaire fermé distingue l’identité du terme complet des comparaisons de type, de sujet cité, de prédicat cité ou d’objet cité ; aucun choix ne demande de liaison de sortie."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "whole RDF term"
+msgstr "terme RDF entier"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the complete original RDF term, preserving blank-node scope, literal lexical form, datatype, language and direction, and recursive quoted-triple structure. Available for every bound RDF term."
+msgstr "Sélectionne le terme RDF original complet en conservant la portée des nœuds anonymes, la forme lexicale, le type, la langue et la direction des littéraux ainsi que la structure récursive des triplets cités. Disponible pour tout terme RDF lié."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complete original RDF term must match by identity, including all literal or quoted-triple components."
+msgstr "Utiliser lorsque le terme RDF original complet doit correspondre par identité, avec toutes ses composantes littérales ou de triplet cité."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting numeric value equality or comparing dataset-local term identifiers across different datasets."
+msgstr "Éviter de substituer l’égalité de valeurs numériques ou de comparer entre jeux de données des identifiants de termes locaux."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentWhole after each operand whose complete RDF identity is compared. Both original operands must already be bound or be explicit RDF constants."
+msgstr "Placer componentWhole après chaque opérande dont l’identité RDF complète est comparée. Les deux opérandes originales doivent déjà être liées ou être des constantes RDF explicites."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#example"
+msgid "Whole selectors distinguish numerically equal literals when their lexical forms or datatype IRIs differ; they also compare nested quoted triples recursively."
+msgstr "Les sélecteurs entiers distinguent des littéraux numériquement égaux lorsque leurs formes lexicales ou leurs IRI de types diffèrent ; ils comparent aussi récursivement les triplets cités imbriqués."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "literal datatype IRI"
+msgstr "IRI du type littéral"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the exact datatype IRI of an original literal, including language-string datatypes. Unavailable for an IRI, blank node or quoted triple."
+msgstr "Sélectionne l’IRI exact du type d’un littéral original, y compris les types de chaînes linguistiques. Indisponible pour un IRI, un nœud anonyme ou un triplet cité."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bound literal must carry an exact datatype IRI independently of its lexical value."
+msgstr "Utiliser lorsqu’un littéral lié doit porter un IRI de type exact indépendamment de sa valeur lexicale."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring datatype identity from a numeric-looking lexical form, treating subtype derivation as exact IRI identity, or coercing the literal."
+msgstr "Éviter d’inférer l’identité du type d’une forme lexicale d’apparence numérique, de confondre dérivation de sous-type et identité exacte d’IRI ou de convertir le littéral."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentDatatype after the original literal and componentWhole after an explicit expected datatype IRI, or select datatype on both bound literals to compare their datatype IRIs."
+msgstr "Placer componentDatatype après le littéral original et componentWhole après un IRI de type attendu explicite, ou sélectionner le type des deux littéraux liés pour comparer leurs IRI de types."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#example"
+msgid "A datatype selector on a bound digest literal paired with a whole selector on its expected datatype IRI checks the algorithm datatype without parsing or rewriting the digest."
+msgstr "Un sélecteur de type sur un littéral d’empreinte lié associé à un sélecteur entier sur son IRI de type attendu vérifie le type d’algorithme sans analyser ni réécrire l’empreinte."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple subject"
+msgstr "sujet du triplet cité"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original subject RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."
+msgstr "Sélectionne le terme RDF sujet original d’un triplet cité. Indisponible pour un IRI, un nœud anonyme ou un littéral. Cette sélection n’inspecte pas le réificateur d’un énoncé."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two quoted claims must concern the same original RDF subject even if their objects differ."
+msgstr "Utiliser lorsque deux affirmations citées doivent concerner le même sujet RDF original même si leurs objets diffèrent."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing statement-reifier identities, assuming subject equality establishes predicate or object equality, or looking up asserted subject properties."
+msgstr "Éviter de comparer les identités de réificateurs d’énoncés, de supposer que l’égalité des sujets établit celle des prédicats ou objets ou de rechercher des propriétés affirmées des sujets."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTripleSubject after each original quoted-triple operand to compare its native subject. Pair with componentWhole to compare a quoted subject against an explicit RDF term."
+msgstr "Placer componentTripleSubject après chaque opérande originale de triplet cité pour comparer son sujet natif. Associer à componentWhole pour comparer un sujet cité à un terme RDF explicite."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#example"
+msgid "Subject selectors on two bound quoted assignment claims check that both claims describe the same RDF subject without requiring their assigned objects to match."
+msgstr "Les sélecteurs de sujet sur deux affirmations d’affectation citées liées vérifient qu’elles décrivent le même sujet RDF sans exiger que leurs objets affectés correspondent."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple predicate"
+msgstr "prédicat du triplet cité"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original predicate RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."
+msgstr "Sélectionne le terme RDF prédicat original d’un triplet cité. Indisponible pour un IRI, un nœud anonyme ou un littéral. Cette sélection n’inspecte pas le réificateur d’un énoncé."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two quoted claims must name the same original RDF predicate even if their objects differ."
+msgstr "Utiliser lorsque deux affirmations citées doivent nommer le même prédicat RDF original même si leurs objets diffèrent."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating related or equivalent vocabulary predicates as the same RDF term, comparing reifier metadata, or inferring subject equality from predicate identity."
+msgstr "Éviter de traiter des prédicats de vocabulaire liés ou équivalents comme le même terme RDF, de comparer les métadonnées des réificateurs ou d’inférer l’égalité des sujets de l’identité des prédicats."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTriplePredicate after each original quoted-triple operand to compare its native predicate IRI. Compare subjects separately when both tuple positions must agree."
+msgstr "Placer componentTriplePredicate après chaque opérande originale de triplet cité pour comparer son IRI de prédicat natif. Comparer les sujets séparément lorsque les deux positions du triplet doivent concorder."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "Les composantes indisponibles rendent le prédicat complet faux ; la négation s’applique ensuite. Les opérandes non liées font refuser le programme. Une mauvaise arité, des sélecteurs inconnus et des contextes natifs non pris en charge ne se rabattent jamais sur la recherche de prédicats stockés."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Predicate selectors on predecessor and successor quoted assignment claims check that both assignments use the same RDF predicate while preserving the different assigned objects."
+msgstr "Les sélecteurs de prédicat sur les affirmations d’affectation citées précédente et suivante vérifient qu’elles utilisent le même prédicat RDF tout en conservant leurs objets affectés différents."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple object"
+msgstr "objet du triplet cité"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original object RDF term of a quoted triple, preserving its complete RDF identity, including literal metadata or recursive quoted-triple structure. Unavailable for an IRI, blank node or literal."
+msgstr "Sélectionne le terme RDF objet original d’un triplet cité en conservant son identité RDF complète, y compris les métadonnées littérales ou la structure récursive des triplets cités. Indisponible pour un IRI, un nœud anonyme ou un littéral."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a quoted edge must identify the exact object already bound by a source relation."
+msgstr "Utiliser lorsqu’une arête citée doit identifier l’objet exact déjà lié par une relation source."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using value equality for object identity, inspecting reifier annotations instead of the quoted tuple, or assuming a quoted edge was asserted."
+msgstr "Éviter d’utiliser l’égalité de valeurs pour l’identité de l’objet, d’inspecter les annotations du réificateur au lieu du triplet cité ou de supposer qu’une arête citée a été affirmée."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTripleObject after the original quoted edge and componentWhole after its expected object, already bound through a positive stored relation. The comparison creates no output binding."
+msgstr "Placer componentTripleObject après l’arête citée originale et componentWhole après son objet attendu, déjà lié par une relation stockée positive. La comparaison ne crée aucune liaison de sortie."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The original object is compared as a native RDF term, including blank-node scope. An unavailable object component makes the predicate false before negation; an unbound operand refuses the program."
+msgstr "L’objet original est comparé comme terme RDF natif, y compris la portée des nœuds anonymes. Une composante objet indisponible rend le prédicat faux avant négation ; une opérande non liée fait refuser le programme."
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "An object selector on a quoted supersession edge paired with a whole selector on its positively bound predecessor checks that the edge names that exact predecessor."
+msgstr "Un sélecteur d’objet sur une arête de remplacement citée associé à un sélecteur entier sur son prédécesseur lié positivement vérifie que l’arête nomme ce prédécesseur exact."

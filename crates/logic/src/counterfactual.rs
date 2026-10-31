@@ -911,6 +911,19 @@ fn builtin_str(b: &crate::query_ir::QBuiltin) -> String {
             left.key(),
             right.key()
         ),
+        QBuiltin::TermIdentity {
+            left,
+            left_component,
+            right,
+            right_component,
+            expected,
+        } => format!(
+            "termSameComponent({}, {}, {}, {}) = {expected}",
+            left.key(),
+            left_component.local_name(),
+            right.key(),
+            right_component.local_name()
+        ),
         QBuiltin::TermEqual {
             left,
             right,

@@ -155,6 +155,23 @@ impl QBuiltin {
                         .with("expected", expected.to_json()),
                 )
                 .into(),
+            Self::TermIdentity {
+                left,
+                left_component,
+                right,
+                right_component,
+                expected,
+            } => Object::new()
+                .with(
+                    "TermIdentity",
+                    Object::new()
+                        .with("left", left.to_json())
+                        .with("left_component", left_component.to_json())
+                        .with("right", right.to_json())
+                        .with("right_component", right_component.to_json())
+                        .with("expected", expected.to_json()),
+                )
+                .into(),
             Self::TermEqual {
                 left,
                 right,
@@ -308,6 +325,16 @@ impl FromJson for QBuiltin {
                         expected: fields.required("expected")?,
                     }
                 }
+                "TermIdentity" => {
+                    let mut fields = Record::new(payload, "struct variant QBuiltin::TermIdentity")?;
+                    Self::TermIdentity {
+                        left: fields.required("left")?,
+                        left_component: fields.required("left_component")?,
+                        right: fields.required("right")?,
+                        right_component: fields.required("right_component")?,
+                        expected: fields.required("expected")?,
+                    }
+                }
                 "TermEqual" => {
                     let mut fields = Record::new(payload, "struct variant QBuiltin::TermEqual")?;
                     Self::TermEqual {
@@ -371,6 +398,7 @@ impl FromJson for QBuiltin {
                         name,
                         &[
                             "TermCompare",
+                            "TermIdentity",
                             "TermEqual",
                             "TermKind",
                             "Is",

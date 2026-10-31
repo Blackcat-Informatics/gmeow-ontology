@@ -23958,3 +23958,199 @@ msgstr "多条描述不意味着多个推理契约，也不改变公式身份。
 msgctxt "https://blackcatinformatics.ca/logic/candidateScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:candidate logic:candidateScope \"Transitivity over the recorded relation.\"@en ."
 msgstr "ex:candidate logic:candidateScope \"所记录关系的传递性。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "term same component"
+msgstr "项分量同一"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bound integrity predicate comparing selected components of original RDF terms by RDF identity. Four ordered arguments name the left term, left selector IRI, right term and right selector IRI. It binds nothing; an unavailable component makes the predicate false."
+msgstr "按 RDF 身份比较原始 RDF 项选定分量的已绑定完整性谓词。四个有序参数指定左项、左选择器 IRI、右项和右选择器 IRI。它不绑定值；分量不可用时谓词为假。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for bound component comparisons in termSameComponent integrity formulas."
+msgstr "用于 termSameComponent 完整性公式中的已绑定分量比较。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid value coercion, free selector variables or treating the intrinsic as a stored relation. termEqual retains its separate value-equality meaning."
+msgstr "避免值强制转换、自由选择器变量或将内建谓词视为存储关系。termEqual 保留其独立的值相等含义。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Order the arguments as term, selector IRI, term, selector IRI. Use componentWhole, componentDatatype, componentTripleSubject, componentTriplePredicate or componentTripleObject; bind every variable operand through a positive stored relation."
+msgstr "按项、选择器 IRI、项、选择器 IRI 排列参数。使用 componentWhole、componentDatatype、componentTripleSubject、componentTriplePredicate 或 componentTripleObject；通过正向存储关系绑定每个变量操作数。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/termSameComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Whole selectors compare original RDF terms; a datatype selector paired with a whole selector compares against an explicit datatype IRI."
+msgstr "完整项选择器比较原始 RDF 项；数据类型选择器与完整项选择器配对时，可与明确的数据类型 IRI 比较。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Term Component"
+msgstr "项分量"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed five-selector vocabulary for bound RDF identity: complete term, literal datatype IRI, quoted subject, quoted predicate or quoted object. Selection neither generates nor normalizes terms."
+msgstr "用于已绑定 RDF 身份比较的封闭五选择器词汇：完整项、字面量数据类型 IRI、引用主语、引用谓词或引用宾语。选择不生成或规范化项。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare which original RDF component each side of a bound identity comparison inspects."
+msgstr "用于声明已绑定身份比较两侧各自检查的原始 RDF 分量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending the closed selector set locally or inferring executable selector support from asserted class membership."
+msgstr "避免在本地扩展封闭选择器集合，或由已断言的类成员关系推断可执行的选择器支持。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose one of the five seeded selector IRIs for each selector position of termSameComponent. Select the whole term for identity, the datatype for literal typing, or a quoted tuple component for subject, predicate or object identity."
+msgstr "为 termSameComponent 的每个选择器位置选取五个预置选择器 IRI 之一。完整项用于项身份，数据类型用于字面量类型，引用元组分量用于主语、谓词或宾语身份。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/TermComponent|http://www.w3.org/2004/02/skos/core#example"
+msgid "The closed vocabulary distinguishes complete-term identity from datatype and quoted-subject, quoted-predicate or quoted-object comparisons; choosing one never requests an output binding."
+msgstr "封闭词汇区分完整项身份与数据类型、引用主语、引用谓词或引用宾语比较；任何选择都不请求输出绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "whole RDF term"
+msgstr "完整 RDF 项"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the complete original RDF term, preserving blank-node scope, literal lexical form, datatype, language and direction, and recursive quoted-triple structure. Available for every bound RDF term."
+msgstr "选取完整原始 RDF 项，保留空白节点作用域、字面量词法形式、数据类型、语言及方向，以及引用三元组的递归结构。对每个已绑定 RDF 项均可用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complete original RDF term must match by identity, including all literal or quoted-triple components."
+msgstr "当完整原始 RDF 项必须按身份一致，包括其全部字面量或引用三元组分量时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting numeric value equality or comparing dataset-local term identifiers across different datasets."
+msgstr "避免替换为数值相等，或跨数据集比较仅在各数据集内有效的项标识符。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentWhole after each operand whose complete RDF identity is compared. Both original operands must already be bound or be explicit RDF constants."
+msgstr "将 componentWhole 放在每个需要比较完整 RDF 身份的操作数之后。两个原始操作数必须已绑定或为明确的 RDF 常量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentWhole|http://www.w3.org/2004/02/skos/core#example"
+msgid "Whole selectors distinguish numerically equal literals when their lexical forms or datatype IRIs differ; they also compare nested quoted triples recursively."
+msgstr "完整项选择器在词法形式或数据类型 IRI 不同时区分数值相等的字面量，也递归比较嵌套引用三元组。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "literal datatype IRI"
+msgstr "字面量数据类型 IRI"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the exact datatype IRI of an original literal, including language-string datatypes. Unavailable for an IRI, blank node or quoted triple."
+msgstr "选取原始字面量的确切数据类型 IRI，包括语言字符串数据类型。对 IRI、空白节点或引用三元组不可用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a bound literal must carry an exact datatype IRI independently of its lexical value."
+msgstr "当已绑定字面量必须携带确切的数据类型 IRI，而不取决于其词法值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring datatype identity from a numeric-looking lexical form, treating subtype derivation as exact IRI identity, or coercing the literal."
+msgstr "避免从看似数值的词法形式推断数据类型身份、将子类型派生视为确切 IRI 身份，或强制转换字面量。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentDatatype after the original literal and componentWhole after an explicit expected datatype IRI, or select datatype on both bound literals to compare their datatype IRIs."
+msgstr "在原始字面量之后放置 componentDatatype，在明确的预期数据类型 IRI 之后放置 componentWhole；也可为两个已绑定字面量都选择数据类型以比较其数据类型 IRI。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentDatatype|http://www.w3.org/2004/02/skos/core#example"
+msgid "A datatype selector on a bound digest literal paired with a whole selector on its expected datatype IRI checks the algorithm datatype without parsing or rewriting the digest."
+msgstr "已绑定摘要字面量的数据类型选择器，与其预期数据类型 IRI 的完整项选择器配对，可检查算法数据类型，而不解析或改写摘要。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple subject"
+msgstr "引用三元组主语"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original subject RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."
+msgstr "选取引用三元组的原始主语 RDF 项。对 IRI、空白节点或字面量不可用。此选择不检查陈述重述节点。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two quoted claims must concern the same original RDF subject even if their objects differ."
+msgstr "当两个引用声明必须涉及同一原始 RDF 主语，即使其宾语不同时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing statement-reifier identities, assuming subject equality establishes predicate or object equality, or looking up asserted subject properties."
+msgstr "避免比较陈述重述节点身份、假设主语相等即可确立谓词或宾语相等，或查询已断言的主语属性。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTripleSubject after each original quoted-triple operand to compare its native subject. Pair with componentWhole to compare a quoted subject against an explicit RDF term."
+msgstr "在每个原始引用三元组操作数之后放置 componentTripleSubject，以比较其原生主语。与 componentWhole 配对可将引用主语与明确的 RDF 项比较。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleSubject|http://www.w3.org/2004/02/skos/core#example"
+msgid "Subject selectors on two bound quoted assignment claims check that both claims describe the same RDF subject without requiring their assigned objects to match."
+msgstr "两个已绑定引用赋值声明的主语选择器检查这两个声明是否描述同一 RDF 主语，而不要求其赋值宾语一致。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple predicate"
+msgstr "引用三元组谓词"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original predicate RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."
+msgstr "选取引用三元组的原始谓词 RDF 项。对 IRI、空白节点或字面量不可用。此选择不检查陈述重述节点。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when two quoted claims must name the same original RDF predicate even if their objects differ."
+msgstr "当两个引用声明必须指定同一原始 RDF 谓词，即使其宾语不同时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating related or equivalent vocabulary predicates as the same RDF term, comparing reifier metadata, or inferring subject equality from predicate identity."
+msgstr "避免将相关或等价的词汇谓词视为同一 RDF 项、比较重述节点元数据，或从谓词身份推断主语相等。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTriplePredicate after each original quoted-triple operand to compare its native predicate IRI. Compare subjects separately when both tuple positions must agree."
+msgstr "在每个原始引用三元组操作数之后放置 componentTriplePredicate，以比较其原生谓词 IRI。当两个元组位置都须一致时，另行比较主语。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."
+msgstr "分量不可用时整个谓词为假，随后应用否定。未绑定操作数使程序拒绝执行。参数个数错误、未知选择器及不受支持的原生执行上下文绝不回退到存储谓词匹配。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTriplePredicate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Predicate selectors on predecessor and successor quoted assignment claims check that both assignments use the same RDF predicate while preserving the different assigned objects."
+msgstr "前驱与后继引用赋值声明的谓词选择器检查两个赋值是否使用同一 RDF 谓词，同时保留其不同的赋值宾语。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quoted triple object"
+msgstr "引用三元组宾语"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Selects the original object RDF term of a quoted triple, preserving its complete RDF identity, including literal metadata or recursive quoted-triple structure. Unavailable for an IRI, blank node or literal."
+msgstr "选取引用三元组的原始宾语 RDF 项，保留其完整 RDF 身份，包括字面量元数据或引用三元组的递归结构。对 IRI、空白节点或字面量不可用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a quoted edge must identify the exact object already bound by a source relation."
+msgstr "当引用边必须标识已由源关系绑定的确切宾语时使用。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using value equality for object identity, inspecting reifier annotations instead of the quoted tuple, or assuming a quoted edge was asserted."
+msgstr "避免用值相等比较宾语身份、检查重述节点注释而非引用元组，或假设引用边已被断言。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place componentTripleObject after the original quoted edge and componentWhole after its expected object, already bound through a positive stored relation. The comparison creates no output binding."
+msgstr "在原始引用边之后放置 componentTripleObject，在已由正向存储关系绑定的预期宾语之后放置 componentWhole。比较不创建输出绑定。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The original object is compared as a native RDF term, including blank-node scope. An unavailable object component makes the predicate false before negation; an unbound operand refuses the program."
+msgstr "原始宾语作为原生 RDF 项比较，包括空白节点作用域。宾语分量不可用时，谓词在否定之前为假；未绑定操作数使程序拒绝执行。"
+
+msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "An object selector on a quoted supersession edge paired with a whole selector on its positively bound predecessor checks that the edge names that exact predecessor."
+msgstr "引用取代边的宾语选择器与其正向绑定前驱的完整项选择器配对，检查该边是否指定那个确切前驱。"

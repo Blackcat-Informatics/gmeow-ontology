@@ -178,6 +178,19 @@ pub enum QBuiltin {
         /// Truth required to retain the violation candidate.
         expected: bool,
     },
+    /// A bound native RDF component identity filter, with body truth polarity.
+    TermIdentity {
+        /// Original left RDF operand.
+        left: gmeow_logic_compile::ir::AtomicTerm,
+        /// Component selected from the left operand.
+        left_component: gmeow_logic_compile::ir::TermComponent,
+        /// Original right RDF operand.
+        right: gmeow_logic_compile::ir::AtomicTerm,
+        /// Component selected from the right operand.
+        right_component: gmeow_logic_compile::ir::TermComponent,
+        /// Truth required to retain the violation candidate.
+        expected: bool,
+    },
     /// A native SPARQL equality filter on a joined violation candidate.
     TermEqual {
         /// Original typed left operand.

@@ -645,6 +645,11 @@ fn collect_patterns(formula: &Formula, side: &str) -> gmeow_errors::Result<Vec<T
             let Term::Iri(predicate) = relation else {
                 return Err(exec_error(format!("{side} atom relation must be an IRI")));
             };
+            if predicate == "https://blackcatinformatics.ca/logic/termSameComponent" {
+                return Err(exec_error(
+                    "component identity is supported only as a bound integrity filter",
+                ));
+            }
             if args.len() != 2 {
                 return Err(exec_error(format!(
                     "{side} atom <{predicate}> must have exactly two RDF arguments; found {}",

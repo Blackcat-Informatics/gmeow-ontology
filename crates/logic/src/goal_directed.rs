@@ -465,6 +465,12 @@ fn lower_atom(
 ) -> gmeow_errors::Result<NodeId> {
     match formula {
         Formula::Atom { relation, args } => {
+            if matches!(relation, Term::Iri(iri) if iri == "https://blackcatinformatics.ca/logic/termSameComponent")
+            {
+                return Err(reasoning_program_err(
+                    "component identity is supported only as a bound integrity filter".into(),
+                ));
+            }
             let op = lower_term(dag, relation, scope)?;
             let mut arg_nodes = Vec::with_capacity(args.len());
             for a in args {

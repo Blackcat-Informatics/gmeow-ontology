@@ -13825,3 +13825,55 @@ repo:README.md a gmeow:CreativeWork ;
     skos:definition "The canonical checksum projection citing SPDX checksumValue, algorithm and the named BLAKE3, SHA-256 and MD5 checksum algorithms."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "dsl/mappings/projections/dcat.ttl:70" .
+
+
+<https://www.w3.org/TR/sparql12-query/> a gmeow:CreativeWork ;
+    rdfs:label "SPARQL 1.2 Query Language"@en ;
+    skos:definition "The W3C SPARQL 1.2 query specification, including RDF triple term component functions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.w3.org/TR/sparql12-query/" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-rdf-identity> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "RDF term identity, literal equality, blank-node scope and recursive triple terms ground the bound component identity contract."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-rdf-identity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-rdf-identity> a gmeow:Selector ;
+    rdfs:label "logic component rdf-identity source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-sparql-identity> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "The sameTerm, DATATYPE and COALESCE function definitions ground exact component comparison and false-on-unavailable projection behavior."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/sparql11-query/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-identity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-identity> a gmeow:Selector ;
+    rdfs:label "logic component sparql-identity source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-sparql-triple-components> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "SPARQL 1.2 Query sections 17.4.6.2 through 17.4.6.4 define SUBJECT, PREDICATE and OBJECT, grounding quoted tuple component projection and errors for nontriple inputs without statement-reifier conflation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/sparql12-query/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-triple-components> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-triple-components> a gmeow:Selector ;
+    rdfs:label "logic component sparql-triple-components source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
