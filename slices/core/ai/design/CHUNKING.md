@@ -23,6 +23,16 @@ The rules artifact is an `InformationObject`. `logic:ReasoningContract` selects
 reasoner semantics, and `logic:PrescriptionVersion` versions a plan; a rules file
 does not by itself assert either of those meanings or an executed workflow.
 
+## Migrating the rules-artifact relation
+
+For a `Chunking` record that formerly used an object-valued
+`chunkingContract`, replace that predicate with `chunkingRulesArtifact` and
+retain the same rules-artifact object. Keep `chunkingContractDigest` and its
+selected value unchanged; the artifact relation and its digest pin remain
+separate statements. The literal-valued `chunkingContract` on an
+`EmbeddingFamily` is a separate configuration relation and stays unchanged.
+This migration supplies no compatibility alias or inferred conversion.
+
 ## Selected chunks and order
 
 `ChunkingMember` is a role of the existing `Chunk`, retaining its contiguous-cut
