@@ -1800,3 +1800,53 @@ msgstr "在携带 pauseCause 的事件上保留 eventType eventTypeAttemptContin
 msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."
 msgstr "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."
+
+# Story-building and witness-purpose vocabulary.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defect fixed by"
+msgstr "缺陷由此修复"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record of a defect in an agent's system to the repair activity or information artifact reported to have resolved it. Resolution is an attributed source claim, not a conclusion drawn from a missing defect or an unrelated successful operation."
+msgstr "将代理系统的缺陷记录连接到据报告已解决该缺陷的修复活动或信息制品。解决是带归属的来源声明，不是根据缺陷缺失或无关操作成功得出的结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A repair activity is an occurrent and a fix artifact is an information object; neither is coerced into the other. Multiple attributed resolution claims remain possible."
+msgstr "修复活动是发生体，修复制品是信息对象；两者不会互相转换。多个带归属的解决声明仍可并存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:defectRecord gmeow:defectFixedBy ex:fixArtifact ."
+msgstr "ex:defectRecord gmeow:defectFixedBy ex:fixArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed for intention"
+msgstr "为意图收集的见证"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a witness observation to the intention it was gathered for, including observation in a simulated environment. This is its reported purpose, distinct from the observed feature and from whether the intention's goal was satisfied."
+msgstr "将见证观察连接到收集它所服务的意图，包括模拟环境中的观察。这是报告的用途，区别于被观察特征，也区别于意图目标是否已满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Observation and intention retain their own identities and provenance. The purpose link does not assert observationResult, change observedFeature or prove simulated execution."
+msgstr "观察和意图保留各自身份与溯源。用途链接不断言 observationResult，不改变 observedFeature，也不证明模拟已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:witness gmeow:witnessedForIntention ex:intention ."
+msgstr "ex:witness gmeow:witnessedForIntention ex:intention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Defect resolution attribution constraint"
+msgstr "缺陷解决归属约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every asserted defectFixedBy link retains an exact matching statement reifier attributed to the Agent reporting the resolution."
+msgstr "每条已断言的 defectFixedBy 链接都保留完全匹配的语句重化记录，并归属于报告解决结果的 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering supplies the exact statement components. Attribution does not prove repair execution, fix efficacy or a uniquely preferred remedy."
+msgstr "已完成的语句元数据降级提供确切组成部分。归属不证明修复执行、修复有效或唯一优先补救方式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
+msgstr "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."

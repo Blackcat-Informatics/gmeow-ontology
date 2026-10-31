@@ -1800,3 +1800,53 @@ msgstr "Conserver eventType eventTypeAttemptContinuation sur l’événement por
 msgctxt "https://blackcatinformatics.ca/gmeow/PauseCauseContinuationConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."
 msgstr "ex:phase gmeow:eventType gmeow:eventTypeAttemptContinuation ."
+
+# Story-building and witness-purpose vocabulary.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defect fixed by"
+msgstr "défaut corrigé par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record of a defect in an agent's system to the repair activity or information artifact reported to have resolved it. Resolution is an attributed source claim, not a conclusion drawn from a missing defect or an unrelated successful operation."
+msgstr "Relie un enregistrement de défaut du système d’un agent à l’activité de réparation ou à l’artefact informationnel déclaré l’avoir résolu. La résolution est une affirmation source attribuée, non une conclusion tirée de l’absence du défaut ou d’une opération réussie sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A repair activity is an occurrent and a fix artifact is an information object; neither is coerced into the other. Multiple attributed resolution claims remain possible."
+msgstr "Une activité de réparation est un occurrent et un artefact correctif un objet informationnel ; aucun n’est converti en l’autre. Plusieurs affirmations de résolution attribuées restent possibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defectFixedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:defectRecord gmeow:defectFixedBy ex:fixArtifact ."
+msgstr "ex:defectRecord gmeow:defectFixedBy ex:fixArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "witnessed for intention"
+msgstr "observé pour l’intention"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a witness observation to the intention it was gathered for, including observation in a simulated environment. This is its reported purpose, distinct from the observed feature and from whether the intention's goal was satisfied."
+msgstr "Relie une observation témoin à l’intention pour laquelle elle a été recueillie, y compris dans un environnement simulé. Il s’agit de son but rapporté, distinct de la caractéristique observée et de la satisfaction du but de l’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Observation and intention retain their own identities and provenance. The purpose link does not assert observationResult, change observedFeature or prove simulated execution."
+msgstr "L’observation et l’intention conservent leurs identités et provenances. Le lien de but n’affirme pas observationResult, ne change pas observedFeature et ne prouve pas une exécution simulée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/witnessedForIntention|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:witness gmeow:witnessedForIntention ex:intention ."
+msgstr "ex:witness gmeow:witnessedForIntention ex:intention ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Defect resolution attribution constraint"
+msgstr "Contrainte d’attribution de la résolution d’un défaut"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every asserted defectFixedBy link retains an exact matching statement reifier attributed to the Agent reporting the resolution."
+msgstr "Chaque lien defectFixedBy affirmé conserve un réificateur d’énoncé correspondant exactement et attribué à l’Agent qui rapporte la résolution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering supplies the exact statement components. Attribution does not prove repair execution, fix efficacy or a uniquely preferred remedy."
+msgstr "L’abaissement achevé des métadonnées d’énoncé fournit les composants exacts. L’attribution ne prouve ni exécution de la réparation, ni efficacité du correctif, ni remède privilégié unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DefectResolutionAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."
+msgstr "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."

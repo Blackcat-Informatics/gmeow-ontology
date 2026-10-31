@@ -1053,3 +1053,51 @@ gmeow:PauseCauseContinuationConstraint
                 logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
             logic:consequent [ a logic:Formula ; logic:relation gmeow:eventType ;
                 logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:eventTypeAttemptContinuation ] ] ] ] .
+
+
+# Story building and intention-directed witnessing.
+
+gmeow:defectFixedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "defect fixed by"@x-gmeow-english ;
+    skos:definition "Relates a record of a defect in an agent's system to the repair activity or information artifact reported to have resolved it. Resolution is an attributed source claim, not a conclusion drawn from a missing defect or an unrelated successful operation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reported fix that makes a recorded defect available for a later revisit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a proposed remedy as an accomplished fix or confusing a fix artifact with the activity that produced it."@x-gmeow-english ;
+    gmeow:howToUse "Retain the defect record and exact repair resource, attribute the resolution statement to its reporting agent, and keep actual generation or derivation provenance separately."@x-gmeow-english ;
+    skos:scopeNote "A repair activity is an occurrent and a fix artifact is an information object; neither is coerced into the other. Multiple attributed resolution claims remain possible."@x-gmeow-english ;
+    skos:example "ex:defectRecord gmeow:defectFixedBy ex:fixArtifact ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range [ a logic:Class ; logic:unionOf ( gmeow:Activity gmeow:InformationObject ) ] .
+
+gmeow:witnessedForIntention
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "witnessed for intention"@x-gmeow-english ;
+    skos:definition "Relates a witness observation to the intention it was gathered for, including observation in a simulated environment. This is its reported purpose, distinct from the observed feature and from whether the intention's goal was satisfied."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the intention for which a witness observation was gathered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a satisfied intention, a truthful observation or a causal motivation merely from this link."@x-gmeow-english ;
+    gmeow:howToUse "Keep the Observation's actual feature, vantage, method and supplied environment context; name the existing Intention with its bearer and goal separately."@x-gmeow-english ;
+    skos:scopeNote "Observation and intention retain their own identities and provenance. The purpose link does not assert observationResult, change observedFeature or prove simulated execution."@x-gmeow-english ;
+    skos:example "ex:witness gmeow:witnessedForIntention ex:intention ."@x-gmeow-english ;
+    logic:domain gmeow:Observation ; logic:range gmeow:Intention .
+
+gmeow:DefectResolutionAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Defect resolution attribution constraint"@x-gmeow-english ;
+    skos:definition "Every asserted defectFixedBy link retains an exact matching statement reifier attributed to the Agent reporting the resolution."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied defectFixedBy evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Completed statement-metadata lowering supplies the exact statement components. Attribution does not prove repair execution, fix efficacy or a uniquely preferred remedy."@x-gmeow-english ;
+    skos:example "gmeow:DefectResolutionAttributionConstraint logic:formalizes gmeow:defectFixedBy ."@x-gmeow-english ;
+    logic:formalizes gmeow:defectFixedBy ;
+    logic:message "Every asserted defectFixedBy link retains an exact matching statement reifier attributed to the Agent reporting the resolution."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:defectFixedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termIri gmeow:defectFixedBy ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/defectFixedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/witnessedForIntention" ; logic:closureValue logic:ClosedWorldClosure ] .

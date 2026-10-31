@@ -363,3 +363,46 @@ inventing dates or zeros. These declarations do not execute aggregate counting.
 [The source contract](design/QUALIFIED-BREAKTHROUGHS.md) explains all boundaries
 and the [ordinary qualified scene](examples/qualified-breakthrough.ttl), including
 its exact retained-source and reviewed-confidence payloads.
+
+## Build a story from retained records
+
+`acceptedAsStory` links an information-object candidate to the story a person
+accepted it as. The acceptance is the person's claim: retain its exact RDF 1.2
+statement reifier with `wasAttributedTo` naming that `Person`. Independent
+acceptances can name different stories without choosing a global winner.
+A quoted acceptance alone does not assert its content. Canonical attribution
+laws follow the completed statement-metadata components of the exact statement;
+they check binding evidence, not the person's identity or authenticity.
+
+A person can instead give a `storyFocus` without any candidate. Keep the wording
+verbatim, including supplied language and direction. Focus does not imply
+acceptance. Story candidates and stories reuse existing information-object and
+work types; these properties introduce no universal Story class.
+
+For a curated story collection, actual selected record resources ride `hasPart`.
+Do not use organization membership's `hasMember`. A refiner's `readingScope`
+and its `scopeRecord` entries retain the records offered to the refiner, which
+need not equal the selected members. Keep those two enumerations distinct.
+
+`storyGathered` names the activity reported to have finished gathering, written
+after every selected member. `storyStructured` names the completed structuring
+activity, written after the supplied events, seams and citations. The canonical
+laws require explicit `logic:Closed` occurrent boundaries and require a gathered
+marker on the same story before its structured marker. The declarations do not
+certify transaction order or global member completeness. Missing markers imply
+neither success nor failure, and an intermediate gathering stage is not an
+`artifactComplete` verdict for the entire final story.
+
+Retain the actual structure: `hasSegment`/`segmentOf`, frame-bound
+`NarrativePosition` records and `beatFunction` values, flat `narrates` seams or
+`NarrationUsage` when mode and role players matter, and actual `cites` links or
+citation acts. A marker never manufactures these facts. Completion is not a
+subproperty of `wasGeneratedBy`: when a stage really creates an immutable story
+version, record that version's generation independently.
+
+`recollectionCue` preserves every supplied short recall phrase on an event.
+Several phrases and short names coexist without a preferred language or name.
+They do not assert that a refinement matcher ran or that recall succeeded.
+The [ordinary story-building scene](examples/story-building.ttl) includes actual
+members, structural positions, citations, attributed acceptance and separate
+completion claims. [The design](design/STORY-BUILDING.md) explains the boundaries.

@@ -151,3 +151,24 @@ The [ordinary working scene](examples/attempt-and-readback.ttl) retains an open
 intention tenure, a budget pause, a prose resumption and a read-back of an unfinished
 draft. The [design rationale](design/AGENCY-RECORDS.md) describes its canonical
 obligations and source ownership.
+
+## Retain a repair and an intention-directed witness
+
+`defectFixedBy` connects a recorded system defect to the repair activity or fix
+artifact reported to have resolved it. A record of an unresolved defect needs
+no fix link. Retain the exact resolution statement's reifier with
+`wasAttributedTo` naming the reporting agent. The canonical binding law reads
+completed statement-metadata lowering; it does not authenticate the report or
+prove the repair's efficacy. Competing attributed repairs remain possible.
+An activity is an occurrent and an artifact is an information object, so the
+range admits either without confusing them. An artifact can independently name
+its real producing repair activity through `wasGeneratedBy`; defect resolution
+is not automatically a derivation link or a successful-operation verdict.
+
+`witnessedForIntention` names the existing `Intention` a witness `Observation`
+was gathered for. Keep its actual observed feature, vantage, method and supplied
+world context. Observation purpose neither changes its feature to the intention
+nor proves the intention's goal was satisfied. A simulated observation retains
+its simulation provenance rather than acquiring a real-world truth claim.
+See the [complete story-building scene](../../extensions/narrative/examples/story-building.ttl)
+for these records alongside story-stage and recollection metadata.

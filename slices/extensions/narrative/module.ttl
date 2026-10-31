@@ -2414,3 +2414,141 @@ gmeow:SignalConfidenceSetting logic:subClassOf
 gmeow:CharacterArc logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:arcBetweenCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ],
     [ a logic:Restriction ; logic:onProperty gmeow:arcUndatedCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+
+# Story building and intention-directed witnessing.
+
+gmeow:acceptedAsStory
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "accepted as story"@x-gmeow-english ;
+    skos:definition "Relates a proposed story candidate to the story a person accepted it as. The acceptance is that person's attributed claim, not the storyteller's authority or a preferred story shared by every reader."@x-gmeow-english ;
+    gmeow:useWhen "Use when a person explicitly accepts a candidate as a story."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring acceptance from a generated candidate, focus wording or a completed gathering activity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact candidate and story identities and an explicit rdf:reifies statement attributed to the accepting Person; independent acceptances coexist."@x-gmeow-english ;
+    skos:scopeNote "The attribution laws inspect completed statement-metadata lowering. They neither authenticate the acceptor nor turn quotation into an asserted fact."@x-gmeow-english ;
+    skos:example "ex:candidate gmeow:acceptedAsStory ex:story ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:InformationObject .
+
+gmeow:storyFocus
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story focus"@x-gmeow-english ;
+    skos:definition "A person's original name or phrase for what a story is to gather around. It can initiate gathering without a proposed candidate and does not itself assert acceptance or a completed story."@x-gmeow-english ;
+    gmeow:useWhen "Use when a person supplies the focus that starts story gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalizing the wording into a preferred title, inventing a candidate or treating focus as completion."@x-gmeow-english ;
+    gmeow:howToUse "Keep every supplied literal with its language and direction, leaving unstated language as a plain string; retain the person's attribution separately."@x-gmeow-english ;
+    skos:scopeNote "Several attributed focuses and wordings may coexist. Neither a candidate nor an acceptance link is required by this property."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyFocus \"The crossing\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:storyGathered
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story gathered"@x-gmeow-english ;
+    skos:definition "Relates a story to the activity reported to have completed its gathering, recorded after the selected members have been written. The members themselves remain explicit parts of the curated collection."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported completion of story gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving completion from absent records or treating every record offered to a refiner as a selected story member."@x-gmeow-english ;
+    gmeow:howToUse "Write the selected member resources through hasPart, retain the actual source scope and activity provenance, and write this completion claim last with the activity's Closed boundary."@x-gmeow-english ;
+    skos:scopeNote "The law checks the supplied completed-activity boundary. It cannot certify transaction order, enumerate unknown members or prove global completeness; no minimum member count is imposed."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyGathered ex:gathering ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:Activity .
+
+gmeow:storyStructured
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story structured"@x-gmeow-english ;
+    skos:definition "Relates a gathered story to the activity reported to have completed its structuring, recorded after its supplied events, narrative seams and citations have been written."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported completion of structuring after gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a structure from a marker alone or asserting that completion authenticates the narrative's events."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual segments, frame-bound positions, narration links and citations; name the story's gathered stage and write the structuring completion claim last with its Closed activity boundary."@x-gmeow-english ;
+    skos:scopeNote "The prerequisite law checks the same story's gathered marker and the structuring activity's boundary. It does not certify write order, generate missing structure or impose a universal beat pattern."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyStructured ex:structuring ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:Activity .
+
+gmeow:recollectionCue
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recollection cue"@x-gmeow-english ;
+    skos:definition "A source word or short phrase by which a later remembrance may recall an event of a story, including the event's short name. It retains a possible recall handle rather than a successful retrieval or a preferred event name."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied short wording that may recall a story event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning a cue into a unique identifier, a preferred name or evidence that recall succeeded."@x-gmeow-english ;
+    gmeow:howToUse "Keep all original cue literals on the event with their supplied language and direction; retain attribution on each statement when it matters."@x-gmeow-english ;
+    skos:scopeNote "Several cues, names and standpoints coexist. This property does not execute the refinement-cue matcher or assert that any cue matched."@x-gmeow-english ;
+    skos:example "ex:event gmeow:recollectionCue \"Bridge crossing\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:Event ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:StoryAcceptanceAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story acceptance attribution constraint"@x-gmeow-english ;
+    skos:definition "Every asserted acceptedAsStory link retains an exact matching statement reifier attributed to an accepting Person."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied acceptedAsStory evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Completed statement-metadata lowering supplies the statement components; this checks attribution binding, not authenticity or a preferred acceptance."@x-gmeow-english ;
+    skos:example "gmeow:StoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedAsStory ;
+    logic:message "Every asserted acceptedAsStory link retains an exact matching statement reifier attributed to an accepting Person."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:acceptedAsStory ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termIri gmeow:acceptedAsStory ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Person ] ] ] ] ] ] .
+
+gmeow:QuotedStoryAcceptanceAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Quoted story acceptance attribution constraint"@x-gmeow-english ;
+    skos:definition "An explicit statement reifier describing acceptedAsStory retains its candidate and story components and an attribution to the accepting Person, even when the quoted acceptance is not asserted."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied acceptedAsStory evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "The guard reads the lowered acceptance predicate on that reifier; quotation alone never asserts the described acceptance."@x-gmeow-english ;
+    skos:example "gmeow:QuotedStoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedAsStory ;
+    logic:message "An explicit statement reifier describing acceptedAsStory retains its candidate and story components and an attribution to the accepting Person, even when the quoted acceptance is not asserted."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:acceptedAsStory ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "candidate" ], [ logic:termIndex 1 ; logic:termVariable "story" ], [ logic:termIndex 2 ; logic:termVariable "actor" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "story" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Person ] ] ] ] ] ] .
+
+gmeow:StoryGatheringBoundaryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story gathering boundary constraint"@x-gmeow-english ;
+    skos:definition "A storyGathered marker names an activity with an explicitly supplied Closed occurrent boundary."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied storyGathered evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "A missing marker does not imply failure or completion. This law checks the stated activity boundary, not member enumeration or transaction order."@x-gmeow-english ;
+    skos:example "gmeow:StoryGatheringBoundaryConstraint logic:formalizes gmeow:storyGathered ."@x-gmeow-english ;
+    logic:formalizes gmeow:storyGathered ;
+    logic:message "A storyGathered marker names an activity with an explicitly supplied Closed occurrent boundary."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:storyGathered ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:occurrentBoundary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ], [ logic:termIndex 1 ; logic:termIri logic:Closed ] ] ] ] .
+
+gmeow:StoryStructuringPrerequisiteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story structuring prerequisite constraint"@x-gmeow-english ;
+    skos:definition "A storyStructured marker retains the same story's gathered stage and a Closed boundary on the structuring activity."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied storyStructured evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "The existing gathering law checks its own activity boundary. These source prerequisites do not certify chronological or transaction order and do not invent missing narrative structure."@x-gmeow-english ;
+    skos:example "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."@x-gmeow-english ;
+    logic:formalizes gmeow:storyStructured ;
+    logic:message "A storyStructured marker retains the same story's gathered stage and a Closed boundary on the structuring activity."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:storyStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gathering" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:storyGathered ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "gathering" ] ], [ a logic:Formula ; logic:relation logic:occurrentBoundary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ], [ logic:termIndex 1 ; logic:termIri logic:Closed ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptedAsStory" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyFocus" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyGathered" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyStructured" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recollectionCue" ; logic:closureValue logic:ClosedWorldClosure ] .
