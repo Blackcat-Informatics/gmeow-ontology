@@ -113,13 +113,6 @@ pub(crate) fn normalize_messages(literals: &mut Vec<RdfLiteral>) -> Result<(), &
 pub(super) mod message_set {
     use super::*;
 
-    pub(crate) fn serialize<S: Serializer>(
-        literals: &[RdfLiteral],
-        serializer: S,
-    ) -> Result<S::Ok, S::Error> {
-        super::serialize(literals, serializer)
-    }
-
     pub(crate) fn deserialize<'de, D: Deserializer<'de>>(
         deserializer: D,
     ) -> Result<Vec<RdfLiteral>, D::Error> {

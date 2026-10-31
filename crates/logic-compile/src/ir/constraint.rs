@@ -479,7 +479,10 @@ pub struct ConstraintIr {
     /// **Load-bearing-false**: carried for
     /// validation-failure UX but MUST NOT enter [`Self::content_key`], so two constraints
     /// differing only in message share one identity.
-    #[serde(with = "super::literal_serde::message_set")]
+    #[serde(
+        serialize_with = "super::literal_serde::serialize",
+        deserialize_with = "super::literal_serde::message_set::deserialize"
+    )]
     pub messages: Vec<purrdf::RdfLiteral>,
     /// The gmeow-domain term this constraint formalizes (`None` ⇒ none) — the back-reference
     /// later projected as `logic:formalizes`. Annotation-level (like the `logic:formalizes`

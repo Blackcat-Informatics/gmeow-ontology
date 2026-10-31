@@ -630,7 +630,10 @@ pub struct PropertyConstraintIr {
     pub severity: Option<ShaclSeverity>,
     /// Complete `sh:message` literals in canonical set order; empty means absent.
     /// Retains datatype, language and direction for validation-failure presentation.
-    #[serde(with = "super::literal_serde::message_set")]
+    #[serde(
+        serialize_with = "super::literal_serde::serialize",
+        deserialize_with = "super::literal_serde::message_set::deserialize"
+    )]
     pub messages: Vec<purrdf::RdfLiteral>,
 }
 
