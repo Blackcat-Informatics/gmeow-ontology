@@ -26,8 +26,8 @@
 //!   canonicalized authored source set it scored. [`RecordedCorpus::verify_fresh`] recomputes it and
 //!   hard-fails on absence or mismatch, so a stale record is an error rather than a
 //!   silently-accepted pass.
-//! * **Integrity.** The corpus ALSO carries a `gmeow:contentDigest` over its own
-//!   recorded grades ([`crate::report::corpus_content_digest`]).
+//! * **Integrity.** The corpus ALSO carries a `gmeow:qualityRecordFingerprint` over its own
+//!   recorded grades ([`crate::report::corpus_record_fingerprint`]).
 //!   [`read_recorded_corpus_bytes`] recomputes it from the reconstruction and hard-fails
 //!   on absence or mismatch. Freshness and integrity answer different questions —
 //!   freshness asks whether the record describes THIS tree, integrity asks whether the
@@ -39,12 +39,15 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use purrdf::RdfDataset;
+use purrdf::{DatasetView, RdfDataset, RdfLiteral, TermRef};
 
 use crate::error;
 use crate::graph;
 use crate::model::{AxisGrade, MeasurementStandard, SliceAssessment};
-use crate::report::{CONTENT_DIGEST, SLICE_QUALITY_GRAPH, VERSION_FINGERPRINT};
+use crate::report::{
+    QUALITY_RECORD_FINGERPRINT, QUALITY_RECORD_FINGERPRINT_V1, SLICE_QUALITY_GRAPH,
+    VERSION_FINGERPRINT,
+};
 
 /// The committed on-disk projection of the quality-assessment corpus, relative to the
 /// repository root. This is the SAME path `crates/pipeline`'s fanout writes from the
@@ -157,20 +160,21 @@ pub fn read_recorded_corpus_bytes(
         })
     })?;
     let fingerprint = read_fingerprint(&ds)?;
-    let recorded_digest = read_content_digest(&ds)?;
+    let recorded_witness = read_record_fingerprint(&ds)?;
     let by_slice = read_assessments(&ds, standard)?;
     // INTEGRITY, checked before the corpus is handed to anyone. The fingerprint above
     // attests the record's INPUTS; it says nothing about the record. Recompute the
     // digest over the grades just reconstructed and refuse a record whose content does
     // not fold to the value it claims — a hand-raised score, a deleted grade, or a
     // swapped tier is a corrupt record, never a passing one.
-    let live_digest = crate::report::corpus_content_digest(by_slice.values());
-    if live_digest != recorded_digest {
+    let live_witness = crate::report::corpus_record_fingerprint(by_slice.values());
+    if live_witness != recorded_witness {
         return Err(record_err(format!(
             "the recorded quality-assessment corpus at {RECORDED_CORPUS_PATH} does not match its \
-             own {CONTENT_DIGEST}: it declares {recorded_digest} but its recorded grades fold to \
-             {live_digest}. The record has been edited after it was produced — regenerate it \
-             (`make check`); an edited record is never read as authoritative."
+             own {QUALITY_RECORD_FINGERPRINT}: it declares {} but its recorded grades fold to \
+             {}. The record has been edited after it was produced — regenerate it \
+             (`make check`); an edited record is never read as authoritative.",
+            recorded_witness.lexical_form, live_witness.lexical_form,
         )));
     }
     Ok(RecordedCorpus {
@@ -199,27 +203,63 @@ fn read_fingerprint(ds: &RdfDataset) -> gmeow_errors::Result<String> {
     graph::one_lit(ds, subject, pred).ok_or_else(missing)
 }
 
-/// The corpus-level `gmeow:contentDigest` — the record's fold over ITS OWN grades — or
-/// a hard error.
-///
-/// Absence is a hard error for the same reason a missing fingerprint is: a record that
-/// carries no self-attestation cannot be distinguished from one that has been edited,
-/// and "cannot be distinguished" is never "assume it is fine".
-fn read_content_digest(ds: &RdfDataset) -> gmeow_errors::Result<String> {
+/// Admit one distinct native witness term for the versioned grade scheme.
+/// Repeated identical terms across graph labels remain the same witness.
+fn read_record_fingerprint(ds: &RdfDataset) -> gmeow_errors::Result<RdfLiteral> {
     let missing = || {
         record_err(format!(
-            "the recorded quality-assessment corpus carries no {CONTENT_DIGEST} on \
-             <{SLICE_QUALITY_GRAPH}>, so its own content cannot be attested — an edited record \
-             would be indistinguishable from a produced one. Regenerate it (`make check`)"
+            "the recorded quality-assessment corpus carries no {QUALITY_RECORD_FINGERPRINT} on \
+             <{SLICE_QUALITY_GRAPH}>; regenerate the record from a scoring pass"
         ))
     };
     let (Some(subject), Some(pred)) = (
         graph::id(ds, SLICE_QUALITY_GRAPH),
-        graph::id(ds, CONTENT_DIGEST),
+        graph::id(ds, QUALITY_RECORD_FINGERPRINT),
     ) else {
         return Err(missing());
     };
-    graph::one_lit(ds, subject, pred).ok_or_else(missing)
+    let mut object = None;
+    for quad in ds.quads_for_pattern(Some(subject), Some(pred), None, purrdf::GraphMatch::Any) {
+        if object.is_some_and(|previous| previous != quad.o) {
+            return Err(record_err(format!(
+                "{QUALITY_RECORD_FINGERPRINT} has conflicting native witness terms"
+            )));
+        }
+        object = Some(quad.o);
+    }
+    let Some(object) = object else {
+        return Err(missing());
+    };
+    let TermRef::Literal {
+        lexical,
+        datatype,
+        language,
+        direction,
+    } = ds.resolve(object)
+    else {
+        return Err(record_err(format!(
+            "{QUALITY_RECORD_FINGERPRINT} requires a typed literal witness"
+        )));
+    };
+    if !matches!(ds.resolve(datatype), TermRef::Iri(iri) if iri == QUALITY_RECORD_FINGERPRINT_V1)
+        || language.is_some()
+        || direction.is_some()
+    {
+        return Err(record_err(format!(
+            "{QUALITY_RECORD_FINGERPRINT} requires datatype <{QUALITY_RECORD_FINGERPRINT_V1}> \
+             without language or direction"
+        )));
+    }
+    if lexical.len() != 64
+        || !lexical
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err(record_err(format!(
+            "{QUALITY_RECORD_FINGERPRINT} requires exactly 64 lowercase hexadecimal digits"
+        )));
+    }
+    Ok(RdfLiteral::typed(lexical, QUALITY_RECORD_FINGERPRINT_V1))
 }
 
 /// Every recorded per-slice assessment, keyed by slice IRI.

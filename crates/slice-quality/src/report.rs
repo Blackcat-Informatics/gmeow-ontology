@@ -1156,15 +1156,13 @@ impl SliceReport {
 pub(crate) const VERSION_FINGERPRINT: &str =
     "https://blackcatinformatics.ca/gmeow/versionFingerprint";
 
-/// The `gmeow:contentDigest` predicate (core `sources` slice — domain-free, "a content
-/// hash of an object's bytes … the reliable identity by content") the corpus carries
-/// over ITS OWN recorded content.
-///
-/// [`VERSION_FINGERPRINT`] and this are answers to two different questions and neither
-/// substitutes for the other: the fingerprint says WHICH SOURCES were scored, this says
-/// WHAT WAS RECORDED. A record whose fingerprint still matches the tree but whose grades
-/// have been edited by hand satisfies the first and violates the second.
-pub(crate) const CONTENT_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/contentDigest";
+/// The scheme-specific integrity witness over the recorded grade reconstruction.
+/// It is distinct from both the source-set witness and byte-exact content digests.
+pub(crate) const QUALITY_RECORD_FINGERPRINT: &str =
+    "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint";
+/// The exact versioned scheme of the grade-reconstruction witness.
+pub(crate) const QUALITY_RECORD_FINGERPRINT_V1: &str =
+    "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1";
 
 /// The canonical digest of the corpus's OWN recorded content: every scored slice, its
 /// per-axis (axis, exact score, tier) vector, and its roll-up tier.
@@ -1187,9 +1185,9 @@ pub(crate) const CONTENT_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/co
 /// lexical the projection emits — so the value the reader reparses folds identically
 /// to the value the scorer produced, with no float-formatting drift.
 #[must_use]
-pub fn corpus_content_digest<'a>(
+pub fn corpus_record_fingerprint<'a>(
     assessments: impl IntoIterator<Item = &'a SliceAssessment>,
-) -> String {
+) -> purrdf::RdfLiteral {
     // Canonical order, independent of the order the sweep produced or the reader
     // rebuilt: slice IRI, then axis IRI within a slice.
     let by_slice: BTreeMap<&str, &SliceAssessment> = assessments
@@ -1215,16 +1213,16 @@ pub fn corpus_content_digest<'a>(
         hasher.update(assessment.rollup.iri.as_bytes());
         hasher.update(b"\x1e");
     }
-    format!(
-        "blake3:{}",
-        purrdf_hash::hex::encode(hasher.finalize().as_bytes())
+    purrdf::RdfLiteral::typed(
+        purrdf_hash::hex::encode(hasher.finalize().as_bytes()),
+        QUALITY_RECORD_FINGERPRINT_V1,
     )
 }
 
 /// Project the corpus-level freshness witness: one `gmeow:versionFingerprint` on the
 /// assessment graph itself, recording the canonicalized digest of every authored file
-/// the sweep scored ([`crate::scored_input_fingerprint`]), and one `gmeow:contentDigest`
-/// over the corpus's own recorded grades ([`corpus_content_digest`]).
+/// the sweep scored ([`crate::scored_input_fingerprint`]), and one typed `gmeow:qualityRecordFingerprint`
+/// over the corpus's own recorded grades ([`corpus_record_fingerprint`]).
 ///
 /// This is what lets a CONSUMER of the recorded corpus prove the record still
 /// describes the working tree instead of trusting that something regenerated it. The
@@ -1234,14 +1232,17 @@ pub fn corpus_content_digest<'a>(
 /// that the recomputation is unnecessary, never by an assumption that it is.
 ///
 /// The input fingerprint alone does not carry that proof, and this is exactly the hole
-/// the content digest closes: it attests the INPUTS, so hand-editing the record (raising
-/// a score, deleting a grade) leaves it satisfied. The `gmeow:contentDigest` attests the
+/// the record fingerprint closes: it attests the INPUTS, so hand-editing the record (raising
+/// a score, deleting a grade) leaves it satisfied. The `gmeow:qualityRecordFingerprint` attests the
 /// RECORD, so the reader refuses an edited one.
 ///
 /// Emitted exactly ONCE per corpus (by [`crate::assessment_artifacts`] and by the dev
 /// CLI's RDF sweep), never per slice: it is a property of the whole scored source set.
 #[must_use]
-pub fn corpus_fingerprint_nquads(fingerprint: &str, record_digest: &str) -> String {
+pub fn corpus_fingerprint_nquads(
+    fingerprint: &str,
+    record_fingerprint: &purrdf::RdfLiteral,
+) -> String {
     let graph = format!("<{SLICE_QUALITY_GRAPH}>");
     let subject = format!("<{}>", nq_iri(SLICE_QUALITY_GRAPH));
     let triple = |p: &str, o: &str| format!("{subject} <{p}> {o} {graph} .\n");
@@ -1257,7 +1258,10 @@ pub fn corpus_fingerprint_nquads(fingerprint: &str, record_digest: &str) -> Stri
         &format!("<{}QualityAssessmentCorpus>", crate::model::GMEOW),
     ));
     out.push_str(&triple(VERSION_FINGERPRINT, &literal(fingerprint)));
-    out.push_str(&triple(CONTENT_DIGEST, &literal(record_digest)));
+    out.push_str(&triple(
+        QUALITY_RECORD_FINGERPRINT,
+        &purrdf::RdfTerm::literal(record_fingerprint.clone()).to_string(),
+    ));
     out.push_str(&triple(
         RDFS_LABEL,
         &literal("Slice-quality assessment corpus"),
