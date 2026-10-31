@@ -570,6 +570,24 @@ conservative-extension, bounded-corpus) are named in the closed set but not yet 
 obligation that declares one of them is a hard error ("no executable discharge path"), so an unwired
 condition can never be mistaken for a silent pass.
 
+### Candidate descriptions retain their source forms
+
+`candidateExtractionProvenance` and `candidateScope` carry every supplied
+literal description, including its datatype, language and RDF 1.2 direction.
+Several attributed wordings can describe one extraction event or intended scope;
+they do not create several events, reasoning contracts or formula identities.
+Their canonical prose ranges and required paths admit plain strings,
+`rdf:langString` and `rdf:dirLangString`, without a globally functional wording
+slot. The source hash and reasoning-contract identity remain separate carriers.
+
+The native producer retains its existing plain extraction description and exact
+formula identity string. Selected promotion-candidate readback retains these
+statements as typed source annotations in deterministic RDF-term order; it
+refuses missing or non-prose selected carriers rather than substituting empty
+text. An absent promotion link remains absent. Literal preservation does not
+prove that an extraction occurred or grant reviewer approval (Principles 4, 9,
+10 and 17).
+
 ## Conjecture and refutation
 
 The typed-formalization surface above governs the *static* prose-to-axiom transition: a reviewer

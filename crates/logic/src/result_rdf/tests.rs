@@ -1435,16 +1435,27 @@ fn promotion_leg_emitted_exactly_on_corroboration() {
         promo.source_hash,
         format!("sha256:{}", sha256_hex("formula:corroborated-phi"))
     );
-    assert_eq!(promo.scope, "formula:corroborated-phi");
+    assert_eq!(
+        promo.scope,
+        vec![
+            gmeow_errors::SourceAnnotation::new(
+                purrdf_core::BaseIri::parse(&promo.node).unwrap(),
+                purrdf_core::BaseIri::parse(&logic("candidateScope")).unwrap(),
+                purrdf::RdfLiteral::simple("formula:corroborated-phi"),
+            )
+            .unwrap()
+        ]
+    );
     assert_eq!(promo.contract, logic("StratifiedNAFProfile"));
     assert_eq!(promo.category, logic("CategoryDerivationRule"));
     assert_eq!(promo.lifecycle, logic("CandidateProposed"));
     assert_eq!(promo.projection_behavior, logic("SoundUnderApproximation"));
     assert_eq!(promo.semantic_risk, logic("RiskCoreContaminating"));
     assert!(
-        promo
-            .extraction_provenance
-            .contains("conjecture-test activity"),
+        promo.extraction_provenance.iter().any(|statement| statement
+            .object()
+            .lexical_form
+            .contains("conjecture-test activity")),
         "extraction provenance must record the engine run"
     );
 }
