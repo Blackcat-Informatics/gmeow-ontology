@@ -24565,3 +24565,29 @@ logic:lensGovernsFunctionality
     gmeow:howToUse "Bind the characteristic to logic:lensGoverns, keep each lens's law evidence separately identified, and name the selected lens when interpreting a revision or restore."@x-gmeow-english ;
     skos:scopeNote "The bound applies from lens to plan. Functional reasoning may equate two plan targets of one lens; distinct lenses sharing a plan are not thereby equated, selected, or certified to have interchangeable revision and restore results."@x-gmeow-english ;
     skos:example "In Turtle, ex:lensA logic:lensGoverns ex:planV3 . ex:lensB logic:lensGoverns ex:planV3 . keeps two lenses for one plan; interpreting a revision still requires identifying the selected lens and its own law evidence."@x-gmeow-english .
+
+# General actual usage and its external process-vocabulary bridge are owned here.
+gmeow:used
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLogical ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "used"@x-gmeow-english ;
+    skos:definition "Relates an activity to an entity it actually used as input or resource. Use is not derivation, endorsement or proof of reading."@x-gmeow-english ;
+    gmeow:useWhen "Use for recorded activity inputs and resources."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring use merely because an artifact was present in context."@x-gmeow-english ;
+    gmeow:howToUse "Reference each actually used Entity, specializing with readArtifact for an observed read."@x-gmeow-english ;
+    skos:example "ex:activity gmeow:used ex:resource ."@x-gmeow-english ;
+    logic:domain gmeow:Activity ;
+    logic:range gmeow:Entity .
+
+gmeow:mapsetAgencyRecords
+    a gmeow:MappingSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Agency records mappings"@x-gmeow-english ;
+    skos:definition "The native close-match alignment for unqualified activity-to-entity usage. It preserves neither qualified-usage structure nor separate usage-time claims."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the generic used relation to PROV consumers."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming a lossless qualified-usage or temporal projection from this binary linkage."@x-gmeow-english ;
+    gmeow:howToUse "Retain the close-match relation and its curation metadata; represent richer usage context separately."@x-gmeow-english ;
+    skos:example "gmeow:used skos:closeMatch prov:used ."@x-gmeow-english .

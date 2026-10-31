@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix semapv: <https://w3id.org/semapv/vocab/> .
@@ -13,8 +14,15 @@ gmeow:mapsetAgencyRecords
     gmeow:setComment "Unqualified activity-to-entity usage only; qualified usage and usage-time context remain separate." .
 
 gmeow:used skos:closeMatch prov:used {|
+    a logic:GroundingCorrespondence ;
     gmeow:sssomFile "gmeow-agency-records.sssom.tsv" ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.9 ;
+    logic:sourceEndpoint gmeow:used ;
+    logic:targetEndpoint prov:used ;
+    logic:morphismClass logic:BridgeView ;
+    logic:morphismKind logic:CommitmentShiftingBridge ;
+    logic:preservationKind logic:ValidationOnly ;
+    gmeow:lossyDrop "Qualified usage records, usage roles and separate usage-time assertions are not carried by this binary link." ;
     gmeow:comment "Binary usage linkage only; this cell makes no preservation claim for qualified usage, usage roles or separate usage-time assertions."
 |} .

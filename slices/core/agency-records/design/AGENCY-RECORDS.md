@@ -81,8 +81,12 @@ ToolCall’s existing SoftwareAgent requirement or borrow enactment-only continu
 kinds for planless work. Minimally described tool agents preserve source evidence
 without a fabricated holder or universal name-to-agent identity rule.
 
-The slice-owned native close match from `used` to `prov:used` carries the ordinary
-unqualified activity-to-entity relation. It claims no lossless qualified-usage,
-role or usage-time projection. Mapping-set annotation coats remain in the module,
-with their paired translations, while the linkage and its curation metadata live
-in `mappings/equivalences.ttl`.
+The general `gmeow:used` relation and its PROV-O correspondence are owned by the
+logic grounding slice. This slice consumes that same IRI and specializes it with
+`readArtifact`; Activity-to-Entity typing and nonfunctional usage are unchanged.
+The logic-owned native close match carries ordinary unqualified actual usage,
+with a validation-only bridge judgment and explicit qualified-usage, role and
+usage-time residue. Its mapset coat and paired translations live with the logic
+owner; the single linkage lives in
+`../../../grounding/logic/mappings/provenance-usage.ttl`. No second usage primitive
+or downstream external alignment is introduced (Principles 17 and 19).

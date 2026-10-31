@@ -1041,30 +1041,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/ArtifactOperationReceipt|http://ww
 msgid "ex:operation a gmeow:ArtifactOperationReceipt ; gmeow:subEventOf ex:attempt ."
 msgstr "ex:operation a gmeow:ArtifactOperationReceipt ; gmeow:subEventOf ex:attempt ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "used"
-msgstr "使用"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Relates an activity to an entity it actually used as input or resource. Use is not derivation, endorsement or proof of reading."
-msgstr "将活动关联到其实际作为输入或资源使用的实体。使用不表示派生、认可或读取证明。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use for recorded activity inputs and resources."
-msgstr "用于已记录的活动输入及资源。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inferring use merely because an artifact was present in context."
-msgstr "避免仅因制品存在于上下文就推断使用。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/used|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference each actually used Entity, specializing with readArtifact for an observed read."
-msgstr "引用每个实际使用的 Entity；观测到读取时使用 readArtifact 专门属性。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/used|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:activity gmeow:used ex:resource ."
-msgstr "ex:activity gmeow:used ex:resource ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/readArtifact|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "read artifact"
 msgstr "读取制品"
@@ -1776,30 +1752,6 @@ msgstr "保留此规范公式表达的实际 verifierArtifactReadAfterWrite 绑�
 msgctxt "https://blackcatinformatics.ca/gmeow/ReadAfterWriteEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
 msgstr "gmeow:ReadAfterWriteEvidenceConstraint logic:formalizes gmeow:verifierArtifactReadAfterWrite ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "Agency records mappings"
-msgstr "行动记录映射"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The native close-match alignment for unqualified activity-to-entity usage. It preserves neither qualified-usage structure nor separate usage-time claims."
-msgstr "活动对实体的非限定使用的本地近似匹配对齐。不保留限定使用结构或独立使用时间断言。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to expose the generic used relation to PROV consumers."
-msgstr "用于向 PROV 使用方提供通用 used 关系。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid claiming a lossless qualified-usage or temporal projection from this binary linkage."
-msgstr "避免声称此二元关联能无损投影限定使用或时间信息。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the close-match relation and its curation metadata; represent richer usage context separately."
-msgstr "保留近似匹配关系及整理元数据；独立表示更丰富的使用上下文。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:used skos:closeMatch prov:used ."
-msgstr "gmeow:used skos:closeMatch prov:used ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/AttemptStopFinishConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Attempt stop finish constraint"

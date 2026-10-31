@@ -62,7 +62,8 @@ process context on the `LearningEvent`.
 
 ## Artifact operations and tools
 
-`used` links an activity to an entity it actually used. `readArtifact` specializes
+`gmeow:used`, owned by the logic grounding slice, links an activity to an entity
+it actually used. This slice's `readArtifact` specializes
 it for information artifacts or versions actually read. Context presence alone
 proves neither use nor reading, and reading neither implies modification nor
 acceptance of the content as true.
