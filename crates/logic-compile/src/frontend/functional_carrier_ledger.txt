@@ -716,11 +716,9 @@ https://blackcatinformatics.ca/logic/adviceSourceField
 https://blackcatinformatics.ca/logic/antecedent
 https://blackcatinformatics.ca/logic/candidateCategory
 https://blackcatinformatics.ca/logic/candidateContract
-https://blackcatinformatics.ca/logic/candidateExtractionProvenance
 https://blackcatinformatics.ca/logic/candidateFormalizes
 https://blackcatinformatics.ca/logic/candidateLifecycle
 https://blackcatinformatics.ca/logic/candidateProjectionBehavior
-https://blackcatinformatics.ca/logic/candidateScope
 https://blackcatinformatics.ca/logic/candidateSemanticRisk
 https://blackcatinformatics.ca/logic/candidateSourceField
 https://blackcatinformatics.ca/logic/candidateSourceHash
@@ -740,6 +738,8 @@ https://blackcatinformatics.ca/logic/functionSymbol
 https://blackcatinformatics.ca/logic/goalEvaluationStatus
 https://blackcatinformatics.ca/logic/guardsPrecondition
 https://blackcatinformatics.ca/logic/invariant
+https://blackcatinformatics.ca/logic/lawGovernsAxis
+https://blackcatinformatics.ca/logic/lensGoverns
 https://blackcatinformatics.ca/logic/lifecycleStatus
 https://blackcatinformatics.ca/logic/not
 https://blackcatinformatics.ca/logic/objectiveValue
@@ -749,6 +749,7 @@ https://blackcatinformatics.ca/logic/overAccessibility
 https://blackcatinformatics.ca/logic/planGoal
 https://blackcatinformatics.ca/logic/planSuccessMode
 https://blackcatinformatics.ca/logic/programQuery
+https://blackcatinformatics.ca/logic/receiptOfPreparation
 https://blackcatinformatics.ca/logic/recoveryTransform
 https://blackcatinformatics.ca/logic/relation
 https://blackcatinformatics.ca/logic/satisfactionDegree
