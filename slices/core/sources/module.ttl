@@ -189,3 +189,21 @@ CitationAct or borne as SourceRole. The Citation locator is retired in favor of 
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Record intake: preserve source meaning and representation.
+gmeow:encodedByteLength
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "encoded byte length"@x-gmeow-english ;
+    skos:definition "The explicitly supplied size in bytes of this information object's particular encoded representation. It describes the same encoded artifact as its content digest, not a creative work's human-readable extent or a Unicode character count."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the exact byte size reported for an encoded artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a byte length from text length, an abstract work or a different serialization."@x-gmeow-english ;
+    gmeow:howToUse "Write the supplied nonNegativeInteger on the encoded artifact; keep distinct encodings on distinct artifact nodes."@x-gmeow-english ;
+    skos:scopeNote "A size is metadata, not proof that bytes were read or a digest was verified. Attributed size claims may coexist."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range xsd:nonNegativeInteger .
+
+
+# Explicit property-range validation; no required path on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/encodedByteLength" ; logic:closureValue logic:ClosedWorldClosure ] .

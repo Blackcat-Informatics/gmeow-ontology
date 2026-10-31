@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/record-intake/> .
+
+# An ordinary synthetic source scene, not an execution or validation receipt.
+ex:holder a gmeow:Agent .
+ex:writer a gmeow:Agent .
+ex:note a gmeow:Note ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:originatingTrace "trace:17" ;
+    gmeow:originatingPacket "packet:8" ;
+    gmeow:evidenceReference "minutes:17" ;
+    gmeow:evidenceAsWritten "See the workshop minutes."@en ;
+    gmeow:durabilityReason "Keep the signed decision for audit."@en ;
+    gmeow:tagAsWritten "almost-ready"@en ;
+    gmeow:purposeAsWritten "think this through later"@en ;
+    gmeow:hasMalformedValue ex:badDate ;
+    gmeow:hasFacet ex:keptText .
+
+# The unresolved producer references do not invent trace or packet resources.
+# This occurrence records one holder's reception, separately from source authorship.
+ex:toolReception a gmeow:InformationObject ;
+    rdf:reifies <<( ex:note gmeow:evidenceAsWritten "See the workshop minutes."@en )>> ;
+    logic:standpoint ex:holder ;
+    gmeow:receivedVia gmeow:receptionChannelToolAnswer .
+
+# Other reported receptions are separate occurrences, even for the same content.
+ex:conversationReception gmeow:receivedVia gmeow:receptionChannelConversation .
+ex:sensorReception gmeow:receivedVia gmeow:receptionChannelSensorFeed .
+ex:documentReception gmeow:receivedVia gmeow:receptionChannelDocumentRead .
+ex:webReception gmeow:receivedVia gmeow:receptionChannelWebFetch .
+ex:componentReception gmeow:receivedVia gmeow:receptionChannelOrganNotice .
+
+# The value remains a string; no invalid date assertion or guessed repair is made.
+ex:badDate a gmeow:MalformedValue ;
+    gmeow:malformedField "history[0].date" ;
+    gmeow:valueAsSent "  2026-99-04  " ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:wasAttributedTo ex:writer .
+
+# These are the retained surrounding words, with both original spaces.
+ex:keptText a gmeow:LabelledFacet ;
+    gmeow:facetLabel "text" ;
+    gmeow:facetText "Before  after."@en ;
+    gmeow:textHeldRecord ex:held .
+
+# Supplied original coordinates are not bounds on the shortened retained text.
+# The removed record's own serialization is deliberately absent.
+ex:held a gmeow:HeldRecord ;
+    gmeow:spanStart "7"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "40"^^xsd:nonNegativeInteger ;
+    gmeow:heldContentStatement <<( ex:item gmeow:description "ready"@en )>> ;
+    rdf:reifies <<( ex:item gmeow:description "ready"@en )>> ;
+    gmeow:hasFacet ex:recordKind .
+ex:recordKind a gmeow:LabelledFacet ;
+    gmeow:facetLabel "kind" ; gmeow:facetValue "notice" ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger .
+# Assertion is explicit and separate from quotation.
+ex:item a gmeow:InformationObject ; gmeow:description "ready"@en .
+
+# The reason annotates only this explicit suppression statement.
+ex:keptText gmeow:displayable false .
+ex:suppression rdf:reifies <<( ex:keptText gmeow:displayable false )>> ;
+    logic:standpoint ex:writer ;
+    gmeow:suppressionReason "Withdrawn by the writer."@en .
+
+# An independently supplied encoded size; no payload or digest verification is claimed.
+ex:artifact a gmeow:InformationObject ;
+    gmeow:encodedByteLength "128"^^xsd:nonNegativeInteger .

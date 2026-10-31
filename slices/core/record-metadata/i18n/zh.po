@@ -480,3 +480,325 @@ msgstr "GMEOW 记录元数据模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Record stores, structured-content importers and context-exposure audits that need domain-independent metadata without inventing predicates from run-time keys."
 msgstr "需要不依赖领域的元数据、且不从运行时键发明谓词的记录存储、结构化内容导入器及上下文接触审计。"
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception Channel"
+msgstr "接收渠道"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the channel by which outside content reached a particular holder. It classifies reception, not authorship, truth or the content's subject."
+msgstr "描述外部内容到达特定持有者所经渠道的开放值词汇。它分类接收方式，不表示作者归属、真伪或内容主题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open. The same content can reach different holders or reach one holder through different receptions."
+msgstr "词汇保持开放。同一内容可到达不同持有者，或通过不同接收事件到达同一持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received via"
+msgstr "接收渠道为"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The channel by which outside content reached the holder of this reception record. The subject identifies one holder-specific reception, not a proposition shared by every holder."
+msgstr "外部内容到达此接收记录持有者所经的渠道。主体标识特定持有者的一次接收，而非所有持有者共享的命题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Single-channel integrity is local to a reception record. Missing channel metadata does not imply a default channel."
+msgstr "单一渠道完整性仅针对一次接收记录。缺失渠道元数据不蕴含默认渠道。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating trace"
+msgstr "来源推理轨迹"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the reasoning trace from which a record came, retained exactly as supplied. It is a source reference, not a trace object or proof of reasoning."
+msgstr "生产者提供的、记录所源自推理轨迹的未解析标识符，按原样保留。它是来源引用，不是轨迹对象或推理证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingTrace \"trace:17\" ."
+msgstr "ex:record gmeow:originatingTrace \"trace:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating packet"
+msgstr "来源消息包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the message packet that produced or carried this record, retained exactly as supplied. It does not assert dispatch or receipt of a packet node."
+msgstr "生产者提供的、生成或承载此记录的消息包未解析标识符，按原样保留。它不声明某消息包节点已发送或接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingPacket \"packet:8\" ."
+msgstr "ex:record gmeow:originatingPacket \"packet:8\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Value"
+msgstr "格式错误值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rejected field occurrence retained as a LabelledFacet: the producer supplied a value that its declared contract did not admit. The occurrence preserves the field and source representation, not a repaired or asserted domain value."
+msgstr "作为 LabelledFacet 保留的被拒字段出现：生产者提供了其声明契约不接纳的值。该出现保留字段及来源表示，不保存修复后的值，也不将其断言为领域值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Typing records a reported refusal. These declarations do not execute an arbitrary producer contract or prove that its value was rejected."
+msgstr "此类型记录报告的拒绝。这些声明不执行任意生产者契约，也不证明其已拒绝该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has malformed value"
+msgstr "具有格式错误值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to a retained rejected field occurrence supplied by its producer. It specializes hasFacet and does not assert the rejected value on the intended domain predicate."
+msgstr "将记录连接到生产者提供、已保留的被拒字段出现。它特化 hasFacet，不在预期领域谓词上断言被拒值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several refused fields and repeated keys coexist. The relation records retention, not successful parsing or repair."
+msgstr "多个被拒字段和重复键可共存。该关系记录保留，不表示解析或修复成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "malformed field"
+msgstr "格式错误字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact producer field name, relative path or term spelling identifying a rejected field occurrence. It specializes facetLabel without imposing a universal path syntax."
+msgstr "标识被拒字段出现的生产者原始字段名、相对路径或术语拼写。它特化 facetLabel，不规定通用路径语法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The field label is content, not a new predicate or a resolver instruction."
+msgstr "字段标签是内容，不是新谓词或解析指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:malformedField \"history[0].date\" ."
+msgstr "ex:badDate gmeow:malformedField \"history[0].date\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value as sent"
+msgstr "发送时原值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact character representation supplied for a rejected field occurrence, retained as xsd:string. It preserves source characters without asserting the datatype or domain value the producer failed to supply."
+msgstr "以 xsd:string 保留的被拒字段原始字符表示。它保留来源字符，不断言生产者未能提供的有效数据类型或领域值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Character preservation does not certify original bytes, encoding, transport escapes or a complete source serialization; retain an artifact separately when those are needed."
+msgstr "字符保留不认证原始字节、编码、传输转义或完整来源序列化；需要这些信息时应另行保留制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+msgstr "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence as written"
+msgstr "按原文记录的证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Evidence cited by a record's writer, retained in the writer's own words, including a title, identifier spelling or sentence. It is not a resolved evidential link or a claim that the evidence supports the record."
+msgstr "按记录作者原话保留的所引证据，包括标题、标识符拼写或句子。它不是已解析的证据链接，也不宣称证据支持该记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged source text remains xsd:string. No language, evidence node or evidential verdict is invented."
+msgstr "未标记的来源文本仍为 xsd:string。不虚构语言、证据节点或证据裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceAsWritten \"See the workshop minutes.\"@en ."
+msgstr "ex:record gmeow:evidenceAsWritten \"参见研讨会纪要。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence reference"
+msgstr "证据引用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An unresolved producer reference cited as evidence by a record, retained exactly as supplied. It preserves a reference without inventing the resource it might identify."
+msgstr "记录作为证据引用、按原样保留的生产者未解析引用。它保留引用，不虚构引用可能标识的资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceReference \"minutes:17\" ."
+msgstr "ex:record gmeow:evidenceReference \"minutes:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "durability reason"
+msgstr "持久保留理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a record was kept durably, exactly as its writer stated it. This descriptive wording does not itself establish a storage policy, retention duration or successful durable write."
+msgstr "按作者原话记录为何持久保留此记录。这些描述文字本身不确立存储策略、保留期限或持久写入成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reasons are nonfunctional descriptions: different writers and standpoints may supply different explanations."
+msgstr "理由是非函数性的描述：不同作者和立场可提供不同解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:durabilityReason \"Keep the signed decision for audit.\"@en ."
+msgstr "ex:record gmeow:durabilityReason \"保留已签署的决定以供审计。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "suppression reason"
+msgstr "抑制显示理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a particular displayable false assertion was made, exactly as stated by its writer. The reason belongs on that assertion's RDF 1.2 reifier and does not itself suppress any resource."
+msgstr "按作者原话记录为何作出某条 displayable false 断言。理由属于该断言的 RDF 1.2 重化记录，本身不抑制任何资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks the existing lowered statement components. Validation needs completed statement-metadata lowering; it does not authenticate the writer or execute display policy."
+msgstr "绑定规则检查已有的降级语句组成部分。验证要求语句元数据降级已完成；它不认证作者，也不执行显示策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"Withdrawn by the writer.\"@en ."
+msgstr "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"由撰写者撤回。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conversation"
+msgstr "对话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content said to the holder by another participant in a conversation."
+msgstr "另一参与者在对话中向持有者说出的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool answer"
+msgstr "工具回答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content returned in answer to a tool call made by the holder."
+msgstr "响应持有者发起的工具调用而返回的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sensor feed"
+msgstr "传感器数据流"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content perceived by the holder through a sensor feed."
+msgstr "持有者通过传感器数据流感知的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "document read"
+msgstr "阅读文档"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content read by the holder in a document, including a work passage or a repository file."
+msgstr "持有者在文档中读取的内容，包括作品片段或仓库文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "web fetch"
+msgstr "网页获取"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content fetched from the web for the holder."
+msgstr "为持有者从网络获取的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component notice"
+msgstr "组件通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content sent to the holder as a notice by another component of the same system."
+msgstr "同一系统的另一组件以通知形式发送给持有者的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception channel uniqueness constraint"
+msgstr "接收渠道唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A holder-specific reception record supplies at most one receivedVia channel. Independent receptions use distinct records, so the law does not identify channel values or choose a global winner."
+msgstr "特定持有者的一次接收记录至多提供一个 receivedVia 渠道。独立接收使用不同记录，因此此规则不合并渠道值，也不选择全局优先者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law concerns the reception record's own supplied channels, not every holder of the same content."
+msgstr "此规则仅涉及该接收记录自身提供的渠道，不涉及同一内容的所有持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+msgstr "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Suppression reason binding constraint"
+msgstr "抑制理由绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied suppressionReason is attached to the reifier of a displayable false statement, identified by its existing lowered subject, predicate and object components."
+msgstr "每个已提供的 suppressionReason 均附着于 displayable false 语句的重化记录，并通过已有降级的主语、谓词和宾语组成部分标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering is required. This checks retained statement binding, not author authenticity, asserted truth or execution of display policy."
+msgstr "要求语句元数据降级已完成。此检查仅验证所保留的语句绑定，不认证作者、断言真伪或显示策略执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+msgstr "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."

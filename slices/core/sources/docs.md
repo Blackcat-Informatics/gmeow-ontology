@@ -99,3 +99,13 @@ for completeness, which is the property the whole record exists to support.
 | The five control-flow edges ordering them | built |
 | `gmeow:goalCanonicalIngestion` success criterion | built |
 | Competency cell pinning ingestion enactments | built |
+
+## Encoded byte size
+
+`encodedByteLength` retains an explicitly supplied nonnegative integer size
+for a particular encoded information artifact. It concerns the same
+representation whose exact bytes a content digest identifies. Different
+serializations are distinct encoded artifacts; a creative work's human-readable
+`extent` and a text's Unicode character count are different facts. The property
+neither reads bytes nor verifies a digest. Multiple attributed size claims can
+coexist without a globally functional winner.

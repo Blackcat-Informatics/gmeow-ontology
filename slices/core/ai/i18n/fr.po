@@ -1369,3 +1369,133 @@ msgstr "Contrainte d’intersection de couverture de segmentation"
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
 msgstr "Une étendue déclarée couverte doit réellement intersecter le fragment sélectionné dans leur repère source entier commun. Des étendues qui touchent seulement une borne ou sont disjointes ne sont pas des blocs couverts."
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held Record"
+msgstr "Enregistrement contenu dans un texte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence of a machine record cut out of a particular source text and decomposed into facts. Surrounding words are retained verbatim, its original code-point span is recorded, and its content and other fields become facts; its own serialized text, whitespace, escapes and key order are not retained."
+msgstr "Occurrence d’un enregistrement machine retiré d’un texte source particulier et décomposé en faits. Les mots autour sont conservés exactement, l’intervalle original en points de code est enregistré et le contenu et les autres champs deviennent des faits ; son propre texte sérialisé, ses espaces, échappements et ordre des clés ne sont pas conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The span refers to the original text before extraction, never the shortened retained text. These declarations neither parse a record nor certify a generic triple-term kind check."
+msgstr "L’intervalle vise le texte original avant extraction, jamais le texte conservé raccourci. Ces déclarations n’analysent pas un enregistrement et ne certifient pas un contrôle générique de terme triple."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:text gmeow:textHeldRecord ex:held . ex:held a gmeow:HeldRecord ; gmeow:spanStart \"7\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"20\"^^xsd:nonNegativeInteger ."
+msgstr "ex:text gmeow:textHeldRecord ex:held . ex:held a gmeow:HeldRecord ; gmeow:spanStart \"7\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"20\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text held record"
+msgstr "enregistrement contenu dans le texte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one text occurrence to a machine-record occurrence removed from among its words and decomposed into facts. The text carrier retains the surrounding words; each removed occurrence has its own original code-point span."
+msgstr "Relie une occurrence de texte à une occurrence d’enregistrement machine retirée de ses mots et décomposée en faits. Le porteur du texte conserve les mots environnants ; chaque occurrence retirée possède son propre intervalle original en points de code."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several held records may belong to one text occurrence. The link does not retain the removed serialization or establish parsing success."
+msgstr "Plusieurs enregistrements peuvent appartenir à une occurrence de texte. Le lien ne conserve pas la sérialisation retirée et n’établit pas une analyse réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:text gmeow:textHeldRecord ex:held ."
+msgstr "ex:text gmeow:textHeldRecord ex:held ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "held content statement"
+msgstr "énoncé de contenu extrait"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The distinguished RDF 1.2 triple term representing a held record's decomposed content. The same term is supplied through explicit rdf:reifies on the HeldRecord occurrence, preserving the existing statement-metadata production path."
+msgstr "Le terme triple RDF 1.2 distinctif représentant le contenu décomposé d’un enregistrement contenu. Le même terme est fourni par rdf:reifies explicite sur l’occurrence HeldRecord, préservant le chemin existant de production des métadonnées d’énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks identical graph-term joins to explicit reifier evidence. It does not add a generic triple-term validator, authenticate decomposition or assert a quoted statement."
+msgstr "La loi de liaison vérifie des jointures de termes identiques vers la preuve de réification explicite. Elle n’ajoute pas de validateur générique de terme triple, n’authentifie pas la décomposition et n’affirme pas l’énoncé cité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:held gmeow:heldContentStatement <<( ex:item gmeow:description \"ready\"@en )>> ; rdf:reifies <<( ex:item gmeow:description \"ready\"@en )>> ."
+msgstr "ex:held gmeow:heldContentStatement <<( ex:item gmeow:description \"prêt\"@fr )>> ; rdf:reifies <<( ex:item gmeow:description \"prêt\"@fr )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record evidence constraint"
+msgstr "Contrainte de preuve d’enregistrement contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every HeldRecord has a containing text occurrence and a distinguished content term shared with explicit rdf:reifies evidence on that same record."
+msgstr "Chaque HeldRecord possède une occurrence de texte conteneur et un terme de contenu distinctif partagé avec une preuve rdf:reifies explicite sur ce même enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Shared graph-term bindings preserve the explicit reifier path. They do not implement parsing or a generic triple-term kind test."
+msgstr "Les liaisons de termes identiques préservent le chemin explicite de réification. Elles n’implémentent ni analyse ni test générique de terme triple."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordEvidenceConstraint logic:formalizes gmeow:HeldRecord ."
+msgstr "gmeow:HeldRecordEvidenceConstraint logic:formalizes gmeow:HeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record reifier binding constraint"
+msgstr "Contrainte de liaison du réificateur d’enregistrement contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every heldContentStatement term and every explicit rdf:reifies term on a HeldRecord agree through identical graph-term joins."
+msgstr "Chaque terme heldContentStatement et chaque terme rdf:reifies explicite d’un HeldRecord concordent par jointure de termes de graphe identiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two source roles retain the same RDF term without relying on a subproperty inference before statement-metadata extraction."
+msgstr "Les deux rôles source gardent le même terme RDF sans dépendre d’une inférence de sous-propriété avant l’extraction des métadonnées d’énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordReifierBindingConstraint logic:formalizes gmeow:heldContentStatement ."
+msgstr "gmeow:HeldRecordReifierBindingConstraint logic:formalizes gmeow:heldContentStatement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record parent uniqueness constraint"
+msgstr "Contrainte d’unicité du texte parent"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A HeldRecord occurrence belongs to only one containing text occurrence. Several held records may belong to the same text."
+msgstr "Une occurrence HeldRecord appartient à une seule occurrence de texte conteneur. Plusieurs enregistrements peuvent appartenir au même texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence identity is source-local; shared content does not merge independent occurrences."
+msgstr "L’identité d’occurrence est locale à la source ; un contenu commun ne fusionne pas des occurrences indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordParentUniquenessConstraint logic:formalizes gmeow:textHeldRecord ."
+msgstr "gmeow:HeldRecordParentUniquenessConstraint logic:formalizes gmeow:textHeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record span order constraint"
+msgstr "Contrainte d’ordre de l’intervalle d’enregistrement contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original half-open code-point span of a HeldRecord has a start strictly before its end."
+msgstr "L’intervalle original demi-ouvert en points de code d’un HeldRecord commence strictement avant sa fin."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No upper bound is compared with shortened retained text. Original source length is not reconstructed or invented."
+msgstr "Aucune borne supérieure n’est comparée au texte conservé raccourci. La longueur originale n’est ni reconstruite ni inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordSpanOrderConstraint logic:formalizes gmeow:HeldRecord ."
+msgstr "gmeow:HeldRecordSpanOrderConstraint logic:formalizes gmeow:HeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held content count constraint"
+msgstr "Contrainte de nombre de contenus extraits"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A HeldRecord supplies exactly one distinct RDF term through heldContentStatement. The separate evidence law requires presence when the aggregate has no rows."
+msgstr "Un HeldRecord fournit exactement un terme RDF distinct par heldContentStatement. La loi de preuve séparée exige sa présence lorsque l’agrégat n’a aucune ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "COUNT DISTINCT uses graph-term identity, keeping alternate literal spellings inside triple terms distinct; it does not compare decoded values."
+msgstr "COUNT DISTINCT emploie l’identité de terme, distinguant les graphies littérales à l’intérieur des termes triples ; il ne compare pas des valeurs décodées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."
+msgstr "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."

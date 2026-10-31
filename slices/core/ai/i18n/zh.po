@@ -1369,3 +1369,133 @@ msgstr "分块覆盖相交约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
 msgstr "声明覆盖的范围必须在共享整体源框架中与选定块实际相交。仅边界接触或不相交的范围不是被覆盖块。"
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held Record"
+msgstr "文本所含记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence of a machine record cut out of a particular source text and decomposed into facts. Surrounding words are retained verbatim, its original code-point span is recorded, and its content and other fields become facts; its own serialized text, whitespace, escapes and key order are not retained."
+msgstr "从特定来源文本中截取并分解为事实的机器记录出现。周围文字按原样保留，记录原始码点范围，内容及其他字段成为事实；不保留其自身序列化文本、空白、转义和键顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The span refers to the original text before extraction, never the shortened retained text. These declarations neither parse a record nor certify a generic triple-term kind check."
+msgstr "范围指向提取前的原始文本，而非保留的缩短文本。这些声明不解析记录，也不认证通用三元组项类型检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:text gmeow:textHeldRecord ex:held . ex:held a gmeow:HeldRecord ; gmeow:spanStart \"7\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"20\"^^xsd:nonNegativeInteger ."
+msgstr "ex:text gmeow:textHeldRecord ex:held . ex:held a gmeow:HeldRecord ; gmeow:spanStart \"7\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"20\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text held record"
+msgstr "文本包含记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates one text occurrence to a machine-record occurrence removed from among its words and decomposed into facts. The text carrier retains the surrounding words; each removed occurrence has its own original code-point span."
+msgstr "将一次文本出现连接到从其文字间移除并分解为事实的机器记录出现。文本载体保留周围文字；每个被移除的出现均有自己的原始码点范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several held records may belong to one text occurrence. The link does not retain the removed serialization or establish parsing success."
+msgstr "一次文本出现可包含多个记录。此链接不保留被移除的序列化，也不证明解析成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/textHeldRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:text gmeow:textHeldRecord ex:held ."
+msgstr "ex:text gmeow:textHeldRecord ex:held ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "held content statement"
+msgstr "所含内容语句"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The distinguished RDF 1.2 triple term representing a held record's decomposed content. The same term is supplied through explicit rdf:reifies on the HeldRecord occurrence, preserving the existing statement-metadata production path."
+msgstr "表示所含记录已分解内容的特定 RDF 1.2 三元组项。在 HeldRecord 出现上通过显式 rdf:reifies 提供同一项，保留现有语句元数据生产路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks identical graph-term joins to explicit reifier evidence. It does not add a generic triple-term validator, authenticate decomposition or assert a quoted statement."
+msgstr "绑定规则通过相同图项连接检查显式重化证据。它不新增通用三元组项验证器，不认证分解，也不自动断言引用语句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/heldContentStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:held gmeow:heldContentStatement <<( ex:item gmeow:description \"ready\"@en )>> ; rdf:reifies <<( ex:item gmeow:description \"ready\"@en )>> ."
+msgstr "ex:held gmeow:heldContentStatement <<( ex:item gmeow:description \"就绪\"@zh )>> ; rdf:reifies <<( ex:item gmeow:description \"就绪\"@zh )>> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record evidence constraint"
+msgstr "所含记录证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every HeldRecord has a containing text occurrence and a distinguished content term shared with explicit rdf:reifies evidence on that same record."
+msgstr "每个 HeldRecord 均具有一个包含它的文本出现，以及与同一记录上的显式 rdf:reifies 证据共享的特定内容项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Shared graph-term bindings preserve the explicit reifier path. They do not implement parsing or a generic triple-term kind test."
+msgstr "相同图项绑定保留显式重化路径。它们不实现解析，也不实现通用三元组项类型检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordEvidenceConstraint logic:formalizes gmeow:HeldRecord ."
+msgstr "gmeow:HeldRecordEvidenceConstraint logic:formalizes gmeow:HeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record reifier binding constraint"
+msgstr "所含记录重化绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every heldContentStatement term and every explicit rdf:reifies term on a HeldRecord agree through identical graph-term joins."
+msgstr "HeldRecord 上的每个 heldContentStatement 项与每个显式 rdf:reifies 项均通过相同图项连接保持一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The two source roles retain the same RDF term without relying on a subproperty inference before statement-metadata extraction."
+msgstr "两个来源角色保留同一 RDF 项，不依赖语句元数据提取前的子属性推理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordReifierBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordReifierBindingConstraint logic:formalizes gmeow:heldContentStatement ."
+msgstr "gmeow:HeldRecordReifierBindingConstraint logic:formalizes gmeow:heldContentStatement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record parent uniqueness constraint"
+msgstr "所含记录父文本唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A HeldRecord occurrence belongs to only one containing text occurrence. Several held records may belong to the same text."
+msgstr "一个 HeldRecord 出现仅属于一个包含它的文本出现。同一文本可包含多个记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Occurrence identity is source-local; shared content does not merge independent occurrences."
+msgstr "出现身份局限于来源；共享内容不合并独立出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordParentUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordParentUniquenessConstraint logic:formalizes gmeow:textHeldRecord ."
+msgstr "gmeow:HeldRecordParentUniquenessConstraint logic:formalizes gmeow:textHeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held record span order constraint"
+msgstr "所含记录范围顺序约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original half-open code-point span of a HeldRecord has a start strictly before its end."
+msgstr "HeldRecord 的原始半开码点范围起点严格小于终点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No upper bound is compared with shortened retained text. Original source length is not reconstructed or invented."
+msgstr "不与保留的缩短文本比较上界。不重建或虚构原始来源长度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecordSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldRecordSpanOrderConstraint logic:formalizes gmeow:HeldRecord ."
+msgstr "gmeow:HeldRecordSpanOrderConstraint logic:formalizes gmeow:HeldRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Held content count constraint"
+msgstr "所含内容数量约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A HeldRecord supplies exactly one distinct RDF term through heldContentStatement. The separate evidence law requires presence when the aggregate has no rows."
+msgstr "HeldRecord 通过 heldContentStatement 提供恰好一个不同的 RDF 项。当聚合没有行时，独立证据规则要求其存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "COUNT DISTINCT uses graph-term identity, keeping alternate literal spellings inside triple terms distinct; it does not compare decoded values."
+msgstr "COUNT DISTINCT 使用图项身份，区分三元组项内部不同的字面量拼写；它不比较解码后的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."
+msgstr "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."

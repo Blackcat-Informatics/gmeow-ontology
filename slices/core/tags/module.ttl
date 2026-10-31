@@ -5,6 +5,7 @@
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 gmeow:Tag
     a logic:Kind ,
@@ -352,3 +353,21 @@ gmeow:taggingTaggedFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:taggingTagged and nothing else. It is not a definition of gmeow:taggingTagged (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:taggingTaggedFunctionality logic:characterizes gmeow:taggingTagged ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Record intake: preserve source meaning and representation.
+gmeow:tagAsWritten
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "tag as written"@x-gmeow-english ;
+    skos:definition "A tag in exactly the writer's spelling, retained when it does not resolve to a tag in the relevant scheme. It does not mint a Tag, assert hasTag or select a preferred spelling."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an unresolved or coined tag without inventing vocabulary identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid matching, correcting or normalizing the text into a scheme member without evidence."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original words and supplied language and direction; use hasTag independently for established Tag nodes."@x-gmeow-english ;
+    skos:scopeNote "Untagged source text remains xsd:string. Several spellings and attributed interpretations coexist."@x-gmeow-english ;
+    skos:example "ex:record gmeow:tagAsWritten \"almost-ready\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:Entity ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+
+# Explicit property-range validation; no required path on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tagAsWritten" ; logic:closureValue logic:ClosedWorldClosure ] .

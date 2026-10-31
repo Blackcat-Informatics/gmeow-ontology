@@ -85,3 +85,62 @@ The [cataloguing scene](examples/cataloguing.ttl) illustrates source precision,
 position-named facets, typed and label-only fields, reviewed concepts and shared
 context references. The [design rationale](design/RECORD-METADATA.md) explains the
 canonical obligations and the bridges deliberately excluded.
+
+## Retain an outside producer's record
+
+Reception, authorship and truth remain separate. `ReceptionChannel` is an open
+value vocabulary with conversation, tool answer, sensor feed, document read,
+web fetch and component notice values. Put `receivedVia` on the record of one
+holder's particular reception, or its attributed assertion reifier. Keep
+independent receptions as independent occurrences even when their content is
+the same. The single-channel law compares only that occurrence's channels; it
+does not select a universal channel for a proposition or infer the holder from
+its author. Existing statement standpoint and provenance retain that attribution.
+
+`originatingTrace` and `originatingPacket` retain unresolved producer identifiers.
+`evidenceReference` does the same for an unresolved evidence reference.
+All three use `xsd:string`: verbatim producer identifiers may contain whitespace,
+and `xsd:token` would normalize it. Their producer namespace remains provenance.
+Use actual source, trace, message or evidence links when those resources are
+established; the literal reference neither invents a node nor proves resolution.
+
+A `MalformedValue` is a rejected field occurrence, specializing `LabelledFacet`.
+Attach it with `hasMalformedValue`, a specialization of `hasFacet`.
+Its required `malformedField` specializes `facetLabel`; required `valueAsSent`
+specializes `facetText`. Both are single `xsd:string` values preserving the
+producer's field spelling and chosen character representation. Apply the
+existing type and subproperty closure when consuming the inherited facet
+contracts. Repeated keys are distinct occurrences, named by source position.
+The existing text/value exclusion prevents a simultaneous typed scalar payload.
+
+The rejected representation is kept beside the record. It is never asserted on
+the intended domain predicate as an invalid date, digest or code, and is never
+silently repaired. Its refusal provenance records whose contract judgement is
+being retained. The ontology does not execute an arbitrary producer contract or
+authenticate that judgement. Exact characters do not certify source bytes,
+transport escapes or a complete serialization; preserve a separate source
+artifact when those are needed.
+
+`evidenceAsWritten` keeps the writer's evidence wording, while
+`durabilityReason` and `suppressionReason` specialize the existing nonfunctional
+`description`. Text preserves supplied language and direction; unknown language
+remains an untagged string. Several attributed reasons may coexist. The words
+alone neither prove evidential support nor cause a durable write or suppression.
+
+Put a suppression reason on the explicit RDF 1.2 reifier of the particular
+`displayable false` assertion. Its binding law uses the existing lowered
+statement subject, predicate and object. Validation therefore consumes completed
+statement-metadata lowering; it does not invent source component facts, execute
+display policy or authenticate a writer. Quoting a statement alone does not
+assert it.
+
+The false-object comparison uses boolean value equality, so a supplied
+`"0"^^xsd:boolean` remains admissible without rewriting its lexical form.
+
+Unresolved tag wording belongs to [tags](../tags/docs.md), a note's unresolved
+purpose wording to [notes](../notes/docs.md), and encoded byte size to
+[sources](../sources/docs.md). [Held records](../ai/docs.md#records-held-among-prose)
+reuse the existing AI-owned code-point span properties without a reverse
+dependency from record metadata to AI.
+The [ordinary intake scene](../ai/examples/record-intake.ttl) brings all seven surfaces
+together as source declarations, without claiming execution.

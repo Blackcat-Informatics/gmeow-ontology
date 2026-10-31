@@ -96,3 +96,21 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/taggingTaggedFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:taggingTagged and nothing else. It is not a definition of gmeow:taggingTagged (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:taggingTagged, et rien d'autre. Ce n'est pas une définition de gmeow:taggingTagged (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tag as written"
+msgstr "étiquette telle qu’écrite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tag in exactly the writer's spelling, retained when it does not resolve to a tag in the relevant scheme. It does not mint a Tag, assert hasTag or select a preferred spelling."
+msgstr "Une étiquette dans la graphie exacte de son auteur, conservée lorsqu’elle ne se résout pas en une étiquette du schéma concerné. Elle ne crée pas de Tag, n’affirme pas hasTag et ne choisit aucune graphie privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged source text remains xsd:string. Several spellings and attributed interpretations coexist."
+msgstr "Le texte sans étiquette reste xsd:string. Plusieurs graphies et interprétations attribuées coexistent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:tagAsWritten \"almost-ready\"@en ."
+msgstr "ex:record gmeow:tagAsWritten \"presque-prêt\"@fr ."

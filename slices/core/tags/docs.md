@@ -101,3 +101,13 @@ reference and projection, never import (Principle 5); each target flattens away 
 the relator (most drop tagger or interval), which is why the canonical form lives here.
 Depends on kernel and temporal; consumed by the images and software extensions and any
 slice that lets users label things.
+
+## Preserve unresolved tag wording
+
+`tagAsWritten` keeps a writer's exact tag wording when it does not resolve to
+a tag in the relevant scheme. It is literal source content, independent of
+`hasTag`, and does not mint a `Tag`, assert a scheme match or choose a preferred
+spelling. Preserve supplied language and RDF 1.2 direction; an unstated language
+remains an `xsd:string`. Retain attribution through existing statement metadata.
+Resolved tags and unresolved wording may coexist without overwriting one another.
+The notes owner specializes this role with `purposeAsWritten`.

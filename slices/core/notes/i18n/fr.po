@@ -96,3 +96,21 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/annotationTargetFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:annotationTarget and nothing else. It is not a definition of gmeow:annotationTarget (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:annotationTarget, et rien d'autre. Ce n'est pas une définition de gmeow:annotationTarget (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "purpose as written"
+msgstr "but tel qu’écrit"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A note's purpose in exactly its writer's words when it does not resolve to a purpose tag in the relevant scheme. It specializes tagAsWritten without inventing an AnnotationMotivation or Tag."
+msgstr "Le but d’une note dans les mots exacts de son auteur lorsqu’il ne se résout pas en une étiquette de but du schéma concerné. Spécialise tagAsWritten sans inventer d’AnnotationMotivation ni de Tag."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged source text remains xsd:string. Several spellings and attributed interpretations coexist."
+msgstr "Le texte sans étiquette reste xsd:string. Plusieurs graphies et interprétations attribuées coexistent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/purposeAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:note gmeow:purposeAsWritten \"think this through later\"@en ."
+msgstr "ex:note gmeow:purposeAsWritten \"y réfléchir plus tard\"@fr ."

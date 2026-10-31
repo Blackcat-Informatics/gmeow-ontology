@@ -83,3 +83,36 @@ language and direction when known. No language, missing value or digest is
 fabricated. Label-only facets preserve the existence of the key without inventing
 a universal null datatype. These choices apply Principle 4 to imported content
 and Principles 9 and 10 to reviewed concept interpretations.
+
+## Intake fidelity and source ownership
+
+Reception metadata describes a holder-specific occurrence rather than a shared
+proposition. The open channel vocabulary and a guarded per-record uniqueness
+formula preserve that scope without a globally functional property identifying
+different channels. Missing metadata has no inferred default.
+
+Rejected field occurrences reuse the facet identity and payload contracts.
+Only the supplied field and raw representation become required on
+`MalformedValue`; unrelated records acquire no mandatory fields. Universal
+restrictions, typed local maxima and class-scoped `ClosedWorldClosure` entries
+provide these requirements. Existing subproperty inference carries their
+meaning into the generic facet path. No source path syntax, repair strategy or
+contract interpreter is added.
+
+Verbatim producer references use strings rather than token-normalized values.
+Human wording retains its supplied language and direction, including plain
+strings where language was not stated. Attribution and uncertainty remain on
+the existing provenance and statement layers. Description subproperties record
+stated reasons without turning those reasons into an execution receipt.
+
+The suppression law follows one reason reifier to the already defined lowered
+statement components. Its false boolean value and displayable predicate concern
+that suppression statement alone. It relies on completed statement-metadata
+lowering and does not broaden that mechanism's documented supported fragment.
+
+Held-record terms remain beside the existing span owner in AI, which already
+depends on record metadata. Tags and note purpose wording stay with their
+respective owners; encoded byte length stays with the source artifact owner.
+These directions avoid an AI/record-metadata dependency cycle. Every new
+obligation is authored in canonical logic; no shape surface is authored
+(Principles 4, 7, 9, 10 and 17).
