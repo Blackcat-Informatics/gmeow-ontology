@@ -3,6 +3,7 @@
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -626,7 +627,7 @@ gmeow:invocationError
     gmeow:howToUse "Keep the exact string and record invocationOutcome independently when supplied."@x-gmeow-english ;
     skos:example "ex:record gmeow:invocationError \"source value\" ."@x-gmeow-english ;
     logic:domain gmeow:ModelInvocation ;
-    logic:range xsd:string .
+    logic:range rdfs:Literal .
 
 gmeow:IntentionSalienceObservation
     a logic:SubKind , logic:Class ;
@@ -806,7 +807,7 @@ gmeow:ToolCall logic:subClassOf
 
 gmeow:ModelInvocation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:invocationOutcome ; logic:allValuesFrom gmeow:ModelInvocationOutcome ],
-    [ a logic:Restriction ; logic:onProperty gmeow:invocationError ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:invocationError ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 
 gmeow:InformationObject logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:artifactComplete ; logic:allValuesFrom xsd:boolean ] .
