@@ -182,9 +182,37 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         let axis_iri = exempts_p
             .and_then(|p| one_iri(ds, sid, p))
             .unwrap_or_default();
-        let reason = reason_p
-            .and_then(|p| one_lit(ds, sid, p))
-            .unwrap_or_default();
+        let mut reasons = std::collections::BTreeMap::new();
+        if let Some(predicate) = reason_p {
+            for quad in ds.quads_for_pattern(Some(sid), Some(predicate), None, GraphMatch::Any) {
+                let purrdf::RdfTerm::Literal(literal) = ds.to_owned_term(quad.o) else {
+                    return Err(rubric_err(format!(
+                        "exemption {iri} gmeow:exemptionReason must be a prose literal"
+                    )));
+                };
+                if !matches!(
+                    literal.datatype_iri(),
+                    "http://www.w3.org/2001/XMLSchema#string"
+                        | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                        | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+                ) {
+                    return Err(rubric_err(format!(
+                        "exemption {iri} gmeow:exemptionReason has non-prose datatype <{}>",
+                        literal.datatype_iri()
+                    )));
+                }
+                let key = (
+                    literal.lexical_form.clone(),
+                    literal.datatype_iri().to_owned(),
+                    literal.language.clone(),
+                    literal
+                        .direction
+                        .map(|direction| direction.as_str().to_owned()),
+                );
+                reasons.insert(key, literal);
+            }
+        }
+        let reasons = reasons.into_values().collect();
         let date = date_p.and_then(|p| one_lit(ds, sid, p)).unwrap_or_default();
         let producer = exproducer_p
             .and_then(|p| one_lit(ds, sid, p))
@@ -211,7 +239,7 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         exemptions.push(Exemption {
             iri,
             axis_iri,
-            reason,
+            reasons,
             date,
             producer,
         });
