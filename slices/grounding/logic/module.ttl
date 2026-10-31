@@ -5307,21 +5307,6 @@ logic:candidateContractFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateContract and nothing else. It is not a definition of logic:candidateContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."@x-gmeow-english .
 
-logic:candidateExtractionProvenanceFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "candidateExtractionProvenance is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
-    logic:characterizes logic:candidateExtractionProvenance ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateExtractionProvenance ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateExtractionProvenance and nothing else. It is not a definition of logic:candidateExtractionProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."@x-gmeow-english .
-
 logic:candidateFormalizesFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -5366,21 +5351,6 @@ logic:candidateProjectionBehaviorFunctionality
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateProjectionBehavior, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateProjectionBehavior and nothing else. It is not a definition of logic:candidateProjectionBehavior (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."@x-gmeow-english .
-
-logic:candidateScopeFunctionality
-    a logic:NamedIndividual ,
-        logic:PropertyCharacteristicAssertion ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "candidateScope is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
-    logic:characterizes logic:candidateScope ;
-    logic:characteristicSort logic:functionalProperty ;
-    logic:formalizes logic:candidateScope ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
-    gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
-    skos:scopeNote "Scope: this record carries ONE integrity obligation about logic:candidateScope and nothing else. It is not a definition of logic:candidateScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
-    skos:example "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."@x-gmeow-english .
 
 logic:candidateSemanticRiskFunctionality
     a logic:NamedIndividual ,
@@ -6915,19 +6885,29 @@ logic:candidateSourceHash
 logic:candidateExtractionProvenance
     a logic:DatatypeProperty ;
     rdfs:domain logic:FormalizationCandidate ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate extraction provenance"@x-gmeow-english ;
-    skos:definition "The provenance of a candidate's extraction — what produced it (an extractor identifier, run, or model invocation reference). Records that an automated extraction is exactly that, so it enters at logic:CandidateProposed and earns no canonical force without review. Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    skos:definition "Descriptions of what produced a formalization candidate, retained in their supplied words and literal forms. They identify an extractor, run or model invocation without granting canonical force to its proposed axiom. Several attributed descriptions may coexist; the extraction event itself is not multiplied by its descriptions."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each supplied description of a candidate's extraction origin."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a provenance description as proof of successful extraction, reviewer approval or a uniquely identified event."@x-gmeow-english ;
+    gmeow:howToUse "Keep every source literal with its supplied language and direction; retain plain strings when no language was stated and established provenance links separately."@x-gmeow-english ;
+    skos:scopeNote "Multiple descriptions do not imply multiple extraction events. The selected candidate requires this carrier, but no language or wording is preferred."@x-gmeow-english ;
+    skos:example "ex:candidate logic:candidateExtractionProvenance \"Extracted from the source definition.\"@en ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:candidateScope
     a logic:DatatypeProperty ;
     rdfs:domain logic:FormalizationCandidate ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate scope"@x-gmeow-english ;
-    skos:definition "The intended scope of a candidate's axiom — the terms, slice, or context it is meant to constrain. Read together with logic:candidateContract (the reasoning semantics it is interpreted under). Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    skos:definition "Descriptions of the terms, slice or context a formalization candidate's axiom is intended to constrain, retained in their supplied literal forms. Read them with candidateContract, which identifies the reasoning semantics. Plain formula identity strings supplied by the native producer remain strings; descriptive words retain their supplied language and direction."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain each supplied description of the reach of a candidate's proposed axiom."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a formal scope boundary or a different reasoning contract from a description alone."@x-gmeow-english ;
+    gmeow:howToUse "Keep all original scope descriptions and any supplied language and direction; preserve a native producer's plain formula identity string unchanged."@x-gmeow-english ;
+    skos:scopeNote "Multiple descriptions do not imply multiple reasoning contracts or change a formula's identity. The selected candidate requires this carrier without choosing a preferred wording."@x-gmeow-english ;
+    skos:example "ex:candidate logic:candidateScope \"Transitivity over the recorded relation.\"@en ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:candidateContract
@@ -19513,8 +19493,8 @@ logic:candidateNoOverTyping
 
 logic:FormalizationCandidate logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:candidateSourceHash ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty logic:candidateExtractionProvenance ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty logic:candidateScope ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateExtractionProvenance ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateScope ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateContract ; logic:allValuesFrom logic:ReasoningContract ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateCategory ; logic:allValuesFrom logic:FormalizationCategory ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateLifecycle ; logic:allValuesFrom logic:CandidateLifecycleState ] ,

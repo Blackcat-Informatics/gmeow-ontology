@@ -5555,8 +5555,8 @@ msgid "The formalization candidate governing the logic:Event OWL disjointWith lo
 msgstr "Le candidat de formalisation régissant la contrainte d'intégrité logic:Event OWL disjointWith logic:Situation affirmée ci-dessus : une occurrence qui se déroule dans le temps est disjointe de la configuration statique qu'enregistre une situation. À la différence des autres axiomes de partition, ce contraste n'est PAS exprimé dans un unique champ d'annotation récoltable, si bien que le candidat ne porte AUCUN rétro-lien de récolte (ni logic:candidateFormalizes ni logic:candidateSourceField — jamais un demi-lien) ; sa provenance enregistre à la place une récolte de section documentaire ou de fondation sur la structure occurrente. Accepté en revue (logic:reviewedBy logic:reviewerLogicFoundation) avec un cas positif (logic:cqEventSituationDisjointHolds) et un contre-modèle négatif (logic:cqEventSituationClashRejected) ; logic:candidateSourceHash est le sha256 de la skos:definition de logic:Event afin qu'une édition de cette prose d'ancrage apparaisse comme une dérive. Le portail de cohérence DL natif lit le OWL disjointWith directement, forçant un individu à la fois événement et situation vers OWL Nothing."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenance|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The provenance of a candidate's extraction — what produced it (an extractor identifier, run, or model invocation reference). Records that an automated extraction is exactly that, so it enters at logic:CandidateProposed and earns no canonical force without review. Single-valued, xsd:string. Domain logic:FormalizationCandidate."
-msgstr "La provenance de l'extraction d'un candidat — ce qui l'a produit (un identifiant d'extracteur, une exécution ou une référence d'invocation de modèle). Enregistre qu'une extraction automatisée est exactement cela, de sorte qu'elle entre à logic:CandidateProposed et n'acquiert aucune force canonique en l'absence de revue. À valeur unique, xsd:string. Domaine logic:FormalizationCandidate."
+msgid "Descriptions of what produced a formalization candidate, retained in their supplied words and literal forms. They identify an extractor, run or model invocation without granting canonical force to its proposed axiom. Several attributed descriptions may coexist; the extraction event itself is not multiplied by its descriptions."
+msgstr "Descriptions de ce qui a produit un candidat à la formalisation, conservées dans leurs mots et formes littérales d’origine. Elles identifient un extracteur, une exécution ou une invocation de modèle sans conférer de force canonique à l’axiome proposé. Plusieurs descriptions attribuées peuvent coexister ; leurs descriptions ne multiplient pas l’événement d’extraction."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateFalsehoodIsRefutedClaim|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The equivalence-definition formalization candidate governing logic:falsehoodIsRefutedClaim: to carry gmeow:claimModality gmeow:refuted is exactly to be a gmeow:StandpointClaim that necessarily denies its proposition (gmeow:polarityDeny ∧ gmeow:modalForceNecessary = □¬). This pins 'falsehood = refuted StandpointClaim' as a frame-relative configuration, never a global truth flag, and ties the legacy five-value modality twin to its canonical axes. Realized in the OWL / full-FOL projection (biconditional), non-monotone, disclosed in the loss ledger — NOT natively enforced. Harvested from gmeow:refuted's skos:definition. Accepted through review with a positive case (logic:cqFalsehoodRefutedHolds) and a negative countermodel (logic:cqFalsehoodRefutedGlobalTruthRejected)."
@@ -5659,8 +5659,8 @@ msgid "The formalization candidate that generalizes the relator-mediation discip
 msgstr "Le candidat de formalisation qui généralise la discipline de médiation de relateur (RelComp) depuis les relateurs d'amorçage OntoUML codés en dur vers chaque sous-classe de la catégorie logic:Relator, récolté depuis la skos:definition propre de logic:Relator (« Un Relator doit médiatiser au moins deux entités distinctes »). Le raisonneur natif de la fondation confère la qualité de relateur à chaque classe subClassOf logic:Relator et déclenche logic:violation logic:RelComp sur tout relateur concret (feuille) qui médiatise moins de deux relata distincts. Accepté en revue (logic:reviewedBy logic:reviewerLogicFoundation) avec un cas positif (logic:cqRelatorMediationHolds) et un contre-modèle négatif (logic:cqRelatorMediationUnderMediatedRejected) ; son rétro-lien de récolte (logic:candidateFormalizes logic:Relator, logic:candidateSourceField logic:ProseFieldDefinition) le rattache à la prose exacte, et logic:candidateSourceHash est le sha256 de ce texte skos:definition afin qu'une édition ultérieure apparaisse comme une dérive."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The intended scope of a candidate's axiom — the terms, slice, or context it is meant to constrain. Read together with logic:candidateContract (the reasoning semantics it is interpreted under). Single-valued, xsd:string. Domain logic:FormalizationCandidate."
-msgstr "La portée visée de l'axiome d'un candidat — les termes, la tranche ou le contexte qu'il est censé contraindre. Lu conjointement avec logic:candidateContract (la sémantique de raisonnement selon laquelle il est interprété). À valeur unique, xsd:string. Domaine logic:FormalizationCandidate."
+msgid "Descriptions of the terms, slice or context a formalization candidate's axiom is intended to constrain, retained in their supplied literal forms. Read them with candidateContract, which identifies the reasoning semantics. Plain formula identity strings supplied by the native producer remain strings; descriptive words retain their supplied language and direction."
+msgstr "Descriptions des termes, de la tranche ou du contexte que l’axiome d’un candidat à la formalisation est destiné à contraindre, conservées dans leurs formes littérales d’origine. Les lire avec candidateContract, qui identifie la sémantique de raisonnement. Les chaînes d’identité de formule fournies par le producteur natif restent des chaînes simples ; les descriptions conservent leur langue et leur direction fournies."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRisk|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:FormalizationCandidate to its logic:SemanticRiskClass — how far a wrong formalization would propagate, which sets how strict the reviewer gate must be. Single-valued. Domain logic:FormalizationCandidate, range logic:SemanticRiskClass."
@@ -10454,10 +10454,6 @@ msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|htt
 msgid "candidateContract is functional"
 msgstr "candidateContract est fonctionnelle"
 
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "candidateExtractionProvenance is functional"
-msgstr "candidateExtractionProvenance est fonctionnelle"
-
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "candidateFormalizes is functional"
 msgstr "candidateFormalizes est fonctionnelle"
@@ -10469,10 +10465,6 @@ msgstr "candidateLifecycle est fonctionnelle"
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "candidateProjectionBehavior is functional"
 msgstr "candidateProjectionBehavior est fonctionnelle"
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "candidateScope is functional"
-msgstr "candidateScope est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "candidateSemanticRisk is functional"
@@ -10694,10 +10686,6 @@ msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|htt
 msgid "Asserts on the canonical carrier that logic:candidateContract is functional: a candidate's proposed axiom is interpreted under exactly one logic:ReasoningContract — the single reasoning semantics that make the word 'sound' meaningful for it — so its soundness is judged against one contract, not several."
 msgstr "Affirme sur le porteur canonique que logic:candidateContract est fonctionnelle : l'axiome proposé d'un candidat est interprété sous exactement un logic:ReasoningContract — l'unique sémantique de raisonnement qui rend le mot 'sound' significatif pour lui — de sorte que sa validité est jugée par rapport à un seul contrat, et non plusieurs."
 
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateExtractionProvenance is functional: a candidate was produced by exactly one extraction event, so it records a single provenance string naming what produced it — the one extractor, run, or model invocation whose automated origin keeps it at logic:CandidateProposed with no canonical force until reviewed. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que logic:candidateExtractionProvenance est fonctionnelle : un candidat est produit par exactement un événement d'extraction, de sorte qu'il enregistre une seule chaîne de provenance nommant ce qui l'a produit — l'unique extracteur, exécution ou invocation de modèle dont l'origine automatisée le maintient à logic:CandidateProposed sans force canonique tant qu'il n'a pas été révisé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
-
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:candidateFormalizes is functional: a harvested candidate keeps exactly one prose-bearing term coherent, so its harvest back-link names a single formalized term — present exactly when the source IS a term's annotation field, and paired with the single logic:candidateSourceField that pins which field. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "Affirme sur le porteur canonique que logic:candidateFormalizes est fonctionnelle : un candidat récolté maintient la cohérence d'exactement un terme porteur de prose, de sorte que son lien de retour de récolte désigne un unique terme formalisé — présent précisément lorsque la source EST le champ d'annotation d'un terme, et associé à l'unique logic:candidateSourceField qui fixe quel champ. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
@@ -10709,10 +10697,6 @@ msgstr "Affirme sur le porteur canonique que logic:candidateLifecycle est foncti
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:candidateProjectionBehavior is functional: a candidate's axiom survives down-projection to OWL/Datalog/SHACL with exactly one preservation polarity, so it carries a single logic:PreservationKind reused from the loss ledger rather than a set of conflicting notes."
 msgstr "Affirme sur le porteur canonique que logic:candidateProjectionBehavior est fonctionnelle : l'axiome d'un candidat survit à la projection descendante vers OWL/Datalog/SHACL avec exactement une polarité de préservation, de sorte qu'il porte un unique logic:PreservationKind réutilisé depuis le registre des pertes plutôt qu'un ensemble de notes contradictoires."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that logic:candidateScope is functional: a candidate's proposed axiom has one intended scope — the single terms, slice, or context it is meant to constrain — so its reach is stated once, read together with the single logic:candidateContract it is interpreted under. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que logic:candidateScope est fonctionnelle : l'axiome proposé d'un candidat possède une seule portée voulue — les termes, la tranche ou le contexte uniques qu'il est censé contraindre — de sorte que son étendue est énoncée une seule fois, à lire conjointement avec l'unique logic:candidateContract sous lequel il est interprété. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that logic:candidateSemanticRisk is functional: a candidate carries exactly one logic:SemanticRiskClass — how far a wrong formalization would propagate — because that single risk grade sets how strict the reviewer gate must be, and a candidate cannot occupy two risk grades at once."
@@ -14750,22 +14734,6 @@ msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|htt
 msgid "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."
 msgstr "logic:candidateContractFunctionality logic:characterizes logic:candidateContract ."
 
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateExtractionProvenance names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
-msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateExtractionProvenance nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes logic:candidateExtractionProvenance, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."
-msgstr "logic:candidateExtractionProvenanceFunctionality logic:characterizes logic:candidateExtractionProvenance ."
-
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that logic:candidateFormalizes names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
 msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateFormalizes nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
@@ -14813,22 +14781,6 @@ msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes l
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."
 msgstr "logic:candidateProjectionBehaviorFunctionality logic:characterizes logic:candidateProjectionBehavior ."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that logic:candidateScope names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
-msgstr "Utiliser lorsque la porte de cohérence native doit imposer que logic:candidateScope nomme au plus une valeur ; cet enregistrement est le porteur canonique que la porte joint, de sorte que l’obligation est raisonnée plutôt que reformulée sur une surface de validation. La fonctionnalité seule n’exige la présence d’aucune valeur."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "À éviter lorsque une seconde valeur rendrait l'enregistrement ambigu — retirez l'assertion plutôt que de l'affaiblir, et ne la reproduisez jamais sous forme de forme écrite à la main."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "À lire avec logic:characteristicSort : le couple (logic:characterizes logic:candidateScope, logic:characteristicSort logic:functionalProperty) constitue l'obligation entière, et la vue de fondement OWL en projette la caractéristique correspondante."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."
-msgstr "logic:candidateScopeFunctionality logic:characterizes logic:candidateScope ."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that logic:candidateSemanticRisk names at most one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface. Functionality alone does not require any value to be present."
@@ -15614,10 +15566,6 @@ msgctxt "https://blackcatinformatics.ca/logic/candidateContractFunctionality|htt
 msgid "Scope: this record carries ONE integrity obligation about logic:candidateContract and nothing else. It is not a definition of logic:candidateContract (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:candidateContract, et rien d'autre. Ce n'est pas une définition de logic:candidateContract (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
-msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenanceFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about logic:candidateExtractionProvenance and nothing else. It is not a definition of logic:candidateExtractionProvenance (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:candidateExtractionProvenance, et rien d'autre. Ce n'est pas une définition de logic:candidateExtractionProvenance (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
 msgctxt "https://blackcatinformatics.ca/logic/candidateFormalizesFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:candidateFormalizes and nothing else. It is not a definition of logic:candidateFormalizes (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:candidateFormalizes, et rien d'autre. Ce n'est pas une définition de logic:candidateFormalizes (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
@@ -15629,10 +15577,6 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/logic/candidateProjectionBehaviorFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:candidateProjectionBehavior and nothing else. It is not a definition of logic:candidateProjectionBehavior (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:candidateProjectionBehavior, et rien d'autre. Ce n'est pas une définition de logic:candidateProjectionBehavior (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
-
-msgctxt "https://blackcatinformatics.ca/logic/candidateScopeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about logic:candidateScope and nothing else. It is not a definition of logic:candidateScope (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de logic:candidateScope, et rien d'autre. Ce n'est pas une définition de logic:candidateScope (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSemanticRiskFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about logic:candidateSemanticRisk and nothing else. It is not a definition of logic:candidateSemanticRisk (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -23997,3 +23941,20 @@ msgstr "Conserver la relation proche et ses métadonnées de curation ; représe
 msgctxt "https://blackcatinformatics.ca/gmeow/mapsetAgencyRecords|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:used skos:closeMatch prov:used ."
 msgstr "gmeow:used skos:closeMatch prov:used ."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple descriptions do not imply multiple extraction events. The selected candidate requires this carrier, but no language or wording is preferred."
+msgstr "Plusieurs descriptions n’impliquent pas plusieurs événements d’extraction. Le candidat sélectionné exige ce champ, sans privilégier de langue ni de formulation."
+
+msgctxt "https://blackcatinformatics.ca/logic/candidateExtractionProvenance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:candidate logic:candidateExtractionProvenance \"Extracted from the source definition.\"@en ."
+msgstr "ex:candidate logic:candidateExtractionProvenance \"Extrait de la définition source.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/logic/candidateScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multiple descriptions do not imply multiple reasoning contracts or change a formula's identity. The selected candidate requires this carrier without choosing a preferred wording."
+msgstr "Plusieurs descriptions n’impliquent pas plusieurs contrats de raisonnement et ne changent pas l’identité d’une formule. Le candidat sélectionné exige ce champ sans choisir de formulation privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/logic/candidateScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:candidate logic:candidateScope \"Transitivity over the recorded relation.\"@en ."
+msgstr "ex:candidate logic:candidateScope \"Transitivité sur la relation enregistrée.\"@fr ."
