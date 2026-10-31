@@ -4592,3 +4592,719 @@ msgstr "此共享运行报告值不创建核心到 dreaming 扩展的依赖，�
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2004/02/skos/core#example"
 msgid "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
 msgstr "将事件分类为“梦境阶段轮次上限跟踪”：ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Demand Kind"
+msgstr "需求种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of interactions or provisions wanted by the bearer of a Desire."
+msgstr "Desire 承载者所期望互动或提供事项的开放词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify what is demanded while retaining the actual Desire and its Goal."
+msgstr "用于分类所求事项，同时保留实际 Desire 及其 Goal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a kind as an order, an obligation or an answering occurrence."
+msgstr "避免把种类当作命令、义务或回应事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Define additional values individually and select them through demandKind on the wanting mode."
+msgstr "逐一定义新增值，并在欲求样态上通过 demandKind 选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inventory is open and applies beyond simulated creatures; it creates no Creature class."
+msgstr "该词汇开放且不限于模拟生物，不建立 Creature 类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extend wanted kinds: ex:demandKindCompany a gmeow:DemandKind ."
+msgstr "扩展所求种类：ex:demandKindCompany a gmeow:DemandKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "demand kind"
+msgstr "需求种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-classified kind of interaction or provision wanted by an actual Desire’s bearer."
+msgstr "来源分类的、实际 Desire 承载者所期望的互动或提供事项种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies what a particular agent wants."
+msgstr "用于来源明确指出某行动者的所求事项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching this field to a demand message, a response Event or the creature itself."
+msgstr "避免将该字段附于需求消息、回应 Event 或生物本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the Desire’s actual intentBearer and intentionGoal, plus the exact kind claim’s reader and source."
+msgstr "保留 Desire 的实际 intentBearer、intentionGoal，以及确切种类断言的解读者和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional; a composite request may have several kinds without implying any answer or commitment."
+msgstr "非函数性；复合需求可具有多种类别，但不表示回应或承诺。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the wanting: ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."
+msgstr "分类欲求：ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Demand Response Kind"
+msgstr "需求回应种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary describing how an actual answering occurrence responded to a Desire."
+msgstr "描述实际回应事件如何回应某个 Desire 的开放词汇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish cuddling, offering a lap and petting as reported responses."
+msgstr "用于区分报告中的拥抱、提供膝上位置及抚摸回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing a response kind with the answer artifact or a successful satisfaction verdict."
+msgstr "避免将回应种类与回应制品或成功满足判定混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Add source-defined response values without a closed enumeration; bind each answering Event to its exact Desire."
+msgstr "可增加来源定义的回应值而不封闭枚举；每个回应 Event 应关联其确切 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Response kinds are independent of demand kinds; a demand for play need not receive play."
+msgstr "回应种类独立于需求种类；玩耍需求未必得到玩耍回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extend answer kinds: ex:responseKindSpokenReply a gmeow:DemandResponse ."
+msgstr "扩展回应种类：ex:responseKindSpokenReply a gmeow:DemandResponse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "demand response kind"
+msgstr "需求回应种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "How a source reports that an actual Event answered the exact Desire named by answersDemand."
+msgstr "来源报告的、实际 Event 对 answersDemand 所指确切 Desire 的回应方式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on the actual answering occurrence when its response kind is supplied."
+msgstr "用于提供了回应种类的实际回应事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the response code on the Desire, report document or desired Goal."
+msgstr "避免将回应代码放在 Desire、报告文档或所求 Goal 上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply answersDemand with the actual Desire and retain the exact response claim’s source and standpoint."
+msgstr "通过 answersDemand 指明实际 Desire，并保留确切回应断言的来源和立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional; reported response does not entail acceptance, pleasure, consent or goal satisfaction."
+msgstr "非函数性；报告回应不蕴含接受、愉悦、同意或目标满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Describe the answer: ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ; gmeow:answersDemand ex:cuddleWish ."
+msgstr "描述回应：ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ; gmeow:answersDemand ex:cuddleWish ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answers demand"
+msgstr "回应需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact actual Desire to which an answering Event responds, independently of whether that Desire was satisfied."
+msgstr "回应 Event 所针对的确切实际 Desire，独立于该 Desire 是否得到满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve which wanting a response addressed when several similar demands exist."
+msgstr "当存在多个相似需求时，用于保留回应针对的是哪个欲求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing this link with a matching category, an object-request revision or an inferred motive."
+msgstr "避免用相同类别、对象请求版本或推断动机代替此关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the existing Desire with its actual bearer and Goal; retain supplied response evidence without fabricating a resolution record."
+msgstr "指明具有实际承载者及 Goal 的已有 Desire；保留给定回应证据，而不虚构解决记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional; an Event may answer several explicitly identified desires, with no latest-demand rule."
+msgstr "非函数性；一个 Event 可回应多个明确标识的欲求，不采用最新需求选择规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answersDemand|http://www.w3.org/2004/02/skos/core#example"
+msgid "Bind the exact wanting: ex:lapAnswer gmeow:answersDemand ex:lapWish ."
+msgstr "关联确切欲求：ex:lapAnswer gmeow:answersDemand ex:lapWish ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "announcement demand"
+msgstr "告知需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Desire for an announcement to be made, with its content and intended speaker left to the source."
+msgstr "期望作出告知的 Desire，其内容与预定发言者由来源确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the wanted interaction is explicitly an announcement."
+msgstr "用于所求互动明确为告知的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing announcement wording, an audience or who must speak."
+msgstr "避免虚构告知措辞、受众或必须发言者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select on the actual Desire and retain any supplied announcement content separately."
+msgstr "在实际 Desire 上选择，并另行保留给定告知内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Wanting an announcement is neither an utterance occurrence nor proof of delivery."
+msgstr "期望告知既不是发言事件，也不是送达证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindAnnouncement|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the announcement wish: ex:newsWish gmeow:demandKind gmeow:demandKindAnnouncement ."
+msgstr "记录告知欲求：ex:newsWish gmeow:demandKind gmeow:demandKindAnnouncement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cuddles demand"
+msgstr "拥抱需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Desire for cuddling or close affectionate holding, under the source’s interaction convention."
+msgstr "按来源互动惯例，期望拥抱或亲昵搂抱的 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported wish for cuddling."
+msgstr "用于明确报告的拥抱欲求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading an affectionate mood or generic contact as this demand."
+msgstr "避免将亲昵心境或一般接触解读为此需求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the wanting agent on intentBearer; record any actual cuddle as a separate answering Event."
+msgstr "用 intentBearer 保留欲求行动者；实际拥抱另记为回应 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value grants no consent and does not imply that contact occurred."
+msgstr "此值不授予同意，也不表示接触已发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindCuddles|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the cuddle wish: ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."
+msgstr "记录拥抱欲求：ex:cuddleWish gmeow:demandKind gmeow:demandKindCuddles ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lap demand"
+msgstr "膝上位置需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Desire to be offered a lap or lap-like resting interaction as described by the source."
+msgstr "来源描述的期望获得膝上位置或类似休憩互动的 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the request specifically concerns resting on a lap."
+msgstr "用于需求具体涉及在膝上休憩的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a physical body, geographic place or actual seating arrangement."
+msgstr "避免虚构物理身体、地理地点或实际座位安排。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source’s lap meaning on the Desire, including its simulated context when supplied."
+msgstr "在 Desire 上保留来源赋予膝上位置的含义及给定模拟语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A lap request is not a movement event or evidence that a place was reached."
+msgstr "膝上位置请求不是移动事件，也不证明已到达某处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindLap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the lap wish: ex:lapWish gmeow:demandKind gmeow:demandKindLap ."
+msgstr "记录膝上位置欲求：ex:lapWish gmeow:demandKind gmeow:demandKindLap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "petting demand"
+msgstr "抚摸需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Desire for petting or affectionate stroking, not a request to acquire an animal."
+msgstr "期望抚摸或亲昵轻抚的 Desire，并非获得动物的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source’s pets wording means requested petting."
+msgstr "用于来源中的 pets 表示所求抚摸的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing petting with cuddling, animal ownership or an accepted response."
+msgstr "避免将抚摸与拥抱、动物所有权或已接受回应混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual wanting and preserve the original wording in its source record."
+msgstr "分类实际欲求，并在来源记录中保留原始措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No body, touching mechanism or permission is manufactured by the kind."
+msgstr "该种类不虚构身体、触碰机制或许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPets|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the petting wish: ex:petWish gmeow:demandKind gmeow:demandKindPets ."
+msgstr "记录抚摸欲求：ex:petWish gmeow:demandKind gmeow:demandKindPets ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "play demand"
+msgstr "玩耍需求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Desire for playful interaction without choosing a particular game, partner or outcome."
+msgstr "期望嬉戏互动的 Desire，不指定特定游戏、伙伴或结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-reported wish to play."
+msgstr "用于来源报告的玩耍欲求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a play demand from restlessness or assuming a game was started."
+msgstr "避免从躁动推断玩耍需求，或假定游戏已开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the Desire’s stated Goal and any supplied play context independently."
+msgstr "分别保留 Desire 明示的 Goal 与给定玩耍语境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The open response vocabulary imposes no matching play response or guaranteed satisfaction."
+msgstr "开放回应词汇不要求匹配的玩耍回应，也不保证满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandKindPlay|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the play wish: ex:playWish gmeow:demandKind gmeow:demandKindPlay ."
+msgstr "记录玩耍欲求：ex:playWish gmeow:demandKind gmeow:demandKindPlay ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cuddle response"
+msgstr "拥抱回应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports cuddling as the answering interaction."
+msgstr "来源报告以拥抱作为回应互动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the actual answering occurrence is reported as cuddling."
+msgstr "用于实际回应事件被报告为拥抱的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving cuddling merely from a cuddles demand or an affectionate mood."
+msgstr "避免仅从拥抱需求或亲昵心境推断拥抱。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select on the answering Event and use answersDemand for its exact addressed Desire."
+msgstr "在回应 Event 上选择，并通过 answersDemand 指明其确切针对的 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A reported cuddle neither proves enjoyment nor completes a GoalEvaluation."
+msgstr "报告拥抱既不证明愉悦，也不构成已完成的 GoalEvaluation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseCuddle|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the cuddle answer: ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ."
+msgstr "分类拥抱回应：ex:cuddleAnswer gmeow:demandResponse gmeow:demandResponseCuddle ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lap response"
+msgstr "膝上位置回应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a lap was offered as the answering interaction."
+msgstr "来源报告以提供膝上位置作为回应互动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly records a lap being given or offered in response."
+msgstr "用于来源明确记录为回应而给予或提供膝上位置的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a response label as actual relocation, a body or acceptance of the offer."
+msgstr "避免将回应标签解释为实际迁移、身体或对提议的接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the offer occurrence distinct from the wanted lap and any later resting occurrence."
+msgstr "将提供事件与所求膝上位置及之后的休憩事件区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source’s simulated or physical interaction convention remains explicit rather than universal."
+msgstr "来源的模拟或物理互动惯例应明确保留，而非被视为普遍事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponseLap|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the lap answer: ex:lapAnswer gmeow:demandResponse gmeow:demandResponseLap ."
+msgstr "分类膝上位置回应：ex:lapAnswer gmeow:demandResponse gmeow:demandResponseLap ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "petting response"
+msgstr "抚摸回应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports petting or affectionate stroking as the answering interaction."
+msgstr "来源报告以抚摸或亲昵轻抚作为回应互动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-recorded petting response to an identified Desire."
+msgstr "用于来源记录的、针对已标识 Desire 的抚摸回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading pet as an animal acquired or assuming a petting request was satisfied."
+msgstr "避免把 pet 理解为获得的动物，或假定抚摸需求已获满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual response occurrence and its attribution separately from contact evidence and judgment."
+msgstr "将实际回应事件及其归属与接触证据、判断分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No permission, affective improvement or accepted fulfillment follows from this kind alone."
+msgstr "此种类本身不蕴含许可、情感改善或已接受的履行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/demandResponsePet|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the petting answer: ex:petAnswer gmeow:demandResponse gmeow:demandResponsePet ."
+msgstr "分类抚摸回应：ex:petAnswer gmeow:demandResponse gmeow:demandResponsePet ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature genesis"
+msgstr "生物初现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a creature came into being within its stated environment."
+msgstr "来源报告某个生物在所述环境中开始存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported origin occurrence of the represented creature."
+msgstr "用于被表示生物的明确报告起源事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring biological birth, a new software process or an actual-world organism from genesis wording."
+msgstr "避免从初现措辞推断生物出生、新软件进程或现实世界有机体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the occurrence through eventType; retain the source’s creature identity and provider-world scope."
+msgstr "通过 eventType 分类事件，并保留来源的生物身份及提供方世界范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A simulated origin remains scoped to its source environment; it does not generate an entity or initialize a runtime."
+msgstr "模拟起源限于来源环境，不生成实体或初始化运行时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureGenesis|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the reported origin: ex:genesis gmeow:eventType gmeow:eventTypeCreatureGenesis ."
+msgstr "分类报告的起源：ex:genesis gmeow:eventType gmeow:eventTypeCreatureGenesis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature renamed"
+msgstr "生物更名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a change of a creature’s name while retaining that creature’s identity."
+msgstr "来源报告某个生物更改名称，同时保留该生物身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies a renaming occurrence rather than a newly created creature."
+msgstr "用于来源明确指出更名事件，而非新建生物的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging creatures with matching names or deleting an older name claim."
+msgstr "避免合并同名生物或删除旧名称断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact old and new source names with their own validity and displayability evidence when supplied."
+msgstr "在提供时保留确切新旧来源名称及各自有效期、可显示性证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is not the organization-specific eventTypeRename and supplies no universal name resolver."
+msgstr "此值不是组织专用的 eventTypeRename，也不提供通用名称解析器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureRenamed|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the name change: ex:renaming gmeow:eventType gmeow:eventTypeCreatureRenamed ."
+msgstr "分类更名：ex:renaming gmeow:eventType gmeow:eventTypeCreatureRenamed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature movement"
+msgstr "生物移动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a creature moving from one place to another."
+msgstr "来源报告某个生物从一处移动到另一处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported place-to-place transition, not every generic state change."
+msgstr "用于报告的地点间转移，而非任意状态变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a mood shift or demand response as movement without location evidence."
+msgstr "避免在无位置证据时把心境变化或需求回应解释为移动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use actual eventFromLocation and eventToLocation endpoints when known, preserving their reference frame."
+msgstr "已知时使用实际 eventFromLocation、eventToLocation 端点，并保留其参考框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The kind supplies no route, coordinate, speed or actual-world travel inference."
+msgstr "此种类不提供路径、坐标、速度或现实旅行推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the movement: ex:crossing gmeow:eventType gmeow:eventTypeCreatureTransition ."
+msgstr "分类移动：ex:crossing gmeow:eventType gmeow:eventTypeCreatureTransition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature utterance"
+msgstr "生物发言"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a creature spoke or produced an utterance under its interaction convention."
+msgstr "来源报告某个生物按其互动惯例发言或产生话语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the uttering occurrence rather than the retained utterance text."
+msgstr "用于发言事件，而非保留的话语文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a Message as the speech Event or inferring a real voice, understanding or delivery."
+msgstr "避免将 Message 当作发言 Event，或推断真实声音、理解或送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual speaker distinct from its provider; retain words, language and direction on the actual message artifact."
+msgstr "区分实际发言者与提供方；将措辞、语言及方向保留在实际消息制品上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The kind asserts no truth of the uttered content and executes no speech synthesizer."
+msgstr "此种类不断言话语内容真实，也不执行语音合成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureUtterance|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the utterance: ex:utterance gmeow:eventType gmeow:eventTypeCreatureUtterance ."
+msgstr "分类发言：ex:utterance gmeow:eventType gmeow:eventTypeCreatureUtterance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature recollection"
+msgstr "生物回忆"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a creature remembering a moment, distinct from the stored memory claim or report."
+msgstr "来源报告某个生物回忆某个时刻，区别于存储的记忆断言或报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported recollection occurrence, including contested memories."
+msgstr "用于报告的回忆事件，包括有争议的记忆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making a MemoryItem the recollection Event or inferring that remembered content is true."
+msgstr "避免把 MemoryItem 当作回忆 Event，或推断所忆内容真实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use MentalProcess and processRecollection only with an actual experiencer; recollects targets an actual Experience when supplied."
+msgstr "仅在有实际 experiencer 时使用 MentalProcess、processRecollection；recollects 应指向给定的实际 Experience。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A reported memory neither runs retrieval nor certifies historical accuracy or completeness."
+msgstr "报告记忆既不执行检索，也不认证历史准确性或完整性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMemory|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the recollection: ex:remembering gmeow:eventType gmeow:eventTypeCreatureMemory ."
+msgstr "分类回忆：ex:remembering gmeow:eventType gmeow:eventTypeCreatureMemory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature mood shift"
+msgstr "生物心境变化"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a change in a creature’s background mood."
+msgstr "来源报告某个生物背景心境的变化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-reported mood transition rather than the enduring mood itself."
+msgstr "用于来源报告的心境转变，而非持存心境本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a new mood from a response code, expression or classifier label alone."
+msgstr "避免仅从回应代码、表情或分类器标签推断新心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep actual before and after Mood claims separately attributed and scoped when the source supplies them."
+msgstr "来源提供变化前后实际 Mood 断言时，分别保留其归属与范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The kind neither overwrites earlier mood claims nor chooses a globally latest state."
+msgstr "此种类不覆盖较早心境断言，也不选择全局最新状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureMoodShift|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the mood change: ex:shift gmeow:eventType gmeow:eventTypeCreatureMoodShift ."
+msgstr "分类心境变化：ex:shift gmeow:eventType gmeow:eventTypeCreatureMoodShift ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature demand occurrence"
+msgstr "生物提出需求事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a creature expressing a demand; the occurrence is distinct from the underlying Desire."
+msgstr "来源报告某个生物表达需求；该事件不同于其内在 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the reported demanding occurrence, retaining actual wanting separately."
+msgstr "用于报告的提出需求事件，并另行保留实际欲求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the Desire or source request document as this Event."
+msgstr "避免把 Desire 或来源请求文档类型化为此 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual Desire’s bearer and Goal; use motivates only for a source-supported motive for the demanding act."
+msgstr "保留实际 Desire 的承载者及 Goal；仅对来源支持的提出需求动机使用 motivates。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Demanding does not impose an obligation or show that an answer was given."
+msgstr "提出需求不施加义务，也不表明已有回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemand|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the demand act: ex:asking gmeow:eventType gmeow:eventTypeCreatureDemand ."
+msgstr "分类提出需求行为：ex:asking gmeow:eventType gmeow:eventTypeCreatureDemand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "creature demand answered"
+msgstr "生物需求获回应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a creature’s demand was answered; resolved denotes answering, not proven satisfaction."
+msgstr "来源报告某个生物的需求得到回应；已解决在此表示回应，而非经证明的满足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the reported answering occurrence even when acceptance or satisfaction is unknown."
+msgstr "用于报告的回应事件，即使接受或满足情况未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring GoalEvaluation, object acceptance or a terminal success outcome from this label."
+msgstr "避免从此标签推断 GoalEvaluation、对象接受或终止成功结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind the actual answering Event to its exact Desire with answersDemand; retain a supplied demandResponse independently."
+msgstr "通过 answersDemand 将实际回应 Event 关联到其确切 Desire；另行保留给定 demandResponse。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several answers may address one Desire. Their order and finality remain source facts, never clock-selected defaults."
+msgstr "一个 Desire 可得到多个回应。顺序及最终性是来源事实，不按时间默认选取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the answer occurrence: ex:answer gmeow:eventType gmeow:eventTypeCreatureDemandResolved ; gmeow:answersDemand ex:wish ."
+msgstr "分类回应事件：ex:answer gmeow:eventType gmeow:eventTypeCreatureDemandResolved ; gmeow:answersDemand ex:wish ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Demand kind evidence constraint"
+msgstr "需求种类证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied demand kind belongs to an actual Desire with an actual bearer and Goal, and its exact field claim retains reader and source."
+msgstr "给定需求种类应属于具有实际承载者及 Goal 的实际 Desire，其确切字段断言保留解读者与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep what is wanted attached to the actual wanting mode."
+msgstr "用于将所求事项关联于实际欲求样态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying Desire requirements with a category code or anonymous invented goal."
+msgstr "避免以类别代码或虚构匿名目标充当 Desire 所需信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply intentBearer and intentionGoal and reify the exact demandKind assertion with its reader and retained source."
+msgstr "提供 intentBearer、intentionGoal，并为确切 demandKind 断言保留解读者和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law demands retained identities; it never manufactures a bearer, goal or demanded action."
+msgstr "该法则要求保留身份，绝不制造承载者、目标或所求行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the wanting law: gmeow:DemandKindEvidenceConstraint logic:formalizes gmeow:demandKind ."
+msgstr "指定欲求法则：gmeow:DemandKindEvidenceConstraint logic:formalizes gmeow:demandKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied demand kind belongs to an actual Desire with an actual bearer and Goal, and its exact field claim retains reader and source."
+msgstr "给定需求种类应属于具有实际承载者及 Goal 的实际 Desire，其确切字段断言保留解读者与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Demand response evidence constraint"
+msgstr "需求回应证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied response kind belongs to an actual answering Event bound to an actual Desire, with reader and source on the exact response claim."
+msgstr "给定回应种类属于关联实际 Desire 的实际回应 Event，确切回应断言保留解读者与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish a reported answering act from a response label on a document."
+msgstr "用于区分报告的回应行为与文档上的回应标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid taking a bare cuddle, lap or pet code as sufficient evidence of an answering act."
+msgstr "避免将孤立的拥抱、膝上位置或抚摸代码当作回应行为的充分证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the Event and its answersDemand target, then retain the exact demandResponse reifier’s reader and source."
+msgstr "指定 Event 及其 answersDemand 目标，再保留确切 demandResponse 重述节点的解读者与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Structural evidence does not authenticate the interaction or establish the creature’s acceptance."
+msgstr "结构证据不认证互动，也不确立生物的接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the answer law: gmeow:DemandResponseEvidenceConstraint logic:formalizes gmeow:demandResponse ."
+msgstr "指定回应法则：gmeow:DemandResponseEvidenceConstraint logic:formalizes gmeow:demandResponse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DemandResponseEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied response kind belongs to an actual answering Event bound to an actual Desire, with reader and source on the exact response claim."
+msgstr "给定回应种类属于关联实际 Desire 的实际回应 Event，确切回应断言保留解读者与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Answered demand binding constraint"
+msgstr "获回应需求关联约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An answersDemand Event identifies an actual classified Desire with its actual bearer and Goal, retaining source and reader on the exact binding claim."
+msgstr "answersDemand Event 应标识具有实际承载者及 Goal 的已分类实际 Desire，并在确切关联断言上保留来源与解读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when similar demands must remain separately addressable by answering events."
+msgstr "用于需要让回应事件分别指向相似需求的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid matching by demandKind alone or coercing a WorldObjectRequest into Desire."
+msgstr "避免仅凭 demandKind 匹配，或将 WorldObjectRequest 强制归为 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact answersDemand claim, the Desire’s demandKind, its Agent bearer and its Goal."
+msgstr "保留确切 answersDemand 断言、Desire 的 demandKind、Agent 承载者及 Goal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an evidence binding, not an inferred motive, acceptance record or satisfaction verdict."
+msgstr "这是证据关联，并非推断动机、接受记录或满足判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the exact-binding law: gmeow:AnsweredDemandBindingConstraint logic:formalizes gmeow:answersDemand ."
+msgstr "指定确切关联法则：gmeow:AnsweredDemandBindingConstraint logic:formalizes gmeow:answersDemand ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnsweredDemandBindingConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An answersDemand Event identifies an actual classified Desire with its actual bearer and Goal, retaining source and reader on the exact binding claim."
+msgstr "answersDemand Event 应标识具有实际承载者及 Goal 的已分类实际 Desire，并在确切关联断言上保留来源与解读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Creature demand answer target constraint"
+msgstr "生物需求回应目标约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."
+msgstr "分类为生物需求获回应的事件应保留指向其确切实际 Desire 的 answersDemand 关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use even when the source reports an answer but supplies no response-kind code."
+msgstr "即使来源报告回应但未给出回应种类代码，也应使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a response kind merely to identify which demand was answered."
+msgstr "避免仅为标识获回应需求而虚构回应种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact Desire through answersDemand; that relation’s own law preserves its bearer, Goal and source."
+msgstr "通过 answersDemand 保留确切 Desire；该关系自身法则保留承载者、Goal 和来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The target law imposes no successful outcome, final answer or exclusive response."
+msgstr "目标法则不强制成功结果、最终回应或唯一回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the target law: gmeow:CreatureDemandAnsweredConstraint logic:formalizes gmeow:eventTypeCreatureDemandResolved ."
+msgstr "指定目标法则：gmeow:CreatureDemandAnsweredConstraint logic:formalizes gmeow:eventTypeCreatureDemandResolved ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CreatureDemandAnsweredConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An occurrence classified as a creature demand answered retains an answersDemand link to its exact actual Desire."
+msgstr "分类为生物需求获回应的事件应保留指向其确切实际 Desire 的 answersDemand 关联。"

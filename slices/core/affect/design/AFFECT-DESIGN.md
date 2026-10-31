@@ -99,7 +99,7 @@ whole point.
 
 | Family | What it models | Foundational category | Existing / target GMEOW shape |
 | --- | --- | --- | --- |
-| affective mode | the state or disposition inhering in an agent | intrinsic mode / mental moment | existing `gmeow:Emotion`; target `gmeow:AffectiveMoment`, `gmeow:Mood`, `gmeow:AffectiveDisposition` if consumers require them |
+| affective mode | the state or disposition inhering in an agent | intrinsic mode / mental moment | existing `gmeow:AffectiveMoment`, `gmeow:Emotion` and `gmeow:Mood`; dispositions need their own consumer contract |
 | affective episode | the occurrent experience of feeling, expression, regulation, or affective shift | mental process / experience / event | target `gmeow:AffectiveExperience` under `gmeow:Experience`, typed by a mental-process value rather than subclass explosion |
 | affective appraisal | the vantage-relative reading of something as pleasant, threatening, beautiful, tense, uncanny, etc. | observation / claim | existing `gmeow:Appraisal` under `gmeow:Observation` |
 
@@ -214,8 +214,8 @@ registers · affect — "no global ought, only ought-according-to"):
   knowings, and intentions. A slice-local `gmeow:AffectiveMoment` groups
   emotions / moods / dispositions beneath it. Teleology contributes the reusable
   *idioms*, not the parent: `gmeow:intentBearer` (which `emotionBearer` already
-  follows), `gmeow:IntentionTenure` / `gmeow:TimeScopedRelation` (the future `Mood`
-  tenure), and `gmeow:accordingTo` (vantage) — and `IntentionalMode` is `Emotion`'s
+  follows), `gmeow:TimeScopedRelation` (a possible future tenure idiom, not an
+  authored MoodTenure), and `gmeow:accordingTo` (vantage) — and `IntentionalMode` is `Emotion`'s
   *conative sibling* under `MentalMoment`, not its parent.
 - **The occurrent branch grafts onto mentation, not the mode umbrella.** A felt
   episode (`gmeow:AffectiveExperience`) is a *perdurant*, so it subclasses
@@ -255,10 +255,9 @@ EmotionML-like categories, WordNet-Affect-style terms, folk categories, clinical
 constructs, and culturally-specific inventories are all alignments or value
 vocabularies, not a single privileged tree.
 
-Future target: introduce `gmeow:AffectiveMoment` as the abstract mental-moment
-category for emotions, moods, and affective dispositions if and only if a named
-consumer needs the common query surface. `gmeow:Emotion` should then reparent
-under it; no compatibility shim should be kept.
+`gmeow:AffectiveMoment` is the shared abstract mental-moment category.
+`gmeow:Emotion` and `gmeow:Mood` already specialize it; the common query
+surface reuses the kernel MentalMoment family without a compatibility shim.
 
 ### 2. Feeling is an experience, not a synonym for emotion
 
@@ -289,12 +288,32 @@ manifest or produce multiple affective moments.
 ### 3. Mood is not just a long emotion
 
 A mood is diffuse, backgrounded, and often objectless. It should not be encoded
-as a long-duration `Emotion` merely because the initial slice lacks a mood term.
-If an agent-memory or narrative consumer needs mood tracking, mint `gmeow:Mood`
+as a long-duration `Emotion`. The agent-memory consumer uses `gmeow:Mood`
 and an open `gmeow:MoodType` vocabulary rather than overloading emotion.
-Temporal scope follows the statement layer for the simple case and a tenure
-class only when adoption/revision/withdrawal of the mood itself is a consumer
-fact.
+Temporal scope follows the statement layer; no mood tenure class is authored.
+Neither a fixed duration/intensity threshold nor disjointness from Emotion is
+imposed. Mood is an endurant AffectiveMoment, not a felt experience or a report.
+
+One Mood has exactly one actual Agent moodBearer and at least one typed
+moodType. These are class-local qualified cardinalities and universal
+restrictions with class-scoped ClosedWorldClosure. Property-global closure
+also validates supplied mood selectors on malformed subjects, without requiring
+them on every agent. No global functional-property carrier is added.
+
+MoodSourceClaimConstraint joins the exact native Mood type assertion through
+the existing reified-statement facets and requires accordingTo with an actual
+reader Agent and wasDerivedFrom with an actual InformationObject source.
+The type guard is supported by the existing canonical constraint target path.
+Source records use rdf:reifies; no join facets are authored on those records.
+The source structure is checked, not the report’s truth or the actor’s sentience.
+
+The same feltAffect bridge admits Mood; its guidance selects moodBearer for a
+Mood and emotionBearer for an Emotion. Never assign the Emotion-domain bearer,
+target or elicitor predicates merely to reuse an emotion path for a mood.
+The existing classifier-label and direct-inner-affect laws include MoodType,
+moodType and moodBearer; no classifier output becomes a mood by implication.
+Native affect ingestion and EmotionML remain EmotionType-only. No mood mapping,
+classifier routing or export support is claimed.
 
 ### 4. Appraisal is observation, not ground truth
 
@@ -563,7 +582,7 @@ Use these razors during implementation review.
 | "She looked angry." | observation of expression; optional low-authority attributed affective claim, not a direct emotion fact |
 | "The room felt calming." | `Appraisal` of an environment from a vantage; do not make the room bear calmness as an emotion |
 | "The model sounded frustrated." | expression/style observation plus model/classifier provenance; any `Emotion` attribution is a claim, not truth |
-| "The user has been anxious all week." | target `Mood` or long-lived `Emotion` only if the bearer/target distinction is clear; use statement time or tenure according to consumer need |
+| "The user has been anxious all week." | `Mood` or long-lived `Emotion` only when the source supports that distinction; preserve bearer and statement validity without a duration-based inference |
 | "This scene is tragic." | aesthetic/narrative `Appraisal`; tragedy is a frame-relative reading, not a global property |
 | "The classifier says joy=0.72." | model-output observation with scale/profile, confidence, evidence, and provenance; never self-report authority |
 
@@ -586,7 +605,7 @@ never define the canonical model.
 
 | Layer | What it captures | Example |
 | --- | --- | --- |
-| Canonical GMEOW affect model | emotion, affective experience, mood, appraisal, expression, evidence, scale/profile | `gmeow:Emotion`, `gmeow:Appraisal`, future `gmeow:AffectiveExperience` |
+| Canonical GMEOW affect model | emotion, affective experience, mood, appraisal, expression, evidence, scale/profile | `gmeow:Emotion`, `gmeow:Mood`, `gmeow:Appraisal`, `gmeow:AffectiveExperience` |
 | External ontology mappings | rich semantic bridges to ontology terms | MFOEM, EmotionML, OntoLex-Lemon (Open English WordNet), PROV-O, Web Annotation |
 | External classifier label registries | exact lossless identity of model labels | `goemotions:gratitude`, `hf-cardiff:Positive`, `sst2:NEGATIVE` |
 | Inference-output observations | actual model runs as claims with provenance, scores, thresholds, evidence | "SamLowe GoEmotions emitted `joy=0.84` over chunk X" |
@@ -880,11 +899,11 @@ for future PRs.
 
 | Candidate term | Category | Purpose | Mint when |
 | --- | --- | --- | --- |
-| `gmeow:AffectiveMoment` | abstract mental-moment category | common superclass for affective modes | a consumer needs a uniform query over emotions, moods, and dispositions |
+| `gmeow:AffectiveMoment` | existing abstract mental-moment category | common superclass for affective modes | shared mental-life query |
 | `gmeow:AffectiveExperience` | `gmeow:Experience` specialization or process type | first-person feeling episode | agent memory/narrative needs felt episodes distinct from enduring modes |
 | `gmeow:processAffectiveExperience` | `gmeow:MentalProcessType` individual | value-vocab tag for affective experience events | the mentation value vocabulary is extended from the affect slice |
-| `gmeow:Mood` | intrinsic mode / affective moment | diffuse affective background | long-running mood timelines become a named consumer requirement |
-| `gmeow:MoodType` | open value vocabulary | kinds of moods | mood is minted |
+| `gmeow:Mood` | existing intrinsic mode / affective moment | diffuse affective background | agent-memory mood records |
+| `gmeow:MoodType` | existing open value vocabulary | kinds of moods | attributed qualitative mood classification |
 | `gmeow:AffectiveDisposition` | disposition / mode | tendency toward affective response | personalization, clinical, or long-term-agent-memory consumers require it |
 | `gmeow:affectiveTarget` | object property | target/aboutness of an emotion or appraisal when distinct from bearer | target-directed emotions become first-class beyond `Appraisal` |
 | `gmeow:feltAffect` | object property | links an affective experience to the affective mode it manifests or produces | `AffectiveExperience` is minted and the generic mentation bridges are insufficiently discoverable |
@@ -1028,5 +1047,6 @@ decisions, claims and reviewed emotion correspondences stay here.
 The native affect producer still emits affect-specialized outputs and label sets.
 Its zero-shot candidate sets carry no reviewed static decision rule. The new
 explicit `runLabelSet` edge can enrich general records; it is not imposed on
-existing producer graphs. EmotionML still enumerates affect categories and axes,
-with its existing loss record; general genre outputs do not enter that view.
+existing producer graphs. EmotionML still enumerates EmotionType categories and
+its existing axes, with the existing loss record; neither Mood categories nor
+general genre outputs enter that view.

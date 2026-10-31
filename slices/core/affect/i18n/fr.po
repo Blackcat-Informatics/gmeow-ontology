@@ -651,3 +651,311 @@ msgstr "Ensemble d’étiquettes affectives"
 msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An affect-classifier label vocabulary specializing ClassifierLabelSet. A registered static set used by the affect producer declares labelSetDecision; a run-scoped zero-shot candidate set may legitimately lack that rule. Neither form defines canonical emotion categories."
 msgstr "Un vocabulaire d’étiquettes de classifieur affectif spécialisé depuis ClassifierLabelSet. Un ensemble statique enregistré utilisé par le producteur affectif déclare labelSetDecision ; un ensemble de candidats sans exemple propre à une exécution peut légitimement ne pas porter cette règle. Aucune forme ne définit les catégories canoniques d’émotion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood"
+msgstr "Humeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A diffuse background affective mode inhering in one agent, typically more persistent and less intense than an emotion, without a single focal object."
+msgstr "Un mode affectif diffus de fond inhérent à un agent, généralement plus durable et moins intense qu’une émotion, sans objet focal unique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-attributed background mood, including a simulated actor’s explicitly reported mood."
+msgstr "Utiliser pour une humeur de fond attribuée à une source, y compris celle explicitement rapportée d’un acteur simulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a mood as an emotion prolonged by a fixed threshold, a felt episode or a classifier output."
+msgstr "Éviter de traiter une humeur comme une émotion prolongée au-delà d’un seuil fixe, un épisode ressenti ou une sortie de classifieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name its actual moodBearer and at least one moodType; attribute the exact Mood claim to its reader and retained source."
+msgstr "Nommer son moodBearer réel et au moins un moodType ; attribuer l’affirmation exacte de Mood à son lecteur et à sa source conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Persistence and intensity are qualitative tendencies, not duration tests. Mood and Emotion are not declared disjoint."
+msgstr "Persistance et intensité sont des tendances qualitatives, non des tests de durée. Mood et Emotion ne sont pas déclarées disjointes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record a background mode: ex:quietMood a gmeow:Mood ; gmeow:moodBearer ex:actor ; gmeow:moodType gmeow:moodTypeContent ."
+msgstr "Consigner un mode de fond : ex:quietMood a gmeow:Mood ; gmeow:moodBearer ex:actor ; gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mood bearer"
+msgstr "porteur de l’humeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual agent in whom this Mood inheres; one mood mode has exactly one bearer."
+msgstr "L’agent réel auquel cette Mood est inhérente ; un mode d’humeur possède exactement un porteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish the mood’s bearer from its observer, reporter or software provider."
+msgstr "Utiliser pour distinguer le porteur de l’humeur de son observateur, rapporteur ou fournisseur logiciel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the bearer on the source document or using emotionBearer for a Mood."
+msgstr "Éviter de placer le porteur sur le document source ou d’utiliser emotionBearer pour une Mood."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same actual agent across a mood’s bearer claims; another agent’s mood is a distinct mode."
+msgstr "Conserver le même agent réel dans les affirmations de porteur ; l’humeur d’un autre agent constitue un mode distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exact bearer cardinality is local to Mood. It supplies no universal identity between represented actors and provider programs."
+msgstr "La cardinalité exacte du porteur est locale à Mood. Elle n’identifie pas universellement acteurs représentés et programmes fournisseurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the bearer: ex:quietMood gmeow:moodBearer ex:actor ."
+msgstr "Identifier le porteur : ex:quietMood gmeow:moodBearer ex:actor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood Type"
+msgstr "Type d’humeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of qualitative mood kinds, independent of emotion inventories and external classifier labels."
+msgstr "Un vocabulaire ouvert de genres qualitatifs d’humeur, indépendant des inventaires d’émotions et des étiquettes externes de classifieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a reusable background-mood category without making a Mood subclass."
+msgstr "Utiliser pour nommer une catégorie réutilisable d’humeur de fond sans créer une sous-classe de Mood."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a mood kind with an EmotionType, measured magnitude or provider label."
+msgstr "Éviter d’assimiler un genre d’humeur à une EmotionType, une grandeur mesurée ou une étiquette de fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extend with individually defined values and select them through moodType on actual modes."
+msgstr "Étendre avec des valeurs définies individuellement et les sélectionner par moodType sur les modes réels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The four seeded kinds neither exhaust moods nor impose a mutually exclusive classification."
+msgstr "Les quatre genres initiaux n’épuisent pas les humeurs et n’imposent pas une classification exclusive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extend the vocabulary: ex:moodTypePensive a gmeow:MoodType ."
+msgstr "Étendre le vocabulaire : ex:moodTypePensive a gmeow:MoodType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mood type"
+msgstr "type d’humeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One qualitative kind attributed to a Mood; several independently supported classifications may coexist."
+msgstr "Un genre qualitatif attribué à une Mood ; plusieurs classifications étayées indépendamment peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-reported mood categories on the enduring mode."
+msgstr "Utiliser pour les catégories d’humeur rapportées sur le mode durable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing a raw classifier label here or selecting one globally preferred mood."
+msgstr "Éviter d’y stocker une étiquette brute de classifieur ou de choisir une humeur globalement préférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each category assertion’s standpoint, source and supplied validity separately."
+msgstr "Conserver séparément le point de vue, la source et la validité fournie de chaque affirmation de catégorie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional; multiple kinds do not imply multiple bearers or automatically establish a felt experience."
+msgstr "Non fonctionnelle ; plusieurs genres n’impliquent ni plusieurs porteurs ni une expérience ressentie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the mode: ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+msgstr "Classifier le mode : ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affectionate mood"
+msgstr "humeur affectueuse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of warmth and readiness for affectionate contact, as classified by its source."
+msgstr "Une humeur de fond chaleureuse et disposée au contact affectueux, selon sa source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source describes affectionate background affect rather than one isolated gesture."
+msgstr "Utiliser lorsque la source décrit un fond affectueux plutôt qu’un geste isolé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this mood from a cuddle demand or interpreting it as consent to contact."
+msgstr "Éviter de déduire cette humeur d’une demande de câlins ou d’y voir un consentement au contact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select on a Mood with its own actual bearer and attributed source claim."
+msgstr "Sélectionner sur une Mood ayant son propre porteur réel et une affirmation sourcée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Affectionate classification neither creates a relationship nor promises a response."
+msgstr "La classification affectueuse ne crée ni relation ni promesse de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain warmth: ex:warmMood gmeow:moodType gmeow:moodTypeAffectionate ."
+msgstr "Conserver la chaleur affective : ex:warmMood gmeow:moodType gmeow:moodTypeAffectionate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aloof mood"
+msgstr "humeur distante"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of distance or reserve toward interaction, under the source’s reading."
+msgstr "Une humeur de fond distante ou réservée envers l’interaction, selon la lecture de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicitly reported reserve that persists beyond one interaction."
+msgstr "Utiliser pour une réserve explicitement rapportée au-delà d’une seule interaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving aloofness from silence, an unanswered demand or missing telemetry."
+msgstr "Éviter de déduire la distance du silence, d’une demande sans réponse ou d’une télémétrie absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source’s reserve classification on the actual Mood, not on its documentary report."
+msgstr "Conserver la classification de réserve sur la Mood réelle, non sur son rapport documentaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reserve does not establish hostility, permanent personality or rejection of every interaction."
+msgstr "La réserve n’établit ni hostilité, ni personnalité permanente, ni rejet de toute interaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain reserve: ex:reservedMood gmeow:moodType gmeow:moodTypeAloof ."
+msgstr "Conserver la réserve : ex:reservedMood gmeow:moodType gmeow:moodTypeAloof ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content mood"
+msgstr "humeur contente"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of ease and contentment reported by the source, without a goal-satisfaction judgment."
+msgstr "Une humeur de fond d’aisance et de contentement rapportée par la source, sans jugement de satisfaction d’un objectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit contented mood rather than a verdict about completed work."
+msgstr "Utiliser pour une humeur explicitement contente plutôt qu’un verdict sur un travail achevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that all demands were met or that an answering act was accepted."
+msgstr "Éviter d’en déduire que toutes les demandes sont satisfaites ou qu’un acte de réponse est accepté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record contentment as a moodType claim and retain independent demand and outcome evidence."
+msgstr "Consigner le contentement comme affirmation moodType et garder séparées les preuves de demande et de résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Contentment is qualitative; it supplies no score, duration or universal absence of other moods."
+msgstr "Le contentement est qualitatif ; il ne fournit ni score, ni durée, ni absence universelle d’autres humeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain contentment: ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+msgstr "Conserver le contentement : ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restless mood"
+msgstr "humeur agitée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An unsettled background mood with difficulty remaining at ease, as reported by the source."
+msgstr "Une humeur de fond instable avec difficulté à rester à l’aise, selon la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported restless mood, independently of any visible movement."
+msgstr "Utiliser pour une humeur agitée explicitement rapportée, indépendamment de mouvements visibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing anxiety, inferring a play demand or deriving inner mood from motion alone."
+msgstr "Éviter de diagnostiquer l’anxiété, d’inférer une demande de jeu ou de déduire l’humeur du seul mouvement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual bearer and source of the restless reading; keep observed behavior separate."
+msgstr "Conserver le porteur réel et la source de la lecture agitée ; séparer le comportement observé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The category establishes neither clinical severity nor a required intervention."
+msgstr "La catégorie n’établit ni gravité clinique ni intervention requise."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain restlessness: ex:unsettledMood gmeow:moodType gmeow:moodTypeRestless ."
+msgstr "Conserver l’agitation : ex:unsettledMood gmeow:moodType gmeow:moodTypeRestless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood source claim constraint"
+msgstr "Contrainte de source de l’humeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
+msgstr "Une Mood réelle possède une affirmation native exacte de type conservant un lecteur Agent réel et une source documentaire InformationObject."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The abstract affective branch of MentalMoment: intrinsic modes inhering in one agent, including Emotion and Mood. Query it to retain an agent’s affective life alongside cognitive and intentional modes; instantiate the concrete mode instead."
+msgstr "La branche affective abstraite de MentalMoment : des modes intrinsèques inhérents à un agent, dont Emotion et Mood. L’interroger conserve la vie affective d’un agent aux côtés des modes cognitifs et intentionnels ; instancier le mode concret."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid instantiating this umbrella directly; use Emotion or Mood. A felt AffectiveExperience is an occurrent, never a MentalMoment."
+msgstr "Éviter d’instancier directement cette catégorie ; utiliser Emotion ou Mood. Une AffectiveExperience ressentie est une occurrence, jamais un MentalMoment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place concrete affective modes such as Emotion and Mood beneath this shared parent; keep their actual bearers and source claims explicit."
+msgstr "Placer les modes affectifs concrets tels qu’Emotion et Mood sous ce parent partagé ; garder explicites leurs porteurs réels et leurs affirmations sourcées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Emotion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intrinsic affective mode inhering in one agent under AffectiveMoment and MentalMoment, distinct from the diffuse background Mood and the occurrent AffectiveExperience. Source validity remains on the claim; self-report and third-party attribution remain separate standpoints."
+msgstr "Un mode affectif intrinsèque inhérent à un agent sous AffectiveMoment et MentalMoment, distinct de la Mood diffuse de fond et de l’AffectiveExperience occurrente. La validité source reste sur l’affirmation ; témoignage personnel et attribution tierce restent des points de vue séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feltAffect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an actual felt AffectiveExperience to the existing AffectiveMoment it manifests, specializing realizesMentalMoment. The experience’s experiencer is the mode’s actual bearer: emotionBearer for Emotion and moodBearer for Mood. Several coexisting modes may be manifested without creating them."
+msgstr "Relie une AffectiveExperience réellement ressentie à l’AffectiveMoment existant qu’elle manifeste, en spécialisant realizesMentalMoment. Son experiencer est le porteur réel du mode : emotionBearer pour Emotion et moodBearer pour Mood. Plusieurs modes coexistants peuvent être manifestés sans être créés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feltAffect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual experience to its manifested mode; match experiencer with emotionBearer for an Emotion or moodBearer for a Mood, without assigning the other domain’s bearer property."
+msgstr "Relier l’expérience réelle au mode manifesté ; faire correspondre experiencer avec emotionBearer pour une Emotion ou moodBearer pour une Mood, sans attribuer la propriété de porteur de l’autre domaine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier label not canonical affect type constraint"
+msgstr "Contrainte séparant étiquette de classifieur et type affectif canonique"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectClassifierLabel is neither an EmotionType nor a MoodType; external output identities stay distinct from canonical affect values."
+msgstr "Une AffectClassifierLabel n’est ni une EmotionType ni une MoodType ; les identités de sortie externes restent distinctes des valeurs affectives canoniques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A classifier label must not be modeled as a gmeow:EmotionType or a gmeow:MoodType. Retain the exact external label identity; evidence does not mint a canonical inner-affect value."
+msgstr "Une étiquette de classifieur ne doit pas être modélisée comme une gmeow:EmotionType ou une gmeow:MoodType. Conserver son identité externe exacte ; la preuve ne crée pas de valeur canonique d’affect intérieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectClassifierOutput directly asserts none of emotionType, emotionBearer, moodType or moodBearer; evidence and inner-affect claims remain distinct."
+msgstr "Une AffectClassifierOutput n’affirme directement ni emotionType, ni emotionBearer, ni moodType, ni moodBearer ; preuves et affirmations d’affect intérieur restent distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A classifier output must not directly assert inner affect (gmeow:emotionType, gmeow:emotionBearer, gmeow:moodType or gmeow:moodBearer). Retain its evidence through supportsAffectiveClaim rather than treating an emitted label as an inner state."
+msgstr "Une sortie de classifieur ne doit pas affirmer directement un affect intérieur (gmeow:emotionType, gmeow:emotionBearer, gmeow:moodType ou gmeow:moodBearer). Conserver sa preuve par supportsAffectiveClaim au lieu de traiter une étiquette émise comme un état intérieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/affect|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Affect is a core part of grounded agent memory. Emotion and Mood are intrinsic AffectiveMoment modes under MentalMoment; AffectiveExperience is the distinct occurrent that may manifest them through feltAffect. Mode bearers use emotionBearer or moodBearer according to the actual mode type. Open value vocabularies retain rival classifications. Appraisals and classifier outputs are attributed evidence rather than inner-state truth; raw scores are distinct from confidence. Source validity, standpoint and provenance remain separate. External correspondences and their declared loss remain governed by the grounding kernel. The native affect producer and EmotionML projection remain EmotionType-only; Mood has no automatic routing or export through those paths."
+msgstr "L’affect est une composante centrale de la mémoire agent ancrée. Emotion et Mood sont des modes intrinsèques AffectiveMoment sous MentalMoment ; AffectiveExperience est l’occurrence distincte qui peut les manifester par feltAffect. Les porteurs utilisent emotionBearer ou moodBearer selon le type réel du mode. Les vocabulaires ouverts conservent les classifications rivales. Évaluations et sorties de classifieur sont des preuves attribuées plutôt que des vérités intérieures ; les scores bruts restent distincts de la confiance. Validité source, point de vue et provenance demeurent séparés. Les correspondances externes et leurs pertes déclarées restent gouvernées par le noyau d’ancrage. Le producteur affectif natif et la projection EmotionML restent limités à EmotionType ; Mood n’emprunte pas automatiquement ces chemins de traitement ou d’exportation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/affect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The GMEOW Affect Module: enduring Emotion and Mood modes, felt AffectiveExperience occurrences, and attributed appraisal and classifier evidence."
+msgstr "Le module Affect de GMEOW : modes durables Emotion et Mood, occurrences ressenties AffectiveExperience et preuves attribuées d’évaluation et de classifieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish attributed inner mood from the record or classifier that reports it."
+msgstr "Utiliser pour distinguer l’humeur intérieure attribuée du dossier ou du classifieur qui la rapporte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a self-report or treating the provider’s output as the mood’s bearer."
+msgstr "Éviter d’inventer un témoignage personnel ou de traiter la sortie du fournisseur comme porteur de l’humeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact Mood type assertion; retain accordingTo and wasDerivedFrom on that claim, keeping its writer independent."
+msgstr "Réifier l’affirmation exacte de type Mood ; conserver accordingTo et wasDerivedFrom sur cette affirmation, avec son rédacteur indépendant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This validates attribution structure, not phenomenal consciousness or the truth of a mood report."
+msgstr "Cela valide la structure d’attribution, non la conscience phénoménale ou la vérité d’un rapport d’humeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the source law: gmeow:MoodSourceClaimConstraint logic:formalizes gmeow:Mood ."
+msgstr "Nommer la loi de source : gmeow:MoodSourceClaimConstraint logic:formalizes gmeow:Mood ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
+msgstr "Une Mood réelle possède une affirmation native exacte de type conservant un lecteur Agent réel et une source documentaire InformationObject."
