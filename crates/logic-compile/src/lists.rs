@@ -49,6 +49,7 @@ pub const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
 /// `rdf:nil`.
 pub const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
+const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const LOGIC_INSTANCE_OF: &str = "https://blackcatinformatics.ca/logic/instanceOf";
 
@@ -514,7 +515,9 @@ impl OwnerSkolemizer<'_> {
                     "type",
                     [predicate.as_str(), &class.key()],
                 ));
-                if matches!(&object, Node::Iri(class) if class.starts_with(LOGIC_NAMESPACE)) {
+                if matches!(&object, Node::Iri(class) if class.starts_with(LOGIC_NAMESPACE)
+                    || (predicate == RDF_TYPE && class == RDFS_DATATYPE))
+                {
                     fields.push((
                         predicate,
                         AtomicTerm::Iri(crate::graphutil::term_str(&object)),

@@ -96,7 +96,7 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 21;
+pub const CACHE_VERSION: u32 = 22;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
 pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
