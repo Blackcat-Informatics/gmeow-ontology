@@ -90,6 +90,7 @@ has exactly one `negatingCue` and one member of the closed `NegationScope` set:
 | Value | Required comparison |
 | --- | --- |
 | `negationSameSentence` | Both complete spans in one default UAX 29 sentence segment, Unicode 17.0.0, in the same exact source literal. |
+| `negationSharedSentence` | Both spans overlap at least one common default UAX 29 sentence segment, Unicode 17.0.0, in the same exact source literal. |
 | `negationSameMessagePart` | Same retained `BodyPart` identity, with actual `hasBodyPart` membership. |
 | `negationSameMessage` | Same retained `Message` identity, potentially across parts or fields. |
 | `negationSameTurn` | Same explicitly supplied source turn identity and source membership evidence. |
@@ -103,7 +104,14 @@ directions. Do not substitute bytes, grapheme clusters or UAX 29 word boundaries
 
 The sentence contract uses Unicode 17.0.0 separately from the Unicode 16.0.0
 word/folding contract. A span crossing a sentence boundary fails same-sentence
-scope. A thread, timestamp or reply chain does not establish a message or turn.
+scope. The alternative `negationSharedSentence` counts a crossing occurrence in
+every sentence segment it overlaps. For original match interval `[a,b)` and
+sentence interval `[s,e)`, overlap requires `a < e` and `s < b`; endpoint contact
+alone does not count. Both matches must overlap the same actual segment in the
+same exact source literal. Keep each occurrence and its original interval intact;
+sentence participation neither splits nor duplicates `CueMatch` reports. These
+scope choices preserve the phrase tokenization and folding contract above.
+A thread, timestamp or reply chain does not establish a message or turn.
 Missing grouping identity or segmentation capability is unsupported evaluation,
 never a silent finding that no suppressor exists.
 

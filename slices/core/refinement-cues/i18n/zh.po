@@ -374,8 +374,8 @@ msgid "Negation Scope"
 msgstr "否定范围"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The closed five-value scope vocabulary for cue suppression: same sentence, same message part, same message, same source turn, or a symmetric word window."
-msgstr "线索抑制的封闭五值范围词汇：同句、同消息部分、同消息、同源轮次，或对称词窗口。"
+msgid "The closed six-value scope vocabulary for cue suppression: complete containment in one sentence, overlap with a shared sentence, same message part, same message, same source turn, or a symmetric word window."
+msgstr "用于线索抑制的封闭六值范围词汇：完整包含于同一句、与共享句段重叠、同消息部分、同消息、同源轮次或对称词窗口。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."
@@ -394,8 +394,8 @@ msgid "The exactly-one member of NegationScope controlling where a detected nega
 msgstr "NegationScope 中唯一的成员，用于决定检测到的否定匹配在何处抑制目标匹配。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Sentence and word scopes compare original spans in one exact source literal. Part, message and turn scopes compare explicit source grouping identities and may span fields."
-msgstr "句子和词范围比较同一确切源字面量中的原始区间。部分、消息和轮次范围比较显式源分组身份，可跨字段。"
+msgid "Sentence and word scopes compare original spans in one exact source literal. Sentence scopes distinguish complete containment from overlap with a shared segment. Part, message and turn scopes compare explicit source grouping identities and may span fields."
+msgstr "句子和词范围比较同一完整源字面量中的原始区间。句子范围区分完整包含与共享句段重叠。部分、消息和轮次范围比较显式源分组身份，可跨越字段。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
@@ -1826,3 +1826,31 @@ msgstr "此规则统计来源 RDF 项，不解释或弱化其摘要类型。注�
 msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
 msgstr "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "shared sentence"
+msgstr "共享句段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both original match spans have a nonempty intersection with at least one common default UAX 29 sentence segment of the same exact source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "两个原始匹配区间与同一完整源字面量中至少一个共同的默认 UAX 29 句段具有非空交集，使用 Unicode 17.0.0 句子边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a crossing occurrence participates in every sentence segment it overlaps."
+msgstr "当跨句出现项参与其所重叠的每个句段时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating endpoint contact alone as overlap or substituting this scope for complete containment in negationSameSentence."
+msgstr "避免将仅有端点接触视为重叠，也不要用此范围替代 negationSameSentence 的完整包含要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference it through negationScope. For match interval [a,b) and sentence interval [s,e), require a < e and s < b for both matches against the same segment."
+msgstr "通过 negationScope 引用此值。对于匹配区间 [a,b) 和句段区间 [s,e)，两个匹配均须针对同一句段满足 a < e 且 s < b。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Keep each original occurrence and its half-open code-point interval intact; sentence participation does not split or duplicate CueMatch reports. Missing sentence segmentation is unsupported evaluation, never proof that no negator applies. This scope does not execute segmentation or suppression."
+msgstr "保留每个原始出现项及其半开码点区间；句段参与关系不会拆分或复制 CueMatch 报告。缺少分句能力意味着不支持评估，绝不证明没有适用的否定项。此范围不执行分句或抑制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
