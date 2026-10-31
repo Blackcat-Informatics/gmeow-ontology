@@ -1519,3 +1519,303 @@ msgstr "COUNT DISTINCT emploie l’identité de terme, distinguant les graphies 
 msgctxt "https://blackcatinformatics.ca/gmeow/HeldContentCountConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."
 msgstr "gmeow:HeldContentCountConstraint logic:formalizes gmeow:heldContentStatement ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain one segmentation of a named source revision under a frozen rules artifact."
+msgstr "Utiliser pour conserver une segmentation d’une révision source nommée selon un artefact de règles figé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a result record as its source, its rules artifact or proof of complete source coverage."
+msgstr "Éviter de confondre un résultat avec sa source, son artefact de règles ou une preuve de couverture complète de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name chunkingSource and chunkingRulesArtifact, retain their selected digest pins and hasGranularity, and link selected chunks through inChunking."
+msgstr "Nommer chunkingSource et chunkingRulesArtifact, conserver leurs empreintes sélectionnées et hasGranularity, puis relier les fragments sélectionnés par inChunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This InformationObject records a segmentation. Member ordinals and represented block extents do not impose overlap, consecutive ordering or exhaustive coverage policies."
+msgstr "Cet InformationObject consigne une segmentation. Les ordinaux des membres et les étendues de blocs représentées n’imposent aucune politique de chevauchement, d’ordre consécutif ou de couverture exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunking|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:segmentation a gmeow:Chunking ; gmeow:chunkingSource ex:revision ; gmeow:chunkingRulesArtifact ex:rules ."
+msgstr "ex:segmentation a gmeow:Chunking ; gmeow:chunkingSource ex:revision ; gmeow:chunkingRulesArtifact ex:rules ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual contiguous Chunk selected into one recorded chunking."
+msgstr "Utiliser pour un véritable Chunk contigu sélectionné dans une segmentation consignée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying this role to every Chunk or reusing a chunk identity for a different segmentation."
+msgstr "Éviter d’appliquer ce rôle à chaque Chunk ou de réutiliser une identité de fragment pour une autre segmentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link inChunking to the selected result, retain entryOrdinal, chunkOf and span bounds, and identify covered atomic occurrences through coversBlockExtent."
+msgstr "Relier inChunking au résultat sélectionné, conserver entryOrdinal, chunkOf et les bornes, puis identifier les occurrences atomiques couvertes par coversBlockExtent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The ordinal is scoped to the selected chunking. chunkOf names the carrier containing the retrieved text; derivation from another artifact does not change that carrier."
+msgstr "L’ordinal est limité à la segmentation sélectionnée. chunkOf nomme le support contenant le texte récupéré ; la dérivation depuis un autre artefact ne change pas ce support."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:member a gmeow:ChunkingMember ; gmeow:inChunking ex:segmentation ; gmeow:chunkOf ex:revision ."
+msgstr "ex:member a gmeow:ChunkingMember ; gmeow:inChunking ex:segmentation ; gmeow:chunkOf ex:revision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to locate a structural ContentBlock in an exact whole-source coordinate frame."
+msgstr "Utiliser pour situer un ContentBlock structurel dans un repère exact de la source entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting block-local offsets or treating the extent record as the structural block itself."
+msgstr "Éviter de substituer des décalages locaux au bloc ou de confondre l’enregistrement d’étendue avec le bloc structurel lui-même."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name extentOfBlock and extentSource, then retain spanStart and spanEnd in that carrier’s zero-based, half-open Unicode-code-point frame."
+msgstr "Nommer extentOfBlock et extentSource, puis conserver spanStart et spanEnd dans le repère semi-ouvert en points de code Unicode, à partir de zéro, de ce support."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This InformationObject supplies represented coordinates for boundary laws. Its presence does not certify that every block in the source has an extent record."
+msgstr "Cet InformationObject fournit des coordonnées représentées aux lois de frontière. Sa présence ne certifie pas que chaque bloc source possède un enregistrement d’étendue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlockExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:extent a gmeow:BlockExtent ; gmeow:extentOfBlock ex:paragraph ; gmeow:extentSource ex:revision ."
+msgstr "ex:extent a gmeow:BlockExtent ; gmeow:extentOfBlock ex:paragraph ; gmeow:extentSource ex:revision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the exact information artifact segmented by a Chunking."
+msgstr "Utiliser pour identifier l’artefact informationnel exact segmenté par une Chunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing at a mutable work, a location or an import wrapper in place of the actual source revision."
+msgstr "Éviter de pointer vers une œuvre mutable, un emplacement ou une enveloppe d’import à la place de la véritable révision source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the result to its source InformationObject and retain the selected source digest separately with chunkingSourceDigest."
+msgstr "Relier le résultat à son InformationObject source et conserver séparément l’empreinte source sélectionnée avec chunkingSourceDigest."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source artifact supplies the member carrier and whole-source coordinate origin. Naming it neither reads its bytes nor computes its digest."
+msgstr "L’artefact source fournit le support du membre et l’origine des coordonnées dans la source entière. Le nommer ne lit pas ses octets et ne calcule pas son empreinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:segmentation gmeow:chunkingSource ex:revision ."
+msgstr "ex:segmentation gmeow:chunkingSource ex:revision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to select the one segmentation whose member role this chunk bears."
+msgstr "Utiliser pour sélectionner l’unique segmentation dont ce fragment porte le rôle de membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting membership as global chunk order, source completeness or membership in every segmentation of that source."
+msgstr "Éviter d’interpréter l’appartenance comme un ordre global des fragments, une complétude source ou l’appartenance à chaque segmentation de cette source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each ChunkingMember to its Chunking and interpret its entryOrdinal within that result."
+msgstr "Relier chaque ChunkingMember à sa Chunking et interpréter son entryOrdinal dans ce résultat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation scopes the member’s source, rules and ordinal obligations. It does not require consecutive ordinals or prohibit overlap between distinct members."
+msgstr "Cette relation délimite les obligations de source, de règles et d’ordinal du membre. Elle n’exige pas des ordinaux consécutifs et n’interdit pas le chevauchement de membres distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:member gmeow:inChunking ex:segmentation ."
+msgstr "ex:member gmeow:inChunking ex:segmentation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the atomic block occurrences wholly included in a selected chunk."
+msgstr "Utiliser pour consigner les occurrences de blocs atomiques entièrement incluses dans un fragment sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming coverage for an extent that is disjoint, merely touches a boundary or uses another source origin."
+msgstr "Éviter de déclarer couverte une étendue disjointe, qui touche seulement une borne ou qui utilise une autre origine source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the ChunkingMember to each covered BlockExtent, retaining the extent’s structural block, exact carrier and whole-source bounds."
+msgstr "Relier le ChunkingMember à chaque BlockExtent couverte, en conservant son bloc structurel, son support exact et ses bornes dans la source entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The boundary law also examines represented extents without this relation. Omitting the relation cannot hide an intersecting split; asserted coverage does not certify exhaustive source coverage."
+msgstr "La loi de frontière examine aussi les étendues représentées sans cette relation. Son omission ne peut masquer une coupure intersectante ; la couverture affirmée ne certifie pas une couverture source exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/coversBlockExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:member gmeow:coversBlockExtent ex:extent ."
+msgstr "ex:member gmeow:coversBlockExtent ex:extent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the structural ContentBlock located by a BlockExtent."
+msgstr "Utiliser pour identifier le ContentBlock structurel localisé par une BlockExtent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the block’s division, structural index or segment kind with this coordinate record."
+msgstr "Éviter de remplacer la division, l’index structurel ou le type de segment du bloc par cet enregistrement de coordonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the extent to the existing ContentBlock and keep its whole-source carrier in extentSource."
+msgstr "Relier l’étendue au ContentBlock existant et conserver son support source entier dans extentSource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation identifies the block occurrence described by the extent. Coordinates remain on the extent; the block retains its documents-slice structure."
+msgstr "La relation identifie l’occurrence de bloc décrite par l’étendue. Les coordonnées restent sur l’étendue ; le bloc conserve sa structure de la tranche documents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentOfBlock|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:extent gmeow:extentOfBlock ex:paragraph ."
+msgstr "ex:extent gmeow:extentOfBlock ex:paragraph ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to declare the exact whole-source carrier supplying an extent’s coordinate origin."
+msgstr "Utiliser pour déclarer le support source entier exact qui fournit l’origine des coordonnées d’une étendue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently comparing bounds from different revisions or block-local and whole-source frames."
+msgstr "Éviter de comparer silencieusement des bornes de révisions différentes ou de repères locaux au bloc et de source entière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the BlockExtent to the actual source InformationObject and express both span bounds in that carrier’s Unicode-code-point coordinates."
+msgstr "Relier la BlockExtent au véritable InformationObject source et exprimer ses deux bornes dans les coordonnées en points de code Unicode de ce support."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Covered extents use the selected chunkingSource as origin. This frame relation performs no coordinate conversion or validation against source bytes."
+msgstr "Les étendues couvertes utilisent la chunkingSource sélectionnée comme origine. Cette relation de repère n’effectue ni conversion de coordonnées ni validation contre les octets source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:extent gmeow:extentSource ex:revision ."
+msgstr "ex:extent gmeow:extentSource ex:revision ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the selected source pin to be witnessed on the named source artifact."
+msgstr "Utiliser pour exiger un témoin de l’empreinte source sélectionnée sur l’artefact source nommé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a matching digest on another artifact or treating a recorded witness as byte authentication."
+msgstr "Éviter d’accepter une empreinte correspondante sur un autre artefact ou de traiter un témoin consigné comme une authentification des octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each Chunking with chunkingSource and chunkingSourceDigest, retain the corresponding contentDigest on that exact source."
+msgstr "Pour chaque Chunking portant chunkingSource et chunkingSourceDigest, conserver la contentDigest correspondante sur cette source exacte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula checks the recorded source/digest relation. It neither computes a hash nor selects an algorithm or a default source."
+msgstr "La formule vérifie la relation source/empreinte consignée. Elle ne calcule pas de hachage et ne choisit ni algorithme ni source par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingSourceDigestWitnessConstraint logic:formalizes gmeow:chunkingSourceDigest ."
+msgstr "gmeow:ChunkingSourceDigestWitnessConstraint logic:formalizes gmeow:chunkingSourceDigest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a digest witness on the actual rules artifact selected by the chunking."
+msgstr "Utiliser pour exiger un témoin d’empreinte sur le véritable artefact de règles sélectionné par la segmentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the result record’s digest or treating matching recorded pins as proof that rules were executed."
+msgstr "Éviter de substituer l’empreinte du résultat ou de traiter des empreintes consignées correspondantes comme la preuve que les règles ont été exécutées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow chunkingRulesArtifact and retain the selected chunkingContractDigest among that artifact’s own contentDigest values."
+msgstr "Suivre chunkingRulesArtifact et conserver la chunkingContractDigest sélectionnée parmi les valeurs contentDigest propres à cet artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula concerns the selected rules artifact and its recorded digest. It does not execute the rules, authenticate bytes or equate an EmbeddingFamily configuration literal with an artifact."
+msgstr "La formule concerne l’artefact de règles sélectionné et son empreinte consignée. Elle n’exécute pas les règles, n’authentifie pas les octets et n’assimile pas un littéral de configuration EmbeddingFamily à un artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingContractDigestWitnessConstraint logic:formalizes gmeow:chunkingRulesArtifact ."
+msgstr "gmeow:ChunkingContractDigestWitnessConstraint logic:formalizes gmeow:chunkingRulesArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check that a selected chunk’s actual text carrier agrees with the chunking’s source."
+msgstr "Utiliser pour vérifier que le véritable support textuel d’un fragment sélectionné correspond à la source de la segmentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using wasDerivedFrom to claim that generated summary text is cut from its original division."
+msgstr "Éviter d’utiliser wasDerivedFrom pour affirmer qu’un résumé généré est découpé dans sa division originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow inChunking to chunkingSource and compare that carrier with the member’s recorded chunkOf."
+msgstr "Suivre inChunking jusqu’à chunkingSource et comparer ce support au chunkOf consigné du membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula compares the named carriers. It does not inspect the retrieved text or infer a carrier from derivation history."
+msgstr "La formule compare les supports nommés. Elle n’inspecte pas le texte récupéré et ne déduit pas de support depuis l’historique de dérivation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingMemberSourceConstraint logic:formalizes gmeow:chunkOf ."
+msgstr "gmeow:ChunkingMemberSourceConstraint logic:formalizes gmeow:chunkOf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require one member identity at each recorded ordinal within a chunking."
+msgstr "Utiliser pour exiger une seule identité de membre à chaque ordinal consigné dans une segmentation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading ordinal uniqueness as consecutive numbering, source order or non-overlapping coverage."
+msgstr "Éviter de lire l’unicité des ordinaux comme une numérotation consécutive, un ordre source ou une couverture sans chevauchement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Compare members sharing inChunking and entryOrdinal; those bindings must identify the same member."
+msgstr "Comparer les membres qui partagent inChunking et entryOrdinal ; ces liaisons doivent identifier le même membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The comparison is local to one result. Gaps in ordinals and overlap between different members are not forbidden by this law."
+msgstr "La comparaison est locale à un résultat. Cette loi n’interdit ni les trous dans les ordinaux ni le chevauchement de membres différents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingOrdinalUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingOrdinalUniquenessConstraint logic:formalizes gmeow:entryOrdinal ."
+msgstr "gmeow:ChunkingOrdinalUniquenessConstraint logic:formalizes gmeow:entryOrdinal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the source origin of every extent explicitly claimed as covered by a member."
+msgstr "Utiliser pour vérifier l’origine source de chaque étendue explicitement déclarée couverte par un membre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid silently substituting a block-local frame, a division-local frame or another revision."
+msgstr "Éviter de substituer silencieusement un repère local au bloc, à la division ou une autre révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow coversBlockExtent to extentSource and compare it with chunkingSource selected through inChunking."
+msgstr "Suivre coversBlockExtent jusqu’à extentSource et la comparer à la chunkingSource sélectionnée par inChunking."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The formula compares recorded origins for claimed coverage. It performs no coordinate transformation and does not enumerate missing extent records."
+msgstr "La formule compare les origines consignées pour la couverture déclarée. Elle n’effectue aucune transformation de coordonnées et n’énumère pas les enregistrements d’étendue manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoveredExtentOriginConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingCoveredExtentOriginConstraint logic:formalizes gmeow:extentSource ."
+msgstr "gmeow:ChunkingCoveredExtentOriginConstraint logic:formalizes gmeow:extentSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require whole-block containment whenever a selected chunk intersects a represented extent in the same source frame."
+msgstr "Utiliser pour exiger l’inclusion du bloc entier lorsqu’un fragment sélectionné intersecte une étendue représentée dans le même repère source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid hiding a represented split by omitting coversBlockExtent or treating the law as a certificate of complete block inventory."
+msgstr "Éviter de masquer une coupure représentée en omettant coversBlockExtent ou de traiter la loi comme un certificat d’inventaire complet des blocs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For every represented same-source extent intersecting the member, retain enclosing chunk bounds and the corresponding coversBlockExtent relation."
+msgstr "Pour chaque étendue représentée de même source qui intersecte le membre, conserver les bornes englobantes du fragment et la relation coversBlockExtent correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The guard uses strict intersection comparisons; the consequent requires containment and explicit coverage. It neither discovers unrepresented blocks nor calculates coordinates from source bytes."
+msgstr "La garde utilise des comparaisons d’intersection strictes ; la conséquence exige l’inclusion et la couverture explicite. Elle ne découvre pas les blocs non représentés et ne calcule pas les coordonnées à partir des octets source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingAtomicBlockBoundaryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingAtomicBlockBoundaryConstraint logic:formalizes gmeow:BlockExtent ."
+msgstr "gmeow:ChunkingAtomicBlockBoundaryConstraint logic:formalizes gmeow:BlockExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require actual intersection for every asserted covered extent in the shared source frame."
+msgstr "Utiliser pour exiger une intersection réelle pour chaque étendue déclarée couverte dans le repère source partagé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling a disjoint extent or one that merely touches an exclusive boundary a covered block."
+msgstr "Éviter de qualifier de bloc couvert une étendue disjointe ou qui touche seulement une borne exclusive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "For each coversBlockExtent relation, compare member and extent bounds using start < blockEnd and blockStart < end."
+msgstr "Pour chaque relation coversBlockExtent, comparer les bornes du membre et de l’étendue avec start < blockEnd et blockStart < end."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law checks strict intersection of claimed coverage. Whole-block containment is a separate boundary obligation; neither obligation proves exhaustive source coverage."
+msgstr "Cette loi vérifie l’intersection stricte de la couverture déclarée. L’inclusion du bloc entier est une obligation de frontière distincte ; aucune de ces obligations ne prouve une couverture source exhaustive."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
+msgstr "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
