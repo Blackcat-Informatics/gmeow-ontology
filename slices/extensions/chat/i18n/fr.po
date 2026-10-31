@@ -768,3 +768,977 @@ msgstr "Conserver les deux occurrences originales sous le même contexte hasBody
 msgctxt "https://blackcatinformatics.ca/gmeow/DisagreeingPartContextConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
 msgstr "ex:mirror gmeow:disagreesWithPart ex:typedPart ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chat Reaction"
+msgstr "Réaction de conversation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported occurrence of placing or removing a reaction on a message identified within its provider, transport and source context. Opaque actor and target strings do not create an Agent or Message."
+msgstr "Occurrence rapportée par la source de placement ou retrait d’une réaction sur un message identifié dans son fournisseur, transport et contexte source. Les chaînes opaques d’acteur et de cible ne créent ni Agent ni Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatReaction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the source record: ex:record a gmeow:ChatReaction ."
+msgstr "Conserver l’enregistrement source : ex:record a gmeow:ChatReaction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reaction key"
+msgstr "clé de réaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact emoji or short reaction key chosen in the source reaction occurrence. It is source content, not a preferred label or a globally interpreted emotion."
+msgstr "Emoji ou courte clé de réaction exactement choisis dans l’occurrence source. Il s’agit du contenu source, non d’un libellé privilégié ni d’une émotion interprétée globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:reactionKey."
+msgstr "Conserver la valeur fournie pour gmeow:reactionKey."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reaction resource"
+msgstr "ressource de réaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The transport's exact reaction-resource name or identifier. Its provider, transport and source context determine scope; whitespace and case are retained without creating a resource identity."
+msgstr "Nom ou identifiant exact de ressource de réaction fourni par le transport. Fournisseur, transport et contexte source en déterminent la portée ; espaces et casse sont conservés sans créer d’identité de ressource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:reactionResource."
+msgstr "Conserver la valeur fournie pour gmeow:reactionResource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reaction State"
+msgstr "État de réaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary for the source-reported disposition of a reaction occurrence. Placement and removal are distinct reports, not a mutable winning state inferred from order."
+msgstr "Vocabulaire ouvert de valeurs de qualité pour la disposition rapportée d’une occurrence de réaction. Placement et retrait sont des rapports distincts, non un état gagnant mutable déduit de l’ordre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the source record: ex:record a gmeow:ReactionState ."
+msgstr "Conserver l’enregistrement source : ex:record a gmeow:ReactionState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reaction state"
+msgstr "état de réaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit disposition reported for this reaction occurrence. No placement or removal follows from an absent field, a later timestamp or another source's report."
+msgstr "Disposition explicitement rapportée pour cette occurrence de réaction. Aucun placement ni retrait ne découle d’un champ absent, d’un horodatage ultérieur ou du rapport d’une autre source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:reactionState."
+msgstr "Conserver la valeur fournie pour gmeow:reactionState."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reaction placed"
+msgstr "réaction placée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that the reaction was placed on its scoped target message. This value does not establish current presence across other events or standpoints."
+msgstr "La source rapporte le placement de la réaction sur son message cible situé. Cette valeur n’établit pas sa présence actuelle parmi d’autres événements ou points de vue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionPlaced|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:reactionPlaced."
+msgstr "Conserver la valeur fournie pour gmeow:reactionPlaced."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reaction removed"
+msgstr "réaction retirée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that the reaction was taken off its scoped target message. This does not erase the placement record or infer that another source agreed."
+msgstr "La source rapporte le retrait de la réaction de son message cible situé. Cela n’efface pas le placement et n’implique pas l’accord d’une autre source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/reactionRemoved|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:reactionRemoved."
+msgstr "Conserver la valeur fournie pour gmeow:reactionRemoved."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "actor identity as recorded"
+msgstr "identité d’acteur enregistrée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact transport string naming who acted or sent the source content. It is provider-, transport- and context-scoped evidence, not a resolved Agent, account holder or message sender relation."
+msgstr "Chaîne exacte du transport désignant qui a agi ou envoyé le contenu source. Cette preuve est située par fournisseur, transport et contexte ; elle n’est ni un Agent résolu, ni un titulaire de compte, ni une relation d’expéditeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:actorIdentity."
+msgstr "Conserver la valeur fournie pour gmeow:actorIdentity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "target message identifier"
+msgstr "identifiant de message cible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The transport's exact identifier for the message a source event acted on. Equal strings across providers, transports or contexts do not identify one Message."
+msgstr "Identifiant exact fourni par le transport pour le message visé par un événement source. Des chaînes égales entre fournisseurs, transports ou contextes n’identifient pas un même Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:targetMessage."
+msgstr "Conserver la valeur fournie pour gmeow:targetMessage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejected Media Observation"
+msgstr "Observation de média refusé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed observation reporting provider refusal of submitted media before recipient visibility. Its observed feature is the retained source record; its results describe refused parts, independently of delivered body parts or published media artifacts."
+msgstr "Observation attribuée rapportant le refus par un fournisseur de médias soumis avant leur visibilité par le destinataire. Sa caractéristique observée est l’enregistrement source conservé ; ses résultats décrivent les parties refusées, indépendamment des parties livrées ou médias publiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaObservation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the source record: ex:record a gmeow:RejectedMediaObservation ."
+msgstr "Conserver l’enregistrement source : ex:record a gmeow:RejectedMediaObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejected Media Part"
+msgstr "Description de partie média refusée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained information record describing one part the provider refused, with its provider position, refusal code and any sender-supplied description. It is not itself a delivered BodyPart or a published MediaObject."
+msgstr "Enregistrement informationnel décrivant une partie refusée par le fournisseur, avec sa position, son code de refus et toute description fournie par l’expéditeur. Ce n’est pas une BodyPart livrée ni un MediaObject publié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the source record: ex:record a gmeow:RejectedMediaPart ."
+msgstr "Conserver l’enregistrement source : ex:record a gmeow:RejectedMediaPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "media rejection reason code"
+msgstr "code de refus du média"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider's refusal code for a described media part, retained exactly with its source record. The code is not a prose explanation, an inferred safety finding or a universal taxonomy."
+msgstr "Code de refus du fournisseur pour une partie média décrite, conservé exactement avec son enregistrement source. Ce code n’est ni une explication en prose, ni un constat de sécurité inféré, ni une taxonomie universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:mediaRejectionReason."
+msgstr "Conserver la valeur fournie pour gmeow:mediaRejectionReason."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider part index"
+msgstr "position de partie chez le fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The zero-based position the provider supplied for a refused part within its own source message-part roster. It is not the order of delivered parts and is never inferred from RDF statement order."
+msgstr "Position à partir de zéro fournie par le fournisseur pour une partie refusée dans sa liste source de parties de message. Ce n’est pas l’ordre des parties livrées ; elle ne se déduit jamais de l’ordre RDF."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerPartIndex|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:providerPartIndex."
+msgstr "Conserver la valeur fournie pour gmeow:providerPartIndex."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider event identifier"
+msgstr "identifiant d’événement du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider's exact event identifier retained on a source record, event or observation. Its provider, transport and source context remain explicit; the string is not a global Event IRI."
+msgstr "Identifiant exact d’événement du fournisseur conservé sur un enregistrement source, événement ou observation. Fournisseur, transport et contexte source restent explicites ; la chaîne n’est pas une IRI globale d’Event."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:providerEvent."
+msgstr "Conserver la valeur fournie pour gmeow:providerEvent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider event type code"
+msgstr "code de type d’événement du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider's exact source event-type code. It neither replaces the canonical event classification nor creates a closed vocabulary from provider spelling."
+msgstr "Code exact de type d’événement fourni par la source. Il ne remplace pas la classification canonique et ne crée pas de vocabulaire fermé à partir de cette graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:providerEventType."
+msgstr "Conserver la valeur fournie pour gmeow:providerEventType."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "provider occurrence time as recorded"
+msgstr "heure d’occurrence fournie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The occurrence-time text exactly as the provider supplied it. No parsing, timezone, precision, dateTime value or chronology follows from this source string."
+msgstr "Texte du temps d’occurrence exactement fourni par le fournisseur. Aucune analyse, aucun fuseau, aucune précision, valeur dateTime ni chronologie ne découle de cette chaîne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerOccurredAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:providerOccurredAt."
+msgstr "Conserver la valeur fournie pour gmeow:providerOccurredAt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "message part text"
+msgstr "texte de partie de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original words of one textual chat body part, with supplied language and direction. It is content rather than a label, diagnostic wrapper or transcription inferred from media."
+msgstr "Paroles originales d’une partie textuelle de conversation, avec langue et direction fournies. Il s’agit du contenu, non d’un libellé, d’un diagnostic englobant ou d’une transcription inférée d’un média."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messagePartText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:messagePartText."
+msgstr "Conserver la valeur fournie pour gmeow:messagePartText."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verified session identifier"
+msgstr "identifiant de session vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact provider session identifier on an observation reporting verification of that session for a scoped source sender. The identifier alone neither authenticates a session nor identifies a global conversation."
+msgstr "Identifiant exact de session du fournisseur sur une observation rapportant sa vérification pour un expéditeur source situé. L’identifiant seul n’authentifie pas la session et n’identifie pas une conversation globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:sessionIdentity."
+msgstr "Conserver la valeur fournie pour gmeow:sessionIdentity."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verified session sender"
+msgstr "expéditeur de session vérifiée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source sender string for whom a session verification observation reports a held verification result. It does not resolve an Agent or assert account ownership."
+msgstr "Chaîne source exacte de l’expéditeur pour lequel une observation de session rapporte un résultat de vérification tenu. Elle ne résout pas un Agent et n’affirme pas la propriété d’un compte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:sessionSender."
+msgstr "Conserver la valeur fournie pour gmeow:sessionSender."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Matrix transport"
+msgstr "transport Matrix"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Matrix communication network or protocol family, not a particular homeserver, deployment, account or room. Deployment and source context remain separate."
+msgstr "Réseau ou famille de protocoles de communication Matrix, non un serveur, déploiement, compte ou salon particulier. Déploiement et contexte source restent distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportMatrix|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:transportMatrix."
+msgstr "Conserver la valeur fournie pour gmeow:transportMatrix."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Google Chat transport"
+msgstr "transport Google Chat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Google Chat communication service as a transport value, distinct from a particular account, space, deployment or source archive."
+msgstr "Service de communication Google Chat comme valeur de transport, distinct d’un compte, espace, déploiement ou fonds source particulier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transportGoogleChat|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:transportGoogleChat."
+msgstr "Conserver la valeur fournie pour gmeow:transportGoogleChat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Actor identity source scope constraint"
+msgstr "Contrainte de portée source de l’identité d’acteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied actorIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de actorIdentity conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:ChatSourceIdentifierScopeConstraint logic:formalizes gmeow:actorIdentity ."
+msgstr "Conserver cette loi source : gmeow:ChatSourceIdentifierScopeConstraint logic:formalizes gmeow:actorIdentity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ChatSourceIdentifierScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied actorIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de actorIdentity conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reaction resource source scope constraint"
+msgstr "Contrainte de portée source de la ressource de réaction"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied reactionResource value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de reactionResource conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:ReactionResourceSourceScopeConstraint logic:formalizes gmeow:reactionResource ."
+msgstr "Conserver cette loi source : gmeow:ReactionResourceSourceScopeConstraint logic:formalizes gmeow:reactionResource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReactionResourceSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied reactionResource value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de reactionResource conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Target message source scope constraint"
+msgstr "Contrainte de portée source du message cible"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied targetMessage value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de targetMessage conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:TargetMessageSourceScopeConstraint logic:formalizes gmeow:targetMessage ."
+msgstr "Conserver cette loi source : gmeow:TargetMessageSourceScopeConstraint logic:formalizes gmeow:targetMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetMessageSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied targetMessage value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de targetMessage conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provider event source scope constraint"
+msgstr "Contrainte de portée source de l’événement du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied providerEvent value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerEvent conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:ProviderEventSourceScopeConstraint logic:formalizes gmeow:providerEvent ."
+msgstr "Conserver cette loi source : gmeow:ProviderEventSourceScopeConstraint logic:formalizes gmeow:providerEvent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied providerEvent value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerEvent conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provider event type source scope constraint"
+msgstr "Contrainte de portée source du type d’événement du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied providerEventType value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerEventType conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:ProviderEventTypeSourceScopeConstraint logic:formalizes gmeow:providerEventType ."
+msgstr "Conserver cette loi source : gmeow:ProviderEventTypeSourceScopeConstraint logic:formalizes gmeow:providerEventType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderEventTypeSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied providerEventType value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerEventType conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Provider time source scope constraint"
+msgstr "Contrainte de portée source du texte temporel du fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied providerOccurredAt value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerOccurredAt conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:ProviderOccurredAtSourceScopeConstraint logic:formalizes gmeow:providerOccurredAt ."
+msgstr "Conserver cette loi source : gmeow:ProviderOccurredAtSourceScopeConstraint logic:formalizes gmeow:providerOccurredAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProviderOccurredAtSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied providerOccurredAt value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de providerOccurredAt conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Session identity source scope constraint"
+msgstr "Contrainte de portée source de l’identité de session"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied sessionIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de sessionIdentity conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:SessionIdentitySourceScopeConstraint logic:formalizes gmeow:sessionIdentity ."
+msgstr "Conserver cette loi source : gmeow:SessionIdentitySourceScopeConstraint logic:formalizes gmeow:sessionIdentity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionIdentitySourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied sessionIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de sessionIdentity conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Session sender source scope constraint"
+msgstr "Contrainte de portée source de l’expéditeur de session"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied sessionSender value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de sessionSender conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:SessionSenderSourceScopeConstraint logic:formalizes gmeow:sessionSender ."
+msgstr "Conserver cette loi source : gmeow:SessionSenderSourceScopeConstraint logic:formalizes gmeow:sessionSender ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionSenderSourceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied sessionSender value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."
+msgstr "Chaque valeur fournie de sessionSender conserve son fournisseur, transport, contexte source et enregistrement de dérivation réels ; des chaînes égales ne créent pas d’identités globales."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejected media source evidence constraint"
+msgstr "Contrainte de preuve source des médias refusés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rejection observation retains its actual source feature and derivation, the source actor and original provider-time text, and the same provider, transport and source context as that feature. Its observer and method remain distinct from sender identity."
+msgstr "Une observation de refus conserve sa caractéristique source réelle et sa dérivation, l’acteur source et le texte temporel original, ainsi que le même fournisseur, transport et contexte source. Son observateur et sa méthode restent distincts de l’expéditeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:RejectedMediaSourceEvidenceConstraint logic:formalizes gmeow:RejectedMediaObservation ."
+msgstr "Conserver cette loi source : gmeow:RejectedMediaSourceEvidenceConstraint logic:formalizes gmeow:RejectedMediaObservation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaSourceEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A rejection observation retains its actual source feature and derivation, the source actor and original provider-time text, and the same provider, transport and source context as that feature. Its observer and method remain distinct from sender identity."
+msgstr "Une observation de refus conserve sa caractéristique source réelle et sa dérivation, l’acteur source et le texte temporel original, ainsi que le même fournisseur, transport et contexte source. Son observateur et sa méthode restent distincts de l’expéditeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejected part observation constraint"
+msgstr "Contrainte d’observation de partie refusée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every refused-part descriptor is an actual result of a retained rejection observation, not an unattached media artifact or a delivered body part inferred from its description."
+msgstr "Chaque description de partie refusée est un résultat réel d’une observation de refus conservée, non un média isolé ni une partie livrée déduite de sa description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:RejectedMediaPartObservationConstraint logic:formalizes gmeow:RejectedMediaPart ."
+msgstr "Conserver cette loi source : gmeow:RejectedMediaPartObservationConstraint logic:formalizes gmeow:RejectedMediaPart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartObservationConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every refused-part descriptor is an actual result of a retained rejection observation, not an unattached media artifact or a delivered body part inferred from its description."
+msgstr "Chaque description de partie refusée est un résultat réel d’une observation de refus conservée, non un média isolé ni une partie livrée déduite de sa description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Rejected part index uniqueness constraint"
+msgstr "Contrainte d’unicité de position de partie refusée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One numeric provider part position identifies one descriptor within the same rejection observation. Different observations retain independent rosters; numeric lexical variants do not evade this check."
+msgstr "Une position numérique de partie identifie une description dans une même observation de refus. Les observations distinctes gardent leurs listes ; les variantes lexicales numériques ne contournent pas ce contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:RejectedMediaPartIndexConstraint logic:formalizes gmeow:providerPartIndex ."
+msgstr "Conserver cette loi source : gmeow:RejectedMediaPartIndexConstraint logic:formalizes gmeow:providerPartIndex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RejectedMediaPartIndexConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "One numeric provider part position identifies one descriptor within the same rejection observation. Different observations retain independent rosters; numeric lexical variants do not evade this check."
+msgstr "Une position numérique de partie identifie une description dans une même observation de refus. Les observations distinctes gardent leurs listes ; les variantes lexicales numériques ne contournent pas ce contrôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Session verification evidence constraint"
+msgstr "Contrainte de preuve de vérification de session"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."
+msgstr "Les identifiants de vérification de session appartiennent à une Observation réelle conservant les chaînes de session et d’expéditeur, sa caractéristique, son observateur, sa méthode, son résultat tenu et ses preuves source. Ce contrôle porte sur la déclaration, non l’authenticité cryptographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the explicitly retained source-record contract."
+msgstr "À employer pour contrôler le contrat de l’enregistrement source explicitement conservé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the canonical formula against actual source identities and preserve competing attributed records."
+msgstr "Lire la formule canonique avec les identités source réelles et préserver les enregistrements attribués concurrents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this source law: gmeow:SessionVerificationEvidenceConstraint logic:formalizes gmeow:sessionIdentity ."
+msgstr "Conserver cette loi source : gmeow:SessionVerificationEvidenceConstraint logic:formalizes gmeow:sessionIdentity ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."
+msgstr "Les identifiants de vérification de session appartiennent à une Observation réelle conservant les chaînes de session et d’expéditeur, sa caractéristique, son observateur, sa méthode, son résultat tenu et ses preuves source. Ce contrôle porte sur la déclaration, non l’authenticité cryptographique."

@@ -73,3 +73,11 @@ A digest-only content node asserts an identified artifact, not a fictitious act 
 sending it. Conversely, `sourceMedia` does assert derivation and must not stand
 for mere input exposure. These relations are separate because their information
 claims differ.
+
+## Whole wording and part wording
+
+utteranceText is a nonfunctional Message property over the union of xsd:string,
+rdf:langString and rdf:dirLangString. The same literal policy applies to chat's
+messagePartText on its own ordered part. Multiple attributed renderings may
+coexist; neither predicate computes a whole utterance from pieces or asserts
+delivery (Principles 2, 4 and 9).

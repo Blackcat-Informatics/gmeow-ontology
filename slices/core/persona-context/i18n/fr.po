@@ -1056,3 +1056,33 @@ msgstr "Référencer le cercle d’audience du producteur limité au schéma sur
 msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:change0 gmeow:transitionRing ex:sourceValue ."
 msgstr "ex:change0 gmeow:transitionRing ex:sourceValue ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience persona mode"
+msgstr "registre de persona pour l’audience"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Persona register in which a particular record was made for its audience. This audience-facing expression policy is distinct from the Persona worn as state and does not select a globally preferred persona."
+msgstr "Registre Persona dans lequel un enregistrement particulier a été produit pour son audience. Cette politique d’expression destinée au public se distingue de la Persona portée comme état et ne sélectionne aucune persona globalement privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:personaMode."
+msgstr "Conserver la valeur fournie pour gmeow:personaMode."

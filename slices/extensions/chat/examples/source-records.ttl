@@ -1,0 +1,146 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/conversation-source/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary illustrative records. Loading these records executes no verification.
+# Opaque provider strings do not mint the sender, target message or media bytes.
+ex:provider a gmeow:SoftwareAgent .
+ex:archiveWriter a gmeow:SoftwareAgent .
+ex:observer a gmeow:Agent .
+ex:knownAuthor a gmeow:Agent .
+ex:sourceContext a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:otherContext a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:archive a gmeow:InformationObject .
+
+ex:placementSource a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:provider .
+ex:removalSource a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:provider .
+
+ex:placement a gmeow:ChatReaction ;
+    gmeow:reactionKey "👍" ;
+    gmeow:reactionResource " reactions/ 17 " ;
+    gmeow:reactionState gmeow:reactionPlaced ;
+    gmeow:actorIdentity " users/ 04 " ;
+    gmeow:targetMessage " rooms/7/messages/ 29 " ;
+    gmeow:providerEvent " evt  101 " ;
+    gmeow:providerEventType "reaction.added" ;
+    gmeow:providerOccurredAt "2030-05-01 09:10:00 local" ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:chatTransport gmeow:transportMatrix ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:placementSource .
+
+ex:removal a gmeow:ChatReaction ;
+    gmeow:reactionKey "👍" ;
+    gmeow:reactionResource " reactions/ 17 " ;
+    gmeow:reactionState gmeow:reactionRemoved ;
+    gmeow:actorIdentity " users/ 04 " ;
+    gmeow:targetMessage " rooms/7/messages/ 29 " ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:chatTransport gmeow:transportMatrix ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:removalSource .
+
+# Exact claims carry attribution; an alternative claim is quoted, not promoted
+# to a second state of the same occurrence.
+ex:placementClaim rdf:reifies <<( ex:placement gmeow:reactionState gmeow:reactionPlaced )>> ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:accordingTo ex:sourceContext .
+ex:alternativeClaim rdf:reifies <<( ex:placement gmeow:reactionState gmeow:reactionRemoved )>> ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:accordingTo ex:otherContext .
+
+ex:providerTypeClaim rdf:reifies <<( ex:placement gmeow:providerEventType "reaction.added" )>> ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:accordingTo ex:sourceContext .
+ex:alternativeTypeClaim rdf:reifies <<( ex:placement gmeow:providerEventType "reaction.deleted" )>> ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:accordingTo ex:otherContext .
+
+# The observer reads a retained provider record, not an unseen recipient's mind.
+ex:refusalSource a gmeow:InformationObject ;
+    gmeow:actorIdentity " sender  88 " ;
+    gmeow:providerOccurredAt "May 1, 09:12, station clock" ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:chatTransport gmeow:transportGoogleChat ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:archive ;
+    gmeow:wasAttributedTo ex:provider .
+ex:refusal a gmeow:RejectedMediaObservation ;
+    gmeow:observedFeature ex:refusalSource ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observationResult ex:refusedDescriptor ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:chatTransport gmeow:transportGoogleChat ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:refusalSource .
+ex:refusedDescriptor a gmeow:RejectedMediaPart ;
+    gmeow:providerPartIndex "0"^^xsd:nonNegativeInteger ;
+    gmeow:mediaRejectionReason " unsupported  format " ;
+    gmeow:description "The sender called this a photograph of the pier."@en .
+ex:senderDescriptionClaim rdf:reifies <<( ex:refusedDescriptor gmeow:description "The sender called this a photograph of the pier."@en )>> ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:refusalSource .
+
+# A separately known message has an actual author occurrence and ordered text.
+ex:message a gmeow:ChatMessage ;
+    gmeow:chatTransport gmeow:transportMatrix ;
+    gmeow:hasChatParticipant ex:authorOccurrence ;
+    gmeow:hasBodyPart ex:textPart ;
+    gmeow:personaMode ex:audiencePersona ;
+    gmeow:wornModality ex:wornPersona .
+ex:authorOccurrence a gmeow:ChatMessageParticipant ;
+    gmeow:chatParticipantMessage ex:message ;
+    gmeow:chatParticipantAgent ex:knownAuthor ;
+    gmeow:chatParticipantRole gmeow:chatRoleAuthor .
+ex:textPart a gmeow:ChatMessagePart ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:messagePartText "مرحبا"@ar--rtl .
+ex:wholeMessage a gmeow:Message ;
+    gmeow:utteranceText "Meet me at the pier."@en .
+
+# Actual acquired media has its own WEMI lineage. It is not the descriptor above.
+ex:pictureWork a gmeow:Work .
+ex:pictureExpression a gmeow:Expression ; gmeow:realizes ex:pictureWork .
+ex:picture a gmeow:MediaObject ;
+    gmeow:embodies ex:pictureExpression ;
+    gmeow:acquiredAt "2030-05-01T09:15:00+02:00"^^xsd:dateTime ;
+    gmeow:originalFilename "  Quai été 01.PNG " .
+
+# The retained verification result and its source are both explicit.
+ex:sessionEvidence a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:provider .
+ex:sessionObservation a gmeow:Observation ;
+    gmeow:sessionIdentity " session  29 " ;
+    gmeow:sessionSender " users/ 04 " ;
+    gmeow:observedFeature ex:sessionEvidence ;
+    gmeow:vantage ex:observer ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observationResult gmeow:verdictHeld ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:chatTransport gmeow:transportMatrix ;
+    gmeow:accordingTo ex:sourceContext ;
+    gmeow:wasDerivedFrom ex:sessionEvidence .
+
+# The audience register and worn persona remain separate bearer-bound policies.
+ex:audienceRegister a gmeow:Register .
+ex:wornRegister a gmeow:Register .
+ex:audiencePersona a gmeow:Persona ;
+    gmeow:personaBearer ex:knownAuthor ;
+    gmeow:personaRegister ex:audienceRegister .
+ex:wornPersona a gmeow:Persona ;
+    gmeow:personaBearer ex:knownAuthor ;
+    gmeow:personaRegister ex:wornRegister .
+ex:personaClaim rdf:reifies <<( ex:message gmeow:personaMode ex:audiencePersona )>> ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:accordingTo ex:sourceContext .
+ex:otherPersonaClaim rdf:reifies <<( ex:message gmeow:personaMode ex:wornPersona )>> ;
+    gmeow:wasAttributedTo ex:observer ;
+    gmeow:accordingTo ex:otherContext .

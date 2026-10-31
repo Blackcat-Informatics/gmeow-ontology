@@ -21,5 +21,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/agentic> ,
         <https://blackcatinformatics.ca/gmeow/slices/agency-records> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
-        <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
+        <https://blackcatinformatics.ca/gmeow/slices/imagination> ,
+        <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
     gmeow:sliceConsumer "AI offline generative replay, synthetic experience, and counterfactual rehearsal over agent memory (GTS ai-package), and human dream-journaling / sleep-research corpora. Part of the Mentation program."@x-gmeow-english .

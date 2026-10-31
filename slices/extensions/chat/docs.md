@@ -97,3 +97,21 @@ The [conversation scene](examples/conversation.ttl) retains account-only
 participation, a room and response turn, original parts, a reader-specific
 classification and an intended reply refused by a guard. See the
 [design rationale](design/CHAT.md) for canonical obligations and scope.
+
+## Reactions and refused media
+
+Retain a reaction as a ChatReaction occurrence with its exact reactionKey,
+reactionState, actorIdentity and targetMessage. reactionResource and the provider
+event fields remain scoped by the actual provider, network, source context and
+retained source record. Strings never resolve people or messages by themselves.
+
+For refused media retain the provider record, an observing
+RejectedMediaObservation and its RejectedMediaPart descriptor results. The source
+holds the raw sender and provider time; each descriptor holds the provider's
+reason, index and supplied description. There is no inferred delivered payload.
+
+A session verification record uses both session strings and actual observation
+evidence. It records a reported verification without executing authentication.
+Matrix and Google Chat are initial ChatTransport members of an open vocabulary.
+See the [source-record scene](examples/source-records.ttl) and the
+[design contract](design/CHAT.md).

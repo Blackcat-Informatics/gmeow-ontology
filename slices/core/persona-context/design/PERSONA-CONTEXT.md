@@ -86,3 +86,11 @@ record-metadata and names slices. It references their existing terms without
 moving their declarations or copying their source examples. Names are consumed
 for the personas’ register values in the illustrative scene. The manifest is the
 single identity, tier and dependency declaration for this slice.
+
+## Audience register remains distinct from worn state
+
+personaMode has an open domain and Persona range, without functionality or a
+subproperty bridge to wornModality. Audience-facing register and worn state are
+separate source claims about existing bearer-bound personas (Principles 4 and 9).
+The relation supplies no identity resolution, preference, deception judgment or
+automatic persona transition.

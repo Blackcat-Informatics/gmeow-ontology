@@ -104,3 +104,10 @@ The [ordinary conversation scene](examples/persona-changes.ttl) retains a
 clock rollback, a forced switch, a resumed hold and a continuing producer stream
 across activities. The [design rationale](design/PERSONA-CONTEXT.md) records the
 canonical obligations and the boundaries of these assertions.
+
+## Audience register
+
+personaMode records the Persona register in which a record was made for its
+audience. wornModality independently records the persona worn. A record may name
+different personas through these two relations, with attribution on each claim.
+Neither relation selects a primary persona or implies the other.

@@ -110,3 +110,10 @@ separately; the tag remains useful when only presence is known.
 The [content-reference scene](examples/content-references.ttl) retains separate
 media identities, a digest-only reply target and explicit failure reports. The
 [design rationale](design/MESSAGING.md) describes ownership and canonical laws.
+
+## Verbatim whole utterances
+
+utteranceText retains the whole wording when a source records one Message as
+one utterance. Preserve an untagged string, language tag or RDF 1.2 base direction
+as supplied. Multipart chat wording belongs to each messagePartText in chat;
+do not concatenate parts, use labels as content, or invent a language.

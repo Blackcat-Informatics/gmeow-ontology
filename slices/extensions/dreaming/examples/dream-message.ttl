@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/dream-message/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+# Ordinary recollection provenance, with no claim that the dreamed pier exists.
+ex:dreamer a gmeow:Agent .
+ex:dream a gmeow:Experience ;
+    gmeow:experiencer ex:dreamer ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:contentOrigin gmeow:originImagined .
+ex:recollection a gmeow:DreamReport ;
+    gmeow:experiencer ex:dreamer ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:recollects ex:dream .
+ex:message a gmeow:Message ;
+    gmeow:utteranceText "I remembered a quiet pier in the dream."@en ;
+    gmeow:inspiredByDream ex:recollection .

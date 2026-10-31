@@ -21,3 +21,14 @@ agency-records do not depend on dreaming. The ordinary scene
 keeps dream recollection, request, intention, attempt, configured verifiers and
 cited evaluation evidence distinct. It is an illustration, not a runtime
 verification result.
+
+## Dream-derived messages
+
+inspiredByDream is owned here and has Message domain and DreamReport range.
+Like requestedByDream, it specializes the domain-free wasDerivedFrom, keeping
+the actual recollection episode as an occurrent source (Principles 4, 9 and 17).
+A separate written account can derive from that same episode; no document is
+invented by the message link. The semantic dependency points to core messaging,
+never from messaging or chat to dreaming. The
+[dream-message scene](../examples/dream-message.ttl) composes these core terms
+without creating an extension-to-extension dependency.
