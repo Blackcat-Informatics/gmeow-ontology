@@ -160,3 +160,24 @@ The [ordinary scene](examples/context-recall.ttl) records two equal allocations,
 a slot change, two separately explained exclusions, selected records and the
 asker's judgement. The [design notes](design/RECALL-CONTEXT.md) identify the
 canonical source and projection boundaries.
+
+## Recency-graded requests and one-line gists
+
+recollectionFading selects a requested presentation strategy on the actual
+ActionSchema through recollectionForm: newest source records verbatim, older
+records as summaries, and oldest records as a line with a handle. It does not
+classify one delivered record as having all those forms, implement a
+summarizer or select numeric age cutoffs. Retain any source-specified recency
+policy and time reference separately; preserve actual original records,
+handles and produced-output evidence independently.
+
+recollectionFormOneLineGist is a separate uniform presentation choice. It
+requests a concise one-line gist without requiring a handle or claiming
+verbatim wording. It is distinct from both recollectionFormSummaryHandle,
+which includes a resolvable handle, and the recency-dependent fading strategy.
+Neither choice changes recallDepth or demonstrates that retrieval or
+presentation ran (Principles 2, 4 and 9).
+
+The [graded and gist request scene](examples/graded-and-gist-recollection.ttl)
+records actual source choices without creating an executor or fabricated
+output.

@@ -90,3 +90,49 @@ usage-time residue. Its mapset coat and paired translations live with the logic
 owner; the single linkage lives in
 `../../../grounding/logic/mappings/provenance-usage.ttl`. No second usage primitive
 or downstream external alignment is introduced (Principles 17 and 19).
+
+## Runtime trace reports are event classifications
+
+The event-kind surface reuses EventType and eventType from the events owner.
+All requested runtime trace kinds are individual values rather than new Event
+subclasses. The runtime-specific kinds are still useful shared names for
+source reports: their coats state what the source reported and which runtime
+mechanisms are not established by the label. No value runs a model, schedules a
+tool batch, restores a receipt, changes a reply gate or applies a dream-phase
+cap. Source-reported authority remains source-relative (Principles 4, 9 and 17).
+
+A thinking round, model call, request-send occurrence, response arrival, tool
+return and result receipt keep distinct identities. Actual output artifacts
+remain information objects with their own genuine provenance. A replay report
+does not invent another execution; a provider's checkpoint report does not
+admit an executable checkpoint. Existing ArtifactOperationReceipt obligations
+apply only when the source actually supplies an artifact operation.
+
+## State observations and screening categories
+
+ModelInvocationState is an AbstractIndividualType grounded in QualityValue.
+The state selector is an Observation result, rather than a mutable state slot
+on the invocation Event or model agent. Its observedFeature identifies the
+actual ModelInvocation; vantage and wasDerivedFrom retain the actual observing
+standpoint and source. Supplied observedAt indexes a reading; supplied
+recordedAt or recordedDuring locates the record's creation. These different
+clocks are preserved and unknown times remain unknown. Separate observations
+and their context carry time-relative evidence without a globally functional
+state, latest-value rule or a negative constraint against later outcomes.
+Only the running value is seeded; absent state or outcome fields stay absent.
+
+injectionCategory is an exact source code, not a normalized token or a
+language-bearing instruction body. The source supplies its category semantics;
+the ontology does not create a security taxonomy or a screening implementation.
+Its actual Observation points to the retained information-object answer,
+rather than retyping that answer or a ModelInvocation as the observation.
+The observing vantage and recording writer remain independently attributable.
+
+Both evidence laws use direct binary field predicates in their universal
+antecedents. Current native target derivation admits those as SubjectsOf
+targets; no variable-predicate-only guard, raw target selector or compiler
+extension is used. The realized consequents retain actual feature, vantage and
+source identities. Property-global ClosedWorldClosure entries explicitly opt
+the supplied domain/range readings into validation; they impose no universal
+presence requirement. All laws and property semantics stay in logic:, with no
+hand-authored shape or external equivalence assertion (Principles 17 and 19).

@@ -3480,3 +3480,1115 @@ msgstr "对于具有来源条件的目标，已完成且满足的评估保留每
 msgctxt "https://blackcatinformatics.ca/gmeow/GoalReadAfterWriteEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."
 msgstr "完成的写后读取正面评估引用真实且被持有的制品观察，绑定同一方法和条件键。现有写后读取法则进一步要求彼此不同且匹配的写入回执和稍后读取回执。"
+
+
+# Source-scoped invocation readings and requested recollection strategies.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Model Invocation State"
+msgstr "模型调用状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of lifecycle states reported by observations about an actual model invocation. A state reading is scoped to its source and time; it is independent of the invocation's terminal outcome."
+msgstr "针对实际模型调用的观察所报告的开放生命周期状态词汇。状态读数限定于其来源和时间，独立于调用的最终结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a runtime record reports the lifecycle condition of a particular invocation as it was observed."
+msgstr "用于运行记录报告特定调用在观察时的生命周期状况时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid extending ModelInvocationOutcome with running, treating a missing outcome as running, or assigning a state to the model agent itself."
+msgstr "避免将 running 加入 ModelInvocationOutcome、将结果缺失视为运行中，或把状态赋给模型智能体本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place a state value on an Observation through invocationState and identify the actual call with observedFeature; preserve the observation's source and supplied temporal context."
+msgstr "通过 invocationState 将状态值放在 Observation 上，并用 observedFeature 标识实际调用；保留观察的来源及已提供时间情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary selects no current or latest state. Earlier running evidence and later terminal-outcome evidence remain separate attributed records."
+msgstr "词汇不选择当前或最新状态。较早的运行中证据和较晚的最终结果证据仍是不同的带归属记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelInvocationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify a state value: gmeow:invocationStateRunning a gmeow:ModelInvocationState ."
+msgstr "分类状态值：gmeow:invocationStateRunning a gmeow:ModelInvocationState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "observed invocation state"
+msgstr "观察到的调用状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lifecycle state held by an observation about a ModelInvocation, specializing observationResult. The observation's observedFeature identifies the call; this relation does not replace invocationOutcome on the call."
+msgstr "关于 ModelInvocation 的观察所持有的生命周期状态，是 observationResult 的专门化。观察的 observedFeature 标识调用；此关系不替代调用上的 invocationOutcome。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explicit state reading from a runtime snapshot while keeping the invocation occurrence separate from the observation record."
+msgstr "用于保留运行快照中的明确状态读数，同时将调用事件与观察记录分开。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing this relation directly on the invocation or model agent, making it globally functional, or overwriting an earlier observation with a later reading."
+msgstr "避免将此关系直接放在调用或模型智能体上、设为全局函数性，或用较晚读数覆盖较早观察。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind observedFeature to the actual ModelInvocation, vantage to the observing standpoint and wasDerivedFrom to the retained source record. Preserve supplied observedAt or recordedAt values without inventing a clock."
+msgstr "将 observedFeature 绑定到实际 ModelInvocation，将 vantage 绑定到观察立场，将 wasDerivedFrom 绑定到保留的来源记录。保留已提供的 observedAt 或 recordedAt 值，不虚构时钟。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "State observations are nonfunctional and source-relative. Neither their timestamps nor the absence of an outcome authorizes a global latest-state or success inference."
+msgstr "状态观察非函数性且相对于来源。其时间戳或结果缺失均不允许推断全局最新状态或成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain a reading of the call: ex:reading gmeow:invocationState gmeow:invocationStateRunning ; gmeow:observedFeature ex:call ."
+msgstr "保留调用读数：ex:reading gmeow:invocationState gmeow:invocationStateRunning ; gmeow:observedFeature ex:call ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "invocation running"
+msgstr "调用运行中"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that the observed model invocation was still in progress when that reading was made. It supplies no terminal success or failure outcome."
+msgstr "来源报告在读取状态时，所观察模型调用仍在进行中。它不提供最终成功或失败结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an explicit in-progress report, including a record retained before the call returned."
+msgstr "仅用于明确的进行中报告，包括调用返回之前保留的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating silence, a missing error, a queued request or a nonterminal trace event as evidence that a call was running."
+msgstr "避免把沉默、错误缺失、排队请求或非最终跟踪事件视为调用运行中的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through invocationState on the actual source observation. Keep any later succeeded or failed invocationOutcome as separate evidence about the same call."
+msgstr "在实际来源观察上通过 invocationState 选择此值。把同一调用随后成功或失败的 invocationOutcome 保留为独立证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Running is not a permanent assertion about the invocation's entire lifetime. The value neither starts a model nor establishes that execution is currently continuing."
+msgstr "运行中不是对调用整个生命周期的永久断言。此值不启动模型，也不证明执行当前仍在继续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/invocationStateRunning|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the reported in-progress state: ex:earlyReading gmeow:invocationState gmeow:invocationStateRunning ."
+msgstr "记录所报告的进行中状态：ex:earlyReading gmeow:invocationState gmeow:invocationStateRunning ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "injection category code"
+msgstr "注入类别代码"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine string preserves source whitespace and case."
+msgstr "筛查器对外部回答试图注入的指令所报告的精确类别代码，保留在其带归属观察上。机器字符串保留来源空白和大小写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a retained screening report names a category for a particular outside-answer artifact."
+msgstr "用于保留的筛查报告为特定外部回答制品命名类别时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing the injected instruction text as the code, resolving the code into a universal taxonomy, or asserting that the model or sender is globally malicious."
+msgstr "避免将注入指令文本存为代码、把代码解析成通用分类，或断言模型或发送者在全局上具有恶意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the literal as xsd:string on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."
+msgstr "将字面量作为 xsd:string 保留在 Observation 上，以实际回答作为 observedFeature，并保留 vantage 及筛查来源。若提供证据片段或报告的方法，应一并保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a source classification, not execution of a screen or proof that an attack succeeded. No token datatype admission, normalization, lexical validator or closed category registry follows from the string range."
+msgstr "这是来源分类，不是执行筛查或证明攻击成功。字符串值域不意味着接纳 token 数据类型、执行规范化或词法验证，也不意味着存在封闭类别注册表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the screen's exact code: ex:screenReading gmeow:injectionCategory \" role-override  \" ."
+msgstr "保留筛查器的精确代码：ex:screenReading gmeow:injectionCategory \" role-override  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Invocation state evidence constraint"
+msgstr "调用状态证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An invocation-state reading is an actual Observation of the actual ModelInvocation, with its vantage and retained source record. The reading does not select a global latest state or imply a terminal outcome."
+msgstr "调用状态读数是针对实际 ModelInvocation 的实际 Observation，并具有视角和保留的来源记录。读数不选择全局最新状态，也不推断最终结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the observational context of each supplied invocation-state value."
+msgstr "用于保留每个已提供调用状态值的观察情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an observer or source time, suppressing earlier readings, or rejecting later outcome evidence merely because a running reading exists."
+msgstr "避免虚构观察者或来源时间、抹去较早读数，或仅因存在运行中读数而拒绝较晚结果证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual invocation feature, observing vantage and source. Carry supplied observation or recording times on their own records without fabricating missing precision."
+msgstr "保留实际被观察调用、观察视角和来源。在各自记录上保留已提供的观察或记录时间，不虚构缺失精度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law constrains a supplied reading only; it creates neither invocation execution nor a lifecycle state machine."
+msgstr "此法则仅约束已提供读数，不创建调用执行或生命周期状态机。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Apply the source law: gmeow:InvocationStateEvidenceConstraint logic:formalizes gmeow:invocationState ."
+msgstr "应用来源法则：gmeow:InvocationStateEvidenceConstraint logic:formalizes gmeow:invocationState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InvocationStateEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An invocation-state reading is an actual Observation of the actual ModelInvocation, with its vantage and retained source record. The reading does not select a global latest state or imply a terminal outcome."
+msgstr "调用状态读数是针对实际 ModelInvocation 的实际 Observation，并具有视角和保留的来源记录。读数不选择全局最新状态，也不推断最终结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Injection category evidence constraint"
+msgstr "注入类别证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An injection category belongs to an actual Observation of the retained answer artifact, with its vantage and actual screening source. The category alone does not prove an attack or its success."
+msgstr "注入类别属于针对保留回答制品的实际 Observation，并具有视角及实际筛查来源。类别本身不证明攻击或其成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the actual answer and source context of each supplied screening category."
+msgstr "用于保留每个已提供筛查类别所针对的实际回答和来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an ungrounded category literal as a screening observation or inventing an outside-model identity."
+msgstr "避免把没有依据的类别字面量当作筛查观察，或虚构外部模型身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual information-object answer, observing vantage and screening source. Keep any supplied evidence span and method independent of the category code."
+msgstr "保留作为信息对象的实际回答、观察视角和筛查来源。将已提供的证据片段和方法与类别代码独立保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law checks a retained source claim; it neither executes a screen nor authenticates its classification."
+msgstr "此法则检查保留的来源主张，不执行筛查，也不认证其分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Apply the source law: gmeow:InjectionCategoryEvidenceConstraint logic:formalizes gmeow:injectionCategory ."
+msgstr "应用来源法则：gmeow:InjectionCategoryEvidenceConstraint logic:formalizes gmeow:injectionCategory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InjectionCategoryEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An injection category belongs to an actual Observation of the retained answer artifact, with its vantage and actual screening source. The category alone does not prove an attack or its success."
+msgstr "注入类别属于针对保留回答制品的实际 Observation，并具有视角及实际筛查来源。类别本身不证明攻击或其成功。"
+
+
+# Runtime trace kinds.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thinking trace round"
+msgstr "思考跟踪轮次"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One runtime-reported round in a cycle of thinking, independently of how many model or tool calls it contains."
+msgstr "运行时报告的一轮思考循环，独立于其中包含多少模型或工具调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit round occurrence, including a round with no model request."
+msgstr "用于明确的轮次事件，包括没有模型请求的轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid identifying the round with a response turn, a model invocation or a token allocation."
+msgstr "避免把轮次等同于响应回合、模型调用或令牌分配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through eventType and retain the actual containing episode with subEventOf when supplied."
+msgstr "通过 eventType 附加，并在已提供时用 subEventOf 保留实际所属片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Round membership and order remain source facts; no cycle counter or scheduler is executed."
+msgstr "轮次归属和顺序仍是来源事实；不执行循环计数器或调度器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceRound|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this thinking trace round: ex:round gmeow:eventType gmeow:eventTypeTraceRound ."
+msgstr "将事件分类为“思考跟踪轮次”：ex:round gmeow:eventType gmeow:eventTypeTraceRound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thinking trace turn start"
+msgstr "思考跟踪回合开始"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the beginning of one thinking turn."
+msgstr "来源报告一个思考回合开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a recorded start boundary before that turn's output is known."
+msgstr "用于回合输出尚未确定时记录的开始边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a model request, a completed turn or a delivered chat reply from the start."
+msgstr "避免从开始推断模型请求、已完成回合或已交付聊天回复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the start occurrence and retain its actual turn or episode parent separately."
+msgstr "分类开始事件，并单独保留实际回合或片段父项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A start marker neither opens a fabricated invocation nor predicts an output."
+msgstr "开始标记不创建虚构调用，也不预测输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnStart|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this thinking trace turn start: ex:turnStart gmeow:eventType gmeow:eventTypeTraceTurnStart ."
+msgstr "将事件分类为“思考跟踪回合开始”：ex:turnStart gmeow:eventType gmeow:eventTypeTraceTurnStart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thinking trace turn output"
+msgstr "思考跟踪回合输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a thinking turn produced its output."
+msgstr "来源报告思考回合产生了输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the output-producing occurrence even when later delivery or validation is unknown."
+msgstr "用于产生输出的事件，即使后续交付或验证未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making the output artifact an Event or treating produced output as an accepted response."
+msgstr "避免将输出制品设为 Event，或将已产生输出视为已接受响应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the occurrence distinct from its actual output artifact and link genuine production with wasGeneratedBy when known."
+msgstr "区分事件与实际输出制品，并在已知时用 wasGeneratedBy 关联真实生产。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Output production does not establish artifact completeness, truth or dispatch."
+msgstr "产生输出不证明制品完整、为真或已发送。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceTurnOutput|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this thinking trace turn output: ex:turnOutput gmeow:eventType gmeow:eventTypeTraceTurnOutput ."
+msgstr "将事件分类为“思考跟踪回合输出”：ex:turnOutput gmeow:eventType gmeow:eventTypeTraceTurnOutput ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model request trace"
+msgstr "模型请求跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that it sent a request to a model."
+msgstr "运行时报告已向模型发送请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the actual request-send occurrence rather than a planned request."
+msgstr "用于实际发送请求的事件，而不是计划中的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring receipt, model execution or a successful invocation from sending alone."
+msgstr "避免仅从发送推断接收、模型执行或调用成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual invocation and prompt identities when supplied; hasPrompt belongs to the real ModelInvocation."
+msgstr "保留已提供的实际调用和提示身份；hasPrompt 属于真实 ModelInvocation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The trace kind does not satisfy the ModelInvocation contract by itself."
+msgstr "跟踪种类本身不满足 ModelInvocation 契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this model request trace: ex:modelRequest gmeow:eventType gmeow:eventTypeTraceModelRequest ."
+msgstr "将事件分类为“模型请求跟踪”：ex:modelRequest gmeow:eventType gmeow:eventTypeTraceModelRequest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model response trace"
+msgstr "模型响应跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a model responded to a request."
+msgstr "来源报告模型已响应请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for response arrival, retaining a partial or refused answer when that is what arrived."
+msgstr "用于响应到达，并在实际到达的是部分回答或拒绝时如实保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a response with semantic correctness, accepted completion or a delivered user message."
+msgstr "避免将响应等同于语义正确、已接受完成或已交付用户消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the response occurrence separate from retained answer content and the actual invocation."
+msgstr "区分响应事件、保留的回答内容和实际调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A response event does not choose an invocationOutcome value."
+msgstr "响应事件不选择 invocationOutcome 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelResponse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this model response trace: ex:modelResponse gmeow:eventType gmeow:eventTypeTraceModelResponse ."
+msgstr "将事件分类为“模型响应跟踪”：ex:modelResponse gmeow:eventType gmeow:eventTypeTraceModelResponse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model error trace"
+msgstr "模型错误跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that a model returned an error."
+msgstr "运行时报告模型返回错误。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit provider error report, preserving whether it was terminal or retried separately."
+msgstr "用于明确的提供方错误报告，单独保留其是否最终结束或重试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid converting every error report into a failed terminal outcome or an incomplete artifact."
+msgstr "避免把每个错误报告转为最终失败结果或不完整制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the reported error source; use invocationError only on an actual ModelInvocation when that binding is known."
+msgstr "保留报告错误的来源；仅在已知关联时在实际 ModelInvocation 上使用 invocationError。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Error text, lifecycle state and terminal outcome remain independent axes."
+msgstr "错误文本、生命周期状态和最终结果保持独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceModelError|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this model error trace: ex:modelError gmeow:eventType gmeow:eventTypeTraceModelError ."
+msgstr "将事件分类为“模型错误跟踪”：ex:modelError gmeow:eventType gmeow:eventTypeTraceModelError ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model generation trace"
+msgstr "模型生成跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports one generation occurrence by a model."
+msgstr "来源报告模型的一次生成事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when generation itself is reported, independently of request transport boundaries."
+msgstr "用于报告生成本身，而非仅报告请求传输边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the generation marker as generated content or inventing the producing model's identity."
+msgstr "避免将生成标记视为生成内容，或虚构生产模型身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual generation occurrence and known invocation; keep output provenance on the real output artifact."
+msgstr "保留实际生成事件及已知调用；把输出来源保留在真实输出制品上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No modality, token total or success criterion is inferred from this general kind."
+msgstr "不从此一般种类推断模态、令牌总数或成功标准。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceGeneration|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this model generation trace: ex:generation gmeow:eventType gmeow:eventTypeTraceGeneration ."
+msgstr "将事件分类为“模型生成跟踪”：ex:generation gmeow:eventType gmeow:eventTypeTraceGeneration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "multimodal generation trace"
+msgstr "多模态生成跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime explicitly classified a model generation as involving more than text, under its reported modality convention."
+msgstr "运行时按其报告的模态约定，明确将模型生成分类为涉及文本之外的模态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit multimodal classification with its actual source convention."
+msgstr "用于明确的多模态分类，并保留其实际来源约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this kind merely because an image artifact exists or because a model advertises multimodal capability."
+msgstr "避免仅因图像制品存在或模型宣称具备多模态能力而推断此种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source's modality evidence and classify only the corresponding generation occurrence."
+msgstr "保留来源的模态证据，仅分类对应生成事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Input and output modality conventions may differ; no universal modality inference is added."
+msgstr "输入和输出模态约定可能不同；不增加通用模态推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceMultimodalGeneration|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this multimodal generation trace: ex:multimodalGeneration gmeow:eventType gmeow:eventTypeTraceMultimodalGeneration ."
+msgstr "将事件分类为“多模态生成跟踪”：ex:multimodalGeneration gmeow:eventType gmeow:eventTypeTraceMultimodalGeneration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image generation trace"
+msgstr "图像生成跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a model made an image."
+msgstr "来源报告模型生成了图像。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the reported image-producing occurrence while keeping any image artifact separately identified."
+msgstr "用于报告产生图像的事件，同时单独标识图像制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making the image an Event or deriving a multimodal-generation classification from image production alone."
+msgstr "避免把图像设为 Event，或仅从图像生成推断多模态生成分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the producing occurrence; relate an actual MediaObject through genuine wasGeneratedBy evidence when supplied."
+msgstr "分类生产事件；在已提供时通过真实 wasGeneratedBy 证据关联实际 MediaObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This kind neither publishes an image nor certifies its existence, completeness or acceptance."
+msgstr "此种类不发布图像，也不认证其存在、完整或已接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImageGeneration|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this image generation trace: ex:imageGeneration gmeow:eventType gmeow:eventTypeTraceImageGeneration ."
+msgstr "将事件分类为“图像生成跟踪”：ex:imageGeneration gmeow:eventType gmeow:eventTypeTraceImageGeneration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call trace"
+msgstr "工具调用跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that a tool was called."
+msgstr "运行时报告已调用工具。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-reported call occurrence, keeping provider call identifiers in their actual scope."
+msgstr "用于来源报告的调用事件，并将提供方调用标识保留在实际范围内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ToolCall's usedTool requirement with a guessed agent derived from a name."
+msgstr "避免根据名称猜测智能体以满足 ToolCall 的 usedTool 要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the ToolCall class as well only when the actual tool binding is supplied; retain toolName and toolCallId exactly."
+msgstr "仅在提供实际工具关联时同时使用 ToolCall 类；精确保留 toolName 和 toolCallId。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A call marker does not establish that the tool completed or produced an artifact."
+msgstr "调用标记不证明工具已完成或产生了制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolCall|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool call trace: ex:toolCall gmeow:eventType gmeow:eventTypeTraceToolCall ."
+msgstr "将事件分类为“工具调用跟踪”：ex:toolCall gmeow:eventType gmeow:eventTypeTraceToolCall ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result trace"
+msgstr "工具结果跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a tool returned its result."
+msgstr "来源报告工具返回了结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the return occurrence, including returned errors or partial payloads when explicitly reported."
+msgstr "用于返回事件，包括明确报告的错误或部分载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the returned result artifact as the return Event or treating transport return as operation success."
+msgstr "避免把返回结果制品分类为返回 Event，或把传输返回当作操作成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the real result content and its actual call identity separately from the event classification."
+msgstr "将真实结果内容及实际调用身份与事件分类分别保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Return, receipt, artifact completion and verification remain distinct records."
+msgstr "返回、回执、制品完整性和验证仍是不同记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool result trace: ex:toolResult gmeow:eventType gmeow:eventTypeTraceToolResult ."
+msgstr "将事件分类为“工具结果跟踪”：ex:toolResult gmeow:eventType gmeow:eventTypeTraceToolResult ."
+
+
+# Runtime trace kinds.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result receipt trace"
+msgstr "工具结果回执跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that a tool's result was receipted."
+msgstr "运行时报告工具结果已形成回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit result-receipt occurrence, distinct from the result's arrival."
+msgstr "用于明确的结果回执事件，区别于结果到达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a receipt document with an Activity or using ArtifactOperationReceipt without an actual artifact operation."
+msgstr "避免将回执文档等同于 Activity，或在没有实际制品操作时使用 ArtifactOperationReceipt。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the receipting occurrence and retain the actual receipt and call references separately."
+msgstr "分类形成回执的事件，单独保留实际回执和调用引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Receipt presence does not certify durable storage, operation success or read-after-write verification."
+msgstr "回执存在不认证持久存储、操作成功或写后读取验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool result receipt trace: ex:toolReceipt gmeow:eventType gmeow:eventTypeTraceToolReceipt ."
+msgstr "将事件分类为“工具结果回执跟踪”：ex:toolReceipt gmeow:eventType gmeow:eventTypeTraceToolReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint request trace"
+msgstr "检查点请求跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a request to create a runtime checkpoint."
+msgstr "来源报告请求创建运行时检查点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when checkpoint creation was requested, before a checkpoint response or artifact is established."
+msgstr "用于已请求创建检查点，但尚未确定检查点响应或制品时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a request as an existing checkpoint or an admitted continuation."
+msgstr "避免将请求视为已存在检查点或已准入的继续操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep request identity and any actual containing activity from the source; do not fabricate a checkpoint version."
+msgstr "保留来源中的请求身份和实际所属活动；不虚构检查点版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Runtime checkpoint wording alone does not select logic:'s enactment-checkpoint contract."
+msgstr "仅有运行时检查点措辞不选择 logic: 的执行检查点契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointRequest|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this checkpoint request trace: ex:checkpointRequest gmeow:eventType gmeow:eventTypeTraceCheckpointRequest ."
+msgstr "将事件分类为“检查点请求跟踪”：ex:checkpointRequest gmeow:eventType gmeow:eventTypeTraceCheckpointRequest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint creation response trace"
+msgstr "检查点创建响应跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports a checkpoint creation response, including its source claim that a checkpoint was made."
+msgstr "运行时报告检查点创建响应，包括来源声称已创建检查点的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded creation response rather than the earlier request or a later validation."
+msgstr "用于记录创建响应，而不是较早请求或较晚验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing checkpoint bytes, a compiled prescription or a successful validation from the response kind."
+msgstr "避免根据响应种类虚构检查点字节、已编译指令或验证成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual response and supplied checkpoint identity separately, with their source evidence."
+msgstr "单独保留实际响应和已提供检查点身份及其来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A provider's creation report is not the native checkpoint admission proof."
+msgstr "提供方的创建报告不是原生检查点准入证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointResponse|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this checkpoint creation response trace: ex:checkpointResponse gmeow:eventType gmeow:eventTypeTraceCheckpointResponse ."
+msgstr "将事件分类为“检查点创建响应跟踪”：ex:checkpointResponse gmeow:eventType gmeow:eventTypeTraceCheckpointResponse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "checkpoint validation trace"
+msgstr "检查点验证跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a runtime checkpoint-validation occurrence; its check and reported verdict remain explicit evidence."
+msgstr "来源报告运行时检查点验证事件；检查及其报告判定仍作为明确证据保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a checkpoint check was reported, preserving its actual method and result when supplied."
+msgstr "用于报告检查点检查，并保留已提供的实际方法和结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating the event label with successful native admission, signature verification or replay correctness."
+msgstr "避免将事件标签等同于原生准入成功、签名验证或重放正确性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the check occurrence and retain the exact source checkpoint and validation report without replacing their contracts."
+msgstr "分类检查事件，保留精确来源检查点及验证报告，不替代其契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reported validation is distinct from a proof object accepted by the canonical execution machinery."
+msgstr "所报告验证区别于规范执行机制接受的证明对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCheckpointValidation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this checkpoint validation trace: ex:checkpointValidation gmeow:eventType gmeow:eventTypeTraceCheckpointValidation ."
+msgstr "将事件分类为“检查点验证跟踪”：ex:checkpointValidation gmeow:eventType gmeow:eventTypeTraceCheckpointValidation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode continuation trace"
+msgstr "片段继续跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that an episode continued from where it had stopped."
+msgstr "运行时报告片段从停止处继续。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit source continuity, not merely a similar later piece of work."
+msgstr "用于明确的来源连续性，而不只是相似的后续工作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an original attempt, resume point or executable continuation from this kind alone."
+msgstr "避免仅凭此种类虚构原始尝试、恢复点或可执行继续操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual episode context; use attempt-resumption bindings only when the source identifies that actual attempt."
+msgstr "保留实际片段情境；仅当来源标识真实尝试时使用尝试恢复关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The type does not collapse distinct episode or activity identities into one."
+msgstr "此类型不将不同片段或活动身份合并为一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeContinuation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this episode continuation trace: ex:episodeContinuation gmeow:eventType gmeow:eventTypeTraceEpisodeContinuation ."
+msgstr "将事件分类为“片段继续跟踪”：ex:episodeContinuation gmeow:eventType gmeow:eventTypeTraceEpisodeContinuation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "episode token accounting trace"
+msgstr "片段令牌核算跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports token accounting for an episode."
+msgstr "来源报告片段的令牌核算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an accounting occurrence even when no count, tokenizer identity or authority claim was supplied."
+msgstr "用于核算事件，即使未提供计数、分词器身份或权威性主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting samplingMaxTokens as consumed tokens or combining counts with unknown tokenizer bases."
+msgstr "避免将 samplingMaxTokens 解读为已消耗令牌，或合并分词依据未知的计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain supplied counts, units, episode identity and tokenizer basis in their actual source records."
+msgstr "在实际来源记录中保留已提供计数、单位、片段身份和分词依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker computes no usage, budget debit or total across episodes."
+msgstr "此标记不计算用量、预算扣减或跨片段总数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEpisodeTokenAccounting|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this episode token accounting trace: ex:episodeTokenAccounting gmeow:eventType gmeow:eventTypeTraceEpisodeTokenAccounting ."
+msgstr "将事件分类为“片段令牌核算跟踪”：ex:episodeTokenAccounting gmeow:eventType gmeow:eventTypeTraceEpisodeTokenAccounting ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "engine-reported authoritative token count trace"
+msgstr "引擎报告的权威令牌计数跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The engine reports a token count that it designates authoritative within its own source contract."
+msgstr "引擎报告其在自身来源契约内指定为权威的令牌计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly distinguishes its engine-authoritative count from another measurement."
+msgstr "用于来源明确区分引擎权威计数与其他测量时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating reported authority as universal correctness, a privileged standpoint or equivalence between tokenizers."
+msgstr "避免将所报告权威性视为普遍正确、优先立场或不同分词器等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the engine's actual source, contract, count and tokenizer convention when supplied; keep competing counts separate."
+msgstr "保留已提供的引擎实际来源、契约、计数和分词约定；单独保留竞争计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The type reports who claimed authority; it does not make the ontology a token-count oracle."
+msgstr "此类型报告谁主张权威，不将本体变成令牌计数预言器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceEngineAuthoritativeTokenCount|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this engine-reported authoritative token count trace: ex:engineAuthoritativeTokenCount gmeow:eventType gmeow:eventTypeTraceEngineAuthoritativeTokenCount ."
+msgstr "将事件分类为“引擎报告的权威令牌计数跟踪”：ex:engineAuthoritativeTokenCount gmeow:eventType gmeow:eventTypeTraceEngineAuthoritativeTokenCount ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "foreground preemption trace"
+msgstr "前台抢占跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that foreground work preempted background thinking."
+msgstr "来源报告前台工作抢占了后台思考。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit preemption report, retaining the actual affected background activity when known."
+msgstr "用于明确的抢占报告，并在已知时保留实际受影响后台活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring foreground preemption from silence, elapsed time or any interrupted status."
+msgstr "避免从沉默、经过时间或任意中断状态推断前台抢占。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep preemption separate from attemptStop; record stopYieldedToForeground only on an actual finish with that supplied stop value."
+msgstr "将抢占与 attemptStop 区分；仅在实际结束且来源提供该停止值时记录 stopYieldedToForeground。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preemption does not itself satisfy, abandon or finish an intention."
+msgstr "抢占本身不满足、放弃或结束意图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceForegroundPreemption|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this foreground preemption trace: ex:foregroundPreemption gmeow:eventType gmeow:eventTypeTraceForegroundPreemption ."
+msgstr "将事件分类为“前台抢占跟踪”：ex:foregroundPreemption gmeow:eventType gmeow:eventTypeTraceForegroundPreemption ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "prompt provenance trace"
+msgstr "提示来源跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports where the parts of a prompt came from."
+msgstr "运行时报告提示各部分的来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual provenance-report occurrence about a prompt, not for the prompt artifact itself."
+msgstr "用于针对提示的实际来源报告事件，而不是提示制品本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making an information-object prompt an Event or inventing instruction authors from the trace label."
+msgstr "避免将提示信息对象设为 Event，或从跟踪标签虚构指令作者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual Prompt, hasPrompt and source-derivation bindings when supplied; keep recorded instruction wording on the prompt."
+msgstr "保留已提供的实际 Prompt、hasPrompt 和来源派生关联；将记录的指令措辞保留在提示上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A provenance report does not grant an instruction authority or prove that a model used it."
+msgstr "来源报告不授予指令权威，也不证明模型使用了该指令。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTracePromptProvenance|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this prompt provenance trace: ex:promptProvenance gmeow:eventType gmeow:eventTypeTracePromptProvenance ."
+msgstr "将事件分类为“提示来源跟踪”：ex:promptProvenance gmeow:eventType gmeow:eventTypeTracePromptProvenance ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "thinking correction trace"
+msgstr "思考纠正跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a correction to the agent's thinking, with any supplied correction avenue and cost retained as source evidence."
+msgstr "来源报告对智能体思考的纠正，并将已提供的纠正途径和成本保留为来源证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported corrective occurrence, including a correction later contested by another source."
+msgstr "用于报告的纠正事件，包括后来被其他来源质疑的纠正。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that the correction is true, costless or successful, or inventing a cost unit from a bare number."
+msgstr "避免推断纠正为真、无成本或成功，或根据裸数字虚构成本单位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual correction source and its avenue and cost evidence; keep cost basis, quantity and unit distinct when supplied."
+msgstr "保留实际纠正来源及其途径和成本证据；在已提供时区分成本依据、数量和单位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This type does not perform a belief revision or replace the earlier attributed record."
+msgstr "此类型不执行信念修订，也不替代较早的带归属记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCorrection|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this thinking correction trace: ex:correction gmeow:eventType gmeow:eventTypeTraceCorrection ."
+msgstr "将事件分类为“思考纠正跟踪”：ex:correction gmeow:eventType gmeow:eventTypeTraceCorrection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "response completion rejection trace"
+msgstr "响应完整性拒绝跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that it rejected a response as incomplete."
+msgstr "运行时报告因响应不完整而将其拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the reported rejection decision, retaining which source completion rule was applied when known."
+msgstr "用于所报告拒绝决定，并在已知时保留所应用来源完成规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the rejection as a terminal model failure or automatically setting artifactComplete to false."
+msgstr "避免将拒绝视为模型最终失败，或自动把 artifactComplete 设为 false。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual response identity and rejection report separate; retain a source artifact-completion bit only when explicitly supplied."
+msgstr "将实际响应身份与拒绝报告区分；仅在明确提供时保留来源制品完整性位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A completion gate's verdict is not a universal judgment of response quality or truth."
+msgstr "完成关卡判定不是对响应质量或真值的普遍判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseCompletionRejected|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this response completion rejection trace: ex:responseCompletionRejected gmeow:eventType gmeow:eventTypeTraceResponseCompletionRejected ."
+msgstr "将事件分类为“响应完整性拒绝跟踪”：ex:responseCompletionRejected gmeow:eventType gmeow:eventTypeTraceResponseCompletionRejected ."
+
+
+# Runtime trace kinds.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "response contract rejection trace"
+msgstr "响应契约拒绝跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that a response was rejected for breaking its stated contract."
+msgstr "来源报告响应因违反其声明契约而被拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a recorded contract-rejection decision with the actual source contract retained when supplied."
+msgstr "用于记录的契约拒绝决定，并在已提供时保留实际来源契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a violated rule, treating the rejection as delivery failure or assuming every contract is the same."
+msgstr "避免虚构被违反规则、将拒绝视为交付失败，或假定所有契约相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual response and rejection evidence; preserve a supplied engineContract identifier exactly."
+msgstr "保留实际响应和拒绝证据；精确保留已提供的 engineContract 标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reported contract rejection neither executes a validator nor establishes a globally valid contract interpretation."
+msgstr "所报告契约拒绝不执行验证器，也不建立全局有效的契约解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceResponseContractRejected|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this response contract rejection trace: ex:responseContractRejected gmeow:eventType gmeow:eventTypeTraceResponseContractRejected ."
+msgstr "将事件分类为“响应契约拒绝跟踪”：ex:responseContractRejected gmeow:eventType gmeow:eventTypeTraceResponseContractRejected ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "repetition rejection trace"
+msgstr "重复拒绝跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports rejecting material it classified as degenerate repetition."
+msgstr "运行时报告拒绝其分类为退化重复的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly names repetition as the reason for rejection."
+msgstr "用于来源明确将重复命名为拒绝原因时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving this kind from repeated wording alone or presenting the detector's judgment as universal linguistic fact."
+msgstr "避免仅从重复措辞推断此种类，或将检测器判断呈现为普遍语言事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual rejected material, detector report and source criterion when known."
+msgstr "在已知时保留实际被拒内容、检测器报告和来源标准。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker neither detects repetition nor proves that regenerating a response would improve it."
+msgstr "此标记不检测重复，也不证明重新生成会改善响应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDegenerateRepetitionRejected|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this repetition rejection trace: ex:degenerateRepetitionRejected gmeow:eventType gmeow:eventTypeTraceDegenerateRepetitionRejected ."
+msgstr "将事件分类为“重复拒绝跟踪”：ex:degenerateRepetitionRejected gmeow:eventType gmeow:eventTypeTraceDegenerateRepetitionRejected ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool no-progress cycle trace"
+msgstr "工具无进展循环跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a cycle of tool calls judged to have made no progress under its own criterion."
+msgstr "来源报告按自身标准判断为无进展的工具调用循环。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit runtime no-progress diagnosis, preserving the actual affected calls when known."
+msgstr "用于明确的运行时无进展诊断，并在已知时保留实际受影响调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a semantic cycle from repeated tool names or equating no reported progress with failed execution."
+msgstr "避免从重复工具名称推断语义循环，或把所报告无进展等同于执行失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source's cycle membership and progress criterion as evidence rather than manufacturing a new call graph."
+msgstr "将来源的循环成员关系和进展标准保留为证据，不虚构新的调用图。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This classification does not run cycle detection, abort calls or choose a repair strategy."
+msgstr "此分类不执行循环检测、不终止调用，也不选择修复策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolNoProgressCycle|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool no-progress cycle trace: ex:toolNoProgressCycle gmeow:eventType gmeow:eventTypeTraceToolNoProgressCycle ."
+msgstr "将事件分类为“工具无进展循环跟踪”：ex:toolNoProgressCycle gmeow:eventType gmeow:eventTypeTraceToolNoProgressCycle ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "immutable tool replay trace"
+msgstr "不可变工具重放跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports replaying a tool call it treats as immutable instead of executing that call again."
+msgstr "运行时报告重放其视为不可变的工具调用，而不是再次执行该调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit replay report with the original call and replay source retained when supplied."
+msgstr "用于明确的重放报告，并在已提供时保留原始调用和重放来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid manufacturing a second execution, assuming immutable bytes from a label or treating replay as a fresh operation receipt."
+msgstr "避免虚构第二次执行、从标签假定字节不可变，或将重放视为新操作回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual original result and its source contract; use derivation links only for genuine reuse provenance."
+msgstr "保留真实原始结果及其来源契约；仅对真正的复用来源使用派生关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker neither performs replay nor certifies cache identity, purity or idempotence."
+msgstr "此标记不执行重放，也不认证缓存身份、纯度或幂等性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceImmutableToolReplay|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this immutable tool replay trace: ex:immutableToolReplay gmeow:eventType gmeow:eventTypeTraceImmutableToolReplay ."
+msgstr "将事件分类为“不可变工具重放跟踪”：ex:immutableToolReplay gmeow:eventType gmeow:eventTypeTraceImmutableToolReplay ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interrupted tool batch reissue trace"
+msgstr "中断工具批次重发跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that the runtime body reissued a batch of tool calls that had been interrupted."
+msgstr "来源报告运行体重新发出了此前中断的一批工具调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit reissue occurrence, retaining the original batch and any newly issued call identities separately."
+msgstr "用于明确的重发事件，区分原始批次及新发调用身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating reissue with replay, reusing call identity without evidence or inventing an agent from the word body."
+msgstr "避免将重发等同于重放、在无证据时复用调用身份，或根据“运行体”一词虚构智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source interruption and reissue linkage; actual calls retain their own supplied tool bindings."
+msgstr "保留来源中断和重发关联；实际调用保留自身已提供工具绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The trace kind schedules no batch and guarantees neither retry completion nor duplicate suppression."
+msgstr "跟踪种类不调度批次，也不保证重试完成或重复抑制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceInterruptedToolBatchReissuedByBody|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this interrupted tool batch reissue trace: ex:interruptedToolBatchReissuedByBody gmeow:eventType gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody ."
+msgstr "将事件分类为“中断工具批次重发跟踪”：ex:interruptedToolBatchReissuedByBody gmeow:eventType gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result restoration trace"
+msgstr "工具结果恢复跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports restoring a tool result from an actual source suspension receipt."
+msgstr "运行时报告从实际来源挂起回执恢复工具结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit restoration report that identifies its receipt when supplied."
+msgstr "用于明确的恢复报告，并保留已提供的回执标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating restoration as another tool execution, receipt validation or an invented checkpoint admission."
+msgstr "避免将恢复视为另一次工具执行、回执验证或虚构的检查点准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the restored result, original call and source receipt separately identified; retain genuine derivation evidence."
+msgstr "单独标识恢复结果、原始调用和来源回执；保留真实派生证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The classification neither reads a receipt nor certifies that restored content is complete or byte-identical."
+msgstr "此分类不读取回执，也不认证恢复内容完整或字节相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultRestoredFromSuspensionReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool result restoration trace: ex:toolResultRestoredFromSuspensionReceipt gmeow:eventType gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt ."
+msgstr "将事件分类为“工具结果恢复跟踪”：ex:toolResultRestoredFromSuspensionReceipt gmeow:eventType gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool results held by receipt trace"
+msgstr "工具结果由回执保留跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that tool results were held by a receipt under its runtime protocol."
+msgstr "来源报告按其运行时协议，工具结果由回执保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the provider's explicit held-results report, preserving what held means in that source contract."
+msgstr "用于提供方明确的结果保留报告，并保留“保留”在其来源契约中的含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating held with delivered, accepted, verified, permanently stored or a gmeow:HeldRecord extraction."
+msgstr "避免把保留等同于已交付、已接受、已验证、永久存储或 gmeow:HeldRecord 提取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual receipt and held-result roster when supplied without creating fake result artifacts."
+msgstr "在已提供时保留实际回执及所保留结果清单，不创建虚假结果制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This kind executes no holding protocol and grants no receipt authority over other sources."
+msgstr "此种类不执行保留协议，也不授予回执对其他来源的权威。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceToolResultsHeldByReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this tool results held by receipt trace: ex:toolResultsHeldByReceipt gmeow:eventType gmeow:eventTypeTraceToolResultsHeldByReceipt ."
+msgstr "将事件分类为“工具结果由回执保留跟踪”：ex:toolResultsHeldByReceipt gmeow:eventType gmeow:eventTypeTraceToolResultsHeldByReceipt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cache receipt rejection trace"
+msgstr "缓存回执拒绝跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports rejection of a cache receipt under its source admission rules."
+msgstr "运行时报告按其来源准入规则拒绝缓存回执。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source explicitly records receipt rejection rather than a missing cache entry."
+msgstr "用于来源明确记录回执拒绝，而不是仅缓存条目缺失时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring corrupt artifact bytes, failed invocation or permission to execute a weaker fallback."
+msgstr "避免推断制品字节损坏、调用失败或允许执行较弱后备方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the rejected receipt identity, source rule and actual rejection evidence separately from any later recomputation."
+msgstr "将被拒回执身份、来源规则和实际拒绝证据与后续重新计算区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A rejection report neither validates cache state nor triggers regeneration or tool execution."
+msgstr "拒绝报告不验证缓存状态，也不触发重新生成或工具执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceCacheReceiptRejected|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this cache receipt rejection trace: ex:cacheReceiptRejected gmeow:eventType gmeow:eventTypeTraceCacheReceiptRejected ."
+msgstr "将事件分类为“缓存回执拒绝跟踪”：ex:cacheReceiptRejected gmeow:eventType gmeow:eventTypeTraceCacheReceiptRejected ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "background terminal recovery trace"
+msgstr "后台终端恢复跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports recovery of a background terminal under its runtime convention."
+msgstr "来源按其运行时约定报告后台终端恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit terminal-recovery occurrence, preserving the actual terminal or process identity when known."
+msgstr "用于明确的终端恢复事件，并在已知时保留实际终端或进程身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating recovered with restarted, successfully exited, completed work or a recovered model invocation."
+msgstr "避免把恢复等同于重启、成功退出、工作完成或模型调用已恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source recovery evidence and any supplied session context without creating a new process identity."
+msgstr "保留来源恢复证据及已提供会话情境，不创建新的进程身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The marker starts, stops and recovers no terminal or model service."
+msgstr "此标记不启动、停止或恢复任何终端或模型服务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceBackgroundTerminalRecovered|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this background terminal recovery trace: ex:backgroundTerminalRecovered gmeow:eventType gmeow:eventTypeTraceBackgroundTerminalRecovered ."
+msgstr "将事件分类为“后台终端恢复跟踪”：ex:backgroundTerminalRecovered gmeow:eventType gmeow:eventTypeTraceBackgroundTerminalRecovered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply gate firing trace"
+msgstr "回复关卡触发跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports that a gate holding back a reply fired."
+msgstr "运行时报告阻挡回复的关卡已触发。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the explicit gate occurrence, retaining the source meaning of fired and its actual disposition when supplied."
+msgstr "用于明确的关卡事件，并保留“触发”的来源含义及已提供实际处置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that a reply was released, blocked, approved or delivered solely from the word fired."
+msgstr "避免仅从“触发”一词推断回复已释放、阻止、批准或交付。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the gate occurrence and retain the actual reply and source contract without imposing a universal gate policy."
+msgstr "分类关卡事件，保留实际回复和来源契约，不施加通用关卡策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The event type is not an execution permit or a substitute for an approval record."
+msgstr "事件类型不是执行许可，也不替代批准记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceReplyGateFired|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this reply gate firing trace: ex:replyGateFired gmeow:eventType gmeow:eventTypeTraceReplyGateFired ."
+msgstr "将事件分类为“回复关卡触发跟踪”：ex:replyGateFired gmeow:eventType gmeow:eventTypeTraceReplyGateFired ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dream phase round cap trace"
+msgstr "梦境阶段轮次上限跟踪"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The runtime reports reaching its own round cap within a source-designated dream phase."
+msgstr "运行时报告在来源指定的梦境阶段内达到自身轮次上限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly reports the cap being reached, retaining the actual phase and configured bound when supplied."
+msgstr "用于来源明确报告已达到上限，并保留已提供实际阶段和配置界限时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a numeric cap, a DreamReport recollection, successful completion or a required stop from this marker."
+msgstr "避免从此标记推断数值上限、DreamReport 回忆、成功完成或必须停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source runtime phase context separate from dream content and classify only the reported cap occurrence."
+msgstr "将来源运行阶段情境与梦境内容区分，仅分类所报告的达到上限事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This shared runtime-report value creates no core dependency on the dreaming extension and executes no phase controller."
+msgstr "此共享运行报告值不创建核心到 dreaming 扩展的依赖，也不执行阶段控制器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
+msgstr "将事件分类为“梦境阶段轮次上限跟踪”：ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."

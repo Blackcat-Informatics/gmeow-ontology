@@ -1,0 +1,402 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/runtime-trace/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Generic illustrative source records. Loading this scene runs no model,
+# tool, checkpoint, cache, screening procedure or recency policy.
+ex:runtime a gmeow:SoftwareAgent .
+ex:archiveWriter a gmeow:SoftwareAgent .
+ex:reader a gmeow:Agent .
+ex:model a gmeow:SoftwareAgent .
+ex:tool a gmeow:SoftwareAgent .
+ex:screen a gmeow:SoftwareAgent .
+ex:episode a gmeow:Event .
+ex:traceSource a gmeow:InformationObject ;
+    gmeow:description "The source groups these reported occurrences in one runtime episode."@en ;
+    gmeow:wasAttributedTo ex:runtime ;
+    gmeow:recordedAt "2030-05-02T09:30:00Z"^^xsd:dateTime .
+
+# These are separate source-reported occurrences, not inferred executions.
+
+ex:round a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceRound ;
+    gmeow:subEventOf ex:episode .
+
+ex:turnStart a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceTurnStart ;
+    gmeow:subEventOf ex:episode .
+
+ex:turnOutput a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceTurnOutput ;
+    gmeow:subEventOf ex:episode .
+
+ex:modelRequest a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceModelRequest ;
+    gmeow:subEventOf ex:episode .
+
+ex:modelResponse a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceModelResponse ;
+    gmeow:subEventOf ex:episode .
+
+ex:modelError a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceModelError ;
+    gmeow:subEventOf ex:episode .
+
+ex:generation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceGeneration ;
+    gmeow:subEventOf ex:episode .
+
+ex:multimodalGeneration a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceMultimodalGeneration ;
+    gmeow:subEventOf ex:episode .
+
+ex:imageGeneration a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceImageGeneration ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolCall a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolCall ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolResult a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolResult ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolReceipt a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolReceipt ;
+    gmeow:subEventOf ex:episode .
+
+ex:checkpointRequest a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceCheckpointRequest ;
+    gmeow:subEventOf ex:episode .
+
+ex:checkpointResponse a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceCheckpointResponse ;
+    gmeow:subEventOf ex:episode .
+
+ex:checkpointValidation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceCheckpointValidation ;
+    gmeow:subEventOf ex:episode .
+
+ex:episodeContinuation a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceEpisodeContinuation ;
+    gmeow:subEventOf ex:episode .
+
+ex:episodeTokenAccounting a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceEpisodeTokenAccounting ;
+    gmeow:subEventOf ex:episode .
+
+ex:engineAuthoritativeTokenCount a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceEngineAuthoritativeTokenCount ;
+    gmeow:subEventOf ex:episode .
+
+ex:foregroundPreemption a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceForegroundPreemption ;
+    gmeow:subEventOf ex:episode .
+
+ex:promptProvenance a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTracePromptProvenance ;
+    gmeow:subEventOf ex:episode .
+
+ex:correction a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceCorrection ;
+    gmeow:subEventOf ex:episode .
+
+ex:responseCompletionRejected a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceResponseCompletionRejected ;
+    gmeow:subEventOf ex:episode .
+
+ex:responseContractRejected a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceResponseContractRejected ;
+    gmeow:subEventOf ex:episode .
+
+ex:degenerateRepetitionRejected a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceDegenerateRepetitionRejected ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolNoProgressCycle a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolNoProgressCycle ;
+    gmeow:subEventOf ex:episode .
+
+ex:immutableToolReplay a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceImmutableToolReplay ;
+    gmeow:subEventOf ex:episode .
+
+ex:interruptedToolBatchReissuedByBody a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolResultRestoredFromSuspensionReceipt a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt ;
+    gmeow:subEventOf ex:episode .
+
+ex:toolResultsHeldByReceipt a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceToolResultsHeldByReceipt ;
+    gmeow:subEventOf ex:episode .
+
+ex:cacheReceiptRejected a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceCacheReceiptRejected ;
+    gmeow:subEventOf ex:episode .
+
+ex:backgroundTerminalRecovered a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceBackgroundTerminalRecovered ;
+    gmeow:subEventOf ex:episode .
+
+ex:replyGateFired a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceReplyGateFired ;
+    gmeow:subEventOf ex:episode .
+
+ex:dreamPhaseRoundCapReached a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ;
+    gmeow:subEventOf ex:episode .
+
+# The source of each exact type claim is retained on its native reifier.
+
+ex:roundClaim rdf:reifies <<( ex:round gmeow:eventType gmeow:eventTypeTraceRound )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:turnStartClaim rdf:reifies <<( ex:turnStart gmeow:eventType gmeow:eventTypeTraceTurnStart )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:turnOutputClaim rdf:reifies <<( ex:turnOutput gmeow:eventType gmeow:eventTypeTraceTurnOutput )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:modelRequestClaim rdf:reifies <<( ex:modelRequest gmeow:eventType gmeow:eventTypeTraceModelRequest )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:modelResponseClaim rdf:reifies <<( ex:modelResponse gmeow:eventType gmeow:eventTypeTraceModelResponse )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:modelErrorClaim rdf:reifies <<( ex:modelError gmeow:eventType gmeow:eventTypeTraceModelError )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:generationClaim rdf:reifies <<( ex:generation gmeow:eventType gmeow:eventTypeTraceGeneration )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:multimodalGenerationClaim rdf:reifies <<( ex:multimodalGeneration gmeow:eventType gmeow:eventTypeTraceMultimodalGeneration )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:imageGenerationClaim rdf:reifies <<( ex:imageGeneration gmeow:eventType gmeow:eventTypeTraceImageGeneration )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolCallClaim rdf:reifies <<( ex:toolCall gmeow:eventType gmeow:eventTypeTraceToolCall )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolResultClaim rdf:reifies <<( ex:toolResult gmeow:eventType gmeow:eventTypeTraceToolResult )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolReceiptClaim rdf:reifies <<( ex:toolReceipt gmeow:eventType gmeow:eventTypeTraceToolReceipt )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:checkpointRequestClaim rdf:reifies <<( ex:checkpointRequest gmeow:eventType gmeow:eventTypeTraceCheckpointRequest )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:checkpointResponseClaim rdf:reifies <<( ex:checkpointResponse gmeow:eventType gmeow:eventTypeTraceCheckpointResponse )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:checkpointValidationClaim rdf:reifies <<( ex:checkpointValidation gmeow:eventType gmeow:eventTypeTraceCheckpointValidation )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:episodeContinuationClaim rdf:reifies <<( ex:episodeContinuation gmeow:eventType gmeow:eventTypeTraceEpisodeContinuation )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:episodeTokenAccountingClaim rdf:reifies <<( ex:episodeTokenAccounting gmeow:eventType gmeow:eventTypeTraceEpisodeTokenAccounting )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:engineAuthoritativeTokenCountClaim rdf:reifies <<( ex:engineAuthoritativeTokenCount gmeow:eventType gmeow:eventTypeTraceEngineAuthoritativeTokenCount )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:accountingReport .
+
+ex:foregroundPreemptionClaim rdf:reifies <<( ex:foregroundPreemption gmeow:eventType gmeow:eventTypeTraceForegroundPreemption )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:promptProvenanceClaim rdf:reifies <<( ex:promptProvenance gmeow:eventType gmeow:eventTypeTracePromptProvenance )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:correctionClaim rdf:reifies <<( ex:correction gmeow:eventType gmeow:eventTypeTraceCorrection )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:correctionReport .
+
+ex:responseCompletionRejectedClaim rdf:reifies <<( ex:responseCompletionRejected gmeow:eventType gmeow:eventTypeTraceResponseCompletionRejected )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:responseContractRejectedClaim rdf:reifies <<( ex:responseContractRejected gmeow:eventType gmeow:eventTypeTraceResponseContractRejected )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:degenerateRepetitionRejectedClaim rdf:reifies <<( ex:degenerateRepetitionRejected gmeow:eventType gmeow:eventTypeTraceDegenerateRepetitionRejected )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolNoProgressCycleClaim rdf:reifies <<( ex:toolNoProgressCycle gmeow:eventType gmeow:eventTypeTraceToolNoProgressCycle )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:immutableToolReplayClaim rdf:reifies <<( ex:immutableToolReplay gmeow:eventType gmeow:eventTypeTraceImmutableToolReplay )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:interruptedToolBatchReissuedByBodyClaim rdf:reifies <<( ex:interruptedToolBatchReissuedByBody gmeow:eventType gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolResultRestoredFromSuspensionReceiptClaim rdf:reifies <<( ex:toolResultRestoredFromSuspensionReceipt gmeow:eventType gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:toolResultsHeldByReceiptClaim rdf:reifies <<( ex:toolResultsHeldByReceipt gmeow:eventType gmeow:eventTypeTraceToolResultsHeldByReceipt )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:cacheReceiptRejectedClaim rdf:reifies <<( ex:cacheReceiptRejected gmeow:eventType gmeow:eventTypeTraceCacheReceiptRejected )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:backgroundTerminalRecoveredClaim rdf:reifies <<( ex:backgroundTerminalRecovered gmeow:eventType gmeow:eventTypeTraceBackgroundTerminalRecovered )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:replyGateFiredClaim rdf:reifies <<( ex:replyGateFired gmeow:eventType gmeow:eventTypeTraceReplyGateFired )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+ex:dreamPhaseRoundCapReachedClaim rdf:reifies <<( ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:traceSource .
+
+# Real call identities are supplied independently of trace-kind membership.
+ex:prompt a gmeow:Prompt ;
+    gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Summarize the supplied harbor note."@en .
+ex:call a gmeow:ModelInvocation ;
+    gmeow:usedModel ex:model ;
+    gmeow:hasPrompt ex:prompt ;
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:subEventOf ex:episode .
+ex:modelRequest gmeow:subEventOf ex:call .
+ex:modelResponse gmeow:subEventOf ex:call .
+
+ex:toolCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:tool ;
+    gmeow:toolName "record.read" ;
+    gmeow:toolCallId "call  17" .
+
+# The producing occurrence and image artifact are distinct. Image production
+# does not add a multimodal-generation type to this occurrence.
+ex:imageGeneration a gmeow:Activity .
+ex:imageWork a gmeow:Work .
+ex:imageExpression a gmeow:Expression ; gmeow:realizes ex:imageWork .
+ex:image a gmeow:MediaObject ;
+    gmeow:embodies ex:imageExpression ;
+    gmeow:wasGeneratedBy ex:imageGeneration .
+
+# These source reports preserve avenue, cost and count conventions as supplied.
+# No cost arithmetic, token equivalence or authoritative-global count is asserted.
+ex:correctionReport a gmeow:InformationObject ;
+    gmeow:description "The source reports a text correction via a foreground instruction and quotes a cost of two provider tokens."@en ;
+    gmeow:wasAttributedTo ex:runtime .
+ex:accountingReport a gmeow:InformationObject ;
+    gmeow:description "The engine designates its count of 17 tokens authoritative within its own tokenizer convention."@en ;
+    gmeow:wasAttributedTo ex:runtime .
+ex:engineAuthoritativeTokenCount gmeow:engineContract "trace/accounting  v1" .
+
+# An earlier running reading is an Observation, not a terminal outcome or a
+# mutable state property on the invocation Event.
+ex:runningSource a gmeow:InformationObject ;
+    gmeow:description "The runtime reported that this call was still running at the recorded reading."@en ;
+    gmeow:wasAttributedTo ex:runtime ;
+    gmeow:recordedAt "2030-05-02T09:00:01Z"^^xsd:dateTime .
+ex:runningReading a gmeow:Observation ;
+    gmeow:invocationState gmeow:invocationStateRunning ;
+    gmeow:observedFeature ex:call ;
+    gmeow:vantage ex:runtime ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:observedAt "2030-05-02T09:00:00Z"^^xsd:dateTime ;
+    gmeow:wasDerivedFrom ex:runningSource ;
+    gmeow:wasAttributedTo ex:archiveWriter .
+
+# Later terminal evidence is retained without erasing the earlier reading.
+ex:terminalSource a gmeow:InformationObject ;
+    gmeow:description "The runtime subsequently reported that the same invocation succeeded."@en ;
+    gmeow:wasAttributedTo ex:runtime ;
+    gmeow:recordedAt "2030-05-02T09:01:00Z"^^xsd:dateTime .
+ex:call gmeow:invocationOutcome gmeow:invocationOutcomeSucceeded .
+ex:outcomeClaim rdf:reifies <<( ex:call gmeow:invocationOutcome gmeow:invocationOutcomeSucceeded )>> ;
+    gmeow:accordingTo ex:runtime ;
+    gmeow:wasAttributedTo ex:archiveWriter ;
+    gmeow:wasDerivedFrom ex:terminalSource ;
+    gmeow:recordedAt "2030-05-02T09:01:00Z"^^xsd:dateTime .
+
+# The screen's source code is separate from the answer text and from any
+# claim about the external model's identity, intention or actual attack success.
+ex:outsideAnswer a gmeow:InformationObject ;
+    gmeow:description "The retained answer contains unrelated directions to change the reader's role."@en .
+ex:screenReport a gmeow:InformationObject ;
+    gmeow:description "The source screen assigned its own role-override category to that answer."@en ;
+    gmeow:wasAttributedTo ex:screen ;
+    gmeow:recordedAt "2030-05-02T09:02:00Z"^^xsd:dateTime .
+ex:screenReading a gmeow:Observation ;
+    gmeow:injectionCategory " role-override  " ;
+    gmeow:observedFeature ex:outsideAnswer ;
+    gmeow:vantage ex:reader ;
+    gmeow:observationMethod gmeow:methodInstrumentalReading ;
+    gmeow:wasDerivedFrom ex:screenReport ;
+    gmeow:wasAttributedTo ex:archiveWriter .
