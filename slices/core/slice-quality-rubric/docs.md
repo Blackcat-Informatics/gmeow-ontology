@@ -122,3 +122,24 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## Recorded corpus witnesses
+
+A `QualityAssessmentCorpus` carries two separate witnesses.
+`versionFingerprint` identifies the authored source set the sweep scored.
+`qualityRecordFingerprint` identifies the reconstructed recorded grade vector,
+using the `qualityRecordFingerprintV1` datatype. It is a scheme-specific
+fingerprint, not a `contentDigest` of the RDF serialization.
+
+The reader preserves and checks the complete native typed literal. Its lexical
+form is exactly 64 lowercase hexadecimal digits without a prefix, language tag
+or direction. Missing, malformed, wrongly typed or conflicting witness terms
+fail the read. Identical terms repeated across graph labels remain one witness.
+The admitted term must equal the recomputed typed value before grades are
+returned. The source-set witness is still checked independently for freshness.
+
+The scheme’s byte framing and source-independent reconstruction are specified
+in [the rubric design](design/rubric.md#version-one-quality-record-fingerprint).
+The migration changes the witness property and literal identity while preserving
+the hash preimage and its BLAKE3 result. It adds no generic datatype parser,
+second grading engine or alternate corpus producer.

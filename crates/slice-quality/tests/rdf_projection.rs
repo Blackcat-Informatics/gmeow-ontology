@@ -132,7 +132,7 @@ fn recorded_grades_round_trip_exactly() {
 
     // The corpus as the pipeline projects it: the two corpus witnesses plus this slice's
     // block. The input-fingerprint value is irrelevant here (freshness is proven
-    // separately); the record content digest is NOT — the reader recomputes it and
+    // separately); the record fingerprint is NOT — the reader recomputes it and
     // refuses a record that does not fold to its own claim, so it is emitted exactly as
     // the pipeline emits it. What matters is that the reader consumes the identical bytes
     // the emitter writes.
@@ -140,7 +140,7 @@ fn recorded_grades_round_trip_exactly() {
         "{}{}",
         gmeow_slice_quality::report::corpus_fingerprint_nquads(
             "blake3:0",
-            &gmeow_slice_quality::report::corpus_content_digest(std::slice::from_ref(&fresh)),
+            &gmeow_slice_quality::report::corpus_record_fingerprint(std::slice::from_ref(&fresh)),
         ),
         {
             let report = score_slice_with_standard(
@@ -207,13 +207,13 @@ fn recorded_grades_round_trip_exactly() {
 /// changes nothing else: raising a score in the projection.
 ///
 /// The input fingerprint cannot catch this — no scored source file moved, so it still
-/// matches the working tree exactly. The `gmeow:contentDigest` over the record's own
+/// matches the working tree exactly. The `gmeow:qualityRecordFingerprint` over the record's own
 /// grades does: the reader recomputes it from the reconstruction and finds the record
 /// does not fold to the value it declares. This test also pins the two REMOVAL cases —
 /// dropping a whole slice's grades and dropping the digest witness itself — because
 /// "the guard is absent" must never read as "the guard passed".
 #[test]
-fn an_edited_record_is_refused_by_its_own_content_digest() {
+fn an_edited_record_is_refused_by_its_own_record_fingerprint() {
     let root = repo_root();
     let dir = root.join("slices/core/slice-quality-rubric");
     let module = root.join("slices/core/slice-quality-rubric/module.ttl");
@@ -234,7 +234,7 @@ fn an_edited_record_is_refused_by_its_own_content_digest() {
         "{}{}",
         gmeow_slice_quality::report::corpus_fingerprint_nquads(
             "blake3:0",
-            &gmeow_slice_quality::report::corpus_content_digest(std::slice::from_ref(
+            &gmeow_slice_quality::report::corpus_record_fingerprint(std::slice::from_ref(
                 &report.assessment
             )),
         ),
@@ -262,7 +262,7 @@ fn an_edited_record_is_refused_by_its_own_content_digest() {
     let err = gmeow_slice_quality::read::read_recorded_corpus_bytes(tampered.as_bytes(), &standard)
         .expect_err("a hand-raised score must be REFUSED, never read as authoritative");
     assert!(
-        err.to_string().contains("contentDigest"),
+        err.to_string().contains("qualityRecordFingerprint"),
         "the refusal names the violated witness: {err}"
     );
 
@@ -279,15 +279,15 @@ fn an_edited_record_is_refused_by_its_own_content_digest() {
     // 3. Delete the witness itself. An absent digest is unknowable vintage, not a pass.
     let unwitnessed: String = honest
         .lines()
-        .filter(|line| !line.contains("gmeow/contentDigest"))
+        .filter(|line| !line.contains("gmeow/qualityRecordFingerprint"))
         .map(|line| format!("{line}\n"))
         .collect();
     assert_ne!(unwitnessed, honest, "the witness line must be removed");
     let err =
         gmeow_slice_quality::read::read_recorded_corpus_bytes(unwitnessed.as_bytes(), &standard)
-            .expect_err("a record carrying no content digest must be REFUSED");
+            .expect_err("a record carrying no record fingerprint must be REFUSED");
     assert!(
-        err.to_string().contains("contentDigest"),
+        err.to_string().contains("qualityRecordFingerprint"),
         "the refusal names the missing witness: {err}"
     );
 }

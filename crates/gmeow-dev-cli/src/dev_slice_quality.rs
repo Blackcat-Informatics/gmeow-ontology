@@ -229,7 +229,7 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
     // it is streamed into a single buffer and printed once.
     let mut rdf_out = String::new();
     // The assessments behind `rdf_out`, retained so the corpus header can carry the
-    // `gmeow:contentDigest` fold over the grades it publishes (the record-integrity
+    // `gmeow:qualityRecordFingerprint` fold over the grades it publishes (the record-integrity
     // witness a reader recomputes). Populated only on the RDF path.
     let mut rdf_assessments: Vec<SliceAssessment> = Vec::new();
     // The text default is the repo-wide PRIORITIZATION view (G12): the per-axis
@@ -300,7 +300,7 @@ fn sweep(root: &Path, format: Format, min_tier: Option<&str>, config: &Diagnosti
                     "{}{rdf_out}",
                     gmeow_slice_quality::report::corpus_fingerprint_nquads(
                         &fingerprint,
-                        &gmeow_slice_quality::report::corpus_content_digest(&rdf_assessments),
+                        &gmeow_slice_quality::report::corpus_record_fingerprint(&rdf_assessments),
                     )
                 ),
                 Err(e) => return fail(format!("slice-quality: {e}")),
