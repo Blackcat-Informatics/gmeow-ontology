@@ -897,3 +897,137 @@ msgstr "Par exemple : gmeow:DreamPreemptedPhaseScopeConstraint logic:formalizes 
 msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."
 msgstr "Une cible preemptedAfter est un Event réel de phase typée appartenant à ce même rêve. Cette relation source ne déduit ni ordre total, ni sortie terminale, ni annulation exécutée."
+
+# Explicit admission checks for waking-connection carriers.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connection text subject constraint"
+msgstr "Contrainte de sujet du texte de lien"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."
+msgstr "Chaque sujet de connectionText est un descripteur InformationObject ou une Analogy réelle. Conserver la formulation d’un lien ne construit ni correspondance ni extrémités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of a plain-text waking connection."
+msgstr "À employer pour valider le porteur d’un lien éveillé en texte libre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an Analogy when only a textual descriptor was supplied."
+msgstr "Éviter d’exiger une Analogy lorsqu’un simple descripteur textuel a été fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the connectionText subject against either named carrier class; preserve the source's original wording."
+msgstr "Contrôler le sujet de connectionText selon l’une des deux classes nommées de porteur ; préserver la formulation source originale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary property target includes malformed subjects; the disjunction admits a descriptor without inventing structured analogy evidence."
+msgstr "La cible de propriété binaire inclut les sujets mal formés ; la disjonction admet un descripteur sans inventer de preuve d’analogie structurée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."
+msgstr "Par exemple : ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."
+msgstr "Chaque sujet de connectionText est un descripteur InformationObject ou une Analogy réelle. Conserver la formulation d’un lien ne construit ni correspondance ni extrémités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connection relation subject constraint"
+msgstr "Contrainte de sujet de relation de lien"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."
+msgstr "Chaque sujet de connectionRelation est un descripteur InformationObject ou une Analogy réelle. Une expression relationnelle textuelle n’est ni un prédicat exécutable ni un garant d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of proposed waking-relation wording."
+msgstr "À employer pour valider le porteur d’une formulation proposée de relation éveillée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the relation phrase itself as a structured relation or analogy."
+msgstr "Éviter de typer l’expression relationnelle elle-même comme relation structurée ou analogie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the InformationObject-or-Analogy type condition to each subject carrying connectionRelation."
+msgstr "Appliquer la condition de type InformationObject-ou-Analogy à chaque sujet portant connectionRelation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Validation admits either carrier class and does not execute or establish the proposed relation."
+msgstr "La validation admet l’une ou l’autre classe de porteur et n’exécute ni n’établit la relation proposée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."
+msgstr "Par exemple : ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."
+msgstr "Chaque sujet de connectionRelation est un descripteur InformationObject ou une Analogy réelle. Une expression relationnelle textuelle n’est ni un prédicat exécutable ni un garant d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Waking candidate subject constraint"
+msgstr "Contrainte de sujet du candidat éveillé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."
+msgstr "Chaque sujet de wakingCandidate est un descripteur InformationObject ou une Analogy réelle. Le candidat reste une formulation source lorsqu’aucun nœud cible réel n’est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of an unresolved waking-life candidate."
+msgstr "À employer pour valider le porteur d’un candidat non résolu de la vie éveillée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving the candidate string into a fabricated target to satisfy the law."
+msgstr "Éviter de résoudre la chaîne candidate en une cible inventée pour satisfaire la loi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the wakingCandidate subject's InformationObject or Analogy type, keeping its literal candidate unchanged."
+msgstr "Contrôler le type InformationObject ou Analogy du sujet de wakingCandidate, en conservant son candidat littéral inchangé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property target checks the source carrier, not the existence or identity of the proposed waking object."
+msgstr "La cible de propriété contrôle le porteur source, non l’existence ou l’identité de l’objet éveillé proposé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."
+msgstr "Par exemple : ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."
+msgstr "Chaque sujet de wakingCandidate est un descripteur InformationObject ou une Analogy réelle. Le candidat reste une formulation source lorsqu’aucun nœud cible réel n’est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Waking evidence subject constraint"
+msgstr "Contrainte de sujet de preuve éveillée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."
+msgstr "Chaque sujet de wakingEvidence est un descripteur InformationObject ou une Analogy réelle. Admettre un porteur de citation textuelle ne vérifie pas la preuve citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of evidence wording cited by a waking connection."
+msgstr "À employer pour valider le porteur de formulation de preuve citée par un lien éveillé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting this carrier check for evidence verification or source derivation."
+msgstr "Éviter de substituer ce contrôle de porteur à la vérification de preuve ou à la dérivation source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require either InformationObject or Analogy for each wakingEvidence subject and retain its citation literal."
+msgstr "Exiger InformationObject ou Analogy pour chaque sujet de wakingEvidence et conserver son littéral de citation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary guard covers every supplied citation assertion; the law certifies neither cited content nor analogy quality."
+msgstr "La garde binaire couvre chaque assertion de citation fournie ; la loi ne certifie ni le contenu cité ni la qualité de l’analogie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+msgstr "Par exemple : ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."
+msgstr "Chaque sujet de wakingEvidence est un descripteur InformationObject ou une Analogy réelle. Admettre un porteur de citation textuelle ne vérifie pas la preuve citée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/dreaming|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted.\n\nDREAM COMPOSITION.\n  * A dream is an instance of gmeow:Experience with:\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode value gmeow:modeDreaming or gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * Lucid dreaming = the same composition but with gmeow:awarenessMode gmeow:modeLucidDreaming.\n  * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.\n\nDOCTRINE.\n  * Core composition (Principle 4 / Principle 6): dream and recollection episodes, selection and waking-appraisal information records, source provenance and recorded phase dispositions compose existing core classes and value vocabularies. Dream kinds remain compositions of gmeow:Experience; retained source records do not become new kinds of experience.\n  * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.\n  * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."
+msgstr "La tranche dreaming est une composition pure des mécanismes centraux GMEOW d’occurrents et de conscience. Aucune nouvelle primitive n’est créée.\n\nCOMPOSITION DU RÊVE.\n  * Un rêve est une instance de gmeow:Experience avec :\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode de valeur gmeow:modeDreaming ou gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * Le rêve lucide est la même composition, mais avec gmeow:awarenessMode gmeow:modeLucidDreaming.\n  * Le rêve de consolidation mnésique est un gmeow:LearningEvent hors ligne avec gmeow:learningType gmeow:learningConsolidation, recombinant les énoncés conservés via gmeow:Analogy et gmeow:learningConceptFormation.\n\nDOCTRINE.\n  * Composition centrale (Principe 4 / Principe 6) : les épisodes de rêve et de recollection, les enregistrements informationnels de sélection et d’appréciation au réveil, la provenance source et les modes enregistrés d’achèvement de phase composent les classes et vocabulaires de valeurs centraux existants. Les types de rêve restent des compositions de gmeow:Experience ; les enregistrements source conservés ne deviennent pas de nouveaux types d’expérience.\n  * Composition, non taxonomie : aucun sous-classement de gmeow:Experience au-delà de ce que la tranche mentation permet déjà. Les types plus fins de rêve (lucide, REM, consolidation, récurrent) sont des compositions marquées par valeurs ou typées par restrictions, jamais des sous-classes de gmeow:Experience.\n  * Énoncés coégaux indexés par point de vue (Principe 9 / Principe 10) : un rapport de rêve est une recollection peu fiable ; les rapports concurrents, interprétations d’analystes, décompositions en éléments et attributions de lucidité coexistent comme énoncés indexés par point de vue, les énoncés remplacés étant supprimés de l’affichage par gmeow:displayable false plutôt qu’effacés."

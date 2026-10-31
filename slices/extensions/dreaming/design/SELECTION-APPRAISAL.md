@@ -42,7 +42,16 @@ records; actual structured analogies retain all existing inference obligations.
 A citation string never proves its cited evidence. Appraisal, answerhood,
 accepted answer and solver-selected analogy remain different assertions.
 
-The four realized canonical laws use supported binary subject guards:
+Each of the four connection properties has a separate realized Constraint with
+a binary subject guard and an InformationObject-or-Analogy type consequent.
+These laws provide explicit subject admission at each property's SubjectsOf
+target. The anonymous union domain remains the canonical inference axiom, but
+the generic closed-world domain projection does not itself derive a subject
+check from that anonymous union. The property-targeted laws supply that check
+without a class guard that would hide malformed subjects, and without forcing
+an InformationObject descriptor to become an Analogy.
+
+The selection, sequence and phase laws use supported binary subject guards:
 lotteryDigest, dreamSequence, phaseCompletion and preemptedAfter. The phase
 laws require actual Event occurrences typed by EventType inside a dreaming
 Experience; preemption must name a constituent of that same dream. They assert

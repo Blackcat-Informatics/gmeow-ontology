@@ -52,7 +52,7 @@ DREAM COMPOSITION.
   * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.
 
 DOCTRINE.
-  * No new primitives (Principle 4 / Principle 6): this slice adds only gmeow:DreamReport and gmeow:dreamElement. Every dream kind is composed from existing core classes and value vocabularies; the dream itself is a composed gmeow:Experience, the dream report is a composed recollection gmeow:Experience, and dream elements are linked through one new object property whose domain is gmeow:Experience and whose range stays open.
+  * Core composition (Principle 4 / Principle 6): dream and recollection episodes, selection and waking-appraisal information records, source provenance and recorded phase dispositions compose existing core classes and value vocabularies. Dream kinds remain compositions of gmeow:Experience; retained source records do not become new kinds of experience.
   * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.
   * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
@@ -542,3 +542,65 @@ gmeow:DreamPreemptedPhaseScopeConstraint
     logic:message "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."@x-gmeow-english ;
     logic:formalizes gmeow:preemptedAfter ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "phase" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:preemptedAfter ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "phase" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "kind" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ] , [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termVariable "kind" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EventType ] ] , [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation gmeow:mentalProcessType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:processDreaming ] ] ] ] ] ] .
+
+# Explicit admission checks for the waking-connection carrier union.
+
+gmeow:ConnectionTextSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Connection text subject constraint"@x-gmeow-english ;
+    skos:definition "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of a plain-text waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an Analogy when only a textual descriptor was supplied."@x-gmeow-english ;
+    gmeow:howToUse "Check the connectionText subject against either named carrier class; preserve the source's original wording."@x-gmeow-english ;
+    skos:scopeNote "The binary property target includes malformed subjects; the disjunction admits a descriptor without inventing structured analogy evidence."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."@x-gmeow-english ;
+    logic:message "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."@x-gmeow-english ;
+    logic:formalizes gmeow:connectionText ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:connectionText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:ConnectionRelationSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Connection relation subject constraint"@x-gmeow-english ;
+    skos:definition "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of proposed waking-relation wording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the relation phrase itself as a structured relation or analogy."@x-gmeow-english ;
+    gmeow:howToUse "Apply the InformationObject-or-Analogy type condition to each subject carrying connectionRelation."@x-gmeow-english ;
+    skos:scopeNote "Validation admits either carrier class and does not execute or establish the proposed relation."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."@x-gmeow-english ;
+    logic:message "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."@x-gmeow-english ;
+    logic:formalizes gmeow:connectionRelation ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:connectionRelation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:WakingCandidateSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Waking candidate subject constraint"@x-gmeow-english ;
+    skos:definition "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of an unresolved waking-life candidate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving the candidate string into a fabricated target to satisfy the law."@x-gmeow-english ;
+    gmeow:howToUse "Check the wakingCandidate subject's InformationObject or Analogy type, keeping its literal candidate unchanged."@x-gmeow-english ;
+    skos:scopeNote "The property target checks the source carrier, not the existence or identity of the proposed waking object."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."@x-gmeow-english ;
+    logic:message "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."@x-gmeow-english ;
+    logic:formalizes gmeow:wakingCandidate ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:wakingCandidate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:WakingEvidenceSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Waking evidence subject constraint"@x-gmeow-english ;
+    skos:definition "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of evidence wording cited by a waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this carrier check for evidence verification or source derivation."@x-gmeow-english ;
+    gmeow:howToUse "Require either InformationObject or Analogy for each wakingEvidence subject and retain its citation literal."@x-gmeow-english ;
+    skos:scopeNote "The binary guard covers every supplied citation assertion; the law certifies neither cited content nor analogy quality."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."@x-gmeow-english ;
+    logic:message "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."@x-gmeow-english ;
+    logic:formalizes gmeow:wakingEvidence ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:wakingEvidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .

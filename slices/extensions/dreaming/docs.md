@@ -173,6 +173,11 @@ must retain the inference slice's real source, target and correspondence
 relations. Connect descriptors or actual structured analogies as parts of the
 appraisal; no analogy becomes accepted, best or true merely by being recorded.
 
+Four property-targeted canonical laws also require every subject carrying
+connectionText, connectionRelation, wakingCandidate or wakingEvidence to be
+an InformationObject or Analogy. This explicit admission check preserves a
+plain descriptor without inventing a structured mapping or verifying a citation.
+
 phaseCompletion belongs to a recorded phase Event with its EventType and
 subEventOf the actual dreaming Experience. The open PhaseCompletion vocabulary
 initially supplies phaseCompletionCompletedWithoutTerminalClaim: the phase ran
