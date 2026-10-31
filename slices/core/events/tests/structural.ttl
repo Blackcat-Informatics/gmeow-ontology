@@ -164,7 +164,7 @@ ex:saEventTimeIsDatatypeProperty a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:eventTime a owl:DatatypeProperty . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST be an owl:DatatypeProperty -- the DL-clean xsd:dateTime replacement for the retired free-text gmeow:eventDate." .
+    gmeow:saRationale "gmeow:eventTime MUST be an owl:DatatypeProperty -- the typed precision-preserving replacement for the retired free-text gmeow:eventDate." .
 
 # --- 10. eventLocation exists and ranges over Location (MUST) ------------------
 ex:saEventLocationPropertyShape a gmeow:StructuralAssertion ;
@@ -261,25 +261,36 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:participationRole rdfs:range gmeow:ParticipantRole . }""" ;
     gmeow:saRationale "gmeow:participationRole MUST have rdfs:range gmeow:ParticipantRole." .
 
-# --- 18. eventTime ranges over xsd:dateTime (MUST) ----------------------------
+# --- 18. eventTime admits all four source precision datatypes (MUST) -----------
 ex:saEventTimeRangeDateTime a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:eventTime rdfs:range xsd:dateTime . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST have rdfs:range xsd:dateTime (DL-clean, never xsd:date)." .
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:eventTime rdfs:range ?range .
+    ?range owl:unionOf ?members .
+    ?members rdf:rest*/rdf:first xsd:dateTime, xsd:date, xsd:gYearMonth, xsd:gYear .
+}""" ;
+    gmeow:saRationale "eventTime must admit every supplied timestamp, day, month and year precision through one datatype union." .
 
-# --- 19. eventTime does NOT range over xsd:date (MUST-NOT) --------------------
+# --- 19. eventTime has no single-precision intersecting range (MUST-NOT) -------
 ex:saEventTimeNotRangeDate a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:eventTime rdfs:range xsd:date . }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST NOT range over xsd:date -- not in the OWL 2 datatype map (Principle 3)." .
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    VALUES ?narrow { xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear }
+    gmeow:eventTime rdfs:range ?narrow .
+}""" ;
+    gmeow:saRationale "eventTime must not narrow its values to any single precision datatype; independent ranges would intersect rather than admit the four alternatives." .
 
 # --- 20. earliestStart ranges over xsd:dateTime (MUST) ------------------------
 ex:saEarliestStartRangeDateTime a gmeow:StructuralAssertion ;
@@ -356,8 +367,19 @@ ex:saEventTimeRangeOnly a gmeow:StructuralAssertion ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:eventTime rdfs:range ?r . FILTER(?r != xsd:dateTime) }""" ;
-    gmeow:saRationale "gmeow:eventTime MUST NOT carry any rdfs:range other than xsd:dateTime (exact-range arm; subsumes the never-xsd:date guard)." .
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:eventTime rdfs:range ?range .
+    FILTER NOT EXISTS {
+        ?range owl:unionOf ?members .
+        FILTER NOT EXISTS {
+            ?members rdf:rest*/rdf:first ?member .
+            FILTER(?member NOT IN (xsd:dateTime, xsd:date, xsd:gYearMonth, xsd:gYear))
+        }
+    }
+}""" ;
+    gmeow:saRationale "Every eventTime range must be the temporal precision union, without unrelated datatype alternatives or a competing range." .
 
 ex:saEventLocationRangeOnly a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;

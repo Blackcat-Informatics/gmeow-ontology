@@ -77,12 +77,25 @@ the seeds is a fresh individual — never a new participation subproperty.
 
 ### gmeow:eventTime · gmeow:eventInterval · gmeow:earliestStart · gmeow:latestEnd · gmeow:temporalPrecision
 
-The temporal axis, three honest shapes: a point event uses `eventTime`
-(`xsd:dateTime`); a crisp span uses `eventInterval` (the temporal slice's
-TimeInterval); a fuzzy date uses the `earliestStart`/`latestEnd` bounds plus a
-`gmeow:TemporalPrecision` value (day/month/year/decade/circa) — uncertainty modelled,
-not smuggled into a string. All non-functional: competing standpoint-indexed dates
-coexist, confidence-weighted, annotated by the four statement clocks (temporal slice).
+A point-like occurrence uses `eventTime` at the source's stated precision:
+`xsd:dateTime`, `xsd:date`, `xsd:gYearMonth` or `xsd:gYear`. Keep every literal's
+lexical form, datatype and timezone. A day, month or year supplies neither an
+unstated midnight nor an event duration. Coexisting standpoint-indexed placements
+remain separate statements, with their own confidence and provenance.
+
+A crisp span uses `eventInterval`; a fuzzy date uses source-supplied
+`earliestStart`/`latestEnd` bounds and `temporalPrecision`. These alternatives
+do not authorize deriving bounds from a coarse point. The
+[wedding example](examples/wedding.ttl) includes source day, month and year
+placements on the same occurrence.
+
+A supplied `eventTemporalFrame` is retained; absence keeps the existing
+UTC-Gregorian default. A frame cannot reinterpret XSD's Gregorian datatypes.
+OWL-Time uses the matching precision predicate. The schema.org profile projects
+dates, vCard may coarsen to a year, and PROV/iCalendar instant branches omit
+coarse placements. Their owned loss notes declare frame and metadata omissions.
+[TQL](../../../docs/temporal-queries.md) displays full typed placements but
+restricts numeric comparisons to compatible zoned timestamps.
 
 ### gmeow:eventDuring
 
@@ -100,8 +113,7 @@ period before this relation can name it. Existing instant-only consumers gain
 no period expansion or inclusion rule from this property.
 
 The [wedding example](examples/wedding.ttl) retains an earlier wedding's
-placement in a reporting interval and in the Holocene without inventing its
-`eventTime`.
+placement in a reporting interval and in the Holocene without inventing a clock time.
 
 ### gmeow:eventLocation · gmeow:eventTrajectory · gmeow:eventSpacetime
 

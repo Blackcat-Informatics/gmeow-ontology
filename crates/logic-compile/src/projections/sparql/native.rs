@@ -320,6 +320,14 @@ pub(crate) fn expression(source: &Expr) -> gmeow_errors::Result<Expression> {
                 "opStrEnds" => Function::StrEnds,
                 "opEncodeForUri" => Function::EncodeForUri,
                 "opRegex" => Function::Regex,
+                "opDate" => {
+                    arity(1)?;
+                    Function::Custom(iri("http://www.w3.org/2001/XMLSchema#date")?)
+                }
+                "opGYear" => {
+                    arity(1)?;
+                    Function::Custom(iri("http://www.w3.org/2001/XMLSchema#gYear")?)
+                }
                 "opDecimal" => Function::Custom(iri("http://www.w3.org/2001/XMLSchema#decimal")?),
                 _ => return Err(error(format!("unsupported expression operator: {name}"))),
             };

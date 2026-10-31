@@ -85,7 +85,7 @@ without changing either category's identity.
 The rule version retains existing `versionOf`, `versionLabel`,
 `contentDigest`, `wasDerivedFrom` and `wasAttributedTo` provenance plus its
 `signalConfidenceReview` activity. The review retains `wasAssociatedWith`
-and `eventTime`. A changed value, reason or rule configuration creates a new
+and `atTime`. A changed value, reason or rule configuration creates a new
 version and digest. Distinct rule versions may configure the same signal
 differently. Several tellers may explicitly use one unchanged version; that does
 not make its settings global defaults.

@@ -7,8 +7,9 @@
 //!
 //! FnO is the *transform-function* lowering of the correspondence calculus. The
 //! signatures (parameters typed from each input predicate's ontology `rdfs:range`,
-//! the output) are exact; FnO is not an entailment surface, so the ledger-row
-//! preservation is `ValidationOnly`. The derivation (range typing, IRI minting, the
+//! the output) retain named types. Anonymous datatype unions use a Literal carrier
+//! with their erased alternatives disclosed in the owning function's loss row.
+//! FnO is not an entailment surface; preservation is `ValidationOnly`. The derivation (range typing, IRI minting, the
 //! `used_by`/`transform_cells` scan, `_var_for_predicate`/`_output_var`, the sort
 //! order, the deterministic blank-node labels) is reproduced exactly; the
 //! [`purrdf::fno`] serializer owns the triple shapes. Extraction runs over the
@@ -29,7 +30,7 @@ use purrdf::fno::{
 };
 use purrdf::{BlankScope, RdfLiteral, RdfQuad, RdfTerm, TermValue, turtle};
 
-use crate::ingest::DslView;
+use crate::ingest::{DslTerm, DslView};
 use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceAnalysis;
 use crate::projections::get_leg::{Expr, ProjectionCell as MappingCell};
@@ -100,8 +101,9 @@ pub struct FnoLowering {
     /// The single FnO catalog N-Triples text.
     pub catalog: String,
     /// One [`ProjectionResult`] per projection function, interface or operation declaration — FnO is
-    /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
-    /// scope are dropped, so every function contributes a preservation row.
+    /// `ValidationOnly`: named types are retained; anonymous datatype unions use
+    /// disclosed Literal carriers. Relation, caveats and standpoint scope are
+    /// dropped, so every function contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
     /// The per-correspondence loss store this lowering interned every drop into (keyed by
     /// target focus). The mappings stage unions it into the single report loss store so the
@@ -211,11 +213,20 @@ pub fn lower_fno(
         .collect();
     let catalog: String = quads.iter().map(turtle::emit_quad).collect();
 
-    // One preservation row per function correspondence: FnO carries exact signatures but
-    // is not an entailment surface, so the relation, caveats, and standpoint scope are
-    // dropped (the dialect structural drops, attributed to the get leg).
+    // Each function owns its signature projection losses. Named types remain exact;
+    // anonymous datatype alternatives are disclosed when their carrier is widened.
+    // FnO remains a validation surface, not a canonical entailment surface.
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     let mut loss = LossLedger::new();
+    let mut type_losses = BTreeMap::<String, BTreeSet<String>>::new();
+    for function in &functions {
+        for predicate in function.inputs.iter().chain(&function.optional_inputs) {
+            type_losses
+                .entry(function.iri.clone())
+                .or_default()
+                .extend(projected_predicate_types(onto, predicate)?.residue);
+        }
+    }
     for target in functions
         .iter()
         .map(|func| &func.iri)
@@ -226,7 +237,11 @@ pub fn lower_fno(
             &mut loss,
             "fno",
             target,
-            Vec::new(),
+            type_losses
+                .remove(target)
+                .unwrap_or_default()
+                .into_iter()
+                .collect(),
             None,
         ));
     }
@@ -237,10 +252,132 @@ pub fn lower_fno(
     })
 }
 
-/// The single shared `rdfs:range` lookup (the FnO `fno:type` derivation + the lint's
-/// `fno-ref`/type check): every range IRI of a predicate in the ontology view.
-pub fn predicate_ranges(onto: &DslView, predicate: &str) -> Vec<String> {
-    onto.object_iris(predicate, RDFS_RANGE)
+/// The FnO carrier types and constraints erased by this target projection.
+pub(crate) struct PredicateTypeProjection {
+    pub types: Vec<String>,
+    pub residue: Vec<String>,
+}
+
+/// Project an input property's declared range into FnO's IRI-valued type slot.
+/// Named ranges remain named. A finite union of concrete native datatypes uses
+/// the Literal carrier and exposes every erased alternative in its loss evidence.
+/// Malformed lists and unsupported anonymous forms are errors, never missing ranges.
+pub(crate) fn projected_predicate_types(
+    onto: &DslView<'_>,
+    predicate: &str,
+) -> gmeow_errors::Result<PredicateTypeProjection> {
+    let invalid = |detail: String| {
+        Diag::of_kind(crate::error::Fno {
+            detail: format!("{predicate}: {detail}"),
+        })
+    };
+    let mut ranges = onto.objects_of(predicate, RDFS_RANGE);
+    for range in onto.objects_of(predicate, "https://blackcatinformatics.ca/logic/range") {
+        if !ranges.contains(&range) {
+            ranges.push(range);
+        }
+    }
+    if ranges.iter().all(|range| matches!(range, DslTerm::Iri(_))) {
+        return Ok(PredicateTypeProjection {
+            types: ranges
+                .iter()
+                .filter_map(|range| range.as_iri().map(str::to_owned))
+                .collect(),
+            residue: Vec::new(),
+        });
+    }
+    let [range] = ranges.as_slice() else {
+        return Err(invalid(
+            "FnO requires one anonymous datatype range, without competing range declarations"
+                .to_owned(),
+        ));
+    };
+    if !matches!(range, DslTerm::Blank { .. }) {
+        return Err(invalid(
+            "an anonymous range must be a datatype resource".to_owned(),
+        ));
+    }
+    let types = onto.objects_of_term(range, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    if !types.iter().any(|kind| {
+        matches!(
+            kind.as_iri(),
+            Some(
+                "http://www.w3.org/2000/01/rdf-schema#Datatype"
+                    | "https://blackcatinformatics.ca/logic/Datarange"
+            )
+        )
+    }) {
+        return Err(invalid(
+            "FnO supports anonymous datatype unions, not anonymous class ranges".to_owned(),
+        ));
+    }
+    for construct in [
+        "onDatatype",
+        "withRestrictions",
+        "intersectionOf",
+        "complementOf",
+        "datatypeComplementOf",
+        "oneOf",
+    ] {
+        for namespace in [
+            "https://blackcatinformatics.ca/logic/",
+            "http://www.w3.org/2002/07/owl#",
+        ] {
+            if !onto
+                .objects_of_term(range, &format!("{namespace}{construct}"))
+                .is_empty()
+            {
+                return Err(invalid(format!(
+                    "unsupported anonymous datatype constructor {construct}"
+                )));
+            }
+        }
+    }
+    let mut heads = onto.objects_of_term(range, "https://blackcatinformatics.ca/logic/unionOf");
+    for head in onto.objects_of_term(range, "http://www.w3.org/2002/07/owl#unionOf") {
+        if !heads.contains(&head) {
+            heads.push(head);
+        }
+    }
+    let [head] = heads.as_slice() else {
+        return Err(invalid(
+            "FnO requires exactly one finite datatype union".to_owned(),
+        ));
+    };
+    let members = onto.rdf_list_strict(head)?;
+    if members.is_empty() {
+        return Err(invalid(
+            "FnO cannot project an empty datatype union".to_owned(),
+        ));
+    }
+    let mut alternatives = BTreeSet::new();
+    for member in members {
+        let Some(datatype) = member.as_iri() else {
+            return Err(invalid(
+                "FnO datatype-union alternatives must be named concrete datatypes".to_owned(),
+            ));
+        };
+        if purrdf::xsd::XsdDatatype::from_iri(datatype).is_none()
+            && datatype != "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+            && datatype != "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        {
+            return Err(invalid(format!(
+                "unsupported FnO datatype-union alternative <{datatype}>"
+            )));
+        }
+        alternatives.insert(datatype.to_owned());
+    }
+    Ok(PredicateTypeProjection {
+        types: vec!["http://www.w3.org/2000/01/rdf-schema#Literal".to_owned()],
+        residue: vec![format!(
+            "FnO input <{predicate}> uses the rdfs:Literal carrier; its canonical allowed-datatype union ({}) is not represented by the FnO parameter type. The exact restriction remains in the canonical ontology.",
+            alternatives
+                .into_iter()
+                .map(|iri| format!("<{iri}>"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )],
+    })
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
@@ -425,7 +562,11 @@ fn build_catalog(
             .chain(func.optional_inputs.iter().map(|p| (p, false)))
         {
             let param = param_iri(predicate);
-            let Some(rng) = predicate_ranges(onto, predicate).into_iter().next() else {
+            let Some(rng) = projected_predicate_types(onto, predicate)?
+                .types
+                .into_iter()
+                .next()
+            else {
                 return Err(Diag::of_kind(crate::error::Fno {
                     detail: format!(
                         "{}: input {predicate} has no rdfs:range — cannot derive its fno:type",

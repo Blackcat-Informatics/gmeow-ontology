@@ -1720,8 +1720,8 @@ msgid "signal confidence review"
 msgstr "信号置信审阅"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The completed review activity for the exact confidence-rule version. Reviewer association and sign-off instant are retained through wasAssociatedWith and eventTime, without claiming universal endorsement or executing a review."
-msgstr "针对确切置信规则版本已完成的审阅活动。审阅者关联及签署时刻通过 wasAssociatedWith 和 eventTime 保留，不宣称普遍认可，也不执行审阅。"
+msgid "The completed review activity for the exact confidence-rule version. Reviewer association and sign-off instant are retained through wasAssociatedWith and atTime, without claiming universal endorsement or executing a review."
+msgstr "针对确切置信规则版本已完成的审阅活动。审阅者关联及签署时刻通过 wasAssociatedWith 和 atTime 保留，不宣称普遍认可，也不执行审阅。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/signalConfidenceReview|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."
