@@ -434,11 +434,22 @@ pub enum DocsError {
         /// The rationale predicate IRI.
         predicate: String,
     },
+    /// A manifest creator statement is missing or cannot retain its complete
+    /// source literal identity.
+    ManifestCreator {
+        /// The slice whose manifest cannot be documented.
+        slice_iri: String,
+        /// The failed admission requirement.
+        detail: String,
+    },
 }
 
 impl std::fmt::Display for DocsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            DocsError::ManifestCreator { slice_iri, detail } => {
+                write!(f, "manifest creator in slice {slice_iri}: {detail}")
+            }
             DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
@@ -700,8 +711,9 @@ pub struct DocSlice {
     pub tier: Option<SliceTier>,
     /// `dcterms:identifier` (e.g. DOI).
     pub identifier: Option<String>,
-    /// `dcterms:creator` values.
-    pub creators: Vec<String>,
+    /// Every original `dcterms:creator` statement, preserving its complete
+    /// source literal, without language preference or lexical deduplication.
+    pub creators: Vec<gmeow_errors::SourceAnnotation>,
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
     /// `gmeow:sliceProfile` values — named profiles this slice declares
@@ -825,7 +837,7 @@ impl DocSlice {
             slice_iri,
             label,
             title,
-            creators,
+            creators: _,
             identifier,
             tier,
             consumers,
@@ -859,8 +871,7 @@ impl DocSlice {
             .as_deref()
             .is_some_and(detect_realized_state_complete);
 
-        let mut creators = creators.clone();
-        creators.sort();
+        let creators = manifest_creators(record)?;
         let mut consumers = consumers.clone();
         consumers.sort();
         // `extract_manifest_view` already sorts + dedups both vectors before
@@ -892,6 +903,64 @@ impl DocSlice {
             documents,
         })
     }
+}
+
+/// Select creator statements from the catalog's already-parsed native manifest,
+/// rather than its lexical display view. The canonical range admits string,
+/// language-string and directional-language-string proper names.
+fn manifest_creators(
+    record: &SliceRecord,
+) -> Result<Vec<gmeow_errors::SourceAnnotation>, DocsError> {
+    const CREATOR: &str = "http://purl.org/dc/terms/creator";
+    let slice_iri = &record.manifest.slice_iri;
+    let refused = |detail: String| DocsError::ManifestCreator {
+        slice_iri: slice_iri.clone(),
+        detail,
+    };
+    let subject =
+        purrdf_core::BaseIri::parse(slice_iri).map_err(|error| refused(error.to_string()))?;
+    let predicate =
+        purrdf_core::BaseIri::parse(CREATOR).map_err(|error| refused(error.to_string()))?;
+    let mut creators = Vec::new();
+    for quad in record.manifest_graph.owned_quads().filter(|quad| {
+        quad.subject == purrdf::RdfTerm::Iri(slice_iri.clone()) && quad.predicate == CREATOR
+    }) {
+        let purrdf::RdfTerm::Literal(literal) = quad.object else {
+            return Err(refused(
+                "dcterms:creator must be a prose literal".to_owned(),
+            ));
+        };
+        if !matches!(
+            literal.datatype_iri(),
+            "http://www.w3.org/2001/XMLSchema#string"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        ) {
+            return Err(refused(
+                "dcterms:creator must be a prose literal".to_owned(),
+            ));
+        }
+        creators.push(
+            gmeow_errors::SourceAnnotation::new(subject.clone(), predicate.clone(), literal)
+                .map_err(refused)?,
+        );
+    }
+    if creators.is_empty() {
+        return Err(refused("requires at least one dcterms:creator".to_owned()));
+    }
+    let key = |annotation: &gmeow_errors::SourceAnnotation| {
+        let literal = annotation.object();
+        (
+            literal.lexical_form.clone(),
+            literal.datatype_iri().to_owned(),
+            literal.language.clone(),
+            literal.direction.map(|direction| direction.as_str()),
+            literal.datatype.clone(),
+        )
+    };
+    creators.sort_by_key(key);
+    creators.dedup();
+    Ok(creators)
 }
 
 /// The maturity status of a vocabulary term. Serializes as a lowercase
@@ -2119,7 +2188,8 @@ impl DocsModel {
     /// slice, rather than also publishing foreign type redeclarations as owners.
     /// v20: competency rationales retain all complete native RDF literal records.
     /// v21: fixture rationales retain every native literal and its source language/direction.
-    pub const VERSION: &'static str = "21";
+    /// v22: slice creators retain their original complete source statements.
+    pub const VERSION: &'static str = "22";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM

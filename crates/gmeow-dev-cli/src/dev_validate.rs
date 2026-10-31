@@ -336,7 +336,7 @@ pub fn validate(
 /// The fully-assembled authored-source invocation for `gmeow-dev validate` (the
 /// `make validate` gate): the source paths, the mapping/statement DSL directories
 /// passed positionally to [`ValidationRun::run`], and the [`ValidateOptions`] that
-/// carry the central-DSL SHACL surfaces (the three `*_shapes_ttl` and `test_dsl_dir`).
+/// carry the central-DSL SHACL surfaces and the explicit manifest selection.
 ///
 /// It exists so the DSL wiring lives in ONE testable place: the exact args whose
 /// prior absence was the historical original defect are built here, and
@@ -357,6 +357,8 @@ pub(crate) struct AuthoredSourceInvocation {
 /// from tests and slice-local test DSL (owned by `slicetest`) is not re-run as a duplicate
 /// corpus pass — see `docs/DSL-VALIDATION-COVERAGE.md` and the
 /// `VALIDATE_PHASE_COVERAGE` registry.
+/// Manifest validation has a separate explicit source selection; it does not
+/// enable `slices_dir` or produce example/test corpora.
 ///
 /// `merged_shacl` is a PARAMETER (not resolved here) so this assembly — and its
 /// test — never depend on a materialized `generated/` tree.
@@ -380,6 +382,8 @@ pub(crate) fn authored_source_invocation(
         Ok(dsl) => dsl,
         Err(e) => return Err(fail(format!("cannot resolve DSL SHACL inputs: {e}"))),
     };
+    let manifests = gmeow_validate::dsl_coverage::authored_manifest_shacl_inputs(root)
+        .map_err(|error| fail(format!("cannot resolve manifest SHACL inputs: {error}")))?;
     let options = ValidateOptions {
         timings,
         project_root: Some(root.to_path_buf()),
@@ -391,6 +395,7 @@ pub(crate) fn authored_source_invocation(
         statement_shapes_ttl: Some(dsl.statement_shapes),
         test_dsl_shapes_ttl: Some(dsl.test_shapes),
         test_dsl_dir: Some(dsl.test_dir),
+        manifest_shacl: Some(manifests),
         ..ValidateOptions::default()
     };
     Ok(AuthoredSourceInvocation {

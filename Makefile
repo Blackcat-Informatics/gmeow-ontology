@@ -267,7 +267,7 @@ lint: check-sync-prerequisite-test ## Run fast source hygiene and inert docs pre
 check-lint: check-sync-prerequisite-test
 	pre-commit run --all-files --show-diff-on-failure
 
-validate: ## Validate syntax, term annotations, merged SHACL, and central mapping/statement/test DSL SHACL.
+validate: ## Validate syntax, term annotations, merged SHACL, central mapping/statement/test DSL SHACL, and slice manifests.
 	$(GMEOW_DEV) validate
 
 reason: ## Run the native Docker-free EL/DL reasoning authority.
