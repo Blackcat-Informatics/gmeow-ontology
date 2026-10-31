@@ -1,0 +1,203 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:StateAssignmentClaim
+    a logic:Class, logic:Kind ;
+    rdfs:seeAlso gmeow:accordingTo, gmeow:wasDerivedFrom ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "State Assignment Claim"@x-gmeow-english ;
+    skos:definition "An information record reifying one exact RDF assignment tuple. The original tuple supplies the state bearer, property IRI and assigned RDF value; the record does not copy them into slot fields or assert the quoted assignment."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source claim about the value of a property on a bearer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this information object as an assertion act, a preferred value or proof that the quoted assignment is asserted."@x-gmeow-english ;
+    gmeow:howToUse "Type the native RDF 1.2 reifier and retain its exact rdf:reifies tuple, attribution and source. The bearer and property together identify the state position."@x-gmeow-english ;
+    skos:example "ex:claim a gmeow:StateAssignmentClaim ; rdf:reifies <<( ex:agent ex:mode ex:quiet )>> ."@x-gmeow-english .
+
+gmeow:StateTransitionClaim
+    a logic:Class, logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:StateAssignmentClaim,
+        [ a logic:Restriction ; logic:onProperty gmeow:supersedes ;
+          logic:allValuesFrom gmeow:StateAssignmentClaim ] ;
+    rdfs:label "State Transition Claim"@x-gmeow-english ;
+    skos:definition "A successor state assignment record that supersedes one or more predecessor assignment records for the same original bearer and property. Its assigned value may differ; every replaced record remains identified and retained."@x-gmeow-english ;
+    gmeow:useWhen "Use when one successor assignment replaces one or several recorded assignments for a property."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid choosing one predecessor, deriving replacement order from clocks or erasing concurrent claims."@x-gmeow-english ;
+    gmeow:howToUse "Reify the successor assignment and link this record through supersedes to every replaced StateAssignmentClaim. Compare bearer and property on the original tuples, without a separate slot node."@x-gmeow-english ;
+    skos:example "ex:next a gmeow:StateTransitionClaim ; rdf:reifies <<( ex:agent ex:mode ex:ready )>> ; gmeow:supersedes ex:priorA, ex:priorB ."@x-gmeow-english .
+
+gmeow:StateSupersessionClaim
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "State Supersession Claim"@x-gmeow-english ;
+    skos:definition "An information record reifying one exact successor supersedes predecessor edge between state assignment records. The successor is a StateTransitionClaim; the original edge tuple supplies both endpoints and the supersedes predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use to attribute evidence or a replaced-state duration to one particular replacement edge."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying endpoints onto the edge record or putting one predecessor’s duration on a transition replacing several predecessors."@x-gmeow-english ;
+    gmeow:howToUse "Reify the exact supersedes edge and retain that asserted edge between its actual records. Attach optional supersededStateLasted to this reifier; retain source attribution separately for each edge."@x-gmeow-english ;
+    skos:example "ex:edge a gmeow:StateSupersessionClaim ; rdf:reifies <<( ex:next gmeow:supersedes ex:priorA )>> ."@x-gmeow-english .
+
+gmeow:supersededStateLasted
+    a logic:DatatypeProperty ;
+    rdfs:seeAlso gmeow:wasDerivedFrom, gmeow:statedRationale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:StateSupersessionClaim ;
+    logic:range xsd:duration ;
+    rdfs:label "superseded state lasted"@x-gmeow-english ;
+    skos:definition "A source-supplied duration for which the predecessor state lasted before the exact supersession edge recorded by this reifier. A computed duration retains its stated derivation; GMEOW neither subtracts clocks nor certifies the arithmetic."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies a measured or explicitly derived duration for one replaced assignment."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a duration, a timezone or precision, or sharing one duration across distinct replacement edges."@x-gmeow-english ;
+    gmeow:howToUse "Attach the supplied xsd:duration to the StateSupersessionClaim. For a computed span, reify this exact duration assertion, link wasDerivedFrom to its opening and closing assignment claims, and record the calculation and input roles with statedRationale."@x-gmeow-english ;
+    skos:example "ex:edge gmeow:supersededStateLasted \"PT15M\"^^xsd:duration ."@x-gmeow-english .
+
+gmeow:StateRecordIntegrityFailure
+    a logic:Class, logic:Category ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:Situation ;
+    rdfs:label "State Record Integrity Failure"@x-gmeow-english ;
+    skos:definition "A well-formedness failure of an exact state assignment, transition or supersession record. It concerns retained tuple identity and replacement evidence, independently of whether the source’s state claim is true."@x-gmeow-english ;
+    gmeow:useWhen "Use as the failure marker raised by the state-record integrity laws."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a malformed record as proof that its source claim is false."@x-gmeow-english ;
+    gmeow:howToUse "Retain the violated law and focus record with the diagnostic; repair the original evidence rather than fabricate a matching tuple."@x-gmeow-english ;
+    skos:example "gmeow:StateAssignmentTupleConstraint gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ."@x-gmeow-english .
+
+gmeow:StateAssignmentTupleConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateAssignmentClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State assignment tuple constraint"@x-gmeow-english ;
+    skos:definition "Every state assignment record reifies an original quoted triple with available subject, predicate and object components."@x-gmeow-english ;
+    gmeow:useWhen "Use to require an actual assignment tuple for a state record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying this law with copied slot fields or a non-triple reified value."@x-gmeow-english ;
+    gmeow:howToUse "Bind the existing rdf:reifies term and compare each native tuple component with itself; an unavailable component fails."@x-gmeow-english ;
+    skos:example "gmeow:StateAssignmentTupleConstraint logic:formalizes gmeow:StateAssignmentClaim ."@x-gmeow-english ;
+    logic:message "Every state assignment record reifies an original quoted triple with available subject, predicate and object components." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateAssignmentClaim ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "assignmentTuple" ] ;
+        logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "assignmentTuple" ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleSubject ], [ logic:termIndex 2 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentTripleSubject ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTriplePredicate ], [ logic:termIndex 2 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentTriplePredicate ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleObject ], [ logic:termIndex 2 ; logic:termVariable "assignmentTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentTripleObject ] ] ] ] ] ] .
+
+gmeow:StateAssignmentTupleIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateAssignmentClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State assignment tuple identity constraint"@x-gmeow-english ;
+    skos:definition "Every tuple reified by one StateAssignmentClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the single exact tuple recorded by this claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."@x-gmeow-english ;
+    gmeow:howToUse "Compare every pair of positively bound rdf:reifies terms with componentWhole."@x-gmeow-english ;
+    skos:example "gmeow:StateAssignmentTupleIdentityConstraint logic:formalizes gmeow:StateAssignmentClaim ."@x-gmeow-english ;
+    logic:message "Every tuple reified by one StateAssignmentClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftTuple" ], [ logic:termIndex 2 ; logic:termVariable "rightTuple" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateAssignmentClaim ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftTuple" ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rightTuple" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentWhole ], [ logic:termIndex 2 ; logic:termVariable "rightTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .
+
+gmeow:StateSupersessionTupleIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateSupersessionClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State supersession tuple identity constraint"@x-gmeow-english ;
+    skos:definition "Every tuple reified by one StateSupersessionClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the single exact tuple recorded by this claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid value coercion or accepting one matching tuple while ignoring other reified tuples."@x-gmeow-english ;
+    gmeow:howToUse "Compare every pair of positively bound rdf:reifies terms with componentWhole."@x-gmeow-english ;
+    skos:example "gmeow:StateSupersessionTupleIdentityConstraint logic:formalizes gmeow:StateSupersessionClaim ."@x-gmeow-english ;
+    logic:message "Every tuple reified by one StateSupersessionClaim has the same complete RDF identity. One record cannot hide a second assignment or edge behind a valid first tuple." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftTuple" ], [ logic:termIndex 2 ; logic:termVariable "rightTuple" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateSupersessionClaim ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "leftTuple" ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rightTuple" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentWhole ], [ logic:termIndex 2 ; logic:termVariable "rightTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] .
+
+gmeow:StateTransitionPredecessorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateTransitionClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State transition predecessor constraint"@x-gmeow-english ;
+    skos:definition "Every transition has an existing predecessor assignment with the same original tuple subject and predicate. The witness joins the actual supersedes edge and both existing reified assignments."@x-gmeow-english ;
+    gmeow:useWhen "Use to require an actual replaced assignment for a transition record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a predecessor or joining assignments merely because their values coincide."@x-gmeow-english ;
+    gmeow:howToUse "Bind the successor and predecessor tuples through stored relations, then compare their subject and predicate components by RDF identity."@x-gmeow-english ;
+    skos:example "gmeow:StateTransitionPredecessorConstraint logic:formalizes gmeow:StateTransitionClaim ."@x-gmeow-english ;
+    logic:message "Every transition has an existing predecessor assignment with the same original tuple subject and predicate. The witness joins the actual supersedes edge and both existing reified assignments." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateTransitionClaim ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "priorClaim" ], [ logic:termIndex 1 ; logic:termVariable "nextAssignment" ], [ logic:termIndex 2 ; logic:termVariable "priorAssignment" ] ;
+        logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:supersedes ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "priorClaim" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "priorClaim" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateAssignmentClaim ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "nextAssignment" ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "priorClaim" ], [ logic:termIndex 1 ; logic:termVariable "priorAssignment" ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "nextAssignment" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleSubject ], [ logic:termIndex 2 ; logic:termVariable "priorAssignment" ], [ logic:termIndex 3 ; logic:termIri logic:componentTripleSubject ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "nextAssignment" ], [ logic:termIndex 1 ; logic:termIri logic:componentTriplePredicate ], [ logic:termIndex 2 ; logic:termVariable "priorAssignment" ], [ logic:termIndex 3 ; logic:termIri logic:componentTriplePredicate ] ] ] ] ] ] .
+
+gmeow:StateTransitionSlotIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateTransitionClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State transition position identity constraint"@x-gmeow-english ;
+    skos:definition "Every predecessor edge of a transition connects distinct records whose original assignment subjects and predicates are identical. Multiple predecessors cannot hide a replacement concerning another bearer or property."@x-gmeow-english ;
+    gmeow:useWhen "Use to check every supplied predecessor independently, including a transition with several predecessors."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting one matching predecessor as evidence that every other predecessor matches."@x-gmeow-english ;
+    gmeow:howToUse "Universally bind each supersedes edge and its existing assignment tuples; require both component identities and distinct record identities."@x-gmeow-english ;
+    skos:example "gmeow:StateTransitionSlotIdentityConstraint logic:formalizes gmeow:StateTransitionClaim ."@x-gmeow-english ;
+    logic:message "Every predecessor edge of a transition connects distinct records whose original assignment subjects and predicates are identical. Multiple predecessors cannot hide a replacement concerning another bearer or property." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "replacedClaim" ], [ logic:termIndex 2 ; logic:termVariable "successorTuple" ], [ logic:termIndex 3 ; logic:termVariable "predecessorTuple" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateTransitionClaim ] ],
+                [ a logic:Formula ; logic:relation gmeow:supersedes ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "replacedClaim" ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "successorTuple" ] ],
+                [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "replacedClaim" ], [ logic:termIndex 1 ; logic:termVariable "predecessorTuple" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "successorTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleSubject ], [ logic:termIndex 2 ; logic:termVariable "predecessorTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentTripleSubject ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "successorTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTriplePredicate ], [ logic:termIndex 2 ; logic:termVariable "predecessorTuple" ], [ logic:termIndex 3 ; logic:termIri logic:componentTriplePredicate ] ],
+                [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:componentWhole ], [ logic:termIndex 2 ; logic:termVariable "replacedClaim" ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] .
+
+gmeow:StateSupersessionEdgeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/state-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:formalizes gmeow:StateSupersessionClaim ;
+    gmeow:enforcesFailureClass gmeow:StateRecordIntegrityFailure ;
+    rdfs:label "State supersession edge constraint"@x-gmeow-english ;
+    skos:definition "Every supersession record reifies the exact existing successor supersedes predecessor edge, with its actual typed transition and assignment endpoints. A quoted edge alone does not establish an asserted replacement."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind edge-specific evidence to the exact replacement it describes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid admitting copied endpoints, reversed edges or a different predicate between the same records."@x-gmeow-english ;
+    gmeow:howToUse "Join the record’s original rdf:reifies tuple with an existing supersedes edge and its typed endpoints; compare all three tuple components against the bound edge."@x-gmeow-english ;
+    skos:example "gmeow:StateSupersessionEdgeConstraint logic:formalizes gmeow:StateSupersessionClaim ."@x-gmeow-english ;
+    logic:message "Every supersession record reifies the exact existing successor supersedes predecessor edge, with its actual typed transition and assignment endpoints. A quoted edge alone does not establish an asserted replacement." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateSupersessionClaim ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "edgeTuple" ], [ logic:termIndex 1 ; logic:termVariable "edgeSuccessor" ], [ logic:termIndex 2 ; logic:termVariable "edgePredecessor" ] ;
+        logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "edgeTuple" ] ],
+                [ a logic:Formula ; logic:relation gmeow:supersedes ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgeSuccessor" ], [ logic:termIndex 1 ; logic:termVariable "edgePredecessor" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgeSuccessor" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateTransitionClaim ] ],
+                [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgePredecessor" ], [ logic:termIndex 1 ; logic:termIri gmeow:StateAssignmentClaim ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgeTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleSubject ], [ logic:termIndex 2 ; logic:termVariable "edgeSuccessor" ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgeTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTriplePredicate ], [ logic:termIndex 2 ; logic:termIri gmeow:supersedes ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ],
+                [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "edgeTuple" ], [ logic:termIndex 1 ; logic:termIri logic:componentTripleObject ], [ logic:termIndex 2 ; logic:termVariable "edgePredecessor" ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] .
