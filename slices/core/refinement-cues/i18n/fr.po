@@ -1424,3 +1424,405 @@ msgstr "La fermeture des prédicats ne ferme pas le monde externe des faits et n
 msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifies this declaration law."
 msgstr "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifie cette loi de déclaration."
+
+# Reading parameters and scoped reported measurements.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement run"
+msgstr "suite de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest consecutive word run a text repeats from the outside text it is read as restating, recorded on that wasDerivedFrom reading's reifier."
+msgstr "La plus longue suite de mots consécutifs qu’un texte répète du texte extérieur qu’il est lu comme reformulant, portée sur le réificateur de cette lecture wasDerivedFrom."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "La valeur est une mesure de classement fournie, jamais une confiance, une crédence ou un chevauchement lexical vérifié indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share"
+msgstr "part de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of the outside text's words covered by the repeated consecutive run, strictly greater than zero and at most one, recorded on the possible restatement reifier."
+msgstr "Part fournie des mots du texte extérieur couverte par la suite consécutive répétée, strictement supérieure à zéro et au plus égale à un, portée sur le réificateur de reformulation possible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "La valeur est une mesure de classement fournie, jamais une confiance, une crédence ou un chevauchement lexical vérifié indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementShare 0.5 ."
+msgstr "ex:restatement gmeow:restatementShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement received at"
+msgstr "reformulation reçue à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied date-time at which the reader orders the author as having received the outside words read as restated, accompanied by the stated receipt basis."
+msgstr "Date-heure fournie à laquelle le lecteur situe la réception des mots extérieurs par leur auteur supposé les reformuler, accompagnée de la base de réception déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The timestamp is an attributed interpretation. These declarations do not select a fallback time, resolve incomparable clocks or prove that receipt preceded authorship."
+msgstr "L’horodatage est une interprétation attribuée. Ces déclarations ne choisissent pas d’heure de repli, ne résolvent pas des horloges incomparables et ne prouvent pas une réception antérieure à la rédaction."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement receipt basis"
+msgstr "base de réception de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What the reader reports having used to locate receipt of the outside words, retained on the possible restatement reifier separately from the receipt date-time."
+msgstr "Ce que le lecteur rapporte avoir utilisé pour situer la réception des mots extérieurs, conservé sur le réificateur de reformulation possible séparément de la date-heure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The open basis vocabulary describes a selected interpretation; it neither orders evidence globally nor executes a fallback procedure."
+msgstr "Le vocabulaire ouvert des bases décrit une interprétation sélectionnée ; il ne classe pas globalement les preuves et n’exécute pas de procédure de repli."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Receipt Basis"
+msgstr "Base de réception"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary describing the source a reader used to locate receipt of outside words. Preference and availability belong to the selected reader and rule version."
+msgstr "Vocabulaire ouvert de valeurs de qualité décrivant la source utilisée par un lecteur pour situer la réception de mots extérieurs. Préférence et disponibilité relèvent du lecteur et de la version de règle sélectionnés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values are semantic QualityValues, not source documents, observation results or automatically selected fallbacks."
+msgstr "Les valeurs sont des QualityValues sémantiques, non des documents source, des résultats d’observation ni des replis sélectionnés automatiquement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+msgstr "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from receivedAt"
+msgstr "réception selon receivedAt"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports using the source message's receivedAt value to locate receipt of the outside words. Storage receipt does not prove that their author read them."
+msgstr "Le lecteur rapporte utiliser la valeur receivedAt du message source pour situer la réception des mots extérieurs. Une réception de stockage ne prouve pas leur lecture par l’auteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "Les valeurs de base n’exécutent pas la sélection de source et ne choisissent pas une chronologie universellement privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from evidence act"
+msgstr "réception selon un acte de preuve"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no receipt was recorded and uses the latest supplied assertion time of the acts named by the outside claim's evidence. Latest is a reported reader ordering, not a computed ontology result."
+msgstr "Le lecteur rapporte l’absence de réception enregistrée et utilise le dernier temps d’assertion fourni des actes nommés par les preuves de l’affirmation extérieure. Cet ordre est rapporté, non calculé par l’ontologie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "Les valeurs de base n’exécutent pas la sélection de source et ne choisissent pas une chronologie universellement privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from assertion"
+msgstr "réception selon l’assertion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no other source records receipt and uses the outside claim's own assertion time as its receipt-time basis. It remains an interpretation rather than a receipt observation."
+msgstr "Le lecteur rapporte qu’aucune autre source n’enregistre la réception et utilise le temps d’assertion de l’affirmation extérieure comme base. Cela reste une interprétation, non une observation de réception."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "Les valeurs de base n’exécutent pas la sélection de source et ne choisissent pas une chronologie universellement privilégiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement rule version"
+msgstr "version de règle de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact digest literal of the immutable RestatementRule parameter release used for this reading, copied from that release's contentDigest without changing its datatype or lexical identity."
+msgstr "Littéral de condensat exact de la version immuable des paramètres RestatementRule utilisée pour cette lecture, copié de son contentDigest sans changer son type ni son identité lexicale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks term identity and retained release metadata. It does not compute a parameter hash or supply missing native digest admission."
+msgstr "La loi vérifie l’identité de terme et les métadonnées de version conservées. Elle ne calcule pas de hachage de paramètres et ne fournit pas une admission native manquante de condensat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+msgstr "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Rule"
+msgstr "Règle de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed information artifact declaring a reader's matching parameters. Its version identity is separate from its lineage, the reading process and any logic:Rule execution structure."
+msgstr "Artefact informationnel immuable et révisé déclarant les paramètres de correspondance d’un lecteur. Son identité de version est distincte de sa lignée, du processus de lecture et d’une structure d’exécution logic:Rule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generic thresholds are explicit, not defaults. A changed parameter or declared word inventory requires a new version; digest verification remains its existing owner's contract."
+msgstr "Les seuils génériques sont explicites, non des valeurs par défaut. Un paramètre ou inventaire de mots modifié exige une nouvelle version ; la vérification du condensat relève de son propriétaire existant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+msgstr "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement Rule"
+msgstr "Règle de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ReadingRule parameter release for reading a text as restating outside words received earlier according to the selected reader. It declares its minimum run, short-source uncommon-word threshold and common-word inventory."
+msgstr "Version de paramètres ReadingRule pour lire un texte comme reformulant des mots extérieurs reçus auparavant selon le lecteur sélectionné. Elle déclare la suite minimale, le seuil de mots peu communs pour les sources courtes et l’inventaire de mots communs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The common-word inventory may be empty. No implicit minimumShare is invented for this profile, and no lexical matcher or receipt selector is executed."
+msgstr "L’inventaire peut être vide. Aucun minimumShare implicite n’est inventé et aucun moteur lexical ou sélecteur de réception n’est exécuté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum run"
+msgstr "suite minimale de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fewest consecutive source words a text must repeat under this RestatementRule."
+msgstr "Le nombre minimal de mots source consécutifs qu’un texte doit répéter sous cette RestatementRule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "Les seuils sont des paramètres fournis, non une confiance ni une preuve de correspondance exécutée. Un seuil de mots peu communs égal à zéro est explicite, non une capacité absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum uncommon words"
+msgstr "minimum de mots peu communs de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The least number of uncommon words required in a source shorter than the minimum run for a whole-source repetition to qualify under this RestatementRule."
+msgstr "Le nombre minimal de mots peu communs exigés dans une source plus courte que la suite minimale pour qu’une répétition intégrale soit admise sous cette RestatementRule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "Les seuils sont des paramètres fournis, non une confiance ni une preuve de correspondance exécutée. Un seuil de mots peu communs égal à zéro est explicite, non une capacité absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum run"
+msgstr "suite minimale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least consecutive-word span of a match under this ReadingRule."
+msgstr "La longueur minimale explicitement déclarée d’une suite de mots consécutifs correspondant sous cette ReadingRule."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "Les seuils sont des paramètres fournis, non une confiance ni une preuve de correspondance exécutée. Un seuil de mots peu communs égal à zéro est explicite, non une capacité absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share"
+msgstr "part minimale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least share a match must reach under this ReadingRule, strictly greater than zero and at most one."
+msgstr "La part minimale explicitement déclarée qu’une correspondance doit atteindre sous cette ReadingRule, strictement supérieure à zéro et au plus égale à un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "Les seuils sont des paramètres fournis, non une confiance ni une preuve de correspondance exécutée. Un seuil de mots peu communs égal à zéro est explicite, non une capacité absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumShare 0.5 ."
+msgstr "ex:ruleV1 gmeow:minimumShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement common word"
+msgstr "mot commun de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A common-word token spelling exactly as the selected RestatementRule reads words. It is part of that immutable parameter inventory, not a claim that the word is universally common."
+msgstr "Graphie d’un jeton de mot commun exactement telle que la RestatementRule sélectionnée lit les mots. Elle appartient à l’inventaire immuable de paramètres, non à une affirmation de fréquence universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inventory is unordered and may be empty. These declarations do not test tokenization, normalization or uncommon-word counts."
+msgstr "L’inventaire est non ordonné et peut être vide. Ces déclarations ne testent ni segmentation, ni normalisation, ni nombre de mots peu communs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+msgstr "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo run"
+msgstr "suite d’écho"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest run of a prompt's words that one sentence of an answer repeats in order, recorded on the echoesPremiseOf reading's reifier for ranking."
+msgstr "La plus longue suite de mots d’une invite qu’une phrase de réponse répète dans l’ordre, portée sur le réificateur de lecture echoesPremiseOf pour classement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "La valeur est une mesure de classement fournie, jamais une confiance, une crédence ou un chevauchement lexical vérifié indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+msgstr "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share"
+msgstr "part d’écho"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of an answer's words that are words of its prompt, strictly greater than zero and at most one, recorded on the attributed echo reifier."
+msgstr "Part fournie des mots d’une réponse qui sont des mots de son invite, strictement supérieure à zéro et au plus égale à un, portée sur le réificateur d’écho attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "La valeur est une mesure de classement fournie, jamais une confiance, une crédence ou un chevauchement lexical vérifié indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoShare 0.75 ."
+msgstr "ex:echo gmeow:echoShare 0.75 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading rule version identity constraint"
+msgstr "Contrainte d’identité de version de règle de lecture"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable ReadingRule version is distinct from the lineage resource it versions."
+msgstr "Une version immuable de ReadingRule est distincte de la ressource de lignée qu’elle versionne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Version identity and retained digest evidence do not authenticate review, bytes or an executed rule."
+msgstr "L’identité de version et la preuve de condensat conservée n’authentifient ni révision, ni octets, ni règle exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+msgstr "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement annotation contract constraint"
+msgstr "Contrainte de contrat d’annotation de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatement measurement or receipt/version annotation binds to its own possible wasDerivedFrom reifier, retained source texts, reader, complete measurement fields and the actual immutable parameter release carrying the identical digest term; it carries no confidence or numeric credence."
+msgstr "Chaque mesure ou annotation de réception/version de reformulation fournie est liée à son propre réificateur wasDerivedFrom possible, aux textes source, au lecteur, aux champs de mesure complets et à la version immuable réelle portant le terme de condensat identique ; aucune confiance ni crédence numérique n’y figure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The graph-term digest join preserves original literal identity. Statement-component lowering must be complete; no lexical matcher, chronology selector or native digest validator is supplied."
+msgstr "La jointure de termes de condensat préserve l’identité littérale originale. L’abaissement des composants doit être achevé ; aucun moteur lexical, sélecteur chronologique ni validateur natif de condensat n’est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+msgstr "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Echo annotation contract constraint"
+msgstr "Contrainte de contrat d’annotation d’écho"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echo measure binds to its own echoesPremiseOf reifier, original answer, concrete Prompt, reader and complete run/share pair."
+msgstr "Chaque mesure d’écho fournie est liée à son propre réificateur echoesPremiseOf, à la réponse originale, à la Prompt concrète, au lecteur et à la paire complète suite/part."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ranking measures remain independent of confidence and source truth. Completed statement-component lowering supplies the retained binding evidence."
+msgstr "Les mesures de classement restent indépendantes de la confiance et de la vérité source. L’abaissement achevé des composants fournit la preuve de liaison conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+msgstr "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share range constraint"
+msgstr "Contrainte d’intervalle : part de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatementShare is strictly greater than zero and at most one."
+msgstr "Chaque restatementShare fourni est strictement supérieur à zéro et au plus égal à un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "La restriction décimale séparée fournit l’admission du type ; cette loi vérifie les bornes sans calculer de mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+msgstr "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share range constraint"
+msgstr "Contrainte d’intervalle : part d’écho"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echoShare is strictly greater than zero and at most one."
+msgstr "Chaque echoShare fourni est strictement supérieur à zéro et au plus égal à un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "La restriction décimale séparée fournit l’admission du type ; cette loi vérifie les bornes sans calculer de mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+msgstr "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share range constraint"
+msgstr "Contrainte d’intervalle : part minimale"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied minimumShare is strictly greater than zero and at most one."
+msgstr "Chaque minimumShare fourni est strictement supérieur à zéro et au plus égal à un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "La restriction décimale séparée fournit l’admission du type ; cette loi vérifie les bornes sans calculer de mesure."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+msgstr "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement version term count constraint"
+msgstr "Contrainte de nombre de termes de version de reformulation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A restatement reifier carries at most one distinct restatementRuleVersion RDF term; independent readings retain separate reifiers."
+msgstr "Un réificateur de reformulation porte au plus un terme RDF restatementRuleVersion distinct ; des lectures indépendantes gardent des réificateurs séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This counts source RDF terms without interpreting or weakening their digest datatypes. The annotation contract separately requires a matching parameter release."
+msgstr "Cela compte les termes RDF sans interpréter ni affaiblir leurs types de condensat. Le contrat d’annotation exige séparément une version de paramètres correspondante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+msgstr "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."

@@ -97,3 +97,31 @@ the meaningful grounding. No exact external correspondence is justified for a
 scoped absence reading, a reported segmentation or an unspecified denominator;
 unsupported equivalences would erase these distinctions (Principles 4, 5, 11,
 17 and 19).
+
+## Empty-computation evidence
+
+The new source-attribution limit reuses QueryLossCause ancestry, scoped loss
+identity and the existing count/evidence obligations. It introduces no weaker
+input-selection branch and no assertion of originality from missing provenance.
+
+The foundNothing field selects an explicit refinement report. Guarded formulas
+require its own scope, declared vantage, generating activity and explicit unresolved
+outcome while excluding selected results. They do not manufacture completion
+from absence. Conditional field uniqueness and report identity apply only to
+that selected profile, retaining independent executions and standpoints.
+
+Two-way scope/provenance laws make wasDerivedFrom precisely the report's
+declared input roster with its exact RDF identities. The same generating
+activity retains an actual used-input claim to that scope information object,
+without imposing the used relation's Entity range on arbitrary source terms.
+Existing COUNT DISTINCT over the direct provenance path can therefore
+compare with foundNothing without adding a cross-node counting primitive.
+The separate zero/positive presence law covers empty aggregate groups. Input
+records are counted by RDF identity, so repeated visits do not inflate the
+declared batch.
+
+The source checker can establish these structural bindings and exact count
+agreement. It cannot authenticate that the selected computation ran or read
+every declared input. Those remain explicit producer claims, not silent
+fallbacks or a global absence conclusion. No reader, parser, executor, new
+datatype engine or test framework is added.

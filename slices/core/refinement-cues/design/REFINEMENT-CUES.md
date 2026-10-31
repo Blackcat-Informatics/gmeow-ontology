@@ -190,3 +190,33 @@ EDB-versus-IDB provenance. Derived-only `cueGrounded`, `machineryForReader` and
 MachineryRecord publication remain explicit source/output ownership contracts.
 No union-graph formula is falsely presented as such an origin checker, and no
 new reasoning engine, test suite or external equivalence is added.
+
+## Parameter releases and ranking annotations
+
+Reading parameter artifacts reuse existing information-object, version,
+provenance and content-digest owners. They do not inherit CueLexicon merely to
+reuse its review predicate: a parameter rule is not a cue inventory. Accountable
+source provenance and normal vocabulary review remain distinct from an
+authenticated review execution. Generic numeric thresholds are optional
+declarations; the RestatementRule profile requires only its own two integer
+thresholds. Every supplied parameter keeps its declared meaning.
+
+Datatype restrictions retain integer/decimal admission. Existing
+ValueRangeConstraint primitives state open-zero, closed-one share bounds
+without adding a new numeric solver. Numeric parameter maxima are local to
+their declaring rule classes. Measurement slots are constrained on their RDF
+statement reifiers, without globally functional reader or provenance fields.
+
+The reifier contracts use a class guard and actual property-presence guard,
+then the established lowered statement components. Run/share pairs, source
+bindings, attribution and restatement possibility remain independent of
+confidence. Digest evidence uses the identical RDF literal in the annotation
+and actual parameter release, with a separate distinct-term count. It does not
+parse a digest under an invented datatype or claim algorithm verification.
+
+Receipt bases describe reported reader choices, not an executable absence test
+or globally ranked evidence. A reader unable to support its ordering must retain
+that limit rather than manufacture a receipt or silently weaken its operation.
+These declarations leave lexical computation and temporal selection with the
+consumer while preserving their input and version evidence (Principles 4, 7,
+9, 11, 17 and 19).

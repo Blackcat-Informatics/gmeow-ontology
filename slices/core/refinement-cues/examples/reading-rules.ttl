@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/reading-rules/> .
+
+# Synthetic source declarations, not an executed review, matcher or computation.
+ex:reviewer a gmeow:Agent .
+ex:writer a gmeow:Agent .
+ex:outsideSpeaker a gmeow:Agent .
+ex:readerLineage a gmeow:SoftwareAgent .
+ex:readerV1 a gmeow:SoftwareAgent ;
+    gmeow:versionOf ex:readerLineage ; gmeow:versionLabel "1" .
+ex:ruleLineage a gmeow:InformationObject .
+ex:echoLineage a gmeow:InformationObject .
+ex:english a gmeow:Language ; gmeow:languageCode "en" .
+
+# Supplied parameter-release digests are preserved verbatim, not verified here.
+# The parameter values and inventories are immutable source declarations.
+ex:restatementV1 a gmeow:RestatementRule ;
+    gmeow:versionOf ex:ruleLineage ; gmeow:versionLabel "1" ;
+    gmeow:contentDigest "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:wasAttributedTo ex:reviewer ;
+    gmeow:writtenInLanguage ex:english ;
+    gmeow:restatementMinimumRun "5"^^xsd:positiveInteger ;
+    gmeow:restatementMinimumUncommonWords "2"^^xsd:nonNegativeInteger ;
+    gmeow:restatementCommonWord "the" , "and" .
+ex:echoV1 a gmeow:ReadingRule ;
+    gmeow:versionOf ex:echoLineage ; gmeow:versionLabel "1" ;
+    gmeow:contentDigest "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789" ;
+    gmeow:wasAttributedTo ex:reviewer ;
+    gmeow:minimumRun "4"^^xsd:positiveInteger ; gmeow:minimumShare 0.5 .
+
+# Storage receipt is supplied evidence for a reader interpretation, not proof of readership.
+ex:outsideText a gmeow:Message ;
+    gmeow:wasAttributedTo ex:outsideSpeaker ;
+    gmeow:description "The old observatory shutter is jammed and repairs will begin tomorrow morning."@en ;
+    gmeow:receivedAt "2026-10-29T10:00:00Z"^^xsd:dateTime .
+ex:laterText a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:description "The old observatory shutter is jammed."@en ;
+    gmeow:assertedAt "2026-10-29T11:00:00Z"^^xsd:dateTime .
+ex:restatement a rdf:Statement , gmeow:InformationObject ;
+    rdf:reifies <<( ex:laterText gmeow:wasDerivedFrom ex:outsideText )>> ;
+    gmeow:accordingTo ex:readerV1 ;
+    gmeow:standpointModalForce gmeow:modalForcePossible ;
+    gmeow:wasDerivedFrom ex:restatementV1 , ex:outsideText , ex:laterText ;
+    gmeow:restatementRuleVersion "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:restatementRun "6"^^xsd:positiveInteger ;
+    gmeow:restatementShare 0.5 ;
+    gmeow:restatementReceivedAt "2026-10-29T10:00:00Z"^^xsd:dateTime ;
+    gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt .
+ex:restatementFinding a gmeow:Refinement ;
+    gmeow:observedFeature ex:laterText ; gmeow:vantage ex:readerV1 ;
+    gmeow:refinementOutcome gmeow:refinementBestGuess ;
+    gmeow:observationResult ex:restatement .
+# receiptFromEvidenceAct and receiptFromAssertion remain alternative reported bases;
+# nothing here selects them merely because another timestamp is missing.
+
+ex:prompt a gmeow:Prompt ; gmeow:promptRole gmeow:promptRoleUser ;
+    gmeow:promptText "Explain why: The old observatory shutter is jammed." .
+ex:answer a gmeow:InformationObject ; gmeow:wasAttributedTo ex:writer ;
+    gmeow:description "The old observatory shutter is jammed. Repairs continue."@en .
+ex:echo a rdf:Statement , gmeow:InformationObject ;
+    rdf:reifies <<( ex:answer gmeow:echoesPremiseOf ex:prompt )>> ;
+    gmeow:accordingTo ex:readerV1 ;
+    gmeow:wasDerivedFrom ex:answer , ex:prompt ;
+    gmeow:echoRun "6"^^xsd:positiveInteger ; gmeow:echoShare 0.75 .
+ex:echoFinding a gmeow:Refinement ;
+    gmeow:observedFeature ex:answer ; gmeow:vantage ex:readerV1 ;
+    gmeow:refinementOutcome gmeow:refinementResolved ;
+    gmeow:observationResult ex:echo .
+# The dependence triples above remain quoted, not globally asserted facts.
+
+# A complete one-input batch with no selected reading retains exact input evidence.
+ex:unmatchedRecord a gmeow:InformationObject ; gmeow:wasAttributedTo ex:writer ;
+    gmeow:description "A separate record offered to the reader."@en .
+ex:batch a gmeow:ReadingScope ; gmeow:scopeRecord ex:unmatchedRecord ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:run a gmeow:Activity ; gmeow:wasAssociatedWith ex:readerV1 ;
+    gmeow:eventTime "2026-10-30T10:00:00Z"^^xsd:dateTime ;
+    gmeow:used ex:batch , ex:restatementV1 , ex:echoV1 .
+ex:emptyReading a gmeow:Refinement ;
+    gmeow:readingScope ex:batch ; gmeow:observedFeature ex:batch ;
+    gmeow:vantage ex:readerV1 ; gmeow:wasGeneratedBy ex:run ;
+    gmeow:wasDerivedFrom ex:unmatchedRecord ;
+    gmeow:refinementOutcome gmeow:refinementUnresolved ;
+    gmeow:foundNothing "1"^^xsd:nonNegativeInteger .
+
+# Zero inputs still has an explicit selected execution and an explicitly empty scope.
+ex:emptyScope a gmeow:ReadingScope ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:zeroRun a gmeow:Activity ; gmeow:wasAssociatedWith ex:readerV1 ;
+    gmeow:eventTime "2026-10-30T10:01:00Z"^^xsd:dateTime ;
+    gmeow:used ex:emptyScope , ex:restatementV1 .
+ex:zeroReading a gmeow:Refinement ;
+    gmeow:readingScope ex:emptyScope ; gmeow:observedFeature ex:emptyScope ;
+    gmeow:vantage ex:readerV1 ; gmeow:wasGeneratedBy ex:zeroRun ;
+    gmeow:refinementOutcome gmeow:refinementUnresolved ;
+    gmeow:foundNothing "0"^^xsd:nonNegativeInteger .
+
+# An actual excluded record is retained as a loss, without claiming originality.
+# This is a separate limited input, not a record silently removed from the complete batch.
+ex:archive a gmeow:InformationObject .
+ex:unattributedRecord a gmeow:InformationObject ;
+    gmeow:description "Words whose source was not recorded."@en .
+ex:limitedScope a gmeow:ReadingScope ; gmeow:scopeRecord ex:unattributedRecord ;
+    gmeow:scopeChronology gmeow:temporalFrameUTCGregorian .
+ex:unrecordedLoss a gmeow:QueryLoss ;
+    gmeow:lossConcerns ex:unattributedRecord ; gmeow:lossCause gmeow:limitUnrecordedSource .
+ex:sourceLimit a gmeow:ReadingLimit ;
+    gmeow:wasAttributedTo ex:readerV1 ; gmeow:readingScope ex:limitedScope ;
+    gmeow:relationPredicate gmeow:wasDerivedFrom ; gmeow:relationVault ex:archive ;
+    gmeow:limitReason gmeow:limitUnrecordedSource ;
+    gmeow:limitCount "1"^^xsd:nonNegativeInteger ; gmeow:ledgerLoss ex:unrecordedLoss .
