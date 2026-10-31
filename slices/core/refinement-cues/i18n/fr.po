@@ -9,6 +9,342 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event-type cue grounding"
+msgstr "ancrage des indices par type d’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opt-in cue-grounding policy that seeds machinery from six exact event kinds and propagates it through event containment, generation, facets, known-unknown subjects and evaluation contexts without individual admission."
+msgstr "La politique facultative d’ancrage qui amorce la classification opérationnelle à partir de six types exacts d’événements et la propage par confinement, production, facettes, sujets non connus et contextes d’évaluation sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader explicitly selects event-kind classification and the declared forward links without individual machinery admission."
+msgstr "Utiliser lorsque le lecteur choisit explicitement la classification par type et les liens directs déclarés sans admission opérationnelle individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining this policy with another machinery interpretation for the same reader and world, or treating classification as automation or authorship evidence."
+msgstr "Éviter de combiner cette politique avec une autre interprétation opérationnelle pour le même lecteur et monde ou d’utiliser la classification comme preuve d’automatisation ou de paternité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select all twelve rule members for the actual reader and world, finish positive machinery closure, then apply the shared negative cue-eligibility rule. Preserve source provenance independently."
+msgstr "Choisir les douze règles pour le lecteur et le monde réels, achever la clôture opérationnelle positive, puis appliquer la règle négative partagée d’admissibilité des indices. Conserver indépendamment la provenance source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This policy does not publish MachineryRecord type or invent machineryAdmittedBy facts. Its shared binary state requires one policy interpretation per reader and world. The boundary is an operation-input contract, not authenticated runtime isolation."
+msgstr "Cette politique ne publie pas le type MachineryRecord et n’invente pas de faits machineryAdmittedBy. Son état binaire partagé exige une seule interprétation de politique par lecteur et monde. Cette limite est un contrat d’entrée d’opération, pas une isolation d’exécution authentifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue can select this policy while another release retains operationalCueGrounding; their same-reader interpretations remain in separate operation worlds."
+msgstr "Un indice peut choisir cette politique tandis qu’une autre version conserve operationalCueGrounding ; leurs interprétations pour le même lecteur restent dans des mondes d’opération séparés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt event-kind machinery root"
+msgstr "racine opérationnelle par type : tentative"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeAttempt under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeAttempt selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual attempt Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de tentative selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeAttempt value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeAttempt à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeAttempt can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeAttempt peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "active intention transition event-kind machinery root"
+msgstr "racine opérationnelle par type : transition d’intention active"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionActive under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeIntentionActive selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual active intention transition Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de transition d’intention active selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionActive value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeIntentionActive à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionActive can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeIntentionActive peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "paused intention transition event-kind machinery root"
+msgstr "racine opérationnelle par type : transition d’intention suspendue"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionPaused under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeIntentionPaused selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual paused intention transition Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de transition d’intention suspendue selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionPaused value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeIntentionPaused à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionPaused can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeIntentionPaused peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfied intention transition event-kind machinery root"
+msgstr "racine opérationnelle par type : transition d’intention satisfaite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionSatisfied under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeIntentionSatisfied selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual satisfied intention transition Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de transition d’intention satisfaite selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionSatisfied value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeIntentionSatisfied à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionSatisfied can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeIntentionSatisfied peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abandoned intention transition event-kind machinery root"
+msgstr "racine opérationnelle par type : transition d’intention abandonnée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionAbandoned under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeIntentionAbandoned selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual abandoned intention transition Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de transition d’intention abandonnée selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionAbandoned value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeIntentionAbandoned à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionAbandoned can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeIntentionAbandoned peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded intention transition event-kind machinery root"
+msgstr "racine opérationnelle par type : transition d’intention remplacée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionSuperseded under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "Dériver machineryForReader pour un Event portant eventTypeIntentionSuperseded selon la politique par type choisie, sans admission individuelle ni préalable de cible d’intention."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual superseded intention transition Event by its exact event type."
+msgstr "Utiliser lorsque la politique choisie classe un Event réel de transition d’intention remplacée selon son type exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "Éviter de déduire une automatisation, une satisfaction d’objectif ou une exécution de cycle de vie. Les autres types d’événements ne correspondent pas à cette racine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionSuperseded value to the same reader’s explicit selection of this rule’s set."
+msgstr "Joindre l’Event original et sa valeur eventTypeIntentionSuperseded à la sélection explicite de l’ensemble de cette règle par le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionSuperseded can be classified without minting a machineryAdmittedBy assertion."
+msgstr "Un Event portant eventTypeIntentionSuperseded peut être classé sans créer d’assertion machineryAdmittedBy."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event descendant machinery propagation"
+msgstr "propagation opérationnelle aux événements descendants"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified containing Event to its subEventOf Event descendants for the same reader, without individual admission."
+msgstr "Propager la classification opérationnelle d’un Event contenant classé à ses Event descendants par subEventOf pour le même lecteur, sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain event decomposition in the selected event-type policy."
+msgstr "Utiliser pour conserver la décomposition des événements dans la politique par type choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing containment or treating temporal overlap as event decomposition."
+msgstr "Éviter d’inverser le confinement ou d’assimiler un chevauchement temporel à une décomposition d’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join child subEventOf parent with both Event types and the parent’s same-reader machinery state. Transitive closure may supply nested descendants."
+msgstr "Joindre enfant subEventOf parent avec les deux types Event et l’état opérationnel du parent pour le même lecteur. La clôture transitive peut fournir les descendants imbriqués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified containing event can classify its actual child without creating either endpoint’s admission."
+msgstr "Un événement contenant classé peut classer son enfant réel sans créer d’admission pour les extrémités."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generated information machinery propagation"
+msgstr "propagation opérationnelle aux informations produites"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified Activity to an InformationObject it generated through wasGeneratedBy, retaining the same reader without individual admission."
+msgstr "Propager la classification opérationnelle d’une Activity classée à un InformationObject produit selon wasGeneratedBy, en conservant le même lecteur sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify actual information outputs of machinery activities in the selected policy."
+msgstr "Utiliser pour classer les informations réellement produites par les activités opérationnelles selon la politique choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid propagation through input use, reading, receipts or arbitrary derivation. Classification does not erase human authorship."
+msgstr "Éviter la propagation par usage d’entrée, lecture, reçus ou dérivation arbitraire. La classification n’efface pas la paternité humaine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join output wasGeneratedBy activity with the original InformationObject and Activity types and the activity’s same-reader machinery state."
+msgstr "Joindre sortie wasGeneratedBy activité avec les types InformationObject et Activity originaux et l’état opérationnel de l’activité pour le même lecteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generated output can be excluded by the selected policy while its source authorship remains recorded independently."
+msgstr "Une sortie produite peut être exclue selon la politique choisie tandis que sa paternité source reste consignée indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward facet machinery propagation"
+msgstr "propagation opérationnelle vers les facettes"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified subject to its hasFacet LabelledFacet object for the same reader, without individual admission."
+msgstr "Propager la classification opérationnelle d’un sujet classé à son objet LabelledFacet de hasFacet pour le même lecteur, sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify labelled content facets of an already classified record or record part."
+msgstr "Utiliser pour classer les facettes étiquetées d’un enregistrement ou d’une partie déjà classés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing hasFacet, inferring vocabulary identity from labels or retyping the containing subject as an InformationObject."
+msgstr "Éviter d’inverser hasFacet, de déduire une identité de vocabulaire des étiquettes ou de retyper le sujet contenant en InformationObject."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join classified subject hasFacet facet in the forward direction and retain the facet’s LabelledFacet type. The subject has no added class requirement."
+msgstr "Joindre sujet classé hasFacet facette dans le sens direct et conserver le type LabelledFacet de la facette. Aucune classe supplémentaire n’est exigée du sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "The facet inherits the containing record’s same-reader machinery classification, without a claim about the truth of its content."
+msgstr "La facette hérite de la classification opérationnelle de son enregistrement pour le même lecteur, sans affirmation sur la vérité de son contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward known-unknown machinery propagation"
+msgstr "propagation opérationnelle vers le sujet non connu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified Agent to the object of its awareOfNotKnowing assertion for the same reader, without individual admission."
+msgstr "Propager la classification opérationnelle d’un Agent classé à l’objet de son assertion awareOfNotKnowing pour le même lecteur, sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy carries classification from an actual Agent to its explicitly recorded not-known subject."
+msgstr "Utiliser lorsque la politique choisie propage la classification d’un Agent réel vers son sujet explicitement consigné comme non connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an Event as an Agent to make this link fit, reversing awareness or inferring a missing knowledge gap."
+msgstr "Éviter de traiter un Event comme un Agent pour adapter ce lien, d’inverser la conscience ou de déduire une lacune absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join Agent awareOfNotKnowing subject with the Agent’s same-reader machinery state. Preserve the owner’s open object range without adding a target class."
+msgstr "Joindre Agent awareOfNotKnowing sujet avec l’état opérationnel de l’Agent pour le même lecteur. Préserver la portée objet ouverte du propriétaire sans ajouter de classe cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified Agent carries classification forward to its supplied not-known subject; this rule does not classify the Agent from that subject."
+msgstr "Un Agent classé propage sa classification vers son sujet non connu fourni ; cette règle ne classe pas l’Agent à partir de ce sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward evaluation-context machinery propagation"
+msgstr "propagation opérationnelle vers le contexte évalué"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified logic:GoalEvaluation to the object of its logic:evaluatedAgainst assertion for the same reader, without individual admission."
+msgstr "Propager la classification opérationnelle d’une logic:GoalEvaluation classée à l’objet de son assertion logic:evaluatedAgainst pour le même lecteur, sans admission individuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify the situation or world named by an already classified goal evaluation in the selected policy."
+msgstr "Utiliser pour classer la situation ou le monde nommé par une évaluation d’objectif déjà classée selon la politique choisie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing evaluatedAgainst, inventing a gmeow-owned alias or inferring goal satisfaction or context truth."
+msgstr "Éviter d’inverser evaluatedAgainst, d’inventer un alias appartenant à gmeow ou de déduire la satisfaction de l’objectif ou la vérité du contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join evaluation logic:evaluatedAgainst context with the original logic:GoalEvaluation type and its same-reader machinery state. Do not assert a new class for the context."
+msgstr "Joindre évaluation logic:evaluatedAgainst contexte avec le type logic:GoalEvaluation original et son état opérationnel pour le même lecteur. Ne pas affirmer de nouvelle classe pour le contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "Chaque clause exige la sélection positive de son ensemble et sa propre appartenance en conservant le même lecteur. Choisir une seule interprétation de politique par lecteur et monde ; aucune exécution ni paternité n’est certifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified evaluation classifies its supplied situation or world without asserting that its judgement was completed or correct."
+msgstr "Une évaluation classée classe sa situation ou son monde fourni sans affirmer que son jugement a été achevé ou correct."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "echoes premise of"
 msgstr "reprend la prémisse de"
@@ -1178,8 +1514,12 @@ msgid "Derived reader-specific operational-record state. Its resource and reader
 msgstr "Un état dérivé de document opérationnel propre au lecteur. La ressource et le lecteur restent appariés dans les règles finies de fonctionnement et la garde négative de fondement, empêchant la classification d’un autre lecteur de contrôler cette interprétation."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "No subject domain coerces every resource into an information object. Derived-only origin is an ownership contract; ordinary graph integrity checks do not authenticate a production derivation."
-msgstr "Aucun domaine de sujet ne force toute ressource à devenir un objet d’information. L’origine exclusivement dérivée est un contrat de responsabilité ; les contrôles ordinaires de graphe n’authentifient pas une dérivation de production."
+msgid "No subject domain coerces every resource into an information object. Select one policy interpretation per reader and world; do not combine same-reader state from separate policy evaluations. Derived-only origin and operation isolation are input ownership contracts, not authenticated execution."
+msgstr "Aucun domaine sujet ne transforme toute ressource en objet informationnel. Choisir une seule interprétation de politique par lecteur et monde ; ne pas combiner les états du même lecteur issus d’évaluations séparées. L’origine dérivée seule et l’isolation des opérations sont des contrats de propriété des entrées, pas une exécution authentifiée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the selected policy’s exact roots, links and admission requirements. Keep the same reader and world, and publish unary types only through that policy’s declared publication rule."
+msgstr "Suivre les racines, liens et exigences d’admission exacts de la politique choisie. Garder le même lecteur et monde, et ne publier de types unaires que par la règle de publication déclarée de cette politique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#example"
 msgid "The queried conclusion ex:operation gmeow:machineryForReader ex:reader . keeps the selected reader visible rather than claiming universal automation."

@@ -263,7 +263,7 @@ Tool calls and operation receipts remain activities, not information objects.
 `logic:EffectAttempt` is an externally dispatched enactment record and is not
 a substitute for the agency owner's prose attempt event.
 
-`MachineryRecord` is a cross-kind Mixin. A separate rule can publish that unary
+`MachineryRecord` is a cross-kind Mixin. The strict policy can publish that unary
 type from derived reader-specific state, but no recurrence or negative grounding
 guard reads the unary type. Both propagation and exclusion retain the same
 reader coordinate, so one reader's classification cannot decide another's
@@ -308,6 +308,56 @@ original literals and records two illustrative match outcomes. It asserts no
 derived machinery or grounded fact and claims no executed evaluation. Existing
 released cue payloads remain unchanged; no input artifact identity or digest is
 fabricated (Principles 4, 9, 11, 17 and 19).
+
+### Event-type policy without individual admission
+
+`eventTypeCueGrounding` is a separate opt-in policy. Its six roots classify
+an actual Event by `eventTypeAttempt`, `eventTypeIntentionActive`,
+`eventTypeIntentionPaused`, `eventTypeIntentionSatisfied`,
+`eventTypeIntentionAbandoned` or `eventTypeIntentionSuperseded`.
+They require neither individual `machineryAdmittedBy` assertions nor an
+`intentionTransitionOf` target. Other event kinds do not become roots.
+This classification does not supply missing lifecycle facts or prove that
+an intention was satisfied, that software acted or that an operation ran.
+
+Its five propagation rules retain these exact directions and owner types:
+
+| Link | Machinery propagation |
+| --- | --- |
+| `subEventOf` | Classified containing Event to a child Event, including entailed descendants. |
+| `wasGeneratedBy` | Classified generating Activity to an InformationObject output. |
+| `hasFacet` | Classified subject to its LabelledFacet object. |
+| `awareOfNotKnowing` | Classified Agent subject to its supplied not-known object. |
+| `logic:evaluatedAgainst` | Classified GoalEvaluation subject to its supplied situation or world object. |
+
+The last three links propagate from subject to object. The awareness relation
+belongs to metacognition and has Agent domain with an open object range;
+an Event cannot be treated as an Agent merely to make the rule fit.
+The evaluation relation belongs to grounding logic and describes an evaluation
+against a situation or world. Neither rule gives the object a new class.
+`hasFacet` has no subject domain; its source remains its original kind.
+Supply the required owner type closure before evaluating the policy.
+
+All twelve members are selected: six roots, five propagation rules and the
+existing `CueNonMachineryGroundingRule`. Each new clause positively checks its
+own membership and the same reader's explicit set selection. Positive closure
+finishes before the shared negative rule evaluates cue eligibility. This set
+does not include `MachineryRecordPublicationRule` and never invents admission
+facts, so an unadmitted result acquires no `MachineryRecord` type.
+
+The binary `machineryForReader` state is shared by policy implementations.
+Select exactly one policy interpretation per reader and world operation.
+Keep strict and event-type interpretations for the same reader in separate
+operation worlds, including their derived state; combining their closures
+would change the strict policy's exclusion results. Independent readers keep
+their own coordinates. These are input and output ownership contracts, not
+authenticated runtime isolation or a new execution framework.
+
+The original `operationalCueGrounding` set and its ten rules retain individual
+admission and their existing semantics. The new policy adds no propagation
+through `used`, `readArtifact`, `receiptArtifact`, `wasDerivedFrom` or
+`derivedBy`, and it does not infer reverse awareness or evaluation links.
+Neither policy decides source truth or human authorship (Principles 4, 9 and 17).
 
 ## Reviewed reading parameters
 

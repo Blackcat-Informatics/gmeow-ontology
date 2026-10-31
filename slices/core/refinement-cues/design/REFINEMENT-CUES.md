@@ -180,7 +180,7 @@ retain separate interpretations of one occurrence. No generic vantage or global
 property-functionality contract is strengthened.
 
 Native Rule ASTs use RDF 1.2 `rdf:reifies` statement targets and explicit
-`logic:termVariable` carriers. The grounding set retains all ten rules: six
+`logic:termVariable` carriers. The strict grounding set retains all ten rules: six
 admitted roots, two finite propagation forms, descriptive type publication and
 one stratified negative eligibility rule. This policy has no existential output
 terms, reductions or hidden rule-order priority. The negative rule binds the
@@ -199,6 +199,44 @@ EDB-versus-IDB provenance. Derived-only `cueGrounded`, `machineryForReader` and
 MachineryRecord publication remain explicit source/output ownership contracts.
 No union-graph formula is falsely presented as such an origin checker, and no
 new reasoning engine, test suite or external equivalence is added.
+
+### Opt-in event-type machinery policy
+
+`eventTypeCueGrounding` adds a complete alternative interpretation without
+changing the strict set's ten members or clauses. Its six root rules require
+Event type and one exact agency event-kind value. They do not require
+individual admission or an intention target. Type-based exclusion neither
+supplies missing lifecycle fields nor judges goal satisfaction.
+
+The five propagation forms are explicit. Containment carries classification
+from parent Event to child Event; generation carries it from Activity to
+InformationObject output. The added `hasFacet`, `awareOfNotKnowing` and
+`logic:evaluatedAgainst` forms all carry classification from subject to object.
+Record metadata owns the facet relation, metacognition owns awareness, and
+grounding logic owns the evaluation relation. The manifest declares the first
+two owner dependencies directly; logic was already a direct dependency.
+
+The facet rule verifies LabelledFacet range without imposing a class on its
+source. The awareness rule verifies the original Agent subject and retains
+its open object range. The evaluation rule verifies logic:GoalEvaluation and
+retains the supplied situation or world object. None of these rule heads
+asserts new owner typing, reverses the supplied edge or fabricates a source
+assertion. Owner type closure remains an explicit input prerequisite.
+
+The new set has twelve actual rules: six roots, five propagators and the
+shared negative eligibility rule. Each new rule joins its own membership and
+explicit selection to the same reader. It emits only binary machinery state.
+The set omits unary publication, preserving the required individual admission
+on the strict MachineryRecord class. No new class, global property domain,
+functionality or default policy is introduced.
+
+Binary state retains the reader coordinate but has no policy coordinate.
+Consequently one operation selects one policy interpretation for a given
+reader and world. Separate strict and broader evaluations retain separate
+worlds and derived outputs; mixing them would contaminate the strict result.
+This is an operation-input ownership contract rather than a claim that an
+executor authenticates isolation. Positive closure precedes negative grounding,
+and declaration transport alone certifies no execution (Principles 4, 9 and 17).
 
 ## Parameter releases and ranking annotations
 
