@@ -206,7 +206,7 @@ fn default_presentation_fields_leave_property_key_byte_identical() {
         "default key must not carry severity: {key}"
     );
     assert!(
-        !key.contains("msg="),
+        !key.contains("messages="),
         "default key must not carry message: {key}"
     );
     // And the presentation setters DO perturb the key (falsifiable).
@@ -316,7 +316,7 @@ fn new_components_round_trip_content_key_and_order_independence() {
     )
     .unwrap();
     // sanity: normalization made reordered structurally equal to x
-    reordered.message = None;
+    reordered.messages.clear();
     assert_eq!(x.content_key(), reordered.content_key());
     assert_eq!(x, reordered);
 }

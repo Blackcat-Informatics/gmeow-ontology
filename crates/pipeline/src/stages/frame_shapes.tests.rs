@@ -173,10 +173,13 @@ fn frame_shapes_flow_through_validation_shape_ir() {
     assert_eq!(prop.max_count, Some(1));
     assert_eq!(prop.severity, Some(ShaclSeverity::Violation));
     assert_eq!(
-        prop.message.as_deref(),
-        Some(
-            "A CharacterArc must carry exactly one reference frame (gmeow:arcFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
-        )
+        prop.messages,
+        vec![purrdf::RdfLiteral {
+            lexical_form: "A CharacterArc must carry exactly one reference frame (gmeow:arcFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }]
     );
 }
 

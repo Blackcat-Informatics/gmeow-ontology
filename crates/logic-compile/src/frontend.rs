@@ -2229,6 +2229,7 @@ fn merge_same_path_properties(
         let mut components: Vec<ConstraintComponent> = Vec::new();
         let mut reifier_shape: Option<String> = None;
         let mut reification_required = false;
+        let mut messages = Vec::new();
         for p in group {
             if let Some(lo) = p.min_count {
                 min_count = Some(min_count.map_or(lo, |cur| cur.max(lo)));
@@ -2245,10 +2246,12 @@ fn merge_same_path_properties(
                 reifier_shape = p.reifier_shape;
             }
             reification_required |= p.reification_required;
+            messages.extend(p.messages);
         }
         let provenance = (min_count.is_some() || max_count.is_some())
             .then_some(ConstraintProvenance::OwlRestriction);
-        let mut pc = PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?;
+        let mut pc = PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?
+            .with_messages(messages)?;
         if inverse {
             pc = pc.inverted();
         }
@@ -5089,8 +5092,8 @@ fn extract_owned_leg_programs(
 /// A constraint node carries its integrity condition via `logic:integrity` (a top-level
 /// [`Formula`] tree, reconstructed by the shared [`parse_formula`] reader — no duplicated
 /// formula parsing), its `sh:severity` via a `logic:severity "Violation"|"Warning"|"Info"`
-/// literal (absent ⇒ the SHACL default `Violation`), an optional advisory `logic:message`
-/// literal, and an optional `logic:formalizes` gmeow-domain back-reference. The focus
+/// literal (absent ⇒ the SHACL default `Violation`), an advisory `logic:message`
+/// literal set, and an optional `logic:formalizes` gmeow-domain back-reference. The focus
 /// [`ShapeTarget`] is DERIVED from the integrity's `∀` guard by [`ConstraintIr::new`], which
 /// hard-fails (⇒ a `MALFORMED_CONSTRAINT` warning) on a non-range-restricted formula.
 ///
@@ -5217,6 +5220,27 @@ fn distinct_failure_classes(
     Ok(classes)
 }
 
+/// Retain every supplied message literal and reject malformed advisory metadata.
+fn read_messages(
+    store: &RdfDataset,
+    node: &Subject,
+) -> gmeow_errors::Result<Vec<purrdf::RdfLiteral>> {
+    let mut messages = objects(store, node, &nn(&logic_iri("message")))
+        .into_iter()
+        .map(|value| match value {
+            Node::Lit(literal) => Ok(literal),
+            other => Err(
+                sugar_err(format!("logic:message must be a literal, found {other:?}"))
+                    .with_focus(subject_str(node)),
+            ),
+        })
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    crate::ir::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
+        sugar_err(format!("logic:message: {detail}")).with_focus(subject_str(node))
+    })?;
+    Ok(messages)
+}
+
 /// Reconstruct one [`ConstraintIr`] rooted at a `logic:Constraint` node, or return a
 /// human-readable reason the constraint is malformed (surfaced as one `MALFORMED_CONSTRAINT`
 /// warning by [`extract_constraints`]).
@@ -5242,7 +5266,7 @@ fn read_constraint(
         }
         None => ShaclSeverity::Violation,
     };
-    let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
+    let messages = read_messages(store, node)?;
     let formalizes_all = sugar_iri_list(store, node, "formalizes");
     let failure_classes =
         distinct_failure_classes(store, node).map_err(|err| err.with_focus(iri.clone()))?;
@@ -5274,7 +5298,7 @@ fn read_constraint(
     // suppress only the redundant constraint wrapper while retaining independent defects.
     let integrity = reader.read(&integrity_node)?;
 
-    let mut constraint = ConstraintIr::new(&iri, integrity, severity, message)
+    let mut constraint = ConstraintIr::new(&iri, integrity, severity, messages)
         .map_err(|err| err.with_focus(iri.clone()))?;
     if let Some((primary, rest)) = formalizes_all.split_first() {
         constraint = constraint
@@ -5386,14 +5410,14 @@ fn finalize_sugar(
     integrity: Formula,
 ) -> gmeow_errors::Result<ConstraintIr> {
     let severity = sugar_severity(store, node)?;
-    let message = value(store, node, &nn(&logic_iri("message"))).map(|t| term_str(&t));
+    let messages = read_messages(store, node)?;
     let formalizes_all = sugar_iri_list(store, node, "formalizes");
     let (primary, rest) = formalizes_all.split_first().ok_or_else(|| {
         sugar_err(
             "constraint-sugar record requires logic:formalizes (the gmeow term it formalizes)",
         )
     })?;
-    let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, message)?
+    let mut constraint = ConstraintIr::new(subject_str(node), integrity, severity, messages)?
         .with_formalizes(primary.clone())?
         .with_also_formalizes(rest.to_vec())?;
     let failure_classes = distinct_failure_classes(store, node)?;

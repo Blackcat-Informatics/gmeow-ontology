@@ -21,7 +21,12 @@ fn qualified(class: &str, min: Option<u32>, max: Option<u32>) -> ConstraintCompo
 fn project(components: Vec<ConstraintComponent>) -> String {
     let property = PropertyConstraintIr::new("https://example.org/p", None, None, None, components)
         .unwrap()
-        .with_message("the qualified requirement must hold")
+        .with_messages(vec![purrdf::RdfLiteral {
+            lexical_form: "the qualified requirement must hold".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }])
         .unwrap();
     let shape = ValidationShapeIr::new(
         "https://example.org/shape",

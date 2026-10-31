@@ -628,9 +628,10 @@ pub struct PropertyConstraintIr {
     /// The `sh:severity` of a violation (`None` ⇒ the SHACL default `sh:Violation`, emitted
     /// implicitly). Carried so a projected surface reproduces a bespoke renderer's severity.
     pub severity: Option<ShaclSeverity>,
-    /// The `sh:message` attached to a violation (`None` ⇒ none). Carried for byte-parity with
-    /// the bespoke frame/result renderers and for better validation-failure UX.
-    pub message: Option<String>,
+    /// Complete `sh:message` literals in canonical set order; empty means absent.
+    /// Retains datatype, language and direction for validation-failure presentation.
+    #[serde(with = "super::literal_serde::message_set")]
+    pub messages: Vec<purrdf::RdfLiteral>,
 }
 
 impl PropertyConstraintIr {
@@ -685,7 +686,7 @@ impl PropertyConstraintIr {
             reifier_shape: None,
             reification_required: false,
             severity: None,
-            message: None,
+            messages: Vec::new(),
         })
     }
 
@@ -744,24 +745,25 @@ impl PropertyConstraintIr {
         self
     }
 
-    /// Attach an `sh:message`. Chainable; leaves the content key byte-identical when unset.
-    /// A blank message is rejected (a required presentation string that says nothing is a
-    /// determinism hazard, not a silent no-op).
-    pub fn with_message(mut self, message: impl Into<String>) -> gmeow_errors::Result<Self> {
-        let message = message.into();
-        if message.trim().is_empty() {
-            return Err(Diag::of_kind(crate::error::Validation {
-                detail: "PropertyConstraintIr.with_message: message must be non-empty".to_owned(),
-            }));
-        }
-        self.message = Some(message);
+    /// Attach complete `sh:message` literals, validating and canonicalizing the set.
+    /// Nonblank checks do not modify the original lexical wording.
+    pub fn with_messages(
+        mut self,
+        mut messages: Vec<purrdf::RdfLiteral>,
+    ) -> gmeow_errors::Result<Self> {
+        super::literal_serde::normalize_messages(&mut messages).map_err(|detail| {
+            Diag::of_kind(crate::error::Validation {
+                detail: format!("PropertyConstraintIr.messages: {detail}"),
+            })
+        })?;
+        self.messages = messages;
         Ok(self)
     }
 
     /// A deterministic content-key over a FIXED field order. Every free-form field is
     /// length-prefixed and the component list is count-prefixed ([`key_field`] / [`key_list`])
     /// so no path or component value can forge a field boundary. The `inverse`/`severity`/
-    /// `message` presentation fields are appended at the TAIL and **only when non-default**, so
+    /// `messages` presentation fields are appended at the TAIL and **only when non-default**, so
     /// a plain property shape folds byte-identically to before these fields existed.
     fn content_key(&self) -> String {
         let comps = key_list(self.components.iter().map(ConstraintComponent::content_key));
@@ -786,8 +788,11 @@ impl PropertyConstraintIr {
         if let Some(sev) = self.severity {
             key.push_str(&format!("{SEP}sev={}", sev.as_str()));
         }
-        if let Some(msg) = &self.message {
-            key.push_str(&format!("{SEP}msg={}", key_field(msg)));
+        if !self.messages.is_empty() {
+            key.push_str(&format!(
+                "{SEP}messages={}",
+                key_list(self.messages.iter().map(super::literal_serde::key))
+            ));
         }
         key
     }
@@ -796,7 +801,7 @@ impl PropertyConstraintIr {
     /// determines which focus nodes a validator flags. It carries `path`, `min_count`,
     /// `max_count`, the value-level `components`, and the `inverse` / `reifier_shape` /
     /// `reification_required` enforcement flags, and it OMITS the presentation/provenance tail
-    /// (`cardinality_provenance`, `severity`, `message`) — those change the ledger polarity and
+    /// (`cardinality_provenance`, `severity`, `messages`) — those change the ledger polarity and
     /// the rendered surface, never the findings. Two property shapes with equal enforcement keys
     /// flag exactly the same values on the same path over every graph.
     pub(crate) fn enforcement_key(&self) -> String {

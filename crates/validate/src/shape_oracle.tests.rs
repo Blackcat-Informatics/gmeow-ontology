@@ -335,7 +335,12 @@ fn presentation_message_and_severity_are_absorbed_and_projected_out() {
     let decorated = bare
         .clone()
         .with_severity(ShaclSeverity::Warning)
-        .with_message("every focus must have exactly one D")
+        .with_messages(vec![purrdf::RdfLiteral {
+            lexical_form: "every focus must have exactly one D".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }])
         .unwrap();
     let with_pres = ValidationShapeIr::new(
         "https://ex/S",

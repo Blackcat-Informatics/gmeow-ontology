@@ -52,6 +52,165 @@ const DOMAIN_TYPING_TBOX_PREDICATES: &[&str] =
 /// or the inverse), keyed by the *source* tag. Empty = no retag.
 pub type TagMap = BTreeMap<String, String>;
 
+/// Resolve selected private carrier tags from the authored language model.
+/// Public tags are derived by the language bridge, never inferred from tag spelling.
+fn source_public_tags(
+    source: &purrdf::RdfDataset,
+    selected: &BTreeSet<String>,
+) -> gmeow_errors::Result<TagMap> {
+    use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
+
+    const CARRIER: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+    let fail = |message| Diag::of_kind(Projection { message });
+    let mut carriers = BTreeMap::new();
+    let mut owners = BTreeMap::new();
+    if let Some(predicate) = source.term_id_by_value(&TermValue::iri(CARRIER)) {
+        for quad in source.quads_for_pattern(None, Some(predicate), None, GraphMatch::Any) {
+            let TermRef::Iri(variety) = source.resolve(quad.s) else {
+                return Err(fail("lang:carrierTag subject must be a variety IRI".into()));
+            };
+            let TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            } = source.resolve(quad.o)
+            else {
+                return Err(fail(format!(
+                    "<{variety}> lang:carrierTag must be a string literal"
+                )));
+            };
+            if language.is_some()
+                || direction.is_some()
+                || !matches!(
+                    source.resolve(datatype),
+                    TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
+                )
+                || !gmeow_validate::language_tags::is_internal_tag(lexical)
+            {
+                return Err(fail(format!(
+                    "<{variety}> has malformed lang:carrierTag {lexical:?}"
+                )));
+            }
+            let tag = lexical.to_ascii_lowercase();
+            if let Some(previous) = carriers.insert(variety.to_owned(), tag.clone())
+                && previous != tag
+            {
+                return Err(fail(format!(
+                    "<{variety}> has ambiguous lang:carrierTag values"
+                )));
+            }
+            if let Some((previous, _)) = owners.insert(tag.clone(), (variety.to_owned(), quad.s))
+                && previous != variety
+            {
+                return Err(fail(format!(
+                    "carrier tag {tag:?} names both <{previous}> and <{variety}>"
+                )));
+            }
+        }
+    }
+    let mut map = TagMap::new();
+    for tag in selected {
+        let Some((variety, id)) = owners.get(tag) else {
+            return Err(fail(format!(
+                "private language tag {tag:?} has no authored lang:carrierTag mapping"
+            )));
+        };
+        let derivation = gmeow_lang_bridge::bcp47::derive_bcp47_tag(source, *id);
+        let public = derivation.tag.ok_or_else(|| {
+            fail(format!(
+                "cannot publish carrier {tag:?} on <{variety}>: {}",
+                derivation
+                    .absence
+                    .as_deref()
+                    .unwrap_or("no BCP-47 derivation")
+            ))
+        })?;
+        if gmeow_validate::language_tags::is_internal_tag(&public) {
+            return Err(fail(format!(
+                "carrier {tag:?} derived a private publication tag {public:?}"
+            )));
+        }
+        map.insert(tag.clone(), public);
+    }
+    Ok(map)
+}
+
+/// Visit every literal in an owned term, including nested RDF 1.2 triple terms.
+fn visit_literals(
+    term: &mut RdfTerm,
+    visit: &mut impl FnMut(&mut purrdf::RdfLiteral) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<()> {
+    match term {
+        RdfTerm::Literal(literal) => visit(literal)?,
+        RdfTerm::Triple(triple) => {
+            visit_literals(&mut triple.subject, visit)?;
+            visit_literals(&mut triple.object, visit)?;
+        }
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {}
+    }
+    Ok(())
+}
+
+/// Publicize a repository Turtle exit without changing source or compiler literals.
+/// The native flat codec retains assertions, reifiers, annotations and triple terms.
+/// Only mapped private language tags change; lexical forms, datatypes and directions
+/// remain exact. Public-only documents keep their original bytes after inspection.
+pub(crate) fn publicize_turtle(
+    document: &str,
+    source: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<String> {
+    let parsed = purrdf::parse_dataset(document.as_bytes(), "text/turtle", None)
+        .with_ctx(|| "publication Turtle parse failed")?;
+    let mut quads = purrdf::flat_rdf_quads_from_dataset(&parsed);
+    let mut selected = BTreeSet::new();
+    for quad in &mut quads {
+        let mut collect = |literal: &mut purrdf::RdfLiteral| {
+            if let Some(language) = &literal.language
+                && gmeow_validate::language_tags::is_internal_tag(language)
+            {
+                selected.insert(language.to_ascii_lowercase());
+            }
+            Ok(())
+        };
+        visit_literals(&mut quad.subject, &mut collect)?;
+        visit_literals(&mut quad.object, &mut collect)?;
+        if let Some(graph) = &mut quad.graph_name {
+            visit_literals(graph, &mut collect)?;
+        }
+    }
+    if selected.is_empty() {
+        return Ok(document.to_owned());
+    }
+    let map = source_public_tags(source, &selected)?;
+    for quad in &mut quads {
+        let mut publicize = |literal: &mut purrdf::RdfLiteral| {
+            if let Some(language) = &literal.language
+                && gmeow_validate::language_tags::is_internal_tag(language)
+            {
+                let public = map.get(&language.to_ascii_lowercase()).ok_or_else(|| {
+                    Diag::of_kind(Projection {
+                        message: format!("private language tag {language:?} has no public mapping"),
+                    })
+                })?;
+                literal.language = Some(public.clone());
+            }
+            Ok(())
+        };
+        visit_literals(&mut quad.subject, &mut publicize)?;
+        visit_literals(&mut quad.object, &mut publicize)?;
+        if let Some(graph) = &mut quad.graph_name {
+            visit_literals(graph, &mut publicize)?;
+        }
+    }
+    let flat = purrdf::flat_dataset_from_quads(&quads)
+        .with_ctx(|| "publication flat dataset construction failed")?;
+    Ok(purrdf::turtle_normalize::render(
+        &flat,
+        &crate::stages::superset::rdf_prefixes(),
+    ))
+}
+
 /// A target projection profile: its registry name and the output prefixes a Turtle
 /// serialization would bind. The CONSTRUCT query itself is supplied by the caller
 /// (from `generated/queries/<name>.rq` or the bundle), mirroring the Python

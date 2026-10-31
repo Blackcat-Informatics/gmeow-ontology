@@ -548,7 +548,7 @@ fn parse_property_shape(
     let mut reifier_shape: Option<String> = None;
     let mut reification_required = false;
     let mut severity: Option<ShaclSeverity> = None;
-    let mut message: Option<String> = None;
+    let mut messages = Vec::new();
     let mut acc = CompAcc::new();
 
     for (pred, obj) in quads_of(ds, subject) {
@@ -590,7 +590,27 @@ fn parse_property_shape(
             Some("reifierShape") => reifier_shape = Some(obj_iri(ds, obj, &ctx)?),
             Some("reificationRequired") => reification_required = obj_bool(ds, obj, &ctx)?,
             Some("severity") => severity = parse_severity(&obj_iri(ds, obj, &ctx)?),
-            Some("message") => message = Some(obj_lexical(ds, obj, &ctx)?),
+            Some("message") => match shape_value(ds, obj, &ctx)? {
+                ShapeValue::Literal(literal) => {
+                    purrdf::RdfLiteral::validate_components(
+                        literal.datatype_iri(),
+                        literal.language.as_deref(),
+                        literal.direction,
+                    )
+                    .map_err(|detail| parse_err(format!("{ctx}: sh:message: {detail}")))?;
+                    if literal.lexical_form.trim().is_empty() {
+                        return Err(parse_err(format!(
+                            "{ctx}: sh:message must have nonblank lexical text"
+                        )));
+                    }
+                    messages.push(literal);
+                }
+                other => {
+                    return Err(parse_err(format!(
+                        "{ctx}: sh:message must be a literal, found {other:?}"
+                    )));
+                }
+            },
             _ => {
                 if !acc.feed(ds, &pred, obj, shape, unsupported)? {
                     route_unhandled(pred, unsupported);
@@ -618,11 +638,7 @@ fn parse_property_shape(
     if let Some(sev) = severity {
         prop = prop.with_severity(sev);
     }
-    if let Some(msg) = message
-        && !msg.trim().is_empty()
-    {
-        prop = prop.with_message(msg)?;
-    }
+    prop = prop.with_messages(messages)?;
     if inverse {
         prop = prop.inverted();
     }
@@ -666,7 +682,7 @@ fn merge_same_path_property_shapes(
         let mut max_count: Option<u32> = None;
         let mut components: Vec<ConstraintComponent> = Vec::new();
         let mut severity: Option<ShaclSeverity> = None;
-        let mut message: Option<String> = None;
+        let mut messages = Vec::new();
         let mut reifier_shape: Option<String> = None;
         let mut reification_required = false;
         for p in &group {
@@ -686,7 +702,7 @@ fn merge_same_path_property_shapes(
                 }
             }
             severity = severity.or(p.severity);
-            message = message.or_else(|| p.message.clone());
+            messages.extend(p.messages.iter().cloned());
             reifier_shape = reifier_shape.or_else(|| p.reifier_shape.clone());
             reification_required = reification_required || p.reification_required;
         }
@@ -701,11 +717,7 @@ fn merge_same_path_property_shapes(
         if let Some(sev) = severity {
             merged = merged.with_severity(sev);
         }
-        if let Some(msg) = message
-            && !msg.trim().is_empty()
-        {
-            merged = merged.with_message(msg)?;
-        }
+        merged = merged.with_messages(messages)?;
         if reifier_shape.is_some() || reification_required {
             merged = merged.with_reifier(reifier_shape, reification_required)?;
         }

@@ -833,14 +833,8 @@ impl Stage for CompileLogicStage {
                     ))
                 })
         };
-        let validation_shapes_ttl = vs_content("shacl-core")?;
-        purrdf::parse_dataset(validation_shapes_ttl.as_bytes(), "text/turtle", None).map_err(
-            |error| {
-                stage_err(format!(
-                    "compile: emitted validation SHACL is not valid Turtle: {error}"
-                ))
-            },
-        )?;
+        let validation_shapes_ttl =
+            crate::projections::publicize_turtle(&vs_content("shacl-core")?, ontology)?;
         artifacts.insert(
             VALIDATION_SHAPES_TTL_PATH.to_string(),
             validation_shapes_ttl.into_bytes(),
@@ -857,7 +851,8 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(
             PROCEDURAL_CONSTRAINTS_PATH.to_string(),
-            vs_content("procedural-constraint")?.into_bytes(),
+            crate::projections::publicize_turtle(&vs_content("procedural-constraint")?, ontology)?
+                .into_bytes(),
         );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger

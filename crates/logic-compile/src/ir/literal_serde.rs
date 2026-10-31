@@ -96,6 +96,47 @@ pub(crate) fn sort_key(
     )
 }
 
+/// Admit complete advisory messages as a canonical RDF set without trimming wording.
+pub(crate) fn normalize_messages(literals: &mut Vec<RdfLiteral>) -> Result<(), &'static str> {
+    for literal in literals.iter_mut() {
+        normalize(literal)?;
+        if literal.lexical_form.trim().is_empty() {
+            return Err("a message literal must have nonblank lexical text");
+        }
+    }
+    literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    literals.dedup();
+    Ok(())
+}
+
+/// Message collections may be absent, but every supplied literal must be valid.
+pub(super) mod message_set {
+    use super::*;
+
+    pub(crate) fn serialize<S: Serializer>(
+        literals: &[RdfLiteral],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        super::serialize(literals, serializer)
+    }
+
+    pub(crate) fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Vec<RdfLiteral>, D::Error> {
+        let mut literals = super::deserialize_set(deserializer)?;
+        normalize_messages(&mut literals).map_err(serde::de::Error::custom)?;
+        Ok(literals)
+    }
+
+    pub(crate) fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
+        let mut literals = super::from_json_set(value)?;
+        normalize_messages(&mut literals).map_err(purrdf_lex::json::record::DecodeError::custom)?;
+        Ok(literals)
+    }
+}
+
 pub(super) fn deserialize<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<Vec<RdfLiteral>, D::Error> {

@@ -39,7 +39,7 @@ fn guarded(iri: &str, phi: Formula) -> ConstraintIr {
             Box::new(phi),
         )),
     };
-    ConstraintIr::new(iri, integrity, ShaclSeverity::Violation, None).unwrap()
+    ConstraintIr::new(iri, integrity, ShaclSeverity::Violation, Vec::new()).unwrap()
 }
 
 fn block(c: &ConstraintIr) -> String {
@@ -1497,7 +1497,7 @@ fn question_wording_language_projection_is_total_on_non_literals() {
             )),
         },
         ShaclSeverity::Violation,
-        None,
+        Vec::new(),
     )
     .unwrap();
     let program = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![law]);
@@ -1762,7 +1762,7 @@ fn direct_instance_target_excludes_subclass_typed_nodes() {
         "https://ex/cDirect",
         integrity,
         ShaclSeverity::Violation,
-        None,
+        Vec::new(),
     )
     .unwrap();
     assert!(matches!(&c.target, ShapeTarget::DirectClass(x) if x == "https://ex/Base"));
@@ -1892,7 +1892,7 @@ fn consent_exactly_one_and_at_least_one_lowers_without_aggregates() {
             vars: vec!["this".to_owned()],
             body: Box::new(Formula::Implies(Box::new(guard()), Box::new(phi))),
         };
-        ConstraintIr::new(iri, integrity, ShaclSeverity::Warning, None)
+        ConstraintIr::new(iri, integrity, ShaclSeverity::Warning, Vec::new())
             .unwrap()
             .with_formalizes("https://ex/ConsentWellformednessShape")
             .unwrap()
