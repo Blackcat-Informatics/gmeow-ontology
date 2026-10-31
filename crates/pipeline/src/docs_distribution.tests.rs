@@ -10,14 +10,18 @@ const TEST_DCAT_MAPPING: &str = r#"
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 <urn:distribution-fixture:publish> a gm:ProjectionMapping ;
     gm:hasMappingPattern [ gm:anchor "collection" ; gm:atom (
         [ gm:subjectVar "collection" ; gm:predicate gm:corpusMember ; gm:objectVar "member" ]
         [ gm:subjectVar "member" ; gm:predicate gm:contentDigest ; gm:objectVar "hash" ]
         [ gm:optionalGroup ( [ gm:subjectVar "member" ; gm:predicate gm:sourceLocation ; gm:objectVar "location" ] ) ] ) ;
+        gm:bind [ gm:bindVar "checksumValue" ; gm:bindExpr [ gm:exprOp gm:opStrDatatype ; gm:exprArgs (
+            [ gm:exprOp gm:opStr ; gm:exprArgs ( [ gm:exprVar "hash" ] ) ] xsd:hexBinary ) ] ] ;
         gm:mint [ gm:bindVar "digestRecord" ; gm:bindExpr [ gm:exprOp gm:opIri ; gm:exprArgs (
             [ gm:exprOp gm:opConcat ; gm:exprArgs (
-                [ gm:exprOp gm:opStr ; gm:exprArgs ( [ gm:exprVar "member" ] ) ] "-checksum" ) ] ) ] ] ] ;
+                [ gm:exprOp gm:opStr ; gm:exprArgs ( [ gm:exprVar "member" ] ) ] "-checksum-blake3-"
+                [ gm:exprOp gm:opStr ; gm:exprArgs ( [ gm:exprVar "hash" ] ) ] ) ] ) ] ] ] ;
     gm:hasBinding [ gm:profile "dcat" ; gm:relation "<=" ; gm:templateAtoms (
         [ gm:tSubj "collection" ; gm:tPred rdf:type ; gm:tObjValue dcat:Dataset ]
         [ gm:tSubj "collection" ; gm:tPred dcat:distribution ; gm:tObj "member" ]
@@ -25,7 +29,8 @@ const TEST_DCAT_MAPPING: &str = r#"
         [ gm:tSubj "member" ; gm:tPred dcat:downloadURL ; gm:tObj "location" ]
         [ gm:tSubj "member" ; gm:tPred spdx:checksum ; gm:tObj "digestRecord" ]
         [ gm:tSubj "digestRecord" ; gm:tPred rdf:type ; gm:tObjValue spdx:Checksum ]
-        [ gm:tSubj "digestRecord" ; gm:tPred spdx:checksumValue ; gm:tObj "hash" ] ) ] .
+        [ gm:tSubj "digestRecord" ; gm:tPred spdx:algorithm ; gm:tObjValue spdx:checksumAlgorithm_blake3 ]
+        [ gm:tSubj "digestRecord" ; gm:tPred spdx:checksumValue ; gm:tObj "checksumValue" ] ) ] .
 "#;
 
 /// Build only the typed native product and original transport for the authored
@@ -99,13 +104,13 @@ fn sample_entries() -> Vec<DistributionEntry> {
         DistributionEntry {
             slug: "site".to_string(),
             rel_path: "dist/gmeow-docs/site".to_string(),
-            blake3: "blake3:aaaa".to_string(),
+            blake3: blake3_of(b"site"),
             media_type: "text/html".to_string(),
         },
         DistributionEntry {
             slug: "okf".to_string(),
             rel_path: "dist/gmeow-docs/okf".to_string(),
-            blake3: "blake3:bbbb".to_string(),
+            blake3: blake3_of(b"okf"),
             media_type: "application/json".to_string(),
         },
     ]
@@ -204,11 +209,17 @@ fn manifest_carries_a_checksum_and_catalog_link_per_entry() {
         manifest.contains("http://spdx.org/rdf/terms#checksumValue"),
         "manifest must project at least one spdx:checksumValue triple:\n{manifest}"
     );
+    assert!(manifest.contains(
+        "<http://spdx.org/rdf/terms#algorithm> <http://spdx.org/rdf/terms#checksumAlgorithm_blake3>"
+    ));
     for entry in &entries {
-        let needle = format!("\"blake3:{}\"", entry.blake3.trim_start_matches("blake3:"));
+        let needle = format!(
+            "\"{}\"^^<http://www.w3.org/2001/XMLSchema#hexBinary>",
+            entry.blake3.trim_start_matches("blake3:")
+        );
         assert!(
             manifest.contains(&needle),
-            "manifest must carry the verbatim digest for {}: {needle}\n{manifest}",
+            "manifest must carry the typed hexadecimal digest for {}: {needle}\n{manifest}",
             entry.slug
         );
         let catalog_iri = dist_iri(&entry.slug);
@@ -239,10 +250,10 @@ fn site_sub_asset_digests_ride_the_release_instance_on_the_sub_asset_subject() {
     let sub_assets = vec![DistributionEntry {
         slug: "mcp-wasm".to_string(),
         rel_path: "dist/gmeow-docs/site/assets/mcp/".to_string(),
-        blake3: "blake3:deadbeef".to_string(),
+        blake3: blake3_of(b"mcp-wasm"),
         media_type: "application/wasm".to_string(),
     }];
-    let nt = release_instance_ntriples(&sample_entries(), &sub_assets);
+    let nt = release_instance_ntriples(&sample_entries(), &sub_assets).expect("release instance");
     let node = sub_asset_iri("mcp-wasm");
     // The sub-asset digest hangs off its site_sub_asset subject (NOT a dist_iri),
     // as a corpus member — so dcat.rq projects it exactly like a distribution.
@@ -255,10 +266,9 @@ fn site_sub_asset_digests_ride_the_release_instance_on_the_sub_asset_subject() {
         "sub-asset must be a corpus member of the release: {nt}"
     );
     assert!(
-        nt.contains(&triple_lit(
-            &node,
-            &iri(GMEOW_NS, "contentDigest"),
-            "blake3:deadbeef"
+        nt.contains(&format!(
+            "<{node}> <{GMEOW_NS}contentDigest> \"{}\"^^<https://blackcatinformatics.ca/gmeow/blake3_256Digest> .",
+            blake3_of(b"mcp-wasm").strip_prefix("blake3:").expect("computed asset digest")
         )),
         "sub-asset content digest must ride on its site_sub_asset subject: {nt}"
     );
@@ -275,7 +285,7 @@ fn build_manifest_projects_site_sub_asset_digests_through_dcat_rq() {
     let sub_assets = vec![DistributionEntry {
         slug: "mcp-wasm".to_string(),
         rel_path: "dist/gmeow-docs/site/assets/mcp/".to_string(),
-        blake3: "blake3:deadbeef".to_string(),
+        blake3: blake3_of(b"mcp-wasm"),
         media_type: "application/wasm".to_string(),
     }];
     let manifest = build_docs_distribution_manifest(&sample_entries(), &sub_assets, &gts_bytes)
@@ -286,7 +296,12 @@ fn build_manifest_projects_site_sub_asset_digests_through_dcat_rq() {
         "the projected manifest must carry the site_sub_asset subject {node}:\n{manifest}"
     );
     assert!(
-        manifest.contains("\"blake3:deadbeef\""),
+        manifest.contains(&format!(
+            "\"{}\"^^<http://www.w3.org/2001/XMLSchema#hexBinary>",
+            blake3_of(b"mcp-wasm")
+                .strip_prefix("blake3:")
+                .expect("computed asset digest")
+        )),
         "the sub-asset digest must survive the dcat.rq projection into the shipped \
              manifest — a dropped SiteSubAsset row is a missing release digest:\n{manifest}"
     );
@@ -294,7 +309,7 @@ fn build_manifest_projects_site_sub_asset_digests_through_dcat_rq() {
 
 #[test]
 fn release_instance_ntriples_is_sorted_and_deduped() {
-    let nt = release_instance_ntriples(&sample_entries(), &[]);
+    let nt = release_instance_ntriples(&sample_entries(), &[]).expect("release instance");
     let lines: Vec<&str> = nt.lines().collect();
     let mut sorted = lines.clone();
     sorted.sort();

@@ -52,6 +52,167 @@ const DOMAIN_TYPING_TBOX_PREDICATES: &[&str] =
 /// or the inverse), keyed by the *source* tag. Empty = no retag.
 pub type TagMap = BTreeMap<String, String>;
 
+/// The three exact-byte digest algorithms admitted by the selected checksum views.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum DigestAlgorithm {
+    Blake3,
+    Sha256,
+    Md5,
+}
+
+impl DigestAlgorithm {
+    pub(crate) fn datatype(self) -> &'static str {
+        match self {
+            Self::Blake3 => "https://blackcatinformatics.ca/gmeow/blake3_256Digest",
+            Self::Sha256 => "https://blackcatinformatics.ca/gmeow/sha256Digest",
+            Self::Md5 => "https://blackcatinformatics.ca/gmeow/md5Digest",
+        }
+    }
+
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::Blake3 => "blake3",
+            Self::Sha256 => "sha256",
+            Self::Md5 => "md5",
+        }
+    }
+
+    pub(crate) fn from_spdx(iri: &str) -> gmeow_errors::Result<Self> {
+        match iri {
+            "http://spdx.org/rdf/terms#checksumAlgorithm_blake3" => Ok(Self::Blake3),
+            "http://spdx.org/rdf/terms#checksumAlgorithm_sha256" => Ok(Self::Sha256),
+            "http://spdx.org/rdf/terms#checksumAlgorithm_md5" => Ok(Self::Md5),
+            _ => Err(digest_error(format!(
+                "unsupported SPDX checksum algorithm <{iri}>"
+            ))),
+        }
+    }
+
+    pub(crate) fn admit_spdx_value(self, value: &purrdf::TermValue) -> gmeow_errors::Result<&str> {
+        let purrdf::TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } = value
+        else {
+            return Err(digest_error("spdx:checksumValue requires a literal".into()));
+        };
+        if datatype != "http://www.w3.org/2001/XMLSchema#hexBinary"
+            || language.is_some()
+            || direction.is_some()
+        {
+            return Err(digest_error(
+                "spdx:checksumValue requires xsd:hexBinary without language or direction".into(),
+            ));
+        }
+        self.admit_hex(lexical_form)?;
+        Ok(lexical_form)
+    }
+
+    pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
+        let width = if self == Self::Md5 { 32 } else { 64 };
+        if lexical.len() != width
+            || !lexical
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return Err(digest_error(format!(
+                "{} digest requires exactly {width} lowercase hexadecimal digits without a prefix",
+                self.name()
+            )));
+        }
+        Ok(())
+    }
+}
+
+fn digest_error(message: String) -> Diag {
+    Diag::of_kind(Projection { message })
+}
+
+/// Admit a complete source digest term without erasing algorithm or literal facets.
+pub(crate) fn admit_content_digest(
+    value: &purrdf::TermValue,
+) -> gmeow_errors::Result<(DigestAlgorithm, &str)> {
+    let purrdf::TermValue::Literal {
+        lexical_form,
+        datatype,
+        language,
+        direction,
+    } = value
+    else {
+        return Err(digest_error(
+            "contentDigest requires a typed literal".into(),
+        ));
+    };
+    if language.is_some() || direction.is_some() {
+        return Err(digest_error(
+            "contentDigest admits no language or direction".into(),
+        ));
+    }
+    let algorithm = match datatype.as_str() {
+        "https://blackcatinformatics.ca/gmeow/blake3_256Digest" => DigestAlgorithm::Blake3,
+        "https://blackcatinformatics.ca/gmeow/sha256Digest" => DigestAlgorithm::Sha256,
+        "https://blackcatinformatics.ca/gmeow/md5Digest" => DigestAlgorithm::Md5,
+        _ => {
+            return Err(digest_error(format!(
+                "unsupported contentDigest datatype <{datatype}>"
+            )));
+        }
+    };
+    algorithm.admit_hex(lexical_form)?;
+    Ok((algorithm, lexical_form))
+}
+
+/// Encode the existing internal BLAKE3 blob address at its RDF boundary.
+pub(crate) fn blake3_blob_literal(key: &str) -> gmeow_errors::Result<purrdf::RdfLiteral> {
+    let hex = key
+        .strip_prefix("blake3:")
+        .ok_or_else(|| digest_error("expected a blake3: internal blob address".into()))?;
+    DigestAlgorithm::Blake3.admit_hex(hex)?;
+    Ok(purrdf::RdfLiteral::typed(
+        hex,
+        DigestAlgorithm::Blake3.datatype(),
+    ))
+}
+
+/// Refuse malformed or conflicting checksums before datatype guards can omit them.
+pub(crate) fn admit_dcat_digest_sources(source: &purrdf::RdfDataset) -> gmeow_errors::Result<()> {
+    use purrdf::DatasetView;
+
+    let Some(member) = source.term_id_by_iri("https://blackcatinformatics.ca/gmeow/corpusMember")
+    else {
+        return Ok(());
+    };
+    let Some(digest) = source.term_id_by_iri("https://blackcatinformatics.ca/gmeow/contentDigest")
+    else {
+        return Ok(());
+    };
+    let members: BTreeSet<_> = source
+        .quads_for_pattern(None, Some(member), None, purrdf::GraphMatch::Any)
+        .map(|quad| quad.o)
+        .collect();
+    for subject in members {
+        let mut declared = BTreeMap::new();
+        for quad in
+            source.quads_for_pattern(Some(subject), Some(digest), None, purrdf::GraphMatch::Any)
+        {
+            let value = source.term_value(quad.o);
+            let (algorithm, hex) = admit_content_digest(&value)?;
+            if let Some(previous) = declared.insert(algorithm, hex.to_owned())
+                && previous != hex
+            {
+                return Err(digest_error(format!(
+                    "corpus member {:?} has conflicting {} checksum values",
+                    source.term_value(subject),
+                    algorithm.name()
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
 /// Resolve selected private carrier tags from the authored language model.
 /// Public tags are derived by the language bridge, never inferred from tag spelling.
 fn source_public_tags(
@@ -366,6 +527,9 @@ pub fn project_graph(
             message: format!("source dataset build failed: {e}"),
         })
     })?;
+    if program.profile() == "dcat" {
+        admit_dcat_digest_sources(&ds)?;
+    }
     let result = program.execute(&ds)?;
     let SparqlResult::Graph(triples) = result else {
         return Err(Diag::of_kind(Projection {

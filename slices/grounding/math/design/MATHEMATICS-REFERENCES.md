@@ -406,3 +406,25 @@ no parser, hash executor, artifact verifier or native custom-value interpretatio
 No lexical validation rule is claimed without an actual governed property
 contract. Existing `contentDigest` ranges, producers and consumers retain their
 current contracts.
+
+### MD5 digest identity
+
+`gmeow:md5Digest` extends the same named-datatype pattern to the MD5 algorithm
+and its ordered 16 output bytes. Its lexical contract is exactly 32 lowercase
+hexadecimal digits in output-byte order, with no prefix or language tag.
+
+Ronald L. Rivest, *The MD5 Message-Digest Algorithm*, April 1992,
+[RFC 1321](https://www.rfc-editor.org/rfc/rfc1321), section 3 defines the
+algorithm; section 3.5 orders the output bytes from the low-order byte of A
+through the high-order byte of D. Appendix A.4's reference driver prints each
+of the 16 output bytes with two lowercase hexadecimal digits. The datatype
+selects byte-sequence inputs, while the algorithm description also admits
+messages whose bit length is not a multiple of eight.
+
+The RFC's status explicitly says it provides information and does not specify
+an Internet standard. Its algorithm definition is the authority here, without
+adopting a security guarantee. The existing RDF 1.2 term-identity reference
+and `math:Sequence` grounding apply without asserting a value-space alias,
+sequence instance, parser or verification operation. Source-supplied MD5
+identity is preserved alongside other algorithms; no digest is dropped or
+relabelled and no `contentDigest` property contract is tightened.

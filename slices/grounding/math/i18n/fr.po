@@ -12,6 +12,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MD5 digest"
+msgstr "empreinte MD5"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An MD5 hash result as specified by RFC 1321, computed over the exact supplied input bytes. Its value pairs the MD5 algorithm identity with the ordered 16 digest bytes. The lexical form is exactly 32 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du hachage MD5 défini par le RFC 1321, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité de l’algorithme MD5 aux 16 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 32 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied MD5 digest without dropping its algorithm identity or relabeling it as another algorithm's result."
+msgstr "Utiliser pour conserver une empreinte MD5 fournie par la source sans perdre l’identité de son algorithme ni la rebaptiser comme résultat d’un autre algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring cryptographic security, artifact verification or digest equality across algorithms from this datatype. Do not relabel a scheme identifier as the digest of different artifact bytes."
+msgstr "Éviter de déduire de ce type de données une sécurité cryptographique, une vérification d’artefact ou une égalité d’empreintes entre algorithmes. Ne pas rebaptiser un identifiant de schéma comme empreinte d’autres octets d’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source's 32 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; domain-tag bytes remain part of the input when actually supplied."
+msgstr "Préserver les 32 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; les octets d’une étiquette de domaine restent partie de l’entrée lorsqu’ils sont réellement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "RFC 1321 is an informational RFC from April 1992, not an Internet standard. This declaration installs no parser, computes no hash and verifies no artifact. Native RDF transport can retain the literal opaquely. Compare supplied literals by RDF sameTerm; no value-space equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Le RFC 1321 est un RFC informatif d’avril 1992 et non une norme Internet. Cette déclaration n’installe aucun analyseur, ne calcule aucun hachage et ne vérifie aucun artefact. Le transport RDF natif peut conserver le littéral de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF ; aucune égalité d’espace de valeurs avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-supplied MD5 digest retains its own algorithm identity beside separately supplied digests of the same artifact, without asserting that any digest was checked."
+msgstr "Une empreinte MD5 fournie par la source conserve sa propre identité d’algorithme à côté d’empreintes du même artefact fournies séparément, sans affirmer qu’une empreinte a été vérifiée."
+
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Exact Preservation Violated"
 msgstr "Préservation exacte violée"
