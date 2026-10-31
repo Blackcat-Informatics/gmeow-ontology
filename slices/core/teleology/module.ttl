@@ -253,7 +253,7 @@ DOCTRINE.
   * gmeow:counterGoal is CONSTITUTIVE opposition — the named shadow that partly defines the goal. Strictly stronger than an antonym edge: the counter-goal is part of what the goal means, not merely its lexical opposite.
   * Whether a situation satisfies a goal is a vantage-indexed claim through the statement layer, never a global verdict (Principle 9). Whose goal it is, is indexed the same way: goals attributed to an agent by an observer and goals avowed by the agent are coexisting claims.
   * Flat-first, reify on demand (Principle 4): gmeow:hasGoal covers the 80% case; promote to Desire / Intention / Commitment when commitment grade, tenure, or standpoint matters; promote to gmeow:IntentionTenure (the StandpointTenure idiom) when adoption / revision of the intention is itself the fact of interest. Goals are revised by suppression, never deleted (Principle 10).
-  * Goal decomposition, plan search, and means-end reasoning are solver-layer computations (Principle 12); the ontology records goals, their counter-goals, and who holds them.
+  * Goals and authored dependency relations are ontology data. Choosing a decomposition, plan search, and means-end reasoning are solver-layer computations (Principle 12); the ontology retains the goals, dependencies, counter-goals, and attributed holders that those computations consume.
   * Deontic force lives elsewhere: a Goal prescribes nothing. Norms that make conduct obligatory arrive with the core norms slice, which ranges gmeow:prescribedConduct over Goal — the dependency points norms → teleology, never back."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "GMEOW Teleology Module"@x-gmeow-english ;
