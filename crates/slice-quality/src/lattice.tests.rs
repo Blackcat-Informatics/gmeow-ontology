@@ -49,7 +49,7 @@ fn axis(iri: &str, weight: f64) -> Axis {
         thresholds,
         weight,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

@@ -50,7 +50,7 @@ fn axis(local: &str) -> Axis {
         }],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

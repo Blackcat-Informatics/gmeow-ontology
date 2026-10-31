@@ -157,11 +157,11 @@ gmeow:axisThreshold
     gmeow:useWhen "Use on an axis to pin, as data, the per-tier score floors that turn a measured decimal into a tier grade."@x-gmeow-english .
 
 gmeow:axisAdviceTemplate
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis advice template"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The opinionated uplift advice the axis emits when a slice falls short — the next-best-action text, which MUST cite the SLICE_GUIDE section or Constitution principle it discharges and MUST NOT reference a development ticket or issue number (process linkage lives outside the repo). It is NOT the finding message alone: it is the doctrine-anchored remediation the advisor ranks and offers."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalGrounding gmeow:axisAdviceTemplate \"Ground each bare class on the triad — assign a foundation stereotype and a mediates relation (SLICE_GUIDE §4; Principle 19).\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid citing an issue or PR number (cite SLICE_GUIDE §/Principle instead), avoid duplicating doctrine prose verbatim (reference it), and avoid template text so generic it names no concrete action."@x-gmeow-english ;
@@ -3938,3 +3938,5 @@ gmeow:projVocab-schema-value a gmeow:ProjectionVocabulary ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:ValidationOnly .
+
+gmeow:QualityAxis logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:axisAdviceTemplate ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

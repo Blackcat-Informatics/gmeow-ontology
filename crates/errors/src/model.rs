@@ -465,12 +465,170 @@ pub struct RelatedLabel {
     pub message: String,
 }
 
+/// One original literal statement retained as diagnostic source evidence.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(try_from = "SourceAnnotationWire", into = "SourceAnnotationWire")]
+pub struct SourceAnnotation {
+    subject: purrdf_core::BaseIri,
+    predicate: purrdf_core::BaseIri,
+    object: purrdf_core::RdfLiteral,
+}
+
+/// The literal transport retains the authored optional datatype as well as its
+/// language and direction; effective datatype inference remains native RDF work.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SourceLiteralWire {
+    pub lexical_form: String,
+    #[serde(deserialize_with = "source_optional_text")]
+    pub datatype: Option<String>,
+    #[serde(deserialize_with = "source_optional_text")]
+    pub language: Option<String>,
+    #[serde(deserialize_with = "source_optional_text")]
+    pub direction: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SourceAnnotationWire {
+    pub subject: String,
+    pub predicate: String,
+    pub object: SourceLiteralWire,
+}
+
+fn source_optional_text<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<String>, D::Error> {
+    Option::<String>::deserialize(deserializer)
+}
+
+impl TryFrom<SourceLiteralWire> for purrdf_core::RdfLiteral {
+    type Error = String;
+
+    fn try_from(value: SourceLiteralWire) -> Result<Self, Self::Error> {
+        let direction = value
+            .direction
+            .as_deref()
+            .map(|token| {
+                purrdf_core::RdfTextDirection::from_str_token(token)
+                    .ok_or_else(|| format!("invalid literal direction {token:?}"))
+            })
+            .transpose()?;
+        let literal = Self {
+            lexical_form: value.lexical_form,
+            datatype: value.datatype,
+            language: value.language,
+            direction,
+        };
+        validate_source_literal(&literal)?;
+        Ok(literal)
+    }
+}
+
+impl From<purrdf_core::RdfLiteral> for SourceLiteralWire {
+    fn from(value: purrdf_core::RdfLiteral) -> Self {
+        Self {
+            lexical_form: value.lexical_form,
+            datatype: value.datatype,
+            language: value.language,
+            direction: value
+                .direction
+                .map(|direction| direction.as_str().to_owned()),
+        }
+    }
+}
+
+impl TryFrom<SourceAnnotationWire> for SourceAnnotation {
+    type Error = String;
+
+    fn try_from(value: SourceAnnotationWire) -> Result<Self, Self::Error> {
+        Self::new(
+            purrdf_core::BaseIri::parse(&value.subject).map_err(|error| error.to_string())?,
+            purrdf_core::BaseIri::parse(&value.predicate).map_err(|error| error.to_string())?,
+            value.object.try_into()?,
+        )
+    }
+}
+
+impl From<SourceAnnotation> for SourceAnnotationWire {
+    fn from(value: SourceAnnotation) -> Self {
+        Self {
+            subject: value.subject.as_str().to_owned(),
+            predicate: value.predicate.as_str().to_owned(),
+            object: value.object.into(),
+        }
+    }
+}
+
+fn validate_source_literal(literal: &purrdf_core::RdfLiteral) -> Result<(), String> {
+    if let Some(datatype) = &literal.datatype {
+        purrdf_core::BaseIri::parse(datatype).map_err(|error| error.to_string())?;
+    }
+    purrdf_core::RdfLiteral::validate_components(
+        literal
+            .datatype
+            .as_deref()
+            .unwrap_or_else(|| literal.datatype_iri()),
+        literal.language.as_deref(),
+        literal.direction,
+    )
+    .map_err(str::to_owned)
+}
+
+impl SourceAnnotation {
+    /// Admit an original statement without changing its literal representation.
+    ///
+    /// # Errors
+    /// Refuses an invalid datatype IRI, language tag or datatype/direction combination.
+    pub fn new(
+        subject: purrdf_core::BaseIri,
+        predicate: purrdf_core::BaseIri,
+        object: purrdf_core::RdfLiteral,
+    ) -> Result<Self, String> {
+        validate_source_literal(&object)?;
+        Ok(Self {
+            subject,
+            predicate,
+            object,
+        })
+    }
+
+    #[must_use]
+    pub fn subject(&self) -> &purrdf_core::BaseIri {
+        &self.subject
+    }
+
+    #[must_use]
+    pub fn predicate(&self) -> &purrdf_core::BaseIri {
+        &self.predicate
+    }
+
+    #[must_use]
+    pub fn object(&self) -> &purrdf_core::RdfLiteral {
+        &self.object
+    }
+
+    pub(crate) fn sort_key(&self) -> (&str, &str, &str, &str, Option<&str>, Option<&str>) {
+        (
+            self.subject.as_str(),
+            self.predicate.as_str(),
+            &self.object.lexical_form,
+            self.object.datatype_iri(),
+            self.object.language.as_deref(),
+            self.object.direction.map(|direction| direction.as_str()),
+        )
+    }
+}
+
 /// One normalized diagnostic emitted by any GMEOW tool.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Finding {
     pub severity: Severity,
     pub code: String,
     pub message: String,
+    /// Original literal statements, separate from the generated display message.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub source_annotations: Vec<SourceAnnotation>,
     /// Original named graph, distinct from both focus and the projection graph.
     #[serde(
         default,
@@ -634,6 +792,7 @@ impl Finding {
             severity,
             code: code.into(),
             message: message.into(),
+            source_annotations: Vec::new(),
             source_graph: None,
             source_focus: None,
             tool: None,
@@ -757,6 +916,13 @@ impl Finding {
     }
 
     pub fn normalize(&mut self) {
+        self.source_annotations.sort_by(|a, b| {
+            a.sort_key()
+                .cmp(&b.sort_key())
+                .then_with(|| a.object.datatype.cmp(&b.object.datatype))
+        });
+        self.source_annotations
+            .dedup_by(|a, b| a.sort_key() == b.sort_key());
         self.tags.sort();
         self.tags.dedup();
         self.suggestions.sort();
