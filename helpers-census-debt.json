@@ -721,7 +721,6 @@
   {
    "kind": "body",
    "members": [
-    "gmeow_logic::physical::plan::frame",
     "gmeow_logic::versioning::feed",
     "gmeow_pipeline::stages::carrier::hash_receipt_field"
    ]
