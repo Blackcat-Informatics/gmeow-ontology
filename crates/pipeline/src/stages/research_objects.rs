@@ -428,8 +428,9 @@ fn research_limits() -> Result<purrdf::ProjectionLimits, gmeow_errors::Diag> {
 
 /// The complete caller-owned RDF vocabulary binding: how the source research-object
 /// A-Box built by [`build_research_source`] expresses each semantic role. gmeow
-/// predicates/classes for the concepts the worked example carries; the real rdf:/xsd:
-/// datatype IRIs the pivot compares literal datatypes against; a distinct absolute
+/// predicates/classes for the concepts the worked example carries; the external
+/// schema:encodingFormat lexical slot; the real rdf:/xsd: datatype IRIs the pivot
+/// compares literal datatypes against; a distinct absolute
 /// gmeow IRI for every remaining role (purrdf rejects any missing, relative, or
 /// duplicate binding). Because [`build_research_source`] emits triples keyed off THIS
 /// same map, source and reader can never drift.
@@ -461,7 +462,10 @@ fn research_roles() -> Result<purrdf::ResearchObjectRoles, gmeow_errors::Diag> {
             RR::ResourceDescription => g("resourceDescription"),
             RR::ResourcePath => g("resourcePath"),
             RR::ResourceUrl => g("contentUrl"),
-            RR::MediaType => g("mediaType"),
+            // This native codec slot is lexical external-profile metadata, not
+            // the canonical resource-valued gmeow:mediaType relation. Neither
+            // private source builder currently emits a media value.
+            RR::MediaType => "https://schema.org/encodingFormat".to_string(),
             RR::Format => g("resourceFormat"),
             RR::ByteSize => g("byteSize"),
             RR::Checksum => g("hasChecksum"),

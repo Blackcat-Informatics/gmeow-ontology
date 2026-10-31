@@ -85,7 +85,7 @@ ex:msg5
 ex:att1
     a gmeow:Attachment ;
     gmeow:filename "q2-report.pdf" ;
-    gmeow:mediaType "application/pdf" .
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> .
 
 # Derivation layer: a text extraction and an AI summary of the attachment.
 ex:att1-text
@@ -277,11 +277,11 @@ ex:msgDsn
 
 ex:dsnPart1
     a gmeow:BodyPart ;
-    gmeow:mediaType "text/plain" .
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> .
 
 ex:dsnPart2
     a gmeow:BodyPart ;
-    gmeow:mediaType "message/delivery-status" .
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/message/delivery-status> .
 
 # An auto-generated out-of-office reply.
 ex:msgAuto
@@ -365,7 +365,7 @@ ex:plainPart
     a gmeow:BodyPart ;
     gmeow:partId "1.1" ;
     gmeow:blobId "Gplain1234567890" ;
-    gmeow:mediaType "text/plain" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ;
     gmeow:charset "utf-8" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingQuotedPrintable ;
     gmeow:hasContentDisposition gmeow:contentDispositionInline .
@@ -384,7 +384,7 @@ ex:htmlPart
     a gmeow:InlinePart ;
     gmeow:partId "1.2" ;
     gmeow:blobId "Ghtml1234567890" ;
-    gmeow:mediaType "text/html" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ;
     gmeow:charset "utf-8" ;
     gmeow:contentId "<html-body@example.org>" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 ;
@@ -412,7 +412,7 @@ ex:att2
     a gmeow:Attachment ;
     gmeow:partId "2" ;
     gmeow:filename "image.png" ;
-    gmeow:mediaType "image/png" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ;
     gmeow:hasContentDisposition gmeow:contentDispositionAttachment ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 .
 
@@ -441,7 +441,7 @@ ex:multipartRel
 ex:htmlPartRelated
     a gmeow:InlinePart ;
     gmeow:partId "1.1" ;
-    gmeow:mediaType "text/html" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ;
     gmeow:charset "utf-8" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncoding8bit ;
     gmeow:hasContentDisposition gmeow:contentDispositionInline .
@@ -449,7 +449,7 @@ ex:htmlPartRelated
 ex:inlineImage
     a gmeow:InlinePart ;
     gmeow:partId "1.2" ;
-    gmeow:mediaType "image/png" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ;
     gmeow:contentId "<logo@example.org>" ;
     gmeow:hasContentTransferEncoding gmeow:transferEncodingBase64 ;
     gmeow:hasContentDisposition gmeow:contentDispositionInline .
@@ -483,7 +483,7 @@ ex:calendarAtt
     a gmeow:Attachment ;
     gmeow:partId "2" ;
     gmeow:filename "meeting.ics" ;
-    gmeow:mediaType "text/calendar" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/calendar> ;
     gmeow:hasContentDisposition gmeow:contentDispositionAttachment .
 
 # The event described in the attachment — reuses the events module spine.
@@ -543,7 +543,7 @@ ex:msgCanonical
 ex:msgCanonicalBody
     a gmeow:BodyPart ;
     gmeow:partId "1" ;
-    gmeow:mediaType "text/plain" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ;
     gmeow:contentDigest "blake3:canonical-body-bytes" .
 
 ex:canonicalMembership
@@ -576,7 +576,7 @@ ex:variantMembership
 ex:variantPatch
     a gmeow:EmailPatchDiff ;
     gmeow:partId "patch-1" ;
-    gmeow:mediaType "text/x-gmeow-patch" ;
+    gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ;
     gmeow:contentDigest "blake3:patch-bytes" ;
     gmeow:wasDerivedFrom ex:msgCanonicalBody .
 

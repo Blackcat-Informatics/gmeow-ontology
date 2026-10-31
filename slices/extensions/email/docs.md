@@ -551,9 +551,16 @@ collision flags, fingerprints, and patch-diff artifact type.
 A `patch_diff` compound part is modeled as a `gmeow:EmailPatchDiff`, which is a
 `gmeow:BodyPart` subclass. It is linked from the variant message via
 `gmeow:hasPatchDiff` (a subproperty of `gmeow:hasBodyPart`). The patch carries
-`gmeow:mediaType "text/x-gmeow-patch"`, a `gmeow:contentDigest` for reliable
+`gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`, a `gmeow:contentDigest` for reliable
 identity, and `gmeow:wasDerivedFrom` pointing to the canonical body part(s) it
 was computed from.
+
+The patch format is unregistered, so its identity is the explicit GMEOW IRI
+`<https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`.
+Its exact MIME spelling is `"text/x-gmeow-patch"` on that MediaType value's
+`mediaTypeName`, rather than a string on the body part. Registered formats
+use their IANA resource IRIs. Charset and other source MIME parameters remain
+separate from the media identity.
 
 | gmeow part role | GMEOW term |
 |---|---|
@@ -572,7 +579,7 @@ ex:msgCanonical a gmeow:EmailMessage ;
 
 ex:msgCanonicalBody a gmeow:BodyPart ;
     gmeow:partId "1" ;
-    gmeow:mediaType "text/plain" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ;
     gmeow:contentDigest "blake3:canonical-body-bytes" .
 
 ex:canonicalMembership a gmeow:VersionMembership ;
@@ -597,7 +604,7 @@ ex:variantMembership a gmeow:VersionMembership ;
     gmeow:membershipAuthority ex:gmeowImporter .
 
 ex:variantPatch a gmeow:EmailPatchDiff ;
-    gmeow:mediaType "text/x-gmeow-patch" ;
+    gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ;
     gmeow:contentDigest "blake3:patch-bytes" ;
     gmeow:wasDerivedFrom ex:msgCanonicalBody .
 ```

@@ -139,6 +139,41 @@ episode, or chapter of a serial. Both are out-of-universe, rights-bearing
 Manifestations, held strictly apart from any in-universe narrative frame they source
 (linked via `gmeow:sourceFor`).
 
+## Media identity
+
+`gmeow:mediaType` is an object property from Entity to the open MediaType value
+vocabulary. Registered MIME types use their IANA resource IRIs, such as
+`<https://www.iana.org/assignments/media-types/text/html>`. An unregistered
+format uses a GMEOW identity under
+`https://blackcatinformatics.ca/gmeow/media-types/<type>/<subtype>`, such as
+`<https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`.
+These are format values, grounded as `logic:QualityValue` individuals rather
+than carrier subclasses (Principles 4 and 17).
+
+`gmeow:mediaTypeName` carries the value's exact parameter-free MIME
+`type/subtype` spelling as xsd:string. The spelling belongs to the value;
+there is no parallel string media-type property on the carrier. A registered
+IRI can be used without repeating its external metadata on each carrier.
+The name is optional; supplied names retain their exact machine spelling and
+are checked for parameter-free syntax. Neither a name nor a matching IRI shape
+proves registration, byte content or agreement between a name and an IRI.
+Authors determine registration and select the corresponding resource.
+
+The existing functional characteristic permits at most one media identity on
+an entity. It does not require a media type on every Entity. Distinct media
+formats are modeled as distinct carriers. Charset and other MIME parameters
+are separate carrier or source-header metadata, outside both the identity IRI
+and `mediaTypeName`; no default charset or parameter parser is introduced.
+Source header evidence retains casing, parameters and other syntax beyond the
+parameter-free format identity.
+
+The two authored schema.org bindings use this same IRI as the URL-valued
+`schema:encodingFormat` object. They do not replace it with `mediaTypeName`
+or invent a formatter. The media class, name metadata and authored identity
+policy are outside those projected triples. The
+[media identity design](design/MEDIA-TYPES.md) records the exact source contract
+and its verification limits.
+
 ## Character encoding
 
 `gmeow:charset` records the character encoding of an information object's textual
@@ -149,9 +184,10 @@ property does not enumerate a closed registry or normalize that label.
 Keep the encoding separate from `gmeow:mediaType` and from the content's natural
 language (`gmeow:contentLanguage` or `gmeow:contentLanguageCode`). Compression and
 MIME content-transfer encoding are different metadata. The
-[web presence example](examples/web-presence.ttl) records `"text/html"` and
-`"utf-8"` separately on a web page. Email uses this same property for a MIME
-part's `Content-Type` charset parameter.
+[web presence example](examples/web-presence.ttl) records the IANA media IRI
+`<https://www.iana.org/assignments/media-types/text/html>` and the separate
+charset literal `"utf-8"` on a web page. Email uses this same charset property
+for a MIME part's `Content-Type` charset parameter.
 
 ## Identifiers, extent and decoded content
 

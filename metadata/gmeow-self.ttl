@@ -302,7 +302,7 @@
     skos:definition "The canonical GMEOW logo: a black cat holding a linked knowledge graph. It is the emblematic logo for the ontology and project, not a depiction of them."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:embodies :visual-identity-design ;
-    gmeow:mediaType "image/svg+xml" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> ;
     gmeow:sourceLocation "docs/gmeow-logo.svg" ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> .
 
@@ -312,7 +312,7 @@
     skos:definition "The editable SVG source for the GMEOW repository social preview card."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:embodies :visual-identity-design ;
-    gmeow:mediaType "image/svg+xml" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> ;
     gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
     gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;
     gmeow:hasPart :logo-svg ;
@@ -325,7 +325,7 @@
     skos:definition "The rendered PNG social preview card uploaded through GitHub repository settings."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     gmeow:embodies :visual-identity-design ;
-    gmeow:mediaType "image/png" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ;
     gmeow:pixelWidth "1280"^^xsd:nonNegativeInteger ;
     gmeow:pixelHeight "640"^^xsd:nonNegativeInteger ;
     gmeow:wasDerivedFrom :social-preview-svg ;
