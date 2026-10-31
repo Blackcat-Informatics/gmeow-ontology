@@ -541,15 +541,15 @@ pub struct NativeFragmentRegistry {
     /// Stable local names of every selected source admission contract.
     pub source_admission_ids: BTreeSet<String>,
     /// Exact source selection and admission requirements, keyed by contract local name.
-    pub source_admission_requirements: BTreeMap<String, String>,
+    pub source_admission_requirements: BTreeMap<String, Vec<gmeow_errors::SourceAnnotation>>,
     /// Stable local names of every retained expressiveness boundary.
     pub boundary_ids: BTreeSet<String>,
     /// Deciding pattern, keyed by fragment local name.
     pub deciding_patterns: BTreeMap<String, String>,
     /// Technical completeness bound, keyed by fragment local name.
-    pub completeness_bounds: BTreeMap<String, String>,
+    pub completeness_bounds: BTreeMap<String, Vec<gmeow_errors::SourceAnnotation>>,
     /// Technical reason for withholding, keyed by boundary local name.
-    pub boundary_reasons: BTreeMap<String, String>,
+    pub boundary_reasons: BTreeMap<String, Vec<gmeow_errors::SourceAnnotation>>,
 }
 
 mod registry_json;
@@ -628,54 +628,45 @@ impl NativeFragmentRegistry {
                 predicate if predicate == boundary_pred => {
                     surface.boundary_ids.insert(local.to_owned());
                 }
-                predicate if predicate == admission_requirement => {
-                    let TermRef::Literal {
-                        lexical,
-                        datatype,
-                        language: None,
-                        direction: None,
-                    } = object
-                    else {
+                predicate
+                    if predicate == admission_requirement
+                        || predicate == completeness_bound
+                        || predicate == boundary_reason =>
+                {
+                    let purrdf::RdfTerm::Literal(literal) = dataset.to_owned_term(quad.o) else {
                         return Err(registry_error(&format!(
-                            "{subject} {predicate} must be an untagged xsd:string literal"
+                            "{subject} {predicate} must be a prose literal"
                         )));
                     };
-                    if !matches!(
-                        dataset.resolve(datatype),
-                        TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
-                    ) {
-                        return Err(registry_error(&format!(
-                            "{subject} {predicate} must be an untagged xsd:string literal"
-                        )));
-                    }
-                    if lexical.trim().is_empty() {
-                        return Err(registry_error(&format!(
-                            "{subject} {predicate} must be nonempty"
-                        )));
-                    }
-                    insert_registry_value(
-                        &mut surface.source_admission_requirements,
-                        local,
-                        predicate,
-                        lexical,
-                    )?;
-                }
-                predicate if predicate == completeness_bound || predicate == boundary_reason => {
-                    let TermRef::Literal { lexical, .. } = object else {
-                        return Err(registry_error(&format!(
-                            "{subject} {predicate} must be a literal"
-                        )));
-                    };
-                    let values = if predicate == completeness_bound {
+                    let annotation = gmeow_errors::SourceAnnotation::new(
+                        purrdf_core::BaseIri::parse(subject)?,
+                        purrdf_core::BaseIri::parse(predicate)?,
+                        literal,
+                    )
+                    .map_err(|error| registry_error(&error))?;
+                    let values = if predicate == admission_requirement {
+                        &mut surface.source_admission_requirements
+                    } else if predicate == completeness_bound {
                         &mut surface.completeness_bounds
                     } else {
                         &mut surface.boundary_reasons
                     };
-                    insert_registry_value(values, local, predicate, lexical)?;
+                    values.entry(local.to_owned()).or_default().push(annotation);
                 }
                 _ => {}
             }
         }
+        for values in [
+            &mut surface.source_admission_requirements,
+            &mut surface.completeness_bounds,
+            &mut surface.boundary_reasons,
+        ] {
+            for annotations in values.values_mut() {
+                annotations.sort_by(|a, b| literal_key(a.object()).cmp(&literal_key(b.object())));
+                annotations.dedup_by(|a, b| literal_key(a.object()) == literal_key(b.object()));
+            }
+        }
+        surface.validate_characterizations()?;
         if surface
             .source_admission_requirements
             .keys()
@@ -703,6 +694,157 @@ impl NativeFragmentRegistry {
         }
         Ok(surface)
     }
+    /// Validate typed source ownership and the existing exact lexical contracts.
+    ///
+    /// # Errors
+    /// Refuses an empty vector, non-prose value, mismatched source identity, or
+    /// conflicting lexical characterization, including transferred JSON records.
+    pub fn validate_characterizations(&self) -> Result<(), gmeow_errors::Diag> {
+        for (values, predicate) in [
+            (
+                &self.source_admission_requirements,
+                "sourceAdmissionRequirement",
+            ),
+            (&self.completeness_bounds, "fragmentCompletenessBound"),
+            (&self.boundary_reasons, "fragmentBoundaryReason"),
+        ] {
+            characterization_lexicals(values, predicate)?;
+        }
+        Ok(())
+    }
+
+    /// Compare the complete native capability inventory without treating literal
+    /// language/direction metadata as an extra semantic capability. Every original
+    /// ID, pattern and exact technical lexical characterization is still compared.
+    /// Full packet equality remains available separately through `PartialEq`.
+    ///
+    /// # Errors
+    /// Refuses malformed typed characterizations before any comparison.
+    pub fn matches_native_inventory(&self, native: &Self) -> Result<bool, gmeow_errors::Diag> {
+        self.validate_characterizations()?;
+        native.validate_characterizations()?;
+        for (left, right, predicate) in [
+            (
+                &self.source_admission_requirements,
+                &native.source_admission_requirements,
+                "sourceAdmissionRequirement",
+            ),
+            (
+                &self.completeness_bounds,
+                &native.completeness_bounds,
+                "fragmentCompletenessBound",
+            ),
+            (
+                &self.boundary_reasons,
+                &native.boundary_reasons,
+                "fragmentBoundaryReason",
+            ),
+        ] {
+            if characterization_lexicals(left, predicate)?
+                != characterization_lexicals(right, predicate)?
+            {
+                return Ok(false);
+            }
+        }
+        Ok(self.pattern_ids == native.pattern_ids
+            && self.decided_ids == native.decided_ids
+            && self.source_admission_ids == native.source_admission_ids
+            && self.boundary_ids == native.boundary_ids
+            && self.deciding_patterns == native.deciding_patterns)
+    }
+}
+
+fn literal_key(literal: &purrdf::RdfLiteral) -> (&str, &str, Option<&str>, Option<&str>) {
+    (
+        &literal.lexical_form,
+        literal.datatype_iri(),
+        literal.language.as_deref(),
+        literal.direction.map(|direction| direction.as_str()),
+    )
+}
+
+fn characterization_lexicals(
+    values: &BTreeMap<String, Vec<gmeow_errors::SourceAnnotation>>,
+    property: &str,
+) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
+    let mut lexicals = BTreeMap::new();
+    for (local, annotations) in values {
+        validate_characterization(local, property, annotations)?;
+        for annotation in annotations {
+            insert_registry_value(
+                &mut lexicals,
+                local,
+                property,
+                &annotation.object().lexical_form,
+            )?;
+        }
+    }
+    Ok(lexicals)
+}
+
+fn validate_characterization(
+    local: &str,
+    property: &str,
+    annotations: &[gmeow_errors::SourceAnnotation],
+) -> Result<(), gmeow_errors::Diag> {
+    use gmeow_ns::LOGIC_NS;
+    if annotations.is_empty() {
+        return Err(registry_error(&format!(
+            "{LOGIC_NS}{local} {property} requires a nonempty literal collection"
+        )));
+    }
+    let subject = format!("{LOGIC_NS}{local}");
+    let predicate = format!("{LOGIC_NS}{property}");
+    let mut lexical = None;
+    for annotation in annotations {
+        if annotation.subject().as_str() != subject || annotation.predicate().as_str() != predicate
+        {
+            return Err(registry_error(&format!(
+                "{subject} {predicate} has a mismatched source statement"
+            )));
+        }
+        let literal = annotation.object();
+        if !matches!(
+            literal.datatype_iri(),
+            "http://www.w3.org/2001/XMLSchema#string"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        ) {
+            return Err(registry_error(&format!(
+                "{subject} {predicate} must be a prose literal"
+            )));
+        }
+        if property == "sourceAdmissionRequirement" && literal.lexical_form.trim().is_empty() {
+            return Err(registry_error(&format!(
+                "{subject} {predicate} must be nonempty"
+            )));
+        }
+        if lexical.is_some_and(|previous| previous != literal.lexical_form.as_str()) {
+            return Err(registry_error(&format!(
+                "{subject} has conflicting values for {predicate}"
+            )));
+        }
+        lexical = Some(literal.lexical_form.as_str());
+    }
+    Ok(())
+}
+
+fn native_characterization(
+    local: &str,
+    property: &str,
+    lexical: &str,
+) -> Vec<gmeow_errors::SourceAnnotation> {
+    use gmeow_ns::LOGIC_NS;
+    vec![
+        gmeow_errors::SourceAnnotation::new(
+            purrdf_core::BaseIri::parse(&format!("{LOGIC_NS}{local}"))
+                .expect("native registry identities are absolute IRIs"),
+            purrdf_core::BaseIri::parse(&format!("{LOGIC_NS}{property}"))
+                .expect("native registry properties are absolute IRIs"),
+            purrdf::RdfLiteral::simple(lexical),
+        )
+        .expect("native registry characterizations are plain literals"),
+    ]
 }
 
 fn insert_registry_value(
@@ -743,21 +885,28 @@ pub fn native_fragment_registry() -> NativeFragmentRegistry {
         registry
             .deciding_patterns
             .insert(fragment.id.to_owned(), fragment.pattern.slug().to_owned());
-        registry
-            .completeness_bounds
-            .insert(fragment.id.to_owned(), fragment.bound.to_owned());
+        registry.completeness_bounds.insert(
+            fragment.id.to_owned(),
+            native_characterization(fragment.id, "fragmentCompletenessBound", fragment.bound),
+        );
     }
     for contract in source_admission_contracts() {
         registry.source_admission_ids.insert(contract.id.to_owned());
-        registry
-            .source_admission_requirements
-            .insert(contract.id.to_owned(), contract.requirement.to_owned());
+        registry.source_admission_requirements.insert(
+            contract.id.to_owned(),
+            native_characterization(
+                contract.id,
+                "sourceAdmissionRequirement",
+                contract.requirement,
+            ),
+        );
     }
     for boundary in retained_boundaries() {
         registry.boundary_ids.insert(boundary.id.to_owned());
-        registry
-            .boundary_reasons
-            .insert(boundary.id.to_owned(), boundary.reason.to_owned());
+        registry.boundary_reasons.insert(
+            boundary.id.to_owned(),
+            native_characterization(boundary.id, "fragmentBoundaryReason", boundary.reason),
+        );
     }
     registry
 }

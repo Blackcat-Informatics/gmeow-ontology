@@ -3309,7 +3309,7 @@ struct DecidedFragmentRow {
     id: String,
     pattern: String,
     label: String,
-    bound: String,
+    bound: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// One retained withhold read off the shipped `logic:expressivenessBoundary`
@@ -3318,14 +3318,14 @@ struct DecidedFragmentRow {
 struct RetainedBoundaryRow {
     id: String,
     label: String,
-    reason: String,
+    reason: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// A source grammar contract read from the same shipped native manifest.
 struct SourceAdmissionRow {
     id: String,
     label: String,
-    requirement: String,
+    requirement: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// The decidability surface extracted from a graph source.
@@ -3416,21 +3416,28 @@ fn extract_decidability_surface(
     let decided = registry
         .decided_ids
         .iter()
-        .map(|id| DecidedFragmentRow {
-            id: id.clone(),
-            label: labels.get(id).cloned().unwrap_or_default(),
-            pattern: registry
-                .deciding_patterns
-                .get(id)
-                .cloned()
-                .unwrap_or_default(),
-            bound: registry
-                .completeness_bounds
-                .get(id)
-                .cloned()
-                .unwrap_or_default(),
+        .map(|id| {
+            let missing = |property: &str| {
+                Diag::of_kind(crate::error::RdfPipelineFailed {
+                    detail: format!("decided fragment {id} has no {property}"),
+                })
+            };
+            Ok(DecidedFragmentRow {
+                id: id.clone(),
+                label: labels.get(id).cloned().unwrap_or_default(),
+                pattern: registry
+                    .deciding_patterns
+                    .get(id)
+                    .cloned()
+                    .ok_or_else(|| missing("deciding pattern"))?,
+                bound: registry
+                    .completeness_bounds
+                    .get(id)
+                    .cloned()
+                    .ok_or_else(|| missing("completeness bound"))?,
+            })
         })
-        .collect();
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     let boundaries = registry
         .boundary_reasons
         .into_iter()
@@ -3456,13 +3463,13 @@ fn render_fragments_text(surface: &DecidabilitySurface) -> String {
         let _ = writeln!(out, "fragment {}", f.id);
         let _ = writeln!(out, "  label {}", f.label);
         let _ = writeln!(out, "  pattern {}", f.pattern);
-        let _ = writeln!(out, "  bound {}", f.bound);
+        render_fragment_literals(&mut out, "bound", &f.bound);
     }
     let _ = writeln!(out, "retained-boundaries {}", surface.boundaries.len());
     for b in &surface.boundaries {
         let _ = writeln!(out, "boundary {}", b.id);
         let _ = writeln!(out, "  label {}", b.label);
-        let _ = writeln!(out, "  reason {}", b.reason);
+        render_fragment_literals(&mut out, "reason", &b.reason);
     }
     let _ = writeln!(
         out,
@@ -3472,9 +3479,29 @@ fn render_fragments_text(surface: &DecidabilitySurface) -> String {
     for admission in &surface.source_admissions {
         let _ = writeln!(out, "source-admission {}", admission.id);
         let _ = writeln!(out, "  label {}", admission.label);
-        let _ = writeln!(out, "  requirement {}", admission.requirement);
+        render_fragment_literals(&mut out, "requirement", &admission.requirement);
     }
     out
+}
+
+/// Display every source literal and its RDF metadata without choosing a language.
+fn render_fragment_literals(
+    out: &mut String,
+    role: &str,
+    values: &[gmeow_errors::SourceAnnotation],
+) {
+    use std::fmt::Write as _;
+    for value in values {
+        let literal = value.object();
+        let _ = writeln!(out, "  {role} {}", literal.lexical_form);
+        let _ = writeln!(out, "    datatype {}", literal.datatype_iri());
+        if let Some(language) = &literal.language {
+            let _ = writeln!(out, "    language {language}");
+        }
+        if let Some(direction) = literal.direction {
+            let _ = writeln!(out, "    direction {}", direction.as_str());
+        }
+    }
 }
 
 /// Render the decidability surface as pretty, deterministic JSON.

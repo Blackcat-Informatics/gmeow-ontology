@@ -1350,7 +1350,11 @@ fn logic_fragments_source_admission_records_are_complete_and_separate() {
     assert_eq!(
         value["source_admission_contracts"],
         serde_json::json!([{
-            "id": "chosen", "label": "chosen grammar", "requirement": "selected owners only",
+            "id": "chosen", "label": "chosen grammar", "requirement": [{
+                "subject": "https://blackcatinformatics.ca/logic/chosen",
+                "predicate": "https://blackcatinformatics.ca/logic/sourceAdmissionRequirement",
+                "object": {"lexical_form": "selected owners only", "datatype": null, "language": null, "direction": null},
+            }],
         }])
     );
     for body in [
