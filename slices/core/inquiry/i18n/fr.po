@@ -200,3 +200,33 @@ msgstr "Classe une gmeow:Question selon le genre OPÉRATIONNEL de l'enquête qui
 msgctxt "https://blackcatinformatics.ca/gmeow/inquiryKind|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
 msgstr "Exemple : ex:whoOwnsLotSeven gmeow:inquiryKind gmeow:inquiryKindResearchPlan ."
+
+# Retained source context of a question.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "question context"
+msgstr "contexte de la question"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A question's source context, verbatim, with supplied language and direction. It is distinct from questionText and the answerhood condition that identifies the question."
+msgstr "Contexte source d’une question, textuellement, avec sa langue et sa direction fournies. Il est distinct de questionText et de la condition de réponse qui identifie la question."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's surrounding context of a Question."
+msgstr "À employer pour le contexte entourant une Question dans la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing questionText or asserting a presupposition from context wording."
+msgstr "Éviter de remplacer questionText ou d’affirmer une présupposition à partir du contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original context literal with its supplied language and base direction."
+msgstr "Conserver le littéral contextuel original avec sa langue et sa direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several contexts may coexist; no context identifies the Question or establishes an accepted answer."
+msgstr "Plusieurs contextes peuvent coexister ; aucun n’identifie la Question ni n’établit une réponse acceptée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/questionContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."
+msgstr "Par exemple : ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."

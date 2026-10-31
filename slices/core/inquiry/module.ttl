@@ -1,4 +1,5 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
@@ -487,3 +488,21 @@ gmeow:tenureQuestionFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:tenureQuestion and nothing else. It is not a definition of gmeow:tenureQuestion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:tenureQuestionFunctionality logic:characterizes gmeow:tenureQuestion ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Retained source context of a question.
+
+gmeow:questionContext
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "question context"@x-gmeow-english ;
+    skos:definition "A question's source context, verbatim, with supplied language and direction. It is distinct from questionText and the answerhood condition that identifies the question."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source's surrounding context of a Question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing questionText or asserting a presupposition from context wording."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original context literal with its supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Several contexts may coexist; no context identifies the Question or establishes an accepted answer."@x-gmeow-english ;
+    skos:example "For example: ex:question gmeow:questionContext \"The question arose during the morning review.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:Question ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/questionContext" ; logic:closureValue logic:ClosedWorldClosure ] .
