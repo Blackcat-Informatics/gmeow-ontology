@@ -678,3 +678,61 @@ msgstr "独立的来源主张可以并存。这些声明保留证据，不认证
 msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:utteranceText."
 msgstr "保留 gmeow:utteranceText 的来源值。"
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message Kind"
+msgstr "消息种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."
+msgstr "消息的行为或报告种类——值词汇表（个体，而非子类）。类别可以重叠（退信也可为自动生成，已读回执亦然）。原则 9：没有单一类别胜出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for overlapping source classifications of any Message transport."
+msgstr "用于任意 Message 传输方式中重叠的来源分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making kinds Message subclasses or forcing a single winning category."
+msgstr "避免把种类作为 Message 子类或强制单一获胜类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."
+msgstr "通过 hasMessageKind 附加实际种类个体；电子邮件和环境所有者提供各自值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This core vocabulary adds no email-address, delivery or recipient requirements."
+msgstr "此核心词汇表不增加电子邮件地址、投递或接收者要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localKind a gmeow:MessageKind ."
+msgstr "例如：ex:localKind a gmeow:MessageKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has message kind"
+msgstr "具有消息种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."
+msgstr "将消息关联到其行为或报告种类之一。非函数性：消息可具有多个重叠种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source classifies the behavior or report purpose of a Message."
+msgstr "用于来源分类 Message 行为或报告用途时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."
+msgstr "避免把种类解读为成功投递或将通知强制归为 EmailMessage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Message to each supplied MessageKind without removing other attributed kinds."
+msgstr "将实际 Message 关联到每个已提供 MessageKind，不删除其他带归属种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."
+msgstr "该关系保持非函数性和传输中立；电子邮件特有个体仍由电子邮件拥有。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."

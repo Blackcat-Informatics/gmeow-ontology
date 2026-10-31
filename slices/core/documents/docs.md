@@ -271,3 +271,10 @@ Do not parse a provider's raw time string into it or invent a timezone.
 originalFilename preserves the actual media object's filename exactly, including
 spaces and Unicode. It does not reuse filename, whose owner is an email
 attachment, and does not turn a refused-media description into a manifestation.
+
+## Source channel layout
+
+channelLayout preserves a MediaObject image's exact source channel-layout
+string, such as RGBA. It is independent of colour space, image decoding and
+pixel verification. Keep original case and spaces; the property provides no
+parser, closed code list or inferred channel count.

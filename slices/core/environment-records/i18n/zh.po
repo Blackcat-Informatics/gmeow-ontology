@@ -3090,3 +3090,2927 @@ msgstr "保留此规则：gmeow:RetiredWorldProjectionAttributionConstraint logi
 msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A retired-projection type claim has a native exact statement reifier whose accordingTo identifies the actual reader Agent. Attribution checks neither ledger coverage nor the truth of the projection's content."
 msgstr "已停止维护投影的类型主张具有精确原生陈述重述节点，其 accordingTo 标识实际读取者 Agent。归属检查既不检查账本覆盖，也不检查投影内容真值。"
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world genesis"
+msgstr "世界创生"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the beginning of an environment."
+msgstr "来源报告环境开始。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world genesis occurrence."
+msgstr "用于已记录的“世界创生”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A recorded beginning supplies no universal creation claim or inferred previous nonexistence."
+msgstr "记录的开始不构成普遍创世主张，也不推断先前不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldGenesis; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldGenesis 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world genesis, not an occurrence or an executable operation."
+msgstr "这是“世界创生”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldGenesis|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldGenesis ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldGenesis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world browsing"
+msgstr "世界浏览"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports an agent browsing the environment."
+msgstr "来源报告智能体浏览环境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world browsing occurrence."
+msgstr "用于已记录的“世界浏览”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Browsing does not establish complete inventory, discovery or receipt of every object."
+msgstr "浏览不证明完整清单、发现或接收每个对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldBrowse; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldBrowse 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world browsing, not an occurrence or an executable operation."
+msgstr "这是“世界浏览”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldBrowse|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldBrowse ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldBrowse ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world discovery exposure"
+msgstr "世界发现暴露"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports exposing an agent to objects it had not previously met in that source context."
+msgstr "来源报告智能体接触在该来源情境中此前未遇到的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world discovery exposure occurrence."
+msgstr "用于已记录的“世界发现暴露”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Exposure is not awareness, successful recognition or a globally first encounter."
+msgstr "暴露不等于觉察、成功识别或全局首次相遇。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldDiscoveryExposure; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldDiscoveryExposure 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world discovery exposure, not an occurrence or an executable operation."
+msgstr "这是“世界发现暴露”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldDiscoveryExposure|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldDiscoveryExposure ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldDiscoveryExposure ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world health transition"
+msgstr "世界健康转换"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a change in environment health."
+msgstr "来源报告环境健康状态改变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world health transition occurrence."
+msgstr "用于已记录的“世界健康转换”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Retain actual stateFrom and stateTo values without inferring recovery from silence."
+msgstr "保留实际 stateFrom 和 stateTo，不从沉默推断恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldEnvironmentStatusTransition; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldEnvironmentStatusTransition 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world health transition, not an occurrence or an executable operation."
+msgstr "这是“世界健康转换”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldEnvironmentStatusTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldEnvironmentStatusTransition ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldEnvironmentStatusTransition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world attention transition"
+msgstr "世界注意转换"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports attention moving between objects."
+msgstr "来源报告注意在对象之间转移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world attention transition occurrence."
+msgstr "用于已记录的“世界注意转换”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use attention endpoints, not location endpoints; attention does not imply physical movement."
+msgstr "使用注意端点而非位置端点；注意不意味着物理移动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldFocusTransition; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldFocusTransition 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world attention transition, not an occurrence or an executable operation."
+msgstr "这是“世界注意转换”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldFocusTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldFocusTransition ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldFocusTransition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world locus transition"
+msgstr "世界位置转换"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports an agent moving between places in the environment."
+msgstr "来源报告智能体在环境场所之间移动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world locus transition occurrence."
+msgstr "用于已记录的“世界位置转换”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use eventFromLocation and eventToLocation; do not infer attention or a global spatial path."
+msgstr "使用 eventFromLocation 和 eventToLocation；不推断注意或全局空间路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldLocusTransition; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldLocusTransition 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world locus transition, not an occurrence or an executable operation."
+msgstr "这是“世界位置转换”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldLocusTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldLocusTransition ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldLocusTransition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world locus naming"
+msgstr "世界场所命名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports naming or renaming a place, retaining both the new name and earlier naming history."
+msgstr "来源报告场所命名或改名，并保留新名称和此前命名历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world locus naming occurrence."
+msgstr "用于已记录的“世界场所命名”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A source's latest name is locally current, never a privileged global name; earlier names remain."
+msgstr "来源的最新名称仅局部有效，不是全局优先名称；旧名称保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldRenameLocus; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldRenameLocus 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world locus naming, not an occurrence or an executable operation."
+msgstr "这是“世界场所命名”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRenameLocus|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldRenameLocus ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldRenameLocus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world detail materialization"
+msgstr "世界细节实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports creating an environment detail."
+msgstr "来源报告创建环境细节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world detail materialization occurrence."
+msgstr "用于已记录的“世界细节实现”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The detail record is distinct from its creating Event and from external-world truth."
+msgstr "细节记录区别于创建它的 Event 及外部世界真相。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldMaterializeDetail; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldMaterializeDetail 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world detail materialization, not an occurrence or an executable operation."
+msgstr "这是“世界细节实现”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldMaterializeDetail ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldMaterializeDetail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world detail revision"
+msgstr "世界细节修订"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports revising an environment detail."
+msgstr "来源报告修订环境细节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world detail revision occurrence."
+msgstr "用于已记录的“世界细节修订”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A revision preserves prior attributed detail records rather than overwriting their history."
+msgstr "修订保留此前带归属的细节记录，不覆盖历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldReviseDetail; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldReviseDetail 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world detail revision, not an occurrence or an executable operation."
+msgstr "这是“世界细节修订”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldReviseDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldReviseDetail ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldReviseDetail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world detail retirement"
+msgstr "世界细节退役"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports retiring an environment detail."
+msgstr "来源报告停止使用环境细节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world detail retirement occurrence."
+msgstr "用于已记录的“世界细节退役”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Retirement is source lifecycle evidence, not deletion or proof that the detail was false."
+msgstr "退役是来源生命周期证据，不是删除或细节虚假的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldRetireDetail; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldRetireDetail 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world detail retirement, not an occurrence or an executable operation."
+msgstr "这是“世界细节退役”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldRetireDetail|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldRetireDetail ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldRetireDetail ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object materialization"
+msgstr "世界对象实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports making an offered object available in its represented environment."
+msgstr "来源报告在其表征环境中使所提供对象可用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world object materialization occurrence."
+msgstr "用于已记录的“世界对象实现”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Materialization is local to the represented world and does not prove external physical existence."
+msgstr "实现限定于表征世界，不证明外部物理存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldMaterializeObject; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldMaterializeObject 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world object materialization, not an occurrence or an executable operation."
+msgstr "这是“世界对象实现”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldMaterializeObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldMaterializeObject ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldMaterializeObject ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object offer staged"
+msgstr "世界对象提议已暂存"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports staging an object offer for an agent."
+msgstr "来源报告为智能体暂存对象提议。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world object offer staged occurrence."
+msgstr "用于已记录的“世界对象提议已暂存”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "An offer is neither acceptance nor completed materialization."
+msgstr "提议不等于接受或已完成实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectOfferStaged; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectOfferStaged 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world object offer staged, not an occurrence or an executable operation."
+msgstr "这是“世界对象提议已暂存”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectOfferStaged|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectOfferStaged ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectOfferStaged ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object noticed"
+msgstr "世界对象被注意"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports an agent noticing an object."
+msgstr "来源报告智能体注意到对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world object noticed occurrence."
+msgstr "用于已记录的“世界对象被注意”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Noticing neither proves comprehension nor grants access to the object's contents."
+msgstr "注意不证明理解，也不授予对象内容访问权。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectNoticed; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectNoticed 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world object noticed, not an occurrence or an executable operation."
+msgstr "这是“世界对象被注意”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectNoticed|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectNoticed ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectNoticed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object stirring"
+msgstr "世界对象触动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports an object's stirring or activation within the environment."
+msgstr "来源报告环境内对象的触动或激活。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world object stirring occurrence."
+msgstr "用于已记录的“世界对象触动”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Retain stirringKind when supplied; do not infer sentience, physical motion or tool success."
+msgstr "保留已提供 stirringKind；不推断感知性、物理运动或工具成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectStirred; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectStirred 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world object stirring, not an occurrence or an executable operation."
+msgstr "这是“世界对象触动”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectStirred|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectStirred ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectStirred ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world objects announced"
+msgstr "世界对象已宣告"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports announcing objects appearing in the environment."
+msgstr "来源报告宣告环境中出现的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world objects announced occurrence."
+msgstr "用于已记录的“世界对象已宣告”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "An announcement does not prove that its audience noticed every object."
+msgstr "宣告不证明受众注意到每个对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectsAnnounced; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectsAnnounced 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world objects announced, not an occurrence or an executable operation."
+msgstr "这是“世界对象已宣告”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsAnnounced|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectsAnnounced ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectsAnnounced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world objects changed"
+msgstr "世界对象已改变"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports changes to environment objects."
+msgstr "来源报告环境对象改变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world objects changed occurrence."
+msgstr "用于已记录的“世界对象已改变”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use affectsObject for the actual touched inventory; no globally complete change list follows."
+msgstr "用 affectsObject 保留实际受影响清单；不产生全局完整改变列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectsChanged; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectsChanged 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world objects changed, not an occurrence or an executable operation."
+msgstr "这是“世界对象已改变”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectsChanged|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectsChanged ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectsChanged ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world object contracts upgraded"
+msgstr "世界对象契约已升级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports upgrades to objects' provider contracts."
+msgstr "来源报告升级对象的提供方契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world object contracts upgraded occurrence."
+msgstr "用于已记录的“世界对象契约已升级”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A reported upgrade neither certifies compatibility nor grants a new capability."
+msgstr "升级报告既不认证兼容性，也不授予新能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldObjectContractsUpgraded; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldObjectContractsUpgraded 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world object contracts upgraded, not an occurrence or an executable operation."
+msgstr "这是“世界对象契约已升级”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldObjectContractsUpgraded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectContractsUpgraded ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldObjectContractsUpgraded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world reference placement"
+msgstr "世界引用放置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports placing a reference at a location in the environment."
+msgstr "来源报告将引用放置在环境某处。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world reference placement occurrence."
+msgstr "用于已记录的“世界引用放置”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Reference placement is not creation of its referent or verified access to it."
+msgstr "放置引用不等于创建其指称对象或验证访问。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldPlaceReference; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldPlaceReference 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world reference placement, not an occurrence or an executable operation."
+msgstr "这是“世界引用放置”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldPlaceReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldPlaceReference ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldPlaceReference ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world bedside items set"
+msgstr "世界床边物品已设置"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports setting the objects placed at an agent's bedside."
+msgstr "来源报告设置智能体床边放置的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world bedside items set occurrence."
+msgstr "用于已记录的“世界床边物品已设置”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Record the actual items through affectsObject without inferring ownership or sleep."
+msgstr "通过 affectsObject 记录实际物品，不推断所有权或睡眠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldSetBedsideItems; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldSetBedsideItems 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world bedside items set, not an occurrence or an executable operation."
+msgstr "这是“世界床边物品已设置”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldSetBedsideItems|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldSetBedsideItems ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldSetBedsideItems ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world provider state upsert"
+msgstr "世界提供方状态更新"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a provider announcing an object with changed meaningful state."
+msgstr "来源报告提供方宣告有意义状态已改变的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world provider state upsert occurrence."
+msgstr "用于已记录的“世界提供方状态更新”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Use the existing scoped state-claim spine; the event kind does not calculate a state digest."
+msgstr "使用已有来源限定状态主张结构；事件类型不计算状态摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldProviderUpsert; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldProviderUpsert 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world provider state upsert, not an occurrence or an executable operation."
+msgstr "这是“世界提供方状态更新”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderUpsert|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderUpsert ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderUpsert ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world provider degraded"
+msgstr "世界提供方退化"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports an environment provider failing or becoming degraded."
+msgstr "来源报告环境提供方失败或退化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world provider degraded occurrence."
+msgstr "用于已记录的“世界提供方退化”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "One provider's failure does not prove every provider or the whole world unavailable."
+msgstr "一个提供方失败不证明全部提供方或整个世界不可用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldProviderDegraded; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldProviderDegraded 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world provider degraded, not an occurrence or an executable operation."
+msgstr "这是“世界提供方退化”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderDegraded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderDegraded ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderDegraded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world provider superseded"
+msgstr "世界提供方被替代"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports replacing an environment provider."
+msgstr "来源报告替换环境提供方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world provider superseded occurrence."
+msgstr "用于已记录的“世界提供方被替代”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Provider replacement preserves prior identity and reports; it is not sameAs or history deletion."
+msgstr "替换保留原身份和报告，不是 sameAs 或删除历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldProviderSuperseded; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldProviderSuperseded 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world provider superseded, not an occurrence or an executable operation."
+msgstr "这是“世界提供方被替代”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldProviderSuperseded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderSuperseded ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldProviderSuperseded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world notice recorded"
+msgstr "世界通知已记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports recording a notice intended for an agent."
+msgstr "来源报告记录面向智能体的通知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world notice recorded occurrence."
+msgstr "用于已记录的“世界通知已记录”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Recording a notice does not establish dispatch, attempt or delivery."
+msgstr "记录通知不证明发送、尝试或送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldNotificationRecorded; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldNotificationRecorded 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world notice recorded, not an occurrence or an executable operation."
+msgstr "这是“世界通知已记录”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationRecorded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldNotificationRecorded ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldNotificationRecorded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world notice delivery occurrence"
+msgstr "世界通知投递事件"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a notice-delivery occurrence, which may be an attempt or actual delivery."
+msgstr "来源报告通知投递事件，可能是尝试或实际送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded world notice delivery occurrence occurrence."
+msgstr "用于已记录的“世界通知投递事件”事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Retain noticeDeliveryState separately; the event kind alone does not prove receipt."
+msgstr "单独保留 noticeDeliveryState；仅事件类型不证明接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Event or Activity with eventType eventTypeWorldNotificationDelivery; attribute the exact source statement."
+msgstr "用 eventType eventTypeWorldNotificationDelivery 分类实际 Event 或 Activity，并为精确来源陈述保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an EventType value for world notice delivery occurrence, not an occurrence or an executable operation."
+msgstr "这是“世界通知投递事件”的 EventType 值，不是事件本身或可执行操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeWorldNotificationDelivery|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ."
+msgstr "例如：ex:occurrence a gmeow:Event ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world notice message"
+msgstr "世界通知消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A communicative notice intended by an environment for an agent within it. The Message kind records purpose without asserting dispatch or receipt."
+msgstr "环境面向其中智能体的通信通知。该 Message 种类记录用途，不声称发送或接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a retained environment notice, including one not yet sent."
+msgstr "用于保留的环境通知，包括尚未发送的通知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a notice artifact as its delivery Event or as proof of its content."
+msgstr "避免将通知制品视为投递 Event 或其内容证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the actual Message through hasMessageKind and retain noticeKind and delivery reports independently."
+msgstr "通过 hasMessageKind 分类实际 Message，并独立保留 noticeKind 和投递报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This kind overlaps other MessageKind values without forcing email semantics."
+msgstr "该种类可与其他 MessageKind 值重叠，不强制电子邮件语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/messageKindWorldNotice|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notice Kind"
+msgstr "通知种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the reported topic of an environment notice."
+msgstr "环境通知所报告主题的开放词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify notice kind values supplied by a source."
+msgstr "用于分类来源提供的“通知种类”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing NoticeKind individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 NoticeKind 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through noticeKind; keep independent attributed classifications."
+msgstr "通过 noticeKind 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The notice kind vocabulary stays open; absence supplies no default member."
+msgstr "“通知种类”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:NoticeKind ."
+msgstr "例如：ex:localValue a gmeow:NoticeKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice kind"
+msgstr "通知种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a Message notice to its source-reported environment topic."
+msgstr "将通知 Message 关联到来源报告的环境主题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the topic of an actual environment notice."
+msgstr "用于实际环境通知的主题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating notice content as verified fulfillment, recovery or delivery."
+msgstr "避免把通知内容视为已验证履行、恢复或送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Classify the Message with hasMessageKind messageKindWorldNotice and retain supplied NoticeKind values."
+msgstr "用 hasMessageKind messageKindWorldNotice 分类 Message，并保留已提供 NoticeKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Topics may overlap; no preferred topic or missing-field default is supplied."
+msgstr "主题可重叠，不提供首选主题或缺失字段默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ; gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ; gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "gift offered notice"
+msgstr "赠礼提议通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports a gift offered to an agent."
+msgstr "通知报告向智能体提出赠礼。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit gift offered notice classification."
+msgstr "用于来源明确的“赠礼提议通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "An offer is not acceptance, possession or completed delivery."
+msgstr "提议不等于接受、占有或已完成投递。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This gift offered notice value is not a default, an executable transition or a current-state winner."
+msgstr "“赠礼提议通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindGiftOffered|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "request created notice"
+msgstr "请求创建通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports recording an agent's request."
+msgstr "通知报告记录智能体的请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit request created notice classification."
+msgstr "用于来源明确的“请求创建通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Request recording does not establish fulfillment or a commitment to act."
+msgstr "记录请求不证明履行或承诺行动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This request created notice value is not a default, an executable transition or a current-state winner."
+msgstr "“请求创建通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestCreated|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindRequestCreated ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindRequestCreated ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "request fulfilled notice"
+msgstr "请求履行通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports fulfillment of an agent's request."
+msgstr "通知报告智能体请求已履行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit request fulfilled notice classification."
+msgstr "用于来源明确的“请求履行通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Keep the notice separate from actual RequestFulfillment and criterion evidence."
+msgstr "将通知与实际 RequestFulfillment 及条件证据区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This request fulfilled notice value is not a default, an executable transition or a current-state winner."
+msgstr "“请求履行通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestFulfilled|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindRequestFulfilled ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindRequestFulfilled ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "request withdrawn notice"
+msgstr "请求撤回通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports withdrawal of an agent's request."
+msgstr "通知报告智能体请求被撤回。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit request withdrawn notice classification."
+msgstr "用于来源明确的“请求撤回通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Withdrawal preserves the original request and does not prove the requested work never occurred."
+msgstr "撤回保留原请求，不证明所请求工作从未发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This request withdrawn notice value is not a default, an executable transition or a current-state winner."
+msgstr "“请求撤回通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindRequestWithdrawn|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindRequestWithdrawn ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindRequestWithdrawn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world degraded notice"
+msgstr "世界退化通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports degradation of the environment."
+msgstr "通知报告环境退化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit world degraded notice classification."
+msgstr "用于来源明确的“世界退化通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The notice is not itself the environment transition or a verified health measurement."
+msgstr "通知本身不是环境转换或已验证健康测量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This world degraded notice value is not a default, an executable transition or a current-state winner."
+msgstr "“世界退化通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldDegraded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindWorldDegraded ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindWorldDegraded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world recovered notice"
+msgstr "世界恢复通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notice reports recovery from a degraded environment state."
+msgstr "通知报告环境从退化状态恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit world recovered notice classification."
+msgstr "用于来源明确的“世界恢复通知”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Retain the source's recovery claim without inferring permanent health."
+msgstr "保留来源恢复主张，不推断永久健康。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeKind individual through noticeKind, retaining the exact claim's source context."
+msgstr "通过 noticeKind 引用此 NoticeKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This world recovered notice value is not a default, an executable transition or a current-state winner."
+msgstr "“世界恢复通知”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeKindWorldRecovered|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeKind gmeow:noticeKindWorldRecovered ."
+msgstr "例如：ex:record gmeow:noticeKind gmeow:noticeKindWorldRecovered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notice Delivery State"
+msgstr "通知投递状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for a notice's or one delivery attempt's reported recipient-reaching state."
+msgstr "通知或单次投递尝试所报告接收状态的开放词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify notice delivery state values supplied by a source."
+msgstr "用于分类来源提供的“通知投递状态”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing NoticeDeliveryState individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 NoticeDeliveryState 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through noticeDeliveryState; keep independent attributed classifications."
+msgstr "通过 noticeDeliveryState 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The notice delivery state vocabulary stays open; absence supplies no default member."
+msgstr "“通知投递状态”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryState|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:NoticeDeliveryState ."
+msgstr "例如：ex:localValue a gmeow:NoticeDeliveryState ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivery state"
+msgstr "通知投递状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported recipient-reaching state of a notice Message or one actual delivery Activity, keeping separate attempts distinct."
+msgstr "通知 Message 或单次实际投递 Activity 所报告的到达接收者状态，区分各次尝试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit delivery report, including explicit uncertainty."
+msgstr "用于明确投递报告，包括显式不确定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid applying one attempt's result to all attempts or inferring delivery from event typing."
+msgstr "避免将一次尝试结果应用于全部尝试，或从事件类型推断已送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use a Message notice or a delivery Activity linked by affectsObject to the actual notice."
+msgstr "使用通知 Message 或通过 affectsObject 关联实际通知的投递 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A property-guarded native law checks the union carrier and attempt binding; no seed value is a default."
+msgstr "属性守卫原生规则检查联合载体和尝试绑定；初始值均不是默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryState|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:delivery a gmeow:Activity ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ; gmeow:affectsObject ex:notice ; gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+msgstr "例如：ex:delivery a gmeow:Activity ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ; gmeow:affectsObject ex:notice ; gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivery pending"
+msgstr "通知投递待定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the notice not yet delivered in this delivery context."
+msgstr "来源报告通知在此投递情境中尚未送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit notice delivery pending classification."
+msgstr "用于来源明确的“通知投递待定”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Pending does not mean no attempt ever occurred or that later delivery is guaranteed."
+msgstr "待定不意味着从未尝试或保证以后送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeDeliveryState individual through noticeDeliveryState, retaining the exact claim's source context."
+msgstr "通过 noticeDeliveryState 引用此 NoticeDeliveryState 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notice delivery pending value is not a default, an executable transition or a current-state winner."
+msgstr "“通知投递待定”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStatePending|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStatePending ."
+msgstr "例如：ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStatePending ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivery attempted"
+msgstr "通知投递已尝试"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports a notice-delivery attempt."
+msgstr "来源报告已尝试投递通知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit notice delivery attempted classification."
+msgstr "用于来源明确的“通知投递已尝试”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Attempted is distinct from delivered, failed and unknown delivery."
+msgstr "尝试区别于已送达、失败及送达未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeDeliveryState individual through noticeDeliveryState, retaining the exact claim's source context."
+msgstr "通过 noticeDeliveryState 引用此 NoticeDeliveryState 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notice delivery attempted value is not a default, an executable transition or a current-state winner."
+msgstr "“通知投递已尝试”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateAttempted|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+msgstr "例如：ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivered"
+msgstr "通知已送达"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the notice reaching its intended recipient."
+msgstr "来源报告通知已到达预期接收者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit notice delivered classification."
+msgstr "用于来源明确的“通知已送达”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Delivery does not prove reading, comprehension, authentication or all-attempt success."
+msgstr "送达不证明阅读、理解、认证或所有尝试均成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeDeliveryState individual through noticeDeliveryState, retaining the exact claim's source context."
+msgstr "通过 noticeDeliveryState 引用此 NoticeDeliveryState 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notice delivered value is not a default, an executable transition or a current-state winner."
+msgstr "“通知已送达”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDelivered|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDelivered ."
+msgstr "例如：ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDelivered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivery failed"
+msgstr "通知投递失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that this notice delivery did not reach its recipient."
+msgstr "来源报告此次通知投递未到达接收者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit notice delivery failed classification."
+msgstr "用于来源明确的“通知投递失败”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A failed attempt does not erase an independently delivered attempt."
+msgstr "失败尝试不抹去独立已送达尝试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeDeliveryState individual through noticeDeliveryState, retaining the exact claim's source context."
+msgstr "通过 noticeDeliveryState 引用此 NoticeDeliveryState 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notice delivery failed value is not a default, an executable transition or a current-state winner."
+msgstr "“通知投递失败”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateFailed|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateFailed ."
+msgstr "例如：ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateFailed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "notice delivery uncertain"
+msgstr "通知投递不确定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source explicitly reports uncertainty about whether this notice delivery reached its recipient."
+msgstr "来源明确报告不确定此次通知投递是否到达接收者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit notice delivery uncertain classification."
+msgstr "用于来源明确的“通知投递不确定”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Explicit uncertainty is a supplied state; a missing field must not be filled with it."
+msgstr "显式不确定是已提供状态；不得用其填补缺失字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this NoticeDeliveryState individual through noticeDeliveryState, retaining the exact claim's source context."
+msgstr "通过 noticeDeliveryState 引用此 NoticeDeliveryState 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notice delivery uncertain value is not a default, an executable transition or a current-state winner."
+msgstr "“通知投递不确定”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/noticeDeliveryStateDeliveryUncertain|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDeliveryUncertain ."
+msgstr "例如：ex:record gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDeliveryUncertain ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Environment Status"
+msgstr "环境健康状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for source-reported environment health under its local operating expectations."
+msgstr "按本地运行期望报告的环境健康开放词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify environment status values supplied by a source."
+msgstr "用于分类来源提供的“环境健康状态”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing EnvironmentStatus individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 EnvironmentStatus 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through stateTo; keep independent attributed classifications."
+msgstr "通过 stateTo 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The environment status vocabulary stays open; absence supplies no default member."
+msgstr "“环境健康状态”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EnvironmentStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:EnvironmentStatus ."
+msgstr "例如：ex:localValue a gmeow:EnvironmentStatus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "environment healthy"
+msgstr "环境健康"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the environment working according to its local expectations."
+msgstr "来源报告环境按本地期望运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit environment healthy classification."
+msgstr "用于来源明确的“环境健康”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Healthy is source-scoped and supplies no permanent or universal availability guarantee."
+msgstr "健康限定于来源，不保证永久或普遍可用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EnvironmentStatus individual through stateTo, retaining the exact claim's source context."
+msgstr "通过 stateTo 引用此 EnvironmentStatus 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This environment healthy value is not a default, an executable transition or a current-state winner."
+msgstr "“环境健康”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusHealthy|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:stateTo gmeow:environmentStatusHealthy ."
+msgstr "例如：ex:record gmeow:stateTo gmeow:environmentStatusHealthy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "environment degraded"
+msgstr "环境退化"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the environment working poorly relative to its local expectations."
+msgstr "来源报告环境相对本地期望运行不佳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit environment degraded classification."
+msgstr "用于来源明确的“环境退化”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Degraded does not imply total failure or identify a failed provider by itself."
+msgstr "退化不意味着完全故障，本身不标识失败提供方。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EnvironmentStatus individual through stateTo, retaining the exact claim's source context."
+msgstr "通过 stateTo 引用此 EnvironmentStatus 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This environment degraded value is not a default, an executable transition or a current-state winner."
+msgstr "“环境退化”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/environmentStatusDegraded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:stateTo gmeow:environmentStatusDegraded ."
+msgstr "例如：ex:record gmeow:stateTo gmeow:environmentStatusDegraded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention from"
+msgstr "注意离开"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported entity attention left during an Event."
+msgstr "来源报告注意在 Event 中离开的实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied departing focus of an attention transition."
+msgstr "用于注意转换已提供的离开焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a movement's eventFromLocation for an attention endpoint."
+msgstr "避免用移动的 eventFromLocation 替代注意端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the previous Entity and attribute the claim."
+msgstr "将实际 Event 关联到此前 Entity，并保留归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Departure alone invents no destination or physical movement."
+msgstr "仅离开不虚构目的端或物理移动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:transition a gmeow:Event ; gmeow:attentionFrom ex:previousFocus ."
+msgstr "例如：ex:transition a gmeow:Event ; gmeow:attentionFrom ex:previousFocus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attention to"
+msgstr "注意转向"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported entity attention turned to during an Event."
+msgstr "来源报告注意在 Event 中转向的实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the supplied arriving focus of an attention transition."
+msgstr "用于注意转换已提供的转向焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a movement's eventToLocation for an attention endpoint."
+msgstr "避免用移动的 eventToLocation 替代注意端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the actual Event to the supplied next Entity without inventing the previous focus."
+msgstr "将实际 Event 关联到已提供的下一 Entity，不虚构此前焦点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A focus endpoint proves neither physical location nor successful comprehension."
+msgstr "注意端点不证明物理位置或成功理解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/attentionTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:transition a gmeow:Event ; gmeow:attentionTo ex:nextFocus ."
+msgstr "例如：ex:transition a gmeow:Event ; gmeow:attentionTo ex:nextFocus ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "state from"
+msgstr "离开状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported quality-value state a transition Event left."
+msgstr "来源报告转换 Event 离开的质量值状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a transition's supplied previous state value."
+msgstr "用于转换已提供的此前状态值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing textual codes or affected objects with the QualityValue state axis."
+msgstr "避免将文本代码或受影响对象混入 QualityValue 状态轴。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link Event to the actual logic:QualityValue individual it left."
+msgstr "将 Event 关联到实际离开的 logic:QualityValue 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A from-state infers neither its successor nor a universal state machine."
+msgstr "离开状态不推断后继状态或通用状态机。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:transition a gmeow:Event ; gmeow:stateFrom gmeow:environmentStatusDegraded ."
+msgstr "例如：ex:transition a gmeow:Event ; gmeow:stateFrom gmeow:environmentStatusDegraded ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "state to"
+msgstr "进入状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported quality-value state a transition Event entered."
+msgstr "来源报告转换 Event 进入的质量值状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a transition's supplied destination state value."
+msgstr "用于转换已提供的目的状态值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the endpoint as the globally current winning state."
+msgstr "避免将端点视为全局胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link Event to the supplied logic:QualityValue; retain time and attribution separately."
+msgstr "将 Event 关联到已提供 logic:QualityValue，单独保留时间及归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No previous state, successful transition or permanent health follows from this field."
+msgstr "该字段不推断此前状态、成功转换或永久健康。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stateTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:transition a gmeow:Event ; gmeow:stateTo gmeow:environmentStatusHealthy ."
+msgstr "例如：ex:transition a gmeow:Event ; gmeow:stateTo gmeow:environmentStatusHealthy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affects object"
+msgstr "影响对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an environment Activity to an actual entity it touched, announced, changed, exposed or placed, without certifying intended effects."
+msgstr "将环境 Activity 关联到实际涉及、宣告、改变、暴露或放置的实体，不认证预期效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an activity's supplied affected-object inventory."
+msgstr "用于活动已提供的受影响对象清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating affected objects as performers or the inventory as globally complete."
+msgstr "避免将受影响对象当作执行者或将清单当作全局完整清单。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link Activity to each supplied Entity; name its performing agent independently with wasAssociatedWith."
+msgstr "将 Activity 关联到每个已提供 Entity；用 wasAssociatedWith 独立记录执行智能体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A notice-delivery Activity may affect its Message without turning the Message into an Event."
+msgstr "通知投递 Activity 可以影响其 Message，不把 Message 转为 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affectsObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:announcement a gmeow:Activity ; gmeow:affectsObject ex:box, ex:shelf ."
+msgstr "例如：ex:announcement a gmeow:Activity ; gmeow:affectsObject ex:box, ex:shelf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World Detail Kind"
+msgstr "世界细节种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for what a retained environment-detail description concerns."
+msgstr "保留的环境细节描述所涉及内容的开放词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify world detail kind values supplied by a source."
+msgstr "用于分类来源提供的“世界细节种类”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing WorldDetailKind individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 WorldDetailKind 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through worldDetailKind; keep independent attributed classifications."
+msgstr "通过 worldDetailKind 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The world detail kind vocabulary stays open; absence supplies no default member."
+msgstr "“世界细节种类”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldDetailKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:WorldDetailKind ."
+msgstr "例如：ex:localValue a gmeow:WorldDetailKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world detail kind"
+msgstr "世界细节种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Classifies an InformationObject detail record by the aspect of its environment subject it describes."
+msgstr "按所描述环境主体的方面分类 InformationObject 细节记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on the retained detail description, separate from its subject."
+msgstr "用于保留的细节描述，并区分其主体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the creating Activity as a detail document."
+msgstr "避免将创建 Activity 归为细节文档。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach supplied WorldDetailKind values and retain actual source derivation separately."
+msgstr "附加已提供 WorldDetailKind，单独保留实际来源派生关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several aspects may coexist without identity resolution, aesthetic preference or legal membership."
+msgstr "多个方面可并存，不进行身份解析、审美优先或法律成员认定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:detail a gmeow:InformationObject ; gmeow:worldDetailKind gmeow:worldDetailKindAesthetic ."
+msgstr "例如：ex:detail a gmeow:InformationObject ; gmeow:worldDetailKind gmeow:worldDetailKindAesthetic ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aesthetic world detail"
+msgstr "世界审美细节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The detail describes how something looks or feels in the represented environment."
+msgstr "细节描述表征环境中事物的外观或感受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit aesthetic world detail classification."
+msgstr "用于来源明确的“世界审美细节”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Aesthetic description does not establish a preferred beauty judgment or physical material."
+msgstr "审美描述不建立优先美感判断或物理材料。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this WorldDetailKind individual through worldDetailKind, retaining the exact claim's source context."
+msgstr "通过 worldDetailKind 引用此 WorldDetailKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This aesthetic world detail value is not a default, an executable transition or a current-state winner."
+msgstr "“世界审美细节”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindAesthetic|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:worldDetailKind gmeow:worldDetailKindAesthetic ."
+msgstr "例如：ex:record gmeow:worldDetailKind gmeow:worldDetailKindAesthetic ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "identity-description world detail"
+msgstr "世界身份描述细节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The detail describes who or what an environment entity is."
+msgstr "细节描述环境实体是谁或是什么。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit identity-description world detail classification."
+msgstr "用于来源明确的“世界身份描述细节”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Description text is not resolved identity, coreference or sameAs evidence."
+msgstr "描述文本不是已解析身份、共指或 sameAs 证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this WorldDetailKind individual through worldDetailKind, retaining the exact claim's source context."
+msgstr "通过 worldDetailKind 引用此 WorldDetailKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This identity-description world detail value is not a default, an executable transition or a current-state winner."
+msgstr "“世界身份描述细节”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindIdentityDescription|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:worldDetailKind gmeow:worldDetailKindIdentityDescription ."
+msgstr "例如：ex:record gmeow:worldDetailKind gmeow:worldDetailKindIdentityDescription ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "organizational-reference world detail"
+msgstr "世界组织归属引用细节"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The detail describes where something belongs within the environment's organization."
+msgstr "细节描述事物在环境组织结构中的归属位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit organizational-reference world detail classification."
+msgstr "用于来源明确的“世界组织归属引用细节”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "This kind does not turn the described thing into an Organization or establish legal membership."
+msgstr "该种类不把所述事物转为 Organization，也不建立法律成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this WorldDetailKind individual through worldDetailKind, retaining the exact claim's source context."
+msgstr "通过 worldDetailKind 引用此 WorldDetailKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This organizational-reference world detail value is not a default, an executable transition or a current-state winner."
+msgstr "“世界组织归属引用细节”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldDetailKindOrganizationalReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:worldDetailKind gmeow:worldDetailKindOrganizationalReference ."
+msgstr "例如：ex:record gmeow:worldDetailKind gmeow:worldDetailKindOrganizationalReference ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Embedded Part Role"
+msgstr "嵌入部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for a part's source-reported role within its enclosing object, distinct from the part's intrinsic kind."
+msgstr "部件在所属对象内来源报告的角色开放词汇表，区别于部件的内在种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify embedded part role values supplied by a source."
+msgstr "用于分类来源提供的“嵌入部件角色”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing EmbeddedPartRole individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 EmbeddedPartRole 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through embeddedPartRole; keep independent attributed classifications."
+msgstr "通过 embeddedPartRole 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The embedded part role vocabulary stays open; absence supplies no default member."
+msgstr "“嵌入部件角色”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:EmbeddedPartRole ."
+msgstr "例如：ex:localValue a gmeow:EmbeddedPartRole ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "embedded part role"
+msgstr "嵌入部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A part's source-reported contextual role within an enclosing represented object, distinct from its intrinsic kind."
+msgstr "部件在所属表征对象内来源报告的情境角色，区别于其内在种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual part and its enclosing-object relationship are supplied."
+msgstr "用于提供实际部件及其所属对象关系时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a whole from role wording or making one attributed role globally intrinsic."
+msgstr "避免从角色措辞虚构整体，或将归属角色视为全局内在属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain partOf to the actual whole and attribute the exact role statement in that object's source context."
+msgstr "保留到实际整体的 partOf，并在该对象来源情境中归属精确角色陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Different enclosing contexts may assign different roles to one part without selecting a preferred role."
+msgstr "不同所属情境可为同一部件赋予不同角色，不设首选角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:plate a gmeow:Entity ; gmeow:partOf ex:object ; gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate ."
+msgstr "例如：ex:plate a gmeow:Entity ; gmeow:partOf ex:object ; gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "form part role"
+msgstr "形态部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the part serving as its enclosing object's form."
+msgstr "来源报告部件充当所属对象的形态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit form part role classification."
+msgstr "用于来源明确的“形态部件角色”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A contextual form role is not intrinsic kind or a globally unique form."
+msgstr "情境中的形态角色不是内在种类或全局唯一形态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EmbeddedPartRole individual through embeddedPartRole, retaining the exact claim's source context."
+msgstr "通过 embeddedPartRole 引用此 EmbeddedPartRole 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This form part role value is not a default, an executable transition or a current-state winner."
+msgstr "“形态部件角色”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleForm ."
+msgstr "例如：ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleForm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "visual-representation part role"
+msgstr "视觉表征部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the part representing how its enclosing object looks."
+msgstr "来源报告部件表征所属对象的外观。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit visual-representation part role classification."
+msgstr "用于来源明确的“视觉表征部件角色”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Visual representation is not the represented object or proof of its physical appearance."
+msgstr "视觉表征不是被表征对象或其物理外观证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EmbeddedPartRole individual through embeddedPartRole, retaining the exact claim's source context."
+msgstr "通过 embeddedPartRole 引用此 EmbeddedPartRole 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This visual-representation part role value is not a default, an executable transition or a current-state winner."
+msgstr "“视觉表征部件角色”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleVisualRepresentation|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleVisualRepresentation ."
+msgstr "例如：ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleVisualRepresentation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mechanism-plate part role"
+msgstr "机构面板部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the part serving as an object's mechanism plate."
+msgstr "来源报告部件充当对象的机构面板。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit mechanism-plate part role classification."
+msgstr "用于来源明确的“机构面板部件角色”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The role describes source composition, not verified mechanical operation."
+msgstr "角色描述来源组成，不验证机械运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EmbeddedPartRole individual through embeddedPartRole, retaining the exact claim's source context."
+msgstr "通过 embeddedPartRole 引用此 EmbeddedPartRole 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This mechanism-plate part role value is not a default, an executable transition or a current-state winner."
+msgstr "“机构面板部件角色”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleMechanismPlate|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate ."
+msgstr "例如：ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "historical-record part role"
+msgstr "历史记录部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the part recording an object's history."
+msgstr "来源报告部件记录对象历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit historical-record part role classification."
+msgstr "用于来源明确的“历史记录部件角色”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A historical record remains attributed content rather than certified past events."
+msgstr "历史记录仍为带归属内容，不认证过去事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EmbeddedPartRole individual through embeddedPartRole, retaining the exact claim's source context."
+msgstr "通过 embeddedPartRole 引用此 EmbeddedPartRole 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This historical-record part role value is not a default, an executable transition or a current-state winner."
+msgstr "“历史记录部件角色”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHistoricalRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleHistoricalRecord ."
+msgstr "例如：ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleHistoricalRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "held-history part role"
+msgstr "所持历史部件角色"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the part as history held by its enclosing object."
+msgstr "来源报告部件作为所属对象持有的历史。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit held-history part role classification."
+msgstr "用于来源明确的“所持历史部件角色”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Held history does not by itself establish authorship or actual occurrence of its narrative."
+msgstr "所持历史本身不建立作者身份或叙述实际发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this EmbeddedPartRole individual through embeddedPartRole, retaining the exact claim's source context."
+msgstr "通过 embeddedPartRole 引用此 EmbeddedPartRole 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This held-history part role value is not a default, an executable transition or a current-state winner."
+msgstr "“所持历史部件角色”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/embeddedPartRoleHeldHistory|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleHeldHistory ."
+msgstr "例如：ex:record gmeow:embeddedPartRole gmeow:embeddedPartRoleHeldHistory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "glance text"
+msgstr "一瞥文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One source-supplied line of what an object presents at a glance, preserving language and RDF 1.2 base direction."
+msgstr "来源提供对象一瞥所呈现的一行文本，保留语言和 RDF 1.2 基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for original language-bearing glance wording, not a naming label."
+msgstr "用于带语言的原始一瞥措辞，而非命名标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid guessing missing language or truncating a full retained description into this field."
+msgstr "避免猜测缺失语言或将完整描述截断到此字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the tagged literal on the Entity; the native law requires language without stripping direction."
+msgstr "在 Entity 上保留带标记字面量；原生规则要求语言且不删除方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field neither executes a glance nor proves that any reader saw the object."
+msgstr "此字段不执行一瞥，也不证明读取者实际看到了对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/glanceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:glanceText \"A quiet blue box.\"@en ."
+msgstr "例如：ex:object gmeow:glanceText \"A quiet blue box.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Stirring Kind"
+msgstr "触动种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the source-reported manner of an object's stirring occurrence."
+msgstr "对象触动事件所报告方式的开放词汇表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify stirring kind values supplied by a source."
+msgstr "用于分类来源提供的“触动种类”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing StirringKind individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 StirringKind 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through stirringKind; keep independent attributed classifications."
+msgstr "通过 stirringKind 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The stirring kind vocabulary stays open; absence supplies no default member."
+msgstr "“触动种类”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StirringKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:StirringKind ."
+msgstr "例如：ex:localValue a gmeow:StirringKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stirring kind"
+msgstr "触动种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Classifies the Event of an object's stirring by its source-reported manner."
+msgstr "按来源报告方式分类对象触动的 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use on the actual stirring occurrence, keeping the object separate."
+msgstr "用于实际触动事件，并区分对象本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the stirred object as an Event merely to retain this manner."
+msgstr "避免仅为保留方式就将被触动对象归为 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach supplied StirringKind values to Event and retain source attribution."
+msgstr "将已提供 StirringKind 附加到 Event，并保留来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Manner does not prove sentience, successful playback or physical movement."
+msgstr "方式不证明感知性、成功播放或物理运动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:stirring a gmeow:Event ; gmeow:stirringKind gmeow:stirringKindWound ."
+msgstr "例如：ex:stirring a gmeow:Event ; gmeow:stirringKind gmeow:stirringKindWound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "beheld stirring"
+msgstr "被观照触动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source classifies the object's stirring as being beheld."
+msgstr "来源将对象触动分类为被观照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit beheld stirring classification."
+msgstr "用于来源明确的“被观照触动”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Being beheld does not prove comprehension, sentience or physical motion."
+msgstr "被观照不证明理解、感知性或物理运动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this StirringKind individual through stirringKind, retaining the exact claim's source context."
+msgstr "通过 stirringKind 引用此 StirringKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This beheld stirring value is not a default, an executable transition or a current-state winner."
+msgstr "“被观照触动”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindBeheld|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:stirringKind gmeow:stirringKindBeheld ."
+msgstr "例如：ex:record gmeow:stirringKind gmeow:stirringKindBeheld ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "wound stirring"
+msgstr "上弦触动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source classifies the object's stirring as being wound or wound up."
+msgstr "来源将对象触动分类为上弦。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit wound stirring classification."
+msgstr "用于来源明确的“上弦触动”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Wound means winding a mechanism here, not an injury or proof that it played successfully."
+msgstr "此处上弦指机构蓄能，不是受伤或成功演奏的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this StirringKind individual through stirringKind, retaining the exact claim's source context."
+msgstr "通过 stirringKind 引用此 StirringKind 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This wound stirring value is not a default, an executable transition or a current-state winner."
+msgstr "“上弦触动”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/stirringKindWound|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:stirringKind gmeow:stirringKindWound ."
+msgstr "例如：ex:record gmeow:stirringKind gmeow:stirringKindWound ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World Affordance"
+msgstr "世界可供行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An InformationObject catalog entry for an action a represented object advertises to an agent, naming its tool and supplied target parts. It is distinct from a capability, actual execution and an action-policy proof."
+msgstr "InformationObject 目录条目，记录表征对象向智能体公布的行动及其工具和已提供目标部件，区别于能力、实际执行及行动策略证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an actual object-scoped action-catalog entry."
+msgstr "用于实际对象限定的行动目录条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring tool availability, permission, purity or execution from advertised actions."
+msgstr "避免从公布行动推断工具可用性、许可、无副作用性或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link its owning InformationObject with affordsAction; retain the exact tool name, targets and attributed tags."
+msgstr "通过 affordsAction 关联所属 InformationObject，保留精确工具名、目标和带归属标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The entry is a record, not an Activity or a replacement for the core ActionPolicy."
+msgstr "条目是记录，不是 Activity，也不替代核心 ActionPolicy。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordance|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action a gmeow:WorldAffordance ; gmeow:affordanceToolName \"object.inspect\" ."
+msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:affordanceToolName \"object.inspect\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affords action"
+msgstr "提供可供行动"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an object-representing InformationObject to an actual entry of its advertised action catalog."
+msgstr "将表征对象的 InformationObject 关联到其实际公布行动目录条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an object representation supplies an action-catalog entry."
+msgstr "用于对象表征提供行动目录条目时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid coercing a physical object into InformationObject to attach a catalog; retain its actual representation."
+msgstr "避免为附加目录将物理对象强制归为 InformationObject；保留实际表征。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual catalog-bearing InformationObject to WorldAffordance records and keep its part structure."
+msgstr "将实际承载目录的 InformationObject 关联到 WorldAffordance，并保留其部件结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Advertising an action neither provides an implementation nor grants the agent permission to call it."
+msgstr "公布行动既不提供实现，也不授予调用许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordsAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:objectRecord a gmeow:InformationObject ; gmeow:affordsAction ex:action ."
+msgstr "例如：ex:objectRecord a gmeow:InformationObject ; gmeow:affordsAction ex:action ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affordance tool name"
+msgstr "可供行动工具名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source tool-name string advertised for a WorldAffordance, without resolving a tool identity."
+msgstr "WorldAffordance 所公布的精确来源工具名字符串，不解析工具身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the catalog's actual tool-name field."
+msgstr "用于目录实际工具名字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid trimming spaces, inventing an endpoint or treating a name as a performed ToolCall."
+msgstr "避免裁剪空格、虚构端点或将名称视为已执行 ToolCall。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact xsd:string on the WorldAffordance; actual calls retain usedTool independently."
+msgstr "在 WorldAffordance 上保留精确 xsd:string，实际调用单独保留 usedTool。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No tool registry lookup, name parser or capability fallback is implied."
+msgstr "不意味着工具注册查找、名称解析或能力降级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action gmeow:affordanceToolName \" object.inspect  \" ."
+msgstr "例如：ex:action gmeow:affordanceToolName \" object.inspect  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affordance target"
+msgstr "可供行动目标"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a catalog affordance to an actual supplied part of its owning object representation on which the action acts."
+msgstr "将目录可供行动关联到其所属对象表征中行动作用的实际已提供部件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source supplies a target part and its owning catalog context."
+msgstr "仅用于来源提供目标部件及其所属目录情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a part from a handle or reusing a target from another object's catalog."
+msgstr "避免从句柄创建部件或复用其他对象目录的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the owner's affordsAction and hasPart relationships; the native law checks every owning catalog."
+msgstr "保留所属者的 affordsAction 和 hasPart，原生规则检查每个所属目录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Target binding is structural source evidence, not execution or proof that the advertised effect succeeded."
+msgstr "目标绑定是来源结构证据，不是执行或公布效果成功的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/affordanceTarget|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:objectRecord gmeow:hasPart ex:plate ; gmeow:affordsAction ex:action . ex:action gmeow:affordanceTarget ex:plate ."
+msgstr "例如：ex:objectRecord gmeow:hasPart ex:plate ; gmeow:affordsAction ex:action . ex:action gmeow:affordanceTarget ex:plate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "read-only action tag"
+msgstr "只读行动标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported tag that an advertised affordance only reads its object and changes nothing."
+msgstr "来源报告的标签，表示所公布可供行动仅阅读对象且不作改变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit read-only action tag claim on a catalog affordance."
+msgstr "用于目录可供行动上明确的“只读行动标签”主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The tag is not verified effect purity, a sandbox restriction or permission to execute."
+msgstr "标签不是已验证无副作用性、沙箱限制或执行许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply hasTag tagReadOnlyAction to the WorldAffordance record and attribute that exact statement."
+msgstr "将 hasTag tagReadOnlyAction 附加到 WorldAffordance 记录，并保留精确陈述归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The tag is not verified effect purity, a sandbox restriction or permission to execute."
+msgstr "标签不是已验证无副作用性、沙箱限制或执行许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagReadOnlyAction|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagReadOnlyAction ."
+msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagReadOnlyAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dream-eligible action tag"
+msgstr "梦境可用行动标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported tag that an advertised affordance may be used while dreaming under that source's policy."
+msgstr "来源报告的标签，表示按该来源策略可在梦境中使用所公布可供行动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit dream-eligible action tag claim on a catalog affordance."
+msgstr "用于目录可供行动上明确的“梦境可用行动标签”主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Eligibility is reported metadata, not an authorization decision, safety proof or actual dreaming call."
+msgstr "可用性是所报告元数据，不是授权决定、安全证明或实际梦境调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply hasTag tagDreamEligible to the WorldAffordance record and attribute that exact statement."
+msgstr "将 hasTag tagDreamEligible 附加到 WorldAffordance 记录，并保留精确陈述归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Eligibility is reported metadata, not an authorization decision, safety proof or actual dreaming call."
+msgstr "可用性是所报告元数据，不是授权决定、安全证明或实际梦境调用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagDreamEligible|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagDreamEligible ."
+msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagDreamEligible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tool Call Outcome"
+msgstr "工具调用结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for how a source reports a tool call ended, distinct from intended effects and verified postconditions."
+msgstr "来源报告工具调用如何结束的开放词汇表，区别于预期效果和已验证后置条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify tool call outcome values supplied by a source."
+msgstr "用于分类来源提供的“工具调用结果”值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing ToolCallOutcome individuals with event or object subclasses."
+msgstr "避免用事件或对象子类替代 ToolCallOutcome 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a typed value through toolCallOutcome; keep independent attributed classifications."
+msgstr "通过 toolCallOutcome 附加已分类的值，保留独立归属的分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The tool call outcome vocabulary stays open; absence supplies no default member."
+msgstr "“工具调用结果”词汇表保持开放，缺失值不提供默认成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ToolCallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localValue a gmeow:ToolCallOutcome ."
+msgstr "例如：ex:localValue a gmeow:ToolCallOutcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call outcome"
+msgstr "工具调用结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual ToolCall to its source-reported ending, distinct from intended effects and verified postconditions."
+msgstr "将实际 ToolCall 关联到来源报告的结束结果，区别于预期效果和已验证后置条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies an outcome for a recorded tool call."
+msgstr "用于来源提供已记录工具调用结果时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating completed, opened and ok as interchangeable or inferring rollback from error."
+msgstr "避免混同 completed、opened 和 ok，或从 error 推断回滚。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach every supplied ToolCallOutcome to the actual ToolCall and retain attribution on each statement."
+msgstr "将每个已提供 ToolCallOutcome 附加到实际 ToolCall，并保留各陈述归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Conflicting source reports coexist; no default outcome or verified-effect certificate is supplied."
+msgstr "冲突来源报告可并存，不提供默认结果或已验证效果证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:call a gmeow:ToolCall ; gmeow:usedTool ex:tool ; gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted ."
+msgstr "例如：ex:call a gmeow:ToolCall ; gmeow:usedTool ex:tool ; gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call ok"
+msgstr "工具调用成功"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the tool call as successful."
+msgstr "来源报告工具调用成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit tool call ok classification."
+msgstr "用于来源明确的“工具调用成功”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Reported success does not prove every intended postcondition or external effect."
+msgstr "成功报告不证明所有预期后置条件或外部效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this ToolCallOutcome individual through toolCallOutcome, retaining the exact claim's source context."
+msgstr "通过 toolCallOutcome 引用此 ToolCallOutcome 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This tool call ok value is not a default, an executable transition or a current-state winner."
+msgstr "“工具调用成功”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOk|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeOk ."
+msgstr "例如：ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeOk ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call completed"
+msgstr "工具调用已完成"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the tool call running to completion."
+msgstr "来源报告工具调用运行至完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit tool call completed classification."
+msgstr "用于来源明确的“工具调用已完成”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Completion is distinct from success, successful opening and verified effects."
+msgstr "完成区别于成功、成功打开和已验证效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this ToolCallOutcome individual through toolCallOutcome, retaining the exact claim's source context."
+msgstr "通过 toolCallOutcome 引用此 ToolCallOutcome 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This tool call completed value is not a default, an executable transition or a current-state winner."
+msgstr "“工具调用已完成”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeCompleted|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted ."
+msgstr "例如：ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call opened"
+msgstr "工具调用已打开"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the tool opening what it was asked to open."
+msgstr "来源报告工具打开了所要求打开的对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit tool call opened classification."
+msgstr "用于来源明确的“工具调用已打开”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Opening does not prove complete reading, interpretation or safe content."
+msgstr "打开不证明完整读取、解释或内容安全。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this ToolCallOutcome individual through toolCallOutcome, retaining the exact claim's source context."
+msgstr "通过 toolCallOutcome 引用此 ToolCallOutcome 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This tool call opened value is not a default, an executable transition or a current-state winner."
+msgstr "“工具调用已打开”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeOpened|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeOpened ."
+msgstr "例如：ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeOpened ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool call error"
+msgstr "工具调用错误"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports the tool call as failing."
+msgstr "来源报告工具调用失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the source's explicit tool call error classification."
+msgstr "用于来源明确的“工具调用错误”分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "An error does not prove rollback or absence of partial effects."
+msgstr "错误不证明回滚或不存在部分效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference this ToolCallOutcome individual through toolCallOutcome, retaining the exact claim's source context."
+msgstr "通过 toolCallOutcome 引用此 ToolCallOutcome 个体，并保留精确主张的来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This tool call error value is not a default, an executable transition or a current-state winner."
+msgstr "“工具调用错误”值不是默认值、可执行转换或胜出的当前状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolCallOutcomeError|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeError ."
+msgstr "例如：ex:record gmeow:toolCallOutcome gmeow:toolCallOutcomeError ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "fulfils offering"
+msgstr "履行提议"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an Activity to an actual Offering the source reports it fulfilled, distinct from the offered item and recipient acceptance."
+msgstr "将 Activity 关联到来源报告其履行的实际 Offering，区别于所提供物品及接收者接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual activity and offering fulfillment relationship are supplied."
+msgstr "用于提供实际活动及其提议履行关系时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the offered object, a request or acceptance act for Offering."
+msgstr "避免用所提供对象、请求或接受行为替代 Offering。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point Activity to the existing organization-layer Offering; retain its actual itemOffered separately."
+msgstr "将 Activity 指向组织层已有 Offering，并单独保留实际 itemOffered。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge records reported fulfillment, not a proof of every offer condition or recipient consent."
+msgstr "该关系记录所报告履行，不证明所有提议条件或接收者同意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/fulfilsOffering|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:materialization a gmeow:Activity ; gmeow:fulfilsOffering ex:offer ."
+msgstr "例如：ex:materialization a gmeow:Activity ; gmeow:fulfilsOffering ex:offer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "desired object name"
+msgstr "所期望对象名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact name an agent asked for the object it wants, retained on the actual Desire rather than as the object's established name."
+msgstr "智能体为所期望对象提出的精确名称，保留在实际 Desire 上，不视为对象已确立名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a desire's supplied requested-name wording."
+msgstr "用于欲望已提供的所请求名称措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting or renaming an object from a desired name."
+msgstr "避免从期望名称创建或重命名对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original literal on Desire with supplied language and direction; name any actual object independently."
+msgstr "在 Desire 上保留原始字面量及已有语言、方向；独立命名实际对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The wording may be untagged when the source supplies no language; no preferred name is selected."
+msgstr "来源未提供语言时可保留无标记措辞；不选择首选名称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredObjectName|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:desire a gmeow:Desire ; gmeow:desiredObjectName \"Quiet Bell Box\"@en ."
+msgstr "例如：ex:desire a gmeow:Desire ; gmeow:desiredObjectName \"Quiet Bell Box\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "desired experience text"
+msgstr "所期望体验文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim description of the experience an agent hopes a desired object will give."
+msgstr "来源原样描述智能体希望所期望对象带来的体验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the hoped-for experience expressed by an actual Desire."
+msgstr "用于实际 Desire 表达的期望体验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting an Experience occurred or that an object already provides it."
+msgstr "避免声称 Experience 已发生或对象已能提供该体验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact desire wording separately from actual experience events and object capabilities."
+msgstr "将欲望精确措辞与实际体验事件及对象能力区分保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A desired experience is neither an execution plan nor evidence of satisfaction."
+msgstr "所期望体验不是执行计划或满足证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/desiredExperienceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:desire gmeow:desiredExperienceText \"A quiet pause before work.\"@en ."
+msgstr "例如：ex:desire gmeow:desiredExperienceText \"A quiet pause before work.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "request purpose text"
+msgstr "请求目的文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent's source wording of why it asked for the desired object, retained on its Desire."
+msgstr "智能体解释为何请求所期望对象的来源措辞，保留在其 Desire 上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the request's expressed purpose when the corresponding Desire is known."
+msgstr "用于已知对应 Desire 时请求表达的目的。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning purpose prose into a Goal, commitment or verified fulfillment criterion."
+msgstr "避免把目的文本转为 Goal、承诺或已验证履行条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the actual literal and source attribution; link a retained request to the Desire with requestDesire."
+msgstr "保留实际字面量及来源归属；用 requestDesire 将保留请求关联到 Desire。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Unknown Desire identity is not fabricated merely to attach these words."
+msgstr "不为附加措辞而虚构未知 Desire 身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestPurposeText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:desire gmeow:requestPurposeText \"To remember to pause.\"@en ."
+msgstr "例如：ex:desire gmeow:requestPurposeText \"To remember to pause.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cognition mode as recorded"
+msgstr "所记录认知模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The environment's exact source string for the agent's cognition mode when a request arose, retained on a source InformationObject or actual Desire."
+msgstr "环境在请求产生时记录的智能体认知模式精确字符串，保留在来源 InformationObject 或实际 Desire 上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the original mode code, including unknown or consumer-defined modes."
+msgstr "用于原始模式代码，包括未知或使用方定义模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid normalizing the code or mapping it automatically to an AwarenessMode."
+msgstr "避免规范化代码或自动映射到 AwarenessMode。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact case and spaces in xsd:string with source context on the statement."
+msgstr "以 xsd:string 保留精确大小写和空格，并在陈述上保留来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The union carrier has an explicit native admission law; string typing is not a mode parser or state inference."
+msgstr "联合载体具有显式原生准入规则；字符串类型不是模式解析器或状态推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:requestRecord a gmeow:InformationObject ; gmeow:cognitionModeAsRecorded \" dreaming / cycle  \" ."
+msgstr "例如：ex:requestRecord a gmeow:InformationObject ; gmeow:cognitionModeAsRecorded \" dreaming / cycle  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defeated work digest as recorded"
+msgstr "所记录撤回工作摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact digest string of a work reference withdrawn by a request-evidence correction Activity, kept as sent. It identifies the challenged work reference, not the withdrawn response."
+msgstr "请求证据修正 Activity 撤回的工作引用精确摘要字符串，按发送原样保留。它标识受质疑工作引用，而非被撤回回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the digest actually supplied by a correction activity's source."
+msgstr "用于修正活动来源实际提供的摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting defeatsResponse, normalizing digest syntax or claiming a verified hash match."
+msgstr "避免用 defeatsResponse 替代、规范化摘要语法或声称已验证哈希匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the exact xsd:string on Activity and retain the source statement's attribution independently."
+msgstr "在 Activity 上保留精确 xsd:string，并独立保留来源陈述归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No algorithm, encoding, length, work identity or hash-verification receipt is invented from the opaque source string."
+msgstr "不从不透明来源字符串虚构算法、编码、长度、工作身份或哈希验证凭据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:correction a gmeow:Activity ; gmeow:defeatedWorkDigest \" work-ref / abc  \" ."
+msgstr "例如：ex:correction a gmeow:Activity ; gmeow:defeatedWorkDigest \" work-ref / abc  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "raft object"
+msgstr "筏形对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-classified flat craft that carries a passenger within the represented environment."
+msgstr "来源分类为在表征环境中承载乘客的平底筏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified raft object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“筏形对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Raft is not narrowed to the container sense of vessel and does not prove navigability."
+msgstr "筏不归入容器意义的 vessel，也不证明可航行性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindRaft through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindRaft，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No additional broader value is asserted for worldObjectKindRaft; missing hierarchy is not invented."
+msgstr "不为 worldObjectKindRaft 断言额外较广值，不虚构缺失层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindRaft|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindRaft ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindRaft ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bookshelf object"
+msgstr "书架对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A shelf for books, narrower than the existing shelf value."
+msgstr "用于放书的架子，窄于已有 shelf 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified bookshelf object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“书架对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The broader shelf classification does not assert that books are currently present."
+msgstr "更广的 shelf 分类不声称当前有书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindBookshelf through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindBookshelf，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindShelf; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindShelf；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindBookshelf|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindBookshelf ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindBookshelf ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "desktop object"
+msgstr "桌面对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A represented working surface for documents and tools, such as a computer desktop."
+msgstr "用于文档和工具的表征工作表面，例如计算机桌面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified desktop object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“桌面对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "A desktop is not automatically a physical desk or spatial supporting surface."
+msgstr "桌面不自动等于物理书桌或空间支撑表面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindDesktop through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindDesktop，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No additional broader value is asserted for worldObjectKindDesktop; missing hierarchy is not invented."
+msgstr "不为 worldObjectKindDesktop 断言额外较广值，不虚构缺失层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDesktop|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindDesktop ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindDesktop ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "archived desktop object"
+msgstr "归档桌面对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A desktop put away in the source environment, narrower than desktop."
+msgstr "来源环境中收起的桌面，窄于 desktop。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified archived desktop object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“归档桌面对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Archived classification neither deletes its records nor proves loss of all access."
+msgstr "归档分类不删除记录，也不证明完全失去访问。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindArchivedDesktop through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindArchivedDesktop，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindDesktop; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindDesktop；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindArchivedDesktop|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindArchivedDesktop ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindArchivedDesktop ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "music box object"
+msgstr "音乐盒对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-classified music box in the represented environment."
+msgstr "表征环境中由来源分类的音乐盒。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified music box object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“音乐盒对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The kind alone does not prove available music, winding or playback."
+msgstr "仅种类不证明音乐可用、已上弦或播放。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindMusicBox through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindMusicBox，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No additional broader value is asserted for worldObjectKindMusicBox; missing hierarchy is not invented."
+msgstr "不为 worldObjectKindMusicBox 断言额外较广值，不虚构缺失层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindMusicBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindMusicBox ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindMusicBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generative music box object"
+msgstr "生成音乐盒对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A music box reported to compose while playing, narrower than music box."
+msgstr "来源报告在播放时创作的音乐盒，窄于 music box。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified generative music box object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“生成音乐盒对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The kind does not start generation or certify any composition model."
+msgstr "种类不启动生成，也不认证作曲模型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindGenerativeMusicBox through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindGenerativeMusicBox，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindMusicBox; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindMusicBox；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindGenerativeMusicBox|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindGenerativeMusicBox ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindGenerativeMusicBox ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kintsugi bowl vessel object"
+msgstr "金缮碗形容器对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bowl-shaped vessel mended with gold in the source classification, narrower than bowl."
+msgstr "来源分类中以金修补的碗形容器，窄于 bowl。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified kintsugi bowl vessel object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“金缮碗形容器对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "This value uses the bowl-shaped sense; it does not classify every repaired vessel as a bowl."
+msgstr "该值限定碗形意义，不把所有修补容器归为碗。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindKintsugiVessel through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindKintsugiVessel，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindBowl; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindBowl；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindKintsugiVessel|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindKintsugiVessel ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindKintsugiVessel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "written record object"
+msgstr "书面记录对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A thing that keeps or displays a written account for reading in the environment."
+msgstr "在环境中保存或展示可读书面叙述的事物。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified written record object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“书面记录对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "The object-kind value does not type its bearer as CreativeWork or grant reading access."
+msgstr "对象种类值不将承载者归为 CreativeWork，也不授予读取访问。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindWrittenRecord through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindWrittenRecord，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No additional broader value is asserted for worldObjectKindWrittenRecord; missing hierarchy is not invented."
+msgstr "不为 worldObjectKindWrittenRecord 断言额外较广值，不虚构缺失层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindWrittenRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindWrittenRecord ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindWrittenRecord ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "document collection object"
+msgstr "文档集合对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A written record organized as a collection of documents to read and search, narrower than written record."
+msgstr "组织为可阅读和搜索文档集合的书面记录，窄于 written record。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified document collection object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“文档集合对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Collection classification does not prove indexing completeness or available search tools."
+msgstr "集合分类不证明索引完整性或搜索工具可用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindDocumentCollection through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindDocumentCollection，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindWrittenRecord; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindWrittenRecord；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindDocumentCollection|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindDocumentCollection ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindDocumentCollection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "readable framed artifact object"
+msgstr "可读框装制品对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A framed piece set out to read, narrower than written record."
+msgstr "供阅读的框装物件，窄于 written record。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified readable framed artifact object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“可读框装制品对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Readable classification does not identify a reader or prove that reading occurred."
+msgstr "可读分类不标识读取者，也不证明已读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindReadableFramedArtifact through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindReadableFramedArtifact，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direct broader value is worldObjectKindWrittenRecord; inherited classification remains inferred, not a new source assertion."
+msgstr "直接较广值为 worldObjectKindWrittenRecord；继承分类仍为推导结果，不是新的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindReadableFramedArtifact|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindReadableFramedArtifact ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindReadableFramedArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "measuring instrument object"
+msgstr "测量仪器对象"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-classified device for observing or measuring something."
+msgstr "来源分类为观察或测量事物的装置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-classified measuring instrument object in an attributed world description."
+msgstr "用于带归属世界描述中由来源分类的“测量仪器对象”。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Instrument here is observational or measuring, not automatically a musical instrument or calibrated tool."
+msgstr "此处仪器用于观察或测量，不自动是乐器或已校准工具。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach worldObjectKindInstrument through worldObjectKind; let the declared broader-value chain supply only its documented ancestors."
+msgstr "通过 worldObjectKind 附加 worldObjectKindInstrument，仅由已声明较广值链推导文档规定的祖先。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No additional broader value is asserted for worldObjectKindInstrument; missing hierarchy is not invented."
+msgstr "不为 worldObjectKindInstrument 断言额外较广值，不虚构缺失层级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectKindInstrument|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:worldObjectKind gmeow:worldObjectKindInstrument ."
+msgstr "例如：ex:object gmeow:worldObjectKind gmeow:worldObjectKindInstrument ."
+
+# Intrinsic consistency of environment interaction records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World notice topic kind constraint"
+msgstr "世界通知主题种类约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied noticeKind belongs to a Message explicitly classified as messageKindWorldNotice; notice content is not a verified environment transition."
+msgstr "已提供 noticeKind 属于明确分类为 messageKindWorldNotice 的 Message；通知内容不是已验证环境转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep notice topic and shared message-kind classification consistent."
+msgstr "用于保持通知主题与共享消息种类分类一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a topic to invent delivery or fulfillment evidence."
+msgstr "避免用主题虚构投递或履行证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check each noticeKind subject for the actual world-notice kind assertion."
+msgstr "检查每个 noticeKind 主体的实际世界通知种类断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary property guard checks supplied topics without demanding a topic on every Message."
+msgstr "二元属性守卫检查已提供主题，不要求每个 Message 都有主题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ; gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ; gmeow:noticeKind gmeow:noticeKindGiftOffered ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldNoticeTopicKindConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied noticeKind belongs to a Message explicitly classified as messageKindWorldNotice; notice content is not a verified environment transition."
+msgstr "已提供 noticeKind 属于明确分类为 messageKindWorldNotice 的 Message；通知内容不是已验证环境转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Notice delivery context constraint"
+msgstr "通知投递情境约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every noticeDeliveryState subject is either an actual world-notice Message or a notice-delivery Activity affecting an actual world-notice Message."
+msgstr "每个 noticeDeliveryState 主体要么是实际世界通知 Message，要么是影响实际世界通知 Message 的投递 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish the notice artifact from each delivery occurrence."
+msgstr "用于区分通知制品及每个投递事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting an arbitrary Event or an attempt without its actual notice binding."
+msgstr "避免接受任意 Event 或未绑定实际通知的尝试。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the binary property target against the Message branch or the typed delivery-Activity branch with affectsObject."
+msgstr "按 Message 分支或具有 affectsObject 的已分类投递 Activity 分支检查二元目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The explicit law validates the anonymous union domain without inferring delivery from attempted state."
+msgstr "显式规则验证匿名联合定义域，不从尝试状态推断送达。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:attempt a gmeow:Activity ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ; gmeow:affectsObject ex:notice ; gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+msgstr "例如：ex:attempt a gmeow:Activity ; gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ; gmeow:affectsObject ex:notice ; gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NoticeDeliveryContextConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every noticeDeliveryState subject is either an actual world-notice Message or a notice-delivery Activity affecting an actual world-notice Message."
+msgstr "每个 noticeDeliveryState 主体要么是实际世界通知 Message，要么是影响实际世界通知 Message 的投递 Activity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Embedded part whole constraint"
+msgstr "嵌入部件整体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An embeddedPartRole subject retains actual partOf membership in an enclosing Entity; a role name alone cannot fabricate an enclosing object."
+msgstr "embeddedPartRole 主体保留到所属 Entity 的实际 partOf；仅角色名不能虚构所属对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require source parthood for a contextual embedded role."
+msgstr "用于要求情境嵌入角色具有来源部件关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an unattached label as proof of actual object composition."
+msgstr "避免将孤立标签当作实际对象组成证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join each role-bearing part to its supplied whole through partOf."
+msgstr "通过 partOf 将每个角色承载部件关联到已提供整体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several enclosing contexts may coexist; this existence law supplies no unique or preferred whole."
+msgstr "多个所属情境可并存；此存在规则不提供唯一或首选整体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:part a gmeow:Entity ; gmeow:partOf ex:object ; gmeow:embeddedPartRole gmeow:embeddedPartRoleForm ."
+msgstr "例如：ex:part a gmeow:Entity ; gmeow:partOf ex:object ; gmeow:embeddedPartRole gmeow:embeddedPartRoleForm ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddedPartWholeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An embeddedPartRole subject retains actual partOf membership in an enclosing Entity; a role name alone cannot fabricate an enclosing object."
+msgstr "embeddedPartRole 主体保留到所属 Entity 的实际 partOf；仅角色名不能虚构所属对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Glance text language constraint"
+msgstr "一瞥文本语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied glanceText literal has a language tag, retaining any RDF 1.2 base direction without guessing a missing language."
+msgstr "每个已提供 glanceText 字面量具有语言标记，并保留 RDF 1.2 基本方向，不猜测缺失语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the language-bearing glance wording boundary."
+msgstr "用于验证一瞥措辞的语言边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the native language test with a plain xsd:string check."
+msgstr "避免用简单 xsd:string 检查替代原生语言检查。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply termHasLang to each value of the binary glanceText property guard."
+msgstr "对二元 glanceText 属性守卫的每个值应用 termHasLang。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A missing language fails; the law does not rewrite text or remove its direction."
+msgstr "缺失语言应失败；规则不重写文本或删除方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:object gmeow:glanceText \"A quiet blue box.\"@en ."
+msgstr "例如：ex:object gmeow:glanceText \"A quiet blue box.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GlanceTextLanguageConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied glanceText literal has a language tag, retaining any RDF 1.2 base direction without guessing a missing language."
+msgstr "每个已提供 glanceText 字面量具有语言标记，并保留 RDF 1.2 基本方向，不猜测缺失语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "World affordance catalog constraint"
+msgstr "世界可供行动目录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A WorldAffordance is an actual entry of an InformationObject's action catalog and retains its supplied tool name. It does not stand in for execution."
+msgstr "WorldAffordance 是 InformationObject 行动目录的实际条目，并保留已提供工具名，不代表执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to qualify a complete advertised action entry."
+msgstr "用于认定完整公布行动条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating an owner or tool name for incomplete source fragments."
+msgstr "避免为不完整来源片段虚构所属者或工具名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the class target for an incoming affordsAction owner and its affordanceToolName field."
+msgstr "检查类目标是否有 affordsAction 入向所属者及 affordanceToolName 字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Incomplete fragments can remain InformationObjects; the law does not manufacture a tool endpoint."
+msgstr "不完整片段可保持 InformationObject；规则不创建工具端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:objectRecord a gmeow:InformationObject ; gmeow:affordsAction ex:action . ex:action a gmeow:WorldAffordance ; gmeow:affordanceToolName \"inspect\" ."
+msgstr "例如：ex:objectRecord a gmeow:InformationObject ; gmeow:affordsAction ex:action . ex:action a gmeow:WorldAffordance ; gmeow:affordanceToolName \"inspect\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WorldAffordanceCatalogConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A WorldAffordance is an actual entry of an InformationObject's action catalog and retains its supplied tool name. It does not stand in for execution."
+msgstr "WorldAffordance 是 InformationObject 行动目录的实际条目，并保留已提供工具名，不代表执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affordance target scope constraint"
+msgstr "可供行动目标范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个实际目录所属者，并至少有一个已提供所属者。目标不能跨对象目录泄漏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the source's advertised action-to-part binding."
+msgstr "用于验证来源所公布行动到部件的绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying a shared entry with one convenient owner's unrelated target."
+msgstr "避免用某个方便所属者的无关目标满足共享条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require an actual owner and check hasPart for all affordsAction owners of this entry."
+msgstr "要求实际所属者，并检查该条目所有 affordsAction 所属者的 hasPart。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary target checks source structure, not whether an advertised tool executed successfully."
+msgstr "二元目标检查来源结构，不验证所公布工具是否执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."
+msgstr "例如：ex:record gmeow:affordsAction ex:action ; gmeow:hasPart ex:plate . ex:action gmeow:affordanceTarget ex:plate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffordanceTargetScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every affordanceTarget belongs through hasPart to every actual catalog owner advertising that affordance, with at least one supplied owner. Targets cannot leak between object catalogs."
+msgstr "每个 affordanceTarget 通过 hasPart 属于公布该可供行动的每个实际目录所属者，并至少有一个已提供所属者。目标不能跨对象目录泄漏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recorded cognition mode carrier constraint"
+msgstr "所记录认知模式载体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every cognitionModeAsRecorded subject is an InformationObject source record or an actual Desire, while the mode string remains unresolved."
+msgstr "每个 cognitionModeAsRecorded 主体为 InformationObject 来源记录或实际 Desire，而模式字符串保持未解析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the source carrier of a recorded cognition-mode code."
+msgstr "用于验证所记录认知模式代码的来源载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting arbitrary events or inferring an AwarenessMode from the string."
+msgstr "避免接受任意事件或从字符串推断 AwarenessMode。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the binary property target against the two named carrier classes."
+msgstr "按两个命名载体类检查二元属性目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This explicit check supplies anonymous-union subject admission without a mode parser."
+msgstr "此显式检查提供匿名联合主体准入，不提供模式解析器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:record a gmeow:InformationObject ; gmeow:cognitionModeAsRecorded \" dreaming  \" ."
+msgstr "例如：ex:record a gmeow:InformationObject ; gmeow:cognitionModeAsRecorded \" dreaming  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedCognitionModeCarrierConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every cognitionModeAsRecorded subject is an InformationObject source record or an actual Desire, while the mode string remains unresolved."
+msgstr "每个 cognitionModeAsRecorded 主体为 InformationObject 来源记录或实际 Desire，而模式字符串保持未解析。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Read-only affordance tag constraint"
+msgstr "只读可供行动标签约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tagReadOnlyAction assertion classifies an actual WorldAffordance catalog record. It preserves reported read-only behavior without granting permission or proving tool effects."
+msgstr "tagReadOnlyAction 断言分类实际 WorldAffordance 目录记录，保留所报告只读行为，不授予许可或证明工具效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the carrier of reported read-only behavior metadata."
+msgstr "用于检查所报告只读行为元数据的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a tag as an access decision, executable restriction or effect certificate."
+msgstr "避免把标签当作访问决定、可执行限制或效果证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the binary hasTag guard for tagReadOnlyAction and require its WorldAffordance subject."
+msgstr "检查 tagReadOnlyAction 的二元 hasTag 守卫，并要求主体为 WorldAffordance。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other tags are unaffected and no global functionality or policy engine is introduced."
+msgstr "其他标签不受影响，不引入全局函数性或策略引擎。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagReadOnlyAction ."
+msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagReadOnlyAction ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadOnlyAffordanceTagConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A tagReadOnlyAction assertion classifies an actual WorldAffordance catalog record. It preserves reported read-only behavior without granting permission or proving tool effects."
+msgstr "tagReadOnlyAction 断言分类实际 WorldAffordance 目录记录，保留所报告只读行为，不授予许可或证明工具效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dream-eligible affordance tag constraint"
+msgstr "梦境可用可供行动标签约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A tagDreamEligible assertion classifies an actual WorldAffordance catalog record. It preserves reported dream eligibility without granting permission or proving tool effects."
+msgstr "tagDreamEligible 断言分类实际 WorldAffordance 目录记录，保留所报告梦境可用性，不授予许可或证明工具效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the carrier of reported dream eligibility metadata."
+msgstr "用于检查所报告梦境可用性元数据的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a tag as an access decision, executable restriction or effect certificate."
+msgstr "避免把标签当作访问决定、可执行限制或效果证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the binary hasTag guard for tagDreamEligible and require its WorldAffordance subject."
+msgstr "检查 tagDreamEligible 的二元 hasTag 守卫，并要求主体为 WorldAffordance。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Other tags are unaffected and no global functionality or policy engine is introduced."
+msgstr "其他标签不受影响，不引入全局函数性或策略引擎。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagDreamEligible ."
+msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagDreamEligible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A tagDreamEligible assertion classifies an actual WorldAffordance catalog record. It preserves reported dream eligibility without granting permission or proving tool effects."
+msgstr "tagDreamEligible 断言分类实际 WorldAffordance 目录记录，保留所报告梦境可用性，不授予许可或证明工具效果。"

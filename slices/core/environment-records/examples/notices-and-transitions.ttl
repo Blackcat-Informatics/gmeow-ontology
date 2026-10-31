@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/environment-notices/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary generic source records. No tool, delivery or provider is invoked here.
+ex:agent a gmeow:Agent .
+ex:provider a gmeow:SoftwareAgent .
+ex:writer a gmeow:SoftwareAgent .
+ex:world a logic:Thing .
+ex:source a gmeow:InformationObject .
+ex:providerFrame a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:observerFrame a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+ex:cup a gmeow:Entity .
+ex:box a gmeow:Entity .
+
+# Notice content is not the requested work, the health transition or delivery.
+ex:notice a gmeow:Message ;
+    gmeow:hasMessageKind gmeow:messageKindWorldNotice ;
+    gmeow:noticeKind gmeow:noticeKindGiftOffered ;
+    gmeow:utteranceText "A blue box is offered for the next quiet pause."@en ;
+    gmeow:noticeDeliveryState gmeow:noticeDeliveryStatePending ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:wasDerivedFrom ex:source .
+ex:recordNotice a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldNotificationRecorded ;
+    gmeow:affectsObject ex:notice ;
+    gmeow:wasAssociatedWith ex:writer .
+
+# Distinct delivery occurrences retain distinct results for the same notice.
+ex:firstAttempt a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ;
+    gmeow:affectsObject ex:notice ;
+    gmeow:noticeDeliveryState gmeow:noticeDeliveryStateAttempted ;
+    gmeow:wasAssociatedWith ex:provider .
+ex:failedAttempt a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ;
+    gmeow:affectsObject ex:notice ;
+    gmeow:noticeDeliveryState gmeow:noticeDeliveryStateFailed ;
+    gmeow:wasAssociatedWith ex:provider .
+ex:laterAttempt a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldNotificationDelivery ;
+    gmeow:affectsObject ex:notice ;
+    gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDelivered,
+        gmeow:noticeDeliveryStateDeliveryUncertain ;
+    gmeow:wasAssociatedWith ex:provider .
+
+# Source responsibility and viewpoint stay on the exact competing statements.
+ex:providerDeliveryClaim rdf:reifies <<( ex:laterAttempt gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDelivered )>> ;
+    gmeow:wasAttributedTo ex:provider ;
+    gmeow:accordingTo ex:providerFrame .
+ex:observerDeliveryClaim rdf:reifies <<( ex:laterAttempt gmeow:noticeDeliveryState gmeow:noticeDeliveryStateDeliveryUncertain )>> ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:accordingTo ex:observerFrame .
+
+ex:healthChange a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeWorldEnvironmentStatusTransition ;
+    gmeow:stateFrom gmeow:environmentStatusDegraded ;
+    gmeow:stateTo gmeow:environmentStatusHealthy ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world ;
+    gmeow:wasDerivedFrom ex:source .
+ex:recoveryNotice a gmeow:Message ;
+    gmeow:hasMessageKind gmeow:messageKindWorldNotice ;
+    gmeow:noticeKind gmeow:noticeKindWorldRecovered .
+ex:attentionChange a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeWorldFocusTransition ;
+    gmeow:attentionFrom ex:cup ;
+    gmeow:attentionTo ex:box .
+
+# Moving attention and changing place remain different occurrences.
+ex:room a gmeow:VirtualLocation ;
+    gmeow:name "Still Dock"@en, "Quiet Quay"@en .
+ex:gallery a gmeow:VirtualLocation .
+ex:move a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeWorldLocusTransition ;
+    gmeow:eventFromLocation ex:room ;
+    gmeow:eventToLocation ex:gallery .
+ex:rename a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldRenameLocus ;
+    gmeow:eventLocation ex:room ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world .
+ex:oldName rdf:reifies <<( ex:room gmeow:name "Still Dock"@en )>> ;
+    gmeow:accordingTo ex:providerFrame ;
+    gmeow:assertedAt "2030-05-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:provider .
+ex:newName rdf:reifies <<( ex:room gmeow:name "Quiet Quay"@en )>> ;
+    gmeow:accordingTo ex:providerFrame ;
+    gmeow:assertedAt "2030-05-02T09:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:provider .
+ex:namingAccount a gmeow:InformationObject ;
+    gmeow:description "This provider now calls the same place Quiet Quay; Still Dock remains a name for it."@en ;
+    gmeow:wasDerivedFrom ex:rename ;
+    gmeow:wasAttributedTo ex:provider .
+
+# The source can report only one endpoint, without fabricating the other.
+ex:partialAttentionRecord a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeWorldFocusTransition ;
+    gmeow:attentionTo ex:cup .
+ex:announcement a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldObjectsAnnounced ;
+    gmeow:affectsObject ex:cup, ex:box ;
+    gmeow:wasAssociatedWith ex:provider .

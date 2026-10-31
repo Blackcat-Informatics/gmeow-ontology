@@ -1194,3 +1194,33 @@ msgstr "Les déclarations source indépendantes coexistent. Ces déclarations co
 msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:originalFilename."
 msgstr "Conserver la valeur fournie pour gmeow:originalFilename."
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "channel layout as recorded"
+msgstr "agencement des canaux enregistré"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source string naming an image's channel layout, such as RGBA, distinct from its colour space."
+msgstr "Chaîne source exacte nommant l’agencement des canaux d’une image, comme RGBA, distincte de son espace colorimétrique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual MediaObject has a source-supplied channel-layout code."
+msgstr "À employer lorsqu’un MediaObject réel possède un code source d’agencement de canaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid token whitespace collapse, inferred colour profiles or claims of verified decoded pixels."
+msgstr "Éviter l’effondrement des espaces de token, les profils colorimétriques déduits ou les pixels prétendument vérifiés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact case, spaces and spelling in xsd:string on the media artifact."
+msgstr "Conserver casse, espaces et graphie exacts en xsd:string sur l’artefact média."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No parser, channel-count computation or closed code enumeration is supplied."
+msgstr "Aucun analyseur, calcul de nombre de canaux ou code fermé n’est fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."
+msgstr "Par exemple : ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."

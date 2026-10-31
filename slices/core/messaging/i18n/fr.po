@@ -678,3 +678,61 @@ msgstr "Les déclarations source indépendantes coexistent. Ces déclarations co
 msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:utteranceText."
 msgstr "Conserver la valeur fournie pour gmeow:utteranceText."
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message Kind"
+msgstr "Type de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."
+msgstr "Type comportemental ou de rapport d’un message — vocabulaire de VALEURS (individus, jamais sous-classes). Les catégories peuvent se recouper (un rebond est aussi généré automatiquement ; un accusé de lecture aussi). Principe 9 : aucune catégorie unique ne l’emporte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for overlapping source classifications of any Message transport."
+msgstr "À employer pour les classifications source superposées de tout transport de Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making kinds Message subclasses or forcing a single winning category."
+msgstr "Éviter de faire des types des sous-classes de Message ou d’imposer une catégorie gagnante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."
+msgstr "Joindre un individu de type réel par hasMessageKind ; les propriétaires courriel et environnement fournissent leurs valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This core vocabulary adds no email-address, delivery or recipient requirements."
+msgstr "Ce vocabulaire central n’ajoute aucune exigence d’adresse électronique, livraison ou destinataire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localKind a gmeow:MessageKind ."
+msgstr "Par exemple : ex:localKind a gmeow:MessageKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has message kind"
+msgstr "a pour type de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."
+msgstr "Relie un message à l’un de ses types comportementaux ou de rapport. Non fonctionnel : un message peut porter plusieurs types superposés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source classifies the behavior or report purpose of a Message."
+msgstr "À employer lorsqu’une source classe le comportement ou but de rapport d’un Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."
+msgstr "Éviter d’interpréter un type comme livraison réussie ou de contraindre un avis en EmailMessage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Message to each supplied MessageKind without removing other attributed kinds."
+msgstr "Relier le Message réel à chaque MessageKind fourni sans retirer les autres types attribués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."
+msgstr "La relation reste non fonctionnelle et indépendante du transport ; les individus propres au courriel restent dans ce propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+msgstr "Par exemple : ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."

@@ -1,0 +1,137 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/environment-catalog/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Ordinary source composition. Tags and catalog entries perform no tool calls.
+ex:agent a gmeow:Agent .
+ex:provider a gmeow:SoftwareAgent .
+ex:writer a gmeow:SoftwareAgent .
+ex:tool a gmeow:SoftwareAgent .
+ex:world a logic:Thing .
+ex:source a gmeow:InformationObject .
+ex:frame a gmeow:Standpoint ; gmeow:sharpens gmeow:universalStandpoint .
+
+# Represented entities and their information records keep distinct identities.
+ex:musicBox a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindGenerativeMusicBox ;
+    gmeow:glanceText "A small blue box with a winding key."@en ;
+    gmeow:hasPart ex:mechanismPlate .
+ex:mechanismPlate a gmeow:Entity ;
+    gmeow:partOf ex:musicBox ;
+    gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate .
+ex:partRoleClaim rdf:reifies <<( ex:mechanismPlate gmeow:embeddedPartRole gmeow:embeddedPartRoleMechanismPlate )>> ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:provider .
+
+ex:objectRecord a gmeow:InformationObject ;
+    gmeow:recordedWorldObject ex:musicBox ;
+    gmeow:providerProgram ex:provider ;
+    gmeow:providerWorld ex:world ;
+    gmeow:hasPart ex:plateRecord ;
+    gmeow:affordsAction ex:inspectAction, ex:windAction ;
+    gmeow:wasDerivedFrom ex:source .
+ex:plateRecord a gmeow:InformationObject ;
+    gmeow:recordedWorldObject ex:mechanismPlate ;
+    gmeow:partOf ex:objectRecord .
+ex:inspectAction a gmeow:WorldAffordance ;
+    gmeow:affordanceToolName " object.inspect  " ;
+    gmeow:affordanceTarget ex:plateRecord ;
+    gmeow:hasTag gmeow:tagReadOnlyAction, gmeow:tagDreamEligible .
+ex:windAction a gmeow:WorldAffordance ;
+    gmeow:affordanceToolName "object.wind" ;
+    gmeow:affordanceTarget ex:plateRecord .
+
+# The exact tag is a provider report, not a proof of effect purity or permission.
+ex:readOnlyClaim rdf:reifies <<( ex:inspectAction gmeow:hasTag gmeow:tagReadOnlyAction )>> ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:provider .
+
+ex:detailCreation a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldMaterializeDetail ;
+    gmeow:affectsObject ex:musicBox ;
+    gmeow:wasAssociatedWith ex:provider .
+ex:detail a gmeow:InformationObject ;
+    gmeow:worldDetailKind gmeow:worldDetailKindAesthetic,
+        gmeow:worldDetailKindIdentityDescription ;
+    gmeow:description "The provider describes the box as blue and calls it a pause bell."@en ;
+    gmeow:wasGeneratedBy ex:detailCreation .
+ex:stirring a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldObjectStirred ;
+    gmeow:stirringKind gmeow:stirringKindWound ;
+    gmeow:affectsObject ex:musicBox ;
+    gmeow:wasAssociatedWith ex:agent .
+
+# Actual media has its own manifestation lineage, independent of detail prose.
+ex:imageWork a gmeow:Work .
+ex:imageExpression a gmeow:Expression ; gmeow:realizes ex:imageWork .
+ex:image a gmeow:MediaObject ;
+    gmeow:embodies ex:imageExpression ;
+    gmeow:channelLayout " RGBA " .
+
+# Actual tool identity is supplied separately; the name string does not resolve it.
+ex:call a gmeow:ToolCall ;
+    gmeow:usedTool ex:tool ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted,
+        gmeow:toolCallOutcomeOk .
+ex:failedCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:tool ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:toolCallOutcome gmeow:toolCallOutcomeError .
+ex:callOutcomeClaim rdf:reifies <<( ex:call gmeow:toolCallOutcome gmeow:toolCallOutcomeCompleted )>> ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:provider .
+
+# The actual offering remains distinct from its item, fulfillment and acceptance.
+ex:offer a gmeow:Offering ;
+    gmeow:offeringProvider ex:provider ;
+    gmeow:itemOffered ex:musicBox .
+ex:materialization a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeWorldMaterializeObject ;
+    gmeow:fulfilsOffering ex:offer ;
+    gmeow:affectsObject ex:musicBox ;
+    gmeow:wasAssociatedWith ex:provider .
+
+# These source identities are supplied explicitly, never inferred from prose.
+ex:goal a gmeow:Goal ; gmeow:hasSatisfactionCondition ex:condition .
+ex:condition a gmeow:Condition ;
+    gmeow:conditionText "The agent has a reminder to pause."@en .
+ex:desire a gmeow:Desire ;
+    gmeow:intentBearer ex:agent ;
+    gmeow:intentionGoal ex:goal ;
+    gmeow:desiredObjectName "Quiet Bell Box"@en ;
+    gmeow:desiredExperienceText "A quiet pause before work."@en ;
+    gmeow:requestPurposeText "To remember to pause."@en ;
+    gmeow:cognitionModeAsRecorded " dreaming / cycle  " .
+ex:request a gmeow:WorldObjectRequest ;
+    gmeow:requestDesire ex:desire ;
+    gmeow:contentDigest "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:cognitionModeAsRecorded " dreaming / cycle  " .
+
+# The correction Activity's opaque work-reference digest is not a response node.
+# A separately supplied RequestCorrection would retain its own defeatsResponse.
+ex:correction a gmeow:Activity ;
+    gmeow:defeatedWorkDigest " source-digest / 9A  " ;
+    gmeow:wasAssociatedWith ex:agent .
+ex:digestClaim rdf:reifies <<( ex:correction gmeow:defeatedWorkDigest " source-digest / 9A  " )>> ;
+    gmeow:accordingTo ex:frame ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:source .
+
+# Open kind values compose the existing hierarchy rather than new object classes.
+ex:raft a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindRaft .
+ex:bookshelf a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindBookshelf .
+ex:desktop a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindDesktop .
+ex:archive a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindArchivedDesktop .
+ex:musicBoxKindExample a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindMusicBox .
+ex:mendedBowl a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindKintsugiVessel .
+ex:writtenAccount a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindWrittenRecord .
+ex:documents a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindDocumentCollection .
+ex:framedText a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindReadableFramedArtifact .
+ex:instrument a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindInstrument .
