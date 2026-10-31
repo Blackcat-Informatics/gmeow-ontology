@@ -13715,3 +13715,18 @@ repo:README.md a gmeow:CreativeWork ;
     skos:definition "The repository source locator for the textual regex contract that cites unicode-segmentation 1.13.3."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-actual-usage-prov> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/mappings/provenance-usage.ttl"@en ;
+    skos:definition "The by-reference citation of PROV-O for the general actual-usage bridge, without claiming preservation of qualified usage, usage roles or separate usage-time assertions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/mappings/provenance-usage.ttl> ;
+    gmeow:citedEntity prov: ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-actual-usage-prov> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-actual-usage-prov> a gmeow:Selector ;
+    rdfs:label "Actual usage PROV-O bridge source selector"@en ;
+    skos:definition "The repository source locator of the logic-owned close-match bridge from general actual usage to PROV-O used."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/mappings/provenance-usage.ttl" .
