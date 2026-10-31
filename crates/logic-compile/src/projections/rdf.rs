@@ -821,6 +821,52 @@ enum LoweredOperand<'a> {
     Class(&'a AtomicTerm),
 }
 
+/// Define the canonical named datatype through an anonymous OWL data range.
+/// Target-only expressions and collection cells use a separate blank scope from
+/// the compact IR's source blanks; their labels encode the complete owner IRI.
+/// The caller admits at least two operands, so the collection head exists.
+fn emit_datatype_definition(
+    g: &mut TripleSink,
+    node: &str,
+    constructor: &str,
+    cells: &[(&str, &AtomicTerm)],
+) -> gmeow_errors::Result<()> {
+    let scope = purrdf::BlankScope(1);
+    let label = purrdf_hash::hex::encode(node.as_bytes());
+    let range = g.builder.intern_blank(&label, scope)?;
+    let datatype = g.builder.intern_iri(&rdfs("Datatype"))?;
+    let rdf_type = g.builder.intern_iri(RDF_TYPE)?;
+    let named = g.builder.intern_iri(node)?;
+    let equivalent = g.builder.intern_iri(&owl("equivalentClass"))?;
+    g.builder.push_quad(named, rdf_type, datatype, None)?;
+    g.builder.push_quad(range, rdf_type, datatype, None)?;
+    g.builder.push_quad(named, equivalent, range, None)?;
+    let vocab = purrdf_core::ListVocab {
+        first: g.builder.intern_iri(crate::lists::RDF_FIRST)?,
+        rest: g.builder.intern_iri(crate::lists::RDF_REST)?,
+        nil: g.builder.intern_iri(crate::lists::RDF_NIL)?,
+    };
+    let cell_ids = (0..cells.len())
+        .map(|index| {
+            g.builder
+                .intern_blank(&format!("{label}-cell-{index}"), scope)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let values = cells
+        .iter()
+        .map(|(_, member)| g.intern_atomic(member))
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    purrdf_core::collections::try_build_rdf_list(
+        values,
+        &vocab,
+        |index| Ok(cell_ids[index]),
+        |s, p, o| g.builder.push_quad(s, p, o, None),
+    )?;
+    let predicate = g.builder.intern_iri(&owl(constructor))?;
+    g.builder.push_quad(range, predicate, cell_ids[0], None)?;
+    Ok(())
+}
+
 /// Emit one lifted anonymous expression to OWL 2 DL with its retained class or
 /// datatype kind, constructor edges and list cells. An expression OWL 2 DL cannot carry
 /// faithfully here — an incomplete list, a literal (data) enumeration member, or any
@@ -851,6 +897,12 @@ fn emit_class_expression(
     if expression.edges.is_empty() {
         drops.push(format!(
             "class expression <{node}> has no constructor; dropped"
+        ));
+        return Ok(false);
+    }
+    if expression.datatype && expression.edges.len() != 1 {
+        drops.push(format!(
+            "datatype expression <{node}> needs exactly one OWL data-range constructor; dropped"
         ));
         return Ok(false);
     }
@@ -887,23 +939,29 @@ fn emit_class_expression(
             ));
             return Ok(false);
         }
+        if expression.datatype && cells.len() < 2 {
+            drops.push(format!(
+                "datatype expression <{node}> needs at least two operands for owl:{local}; dropped"
+            ));
+            return Ok(false);
+        }
         lowered.push((local, LoweredOperand::List(cells)));
     }
-    let node = if expression.datatype {
-        node
-    } else {
-        owl_class_iri(node)
-    };
-    let kind = if expression.datatype {
-        rdfs("Datatype")
-    } else {
-        owl("Class")
-    };
-    g.add_iri(node, RDF_TYPE, &kind)?;
+    if expression.datatype {
+        let [(local, LoweredOperand::List(cells))] = lowered.as_slice() else {
+            return Err(super::overclaim(
+                "validated OWL datatype constructor requires one operand list".into(),
+            ));
+        };
+        emit_datatype_definition(g, node, local, cells)?;
+        return Ok(true);
+    }
+    let node = owl_class_iri(node);
+    g.add_iri(node, RDF_TYPE, &owl("Class"))?;
     for (local, operand) in lowered {
         match operand {
             LoweredOperand::List(cells) => {
-                let head = if expression.datatype || local == "oneOf" {
+                let head = if local == "oneOf" {
                     emit_list_cells(g, &cells)?;
                     cells[0].0.to_owned()
                 } else {
