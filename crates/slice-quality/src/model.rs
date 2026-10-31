@@ -118,8 +118,8 @@ pub struct Exemption {
     pub iri: String,
     /// The axis it covers.
     pub axis_iri: String,
-    /// The doctrine-anchored reason.
-    pub reason: String,
+    /// Every doctrine-anchored reason, retaining datatype, language and direction.
+    pub reasons: Vec<purrdf::RdfLiteral>,
     /// The date it was minted (ISO `xsd:date` lexical form).
     pub date: String,
     /// The Rust symbol whose resolution in-repo makes the exemption stale.

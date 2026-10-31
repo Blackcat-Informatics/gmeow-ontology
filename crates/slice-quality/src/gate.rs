@@ -134,7 +134,11 @@ pub fn completeness_gate(rubric: &Rubric) -> Vec<String> {
         if ex.axis_iri.is_empty() {
             errs.push(format!("exemption {} names no axis", ex.iri));
         }
-        if ex.reason.trim().is_empty() {
+        if !ex
+            .reasons
+            .iter()
+            .any(|reason| !reason.lexical_form.trim().is_empty())
+        {
             errs.push(format!(
                 "exemption {} has an empty/whitespace reason — a dated exemption must carry a doctrine-anchored justification",
                 ex.iri

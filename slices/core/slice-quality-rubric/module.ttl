@@ -308,6 +308,8 @@ gmeow:AxisExemption
     gmeow:howToUse "Mint a gmeow:AxisExemption naming the exempted axis, a reason, a gmeow:exemptionDate, and the gmeow:exemptionProducer symbol; the completeness gate accepts it in lieu of a measured axis and the staleness gate removes the escape once the symbol lands."@x-gmeow-english ;
     gmeow:useWhen "Use to record, transparently and datedly, that a specific axis or sub-metric awaits an unlanded producer — so the gap is checked, not hidden."@x-gmeow-english .
 
+gmeow:AxisExemption logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:exemptionReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
 gmeow:exemptsAxis
     a logic:ObjectProperty ;
     rdfs:domain gmeow:AxisExemption ;
@@ -322,11 +324,11 @@ gmeow:exemptsAxis
     gmeow:useWhen "Use on an exemption to name the axis it covers."@x-gmeow-english .
 
 gmeow:exemptionReason
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption reason"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The prose justification for the exemption — why the producer is genuinely unlanded and why the axis's headline still functions without it. It must cite doctrine, never a ticket number."@x-gmeow-english ;
     skos:example "gmeow:exemptionDocsPanels gmeow:exemptionReason \"Multi-format docs panels are measured for adoption as they land; their producer is not yet in-repo.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an issue/PR number in the reason and avoid a reason that would equally justify skipping a landed producer."@x-gmeow-english ;
