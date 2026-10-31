@@ -245,6 +245,7 @@ fn is_interpreted(predicate: &str) -> bool {
                 matches!(
                     local,
                     "termEqual"
+                        | "termSameComponent"
                         | "termDistinct"
                         | "termLess"
                         | "termLessEqual"

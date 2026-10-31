@@ -31,7 +31,7 @@ mod numeric_literal;
 pub use numeric_literal::{FiniteNumericLiteral, NumericLiteral, UnitInterval};
 
 mod term_kind;
-pub use term_kind::TermKindPredicate;
+pub use term_kind::{TermComponent, TermKindPredicate};
 
 mod axis_evidence;
 pub use axis_evidence::AxisEvidence;

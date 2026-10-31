@@ -1615,7 +1615,12 @@ fn apply_builtins(
             match outcome {
                 BuiltinOutcome::Filter(holds) => {
                     let invert = constraint_tagged
-                        && !matches!(b, QBuiltin::TermEqual { .. } | QBuiltin::TermCompare { .. });
+                        && !matches!(
+                            b,
+                            QBuiltin::TermIdentity { .. }
+                                | QBuiltin::TermEqual { .. }
+                                | QBuiltin::TermCompare { .. }
+                        );
                     if holds == invert {
                         // Consequent checks prune a satisfied law. Body equality
                         // filters and ordinary filters prune a false condition.
@@ -1634,6 +1639,7 @@ fn apply_builtins(
                         && !matches!(
                             b,
                             QBuiltin::TermKind { .. }
+                                | QBuiltin::TermIdentity { .. }
                                 | QBuiltin::TermEqual { .. }
                                 | QBuiltin::TermCompare { .. }
                         )

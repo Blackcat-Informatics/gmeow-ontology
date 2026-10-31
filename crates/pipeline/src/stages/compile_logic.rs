@@ -500,7 +500,7 @@ impl Stage for CompileLogicStage {
     }
     /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {
-        "compile-logic.v45-conjunctive-node-kinds"
+        "compile-logic.v46-component-identity"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
