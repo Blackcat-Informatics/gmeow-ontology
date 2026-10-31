@@ -70,7 +70,7 @@ pub struct DictionaryRealization {
     /// the committed sweep evidence records a different one
     /// (`gmeow:MediumCorpusDrift`).
     pub corpus_digest: String,
-    /// `gmeow:dictionaryContentDigest`, `blake3:<64 lowercase hex>`.
+    /// Internal `blake3:<64 lowercase hex>` address, projected as a typed digest.
     pub content_digest: String,
     /// `gmeow:dictionaryByteLength` — what the trainer ACTUALLY returned, which may
     /// be under the requested target.
@@ -188,12 +188,19 @@ pub fn project(
         quads.push(RdfQuad::new(RdfTerm::iri(subject), predicate, object).in_graph(graph.clone()));
     };
 
-    // Realizations, in canonical (id, version) order so the projection is a pure
-    // function of the registry rather than of the caller's emission order.
-    let ordered: BTreeMap<String, &DictionaryRealization> = realizations
-        .iter()
-        .map(|r| (format!("{}\u{0}{}", r.dictionary, r.version), r))
-        .collect();
+    // One realization per dictionary in this emission, ordered independently of
+    // the caller. Check conflicts before deduplication can discard evidence.
+    let mut ordered = BTreeMap::new();
+    for realization in realizations {
+        if let Some(previous) = ordered.insert(realization.dictionary.as_str(), realization)
+            && previous != realization
+        {
+            return Err(super::invalid_declaration(format!(
+                "conflicting realization records describe dictionary <{}>",
+                realization.dictionary
+            )));
+        }
+    }
     for realization in ordered.into_values() {
         let def = registry
             .dictionaries()
@@ -269,7 +276,9 @@ pub fn project(
         emit(
             &subject,
             gm("dictionaryContentDigest"),
-            RdfTerm::literal(RdfLiteral::simple(&realization.content_digest)),
+            RdfTerm::literal(crate::projections::blake3_blob_literal(
+                &realization.content_digest,
+            )?),
         );
         emit(
             &subject,
@@ -506,16 +515,56 @@ pub fn realizations(
                 .unwrap_or(usize::MAX),
             corpus_sample_count: number("measuredCorpusSampleCount")?,
             corpus_digest: required(literal_of("measuredCorpusDigest"), "measuredCorpusDigest")?,
-            content_digest: required(
-                literal_of("dictionaryContentDigest"),
-                "dictionaryContentDigest",
-            )?,
+            content_digest: dictionary_content_digest(&quads, subject)?,
             byte_length: usize::try_from(number("dictionaryByteLength")?).unwrap_or(usize::MAX),
             zstd_dictionary_id: u32::try_from(number("zstdDictionaryId")?).unwrap_or(u32::MAX),
         };
+        if out
+            .get(&dictionary)
+            .is_some_and(|previous| previous != &realization)
+        {
+            return Err(super::invalid_declaration(format!(
+                "conflicting realization records describe dictionary <{dictionary}>"
+            )));
+        }
         out.insert(dictionary, realization);
     }
     Ok(out)
+}
+
+/// Admit the complete BLAKE3 literal before recovering its internal blob address.
+fn dictionary_content_digest(
+    quads: &[RdfQuad],
+    subject: &str,
+) -> Result<String, gmeow_errors::Diag> {
+    let predicate = gm("dictionaryContentDigest");
+    let mut digest: Option<String> = None;
+    for quad in quads {
+        if quad.subject != RdfTerm::iri(subject) || quad.predicate != predicate {
+            continue;
+        }
+        let value = purrdf::TermValue::from_rdf_term(&quad.object);
+        let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+        if algorithm != crate::projections::DigestAlgorithm::Blake3 {
+            return Err(super::digest_mismatch(format!(
+                "realization <{subject}> requires a BLAKE3-256 dictionaryContentDigest"
+            )));
+        }
+        let address = format!("blake3:{hex}");
+        if let Some(previous) = &digest
+            && previous != &address
+        {
+            return Err(super::digest_mismatch(format!(
+                "realization <{subject}> carries conflicting dictionaryContentDigest values"
+            )));
+        }
+        digest = Some(address);
+    }
+    digest.ok_or_else(|| {
+        super::invalid_declaration(format!(
+            "realization <{subject}> carries no gmeow:dictionaryContentDigest"
+        ))
+    })
 }
 
 /// Read the emitted `gmeow:MediumEnvelope` records back off a folded artifact.

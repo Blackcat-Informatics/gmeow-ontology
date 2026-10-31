@@ -646,7 +646,7 @@ gmeow:CompressionDictionaryRealization
     rdfs:label "Compression Dictionary Realization"@x-gmeow-english ;
     logic:subClassOf gmeow:Manifestation ;
     skos:definition "The GENERATED realization of a gmeow:CompressionDictionary: the trained bytes and everything measurable only after training — gmeow:dictionaryContentDigest (byte-exact identity), gmeow:dictionaryByteLength, the zstd Dictionary_ID the frame header cites (gmeow:zstdDictionaryId), and the three MEASURED facts about the run that produced them: gmeow:measuredDictionaryStrategy, gmeow:measuredDictionaryTargetLength, and gmeow:measuredCorpusSampleCount. Those three carry their OWN predicates rather than repeating the authored gmeow:dictionaryStrategy / gmeow:dictionaryTargetLength: the authored pair is the DECLARED target a human writes down, the measured pair is the committed-sweep winner the build actually trained at, and spelling both with one predicate left a divergence between them nowhere to be recorded. It lives in the build-time graph/medium-registry named graph and is NEVER hand-authored; a hand-written realization would be a second source of truth for bytes the build already owns. A Manifestation in the WEMI sense: the packaged, shippable embodiment of the authored definition it gmeow:realizesDictionary."@x-gmeow-english ;
-    skos:example "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"blake3:9f2c…\" ."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     skos:scopeNote "Scope: this class covers ONE build's trained bytes for ONE authored definition — the fields that exist only after training. It is not the declaration those bytes answer to (gmeow:CompressionDictionary), not the verdict on whether shipping them is worthwhile (gmeow:MediumDictionaryEffectMeasurement, which prices the DEFINITION over a declared population), and not the per-frame record of a payload primed with them (gmeow:MediumEnvelope). Hand-authoring one would put a second source of truth beside bytes the build already owns."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid authoring one by hand (it is a build product of the medium-registry pass) and avoid using it where the authored definition is meant — a realization is bytes, gmeow:CompressionDictionary is the declaration those bytes answer to."@x-gmeow-english ;
@@ -969,16 +969,17 @@ gmeow:dictionaryContentDigest
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary content digest"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The byte-exact identity of a TRAINED dictionary, written 'blake3:<hex>' — a realization field. It is deliberately NOT gmeow:contentDigest reused: gmeow:contentDigest identifies the artifact a record is ABOUT, while this identifies the dictionary the record's artifact was primed WITH, and collapsing them would make an envelope's own identity indistinguishable from its dictionary's. A decoder that holds a dictionary whose digest differs from the one the frame cites raises gmeow:MediumDigestMismatch and refuses; it never retries dictionary-less."@x-gmeow-english ;
-    skos:example "ex:realCoreV1 gmeow:dictionaryContentDigest \"blake3:9f2c4e…\" ."@x-gmeow-english ;
+    logic:range gmeow:blake3_256Digest ;
+    rdfs:seeAlso gmeow:blake3_256Digest ;
+    skos:definition "The BLAKE3-256 hash of the exact trained compression-dictionary bytes, carried on their realization as a gmeow:blake3_256Digest literal with 64 lowercase hexadecimal digits and no prefix. It identifies the dictionary used to prime a payload, independently of the payload, source corpus and numeric zstd Dictionary_ID. A mismatch with the held dictionary raises gmeow:MediumDigestMismatch before decoding."@x-gmeow-english ;
+    skos:example "ex:realCoreV1 gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property identifies the DICTIONARY BYTES a payload was primed with. It is not gmeow:contentDigest, which identifies the artifact a record is about; it is not gmeow:strataDigest, which commits to a named sub-payload of that artifact; and it is not the numeric wire identity the frame header cites (gmeow:zstdDictionaryId). A reader compares it before priming, never as a diagnosis after a failed decode."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid asserting it on an authored gmeow:CompressionDictionary (an unsatisfiable obligation — the digest is a build product) and avoid substituting it for gmeow:contentDigest, which identifies the artifact rather than its priming dictionary."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxRBox ;
-    gmeow:howToUse "Emit it from the medium-registry pass as 'blake3:<hex>'; a decoder compares it against the dictionary it holds before attempting a primed decode."@x-gmeow-english ;
+    gmeow:howToUse "Emit the exact-byte BLAKE3-256 hash using gmeow:blake3_256Digest; compare its complete typed literal with the held dictionary before priming. Internal blake3: blob addresses retain their prefix at the transport boundary."@x-gmeow-english ;
     gmeow:termStability gmeow:stabilityExperimental ;
     gmeow:useWhen "Use to pin exactly which trained dictionary bytes a primed decode requires."@x-gmeow-english .
 
@@ -3021,13 +3022,18 @@ logic:MediumDictionaryDigestFormConstraint
     rdfs:label "Medium dictionary-digest form constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:dictionaryContentDigest is written 'blake3:<64 lowercase hex>'. A decoder compares this literal against the dictionary bytes it holds before priming, so a malformed value makes the comparison meaningless and the primed decode unsafe."@x-gmeow-english ;
+    skos:definition "The required lexical check for a realization's gmeow:dictionaryContentDigest: exactly 64 lowercase hexadecimal digits without an algorithm prefix. The property's mathematics-owned gmeow:blake3_256Digest range supplies algorithm identity; this check neither computes a hash nor proves that dictionary bytes match it."@x-gmeow-english ;
+    gmeow:useWhen "Use when admitting the required typed dictionary-byte digest on a generated realization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying the former blake3: prefixed-string grammar to the typed literal or treating lexical validity as verification of dictionary bytes."@x-gmeow-english ;
+    gmeow:howToUse "Require the bare hexadecimal form alongside the BLAKE3-256 datatype range and the realization's existing single-value obligations; compare against actual dictionary bytes before decoding."@x-gmeow-english ;
+    skos:scopeNote "This constraint checks the lexical form of supplied values on compression-dictionary realizations; the separate cardinality obligation requires presence. Corpus identities, numeric wire IDs and payload-envelope digests retain their own contracts."@x-gmeow-english ;
+    skos:example "A dictionary digest literal whose lexical value starts with blake3: fails this check even if its datatype names BLAKE3-256."@x-gmeow-english ;
     logic:onClass gmeow:CompressionDictionaryRealization ;
     logic:valuePath gmeow:dictionaryContentDigest ;
     logic:stringOp "regexRequired" ;
-    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:stringPattern "^[0-9a-f]{64}$" ;
     logic:formalizes gmeow:CompressionDictionaryRealization ;
-    logic:message "A gmeow:dictionaryContentDigest must be written 'blake3:<64 lowercase hex>' — a decoder compares it against the dictionary it holds before priming." .
+    logic:message "A gmeow:dictionaryContentDigest requires 64 lowercase hexadecimal digits without a prefix and the BLAKE3-256 digest datatype." .
 
 # A medium realized by a NON-BASELINE codec must declare the reader capability it
 # demands. GTS spec §8.4 puts zstd-rsyncable outside the baseline reader contract,
@@ -3265,8 +3271,8 @@ gmeow:CompressionDictionary logic:subClassOf
 gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:realizesDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryContentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
