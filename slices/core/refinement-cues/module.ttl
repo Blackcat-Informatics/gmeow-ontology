@@ -1078,8 +1078,8 @@ gmeow:machineryForReader
     skos:definition "Derived reader-specific operational-record state. Its resource and reader remain paired through the finite machinery rules and the negative grounding guard, preventing another reader's classification from controlling this interpretation."@x-gmeow-english ;
     gmeow:useWhen "Use only for actually derived state in the selected activated rule evaluation."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting this state as source input or replacing its reader coordinate with unary MachineryRecord membership."@x-gmeow-english ;
-    gmeow:howToUse "Derive from explicit same-reader admissions and permitted roots or links, retain the world boundary, and publish any unary type only through the declared publication rule."@x-gmeow-english ;
-    skos:scopeNote "No subject domain coerces every resource into an information object. Derived-only origin is an ownership contract; ordinary graph integrity checks do not authenticate a production derivation."@x-gmeow-english ;
+    gmeow:howToUse "Follow the selected policy’s exact roots, links and admission requirements. Keep the same reader and world, and publish unary types only through that policy’s declared publication rule."@x-gmeow-english ;
+    skos:scopeNote "No subject domain coerces every resource into an information object. Select one policy interpretation per reader and world; do not combine same-reader state from separate policy evaluations. Derived-only origin and operation isolation are input ownership contracts, not authenticated execution."@x-gmeow-english ;
     skos:example "The queried conclusion ex:operation gmeow:machineryForReader ex:reader . keeps the selected reader visible rather than claiming universal automation."@x-gmeow-english .
 
 # Required membership and local maxima do not create global functionality.
@@ -1295,6 +1295,215 @@ gmeow:CueNonMachineryGroundingRule
         [ rdf:reifies <<( _:cueGround_match gmeow:cueGroundingReader _:cueGround_reader )>> ],
         [ rdf:reifies <<( _:cueGround_cue gmeow:cueGrounding _:cueGround_set )>> ] ;
     logic:negatedBody [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] .
+
+# Explicit event-type policy; individual admission remains the strict policy.
+
+gmeow:eventTypeCueGrounding
+    a gmeow:GroundingRuleSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ;
+    rdfs:label "event-type cue grounding"@x-gmeow-english ;
+    skos:definition "The opt-in cue-grounding policy that seeds machinery from six exact event kinds and propagates it through event containment, generation, facets, known-unknown subjects and evaluation contexts without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader explicitly selects event-kind classification and the declared forward links without individual machinery admission."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining this policy with another machinery interpretation for the same reader and world, or treating classification as automation or authorship evidence."@x-gmeow-english ;
+    gmeow:howToUse "Select all twelve rule members for the actual reader and world, finish positive machinery closure, then apply the shared negative cue-eligibility rule. Preserve source provenance independently."@x-gmeow-english ;
+    skos:scopeNote "This policy does not publish MachineryRecord type or invent machineryAdmittedBy facts. Its shared binary state requires one policy interpretation per reader and world. The boundary is an operation-input contract, not authenticated runtime isolation."@x-gmeow-english ;
+    skos:example "A cue can select this policy while another release retains operationalCueGrounding; their same-reader interpretations remain in separate operation worlds."@x-gmeow-english ;
+    gmeow:groundingRule gmeow:EventTypeMachineryAttemptRootRule, gmeow:EventTypeMachineryIntentionActiveRootRule, gmeow:EventTypeMachineryIntentionPausedRootRule, gmeow:EventTypeMachineryIntentionSatisfiedRootRule, gmeow:EventTypeMachineryIntentionAbandonedRootRule, gmeow:EventTypeMachineryIntentionSupersededRootRule, gmeow:EventTypeMachineryDescendantRule, gmeow:EventTypeMachineryGeneratedRecordRule, gmeow:EventTypeMachineryFacetRule, gmeow:EventTypeMachineryKnownUnknownRule, gmeow:EventTypeMachineryEvaluationContextRule, gmeow:CueNonMachineryGroundingRule .
+
+gmeow:EventTypeMachineryAttemptRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "attempt event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeAttempt under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual attempt Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeAttempt value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeAttempt can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryAttemptRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeAttempt )>> ] .
+
+gmeow:EventTypeMachineryIntentionActiveRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "active intention transition event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeIntentionActive under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual active intention transition Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeIntentionActive value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeIntentionActive can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryIntentionActiveRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionActive )>> ] .
+
+gmeow:EventTypeMachineryIntentionPausedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "paused intention transition event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeIntentionPaused under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual paused intention transition Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeIntentionPaused value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeIntentionPaused can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryIntentionPausedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionPaused )>> ] .
+
+gmeow:EventTypeMachineryIntentionSatisfiedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "satisfied intention transition event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeIntentionSatisfied under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual satisfied intention transition Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeIntentionSatisfied value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeIntentionSatisfied can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryIntentionSatisfiedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionSatisfied )>> ] .
+
+gmeow:EventTypeMachineryIntentionAbandonedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "abandoned intention transition event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeIntentionAbandoned under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual abandoned intention transition Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeIntentionAbandoned value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeIntentionAbandoned can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryIntentionAbandonedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionAbandoned )>> ] .
+
+gmeow:EventTypeMachineryIntentionSupersededRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "superseded intention transition event-kind machinery root"@x-gmeow-english ;
+    skos:definition "Derive machineryForReader for an Event carrying eventTypeIntentionSuperseded under the selected event-type policy, without individual admission or an intention-target prerequisite."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy classifies an actual superseded intention transition Event by its exact event type."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."@x-gmeow-english ;
+    gmeow:howToUse "Join the original Event and its eventTypeIntentionSuperseded value to the same reader’s explicit selection of this rule’s set."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "An Event with eventTypeIntentionSuperseded can be classified without minting a machineryAdmittedBy assertion."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryIntentionSupersededRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionSuperseded )>> ] .
+
+gmeow:EventTypeMachineryDescendantRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "event descendant machinery propagation"@x-gmeow-english ;
+    skos:definition "Propagate machinery from a classified containing Event to its subEventOf Event descendants for the same reader, without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain event decomposition in the selected event-type policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing containment or treating temporal overlap as event decomposition."@x-gmeow-english ;
+    gmeow:howToUse "Join child subEventOf parent with both Event types and the parent’s same-reader machinery state. Transitive closure may supply nested descendants."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "A classified containing event can classify its actual child without creating either endpoint’s admission."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryDescendantRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:subEventOf _:cueGround_parent )>> ] .
+
+gmeow:EventTypeMachineryGeneratedRecordRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "generated information machinery propagation"@x-gmeow-english ;
+    skos:definition "Propagate machinery from a classified Activity to an InformationObject it generated through wasGeneratedBy, retaining the same reader without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify actual information outputs of machinery activities in the selected policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid propagation through input use, reading, receipts or arbitrary derivation. Classification does not erase human authorship."@x-gmeow-english ;
+    gmeow:howToUse "Join output wasGeneratedBy activity with the original InformationObject and Activity types and the activity’s same-reader machinery state."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "A generated output can be excluded by the selected policy while its source authorship remains recorded independently."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryGeneratedRecordRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:InformationObject )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type gmeow:Activity )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:wasGeneratedBy _:cueGround_parent )>> ] .
+
+gmeow:EventTypeMachineryFacetRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "forward facet machinery propagation"@x-gmeow-english ;
+    skos:definition "Propagate machinery from a classified subject to its hasFacet LabelledFacet object for the same reader, without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify labelled content facets of an already classified record or record part."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing hasFacet, inferring vocabulary identity from labels or retyping the containing subject as an InformationObject."@x-gmeow-english ;
+    gmeow:howToUse "Join classified subject hasFacet facet in the forward direction and retain the facet’s LabelledFacet type. The subject has no added class requirement."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "The facet inherits the containing record’s same-reader machinery classification, without a claim about the truth of its content."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryFacetRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:hasFacet _:cueGround_record )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:LabelledFacet )>> ] .
+
+gmeow:EventTypeMachineryKnownUnknownRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "forward known-unknown machinery propagation"@x-gmeow-english ;
+    skos:definition "Propagate machinery from a classified Agent to the object of its awareOfNotKnowing assertion for the same reader, without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected policy carries classification from an actual Agent to its explicitly recorded not-known subject."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an Event as an Agent to make this link fit, reversing awareness or inferring a missing knowledge gap."@x-gmeow-english ;
+    gmeow:howToUse "Join Agent awareOfNotKnowing subject with the Agent’s same-reader machinery state. Preserve the owner’s open object range without adding a target class."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "A classified Agent carries classification forward to its supplied not-known subject; this rule does not classify the Agent from that subject."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryKnownUnknownRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type gmeow:Agent )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:awareOfNotKnowing _:cueGround_record )>> ] .
+
+gmeow:EventTypeMachineryEvaluationContextRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "forward evaluation-context machinery propagation"@x-gmeow-english ;
+    skos:definition "Propagate machinery from a classified logic:GoalEvaluation to the object of its logic:evaluatedAgainst assertion for the same reader, without individual admission."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the situation or world named by an already classified goal evaluation in the selected policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing evaluatedAgainst, inventing a gmeow-owned alias or inferring goal satisfaction or context truth."@x-gmeow-english ;
+    gmeow:howToUse "Join evaluation logic:evaluatedAgainst context with the original logic:GoalEvaluation type and its same-reader machinery state. Do not assert a new class for the context."@x-gmeow-english ;
+    skos:scopeNote "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."@x-gmeow-english ;
+    skos:example "A classified evaluation classifies its supplied situation or world without asserting that its judgement was completed or correct."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:EventTypeMachineryEvaluationContextRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type logic:GoalEvaluation )>> ],
+        [ rdf:reifies <<( _:cueGround_parent logic:evaluatedAgainst _:cueGround_record )>> ] .
 
 # Native RDF 1.2 statement-position variables are local to each compiled rule.
 _:cueGround_cue logic:termVariable "cue" .
