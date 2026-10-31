@@ -2915,8 +2915,8 @@ msgid "Tensor Shape"
 msgstr "张量形状"
 
 msgctxt "https://blackcatinformatics.ca/math/TensorShape|skos:definition"
-msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."
-msgstr "张量所声明的形状：其 math:tensorRank 连同每个轴一个 math:TensorAxis，每个轴携带一个从零开始的 math:axisIndex 及其长度。它是 math:MathematicalObject 的子类，由一切\"具有\"该形状的事物共享——为张量槽位定型的 math:ExpressionType 与占据该槽位的 math:WeightTensor 命名同一个形状对象，因此\"这两个张量形状相同\"是图中的同一性，而非两个渲染标签之间的字符串相等。它是形状，绝非载荷：长度只说明某个轴有多长，绝不说明张量装的是什么。没有形状是一个真实且比秩 0 更弱的主张，其写法是完全不命名 math:tensorShape，而绝不是给出一个不带任何轴的形状对象。"
+msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by an incomplete shape object with no declared rank. An explicit rank-zero shape with no axes is a scalar."
+msgstr "张量所声明的形状：其 math:tensorRank 连同每个轴一个 math:TensorAxis，每个轴携带一个从零开始的 math:axisIndex 及其长度。它是 math:MathematicalObject 的子类，由一切\"具有\"该形状的事物共享——为张量槽位定型的 math:ExpressionType 与占据该槽位的 math:WeightTensor 命名同一个形状对象，因此\"这两个张量形状相同\"是图中的同一性，而非两个渲染标签之间的字符串相等。它是形状，绝非载荷：长度只说明某个轴有多长，绝不说明张量装的是什么。没有形状是一个真实且比秩 0 更弱的主张，其写法是完全不命名 math:tensorShape，而不是给出一个未声明秩的不完整形状对象。显式声明秩为零且无轴的形状是标量。"
 
 msgctxt "https://blackcatinformatics.ca/math/TensorAxis|rdfs:label"
 msgid "Tensor Axis"
@@ -2947,8 +2947,8 @@ msgid "tensor rank"
 msgstr "张量秩"
 
 msgctxt "https://blackcatinformatics.ca/math/tensorRank|skos:definition"
-msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."
-msgstr "某个 math:TensorShape 所声明的轴的数量。定义域 math:TensorShape，值域 xsd:nonNegativeInteger（以散文陈述）。之所以显式携带而非留待清点，有两个理由：秩 0（标量——没有任何轴的形状）必须可被肯定地断言，而不能与轴被丢失的形状节点无从分辨；且计数聚合超出原生约束所使用的可判定片段，因此约束要拿来与 math:shapeAxis 家族比较的秩，必须以取值形式在场。"
+msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than inferred from axis presence: rank 0 positively declares a scalar shape with no axes, while a shape with no rank is incomplete. The canonical count law checks the declared value against the distinct math:shapeAxis nodes; it does not infer a missing rank."
+msgstr "某个 math:TensorShape 声明的轴数。定义域为 math:TensorShape，值域为 xsd:nonNegativeInteger，均以文字说明。此值显式提供，不从轴的出现推断：秩 0 明确声明无轴标量形状，而未声明秩的形状不完整。规范计数规则将声明值与不同 math:shapeAxis 节点核对，不推断缺失的秩。"
 
 msgctxt "https://blackcatinformatics.ca/math/shapeAxis|rdfs:label"
 msgid "shape axis"
@@ -3448,3 +3448,131 @@ msgstr "连接到范数的关系记录了此距离为何具有度量解释。它
 msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
 msgstr "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor rank nonnegative constraint"
+msgstr "张量秩非负约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:tensorRank is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "每个给定 math:tensorRank 均非负；张量配置另行要求整数族字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "整数的词法有效性和基数约束仍由所属的 TensorShape 或 TensorAxis 配置负责。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 0 ."
+msgstr "ex:shape math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index nonnegative constraint"
+msgstr "张量轴索引非负约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisIndex is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "每个给定 math:axisIndex 均非负；轴配置另行要求整数族字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "整数的词法有效性和基数约束仍由所属的 TensorShape 或 TensorAxis 配置负责。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisIndex 0 ."
+msgstr "ex:axis math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor concrete extent nonnegative constraint"
+msgstr "张量具体轴长度非负约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisExtent is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "每个给定 math:axisExtent 均非负；轴配置另行要求整数族字面量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "整数的词法有效性和基数约束仍由所属的 TensorShape 或 TensorAxis 配置负责。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisExtent 0 ."
+msgstr "ex:axis math:axisExtent 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor shape axis-count constraint"
+msgstr "张量形状轴数量约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared tensor rank equals the number of distinct axis nodes belonging to that shape."
+msgstr "声明的张量秩等于属于该形状的不同轴节点数量。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "COUNT is an existing structured aggregate satellite, not a new first-order counting builtin."
+msgstr "COUNT 使用现有结构化聚合附属信息，不引入新的一阶计数内建。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Positive tensor rank axis-presence constraint"
+msgstr "正张量秩轴存在约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorShape with a positive rank declares at least one axis, closing the zero-row aggregate case."
+msgstr "正秩 TensorShape 至少声明一个轴，从而封闭零行聚合情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with count agreement this rule preserves scalar rank zero and rejects an empty positive-rank family."
+msgstr "此规则与计数一致性共同保留零秩标量，并拒绝正秩空轴族。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+msgstr "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index upper-bound constraint"
+msgstr "张量轴索引上界约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every axis index is strictly below the rank of its own parent TensorShape."
+msgstr "每个轴索引严格小于其自身父 TensorShape 的秩。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Count agreement and numeric uniqueness then force the exact contiguous index family zero through rank minus one."
+msgstr "计数一致性与数值唯一性据此保证从零到秩减一的完整连续索引族。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis numeric-index uniqueness constraint"
+msgstr "张量轴数值索引唯一约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two axes of the same TensorShape with numerically equal indices are the same axis node."
+msgstr "同一 TensorShape 中索引数值相等的两个轴是同一轴节点。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing self-join sugar shares an RDF term; this law deliberately uses separate values and numeric equality."
+msgstr "现有自连接语法糖共享 RDF 项；此规则特意使用独立值及数值相等比较。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+msgstr "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis extent-choice constraint"
+msgstr "张量轴长度选择约束"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorAxis carries at most one of concrete axisExtent and symbolicExtent; either may remain absent."
+msgstr "一个 TensorAxis 至多携带具体 axisExtent 与 symbolicExtent 中的一种；两者都可缺失。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is property-presence exclusion, separate from the at-most-one value contract of each extent role."
+msgstr "此属性存在性互斥与各长度角色自身的至多一个值契约相互独立。"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+msgstr "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
