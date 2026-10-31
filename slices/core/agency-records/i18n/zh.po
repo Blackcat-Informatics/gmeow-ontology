@@ -5199,7 +5199,7 @@ msgstr "避免以类别代码或虚构匿名目标充当 Desire 所需信息。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply intentBearer and intentionGoal and reify the exact demandKind assertion with its reader and retained source."
-msgstr "提供 intentBearer、intentionGoal，并为确切 demandKind 断言保留解读者和来源。"
+msgstr "提供 intentBearer、intentionGoal，并为确切的 demandKind 断言创建重述记录，在该记录上保留解读者和来源。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/DemandKindEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The law demands retained identities; it never manufactures a bearer, goal or demanded action."
