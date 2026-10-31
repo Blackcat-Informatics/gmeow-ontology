@@ -951,7 +951,7 @@ gmeow:missingCapability
 gmeow:dreamEpisodeAsRecorded
     a logic:DatatypeProperty ;
     logic:domain gmeow:WorldObjectRequest ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "dream episode as recorded"@x-gmeow-english ;
@@ -964,7 +964,7 @@ gmeow:dreamEpisodeAsRecorded
 gmeow:dreamPhaseAsRecorded
     a logic:DatatypeProperty ;
     logic:domain gmeow:WorldObjectRequest ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "dream phase as recorded"@x-gmeow-english ;
@@ -2091,3 +2091,7 @@ gmeow:CircleAudienceBindingConstraint
             logic:consequent [ a logic:Formula ; logic:relation gmeow:disclosureCircle ;
                 logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
                     [ logic:termIndex 1 ; logic:termVariable "circle" ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamEpisodeAsRecorded" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamPhaseAsRecorded" ; logic:closureValue logic:ClosedWorldClosure ] .

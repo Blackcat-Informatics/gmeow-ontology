@@ -1552,7 +1552,7 @@ gmeow:scalarizationChoice
     rdfs:domain gmeow:DisclosedLossEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "scalarization choice"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "The stored scalarization choice a gmeow:DisclosedLossEntry records — the aggregation decision (e.g. which criteria were weighted to break which incomparability) a scalarized projection made, disclosed as a content-addressed claim (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3039,3 +3039,5 @@ gmeow:verifierOutcomeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:verifierOutcome and nothing else. It is not a definition of gmeow:verifierOutcome (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:verifierOutcomeFunctionality logic:characterizes gmeow:verifierOutcome ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/scalarizationChoice" ; logic:closureValue logic:ClosedWorldClosure ] .
