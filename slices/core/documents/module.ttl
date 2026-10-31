@@ -1268,3 +1268,37 @@ gmeow:segmentTypeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:acquiredAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "media acquired at"@x-gmeow-english ;
+    skos:definition "The source-supplied dateTime at which a media artifact was acquired. Acquisition is distinct from capture, publication, message sending and provider time text; missing precision or timezone is never invented."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:acquiredAt."@x-gmeow-english ;
+    logic:domain gmeow:MediaObject ;
+    logic:range xsd:dateTime .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acquiredAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:originalFilename
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "original media filename"@x-gmeow-english ;
+    skos:definition "The media artifact's original filename exactly as supplied, including case, spaces and path-like characters. It is not the email-attachment filename field, a normalized storage path or a newly resolved location."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:originalFilename."@x-gmeow-english ;
+    logic:domain gmeow:MediaObject ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/originalFilename" ; logic:closureValue logic:ClosedWorldClosure ] .

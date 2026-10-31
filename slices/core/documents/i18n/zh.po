@@ -674,3 +674,61 @@ msgstr "避免用于音视频的完整逐字转录（使用 gmeow:transcript）�
 msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2004/02/skos/core#example"
 msgid "A structural segment carries a displayed caption: ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
 msgstr "结构片段承载显示的说明文字：ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "media acquired at"
+msgstr "媒体获取时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied dateTime at which a media artifact was acquired. Acquisition is distinct from capture, publication, message sending and provider time text; missing precision or timezone is never invented."
+msgstr "来源提供的媒体制品获取 dateTime。获取不同于拍摄、发布、消息发送或提供方时间文本；不得虚构缺失的精度或时区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:acquiredAt."
+msgstr "保留 gmeow:acquiredAt 的来源值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original media filename"
+msgstr "原始媒体文件名"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The media artifact's original filename exactly as supplied, including case, spaces and path-like characters. It is not the email-attachment filename field, a normalized storage path or a newly resolved location."
+msgstr "精确保留来源提供的媒体制品原始文件名，包括大小写、空白及类似路径的字符。它不是电子邮件附件文件名字段、规范化存储路径或新解析的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:originalFilename."
+msgstr "保留 gmeow:originalFilename 的来源值。"

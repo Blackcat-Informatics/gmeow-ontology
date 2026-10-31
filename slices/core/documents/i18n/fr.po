@@ -674,3 +674,61 @@ msgstr "Éviter pour la transcription intégrale d’un audio ou d’une vidéo 
 msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2004/02/skos/core#example"
 msgid "A structural segment carries a displayed caption: ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
 msgstr "Un segment structurel porte une légende affichée : ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "media acquired at"
+msgstr "média acquis à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied dateTime at which a media artifact was acquired. Acquisition is distinct from capture, publication, message sending and provider time text; missing precision or timezone is never invented."
+msgstr "DateTime fournie par la source pour l’acquisition d’un média. L’acquisition se distingue de la capture, publication, émission d’un message et du texte temporel du fournisseur ; précision ou fuseau absents ne sont jamais inventés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/acquiredAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:acquiredAt."
+msgstr "Conserver la valeur fournie pour gmeow:acquiredAt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "original media filename"
+msgstr "nom de fichier média d’origine"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The media artifact's original filename exactly as supplied, including case, spaces and path-like characters. It is not the email-attachment filename field, a normalized storage path or a newly resolved location."
+msgstr "Nom de fichier original du média exactement fourni, avec casse, espaces et caractères ressemblant à un chemin. Ce n’est ni le champ de pièce jointe courriel, ni un chemin normalisé, ni un emplacement nouvellement résolu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:originalFilename."
+msgstr "Conserver la valeur fournie pour gmeow:originalFilename."

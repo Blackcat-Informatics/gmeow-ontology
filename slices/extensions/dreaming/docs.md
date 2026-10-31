@@ -126,3 +126,12 @@ See [attention provenance](design/ATTENTION-PROVENANCE.md) and the ordinary
 [`goal-attempt-satisfaction.ttl`](examples/goal-attempt-satisfaction.ttl)
 composition scene. The extension consumes the core request and agency-record
 vocabularies; neither core owner acquires a dreaming dependency.
+
+## Messages composed from a dream recollection
+
+inspiredByDream links a Message to the actual DreamReport recollection episode
+from which it was composed. It specializes wasDerivedFrom while preserving the
+episode as an occurrent. The relation asserts neither delivery nor the external
+truth of dream content. This extension depends on core messaging; core messaging
+and chat have no dependency on dreaming. See the
+[ordinary recollection scene](examples/dream-message.ttl).

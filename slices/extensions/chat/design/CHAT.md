@@ -76,3 +76,45 @@ Digest-only replied-to content uses the shared artifact-reference relation,
 without inventing a source Message. Deliberate composition can coexist with
 generative origin. Persona attribution remains the separate domain-free
 `wornModality` vocabulary and does not need a chat-local duplicate.
+
+## Source events and provider refusals
+
+A ChatReaction is an Event occurrence, with one supplied reactionKey and one
+reactionState. reactionPlaced and reactionRemoved seed an open ReactionState
+vocabulary; a missing state never defaults to either. Separate occurrences retain
+separate provider claims. actorIdentity and targetMessage are opaque source
+strings, not links resolving an Agent or Message. reactionResource, providerEvent,
+providerEventType and providerOccurredAt preserve their exact spelling, including
+whitespace. Each identifier-bearing record retains providerProgram, chatTransport,
+accordingTo and wasDerivedFrom evidence (Principles 2, 4 and 9).
+
+Eight canonical scope laws guard the supplied actorIdentity, reactionResource,
+targetMessage, providerEvent, providerEventType, providerOccurredAt,
+sessionIdentity and sessionSender properties independently. Each law has a binary
+property guard on its subject and the same provider, transport, source-context
+and derivation obligation. No law requires an absent source field or assigns
+another record class merely to obtain a validation target.
+
+The source evidence, the RejectedMediaObservation and each RejectedMediaPart are
+three different records. The observation has an actual observing vantage and
+method, observes the retained provider record, and returns InformationObject
+descriptors. That source records the sender string and the provider's unparsed
+time text. The observation and source share provider, transport and source
+context. Each descriptor requires its source reason and zero-based index;
+numerically equal indexes within one observation identify one descriptor.
+A sender's description remains description text. None of these assertions creates
+a delivered Message, a body part, bytes, a MediaObject manifestation or a recipient
+reading. An actual acquired artifact can be recorded separately.
+
+sessionIdentity and sessionSender belong together on an Observation carrying
+observedFeature, vantage, observationMethod, observationResult verdictHeld and
+actual derivation evidence. This preserves a source claim of verification;
+it neither performs authentication nor proves the provider trustworthy.
+transportMatrix and transportGoogleChat identify open transport vocabulary
+members, never providers, accounts or rooms.
+
+messagePartText preserves only the supplied words of an ordered ChatMessagePart,
+including language and RDF 1.2 base direction. Whole-message utteranceText belongs
+to core messaging. Neither predicate assembles, translates or normalizes parts.
+The [source-record scene](../examples/source-records.ttl) keeps reactions, rejected
+descriptors, actual text, acquisition and session evidence distinct.

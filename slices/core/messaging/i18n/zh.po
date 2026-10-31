@@ -648,3 +648,33 @@ msgstr "匹配 inReplyTo 并输出两条明确 SIOC 回复边。"
 msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reply gmeow:inReplyTo ex:message ."
 msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "utterance text"
+msgstr "整条消息话语文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."
+msgstr "作为单一话语记录的完整消息来源文本，保留所提供的语言和方向。多部分文本仍保留在各部分上；此属性不拼接它们，也不推断交付。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:utteranceText."
+msgstr "保留 gmeow:utteranceText 的来源值。"

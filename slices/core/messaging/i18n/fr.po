@@ -648,3 +648,33 @@ msgstr "Faire correspondre inReplyTo et émettre les deux liens de réponse SIOC
 msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:reply gmeow:inReplyTo ex:message ."
 msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "utterance text"
+msgstr "texte de l’énoncé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."
+msgstr "Texte source complet d’un message enregistré comme un seul énoncé, avec langue et direction fournies. Le texte multipartie reste sur ses parties ; cette propriété ne les concatène pas et n’implique aucune livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:utteranceText."
+msgstr "Conserver la valeur fournie pour gmeow:utteranceText."

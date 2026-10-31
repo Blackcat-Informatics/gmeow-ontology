@@ -37,3 +37,33 @@ msgstr "Les preuves source et la configuration restent distinctes. Des enregistr
 msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:requestedByDream ex:target ."
 msgstr "ex:record gmeow:requestedByDream ex:target ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inspired by dream"
+msgstr "inspiré par le rêve"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual DreamReport recollection episode from which a message was composed, specializing source derivation. The episode remains an occurrent; dream content is not asserted as external fact and no message delivery is inferred."
+msgstr "Épisode réel de remémoration DreamReport à partir duquel un message a été composé, spécialisation de la dérivation source. L’épisode reste un occurrent ; le contenu rêvé n’est pas affirmé comme fait externe et aucune livraison n’est inférée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:inspiredByDream."
+msgstr "Conserver la valeur fournie pour gmeow:inspiredByDream."

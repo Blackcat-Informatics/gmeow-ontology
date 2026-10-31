@@ -225,3 +225,13 @@ role and attachment distinction.
 kind. The downstream [reference apparatus extension](../../extensions/reference-apparatus/docs.md)
 adds source speaker/language/notation fields, documentary cells, printed formal
 roles and actual lang/math rendering links without a reverse core dependency.
+
+## Acquisition and original filenames
+
+acquiredAt retains a source-supplied xsd:dateTime for acquisition of an actual
+MediaObject. It differs from capture, dispatch, receipt and recording time.
+Do not parse a provider's raw time string into it or invent a timezone.
+
+originalFilename preserves the actual media object's filename exactly, including
+spaces and Unicode. It does not reuse filename, whose owner is an email
+attachment, and does not turn a refused-media description into a manifestation.

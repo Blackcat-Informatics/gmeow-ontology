@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -347,3 +348,21 @@ gmeow:mapSiocReplyOf
     gmeow:avoidWhen "Avoid passing repliesToContent targets through this message-only mapping."@x-gmeow-english ;
     gmeow:howToUse "Match inReplyTo and emit the two explicit SIOC reply edges."@x-gmeow-english ;
     skos:example "ex:reply gmeow:inReplyTo ex:message ."@x-gmeow-english .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:utteranceText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "utterance text"@x-gmeow-english ;
+    skos:definition "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:utteranceText."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/utteranceText" ; logic:closureValue logic:ClosedWorldClosure ] .

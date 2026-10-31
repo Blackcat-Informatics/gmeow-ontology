@@ -75,3 +75,22 @@ gmeow:requestedByDream
     logic:domain gmeow:AttentionRequest ;
     logic:range gmeow:DreamReport ;
     logic:subPropertyOf gmeow:wasDerivedFrom .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:inspiredByDream
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "inspired by dream"@x-gmeow-english ;
+    skos:definition "The actual DreamReport recollection episode from which a message was composed, specializing source derivation. The episode remains an occurrent; dream content is not asserted as external fact and no message delivery is inferred."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:inspiredByDream."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:DreamReport ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/inspiredByDream" ; logic:closureValue logic:ClosedWorldClosure ] .

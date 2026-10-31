@@ -630,3 +630,20 @@ gmeow:AudienceForcedTransitionRingConstraint
         logic:forall [ a logic:Formula ;
             logic:antecedent [ a logic:Formula ; logic:relation gmeow:transitionCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:transitionCauseAudienceForced ] ] ;
             logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:transitionRing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:personaMode
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/persona-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "audience persona mode"@x-gmeow-english ;
+    skos:definition "The Persona register in which a particular record was made for its audience. This audience-facing expression policy is distinct from the Persona worn as state and does not select a globally preferred persona."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:personaMode."@x-gmeow-english ;
+    logic:range gmeow:Persona .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/personaMode" ; logic:closureValue logic:ClosedWorldClosure ] .
