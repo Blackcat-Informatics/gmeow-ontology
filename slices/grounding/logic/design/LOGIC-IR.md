@@ -217,6 +217,17 @@ non-branching chain, or that carries a member its constructor cannot admit, is a
 error for a named owner — and its statement is not lifted; no partial list or dangling
 constructor edge is ever emitted.
 
+Canonical owner identity does not require every target expression to be named.
+For an anonymous datatype union or intersection, the OWL 2 DL view declares the
+canonical skolem IRI as a named datatype and defines it with `owl:equivalentClass`
+pointing to an anonymous `rdfs:Datatype` expression. Its constructor and RDF
+collection use deterministic target-only blank nodes in a scope separate from
+source blanks; operands retain their datatype IRIs. Existing restriction and
+range references still name the canonical datatype. One constructor and at
+least two operands are required for this target form; unsupported combinations
+remain explicit projection loss. The canonical IR and RDF 1.2 lists retain their
+original owner and cell identities.
+
 ## IR commitments — legalization, load-bearing annotations, the relational core
 
 Three commitments shape the IR so that lowering and execution have a sound target. They are cheap to
