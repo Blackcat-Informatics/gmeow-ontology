@@ -51,10 +51,21 @@ time. Sequence numbers are nonnegative, may contain gaps, and need not start at
 zero. Tied reports remain tied unless the source supplies more information.
 There is no cross-slot sequence comparison or global uniqueness claim.
 
-`transitionLasted` is the producer-reported `xsd:duration` for which the replaced
-persona lasted. Preserve its supplied units. Do not calculate it by subtracting
-clock readings, and do not supply zero when duration was unobserved. This field
-may be absent when the source supplied no duration observation.
+`transitionLasted` retains the source-reported `xsd:duration` for which the
+replaced persona lasted. The source may report a measurement or a computed span.
+For a computed span, reify the exact duration assertion with native RDF 1.2,
+link that reifier through `wasDerivedFrom` to the actual opening and closing
+state-claim reifiers, and retain the source’s stated calculation in
+`statedRationale`, explicitly identifying which input opens and which closes the
+state. Preserve the original claims and their source attribution. The ordinary
+scene illustrates this pattern for the formal persona replaced by `change10`.
+
+Retain the supplied units, timestamp precision and timezone information. Do not
+supply missing clock fields, assume a timezone or invent a duration, including
+zero. Omit the field when no duration is supplied. Keeping a source’s calculation
+does not ask GMEOW to subtract clock readings or verify its arithmetic. The
+pattern records derivation evidence; no canonical law automatically checks the
+nested claim tuples or their temporal compatibility.
 
 `recordedAt` can independently date creation of the retained record, at the
 source’s supplied precision. A coarse recording date remains coarse.

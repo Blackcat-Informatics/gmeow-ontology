@@ -206,20 +206,20 @@ msgid "replaced persona lasted"
 msgstr "原人格面貌持续时长"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The producer-reported duration for which the replaced persona lasted before this change. The source xsd:duration is retained; it is not computed by subtracting producer-clock timestamps."
-msgstr "生产者报告的、被替代人格面貌在此次变更前持续的时长。保留来源的 xsd:duration；不通过相减生产者时钟时间戳来计算。"
+msgid "The source-reported duration for which the replaced persona lasted before this change, including a source-computed span when its derivation is stated on the exact duration claim. GMEOW retains the supplied xsd:duration and does not compute or verify timestamp subtraction."
+msgstr "来源报告的、被替代人格面貌在此次变更前持续的时长；若在确切的时长断言上说明推导过程，也包括来源计算的时长。GMEOW 保留提供的 xsd:duration，不计算或验证时间戳相减。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the source reports the tenure duration of the persona being replaced."
-msgstr "来源报告被替代人格面貌的持续时长时使用。"
+msgid "Use when the source reports a measured tenure duration or supplies a computed tenure duration with its stated derivation."
+msgstr "来源报告测得的持续时长，或提供计算出的持续时长并说明推导过程时使用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inventing a zero duration when elapsed time was not measured."
-msgstr "未测量经过时长时，避免虚构零时长。"
+msgid "Avoid inventing a duration, timestamp precision or timezone, or treating a retained source calculation as verified arithmetic."
+msgstr "避免虚构时长、时间戳精度或时区，也不要把保留的来源计算视为已验证的算术结果。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the supplied duration and its units; omit this value when the source gives no elapsed-duration observation."
-msgstr "保留提供的时长及其单位；来源没有经过时长观测时省略此值。"
+msgid "Keep the supplied duration and units. For a source-computed span, link its exact RDF 1.2 statement reifier by wasDerivedFrom to the actual opening and closing state-claim reifiers, and preserve the source’s calculation and input roles with statedRationale. Omit when no duration is supplied."
+msgstr "保留提供的时长及其单位。对于来源计算的时长，通过 wasDerivedFrom 将其确切 RDF 1.2 语句的具化节点链接到实际开启和关闭状态的断言具化节点，并用 statedRationale 保留来源说明的计算过程及输入角色。未提供时长时省略。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."
