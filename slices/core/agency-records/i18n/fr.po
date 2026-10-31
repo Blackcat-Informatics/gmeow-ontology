@@ -5155,7 +5155,7 @@ msgstr "Classifier l’acte de demande : ex:asking gmeow:eventType gmeow:eventTy
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "creature demand answered"
-msgstr "demande d’une créature répondue"
+msgstr "réponse à une demande de créature"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCreatureDemandResolved|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The source reports that a creature’s demand was answered; resolved denotes answering, not proven satisfaction."
