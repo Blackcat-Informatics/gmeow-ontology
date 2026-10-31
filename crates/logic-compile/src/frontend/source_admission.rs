@@ -1289,7 +1289,14 @@ fn term_has_sequence_marker(term: &Term) -> bool {
 fn is_known_procedural(predicate: &str) -> bool {
     matches!(
         predicate.strip_prefix(LOGIC),
-        Some("termEqual" | "termDistinct" | "termIn" | "termRegex" | "directType")
+        Some(
+            "termEqual"
+                | "termDistinct"
+                | "termSameComponent"
+                | "termIn"
+                | "termRegex"
+                | "directType"
+        )
     )
 }
 

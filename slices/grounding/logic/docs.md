@@ -308,3 +308,21 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## Comparing bound RDF components
+
+Use `termSameComponent` when an integrity condition needs RDF identity rather
+than `termEqual` value equality. Supply four ordered arguments: left term,
+left selector, right term and right selector. Selectors are the constant IRIs
+`componentWhole`, `componentDatatype`, `componentTripleSubject`,
+`componentTriplePredicate` and `componentTripleObject`. Every variable operand must be positively bound;
+the predicate binds nothing. The whole selector retains recursive RDF identity,
+while datatype and quoted selectors inspect the original native value.
+
+An unavailable component yields false, including when one operand is not a
+literal or quoted triple of the requested kind. Negation applies after that
+boolean is formed. Missing bindings refuse the program. Wrong arity or selectors
+and unsupported native execution contexts refuse or retain explicit loss rather
+than interpreting the intrinsic as stored graph data. See the
+[bound identity contract](design/LOGIC-VALIDATION.md#bound-rdf-component-identity)
+for projection, polarity and source-authority details.

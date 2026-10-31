@@ -24580,3 +24580,97 @@ gmeow:mapsetAgencyRecords
     gmeow:avoidWhen "Avoid claiming a lossless qualified-usage or temporal projection from this binary linkage."@x-gmeow-english ;
     gmeow:howToUse "Retain the close-match relation and its curation metadata; represent richer usage context separately."@x-gmeow-english ;
     skos:example "gmeow:used skos:closeMatch prov:used ."@x-gmeow-english .
+
+# Bound native RDF component identity (Principles 4, 17 and 19).
+
+logic:termSameComponent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:seeAlso <https://www.w3.org/TR/sparql11-query/#func-sameTerm> ;
+    rdfs:label "term same component"@x-gmeow-english ;
+    skos:definition "A bound integrity predicate comparing selected components of original RDF terms by RDF identity. Four ordered arguments name the left term, left selector IRI, right term and right selector IRI. It binds nothing; an unavailable component makes the predicate false."@x-gmeow-english ;
+    gmeow:useWhen "Use for bound component comparisons in termSameComponent integrity formulas."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid value coercion, free selector variables or treating the intrinsic as a stored relation. termEqual retains its separate value-equality meaning."@x-gmeow-english ;
+    gmeow:howToUse "Order the arguments as term, selector IRI, term, selector IRI. Use componentWhole, componentDatatype, componentTripleSubject, componentTriplePredicate or componentTripleObject; bind every variable operand through a positive stored relation."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "Whole selectors compare original RDF terms; a datatype selector paired with a whole selector compares against an explicit datatype IRI."@x-gmeow-english .
+
+logic:TermComponent
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    logic:equivalentClass [ a logic:Enumeration ; logic:oneOf ( logic:componentWhole logic:componentDatatype logic:componentTripleSubject logic:componentTriplePredicate logic:componentTripleObject ) ] ;
+    rdfs:label "Term Component"@x-gmeow-english ;
+    skos:definition "The closed five-selector vocabulary for bound RDF identity: complete term, literal datatype IRI, quoted subject, quoted predicate or quoted object. Selection neither generates nor normalizes terms."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare which original RDF component each side of a bound identity comparison inspects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending the closed selector set locally or inferring executable selector support from asserted class membership."@x-gmeow-english ;
+    gmeow:howToUse "Choose one of the five seeded selector IRIs for each selector position of termSameComponent. Select the whole term for identity, the datatype for literal typing, or a quoted tuple component for subject, predicate or object identity."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "The closed vocabulary distinguishes complete-term identity from datatype and quoted-subject, quoted-predicate or quoted-object comparisons; choosing one never requests an output binding."@x-gmeow-english .
+
+logic:componentWhole
+    a logic:NamedIndividual, logic:TermComponent ;
+    rdfs:seeAlso <https://www.w3.org/TR/rdf12-concepts/#dfn-rdf-term> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "whole RDF term"@x-gmeow-english ;
+    skos:definition "Selects the complete original RDF term, preserving blank-node scope, literal lexical form, datatype, language and direction, and recursive quoted-triple structure. Available for every bound RDF term."@x-gmeow-english ;
+    gmeow:useWhen "Use when the complete original RDF term must match by identity, including all literal or quoted-triple components."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting numeric value equality or comparing dataset-local term identifiers across different datasets."@x-gmeow-english ;
+    gmeow:howToUse "Place componentWhole after each operand whose complete RDF identity is compared. Both original operands must already be bound or be explicit RDF constants."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "Whole selectors distinguish numerically equal literals when their lexical forms or datatype IRIs differ; they also compare nested quoted triples recursively."@x-gmeow-english .
+
+logic:componentDatatype
+    a logic:NamedIndividual, logic:TermComponent ;
+    rdfs:seeAlso <https://www.w3.org/TR/sparql11-query/#func-datatype> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "literal datatype IRI"@x-gmeow-english ;
+    skos:definition "Selects the exact datatype IRI of an original literal, including language-string datatypes. Unavailable for an IRI, blank node or quoted triple."@x-gmeow-english ;
+    gmeow:useWhen "Use when a bound literal must carry an exact datatype IRI independently of its lexical value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring datatype identity from a numeric-looking lexical form, treating subtype derivation as exact IRI identity, or coercing the literal."@x-gmeow-english ;
+    gmeow:howToUse "Place componentDatatype after the original literal and componentWhole after an explicit expected datatype IRI, or select datatype on both bound literals to compare their datatype IRIs."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "A datatype selector on a bound digest literal paired with a whole selector on its expected datatype IRI checks the algorithm datatype without parsing or rewriting the digest."@x-gmeow-english .
+
+logic:componentTripleSubject
+    a logic:NamedIndividual, logic:TermComponent ;
+    rdfs:seeAlso <https://www.w3.org/TR/sparql12-query/#func-subject> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "quoted triple subject"@x-gmeow-english ;
+    skos:definition "Selects the original subject RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use when two quoted claims must concern the same original RDF subject even if their objects differ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing statement-reifier identities, assuming subject equality establishes predicate or object equality, or looking up asserted subject properties."@x-gmeow-english ;
+    gmeow:howToUse "Place componentTripleSubject after each original quoted-triple operand to compare its native subject. Pair with componentWhole to compare a quoted subject against an explicit RDF term."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "Subject selectors on two bound quoted assignment claims check that both claims describe the same RDF subject without requiring their assigned objects to match."@x-gmeow-english .
+
+logic:componentTriplePredicate
+    a logic:NamedIndividual, logic:TermComponent ;
+    rdfs:seeAlso <https://www.w3.org/TR/sparql12-query/#func-predicate> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "quoted triple predicate"@x-gmeow-english ;
+    skos:definition "Selects the original predicate RDF term of a quoted triple. Unavailable for an IRI, blank node or literal. This selection does not inspect a statement reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use when two quoted claims must name the same original RDF predicate even if their objects differ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating related or equivalent vocabulary predicates as the same RDF term, comparing reifier metadata, or inferring subject equality from predicate identity."@x-gmeow-english ;
+    gmeow:howToUse "Place componentTriplePredicate after each original quoted-triple operand to compare its native predicate IRI. Compare subjects separately when both tuple positions must agree."@x-gmeow-english ;
+    skos:scopeNote "Unavailable components make the complete predicate false; negation applies afterwards. Unbound operands refuse the program. Bad arity, unknown selectors and unsupported native execution contexts never fall back to stored-predicate matching."@x-gmeow-english ;
+    skos:example "Predicate selectors on predecessor and successor quoted assignment claims check that both assignments use the same RDF predicate while preserving the different assigned objects."@x-gmeow-english .
+
+logic:componentTripleObject
+    a logic:NamedIndividual, logic:TermComponent ;
+    rdfs:seeAlso <https://www.w3.org/TR/sparql12-query/#func-object> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "quoted triple object"@x-gmeow-english ;
+    skos:definition "Selects the original object RDF term of a quoted triple, preserving its complete RDF identity, including literal metadata or recursive quoted-triple structure. Unavailable for an IRI, blank node or literal."@x-gmeow-english ;
+    gmeow:useWhen "Use when a quoted edge must identify the exact object already bound by a source relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using value equality for object identity, inspecting reifier annotations instead of the quoted tuple, or assuming a quoted edge was asserted."@x-gmeow-english ;
+    gmeow:howToUse "Place componentTripleObject after the original quoted edge and componentWhole after its expected object, already bound through a positive stored relation. The comparison creates no output binding."@x-gmeow-english ;
+    skos:scopeNote "The original object is compared as a native RDF term, including blank-node scope. An unavailable object component makes the predicate false before negation; an unbound operand refuses the program."@x-gmeow-english ;
+    skos:example "An object selector on a quoted supersession edge paired with a whole selector on its positively bound predecessor checks that the edge names that exact predecessor."@x-gmeow-english .

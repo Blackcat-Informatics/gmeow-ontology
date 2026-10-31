@@ -692,6 +692,19 @@ fn rename_rule(rule: &crate::query_ir::QRule) -> crate::query_ir::QRule {
                 comparison: *comparison,
                 expected: *expected,
             },
+            QBuiltin::TermIdentity {
+                left,
+                left_component,
+                right,
+                right_component,
+                expected,
+            } => QBuiltin::TermIdentity {
+                left: left.map_variable(|name| format!("{name}{suffix}")),
+                left_component: *left_component,
+                right: right.map_variable(|name| format!("{name}{suffix}")),
+                right_component: *right_component,
+                expected: *expected,
+            },
             QBuiltin::TermEqual {
                 left,
                 right,

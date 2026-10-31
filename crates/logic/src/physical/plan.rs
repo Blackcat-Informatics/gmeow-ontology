@@ -61,7 +61,7 @@ use super::seminaive::stratify;
 /// This is deliberately independent of the rule and reasoning-contract digests: a
 /// planner/kernel change invalidates every cached plan even when its logical input is
 /// unchanged.
-pub(crate) const PLAN_SOLVER_VERSION: &str = "gmeow-native-plan-v20-canonical-numeric";
+pub(crate) const PLAN_SOLVER_VERSION: &str = "gmeow-native-plan-v21-component-identity";
 
 /// Maximum number of compiled programs retained by the process-wide plan cache.
 ///
@@ -394,6 +394,20 @@ fn hash_builtin(hasher: &mut purrdf_hash::blake3::Hasher, builtin: &QBuiltin) {
             frame_str(hasher, comparison.local_name());
             frame_str(hasher, &left.key());
             frame_str(hasher, &right.key());
+            hasher.update(&[u8::from(*expected)]);
+        }
+        QBuiltin::TermIdentity {
+            left,
+            left_component,
+            right,
+            right_component,
+            expected,
+        } => {
+            hasher.update(&[8]);
+            frame_str(hasher, &left.key());
+            frame_str(hasher, left_component.local_name());
+            frame_str(hasher, &right.key());
+            frame_str(hasher, right_component.local_name());
             hasher.update(&[u8::from(*expected)]);
         }
         QBuiltin::TermEqual {
