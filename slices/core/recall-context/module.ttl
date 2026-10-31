@@ -1041,3 +1041,29 @@ gmeow:SlotClaimPredecessorConstraint
     logic:formalizes gmeow:SlotAssignmentClaim ;
     logic:message "A slot-assignment successor names another actual RDF 1.2 assignment claim as predecessor. The consumer verifies same-slot history from the authoritative reified tuples; recorder attribution need not remain equal." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "prior" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SlotAssignmentClaim ] ] , [ a logic:Formula ; logic:relation gmeow:supersedes ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "prior" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "triple" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SlotAssignmentClaim ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ] ] ] .
+
+# Runtime trace observation and requested recollection strategies.
+
+gmeow:recollectionFading
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "recency-graded recollection strategy"@x-gmeow-english ;
+    skos:definition "A requested presentation strategy that grades recalled records by source recency: newest records verbatim, older records as summaries, and oldest records as a line with a handle. It is selected on an ActionSchema rather than asserted as a delivered record's form."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source plan explicitly requests recency-dependent presentation rather than one uniform verbatim, gist or summary-with-handle mode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring age bands, a reference clock, summary content, available handles or completed rendering from selection of this strategy."@x-gmeow-english ;
+    gmeow:howToUse "Select this value with recollectionForm on the actual recall ActionSchema and retain any source-specified recency rules separately. Preserve the original records and actual output evidence independently."@x-gmeow-english ;
+    skos:scopeNote "Grading direction does not define numeric cutoffs or implement a summarizer. The strategy is independent of recall depth and does not substitute for the standalone one-line gist form."@x-gmeow-english ;
+    skos:example "Request graded presentation: ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."@x-gmeow-english .
+
+gmeow:recollectionFormOneLineGist
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "one-line gist recollection form"@x-gmeow-english ;
+    skos:definition "A requested concise one-line gist of a recalled record, without requiring a handle and without claiming verbatim wording. It is a uniform presentation choice, distinct from a recency-grading strategy."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source asks for a one-line gist and neither verbatim presentation nor a summary with a mandatory handle describes that request."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating the gist with original words, silently adding a handle requirement or treating one line as a numeric recency band."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."@x-gmeow-english ;
+    skos:scopeNote "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."@x-gmeow-english ;
+    skos:example "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."@x-gmeow-english .

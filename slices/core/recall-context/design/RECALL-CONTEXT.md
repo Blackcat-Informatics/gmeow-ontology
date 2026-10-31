@@ -89,3 +89,21 @@ integrity Formula trees are authored in module.ttl. Generated OWL/RDFS and valid
 surfaces remain projections of those sources (Principle 17). Documentation and
 ordinary examples describe the consumer contract; they claim no executed gate,
 replay or runtime certificate.
+
+## Grading strategy remains a request
+
+The existing recollectionForm selector has ActionSchema domain. Its values
+describe requested presentation, not a delivered-artifact format assertion.
+recollectionFading therefore records a requested recency-dependent strategy
+without changing that selector's signature or fabricating output. It describes
+the relative progression from verbatim through summary to line-and-handle;
+numeric bands, time references and the production of those outputs remain
+the actual source plan's separate facts. The value supplies no age calculator,
+summarizer, handle resolver or fallback path.
+
+The standalone recollectionFormOneLineGist requests a single concise gist with
+no mandatory handle. It does not alias the summary-with-handle form or the
+mixed recency strategy. Existing required RecallOperation parameters remain
+unchanged: these are additional open-vocabulary choices, not a weakened plan
+profile. Selecting a requested capability never proves that it executed or
+authorizes a weaker result (Principles 4, 9, 12 and 17).

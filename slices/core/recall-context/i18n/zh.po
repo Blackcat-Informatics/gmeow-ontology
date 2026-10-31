@@ -1801,3 +1801,62 @@ msgstr "后继槽赋值命名另一个实际 RDF 1.2 赋值主张作为前驱。
 msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "The source record is governed by gmeow:SlotClaimPredecessorConstraint."
 msgstr "来源记录受 gmeow:SlotClaimPredecessorConstraint 约束。"
+
+
+# Source-scoped invocation readings and requested recollection strategies.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recency-graded recollection strategy"
+msgstr "按新近程度分级的回忆策略"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested presentation strategy that grades recalled records by source recency: newest records verbatim, older records as summaries, and oldest records as a line with a handle. It is selected on an ActionSchema rather than asserted as a delivered record's form."
+msgstr "一种按来源新近程度对回忆记录分级的请求呈现策略：最新记录逐字呈现，较旧记录呈现摘要，最旧记录呈现一行及句柄。它在 ActionSchema 上选择，而不是断言已交付记录的形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source plan explicitly requests recency-dependent presentation rather than one uniform verbatim, gist or summary-with-handle mode."
+msgstr "用于来源计划明确请求依赖新近程度的呈现，而不是统一采用逐字、要旨或摘要加句柄模式时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring age bands, a reference clock, summary content, available handles or completed rendering from selection of this strategy."
+msgstr "避免从选择此策略推断时间分段、参考时钟、摘要内容、可用句柄或已完成呈现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value with recollectionForm on the actual recall ActionSchema and retain any source-specified recency rules separately. Preserve the original records and actual output evidence independently."
+msgstr "在实际回忆 ActionSchema 上用 recollectionForm 选择此值，并单独保留来源指定的新近程度规则。独立保留原始记录及实际输出证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Grading direction does not define numeric cutoffs or implement a summarizer. The strategy is independent of recall depth and does not substitute for the standalone one-line gist form."
+msgstr "分级方向不定义数值阈值，也不实现摘要器。该策略独立于回忆深度，不替代独立的一行要旨形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request graded presentation: ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+msgstr "请求分级呈现：ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one-line gist recollection form"
+msgstr "一行要旨回忆形式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested concise one-line gist of a recalled record, without requiring a handle and without claiming verbatim wording. It is a uniform presentation choice, distinct from a recency-grading strategy."
+msgstr "对回忆记录请求的简短一行要旨，不要求句柄，也不声称逐字措辞。这是统一的呈现选择，区别于按新近程度分级的策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source asks for a one-line gist and neither verbatim presentation nor a summary with a mandatory handle describes that request."
+msgstr "用于来源请求一行要旨，而逐字呈现或必须带句柄的摘要均不能描述该请求时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating the gist with original words, silently adding a handle requirement or treating one line as a numeric recency band."
+msgstr "避免将要旨等同于原始话语、暗中增加句柄要求，或把一行视为数值化的新近程度分段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."
+msgstr "在实际 ActionSchema 上通过 recollectionForm 选择此值；保留原始记录来源及任何独立提供的句柄，但不将句柄设为必需。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."
+msgstr "该值请求一种呈现方式，不断言要旨已经生成、检索已经完成或要旨为真。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
+msgstr "请求要旨且不要求句柄：ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."

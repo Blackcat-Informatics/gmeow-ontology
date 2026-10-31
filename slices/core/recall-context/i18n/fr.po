@@ -1801,3 +1801,62 @@ msgstr "Une affectation suivante nomme comme prédécesseur une autre affirmatio
 msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "The source record is governed by gmeow:SlotClaimPredecessorConstraint."
 msgstr "Le relevé source est régi par gmeow:SlotClaimPredecessorConstraint."
+
+
+# Source-scoped invocation readings and requested recollection strategies.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recency-graded recollection strategy"
+msgstr "stratégie de recollection graduée par récence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested presentation strategy that grades recalled records by source recency: newest records verbatim, older records as summaries, and oldest records as a line with a handle. It is selected on an ActionSchema rather than asserted as a delivered record's form."
+msgstr "Stratégie de présentation demandée qui gradue les souvenirs selon leur récence source : les plus récents textuellement, les plus anciens en résumés, puis les plus éloignés en une ligne avec un identifiant de rappel. Elle est choisie sur une ActionSchema et non affirmée comme forme d’un enregistrement livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source plan explicitly requests recency-dependent presentation rather than one uniform verbatim, gist or summary-with-handle mode."
+msgstr "Utiliser lorsqu’un plan source demande explicitement une présentation dépendante de la récence plutôt qu’un mode uniforme textuel, synthétique ou résumé avec identifiant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring age bands, a reference clock, summary content, available handles or completed rendering from selection of this strategy."
+msgstr "Éviter de déduire les tranches d’âge, une horloge de référence, le contenu des résumés, les identifiants disponibles ou un rendu achevé du choix de cette stratégie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value with recollectionForm on the actual recall ActionSchema and retain any source-specified recency rules separately. Preserve the original records and actual output evidence independently."
+msgstr "Choisir cette valeur avec recollectionForm sur l’ActionSchema réelle de rappel et conserver séparément les règles de récence fournies. Conserver indépendamment les enregistrements originaux et les preuves réelles de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Grading direction does not define numeric cutoffs or implement a summarizer. The strategy is independent of recall depth and does not substitute for the standalone one-line gist form."
+msgstr "La direction de graduation ne définit aucun seuil numérique et n’implémente pas de résumeur. La stratégie est indépendante de la profondeur de rappel et ne remplace pas la forme autonome de synthèse en une ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request graded presentation: ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+msgstr "Demander une présentation graduée : ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one-line gist recollection form"
+msgstr "forme de recollection en synthèse d’une ligne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested concise one-line gist of a recalled record, without requiring a handle and without claiming verbatim wording. It is a uniform presentation choice, distinct from a recency-grading strategy."
+msgstr "Synthèse concise demandée en une ligne d’un enregistrement rappelé, sans exiger d’identifiant de rappel ni prétendre à une formulation textuelle. C’est un choix uniforme de présentation, distinct d’une stratégie graduée par récence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source asks for a one-line gist and neither verbatim presentation nor a summary with a mandatory handle describes that request."
+msgstr "Utiliser lorsque la source demande une synthèse en une ligne que ni une présentation textuelle ni un résumé avec identifiant obligatoire ne décrivent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating the gist with original words, silently adding a handle requirement or treating one line as a numeric recency band."
+msgstr "Éviter d’assimiler la synthèse aux paroles originales, d’ajouter silencieusement une obligation d’identifiant ou de traiter une ligne comme tranche numérique de récence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."
+msgstr "Choisir cette valeur par recollectionForm sur l’ActionSchema réelle ; conserver la provenance de l’original et tout identifiant fourni séparément sans le rendre obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."
+msgstr "La valeur demande une présentation ; elle n’affirme ni production d’une synthèse, ni achèvement d’une recherche, ni vérité de la synthèse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
+msgstr "Demander une synthèse sans exiger d’identifiant : ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."

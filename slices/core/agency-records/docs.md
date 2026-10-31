@@ -203,3 +203,94 @@ Prose retains supplied language and direction; opaque identifiers preserve all
 source code points as strings. See
 [`GOALS-AND-SATISFACTION.md`](design/GOALS-AND-SATISFACTION.md) for the canonical
 laws, evidence paths and honest limits (Principles 2, 3, 4, 9 and 17).
+
+## Runtime trace kinds and lifecycle readings
+
+The trace vocabulary contains source-reported EventType individuals, selected
+through the existing nonfunctional eventType relation. A trace label identifies
+an occurrence's reported kind; it is not the payload artifact, an executor,
+an admission receipt or a terminal outcome. Multiple independently supported
+kinds and attributed claims may coexist (Principles 2, 4 and 9).
+
+### Thinking and model exchange
+
+- `gmeow:eventTypeTraceRound` — thinking trace round.
+- `gmeow:eventTypeTraceTurnStart` — thinking trace turn start.
+- `gmeow:eventTypeTraceTurnOutput` — thinking trace turn output.
+- `gmeow:eventTypeTraceModelRequest` — model request trace.
+- `gmeow:eventTypeTraceModelResponse` — model response trace.
+- `gmeow:eventTypeTraceModelError` — model error trace.
+- `gmeow:eventTypeTraceGeneration` — model generation trace.
+- `gmeow:eventTypeTraceMultimodalGeneration` — multimodal generation trace.
+- `gmeow:eventTypeTraceImageGeneration` — image generation trace.
+
+### Tool exchange and checkpoint reports
+
+- `gmeow:eventTypeTraceToolCall` — tool call trace.
+- `gmeow:eventTypeTraceToolResult` — tool result trace.
+- `gmeow:eventTypeTraceToolReceipt` — tool result receipt trace.
+- `gmeow:eventTypeTraceCheckpointRequest` — checkpoint request trace.
+- `gmeow:eventTypeTraceCheckpointResponse` — checkpoint creation response trace.
+- `gmeow:eventTypeTraceCheckpointValidation` — checkpoint validation trace.
+
+### Episode accounting, interruption and correction
+
+- `gmeow:eventTypeTraceEpisodeContinuation` — episode continuation trace.
+- `gmeow:eventTypeTraceEpisodeTokenAccounting` — episode token accounting trace.
+- `gmeow:eventTypeTraceEngineAuthoritativeTokenCount` — engine-reported authoritative token count trace.
+- `gmeow:eventTypeTraceForegroundPreemption` — foreground preemption trace.
+- `gmeow:eventTypeTracePromptProvenance` — prompt provenance trace.
+- `gmeow:eventTypeTraceCorrection` — thinking correction trace.
+
+### Response rejection, replay, recovery and runtime limits
+
+- `gmeow:eventTypeTraceResponseCompletionRejected` — response completion rejection trace.
+- `gmeow:eventTypeTraceResponseContractRejected` — response contract rejection trace.
+- `gmeow:eventTypeTraceDegenerateRepetitionRejected` — repetition rejection trace.
+- `gmeow:eventTypeTraceToolNoProgressCycle` — tool no-progress cycle trace.
+- `gmeow:eventTypeTraceImmutableToolReplay` — immutable tool replay trace.
+- `gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody` — interrupted tool batch reissue trace.
+- `gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt` — tool result restoration trace.
+- `gmeow:eventTypeTraceToolResultsHeldByReceipt` — tool results held by receipt trace.
+- `gmeow:eventTypeTraceCacheReceiptRejected` — cache receipt rejection trace.
+- `gmeow:eventTypeTraceBackgroundTerminalRecovered` — background terminal recovery trace.
+- `gmeow:eventTypeTraceReplyGateFired` — reply gate firing trace.
+- `gmeow:eventTypeTraceDreamPhaseRoundCapReached` — dream phase round cap trace.
+
+The runtime-specific values remain shared source vocabulary. Their definitions
+retain the provider's contract boundaries rather than imposing one universal
+runtime. In particular, an engine's reported authoritative count is not a
+privileged truth, image generation does not imply multimodal generation, and
+cache, replay, receipt and terminal-recovery reports execute no mechanism.
+Checkpoint labels do not substitute for native checkpoint admission evidence.
+Tool calls retain their existing actual-tool contracts; a trace marker cannot
+manufacture the missing tool or a second execution.
+
+ModelInvocationState is an open value vocabulary, separate from
+ModelInvocationOutcome. invocationState belongs to an actual Observation,
+specializes observationResult and names a state of the actual ModelInvocation
+in observedFeature. invocationStateRunning records an explicit in-progress
+reading. Keep that observation's vantage, source and supplied time context;
+do not infer running from a missing outcome or choose a global latest state.
+A later succeeded or failed invocationOutcome can coexist with the earlier
+reading. Observation time, record creation time and invocation occurrence time
+remain distinct; missing precision or timezone is never invented.
+
+injectionCategory retains the screen's exact source code as xsd:string on an
+Observation of the actual outside-answer artifact. Keep source whitespace and
+case, the observing vantage and the retained screening evidence. The code is
+not injected instruction text, a universal taxonomy or proof that an attack
+succeeded. The declaration neither admits an unsupported token datatype nor
+implements token normalization or a lexical validator.
+
+The two canonical evidence laws have direct binary field guards and therefore
+target subjects supplying the new fields, including malformed subjects. Each
+requires the actual observed feature, vantage and retained information-object
+source. Property-global closure entries validate supplied domain/range values
+without requiring those fields on every observation. Neither selector is
+functional and no state-transition engine or current-state chooser is added.
+
+The [runtime trace scene](examples/runtime-trace-states.ttl) retains all trace
+kinds, an earlier running reading and a later terminal outcome, and an
+outside-answer screening claim. These are illustrative source records, not an
+execution receipt or an authentication result.

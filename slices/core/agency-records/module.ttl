@@ -1913,3 +1913,525 @@ gmeow:GoalReadAfterWriteEvidenceConstraint
     logic:formalizes gmeow:verifierArtifactReadAfterWrite ;
     logic:message "A completed positive read-after-write evaluation cites a held actual artifact observation of that same method and condition key. The existing read-after-write law then requires distinct matching write and later-read receipts."@x-gmeow-english ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ], [ logic:termIndex 2 ; logic:termVariable "goal" ], [ logic:termIndex 3 ; logic:termVariable "verifier" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluation ] ], [ a logic:Formula ; logic:relation gmeow:conditionKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation logic:evaluatesGoal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "goal" ] ], [ a logic:Formula ; logic:relation gmeow:hasConditionVerifier ; logic:argument [ logic:termIndex 0 ; logic:termVariable "goal" ], [ logic:termIndex 1 ; logic:termVariable "verifier" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ], [ a logic:Formula ; logic:relation gmeow:conditionVerifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "verifier" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactReadAfterWrite ] ], [ a logic:Formula ; logic:relation logic:satisfactionStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:Satisfied ] ], [ a logic:Formula ; logic:relation logic:goalEvaluationStatus ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri logic:GoalEvaluationCompleted ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ], [ logic:termIndex 2 ; logic:termVariable "observer" ], [ logic:termIndex 3 ; logic:termVariable "citation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "observation" ] ], [ a logic:Formula ; logic:relation gmeow:verifierKey ; logic:argument [ logic:termIndex 0 ; logic:termVariable "citation" ], [ logic:termIndex 1 ; logic:termVariable "key" ] ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:ArtifactVerificationObservation ] ], [ a logic:Formula ; logic:relation gmeow:verifierKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verifierArtifactReadAfterWrite ] ], [ a logic:Formula ; logic:relation gmeow:verifiesArtifact ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "artifact" ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ] ] ] ] ] .
+
+# Runtime trace observation and requested recollection strategies.
+
+gmeow:ModelInvocationState
+    a logic:AbstractIndividualType, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model Invocation State"@x-gmeow-english ;
+    skos:definition "An open vocabulary of lifecycle states reported by observations about an actual model invocation. A state reading is scoped to its source and time; it is independent of the invocation's terminal outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use when a runtime record reports the lifecycle condition of a particular invocation as it was observed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid extending ModelInvocationOutcome with running, treating a missing outcome as running, or assigning a state to the model agent itself."@x-gmeow-english ;
+    gmeow:howToUse "Place a state value on an Observation through invocationState and identify the actual call with observedFeature; preserve the observation's source and supplied temporal context."@x-gmeow-english ;
+    skos:scopeNote "The vocabulary selects no current or latest state. Earlier running evidence and later terminal-outcome evidence remain separate attributed records."@x-gmeow-english ;
+    skos:example "Classify a state value: gmeow:invocationStateRunning a gmeow:ModelInvocationState ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:invocationState
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "observed invocation state"@x-gmeow-english ;
+    skos:definition "The lifecycle state held by an observation about a ModelInvocation, specializing observationResult. The observation's observedFeature identifies the call; this relation does not replace invocationOutcome on the call."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicit state reading from a runtime snapshot while keeping the invocation occurrence separate from the observation record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing this relation directly on the invocation or model agent, making it globally functional, or overwriting an earlier observation with a later reading."@x-gmeow-english ;
+    gmeow:howToUse "Bind observedFeature to the actual ModelInvocation, vantage to the observing standpoint and wasDerivedFrom to the retained source record. Preserve supplied observedAt or recordedAt values without inventing a clock."@x-gmeow-english ;
+    skos:scopeNote "State observations are nonfunctional and source-relative. Neither their timestamps nor the absence of an outcome authorizes a global latest-state or success inference."@x-gmeow-english ;
+    skos:example "Retain a reading of the call: ex:reading gmeow:invocationState gmeow:invocationStateRunning ; gmeow:observedFeature ex:call ."@x-gmeow-english ;
+    logic:domain gmeow:Observation ;
+    logic:range gmeow:ModelInvocationState ;
+    logic:subPropertyOf gmeow:observationResult .
+
+gmeow:invocationStateRunning
+    a gmeow:ModelInvocationState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "invocation running"@x-gmeow-english ;
+    skos:definition "The source reports that the observed model invocation was still in progress when that reading was made. It supplies no terminal success or failure outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use only for an explicit in-progress report, including a record retained before the call returned."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating silence, a missing error, a queued request or a nonterminal trace event as evidence that a call was running."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through invocationState on the actual source observation. Keep any later succeeded or failed invocationOutcome as separate evidence about the same call."@x-gmeow-english ;
+    skos:scopeNote "Running is not a permanent assertion about the invocation's entire lifetime. The value neither starts a model nor establishes that execution is currently continuing."@x-gmeow-english ;
+    skos:example "Record the reported in-progress state: ex:earlyReading gmeow:invocationState gmeow:invocationStateRunning ."@x-gmeow-english .
+
+gmeow:injectionCategory
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "injection category code"@x-gmeow-english ;
+    skos:definition "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine string preserves source whitespace and case."@x-gmeow-english ;
+    gmeow:useWhen "Use when a retained screening report names a category for a particular outside-answer artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid storing the injected instruction text as the code, resolving the code into a universal taxonomy, or asserting that the model or sender is globally malicious."@x-gmeow-english ;
+    gmeow:howToUse "Keep the literal as xsd:string on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."@x-gmeow-english ;
+    skos:scopeNote "This is a source classification, not execution of a screen or proof that an attack succeeded. No token datatype admission, normalization, lexical validator or closed category registry follows from the string range."@x-gmeow-english ;
+    skos:example "Retain the screen's exact code: ex:screenReading gmeow:injectionCategory \" role-override  \" ."@x-gmeow-english ;
+    logic:domain gmeow:Observation ;
+    logic:range xsd:string .
+
+gmeow:InvocationStateEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Invocation state evidence constraint"@x-gmeow-english ;
+    skos:definition "An invocation-state reading is an actual Observation of the actual ModelInvocation, with its vantage and retained source record. The reading does not select a global latest state or imply a terminal outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the observational context of each supplied invocation-state value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an observer or source time, suppressing earlier readings, or rejecting later outcome evidence merely because a running reading exists."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual invocation feature, observing vantage and source. Carry supplied observation or recording times on their own records without fabricating missing precision."@x-gmeow-english ;
+    skos:scopeNote "The law constrains a supplied reading only; it creates neither invocation execution nor a lifecycle state machine."@x-gmeow-english ;
+    skos:example "Apply the source law: gmeow:InvocationStateEvidenceConstraint logic:formalizes gmeow:invocationState ."@x-gmeow-english ;
+    logic:formalizes gmeow:invocationState ;
+    logic:message "An invocation-state reading is an actual Observation of the actual ModelInvocation, with its vantage and retained source record. The reading does not select a global latest state or imply a terminal outcome."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:invocationState ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "state" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "feature" ], [ logic:termIndex 1 ; logic:termVariable "observer" ], [ logic:termIndex 2 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ], [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "feature" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelInvocation ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ], [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+gmeow:InjectionCategoryEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Injection category evidence constraint"@x-gmeow-english ;
+    skos:definition "An injection category belongs to an actual Observation of the retained answer artifact, with its vantage and actual screening source. The category alone does not prove an attack or its success."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual answer and source context of each supplied screening category."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an ungrounded category literal as a screening observation or inventing an outside-model identity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual information-object answer, observing vantage and screening source. Keep any supplied evidence span and method independent of the category code."@x-gmeow-english ;
+    skos:scopeNote "The law checks a retained source claim; it neither executes a screen nor authenticates its classification."@x-gmeow-english ;
+    skos:example "Apply the source law: gmeow:InjectionCategoryEvidenceConstraint logic:formalizes gmeow:injectionCategory ."@x-gmeow-english ;
+    logic:formalizes gmeow:injectionCategory ;
+    logic:message "An injection category belongs to an actual Observation of the retained answer artifact, with its vantage and actual screening source. The category alone does not prove an attack or its success."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "code" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:injectionCategory ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "code" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "feature" ], [ logic:termIndex 1 ; logic:termVariable "observer" ], [ logic:termIndex 2 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ], [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "feature" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "feature" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ], [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "observer" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observer" ], [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ], [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "source" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ], [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/invocationState" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/injectionCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-reported runtime trace kinds; classification does not execute the mechanism.
+
+gmeow:eventTypeTraceRound
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "thinking trace round"@x-gmeow-english ;
+    skos:definition "One runtime-reported round in a cycle of thinking, independently of how many model or tool calls it contains."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit round occurrence, including a round with no model request."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying the round with a response turn, a model invocation or a token allocation."@x-gmeow-english ;
+    gmeow:howToUse "Attach through eventType and retain the actual containing episode with subEventOf when supplied."@x-gmeow-english ;
+    skos:scopeNote "Round membership and order remain source facts; no cycle counter or scheduler is executed."@x-gmeow-english ;
+    skos:example "Classify this thinking trace round: ex:round gmeow:eventType gmeow:eventTypeTraceRound ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceTurnStart
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "thinking trace turn start"@x-gmeow-english ;
+    skos:definition "The source reports the beginning of one thinking turn."@x-gmeow-english ;
+    gmeow:useWhen "Use for a recorded start boundary before that turn's output is known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a model request, a completed turn or a delivered chat reply from the start."@x-gmeow-english ;
+    gmeow:howToUse "Classify the start occurrence and retain its actual turn or episode parent separately."@x-gmeow-english ;
+    skos:scopeNote "A start marker neither opens a fabricated invocation nor predicts an output."@x-gmeow-english ;
+    skos:example "Classify this thinking trace turn start: ex:turnStart gmeow:eventType gmeow:eventTypeTraceTurnStart ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceTurnOutput
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "thinking trace turn output"@x-gmeow-english ;
+    skos:definition "The source reports that a thinking turn produced its output."@x-gmeow-english ;
+    gmeow:useWhen "Use for the output-producing occurrence even when later delivery or validation is unknown."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making the output artifact an Event or treating produced output as an accepted response."@x-gmeow-english ;
+    gmeow:howToUse "Keep the occurrence distinct from its actual output artifact and link genuine production with wasGeneratedBy when known."@x-gmeow-english ;
+    skos:scopeNote "Output production does not establish artifact completeness, truth or dispatch."@x-gmeow-english ;
+    skos:example "Classify this thinking trace turn output: ex:turnOutput gmeow:eventType gmeow:eventTypeTraceTurnOutput ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceModelRequest
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "model request trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that it sent a request to a model."@x-gmeow-english ;
+    gmeow:useWhen "Use for the actual request-send occurrence rather than a planned request."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring receipt, model execution or a successful invocation from sending alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual invocation and prompt identities when supplied; hasPrompt belongs to the real ModelInvocation."@x-gmeow-english ;
+    skos:scopeNote "The trace kind does not satisfy the ModelInvocation contract by itself."@x-gmeow-english ;
+    skos:example "Classify this model request trace: ex:modelRequest gmeow:eventType gmeow:eventTypeTraceModelRequest ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceModelResponse
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "model response trace"@x-gmeow-english ;
+    skos:definition "The source reports that a model responded to a request."@x-gmeow-english ;
+    gmeow:useWhen "Use for response arrival, retaining a partial or refused answer when that is what arrived."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a response with semantic correctness, accepted completion or a delivered user message."@x-gmeow-english ;
+    gmeow:howToUse "Keep the response occurrence separate from retained answer content and the actual invocation."@x-gmeow-english ;
+    skos:scopeNote "A response event does not choose an invocationOutcome value."@x-gmeow-english ;
+    skos:example "Classify this model response trace: ex:modelResponse gmeow:eventType gmeow:eventTypeTraceModelResponse ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceModelError
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "model error trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that a model returned an error."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit provider error report, preserving whether it was terminal or retried separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid converting every error report into a failed terminal outcome or an incomplete artifact."@x-gmeow-english ;
+    gmeow:howToUse "Retain the reported error source; use invocationError only on an actual ModelInvocation when that binding is known."@x-gmeow-english ;
+    skos:scopeNote "Error text, lifecycle state and terminal outcome remain independent axes."@x-gmeow-english ;
+    skos:example "Classify this model error trace: ex:modelError gmeow:eventType gmeow:eventTypeTraceModelError ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceGeneration
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "model generation trace"@x-gmeow-english ;
+    skos:definition "The source reports one generation occurrence by a model."@x-gmeow-english ;
+    gmeow:useWhen "Use when generation itself is reported, independently of request transport boundaries."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the generation marker as generated content or inventing the producing model's identity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual generation occurrence and known invocation; keep output provenance on the real output artifact."@x-gmeow-english ;
+    skos:scopeNote "No modality, token total or success criterion is inferred from this general kind."@x-gmeow-english ;
+    skos:example "Classify this model generation trace: ex:generation gmeow:eventType gmeow:eventTypeTraceGeneration ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceMultimodalGeneration
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "multimodal generation trace"@x-gmeow-english ;
+    skos:definition "The runtime explicitly classified a model generation as involving more than text, under its reported modality convention."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit multimodal classification with its actual source convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring this kind merely because an image artifact exists or because a model advertises multimodal capability."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source's modality evidence and classify only the corresponding generation occurrence."@x-gmeow-english ;
+    skos:scopeNote "Input and output modality conventions may differ; no universal modality inference is added."@x-gmeow-english ;
+    skos:example "Classify this multimodal generation trace: ex:multimodalGeneration gmeow:eventType gmeow:eventTypeTraceMultimodalGeneration ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceImageGeneration
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "image generation trace"@x-gmeow-english ;
+    skos:definition "The source reports that a model made an image."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reported image-producing occurrence while keeping any image artifact separately identified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making the image an Event or deriving a multimodal-generation classification from image production alone."@x-gmeow-english ;
+    gmeow:howToUse "Classify the producing occurrence; relate an actual MediaObject through genuine wasGeneratedBy evidence when supplied."@x-gmeow-english ;
+    skos:scopeNote "This kind neither publishes an image nor certifies its existence, completeness or acceptance."@x-gmeow-english ;
+    skos:example "Classify this image generation trace: ex:imageGeneration gmeow:eventType gmeow:eventTypeTraceImageGeneration ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceToolCall
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool call trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that a tool was called."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-reported call occurrence, keeping provider call identifiers in their actual scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ToolCall's usedTool requirement with a guessed agent derived from a name."@x-gmeow-english ;
+    gmeow:howToUse "Use the ToolCall class as well only when the actual tool binding is supplied; retain toolName and toolCallId exactly."@x-gmeow-english ;
+    skos:scopeNote "A call marker does not establish that the tool completed or produced an artifact."@x-gmeow-english ;
+    skos:example "Classify this tool call trace: ex:toolCall gmeow:eventType gmeow:eventTypeTraceToolCall ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceToolResult
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool result trace"@x-gmeow-english ;
+    skos:definition "The source reports that a tool returned its result."@x-gmeow-english ;
+    gmeow:useWhen "Use for the return occurrence, including returned errors or partial payloads when explicitly reported."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the returned result artifact as the return Event or treating transport return as operation success."@x-gmeow-english ;
+    gmeow:howToUse "Retain the real result content and its actual call identity separately from the event classification."@x-gmeow-english ;
+    skos:scopeNote "Return, receipt, artifact completion and verification remain distinct records."@x-gmeow-english ;
+    skos:example "Classify this tool result trace: ex:toolResult gmeow:eventType gmeow:eventTypeTraceToolResult ."@x-gmeow-english .
+
+# Source-reported runtime trace kinds; classification does not execute the mechanism.
+
+gmeow:eventTypeTraceToolReceipt
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool result receipt trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that a tool's result was receipted."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit result-receipt occurrence, distinct from the result's arrival."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a receipt document with an Activity or using ArtifactOperationReceipt without an actual artifact operation."@x-gmeow-english ;
+    gmeow:howToUse "Classify the receipting occurrence and retain the actual receipt and call references separately."@x-gmeow-english ;
+    skos:scopeNote "Receipt presence does not certify durable storage, operation success or read-after-write verification."@x-gmeow-english ;
+    skos:example "Classify this tool result receipt trace: ex:toolReceipt gmeow:eventType gmeow:eventTypeTraceToolReceipt ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceCheckpointRequest
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "checkpoint request trace"@x-gmeow-english ;
+    skos:definition "The source reports a request to create a runtime checkpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use when checkpoint creation was requested, before a checkpoint response or artifact is established."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a request as an existing checkpoint or an admitted continuation."@x-gmeow-english ;
+    gmeow:howToUse "Keep request identity and any actual containing activity from the source; do not fabricate a checkpoint version."@x-gmeow-english ;
+    skos:scopeNote "Runtime checkpoint wording alone does not select logic:'s enactment-checkpoint contract."@x-gmeow-english ;
+    skos:example "Classify this checkpoint request trace: ex:checkpointRequest gmeow:eventType gmeow:eventTypeTraceCheckpointRequest ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceCheckpointResponse
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "checkpoint creation response trace"@x-gmeow-english ;
+    skos:definition "The runtime reports a checkpoint creation response, including its source claim that a checkpoint was made."@x-gmeow-english ;
+    gmeow:useWhen "Use for the recorded creation response rather than the earlier request or a later validation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing checkpoint bytes, a compiled prescription or a successful validation from the response kind."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual response and supplied checkpoint identity separately, with their source evidence."@x-gmeow-english ;
+    skos:scopeNote "A provider's creation report is not the native checkpoint admission proof."@x-gmeow-english ;
+    skos:example "Classify this checkpoint creation response trace: ex:checkpointResponse gmeow:eventType gmeow:eventTypeTraceCheckpointResponse ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceCheckpointValidation
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "checkpoint validation trace"@x-gmeow-english ;
+    skos:definition "The source reports a runtime checkpoint-validation occurrence; its check and reported verdict remain explicit evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use when a checkpoint check was reported, preserving its actual method and result when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating the event label with successful native admission, signature verification or replay correctness."@x-gmeow-english ;
+    gmeow:howToUse "Classify the check occurrence and retain the exact source checkpoint and validation report without replacing their contracts."@x-gmeow-english ;
+    skos:scopeNote "Reported validation is distinct from a proof object accepted by the canonical execution machinery."@x-gmeow-english ;
+    skos:example "Classify this checkpoint validation trace: ex:checkpointValidation gmeow:eventType gmeow:eventTypeTraceCheckpointValidation ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceEpisodeContinuation
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "episode continuation trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that an episode continued from where it had stopped."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit source continuity, not merely a similar later piece of work."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an original attempt, resume point or executable continuation from this kind alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual episode context; use attempt-resumption bindings only when the source identifies that actual attempt."@x-gmeow-english ;
+    skos:scopeNote "The type does not collapse distinct episode or activity identities into one."@x-gmeow-english ;
+    skos:example "Classify this episode continuation trace: ex:episodeContinuation gmeow:eventType gmeow:eventTypeTraceEpisodeContinuation ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceEpisodeTokenAccounting
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "episode token accounting trace"@x-gmeow-english ;
+    skos:definition "The source reports token accounting for an episode."@x-gmeow-english ;
+    gmeow:useWhen "Use for an accounting occurrence even when no count, tokenizer identity or authority claim was supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting samplingMaxTokens as consumed tokens or combining counts with unknown tokenizer bases."@x-gmeow-english ;
+    gmeow:howToUse "Retain supplied counts, units, episode identity and tokenizer basis in their actual source records."@x-gmeow-english ;
+    skos:scopeNote "The marker computes no usage, budget debit or total across episodes."@x-gmeow-english ;
+    skos:example "Classify this episode token accounting trace: ex:episodeTokenAccounting gmeow:eventType gmeow:eventTypeTraceEpisodeTokenAccounting ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceEngineAuthoritativeTokenCount
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "engine-reported authoritative token count trace"@x-gmeow-english ;
+    skos:definition "The engine reports a token count that it designates authoritative within its own source contract."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly distinguishes its engine-authoritative count from another measurement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating reported authority as universal correctness, a privileged standpoint or equivalence between tokenizers."@x-gmeow-english ;
+    gmeow:howToUse "Retain the engine's actual source, contract, count and tokenizer convention when supplied; keep competing counts separate."@x-gmeow-english ;
+    skos:scopeNote "The type reports who claimed authority; it does not make the ontology a token-count oracle."@x-gmeow-english ;
+    skos:example "Classify this engine-reported authoritative token count trace: ex:engineAuthoritativeTokenCount gmeow:eventType gmeow:eventTypeTraceEngineAuthoritativeTokenCount ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceForegroundPreemption
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "foreground preemption trace"@x-gmeow-english ;
+    skos:definition "The source reports that foreground work preempted background thinking."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit preemption report, retaining the actual affected background activity when known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring foreground preemption from silence, elapsed time or any interrupted status."@x-gmeow-english ;
+    gmeow:howToUse "Keep preemption separate from attemptStop; record stopYieldedToForeground only on an actual finish with that supplied stop value."@x-gmeow-english ;
+    skos:scopeNote "Preemption does not itself satisfy, abandon or finish an intention."@x-gmeow-english ;
+    skos:example "Classify this foreground preemption trace: ex:foregroundPreemption gmeow:eventType gmeow:eventTypeTraceForegroundPreemption ."@x-gmeow-english .
+
+
+gmeow:eventTypeTracePromptProvenance
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "prompt provenance trace"@x-gmeow-english ;
+    skos:definition "The runtime reports where the parts of a prompt came from."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual provenance-report occurrence about a prompt, not for the prompt artifact itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making an information-object prompt an Event or inventing instruction authors from the trace label."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual Prompt, hasPrompt and source-derivation bindings when supplied; keep recorded instruction wording on the prompt."@x-gmeow-english ;
+    skos:scopeNote "A provenance report does not grant an instruction authority or prove that a model used it."@x-gmeow-english ;
+    skos:example "Classify this prompt provenance trace: ex:promptProvenance gmeow:eventType gmeow:eventTypeTracePromptProvenance ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceCorrection
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "thinking correction trace"@x-gmeow-english ;
+    skos:definition "The source reports a correction to the agent's thinking, with any supplied correction avenue and cost retained as source evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reported corrective occurrence, including a correction later contested by another source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that the correction is true, costless or successful, or inventing a cost unit from a bare number."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual correction source and its avenue and cost evidence; keep cost basis, quantity and unit distinct when supplied."@x-gmeow-english ;
+    skos:scopeNote "This type does not perform a belief revision or replace the earlier attributed record."@x-gmeow-english ;
+    skos:example "Classify this thinking correction trace: ex:correction gmeow:eventType gmeow:eventTypeTraceCorrection ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceResponseCompletionRejected
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "response completion rejection trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that it rejected a response as incomplete."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reported rejection decision, retaining which source completion rule was applied when known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the rejection as a terminal model failure or automatically setting artifactComplete to false."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual response identity and rejection report separate; retain a source artifact-completion bit only when explicitly supplied."@x-gmeow-english ;
+    skos:scopeNote "A completion gate's verdict is not a universal judgment of response quality or truth."@x-gmeow-english ;
+    skos:example "Classify this response completion rejection trace: ex:responseCompletionRejected gmeow:eventType gmeow:eventTypeTraceResponseCompletionRejected ."@x-gmeow-english .
+
+# Source-reported runtime trace kinds; classification does not execute the mechanism.
+
+gmeow:eventTypeTraceResponseContractRejected
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "response contract rejection trace"@x-gmeow-english ;
+    skos:definition "The source reports that a response was rejected for breaking its stated contract."@x-gmeow-english ;
+    gmeow:useWhen "Use for a recorded contract-rejection decision with the actual source contract retained when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a violated rule, treating the rejection as delivery failure or assuming every contract is the same."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual response and rejection evidence; preserve a supplied engineContract identifier exactly."@x-gmeow-english ;
+    skos:scopeNote "Reported contract rejection neither executes a validator nor establishes a globally valid contract interpretation."@x-gmeow-english ;
+    skos:example "Classify this response contract rejection trace: ex:responseContractRejected gmeow:eventType gmeow:eventTypeTraceResponseContractRejected ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceDegenerateRepetitionRejected
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "repetition rejection trace"@x-gmeow-english ;
+    skos:definition "The runtime reports rejecting material it classified as degenerate repetition."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly names repetition as the reason for rejection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this kind from repeated wording alone or presenting the detector's judgment as universal linguistic fact."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual rejected material, detector report and source criterion when known."@x-gmeow-english ;
+    skos:scopeNote "The marker neither detects repetition nor proves that regenerating a response would improve it."@x-gmeow-english ;
+    skos:example "Classify this repetition rejection trace: ex:degenerateRepetitionRejected gmeow:eventType gmeow:eventTypeTraceDegenerateRepetitionRejected ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceToolNoProgressCycle
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool no-progress cycle trace"@x-gmeow-english ;
+    skos:definition "The source reports a cycle of tool calls judged to have made no progress under its own criterion."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit runtime no-progress diagnosis, preserving the actual affected calls when known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a semantic cycle from repeated tool names or equating no reported progress with failed execution."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source's cycle membership and progress criterion as evidence rather than manufacturing a new call graph."@x-gmeow-english ;
+    skos:scopeNote "This classification does not run cycle detection, abort calls or choose a repair strategy."@x-gmeow-english ;
+    skos:example "Classify this tool no-progress cycle trace: ex:toolNoProgressCycle gmeow:eventType gmeow:eventTypeTraceToolNoProgressCycle ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceImmutableToolReplay
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "immutable tool replay trace"@x-gmeow-english ;
+    skos:definition "The runtime reports replaying a tool call it treats as immutable instead of executing that call again."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit replay report with the original call and replay source retained when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid manufacturing a second execution, assuming immutable bytes from a label or treating replay as a fresh operation receipt."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual original result and its source contract; use derivation links only for genuine reuse provenance."@x-gmeow-english ;
+    skos:scopeNote "The marker neither performs replay nor certifies cache identity, purity or idempotence."@x-gmeow-english ;
+    skos:example "Classify this immutable tool replay trace: ex:immutableToolReplay gmeow:eventType gmeow:eventTypeTraceImmutableToolReplay ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "interrupted tool batch reissue trace"@x-gmeow-english ;
+    skos:definition "The source reports that the runtime body reissued a batch of tool calls that had been interrupted."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit reissue occurrence, retaining the original batch and any newly issued call identities separately."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating reissue with replay, reusing call identity without evidence or inventing an agent from the word body."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the source interruption and reissue linkage; actual calls retain their own supplied tool bindings."@x-gmeow-english ;
+    skos:scopeNote "The trace kind schedules no batch and guarantees neither retry completion nor duplicate suppression."@x-gmeow-english ;
+    skos:example "Classify this interrupted tool batch reissue trace: ex:interruptedToolBatchReissuedByBody gmeow:eventType gmeow:eventTypeTraceInterruptedToolBatchReissuedByBody ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool result restoration trace"@x-gmeow-english ;
+    skos:definition "The runtime reports restoring a tool result from an actual source suspension receipt."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit restoration report that identifies its receipt when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating restoration as another tool execution, receipt validation or an invented checkpoint admission."@x-gmeow-english ;
+    gmeow:howToUse "Keep the restored result, original call and source receipt separately identified; retain genuine derivation evidence."@x-gmeow-english ;
+    skos:scopeNote "The classification neither reads a receipt nor certifies that restored content is complete or byte-identical."@x-gmeow-english ;
+    skos:example "Classify this tool result restoration trace: ex:toolResultRestoredFromSuspensionReceipt gmeow:eventType gmeow:eventTypeTraceToolResultRestoredFromSuspensionReceipt ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceToolResultsHeldByReceipt
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool results held by receipt trace"@x-gmeow-english ;
+    skos:definition "The source reports that tool results were held by a receipt under its runtime protocol."@x-gmeow-english ;
+    gmeow:useWhen "Use for the provider's explicit held-results report, preserving what held means in that source contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating held with delivered, accepted, verified, permanently stored or a gmeow:HeldRecord extraction."@x-gmeow-english ;
+    gmeow:howToUse "Retain the actual receipt and held-result roster when supplied without creating fake result artifacts."@x-gmeow-english ;
+    skos:scopeNote "This kind executes no holding protocol and grants no receipt authority over other sources."@x-gmeow-english ;
+    skos:example "Classify this tool results held by receipt trace: ex:toolResultsHeldByReceipt gmeow:eventType gmeow:eventTypeTraceToolResultsHeldByReceipt ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceCacheReceiptRejected
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cache receipt rejection trace"@x-gmeow-english ;
+    skos:definition "The runtime reports rejection of a cache receipt under its source admission rules."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source explicitly records receipt rejection rather than a missing cache entry."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring corrupt artifact bytes, failed invocation or permission to execute a weaker fallback."@x-gmeow-english ;
+    gmeow:howToUse "Keep the rejected receipt identity, source rule and actual rejection evidence separately from any later recomputation."@x-gmeow-english ;
+    skos:scopeNote "A rejection report neither validates cache state nor triggers regeneration or tool execution."@x-gmeow-english ;
+    skos:example "Classify this cache receipt rejection trace: ex:cacheReceiptRejected gmeow:eventType gmeow:eventTypeTraceCacheReceiptRejected ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceBackgroundTerminalRecovered
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "background terminal recovery trace"@x-gmeow-english ;
+    skos:definition "The source reports recovery of a background terminal under its runtime convention."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit terminal-recovery occurrence, preserving the actual terminal or process identity when known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating recovered with restarted, successfully exited, completed work or a recovered model invocation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source recovery evidence and any supplied session context without creating a new process identity."@x-gmeow-english ;
+    skos:scopeNote "The marker starts, stops and recovers no terminal or model service."@x-gmeow-english ;
+    skos:example "Classify this background terminal recovery trace: ex:backgroundTerminalRecovered gmeow:eventType gmeow:eventTypeTraceBackgroundTerminalRecovered ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceReplyGateFired
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reply gate firing trace"@x-gmeow-english ;
+    skos:definition "The runtime reports that a gate holding back a reply fired."@x-gmeow-english ;
+    gmeow:useWhen "Use for the explicit gate occurrence, retaining the source meaning of fired and its actual disposition when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that a reply was released, blocked, approved or delivered solely from the word fired."@x-gmeow-english ;
+    gmeow:howToUse "Classify the gate occurrence and retain the actual reply and source contract without imposing a universal gate policy."@x-gmeow-english ;
+    skos:scopeNote "The event type is not an execution permit or a substitute for an approval record."@x-gmeow-english ;
+    skos:example "Classify this reply gate firing trace: ex:replyGateFired gmeow:eventType gmeow:eventTypeTraceReplyGateFired ."@x-gmeow-english .
+
+
+gmeow:eventTypeTraceDreamPhaseRoundCapReached
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "dream phase round cap trace"@x-gmeow-english ;
+    skos:definition "The runtime reports reaching its own round cap within a source-designated dream phase."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly reports the cap being reached, retaining the actual phase and configured bound when supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a numeric cap, a DreamReport recollection, successful completion or a required stop from this marker."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source runtime phase context separate from dream content and classify only the reported cap occurrence."@x-gmeow-english ;
+    skos:scopeNote "This shared runtime-report value creates no core dependency on the dreaming extension and executes no phase controller."@x-gmeow-english ;
+    skos:example "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."@x-gmeow-english .
