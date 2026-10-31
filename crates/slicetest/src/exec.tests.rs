@@ -217,7 +217,7 @@ fn structural_fail_witness_requires_the_ban_to_trip() {
         shape: None,
         scope: Scope::Module,
         fail_witness: Some("witness-trips.ttl".to_owned()),
-        rationale: None,
+        rationales: Vec::new(),
     };
     // A tripping witness: normal check passes (module clean) AND the teeth check passes.
     let (mut mo, mut mae) = (None, None);

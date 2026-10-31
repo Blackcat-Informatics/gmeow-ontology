@@ -243,6 +243,14 @@ resource; both taggings coexist with confidences; a third is suppressed
   hold together?". Overlays keep example data out of the module and let one scene serve
   many questions. *Exhibit: `slices/core/tags/tests/competency.ttl` — all three modes.*
 
+Rationale values on structural, competency and conformance cells may coexist as
+plain, language-tagged or directional language-tagged literals. Preserve the
+source language and direction; no language is a preferred winner. Multiple
+rationales on one structural cell do not create additional executions of its
+assertion. The canonical prose constraints validate present values; structural
+and conformance rationales remain optional in the DSL. The authoring guidance
+above still asks slice authors to explain each invariant.
+
 ### 6.7 `docs.md` — the narrative
 
 Not generated, not a term listing (the docs pipeline builds those). It answers: what rots

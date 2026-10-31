@@ -122,7 +122,8 @@ pub struct StructuralAssertion {
     /// slice's own module, which by construction never carries the banned triple) gets
     /// a fail-witness: the fixture injects the violation the real module must never hold.
     pub fail_witness: Option<String>,
-    pub rationale: Option<String>,
+    /// All coexisting rationale literals, sorted by complete RDF term identity.
+    pub rationales: Vec<purrdf::RdfLiteral>,
 }
 
 /// A `gmeow:ExampleConformance` cell.
@@ -255,14 +256,13 @@ SELECT ?cq ?row ?var ?iri ?lit WHERE {
 }";
 
 const Q_STRUCTURAL: &str = "
-SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness ?rationale WHERE {
+SELECT ?sa ?polarity ?pattern ?shape ?scope ?failWitness WHERE {
   ?sa a gmeow:StructuralAssertion ;
       gmeow:saPolarity ?polarity .
   OPTIONAL { ?sa gmeow:saPattern ?pattern }
   OPTIONAL { ?sa gmeow:saShape ?shape }
   OPTIONAL { ?sa gmeow:saScope ?scope }
   OPTIONAL { ?sa gmeow:saFailWitness ?failWitness }
-  OPTIONAL { ?sa gmeow:saRationale ?rationale }
 }";
 
 const Q_CONFORMANCE: &str = "
@@ -424,6 +424,7 @@ fn parse_competency(store: &Arc<RdfDataset>) -> Result<Vec<CompetencyQuestion>> 
 
 fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>> {
     let mut out = Vec::new();
+    let rationales = rationale_literals(store, "StructuralAssertion", "saRationale")?;
     for sol in select(store, &with_prefix(Q_STRUCTURAL))? {
         let iri = require_iri(&sol, "sa")?;
         let polarity = match local_name(&require_iri(&sol, "polarity")?) {
@@ -447,6 +448,7 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>>
                 }
             },
         };
+        let values = rationales.get(&iri).cloned().unwrap_or_default();
         out.push(StructuralAssertion {
             iri,
             polarity,
@@ -454,7 +456,7 @@ fn parse_structural(store: &Arc<RdfDataset>) -> Result<Vec<StructuralAssertion>>
             shape: sol.get("shape").and_then(term_iri),
             scope,
             fail_witness: opt_string(&sol, "failWitness"),
-            rationale: opt_string(&sol, "rationale"),
+            rationales: values,
         });
     }
     Ok(out)

@@ -404,12 +404,18 @@ gmeow:saScope a logic:ObjectProperty  ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 gmeow:saRationale a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range rdfs:Literal ;
     rdfs:label "assertion rationale"@x-gmeow-english ;
     skos:definition "The human-readable rationale for a structural assertion: why this invariant must (or must not) hold over the slice. Optional."@x-gmeow-english ;
     skos:example "ex:sa gmeow:saRationale \"An agent without a name cannot be cited or credited.\" ."@x-gmeow-english ;
     gmeow:useWhen "Use to record why a structural invariant matters, so a reader understands the modelling rule it protects."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:StructuralAssertion logic:subClassOf [
+    a logic:Restriction ;
+    logic:onProperty gmeow:saRationale ;
+    logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ]
+] .
 
 # --------------------------------------------------------------------------- #
 # ExampleConformance fields

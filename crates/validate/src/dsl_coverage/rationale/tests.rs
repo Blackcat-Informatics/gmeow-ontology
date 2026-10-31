@@ -19,6 +19,9 @@ g:cqRationale a logic:DatatypeProperty ; logic:range rdfs:Literal .
 g:ExampleConformance a logic:Class ; logic:subClassOf
  [ a logic:Restriction ; logic:onProperty g:conformanceRationale ; logic:allValuesFrom [ logic:unionOf (xsd:string rdf:langString rdf:dirLangString) ] ] .
 g:conformanceRationale a logic:DatatypeProperty ; logic:range rdfs:Literal .
+g:StructuralAssertion a logic:Class ; logic:subClassOf
+ [ a logic:Restriction ; logic:onProperty g:saRationale ; logic:allValuesFrom [ logic:unionOf (xsd:string rdf:langString rdf:dirLangString) ] ] .
+g:saRationale a logic:DatatypeProperty ; logic:range rdfs:Literal .
 g:CompetencyQuestionRationaleRequiredConstraint a logic:DisjunctiveRequirednessConstraint ;
  logic:onClass g:CompetencyQuestion ; logic:anyOf g:cqRationale ;
  logic:formalizes g:CompetencyQuestion ; logic:message "Rationale required" .
