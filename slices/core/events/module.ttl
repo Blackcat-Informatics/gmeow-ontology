@@ -355,6 +355,20 @@ gmeow:eventFromLocation
     gmeow:howToUse "Assert gmeow:eventFromLocation and gmeow:eventToLocation as the move's endpoints; both subproperty gmeow:eventLocation, so plain-location consumers still see them as locations of the event."@x-gmeow-english ;
     gmeow:useWhen "Use for the origin of a movement event — where a migration, move, journey, or procession departed from — paired with gmeow:eventToLocation for the discrete endpoint case."@x-gmeow-english .
 
+gmeow:eventDuring
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "event during"@x-gmeow-english ;
+    skos:definition "Locates an event's occurrence within an established TimeInterval or NamedPeriod. The enclosing period supplies temporal placement, not the event's own duration or a particular occurrence instant."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source places an event within an identified interval or named period without supplying its exact instant or complete span."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the event's full known span, strict Allen containment between events, or an unresolved relative phrase such as last fall."@x-gmeow-english ;
+    gmeow:howToUse "Link the Event to each established TimeInterval or NamedPeriod supplied by the source. Keep competing placements as separate standpoint-indexed claims; the relation is nonfunctional."@x-gmeow-english ;
+    skos:example "ex:earlierWedding a gmeow:Event ; gmeow:eventDuring gmeow:periodHolocene ."@x-gmeow-english ;
+    skos:scopeNote "Coincidence with a period boundary is permitted. This placement supplies no instant or boundary conversion, resolves no relative period expression and does not entail that the event lasted throughout the referenced period."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:TimeInterval gmeow:NamedPeriod ) ] .
+
 gmeow:eventInterval
     a logic:ObjectProperty ;
     rdfs:domain gmeow:Event ;
@@ -1632,12 +1646,12 @@ gmeow:EventHasTypeOrTimeConstraint
     rdfs:label "Event has type or time constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint (Warning): an gmeow:Event carries at least a gmeow:eventType or some temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint (Warning): a gmeow:Event carries at least a gmeow:eventType or some temporal placement (gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt)."@x-gmeow-english ;
     logic:formalizes gmeow:EventHasTypeOrTimeShape ;
     logic:severity "Warning" ;
     logic:onClass gmeow:Event ;
-    logic:anyOf gmeow:eventType , gmeow:eventTime , gmeow:eventInterval , gmeow:earliestStart , gmeow:latestEnd , gmeow:atTime , gmeow:ingestedAt ;
-    logic:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / earliestStart / latestEnd / atTime / ingestedAt)." .
+    logic:anyOf gmeow:eventType , gmeow:eventTime , gmeow:eventInterval , gmeow:eventDuring , gmeow:earliestStart , gmeow:latestEnd , gmeow:atTime , gmeow:ingestedAt ;
+    logic:message "An event should carry at least a gmeow:eventType or a temporal placement (gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt)." .
 
 # ── logic: assertion carriers for this slice's own terms ────────────────────────
 # The canonical logic: carriers for the characteristics and integrity conditions of the

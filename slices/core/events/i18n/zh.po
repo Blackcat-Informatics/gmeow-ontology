@@ -13,6 +13,42 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event during"
+msgstr "事件发生于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Locates an event's occurrence within an established TimeInterval or NamedPeriod. The enclosing period supplies temporal placement, not the event's own duration or a particular occurrence instant."
+msgstr "将事件的发生定位于一个已确立的 TimeInterval 或 NamedPeriod 内。包含该事件的时期提供时间定位，而非事件本身的持续时长或某个特定的发生时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source places an event within an identified interval or named period without supplying its exact instant or complete span."
+msgstr "当来源将事件定位于一个已识别的区间或具名时期内，却未提供其确切时刻或完整时间跨度时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for the event's full known span, strict Allen containment between events, or an unresolved relative phrase such as last fall."
+msgstr "避免将其用于事件的已知完整时间跨度、事件之间的严格 Allen 包含关系，或去年秋天等尚未解析的相对时间短语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to each established TimeInterval or NamedPeriod supplied by the source. Keep competing placements as separate standpoint-indexed claims; the relation is nonfunctional."
+msgstr "将 Event 链接到来源提供的每个已确立的 TimeInterval 或 NamedPeriod。将相互竞争的时间定位保留为按立场索引的独立断言；此关系不具有函数性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:earlierWedding a gmeow:Event ; gmeow:eventDuring gmeow:periodHolocene ."
+msgstr "ex:earlierWedding a gmeow:Event ; gmeow:eventDuring gmeow:periodHolocene ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coincidence with a period boundary is permitted. This placement supplies no instant or boundary conversion, resolves no relative period expression and does not entail that the event lasted throughout the referenced period."
+msgstr "允许与时期边界重合。此定位不提供时刻或边界转换，不解析相对时期表达式，也不蕴含事件持续了所引用的整个时期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventHasTypeOrTimeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Event has type or time constraint"
+msgstr "事件具有类型或时间约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventHasTypeOrTimeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint (Warning): a gmeow:Event carries at least a gmeow:eventType or some temporal placement (gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt)."
+msgstr "一项封闭世界完整性约束（警告）：gmeow:Event 至少具有一个 gmeow:eventType 或某种时间定位（gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt）。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "durationValue is functional"
 msgstr "durationValue 具有函数性"
