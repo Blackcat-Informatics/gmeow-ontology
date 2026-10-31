@@ -53,6 +53,8 @@ pub mod clif;
 // reconstructions are cross-dialect equivalent. Reused by the conformance harness.
 pub mod cl_roundtrip;
 pub mod compat;
+/// Strict native Datalog clauses and caller facts from the canonical rule IR.
+pub mod datalog;
 pub mod frontend;
 pub mod graphutil;
 // Wasm-clean ingestion of the alignment DSL + ontology (the oxigraph-free read layer
