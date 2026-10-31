@@ -302,6 +302,12 @@ coordinate frame as the chunks, enabling intrinsic no-split and coverage laws.
 Selected source and contract digests identify those artifacts’ own bytes;
 overlap and exhaustive coverage follow the declared contract without defaults.
 
+`chunkingRulesArtifact` identifies the actual rules artifact included in the
+creation context; `chunkingContractDigest` pins its selected content digest.
+The embedding extension’s `chunkingContract` instead carries an opaque literal
+configuration reference on an `EmbeddingFamily`. These are separate properties
+with distinct domains and value kinds, without an alias or inferred conversion.
+
 A retrieved summary’s `chunkOf` names the carrier containing its text, while
 `wasDerivedFrom` names the summarized division. A generated summary is not a cut
 of its original division. Summary and Chunk can share a node when both meanings
