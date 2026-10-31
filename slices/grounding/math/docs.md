@@ -414,3 +414,34 @@ These laws describe source consistency; they do not load tensor payloads,
 execute operators, prove symbolic dimensions equal or establish whole-graph
 shape inference. Native, produced and installed-consumer acceptance requires
 its own actual evidence; no such execution is claimed by these declarations.
+
+## Algorithm-tagged digest literals
+
+`gmeow:blake3_256Digest` names the plain unkeyed BLAKE3 hash mode with its
+32-byte default output. `gmeow:sha256Digest` names SHA-256 from NIST FIPS 180-4.
+Each value retains its algorithm identity and the ordered 32 digest bytes;
+the lexical form is exactly 64 lowercase hexadecimal digits, with no prefix,
+whitespace or language tag. The reference to `math:Sequence` records the
+ordered nature of the bytes; these datatype resources are not themselves
+sequence instances or function objects.
+
+RDF literal term equality preserves both the exact lexical form and datatype
+IRI. Use `sameTerm` for that comparison: equal hexadecimal spellings with
+different algorithm datatype IRIs remain distinct terms. Neither datatype is
+an alias of `xsd:string`, `xsd:hexBinary` or the other algorithm datatype
+(Principles 2, 4 and 17).
+
+The input is the exact supplied byte sequence. A scheme identifier or a digest
+of a canonical model must retain that meaning rather than be relabeled as a
+digest of different artifact bytes. An actual input may contain domain-tag
+bytes; the datatype does not prohibit input byte patterns. BLAKE3 keyed hashing,
+key derivation and other output lengths are separate operations. SHA-512/256,
+truncations and HMAC results are not SHA-256 digest values of the original input.
+
+These declarations define the values and lexical contracts without installing
+parsers, computing hashes or verifying artifacts. Native RDF transport can
+retain the literals opaquely. They do not claim intrinsic native datatype
+admission, custom value-space equality or executed lexical validation. The
+existing `contentDigest` contract and its producer representations are unchanged.
+The authoritative sources and precise specification sections are listed in
+[the mathematics references](design/MATHEMATICS-REFERENCES.md#algorithm-tagged-digest-datatypes).

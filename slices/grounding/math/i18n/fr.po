@@ -3576,3 +3576,59 @@ msgstr "L’exclusion de présence des propriétés est distincte de la cardinal
 msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
 msgstr "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "BLAKE3-256 digest"
+msgstr "empreinte BLAKE3-256"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A plain unkeyed BLAKE3 hash result with the default 256-bit output, computed over the exact supplied input bytes. Its value pairs the BLAKE3 hash-mode identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du mode de hachage BLAKE3 simple et sans clé, avec sa sortie par défaut de 256 bits, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité du mode de hachage BLAKE3 aux 32 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 64 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the default-length plain BLAKE3 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "Utiliser lorsqu’une source fournit l’empreinte BLAKE3 simple de longueur par défaut pour des octets déterminés et que l’algorithme doit rester partie intégrante de l’identité du littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid keyed_hash, derive_key, other output lengths, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "Éviter keyed_hash, derive_key, les autres longueurs de sortie, ou de rebaptiser un identifiant de schéma ou de modèle canonique comme empreinte d’autres octets d’artefact. Les octets d’une étiquette de domaine sont permis lorsqu’ils font réellement partie de l’entrée fournie ; ne pas effacer le sens d’un schéma d’identification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "Préserver les 64 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; ne pas normaliser, ajouter une étiquette d’algorithme en préfixe ni déduire une vérification du littéral typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Cette déclaration spécifie une valeur d’empreinte portant l’identité de son algorithme et sa forme lexicale ; elle n’installe aucun analyseur de type de données, ne calcule aucun hachage et ne vérifie aucun octet d’artefact. Le transport RDF natif peut conserver le littéral typé de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF, en préservant la forme lexicale et l’IRI du type de données ; aucune égalité avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest declares BLAKE3 hash-mode identity; it does not assert that an artifact was checked."
+msgstr "Un littéral fourni tel que \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest déclare l’identité du mode de hachage BLAKE3 ; il n’affirme pas qu’un artefact a été vérifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SHA-256 digest"
+msgstr "empreinte SHA-256"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A SHA-256 hash result as specified by NIST FIPS 180-4, computed over the exact supplied input bytes. Its value pairs the SHA-256 algorithm identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du hachage SHA-256 défini par NIST FIPS 180-4, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité de l’algorithme SHA-256 aux 32 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 64 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a SHA-256 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "Utiliser lorsqu’une source fournit une empreinte SHA-256 pour des octets déterminés et que l’algorithme doit rester partie intégrante de l’identité du littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid SHA-512/256, truncated hashes, HMAC results, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "Éviter SHA-512/256, les hachages tronqués, les résultats HMAC, ou de rebaptiser un identifiant de schéma ou de modèle canonique comme empreinte d’autres octets d’artefact. Les octets d’une étiquette de domaine sont permis lorsqu’ils font réellement partie de l’entrée fournie ; ne pas effacer le sens d’un schéma d’identification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "Préserver les 64 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; ne pas normaliser, ajouter une étiquette d’algorithme en préfixe ni déduire une vérification du littéral typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Cette déclaration spécifie une valeur d’empreinte portant l’identité de son algorithme et sa forme lexicale ; elle n’installe aucun analyseur de type de données, ne calcule aucun hachage et ne vérifie aucun octet d’artefact. Le transport RDF natif peut conserver le littéral typé de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF, en préservant la forme lexicale et l’IRI du type de données ; aucune égalité avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
+msgstr "Un littéral fourni tel que \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest conserve l’identité SHA-256 même si le littéral d’un autre algorithme possède la même écriture hexadécimale."

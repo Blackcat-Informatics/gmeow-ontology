@@ -16740,3 +16740,35 @@ math:TensorAxisExtentChoiceConstraint a logic:ChoiceGroupConstraint ;
     skos:example "ex:axis a math:TensorAxis ; math:axisIndex 0 ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:onClass math:TensorAxis ; logic:choicePredicate math:axisExtent, math:symbolicExtent ; logic:choiceMode "at-most-one" ; logic:formalizes math:TensorAxis ; logic:message "A tensor axis cannot have both concrete and symbolic extents." .
+
+# Algorithm-tagged digest datatypes: normative values, not parser installations.
+
+gmeow:blake3_256Digest
+    a rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainMathematical ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:seeAlso math:Sequence ;
+    dcterms:source <https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf> ;
+    rdfs:label "BLAKE3-256 digest"@x-gmeow-english ;
+    skos:definition "A plain unkeyed BLAKE3 hash result with the default 256-bit output, computed over the exact supplied input bytes. Its value pairs the BLAKE3 hash-mode identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies the default-length plain BLAKE3 digest of specified bytes and the algorithm must remain part of the literal identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid keyed_hash, derive_key, other output lengths, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."@x-gmeow-english ;
+    skos:scopeNote "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."@x-gmeow-english ;
+    skos:example "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest declares BLAKE3 hash-mode identity; it does not assert that an artifact was checked."@x-gmeow-english .
+
+gmeow:sha256Digest
+    a rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainMathematical ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:seeAlso math:Sequence ;
+    dcterms:source <https://doi.org/10.6028/NIST.FIPS.180-4> ;
+    rdfs:label "SHA-256 digest"@x-gmeow-english ;
+    skos:definition "A SHA-256 hash result as specified by NIST FIPS 180-4, computed over the exact supplied input bytes. Its value pairs the SHA-256 algorithm identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a SHA-256 digest of specified bytes and the algorithm must remain part of the literal identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid SHA-512/256, truncated hashes, HMAC results, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."@x-gmeow-english ;
+    skos:scopeNote "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."@x-gmeow-english ;
+    skos:example "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."@x-gmeow-english .
