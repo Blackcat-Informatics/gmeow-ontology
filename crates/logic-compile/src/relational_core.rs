@@ -64,6 +64,10 @@ pub use json::read_signed_atom;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
+/// Reserved transient predicates for compiler-owned existential satisfaction rows.
+/// Authored facts and rules may not populate this namespace.
+pub const CONSTRAINT_SUPPORT_NAMESPACE: &str = "urn:gmeow:private:constraint-satisfied:";
+
 /// Whether an atom occupies the head or a body position of the clause being
 /// lowered. n-ary reification differs by position: a body n-ary atom binds a fresh
 /// join variable over its reified conjunction, whereas a head n-ary atom *derives*
@@ -410,6 +414,12 @@ fn finalize(
 /// ground binary atom (the relational core is binary; an axiom whose subject or object
 /// is itself a variable-free non-IRI/non-literal would be unsupported).
 fn lower_axiom(axiom: &LogicAxiom) -> gmeow_errors::Result<RcAtom> {
+    if axiom.predicate.starts_with(CONSTRAINT_SUPPORT_NAMESPACE) {
+        return Err(term::error(
+            "compiler-private constraint support predicates cannot be authored",
+        ));
+    }
+
     if NumericOperator::from_iri(&axiom.predicate).is_some() {
         return Err(term::error(
             "interpreted numeric relation cannot be an asserted relational fact",
@@ -434,6 +444,15 @@ fn lower_axiom(axiom: &LogicAxiom) -> gmeow_errors::Result<RcAtom> {
 /// Lower an admitted unscoped positive-head Horn rule. Other source contracts
 /// remain explicit residue in this flat dialect instead of being silently erased.
 fn lower_rule(rule: &LogicRule) -> gmeow_errors::Result<RcRule> {
+    if std::iter::once(&rule.head)
+        .chain(&rule.body)
+        .any(|atom| atom.predicate.starts_with(CONSTRAINT_SUPPORT_NAMESPACE))
+    {
+        return Err(term::error(
+            "compiler-private constraint support predicates cannot be authored",
+        ));
+    }
+
     if std::iter::once(&rule.head)
         .chain(&rule.body)
         .any(|atom| NumericOperator::from_iri(&atom.predicate).is_some())
@@ -722,6 +741,21 @@ pub struct RcViolationRule {
     /// The constraint's `gmeow:enforcesFailureClass` IRI — the violation marker's
     /// `rdf:type` object.
     pub failure_class: String,
+    /// Positive support joins executed before this final rule's negated probe.
+    pub supports: Vec<RcExistentialSupport>,
+}
+
+/// A focus-correlated positive join proving that an existential obligation holds.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcExistentialSupport {
+    /// Stable compiler-private predicate, scoped to source law and formula position.
+    pub predicate: String,
+    /// Positive stored matches; these supply every native operand binding.
+    pub body: Vec<RcAtom>,
+    /// Bound component identity conditions on those joined values.
+    pub term_identities: Vec<RcTermIdentityTest>,
+    /// The original law's focus variable, bound by the positive support body.
+    pub subject: RcTerm,
 }
 
 /// A required intrinsic predicate over a bound native value or typed constant.
@@ -837,6 +871,10 @@ pub enum RcViolationGap {
     UnsafeEqualityVariable,
     /// A universal variable has no positive stored-relation binding.
     UnsafeUniversalVariable,
+    /// A support join correlates with something other than its law's focus.
+    UnsupportedExistentialCorrelation,
+    /// A support binder reuses an enclosing or sibling source name.
+    UnsafeExistentialBinder,
 }
 
 impl RcViolationGap {
@@ -853,6 +891,10 @@ impl RcViolationGap {
             Self::UnsafeTermKindVariable => "unsafe-term-kind-variable",
             Self::UnsafeEqualityVariable => "unsafe-equality-variable",
             Self::UnsafeUniversalVariable => "unsafe-universal-variable",
+            Self::UnsupportedExistentialCorrelation => {
+                "existential-support-requires-focus-only-correlation"
+            }
+            Self::UnsafeExistentialBinder => "existential-support-requires-fresh-binder-names",
         }
     }
 }
@@ -926,12 +968,14 @@ fn lower_one_violation_constraint(
             term_comparisons: body.term_comparisons,
             subject: body.subject,
             failure_class: failure_class.clone(),
+            supports: body.supports,
         })
         .collect())
 }
 
 /// A fully admitted violation body, independent of marker publication metadata.
 struct RcViolationBody {
+    supports: Vec<RcExistentialSupport>,
     body: Vec<RcAtom>,
     term_kinds: Vec<RcTermKindTest>,
     term_equalities: Vec<RcTermEqualityTest>,
@@ -940,7 +984,7 @@ struct RcViolationBody {
     subject: RcTerm,
 }
 
-/// Apply the native binding/scope admission before projecting component filters.
+/// Apply native binding/scope admission before projecting component filters or support joins.
 /// No failure-class requirement or marker is fabricated for a projection-only law.
 pub(crate) fn admit_component_constraint(constraint: &ConstraintIr) -> Result<(), RcViolationGap> {
     if !contains_component_identity(&constraint.integrity) {
@@ -963,6 +1007,134 @@ fn contains_component_identity(formula: &Formula) -> bool {
     }
 }
 
+/// Only positive joined obligations select the new support preparation profile.
+fn contains_positive_existential_join(formula: &Formula) -> bool {
+    match formula {
+        Formula::Exists { .. } => matches!(strip_quantifier(formula), Formula::And(_)),
+        Formula::Forall { body, .. } => contains_positive_existential_join(body),
+        Formula::And(parts) | Formula::Or(parts) => {
+            parts.iter().any(contains_positive_existential_join)
+        }
+        Formula::Implies(_, consequent) => contains_positive_existential_join(consequent),
+        Formula::Atom { .. } | Formula::Not(_) | Formula::Iff(_, _) => false,
+    }
+}
+
+/// Admit only positive existential conjunctions correlated through the focus alone.
+fn lower_existential_join(
+    formula: &Formula,
+    constraint: &ConstraintIr,
+    focus: &RcTerm,
+    position: [usize; 3],
+) -> Result<Option<RcExistentialSupport>, RcViolationGap> {
+    if !contains_component_identity(&constraint.integrity)
+        || !matches!(formula, Formula::Exists { .. })
+    {
+        return Ok(None);
+    }
+    let mut inner = formula;
+    while let Formula::Exists { body, .. } = inner {
+        inner = body;
+    }
+    if !matches!(inner, Formula::And(parts) if parts.len() >= 2) {
+        return Ok(None);
+    }
+    positive_existential_pattern(formula)?;
+    let mut free = BTreeSet::new();
+    pattern_free_variables(formula, &BTreeSet::new(), &mut free)?;
+    let RcTerm::Var(focus_name) = focus else {
+        return Err(RcViolationGap::UnsafeFocusVariable);
+    };
+    if free != BTreeSet::from([focus_name.trim_start_matches('?').to_owned()]) {
+        return Err(RcViolationGap::UnsupportedExistentialCorrelation);
+    }
+    let (mut body, term_identities) = GuardLowering::new(&constraint.integrity).lower(formula)?;
+    if !positive_binding(&body, focus) {
+        return Err(RcViolationGap::UnsafeFocusVariable);
+    }
+    for test in &term_identities {
+        for operand in [&test.left, &test.right] {
+            if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
+                return Err(RcViolationGap::UnsafeEqualityVariable);
+            }
+        }
+    }
+    body.sort_unstable();
+    body.dedup();
+    let key = crate::ir::atomic::frame(
+        "constraint-satisfaction-v1",
+        [
+            constraint.iri.clone(),
+            format!("{}:{}:{}", position[0], position[1], position[2]),
+            formula.content_key().as_str().to_owned(),
+        ],
+    );
+    Ok(Some(RcExistentialSupport {
+        predicate: format!("{CONSTRAINT_SUPPORT_NAMESPACE}{}", sha256_hex(&key)),
+        body,
+        term_identities,
+        subject: focus.clone(),
+    }))
+}
+
+/// Every existential in the selected law must be fresh, including enclosing guards.
+/// This shares the source-name census and binder admission with native collectors.
+fn admit_joined_profile_binders(root: &Formula, formula: &Formula) -> Result<(), RcViolationGap> {
+    match formula {
+        Formula::Exists { vars, body } => {
+            let mut enclosing = BTreeSet::new();
+            collect_names(root, &mut enclosing, Some(formula));
+            let mut occupied: BTreeSet<String> = enclosing
+                .into_iter()
+                .map(|name| name.trim_start_matches('?').to_owned())
+                .collect();
+            bind_violation_existentials(vars, &mut occupied)
+                .map_err(|_| RcViolationGap::UnsafeExistentialBinder)?;
+            admit_joined_profile_binders(root, body)
+        }
+        Formula::Forall { body, .. } | Formula::Not(body) => {
+            admit_joined_profile_binders(root, body)
+        }
+        Formula::And(parts) | Formula::Or(parts) => {
+            for part in parts {
+                admit_joined_profile_binders(root, part)?;
+            }
+            Ok(())
+        }
+        Formula::Implies(left, right) | Formula::Iff(left, right) => {
+            admit_joined_profile_binders(root, left)?;
+            admit_joined_profile_binders(root, right)
+        }
+        Formula::Atom { .. } => Ok(()),
+    }
+}
+
+/// This support lane has positive stored binary joins and bound identity filters only.
+fn positive_existential_pattern(formula: &Formula) -> Result<(), RcViolationGap> {
+    if term_identity_literal(formula)?.is_some() {
+        return Ok(());
+    }
+    match formula {
+        Formula::Exists { body, .. } => positive_existential_pattern(body),
+        Formula::And(parts) if !parts.is_empty() => {
+            for part in parts {
+                positive_existential_pattern(part)?;
+            }
+            Ok(())
+        }
+        Formula::Atom {
+            relation: Term::Iri(relation),
+            args,
+        } if args.len() == 2 => {
+            if crate::datalog::is_interpreted(relation) {
+                return Err(RcViolationGap::UnsupportedConsequent);
+            }
+            Ok(())
+        }
+        _ => Err(RcViolationGap::UnsupportedConsequent),
+    }
+}
+
 /// Shared body lowering enforces positive binding in every admitted branch/scope.
 fn lower_violation_bodies(
     constraint: &ConstraintIr,
@@ -977,6 +1149,11 @@ fn lower_violation_bodies(
     let Formula::Implies(antecedent, consequent) = body.as_ref() else {
         return Err(RcViolationGap::NotUniversalImplication);
     };
+    if contains_component_identity(&constraint.integrity)
+        && contains_positive_existential_join(consequent)
+    {
+        admit_joined_profile_binders(&constraint.integrity, &constraint.integrity)?;
+    }
     if let Formula::Atom {
         relation: Term::Iri(rel),
         ..
@@ -1007,8 +1184,11 @@ fn lower_violation_bodies(
         &mut cons_conjuncts,
     )?;
     let mut out = Vec::with_capacity(cons_conjuncts.len());
-    for (guards, universals, consequent) in cons_conjuncts {
-        for conjuncts in violation_branches(consequent)? {
+    for (consequent_index, (guards, universals, consequent)) in
+        cons_conjuncts.into_iter().enumerate()
+    {
+        for (branch_index, conjuncts) in violation_branches(consequent)?.into_iter().enumerate() {
+            let mut supports = Vec::new();
             let mut body = ante_atoms.clone();
             let mut term_identities = ante_identities.clone();
             for guard in &guards {
@@ -1027,7 +1207,7 @@ fn lower_violation_bodies(
                     }
                 }
             }
-            for conjunct in conjuncts {
+            for (literal_index, conjunct) in conjuncts.into_iter().enumerate() {
                 if let Formula::Atom {
                     relation: Term::Iri(relation),
                     ..
@@ -1036,7 +1216,20 @@ fn lower_violation_bodies(
                 {
                     return Err(RcViolationGap::BuiltinBoundConsequent);
                 }
-                if let Some(mut test) = term_identity_literal(conjunct)? {
+                if let Some(support) = lower_existential_join(
+                    conjunct,
+                    constraint,
+                    &subject,
+                    [consequent_index, branch_index, literal_index],
+                )? {
+                    body.push(RcAtom {
+                        subject: subject.clone(),
+                        predicate: support.predicate.clone(),
+                        object: RcTerm::Iri(constraint.iri.clone()),
+                        negated: true,
+                    });
+                    supports.push(support);
+                } else if let Some(mut test) = term_identity_literal(conjunct)? {
                     test.expected = !test.expected;
                     term_identities.push(test);
                 } else if let Some(test) = term_kind_consequent(conjunct)? {
@@ -1122,6 +1315,7 @@ fn lower_violation_bodies(
             body.sort_unstable();
             body.dedup();
             out.push(RcViolationBody {
+                supports,
                 body,
                 term_kinds,
                 term_equalities,
@@ -1202,7 +1396,10 @@ fn comparison_consequent(
 }
 
 /// Reserve every authored variable and binder before inventing fresh names.
-fn collect_names(formula: &Formula, names: &mut BTreeSet<String>) {
+fn collect_names(formula: &Formula, names: &mut BTreeSet<String>, excluded: Option<&Formula>) {
+    if excluded.is_some_and(|excluded| std::ptr::eq(formula, excluded)) {
+        return;
+    }
     match formula {
         Formula::Atom { relation, args } => {
             collect_term_names(relation, names);
@@ -1212,17 +1409,17 @@ fn collect_names(formula: &Formula, names: &mut BTreeSet<String>) {
         }
         Formula::Exists { vars, body } | Formula::Forall { vars, body } => {
             names.extend(vars.iter().map(|name| format!("?{name}")));
-            collect_names(body, names);
+            collect_names(body, names, excluded);
         }
         Formula::And(parts) | Formula::Or(parts) => {
             for part in parts {
-                collect_names(part, names);
+                collect_names(part, names, excluded);
             }
         }
-        Formula::Not(body) => collect_names(body, names),
+        Formula::Not(body) => collect_names(body, names, excluded),
         Formula::Implies(left, right) | Formula::Iff(left, right) => {
-            collect_names(left, names);
-            collect_names(right, names);
+            collect_names(left, names, excluded);
+            collect_names(right, names, excluded);
         }
     }
 }
@@ -1270,7 +1467,7 @@ struct GuardLowering {
 impl GuardLowering {
     fn new(integrity: &Formula) -> Self {
         let mut used = BTreeSet::new();
-        collect_names(integrity, &mut used);
+        collect_names(integrity, &mut used, None);
         Self {
             used,
             scope: Vec::new(),
@@ -1748,6 +1945,9 @@ fn formula_atom_to_rc_atoms(
     let Term::Iri(rel) = relation else {
         return Err("non-IRI relation in atom");
     };
+    if rel.starts_with(CONSTRAINT_SUPPORT_NAMESPACE) {
+        return Err("compiler-private constraint support predicates cannot be authored");
+    }
     if rel == &format!("{LOGIC_NAMESPACE}termSameComponent") {
         return Err("component identity is supported only as a bound integrity filter");
     }

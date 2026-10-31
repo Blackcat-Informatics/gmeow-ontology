@@ -577,3 +577,31 @@ respectively, as first-class operations on the running solver.
 
 *Engines and tools named here — oxigraph, ProbLog, EYE/cwm — are
 listed in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).*
+
+## Private satisfaction support for integrity joins
+
+A component-identity-bearing law selects the bounded joined-support profile.
+Its focus-correlated positive existential conjunction uses the existing native
+rule evaluator in two strata: positive support joins first, then the final
+violation rule's negated satisfaction probe. Laws without component identity
+retain their existing native residue and SPARQL projection behavior. Bound component
+identity filters keep their ordinary body truth in the support rules. The
+support predicate and rule identity include the source law, formula position
+and typed pattern; they identify compiler preparation rather than a fabricated
+domain witness. The authored law remains the failure provenance.
+
+The prepared violation publication stores final `rules` and private
+`support_rules` separately. Law counts and the final marker collision invariant
+read only `rules`; dependency selection and executable preparation read both.
+Both fields are mandatory in prepared gate schema version two. A missing field
+or old schema fails hydration or source-identity admission rather than silently
+omitting support. The schema change does not authorize a consumer to rebuild
+its own fixtures or replace producer-selected evidence.
+
+The gate rejects the reserved `urn:gmeow:private:constraint-satisfied:` predicate
+namespace in incoming assertions and the preexisting derived closure before
+filtering or promotion. Only rules created for the current transient gate may
+produce those satisfaction facts. Operator-facing findings continue to select
+`logic:violatedLaw`, preserving the exact authored failure-class association.
+The [validation design](LOGIC-VALIDATION.md#positive-existential-integrity-joins)
+states the supported focus correlation, positive binding and fresh-name boundary.

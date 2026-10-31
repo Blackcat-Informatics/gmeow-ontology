@@ -153,6 +153,8 @@ impl ToJson for RcViolationGap {
             Self::UnsafeTermKindVariable => "UnsafeTermKindVariable",
             Self::UnsafeEqualityVariable => "UnsafeEqualityVariable",
             Self::UnsafeUniversalVariable => "UnsafeUniversalVariable",
+            Self::UnsupportedExistentialCorrelation => "UnsupportedExistentialCorrelation",
+            Self::UnsafeExistentialBinder => "UnsafeExistentialBinder",
         }
         .to_json()
     }
@@ -169,6 +171,8 @@ impl FromJson for RcViolationGap {
             "UnsafeTermKindVariable" => Ok(Self::UnsafeTermKindVariable),
             "UnsafeEqualityVariable" => Ok(Self::UnsafeEqualityVariable),
             "UnsafeUniversalVariable" => Ok(Self::UnsafeUniversalVariable),
+            "UnsupportedExistentialCorrelation" => Ok(Self::UnsupportedExistentialCorrelation),
+            "UnsafeExistentialBinder" => Ok(Self::UnsafeExistentialBinder),
             name => Err(DecodeError::unknown_variant(
                 name,
                 &[
@@ -181,6 +185,8 @@ impl FromJson for RcViolationGap {
                     "UnsafeTermKindVariable",
                     "UnsafeEqualityVariable",
                     "UnsafeUniversalVariable",
+                    "UnsupportedExistentialCorrelation",
+                    "UnsafeExistentialBinder",
                 ],
             )),
         }

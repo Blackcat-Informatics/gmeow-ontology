@@ -23,6 +23,20 @@ impl ViolationLowering {
                         .collect::<gmeow_errors::Result<Vec<_>>>()?,
                 ),
             )
+            .with(
+                "support_rules",
+                Value::Array(
+                    self.support_rules
+                        .iter()
+                        .enumerate()
+                        .map(|(index, rule)| {
+                            rule.json_value().map_err(|error| {
+                                error.with_context(format!("support_rules[{index}]"))
+                            })
+                        })
+                        .collect::<gmeow_errors::Result<Vec<_>>>()?,
+                ),
+            )
             .with("residue", self.residue.to_json())
             .with("failure_classes", self.failure_classes.to_json())
             .into())
@@ -33,6 +47,7 @@ impl FromJson for ViolationLowering {
         let mut fields = Record::new(value, "struct ViolationLowering")?;
         Ok(Self {
             rules: fields.required("rules")?,
+            support_rules: fields.required("support_rules")?,
             residue: fields.required("residue")?,
             failure_classes: fields.required("failure_classes")?,
         })
