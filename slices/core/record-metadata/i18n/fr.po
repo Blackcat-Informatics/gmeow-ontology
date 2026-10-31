@@ -9,6 +9,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label as written"
+msgstr "étiquette de facette telle qu’écrite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."
+msgstr "Formulation d’une étiquette de facette fournie par la source, conservée à côté de sa clé machine ou de son chemin relatif. Le littéral préserve sa forme lexicale ainsi que toute langue et direction fournies ; une langue ou une direction non précisée reste non précisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's label wording independently of the facet's required key or path."
+msgstr "Utiliser pour conserver la formulation de l’étiquette source indépendamment de la clé ou du chemin requis de la facette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."
+msgstr "Éviter de remplacer facetLabel, de traiter la formulation de l’étiquette comme une charge facetText, de normaliser les espaces ou d’inventer une clé token à partir de la formulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."
+msgstr "Conserver chaque littéral d’étiquette fourni avec sa forme lexicale, sa langue et sa direction d’origine. Garder facetLabel séparément et utiliser la provenance des assertions pour les formulations attribuées indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."
+msgstr "Facultative et non fonctionnelle : plusieurs formulations d’étiquette fournies peuvent coexister. Cette propriété ne spécialise ni facetLabel ni facetText, ne fournit aucune clé ou charge manquante et ne choisit aucune formulation préférée ni ne déduit d’identité de vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."
+msgstr "Une facette peut conserver la formulation de l’étiquette source séparément de sa clé machine requise et de sa charge textuelle ou typée."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "recorded at"
 msgstr "enregistré à"
@@ -182,8 +210,8 @@ msgid "facet label"
 msgstr "étiquette de facette"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The verbatim source key or producer-supplied relative path labelling a facet. Case, spacing and punctuation are retained as xsd:string; no token whitespace normalization or path grammar is implied."
-msgstr "Clé source ou chemin relatif fourni par le producteur qui étiquette une facette, conservé textuellement. La casse, les espaces et la ponctuation sont conservés comme xsd:string ; aucune normalisation des espaces de type token ni grammaire de chemin n’est impliquée."
+msgid "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."
+msgstr "La clé source verbatim ou le chemin relatif fourni par le producteur qui étiquette une facette. Conserver le type xsd:string ou xsd:token fourni, la casse, les espaces et la ponctuation ; aucune normalisation des espaces ni grammaire de chemin n’est impliquée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for the exact run-time field name, including labels such as mood.tone or refs[]."
@@ -194,8 +222,8 @@ msgid "Avoid putting this label into a predicate IRI or deriving facet identity 
 msgstr "Éviter de placer cette étiquette dans une IRI de prédicat ou d’en déduire l’identité de la facette."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Supply exactly one string per facet; keep repeated keys on distinct position-named facets."
-msgstr "Fournir exactement une chaîne par facette ; conserver les clés répétées sur des facettes distinctes nommées par position."
+msgid "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."
+msgstr "Fournir exactement un littéral source par facette en conservant son type xsd:string ou xsd:token ; garder les clés répétées sur des facettes distinctes nommées par position."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
@@ -588,8 +616,8 @@ msgid "The exact producer field name, relative path or term spelling identifying
 msgstr "Nom de champ, chemin relatif ou graphie de terme exact du producteur identifiant une occurrence refusée. Spécialise facetLabel sans imposer une syntaxe de chemin universelle."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The field label is content, not a new predicate or a resolver instruction."
-msgstr "L’étiquette de champ est du contenu, non un nouveau prédicat ni une instruction de résolution."
+msgid "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Le libellé du champ est un contenu, pas un nouveau prédicat ni une instruction de résolution. Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:badDate gmeow:malformedField \"history[0].date\" ."
@@ -832,3 +860,11 @@ msgstr "La propriété n’a ni domaine ni superpropriété description et n’e
 msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
 msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
 msgstr "Un événement conserve sa raison déclarée : ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
+msgstr "Fournir un xsd:string ou un xsd:token explicitement fourni sur chaque MalformedValue ; conserver le type source, les espaces, la casse et la ponctuation."

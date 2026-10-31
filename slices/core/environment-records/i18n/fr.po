@@ -6014,3 +6014,11 @@ msgstr "Par exemple : ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tag
 msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A tagDreamEligible assertion classifies an actual WorldAffordance catalog record. It preserves reported dream eligibility without granting permission or proving tool effects."
 msgstr "Une assertion tagDreamEligible classe un enregistrement réel WorldAffordance. Elle conserve l’admissibilité en rêve rapportée sans autoriser ni prouver les effets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerHandle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."

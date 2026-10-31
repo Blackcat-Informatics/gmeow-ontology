@@ -50,14 +50,15 @@ gmeow:guidanceScale
 gmeow:samplerName
     a logic:DatatypeProperty ;
     logic:domain gmeow:ModelInvocation ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/generation-settings> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "sampler name"@x-gmeow-english ;
     skos:definition "The exact sampler name supplied by the engine for one generative model invocation, retained verbatim as a string including its whitespace."@x-gmeow-english ;
     gmeow:useWhen "Retain the engine’s exact sampler designation for this run."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming the model itself or normalizing case, spacing or punctuation in the engine’s name."@x-gmeow-english ;
-    gmeow:howToUse "Assert samplerName on the ModelInvocation using an xsd:string literal."@x-gmeow-english ;
+    gmeow:howToUse "Assert samplerName on the ModelInvocation using the supplied xsd:string or xsd:token literal."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."@x-gmeow-english .
 
 gmeow:ModelMode
@@ -134,5 +135,5 @@ gmeow:ModelInvocation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:generationSeed ; logic:allValuesFrom xsd:integer ],
     [ a logic:Restriction ; logic:onProperty gmeow:generationSteps ; logic:allValuesFrom xsd:nonNegativeInteger ],
     [ a logic:Restriction ; logic:onProperty gmeow:guidanceScale ; logic:allValuesFrom xsd:decimal ],
-    [ a logic:Restriction ; logic:onProperty gmeow:samplerName ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:samplerName ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:modelMode ; logic:allValuesFrom gmeow:ModelMode ] .

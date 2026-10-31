@@ -15,8 +15,9 @@ new integrity-ledger records. Existing invocations gain no additional mandatory
 paths. Datatype ranges retain integer seeds, nonnegative configured steps and
 decimal classifier-free guidance without inventing engine-independent bounds.
 
-The exact sampler designation is an `xsd:string`. A token datatype would
-normalize whitespace, losing part of the supplied name. There is no closed
+The exact sampler designation admits `xsd:string` and explicitly supplied
+`xsd:token` through a canonical datatype union. Keep its supplied datatype and
+lexical form; converting a string to token could lose source whitespace. There is no closed
 sampler registry or speculative alignment to an external execution vocabulary:
 the supplied name alone does not establish an external sampler identity.
 

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -80,7 +81,7 @@ gmeow:LabelledFacet
     gmeow:howToUse "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."@x-gmeow-english ;
     skos:example "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
-        [ a logic:Restriction ; logic:onProperty gmeow:facetLabel ; logic:allValuesFrom xsd:string ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetLabel ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
         [ a logic:Restriction ; logic:onProperty gmeow:facetText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
         [ a logic:Restriction ; logic:onProperty gmeow:facetValue ; logic:allValuesFrom rdfs:Literal ] .
 
@@ -101,13 +102,32 @@ gmeow:facetLabel
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "facet label"@x-gmeow-english ;
-    skos:definition "The verbatim source key or producer-supplied relative path labelling a facet. Case, spacing and punctuation are retained as xsd:string; no token whitespace normalization or path grammar is implied."@x-gmeow-english ;
+    skos:definition "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."@x-gmeow-english ;
     gmeow:useWhen "Use for the exact run-time field name, including labels such as mood.tone or refs[]."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid putting this label into a predicate IRI or deriving facet identity from it."@x-gmeow-english ;
-    gmeow:howToUse "Supply exactly one string per facet; keep repeated keys on distinct position-named facets."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:facet0 gmeow:facetLabel \"mood.tone\" ."@x-gmeow-english ;
     logic:domain gmeow:LabelledFacet ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+gmeow:facetLabelAsWritten
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet label as written"@x-gmeow-english ;
+    skos:definition "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source's label wording independently of the facet's required key or path."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."@x-gmeow-english ;
+    skos:example "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:LabelledFacet logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:facetLabelAsWritten ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 
 gmeow:facetText
     a logic:DatatypeProperty ;
@@ -387,10 +407,10 @@ gmeow:malformedField
     skos:definition "The exact producer field name, relative path or term spelling identifying a rejected field occurrence. It specializes facetLabel without imposing a universal path syntax."@x-gmeow-english ;
     gmeow:useWhen "Use to retain where the producer supplied a refused value."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid token normalization or interpreting path punctuation without the producer's contract."@x-gmeow-english ;
-    gmeow:howToUse "Supply one xsd:string on each MalformedValue; preserve spacing, case and punctuation."@x-gmeow-english ;
-    skos:scopeNote "The field label is content, not a new predicate or a resolver instruction."@x-gmeow-english ;
+    gmeow:howToUse "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."@x-gmeow-english ;
+    skos:scopeNote "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:badDate gmeow:malformedField \"history[0].date\" ."@x-gmeow-english ;
-    logic:domain gmeow:MalformedValue ; logic:range xsd:string ; logic:subPropertyOf gmeow:facetLabel .
+    logic:domain gmeow:MalformedValue ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ; logic:subPropertyOf gmeow:facetLabel .
 
 gmeow:valueAsSent
     a logic:DatatypeProperty ;
@@ -564,8 +584,8 @@ gmeow:SuppressionReasonBindingConstraint
 
 
 gmeow:MalformedValue logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:MalformedValue ; logic:closureKey "https://blackcatinformatics.ca/gmeow/malformedField" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:MalformedValue logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:valueAsSent ; logic:allValuesFrom xsd:string ] ,

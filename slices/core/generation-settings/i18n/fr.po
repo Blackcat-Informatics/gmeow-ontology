@@ -98,8 +98,8 @@ msgid "Avoid naming the model itself or normalizing case, spacing or punctuation
 msgstr "Éviter de nommer le modèle lui-même ou de normaliser la casse, les espaces ou la ponctuation du nom du moteur."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Assert samplerName on the ModelInvocation using an xsd:string literal."
-msgstr "Renseigner samplerName sur le ModelInvocation avec un littéral xsd:string."
+msgid "Assert samplerName on the ModelInvocation using the supplied xsd:string or xsd:token literal."
+msgstr "Déclarer samplerName sur le ModelInvocation avec le littéral xsd:string ou xsd:token fourni."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#example"
 msgid "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."
@@ -264,3 +264,7 @@ msgstr "Module GMEOW des réglages de génération"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Agent memory adapters and generation archives retaining per-run parameters and requested profiles with existing invocation provenance."
 msgstr "Adaptateurs de mémoire d’agent et archives de génération conservant les paramètres de chaque exécution et les profils demandés avec la provenance existante des appels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."

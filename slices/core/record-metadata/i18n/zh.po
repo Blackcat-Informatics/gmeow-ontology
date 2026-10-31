@@ -9,6 +9,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label as written"
+msgstr "按原样书写的分面标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."
+msgstr "来源提供的分面标签措辞，与其机器键或相对路径并列保留。字面量保留其词法形式及来源提供的语言和方向；未指定的语言或方向仍保持未指定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's label wording independently of the facet's required key or path."
+msgstr "用于独立于分面必需的键或路径保留来源的标签措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."
+msgstr "避免替代 facetLabel、把标签措辞当作 facetText 载荷、规范化空白，或根据措辞臆造 token 键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."
+msgstr "保留每个来源提供的标签字面量及其原始词法形式、语言和方向。单独保留 facetLabel，并通过语句溯源记录分别归属的措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."
+msgstr "可选且非函数性：多个来源提供的标签措辞可以共存。此属性既不特化 facetLabel，也不特化 facetText，不补造缺失的键或载荷，也不选择优先措辞或推断词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."
+msgstr "分面可以单独保留来源的标签措辞，而不混同于其必需的机器键及文本或类型化载荷。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "recorded at"
 msgstr "记录于"
@@ -182,8 +210,8 @@ msgid "facet label"
 msgstr "分面标签"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The verbatim source key or producer-supplied relative path labelling a facet. Case, spacing and punctuation are retained as xsd:string; no token whitespace normalization or path grammar is implied."
-msgstr "分面的原样来源键或生产者提供的相对路径标签。大小写、空格及标点以 xsd:string 保留；不隐含 token 空白规范化或路径语法。"
+msgid "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."
+msgstr "标记分面的原样源键或生产者提供的相对路径。保留所提供的 xsd:string 或 xsd:token 数据类型、大小写、空白和标点；不隐含空白规范化或路径语法。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for the exact run-time field name, including labels such as mood.tone or refs[]."
@@ -194,8 +222,8 @@ msgid "Avoid putting this label into a predicate IRI or deriving facet identity 
 msgstr "避免把此标签放进谓词 IRI 或从标签导出分面身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Supply exactly one string per facet; keep repeated keys on distinct position-named facets."
-msgstr "每个分面提供且仅提供一个字符串；重复键保留在按位置命名的不同分面上。"
+msgid "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."
+msgstr "每个分面提供恰好一个源字面量，保留其 xsd:string 或 xsd:token 数据类型；重复键保留在按位置命名的不同分面上。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
@@ -588,8 +616,8 @@ msgid "The exact producer field name, relative path or term spelling identifying
 msgstr "标识被拒字段出现的生产者原始字段名、相对路径或术语拼写。它特化 facetLabel，不规定通用路径语法。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The field label is content, not a new predicate or a resolver instruction."
-msgstr "字段标签是内容，不是新谓词或解析指令。"
+msgid "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "字段标签是内容，不是新谓词或解析指令。保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:badDate gmeow:malformedField \"history[0].date\" ."
@@ -832,3 +860,11 @@ msgstr "该属性没有定义域或 description 上位属性，且非函数性�
 msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
 msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
 msgstr "事件保留所述理由：ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
+msgstr "在每个 MalformedValue 上提供一个 xsd:string 或明确提供的 xsd:token；保留源数据类型、空白、大小写和标点。"

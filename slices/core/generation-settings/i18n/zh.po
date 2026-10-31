@@ -98,8 +98,8 @@ msgid "Avoid naming the model itself or normalizing case, spacing or punctuation
 msgstr "避免用于命名模型本身，也避免规范化引擎名称中的大小写、空白或标点。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Assert samplerName on the ModelInvocation using an xsd:string literal."
-msgstr "在 ModelInvocation 上使用 xsd:string 字面量声明 samplerName。"
+msgid "Assert samplerName on the ModelInvocation using the supplied xsd:string or xsd:token literal."
+msgstr "在 ModelInvocation 上以所提供的 xsd:string 或 xsd:token 字面量声明 samplerName。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#example"
 msgid "Record this setting: ex:run gmeow:samplerName \"Euler  ancestral\" ."
@@ -264,3 +264,7 @@ msgstr "GMEOW 生成设置模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/generation-settings|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Agent memory adapters and generation archives retaining per-run parameters and requested profiles with existing invocation provenance."
 msgstr "通过现有调用溯源保留每次运行参数和请求配置的智能体记忆适配器及生成档案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/samplerName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"

@@ -6014,3 +6014,11 @@ msgstr "例如：ex:action a gmeow:WorldAffordance ; gmeow:hasTag gmeow:tagDream
 msgctxt "https://blackcatinformatics.ca/gmeow/DreamEligibleAffordanceTagConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "A tagDreamEligible assertion classifies an actual WorldAffordance catalog record. It preserves reported dream eligibility without granting permission or proving tool effects."
 msgstr "tagDreamEligible 断言分类实际 WorldAffordance 目录记录，保留所报告梦境可用性，不授予许可或证明工具效果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/providerHandle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"

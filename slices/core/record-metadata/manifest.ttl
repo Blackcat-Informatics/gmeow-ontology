@@ -19,6 +19,7 @@
     gmeow:sliceConsumer "Record stores, structured-content importers and context-exposure audits that need domain-independent metadata without inventing predicates from run-time keys."@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+        <https://blackcatinformatics.ca/gmeow/slices/lang>,
         <https://blackcatinformatics.ca/gmeow/slices/entities>,
         <https://blackcatinformatics.ca/gmeow/slices/names>,
         <https://blackcatinformatics.ca/gmeow/slices/provenance>,
