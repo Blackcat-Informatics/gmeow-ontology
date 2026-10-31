@@ -107,7 +107,7 @@ gmeow:findingCode
     gmeow:avoidWhen "Avoid placing the human message, a translated label or a run-specific value in the finding code. Keep explanation in findingMessage and do not change the code to force a catalog match."@x-gmeow-english ;
     skos:scopeNote "Catalog resolution compares the lexical spelling of findingCode with ruleCode. That application lookup does not assert RDF same-term equality between different datatypes. Do not normalize whitespace, infer token typing or stack a second typed code. This declaration installs no token lexical checker."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and at-most-one obligations across the admitted union; they add no explicit closed-world missing-path check."@x-gmeow-english ;
+    gmeow:howToUse "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and qualified-cardinality obligations, minimum one and maximum one across the admitted union; they add no explicit closed-world missing-path check."@x-gmeow-english ;
     gmeow:useWhen "Use to retain the stable rule key on a finding so consumers can resolve catalog guidance and group diagnostic occurrences."@x-gmeow-english .
 
 gmeow:findingHelpUri
@@ -1391,7 +1391,7 @@ gmeow:CrossNodeGlutWitness logic:subClassOf
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/findingCode> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
+gmeow:Finding logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:findingCode ; logic:minQualifiedCardinality "1"^^xsd:integer ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 <https://blackcatinformatics.ca/gmeow/Finding> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/findingMessage> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 <https://blackcatinformatics.ca/gmeow/CrossNodeGlutWitness> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/glutWitnessOf> ; logic:minQualifiedCardinality "2"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass logic:Thing ] .
 

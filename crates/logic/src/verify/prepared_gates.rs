@@ -90,7 +90,7 @@ impl PreparedReasonedGates {
             }
         }
         let prepared = Self {
-            schema_version: 1,
+            schema_version: 2,
             source_digests: BTreeMap::from([
                 (GATE_SOURCES[0].0.to_owned(), math_digest.to_owned()),
                 (GATE_SOURCES[1].0.to_owned(), logic_digest.to_owned()),
@@ -131,7 +131,7 @@ impl PreparedReasonedGates {
     /// # Errors
     /// Rejects unknown record schemas or preparation from different source bytes.
     pub fn validate_source_identity(&self) -> gmeow_errors::Result<()> {
-        if self.schema_version != 1 || self.source_digests != embedded_source_digests() {
+        if self.schema_version != 2 || self.source_digests != embedded_source_digests() {
             return Err(fail(
                 "prepared verify gates differ from this executable's authored source identities",
             ));

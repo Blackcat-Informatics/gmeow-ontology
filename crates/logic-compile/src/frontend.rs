@@ -884,33 +884,22 @@ fn extract_axioms(
         );
     }
 
-    // Class-expression restrictions authored in logic: (`C logic:subClassOf
-    // [ a logic:Restriction ; logic:onProperty P ; logic:someValuesFrom D ]`) lift
-    // through the SAME skolemizer the owl: adapter uses, so an owl:-authored and a
-    // logic:-authored restriction normalize to identical skolem-keyed axioms (the
-    // isomorphism gate).  The node set drives the skip filter below so the blank
-    // restriction node's internals never leak as blank-labelled axioms — the load-
-    // bearing ordering: skolemize FIRST, then skip restriction-internal triples.
-    //
-    // `anchored` holds the nodes whose skolemizer re-emits their own `subClassOf` /
-    // `equivalentClass` anchor edges. `skolems` maps every lifted blank node to its
-    // content-addressed IRI: anonymous boolean class expressions and n-ary axiom
-    // resources (`[ logic:unionOf ( … ) ]`, `[ a logic:AllDisjointClasses ; logic:members
-    // ( … ) ]`) are lifted after the restriction/datarange/enumeration nodes they may
-    // contain, and every edge or list member naming an anonymous node is redirected to it.
+    // Lift anonymous dependencies through one shared owner map. Restriction keys
+    // include the final filler identities; no parse-local blank label may enter
+    // them. Retry only pending nodes, retaining diagnostics only at the fixed point.
     let logic_vocab = restriction::RestrictionVocab::logic();
-    let mut anchored = restriction::restriction_node_labels(store, &logic_vocab);
+    let mut pending_restrictions: BTreeMap<String, Subject> =
+        restriction::restriction_nodes(store, &logic_vocab)
+            .into_iter()
+            .map(|node| (subject_str(&node), node))
+            .collect();
+    let mut anchored: BTreeSet<String> = pending_restrictions.keys().cloned().collect();
     anchored.extend(restriction::enumeration_node_labels(store, &logic_vocab));
     anchored.extend(restriction::datarange_node_labels(store, &logic_vocab));
     let mut skolems: BTreeMap<String, String> = BTreeMap::new();
+    // Enumerations and facet dataranges retain their existing admitted boundaries.
     let mut lifted_class_exprs =
-        restriction::skolemize_restrictions(store, &logic_vocab, diagnostics, &mut skolems);
-    lifted_class_exprs.extend(restriction::skolemize_enumerations(
-        store,
-        &logic_vocab,
-        diagnostics,
-        &mut skolems,
-    ));
+        restriction::skolemize_enumerations(store, &logic_vocab, diagnostics, &mut skolems);
     lifted_class_exprs.extend(restriction::skolemize_dataranges(
         store,
         &logic_vocab,
@@ -918,12 +907,54 @@ fn extract_axioms(
         &mut skolems,
     ));
     let anonymous_owners = crate::lists::anonymous_owner_nodes(store, &anchored);
-    lifted_class_exprs.extend(crate::lists::skolemize_anonymous_owners(
-        store,
-        &anonymous_owners,
-        &mut skolems,
-        diagnostics,
-    ));
+    let mut pending_owners = anonymous_owners.clone();
+    loop {
+        let pending_before = pending_restrictions.len() + pending_owners.len();
+        let mut deferred_diagnostics = Vec::new();
+        let lifted_restrictions = restriction::skolemize_restrictions(
+            store,
+            &logic_vocab,
+            &pending_restrictions,
+            &mut deferred_diagnostics,
+            &mut skolems,
+        );
+        let resolved_sources: BTreeSet<_> = lifted_restrictions
+            .iter()
+            .map(|triple| triple.source.term)
+            .collect();
+        pending_restrictions.retain(|_, node| {
+            !resolved_sources.contains(&subject_id(store, node).expect("selected restriction root"))
+        });
+        lifted_class_exprs.extend(lifted_restrictions);
+        lifted_class_exprs.extend(crate::lists::skolemize_anonymous_owners(
+            store,
+            &pending_owners,
+            &mut skolems,
+            &mut deferred_diagnostics,
+        ));
+        pending_owners.retain(|label, _| !skolems.contains_key(label));
+        let pending_after = pending_restrictions.len() + pending_owners.len();
+        if pending_after == 0 {
+            break;
+        }
+        if pending_after == pending_before {
+            diagnostics.extend(deferred_diagnostics);
+            break;
+        }
+    }
+    // Failed owners are already diagnosed. Do not retain an anchor emitted by
+    // their successful child as a weaker, blank-labelled parent representation.
+    lifted_class_exprs.retain(|triple| {
+        !pending_restrictions.contains_key(&triple.subject)
+            && !pending_owners.contains_key(&triple.subject)
+    });
+    // Anchors can themselves be anonymous owners resolved in a later wave.
+    // Redirect them only after every ready dependency has obtained its identity.
+    for triple in &mut lifted_class_exprs {
+        if let Some(iri) = skolems.get(&triple.subject) {
+            triple.subject.clone_from(iri);
+        }
+    }
     let mut rnodes = anchored.clone();
     rnodes.extend(anonymous_owners.keys().cloned());
     // A content-addressed list cell is shared by every owner of the same list; it is
@@ -1385,7 +1416,7 @@ fn facet_class_of(store: &RdfDataset, value_iri: &str) -> Option<String> {
 
 /// The facet value-class a DIRECT facet property routes to, independent of the
 /// value individual's `rdf:type`.  This is the round-trip path: the
-/// canonical RDF12 projection emits facet selections as bare
+/// canonical RDF 1.2 projection emits facet selections as bare
 /// `logic:<facetProp> logic:<Value>` triples WITHOUT re-typing each value
 /// individual, so the parser routes by the property name itself.  `expandsToFacet`
 /// is intentionally absent — it carries mixed facet kinds and must route by the
@@ -1576,7 +1607,7 @@ fn extract_contracts(
 
                 // Direct facet properties + the expandsToFacet bundle. A DIRECT facet
                 // property (everything but expandsToFacet) routes by the PROPERTY name —
-                // so the rdf:type-less canonical RDF12 projection round-trips; the
+                // so the rdf:type-less canonical RDF 1.2 projection round-trips; the
                 // value's own facet-class rdf:type, when present, is used as a fallback /
                 // for expandsToFacet (which carries mixed facet kinds).
                 for prop_local in FACET_PROPERTIES {

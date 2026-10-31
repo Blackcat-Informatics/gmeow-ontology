@@ -236,7 +236,8 @@ fn admit_atom(atom: &LogicAxiom, input: DatalogInput) -> Result<()> {
     Ok(())
 }
 
-fn is_interpreted(predicate: &str) -> bool {
+/// Relations requiring interpreted execution rather than stored-tuple matching.
+pub(crate) fn is_interpreted(predicate: &str) -> bool {
     NumericOperator::from_iri(predicate).is_some()
         || TermKindPredicate::from_relation(predicate).is_some()
         || predicate

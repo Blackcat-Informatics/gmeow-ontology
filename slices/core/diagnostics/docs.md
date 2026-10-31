@@ -131,9 +131,9 @@ finding's `gmeow:vantage`.
 Each admits a verbatim `xsd:string` or an explicitly supplied `xsd:token`.
 Keep the supplied lexical form and datatype. Do not collapse whitespace, infer
 token typing, or translate a code or tool key as prose. This admission does not
-install a token lexical checker. Finding codes retain their existing existential and at-most-one obligations
-over the whole string/token union. These axioms add no explicit closed-world
-missing-path check; another
+install a token lexical checker. Finding codes retain their existing existential and qualified-cardinality
+obligations: minimum one and maximum one over the whole string/token union.
+These axioms add no explicit closed-world missing-path check. A different
 datatype spelling is not a reason to add a second code to the same finding.
 
 The native finding and constraint-catalog producers continue to emit their

@@ -206,12 +206,12 @@ msgid "Avoid placing the human message, a translated label or a run-specific val
 msgstr "不要把面向人的消息、翻译标签或特定运行值放入诊断代码。解释应置于 findingMessage，不要为强行匹配目录而修改代码。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and at-most-one obligations across the admitted union; they add no explicit closed-world missing-path check."
-msgstr "按提供形式完整保留诊断代码，包括其 xsd:string 或 xsd:token 数据类型。原生 Rust 诊断投影继续输出既有字符串。现有 Finding 公理保留允许类型并集上的存在性和至多一个值约束；它们不添加显式闭世界缺失路径检查。"
+msgid "Retain the finding code exactly as supplied, including its xsd:string or xsd:token datatype. Native Rust finding projections keep their existing string output. The existing Finding axioms retain their existential and qualified-cardinality obligations, minimum one and maximum one across the admitted union; they add no explicit closed-world missing-path check."
+msgstr "按提供形式完整保留诊断代码，包括其 xsd:string 或 xsd:token 数据类型。原生 Rust 诊断投影继续输出既有字符串。现有 Finding 公理保留允许类型并集上的存在性和限定基数约束，即最少一个值、最多一个值；它们不添加显式闭世界缺失路径检查。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Catalog resolution compares the lexical spelling of findingCode with ruleCode. That application lookup does not assert RDF same-term equality between different datatypes. Do not normalize whitespace, infer token typing or stack a second typed code. This declaration installs no token lexical checker."
-msgstr "目录解析比较 findingCode 与 ruleCode 的词法写法。这种应用查找不声称不同数据类型之间具有 RDF 同项标识。不要规范化空白、推断标记类型或叠加第二个带类型代码。此声明不安装标记词法检查器。"
+msgstr "目录解析比较 findingCode 与 ruleCode 的词法写法。这种应用查找不建立 RDF 同项关系；不同数据类型的字面量不是同一个 RDF 项。不要规范化空白、推断标记类型或叠加第二个带类型代码。此声明不安装标记词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ruleCode|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "rule code"
@@ -259,7 +259,7 @@ msgstr "保留所提供的工具键及其 xsd:string 或 xsd:token 数据类型�
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingTool|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Tool filtering uses the key’s lexical spelling; it does not equate RDF literals with different datatypes or identify an agent globally. Preserve case and whitespace without inferred token typing. This declaration supplies no token lexical checker and adds no required tool key."
-msgstr "工具筛选使用键的词法写法；它不等同不同数据类型的 RDF 字面量，也不在全局标识代理。保留大小写和空白，不推断标记类型。此声明不提供标记词法检查器，也不要求必须提供工具键。"
+msgstr "工具筛选使用键的词法写法；不同数据类型的 RDF 字面量不是同一个 RDF 项；这种筛选也不在全局标识代理。保留大小写和空白，不推断标记类型。此声明不提供标记词法检查器，也不要求必须提供工具键。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/findingCode|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."

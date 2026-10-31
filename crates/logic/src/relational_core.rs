@@ -324,6 +324,8 @@ pub(crate) struct ViolationLowering {
     /// The violation-emitting rules — one per consequent conjunct of every constraint
     /// that lowered — in canonical (constraint-IRI, conjunct-index) order.
     pub(crate) rules: Vec<EvalRule>,
+    /// Private positive satisfaction rules; never counted as final violation markers.
+    pub(crate) support_rules: Vec<EvalRule>,
     /// Every `logic:Constraint` this lowering declined, with the closed reason token.
     pub(crate) residue: Vec<RcViolationResidue>,
     /// Each compiled law's authored `gmeow:enforcesFailureClass`, keyed on the law's IRI.
@@ -400,8 +402,40 @@ pub(crate) fn lower_violation_rules(
         );
 
     let mut rules = Vec::with_capacity(rc_rules.len());
+    let mut support_rules = Vec::new();
     let mut failure_classes: BTreeMap<String, String> = BTreeMap::new();
     for rc in &rc_rules {
+        for support in &rc.supports {
+            support_rules.push(EvalRule {
+                numeric: Vec::new(),
+                head: EvalAtom {
+                    subject: rc_term_to_eval(&support.subject, false)?,
+                    predicate: support.predicate.clone(),
+                    object: EvalTerm::ConstNamed(rc.constraint_iri.clone()),
+                    negated: false,
+                },
+                body: support
+                    .body
+                    .iter()
+                    .map(rc_atom_to_eval)
+                    .collect::<gmeow_errors::Result<Vec<_>>>()?,
+                rule_iri: format!("{}/rule", support.predicate),
+                distinct_pairs: Vec::new(),
+                builtins: support
+                    .term_identities
+                    .iter()
+                    .map(|test| QBuiltin::TermIdentity {
+                        left: test.left.clone(),
+                        left_component: test.left_component,
+                        right: test.right.clone(),
+                        right_component: test.right_component,
+                        expected: test.expected,
+                    })
+                    .collect(),
+                reduction: None,
+                constraint_tag: Some(rc.constraint_iri.clone()),
+            });
+        }
         let body = rc
             .body
             .iter()
@@ -470,6 +504,7 @@ pub(crate) fn lower_violation_rules(
     reject_colliding_heads(&rules)?;
     Ok(ViolationLowering {
         rules,
+        support_rules,
         residue,
         failure_classes,
     })
