@@ -2435,3 +2435,21 @@ gmeow:eventTypeTraceDreamPhaseRoundCapReached
     gmeow:howToUse "Keep the source runtime phase context separate from dream content and classify only the reported cap occurrence."@x-gmeow-english ;
     skos:scopeNote "This shared runtime-report value creates no core dependency on the dreaming extension and executes no phase controller."@x-gmeow-english ;
     skos:example "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."@x-gmeow-english .
+
+# Source-attributed rationale and operation completion.
+
+gmeow:receiptOperationComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "receipt operation complete as reported"@x-gmeow-english ;
+    skos:definition "The producer-reported boolean that the operation represented by an ArtifactOperationReceipt completed or remained incomplete. It concerns that operation, independently of artifact content completeness, invocation outcome, goal satisfaction, receipt-document coverage and verification."@x-gmeow-english ;
+    gmeow:useWhen "Use only for an explicitly supplied operation-completion bit on the actual artifact-operation receipt occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting an absent bit to false or true, deriving it from errors or outcomes, or moving it onto the artifact or a proof receipt."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:boolean on ArtifactOperationReceipt with its actual receiptOperation, receiptArtifact and containing attempt or ToolCall. Attribute the exact boolean statement to its reporting source; retain readArtifact for an actual read."@x-gmeow-english ;
+    skos:scopeNote "The field is optional and nonfunctional: missing remains unknown and differently attributed true/false reports may coexist. A complete reported write can leave an unfinished artifact; neither value establishes success, rollback, read-back proof or complete receipt contents."@x-gmeow-english ;
+    skos:example "An operation report keeps the supplied bit: ex:receipt gmeow:receiptOperationComplete true ."@x-gmeow-english ;
+    logic:domain gmeow:ArtifactOperationReceipt ;
+    logic:range xsd:boolean .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/receiptOperationComplete" ; logic:closureValue logic:ClosedWorldClosure ] .

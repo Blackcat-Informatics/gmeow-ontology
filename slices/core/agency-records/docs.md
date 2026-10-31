@@ -99,9 +99,23 @@ whether a model invocation succeeded, whether an operation ran or whether a
 receipt account contains every detail.
 
 When a local `receiptComplete` field meant artifact completion, migrate its value
-to `artifactComplete` on the identified artifact or version. There is no canonical
-`receiptComplete` property here: the source requirement establishes an artifact
-bit, not a new receipt-completeness or operation-success capability.
+to `artifactComplete` on the identified artifact or version. When it meant that
+the producer reported its operation complete, use `receiptOperationComplete`
+on the actual `ArtifactOperationReceipt` occurrence. These are different claims;
+an ambiguous local name alone cannot select either meaning. Preserve the source
+account until its meaning is known.
+
+`receiptOperationComplete` is an optional, nonfunctional source boolean. The
+receipt still needs its actual operation, artifact and containing attempt or
+ToolCall; a read retains `readArtifact` for the same artifact. Do not invent
+those identities merely to place a bit. A plain document quoting a receipt is
+not automatically the operation Activity itself.
+
+Missing stays unknown. An error or outcome supplies neither false nor true,
+and differently attributed reports can coexist. True does not imply complete
+artifact content, successful execution, goal satisfaction, a held read-back
+verdict or a complete receipt account. A reported complete write can persist
+an unfinished draft; false does not prove rollback or absence of partial effects.
 
 `invocationOutcome` retains an explicit model-invocation result. The open vocabulary
 starts with succeeded and failed. `invocationError` preserves any supplied error
@@ -151,6 +165,10 @@ The [ordinary working scene](examples/attempt-and-readback.ttl) retains an open
 intention tenure, a budget pause, a prose resumption and a read-back of an unfinished
 draft. The [design rationale](design/AGENCY-RECORDS.md) describes its canonical
 obligations and source ownership.
+
+The [stated reasons and operation reports scene](examples/stated-reasons-and-operation-reports.ttl)
+also keeps general rationales on actual events and records, source-attributed
+true and false operation reports, an unfinished artifact and an absent bit.
 
 ## Retain a repair and an intention-directed witness
 

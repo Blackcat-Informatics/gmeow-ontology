@@ -4592,3 +4592,33 @@ msgstr "Cette valeur partagée de rapport d’exécution ne crée aucune dépend
 msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeTraceDreamPhaseRoundCapReached|http://www.w3.org/2004/02/skos/core#example"
 msgid "Classify this dream phase round cap trace: ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
 msgstr "Classifier l’occurrence « trace de plafond de tours de phase de rêve » : ex:dreamPhaseRoundCapReached gmeow:eventType gmeow:eventTypeTraceDreamPhaseRoundCapReached ."
+
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt operation complete as reported"
+msgstr "opération de reçu achevée selon le rapport"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer-reported boolean that the operation represented by an ArtifactOperationReceipt completed or remained incomplete. It concerns that operation, independently of artifact content completeness, invocation outcome, goal satisfaction, receipt-document coverage and verification."
+msgstr "Booléen rapporté par le producteur indiquant que l’opération représentée par un ArtifactOperationReceipt s’est achevée ou est restée incomplète. Il concerne cette opération, indépendamment de la complétude du contenu de l’artefact, de l’issue d’invocation, de la satisfaction du but, de la couverture du document de reçu et de la vérification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for an explicitly supplied operation-completion bit on the actual artifact-operation receipt occurrence."
+msgstr "À employer uniquement pour un indicateur explicite d’achèvement d’opération sur l’occurrence réelle du reçu d’opération d’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting an absent bit to false or true, deriving it from errors or outcomes, or moving it onto the artifact or a proof receipt."
+msgstr "Éviter de donner false ou true par défaut à un indicateur absent, de le déduire d’erreurs ou d’issues, ou de le déplacer sur l’artefact ou un reçu de preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:boolean on ArtifactOperationReceipt with its actual receiptOperation, receiptArtifact and containing attempt or ToolCall. Attribute the exact boolean statement to its reporting source; retain readArtifact for an actual read."
+msgstr "Conserver le xsd:boolean fourni sur ArtifactOperationReceipt avec ses receiptOperation, receiptArtifact et tentative ou ToolCall contenant réels. Attribuer l’énoncé booléen exact à sa source rapportante ; garder readArtifact pour une lecture réelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The field is optional and nonfunctional: missing remains unknown and differently attributed true/false reports may coexist. A complete reported write can leave an unfinished artifact; neither value establishes success, rollback, read-back proof or complete receipt contents."
+msgstr "Le champ est facultatif et non fonctionnel : l’absence reste inconnue et des rapports true/false attribués différemment peuvent coexister. Une écriture rapportée achevée peut laisser un artefact inachevé ; aucune valeur n’établit réussite, retour arrière, preuve de relecture ou contenu complet du reçu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptOperationComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "An operation report keeps the supplied bit: ex:receipt gmeow:receiptOperationComplete true ."
+msgstr "Un rapport d’opération conserve l’indicateur fourni : ex:receipt gmeow:receiptOperationComplete true ."

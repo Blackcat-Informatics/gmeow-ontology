@@ -466,8 +466,8 @@ msgid "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."
 msgstr "L’agent explique qu’il faut reprendre après la visite : `ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en .`"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."
-msgstr "Le texte avec langue et direction peut être conservé ; la justification n’est pas un fait vérifié indépendamment."
+msgid "Specializes statedRationale while retaining the AttentionResolution domain. Source wording keeps language and direction; the inferred general rationale is not a new source assertion or an independently verified cause."
+msgstr "Spécialise statedRationale en conservant le domaine AttentionResolution. La formulation source garde langue et direction ; la justification générale déduite n’est ni nouvelle assertion source ni cause vérifiée indépendamment."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/resolutionRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."
