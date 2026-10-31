@@ -16772,3 +16772,18 @@ gmeow:sha256Digest
     gmeow:howToUse "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."@x-gmeow-english ;
     skos:scopeNote "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."@x-gmeow-english ;
     skos:example "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."@x-gmeow-english .
+
+gmeow:md5Digest
+    a rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainMathematical ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:seeAlso math:Sequence ;
+    dcterms:source <https://www.rfc-editor.org/rfc/rfc1321> ;
+    rdfs:label "MD5 digest"@x-gmeow-english ;
+    skos:definition "An MD5 hash result as specified by RFC 1321, computed over the exact supplied input bytes. Its value pairs the MD5 algorithm identity with the ordered 16 digest bytes. The lexical form is exactly 32 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source-supplied MD5 digest without dropping its algorithm identity or relabeling it as another algorithm's result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring cryptographic security, artifact verification or digest equality across algorithms from this datatype. Do not relabel a scheme identifier as the digest of different artifact bytes."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the source's 32 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; domain-tag bytes remain part of the input when actually supplied."@x-gmeow-english ;
+    skos:scopeNote "RFC 1321 is an informational RFC from April 1992, not an Internet standard. This declaration installs no parser, computes no hash and verifies no artifact. Native RDF transport can retain the literal opaquely. Compare supplied literals by RDF sameTerm; no value-space equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."@x-gmeow-english ;
+    skos:example "A source-supplied MD5 digest retains its own algorithm identity beside separately supplied digests of the same artifact, without asserting that any digest was checked."@x-gmeow-english .

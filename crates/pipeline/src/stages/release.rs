@@ -53,6 +53,7 @@ pub use gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
 
 use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
+#[cfg(test)]
 const BLAKE3_256_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/blake3_256Digest";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
@@ -429,7 +430,7 @@ pub fn verify_release_bundle(
                 saw_manifest = true;
             }
         } else if q.predicate == content_digest_pred {
-            let RdfTerm::Literal(lit) = &q.object else {
+            let RdfTerm::Literal(_) = &q.object else {
                 return Err(Diag::of_kind(Release {
                     message: format!(
                         "release contentDigest on {} requires a typed BLAKE3-256 literal",
@@ -437,30 +438,16 @@ pub fn verify_release_bundle(
                     ),
                 }));
             };
-            if lit.datatype_iri() != BLAKE3_256_DIGEST
-                || lit.language.is_some()
-                || lit.direction.is_some()
-            {
+            let value = purrdf::TermValue::from_rdf_term(&q.object);
+            let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+            if algorithm != crate::projections::DigestAlgorithm::Blake3 {
                 return Err(Diag::of_kind(Release {
-                    message: format!(
-                        "release contentDigest on {} requires datatype <{BLAKE3_256_DIGEST}> \
-                         without language or direction",
-                        q.subject
-                    ),
-                }));
-            }
-            if !valid_blake3_hex(&lit.lexical_form) {
-                return Err(Diag::of_kind(Release {
-                    message: format!(
-                        "release contentDigest on {} requires exactly 64 lowercase \
-                         hexadecimal digits without a prefix",
-                        q.subject
-                    ),
+                    message: format!("release contentDigest on {} requires BLAKE3-256", q.subject),
                 }));
             }
             // The validated RDF literal names bytes; the blob channel retains its
             // existing prefixed internal address without changing its wire identity.
-            digests.push(format!("blake3:{}", lit.lexical_form));
+            digests.push(format!("blake3:{hex}"));
         }
     }
 
@@ -780,7 +767,8 @@ fn build_attestations_nquads(
             &gmeow("artifactMediaType"),
             &literal(&ev.media_type),
         );
-        let digest_literal = purrdf::RdfTerm::literal(artifact_digest_literal(digest)?);
+        let digest_literal =
+            purrdf::RdfTerm::literal(crate::projections::blake3_blob_literal(digest)?);
         quad(
             &artifact,
             &gmeow("contentDigest"),
@@ -833,31 +821,6 @@ fn build_attestations_nquads(
         lines.sort();
         Ok(format!("{}\n", lines.join("\n")))
     }
-}
-
-/// The lexical contract of the selected release digest datatype.
-fn valid_blake3_hex(lexical: &str) -> bool {
-    lexical.len() == 64
-        && lexical
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-}
-
-/// Convert an internally computed blob address to its native RDF digest literal.
-fn artifact_digest_literal(digest: &str) -> gmeow_errors::Result<purrdf::RdfLiteral> {
-    let Some(hex) = digest.strip_prefix("blake3:") else {
-        return Err(Diag::of_kind(Release {
-            message: "release evidence has no blake3: internal blob-address prefix".to_owned(),
-        }));
-    };
-    if !valid_blake3_hex(hex) {
-        return Err(Diag::of_kind(Release {
-            message:
-                "release evidence blob address requires exactly 64 lowercase hexadecimal digits"
-                    .to_owned(),
-        }));
-    }
-    Ok(purrdf::RdfLiteral::typed(hex, BLAKE3_256_DIGEST))
 }
 
 /// Resolve an evidence row's `attestation_type` into a full IRI. A value that is

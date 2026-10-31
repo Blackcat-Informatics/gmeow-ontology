@@ -30,7 +30,6 @@ use std::path::Path;
 
 use gmeow_errors::abox::{AboxObject, X_GMEOW_ENGLISH, abox_annotations};
 use gmeow_errors::render::nq_escape;
-use purrdf::slice::rdf_query::{Dataset, Object, Subject};
 use serde_json::Value;
 
 use crate::node::{Stage, StageInput, StageOutput, StageProduct};
@@ -253,65 +252,53 @@ fn py_float(x: f64) -> String {
 
 // ── Corpus + digest ────────────────────────────────────────────────────────────
 
-/// `_corpus_texts`: sourceLocation → (text, ONE declared digest) from the corpus
-/// manifest. rdflib's `graph.value` returns an arbitrary single `contentDigest`;
-/// we collect every declared digest and treat the source as digest-current iff
-/// the freshly-computed blake3 equals ANY declared one (an md5/sha256 declared
-/// digest can never equal the blake3 we compute, so this faithfully reproduces
-/// the Python outcome regardless of which single digest `value` happened to pick).
+/// Exact source texts and all admitted native digest declarations. Freshness
+/// compares the complete typed BLAKE3 literal against the exact UTF-8 bytes.
 struct CorpusDoc {
     text: String,
-    declared_digests: Vec<String>,
+    declared_digests: Vec<purrdf::TermValue>,
 }
 
-/// Render an object term the way oxigraph's `Term::to_string()` did for a
-/// non-literal location object (`<iri>` / `_:label`) — literals surface their
-/// lexical value directly. Faithfully reproduces the prior `other.to_string()`.
-fn object_location(object: &Object) -> String {
-    match object {
-        Object::Literal { value, .. } => value.clone(),
-        Object::Named(iri) => format!("<{iri}>"),
-        Object::Blank(label) => format!("_:{label}"),
-        Object::Triple(_) => String::new(),
-    }
-}
-
+/// Read complete native digest literals; their datatype is the algorithm identity.
 fn parse_corpus(
     path: &Path,
-) -> Result<BTreeMap<String, (String, Vec<String>)>, gmeow_errors::Diag> {
+) -> Result<BTreeMap<String, (String, Vec<purrdf::TermValue>)>, gmeow_errors::Diag> {
     let bytes = std::fs::read(path)?;
-    let dataset = Dataset::parse_turtle(&bytes, None, "corpus").map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: e.to_string(),
-        })
-    })?;
+    let dataset = purrdf::parse_dataset(&bytes, "text/turtle", None)?;
     let source_location = format!("{GM}sourceLocation");
     let content_digest = format!("{GM}contentDigest");
-
-    // subjects with a sourceLocation → location string. Collect the (subject, object)
-    // pairs first (any subject kind, named or blank) — the native query surfaces them
-    // through `for_each_quad`, the dataset-order scan oxigraph's pattern scan provided.
-    let mut rows: Vec<(Subject, Object)> = Vec::new();
-    dataset.for_each_quad(|subject, predicate, object, _graph| {
-        if predicate == source_location {
-            rows.push((subject, object));
-        }
-    });
-
-    let mut out: BTreeMap<String, (String, Vec<String>)> = BTreeMap::new();
-    for (subject, object) in rows {
-        let location = object_location(&object);
-        // All declared digests for this subject (literal objects only).
-        let mut digests: Vec<String> = Vec::new();
-        for dq in dataset
-            .objects_of_subject(&subject, &content_digest)
-            .map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Parse {
-                    message: e.to_string(),
-                })
-            })?
+    let rows: Vec<_> = dataset
+        .owned_quads()
+        .filter(|quad| quad.predicate == source_location)
+        .map(|quad| {
+            let location = match quad.object {
+                purrdf::RdfTerm::Literal(literal) => literal.lexical_form,
+                other => other.to_string(),
+            };
+            (quad.subject, location)
+        })
+        .collect();
+    let mut out = BTreeMap::new();
+    for (subject, location) in rows {
+        let mut digests = Vec::new();
+        let mut algorithms = BTreeMap::new();
+        for quad in dataset
+            .owned_quads()
+            .filter(|quad| quad.subject == subject && quad.predicate == content_digest)
         {
-            if let Object::Literal { value, .. } = dq {
+            let value = purrdf::TermValue::from_rdf_term(&quad.object);
+            let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+            if let Some(previous) = algorithms.insert(algorithm, hex.to_owned())
+                && previous != hex
+            {
+                return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
+                    message: format!(
+                        "eval document {subject} has conflicting {} digests",
+                        algorithm.name()
+                    ),
+                }));
+            }
+            if !digests.contains(&value) {
                 digests.push(value);
             }
         }
@@ -622,9 +609,14 @@ fn score_emissions(
         let (text, digest_current) = match corpus.get(source) {
             Some(doc) => {
                 let dc = !doc.text.is_empty()
-                    && doc.declared_digests.iter().any(|d| {
-                        *d == gmeow_lang_bridge::gmn1_digest::tagged_text_digest(&doc.text)
-                    });
+                    && doc
+                        .declared_digests
+                        .contains(&purrdf::TermValue::typed_literal(
+                            purrdf_hash::hex::encode(
+                                purrdf_hash::blake3::hash(doc.text.as_bytes()).as_bytes(),
+                            ),
+                            crate::projections::DigestAlgorithm::Blake3.datatype(),
+                        ));
                 (doc.text.as_str(), dc)
             }
             None => ("", false),
@@ -1042,7 +1034,7 @@ impl Stage for EvalsStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "evals.v1"
+        "evals.v2"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure source read of NON-fold inputs: the emission schema, the corpus

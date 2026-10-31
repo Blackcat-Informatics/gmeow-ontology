@@ -12,6 +12,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MD5 digest"
+msgstr "MD5 摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An MD5 hash result as specified by RFC 1321, computed over the exact supplied input bytes. Its value pairs the MD5 algorithm identity with the ordered 16 digest bytes. The lexical form is exactly 32 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "按照 RFC 1321 对提供的确切输入字节计算的 MD5 哈希结果。其值由 MD5 算法的身份与有序的 16 个摘要字节共同组成。词法形式恰为 32 个小写十六进制数字，按输出字节顺序每字节两个数字，不含算法前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied MD5 digest without dropping its algorithm identity or relabeling it as another algorithm's result."
+msgstr "用于保留来源提供的 MD5 摘要，不丢弃其算法身份，也不将其改称为另一算法的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring cryptographic security, artifact verification or digest equality across algorithms from this datatype. Do not relabel a scheme identifier as the digest of different artifact bytes."
+msgstr "避免从此数据类型推断密码学安全性、制品验证或跨算法的摘要相等。不要将方案标识符改称为其他制品字节的摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source's 32 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; domain-tag bytes remain part of the input when actually supplied."
+msgstr "保留来源的 32 个小写十六进制数字及此数据类型 IRI。另行保留确切输入字节的身份；确实由来源提供的域标签字节仍属于输入的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "RFC 1321 is an informational RFC from April 1992, not an Internet standard. This declaration installs no parser, computes no hash and verifies no artifact. Native RDF transport can retain the literal opaquely. Compare supplied literals by RDF sameTerm; no value-space equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "RFC 1321 是 1992 年 4 月发布的信息类 RFC，并非互联网标准。此声明不安装解析器、不计算哈希，也不验证制品。原生 RDF 传输可以不解释其值而保留该字面量。使用 RDF sameTerm 比较提供的字面量；不声明其与 xsd:string、xsd:hexBinary 或其他算法数据类型的值空间相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-supplied MD5 digest retains its own algorithm identity beside separately supplied digests of the same artifact, without asserting that any digest was checked."
+msgstr "来源提供的 MD5 摘要与同一制品另行提供的其他摘要并列保留其自身算法身份，而不声明任何摘要已被验证。"
+
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Exact Preservation Violated"
 msgstr "违反精确保留"

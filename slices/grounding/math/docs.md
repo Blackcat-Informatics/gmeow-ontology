@@ -445,3 +445,18 @@ admission, custom value-space equality or executed lexical validation. The
 existing `contentDigest` contract and its producer representations are unchanged.
 The authoritative sources and precise specification sections are listed in
 [the mathematics references](design/MATHEMATICS-REFERENCES.md#algorithm-tagged-digest-datatypes).
+
+### Preserve supplied MD5 identity
+
+`gmeow:md5Digest` retains MD5 identity and its ordered 16 output bytes.
+Its lexical form is exactly 32 lowercase hexadecimal digits, without a prefix,
+whitespace or language tag. The input is the exact supplied byte sequence;
+actual domain-tag bytes remain part of that input. Separate algorithm datatypes
+retain their own identities, even when they describe the same artifact.
+
+RFC 1321, published in April 1992, defines the algorithm and output order.
+It is informational and does not specify an Internet standard. This datatype
+supplies no cryptographic security or verification claim, parser, hash executor
+or custom value-equality implementation. The existing RDF term-identity and
+`math:Sequence` reference contracts apply. The declaration does not change
+`contentDigest` ranges or migrate a producer or reader (Principles 2, 4 and 17).
