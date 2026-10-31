@@ -21,6 +21,11 @@ pub(super) fn compose(vocabulary: &[u8], residual: &str) -> gmeow_errors::Result
         rationale_property(source.as_ref(), CLASS, PATH)?,
         rationale_property(
             source.as_ref(),
+            "https://blackcatinformatics.ca/gmeow/StructuralAssertion",
+            "https://blackcatinformatics.ca/gmeow/saRationale",
+        )?,
+        rationale_property(
+            source.as_ref(),
             "https://blackcatinformatics.ca/gmeow/ExampleConformance",
             "https://blackcatinformatics.ca/gmeow/conformanceRationale",
         )?,
