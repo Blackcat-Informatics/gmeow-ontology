@@ -26,7 +26,7 @@ ex:site a gmeow:WebSite ;
 ex:homepage a gmeow:WebPage ;
     gmeow:pageOfSite ex:site ;
     gmeow:embodies ex:siteContent ;
-    gmeow:mediaType "text/html" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ;
     gmeow:charset "utf-8" .
 
 # --- The about page: its principal subject is a person, so it IS a ProfilePage

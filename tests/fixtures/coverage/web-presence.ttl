@@ -38,7 +38,7 @@ ex:gmeow-spec a gmeow:Document ; rdfs:label "GMEOW spec"@en .
 # An image depicting the person → schema:image on the person.
 ex:headshot a gmeow:MediaObject ;
     rdfs:label "Patrick headshot"@en ;
-    gmeow:mediaType "image/avif" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ;
     gmeow:depicts ex:patrick .
 
 # A multilingual article: content language English + French.
@@ -56,8 +56,8 @@ ex:dataset a gmeow:Dataset ;
 
 ex:dump-ttl a gmeow:Document ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow-full.ttl"^^xsd:anyURI ;
-    gmeow:mediaType "text/turtle" .
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/turtle> .
 
 ex:dump-jsonld a gmeow:Document ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow.jsonld"^^xsd:anyURI ;
-    gmeow:mediaType "application/ld+json" .
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/application/ld+json> .

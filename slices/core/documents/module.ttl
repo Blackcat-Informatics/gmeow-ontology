@@ -408,7 +408,7 @@ gmeow:MediaObject
     rdfs:label "Media Object"@x-gmeow-english ;
     rdfs:subClassOf gmeow:Manifestation ;
     skos:definition "An image, audio, or video media file — a concrete published artifact. A specialization of gmeow:Manifestation."@x-gmeow-english ;
-    skos:example "ex:photo a gmeow:MediaObject ; gmeow:mediaType \"image/avif\" ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."@x-gmeow-english ;
+    skos:example "Identify the image's registered format: ex:photo a gmeow:MediaObject ; gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the abstract work the media realises (that is a gmeow:Work) and avoid it for a non-media web page (gmeow:WebPage); the colourspace reference frame should be carried where known (Principle 11)."@x-gmeow-english ;
     gmeow:ruleSeverity "advisory" ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -866,22 +866,50 @@ gmeow:charset
     gmeow:useWhen "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."@x-gmeow-english ;
     gmeow:howToUse "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."@x-gmeow-english ;
-    skos:example "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."@x-gmeow-english ;
+    skos:example "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
     logic:range rdfs:Literal .
 
-gmeow:mediaType
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:Entity ;
+gmeow:MediaType
+    a logic:AbstractIndividualType, logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
-    rdfs:label "media type"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The IANA media (MIME) type of an artifact — 'text/plain', 'application/pdf', 'image/avif'. Universal: an email body part, a Manifestation, a Distribution all carry one. Projects to schema:encodingFormat. (Generalised from the email slice.)"@x-gmeow-english ;
-    skos:example "ex:attachment gmeow:mediaType \"application/pdf\" ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for the natural language of the content (use gmeow:contentLanguage) and avoid asserting two media types on one artifact — model distinct encodings as distinct carrier objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Media Type"@x-gmeow-english ;
+    skos:definition "An open vocabulary of media-format values identified by IRIs. Registered MIME types use their IANA media-type resource; unregistered types use GMEOW media-types/<type>/<subtype> resources. Values are individuals, never carrier subclasses or charset encodings."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify a carrier's media format independently of its character encoding, natural language and MIME parameters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a media type as a textual spelling, a language, a compression method or a Content-Type header including parameters."@x-gmeow-english ;
+    gmeow:howToUse "Link the carrier through mediaType to the appropriate IANA or GMEOW value and record its exact parameter-free machine spelling through mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The vocabulary is open. Authored IRI policy does not perform registry lookup, normalize source strings or equate media identity with lang:profileEncoding or lang:renderingSerialization."@x-gmeow-english ;
+    skos:example "Identify the format by its registered resource: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:mediaTypeName
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Carry the MIME string on gmeow:mediaType of the concrete carrier; it projects to schema:encodingFormat. Pair with gmeow:contentLanguage and the relevant pixel/extent metadata on a gmeow:MediaObject."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the IANA media (MIME) type of any content carrier — a Manifestation, an email body part, a distribution file; functional, one media type per artifact."@x-gmeow-english .
+    rdfs:label "media type name"@x-gmeow-english ;
+    skos:definition "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string. It is a machine code, separate from the carrier's charset and other MIME parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when the exact MIME spelling of an identified media-type value is needed by a consumer or at a serialization boundary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag, using xsd:token or appending charset or other parameters."@x-gmeow-english ;
+    gmeow:howToUse "Record the exact type/subtype string on the MediaType value; retain source spelling evidence separately when a source header contains casing, parameters or other syntax beyond that identity."@x-gmeow-english ;
+    skos:scopeNote "The name does not establish IANA registration or authenticate a resource. No MIME parser, registry service, parameter extraction or string normalization is implied."@x-gmeow-english ;
+    skos:example "Record the machine spelling on the value: <https://www.iana.org/assignments/media-types/application/pdf> gmeow:mediaTypeName \"application/pdf\" ."@x-gmeow-english ;
+    logic:domain gmeow:MediaType ;
+    logic:range xsd:string .
+
+gmeow:mediaType
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "media type"@x-gmeow-english ;
+    skos:definition "The media-format value of an entity, identified by an IANA resource IRI for a registered MIME type or a GMEOW media-types/<type>/<subtype> IRI for an unregistered type. The relation permits at most one value and does not require every entity to declare a format."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the media format of a concrete carrier, such as an email body part, manifestation, image or downloadable distribution."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid literal MIME strings, parameter-bearing identity IRIs, charset or language values. Distinct encodings use distinct carriers rather than two media types on one carrier."@x-gmeow-english ;
+    gmeow:howToUse "Point to a MediaType value using the registered or unregistered IRI policy; keep charset on the carrier and the exact MIME spelling on the value's mediaTypeName. The schema.org bindings retain the same IRI as an encodingFormat URL value."@x-gmeow-english ;
+    skos:scopeNote "The Entity domain is retained. Functionality is at-most-one, without a universal presence requirement. Media identity is independent of character encoding, serialization profiles and source header parameters."@x-gmeow-english ;
+    skos:example "Identify the attachment format: ex:attachment gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."@x-gmeow-english ;
+    logic:domain gmeow:Entity ;
+    logic:range gmeow:MediaType .
 
 gmeow:pageOfSite
     a logic:ObjectProperty ;
@@ -1183,11 +1211,11 @@ gmeow:mediaTypeFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "mediaType is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:mediaType is functional: a concrete content carrier — an email body part, a Manifestation, a Distribution — has exactly one IANA media (MIME) type, since one artifact is encoded in a single format and distinct encodings are modelled as distinct carrier objects rather than two media types on one."@x-gmeow-english ;
+    skos:definition "Asserts that mediaType permits at most one MediaType value on an entity. Distinct media formats are modeled as distinct carriers; the assertion does not require every entity to declare a media type."@x-gmeow-english ;
     logic:characterizes gmeow:mediaType ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:mediaType ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:mediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the at-most-one mediaType identity invariant without introducing a required-value constraint."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:mediaType, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:mediaType and nothing else. It is not a definition of gmeow:mediaType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -1268,3 +1296,178 @@ gmeow:segmentTypeFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:segmentType and nothing else. It is not a definition of gmeow:segmentType (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:segmentTypeFunctionality logic:characterizes gmeow:segmentType ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Open media identities and supplied-value integrity (Principles 4 and 17).
+
+<https://www.iana.org/assignments/media-types/application/pdf>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "application/pdf media type"@x-gmeow-english ;
+    skos:definition "The registered application/pdf MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/application/pdf> and retain the exact application/pdf code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "application/pdf" .
+
+<https://www.iana.org/assignments/media-types/application/ld+json>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "application/ld+json media type"@x-gmeow-english ;
+    skos:definition "The registered application/ld+json MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/application/ld+json> and retain the exact application/ld+json code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/ld+json> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "application/ld+json" .
+
+<https://www.iana.org/assignments/media-types/image/avif>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "image/avif media type"@x-gmeow-english ;
+    skos:definition "The registered image/avif MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/avif> and retain the exact image/avif code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "image/avif" .
+
+<https://www.iana.org/assignments/media-types/image/svg+xml>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "image/svg+xml media type"@x-gmeow-english ;
+    skos:definition "The registered image/svg+xml MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/svg+xml> and retain the exact image/svg+xml code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "image/svg+xml" .
+
+<https://www.iana.org/assignments/media-types/image/png>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "image/png media type"@x-gmeow-english ;
+    skos:definition "The registered image/png MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/png> and retain the exact image/png code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "image/png" .
+
+<https://www.iana.org/assignments/media-types/text/turtle>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "text/turtle media type"@x-gmeow-english ;
+    skos:definition "The registered text/turtle MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/turtle> and retain the exact text/turtle code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/turtle> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "text/turtle" .
+
+<https://www.iana.org/assignments/media-types/text/plain>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "text/plain media type"@x-gmeow-english ;
+    skos:definition "The registered text/plain MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/plain> and retain the exact text/plain code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "text/plain" .
+
+<https://www.iana.org/assignments/media-types/text/html>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "text/html media type"@x-gmeow-english ;
+    skos:definition "The registered text/html MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/html> and retain the exact text/html code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "text/html" .
+
+<https://www.iana.org/assignments/media-types/message/delivery-status>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "message/delivery-status media type"@x-gmeow-english ;
+    skos:definition "The registered message/delivery-status MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/message/delivery-status> and retain the exact message/delivery-status code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/message/delivery-status> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "message/delivery-status" .
+
+<https://www.iana.org/assignments/media-types/text/calendar>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "text/calendar media type"@x-gmeow-english ;
+    skos:definition "The registered text/calendar MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/calendar> and retain the exact text/calendar code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/calendar> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "text/calendar" .
+
+<https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>
+    a gmeow:MediaType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "text/x-gmeow-patch media type"@x-gmeow-english ;
+    skos:definition "The unregistered text/x-gmeow-patch MIME media type for GMEOW email-state patch or diff artifacts. Its GMEOW identity does not assert IANA registration or a universal patch-language semantics."@x-gmeow-english ;
+    gmeow:useWhen "Use when a carrier explicitly has this media format."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."@x-gmeow-english ;
+    gmeow:howToUse "Point from the carrier through mediaType to <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> and retain the exact text/x-gmeow-patch code on this value's mediaTypeName."@x-gmeow-english ;
+    skos:scopeNote "This is a GMEOW-owned unregistered media identity. Parameters remain outside the IRI and its MIME name; the resource does not introduce a parser."@x-gmeow-english ;
+    skos:example "Use this format identity: ex:file gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ."@x-gmeow-english ;
+    gmeow:mediaTypeName "text/x-gmeow-patch" .
+
+gmeow:MediaTypeIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Media type IRI constraint"@x-gmeow-english ;
+    skos:definition "A supplied mediaType value is an IRI in the IANA registered-resource namespace or the GMEOW unregistered media-types namespace, with a type/subtype path and no parameter, query or fragment."@x-gmeow-english ;
+    gmeow:useWhen "Use to constrain a supplied media identity or MIME name without requiring a value on every carrier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a syntax check as proof of registration, correct bytes, name-to-IRI agreement or successful parsing."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied value using this canonical formula; registry status and exact identity selection remain explicit authored facts."@x-gmeow-english ;
+    skos:scopeNote "This law checks syntax only. Regex behavior is projection-dialect dependent; no registry service, MIME parser or automatic normalization is implemented by this source declaration."@x-gmeow-english ;
+    skos:example "Use the canonical law: gmeow:MediaTypeIriConstraint logic:formalizes gmeow:mediaType ."@x-gmeow-english ;
+    logic:formalizes gmeow:mediaType ;
+    logic:message "A supplied mediaType value is an IRI in the IANA registered-resource namespace or the GMEOW unregistered media-types namespace, with a type/subtype path and no parameter, query or fragment."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:mediaType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^(https://www[.]iana[.]org/assignments/media-types/|https://blackcatinformatics[.]ca/gmeow/media-types/)[^/?#;\\s]+/[^/?#;\\s]+$" ] ] ] ] ] .
+
+gmeow:MediaTypeNameSyntaxConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Media type name syntax constraint"@x-gmeow-english ;
+    skos:definition "A supplied mediaTypeName is a parameter-free type/subtype machine spelling. Charset, whitespace and other MIME parameters do not become part of media identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to constrain a supplied media identity or MIME name without requiring a value on every carrier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a syntax check as proof of registration, correct bytes, name-to-IRI agreement or successful parsing."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied value using this canonical formula; registry status and exact identity selection remain explicit authored facts."@x-gmeow-english ;
+    skos:scopeNote "This law checks syntax only. Regex behavior is projection-dialect dependent; no registry service, MIME parser or automatic normalization is implemented by this source declaration."@x-gmeow-english ;
+    skos:example "Use the canonical law: gmeow:MediaTypeNameSyntaxConstraint logic:formalizes gmeow:mediaTypeName ."@x-gmeow-english ;
+    logic:formalizes gmeow:mediaTypeName ;
+    logic:message "A supplied mediaTypeName is a parameter-free type/subtype machine spelling. Charset, whitespace and other MIME parameters do not become part of media identity."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:mediaTypeName ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*/[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*$" ] ] ] ] .
