@@ -139,6 +139,20 @@ episode, or chapter of a serial. Both are out-of-universe, rights-bearing
 Manifestations, held strictly apart from any in-universe narrative frame they source
 (linked via `gmeow:sourceFor`).
 
+## Character encoding
+
+`gmeow:charset` records the character encoding of an information object's textual
+content, including a web page, a document carrier or a MIME body part. Keep the
+supplied charset label as a literal, such as `"utf-8"` or `"iso-8859-1"`; the
+property does not enumerate a closed registry or normalize that label.
+
+Keep the encoding separate from `gmeow:mediaType` and from the content's natural
+language (`gmeow:contentLanguage` or `gmeow:contentLanguageCode`). Compression and
+MIME content-transfer encoding are different metadata. The
+[web presence example](examples/web-presence.ttl) records `"text/html"` and
+`"utf-8"` separately on a web page. Email uses this same property for a MIME
+part's `Content-Type` charset parameter.
+
 ## Identifiers, extent and decoded content
 
 `gmeow:identifier` applies to a `gmeow:MediaObject`: the current canonical chain

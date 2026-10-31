@@ -398,15 +398,6 @@ gmeow:cc
     skos:definition "A carbon-copy recipient address of a message (RFC 5322 Cc)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:charset
-    a logic:DatatypeProperty ;
-    rdfs:domain gmeow:BodyPart ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "charset"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "The character encoding of a MIME part's content (e.g. utf-8, iso-8859-1). Stored as a literal because the IANA charset registry is too open to enumerate as a closed value vocabulary."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
-
 gmeow:childMailbox
     a logic:ObjectProperty ;
     rdfs:domain gmeow:Mailbox ;

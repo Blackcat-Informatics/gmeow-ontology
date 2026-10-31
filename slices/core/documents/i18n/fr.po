@@ -13,6 +13,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "charset"
+msgstr "jeu de caractères"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The character encoding of an information object's textual content, recorded as a charset label such as utf-8 or iso-8859-1. The same property applies to MIME parts and other textual carriers."
+msgstr "L’encodage des caractères du contenu textuel d’un objet informationnel, consigné sous une étiquette de jeu de caractères telle que utf-8 ou iso-8859-1. La même propriété s’applique aux parties MIME et aux autres supports textuels."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."
+msgstr "Les étiquettes de jeux de caractères constituent un vocabulaire ouvert ; cette propriété n’impose pas de registre fermé et ne normalise pas le littéral fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."
+msgstr "À utiliser lorsque l’encodage des caractères d’un support textuel est fourni, que ce support soit ou non une partie du corps d’un message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."
+msgstr "Éviter de l’utiliser pour la langue naturelle, le type de média, la compression ou l’encodage de transfert du contenu MIME."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."
+msgstr "Consigner l’étiquette de jeu de caractères fournie sur l’objet informationnel concret ; garder mediaType et contentLanguage ou contentLanguageCode séparés. Pour une partie MIME, consigner ici son paramètre charset de Content-Type."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
+msgstr "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "feedPostingKind is functional"
 msgstr "feedPostingKind est fonctionnelle"

@@ -133,6 +133,11 @@ identifier property:
 
 GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment` / `hasBodyPart` spine, with the universal `hasPart` / `partOf` relation for internal multipart structure (Principle 12: decoding and reconstruction are computations, not OWL entailments).
 
+The [documents core](../../core/documents/docs.md#character-encoding) owns
+`gmeow:charset`, shared by MIME parts and other textual information objects.
+For MIME, it records the `Content-Type` charset parameter; content-transfer
+encoding remains the separate `gmeow:hasContentTransferEncoding` relation.
+
 | Source facet / header | GMEOW term | Object kind |
 |---|---|---|
 | MIME part ID | `gmeow:partId` | literal |
