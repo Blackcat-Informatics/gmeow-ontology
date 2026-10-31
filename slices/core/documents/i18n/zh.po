@@ -38,8 +38,8 @@ msgid "Record the supplied charset label on the concrete information object; kee
 msgstr "在具体信息对象上记录所提供的字符集标签；将 mediaType 与 contentLanguage 或 contentLanguageCode 分开记录。对于 MIME 部分，在此记录其 Content-Type 的 charset 参数。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
-msgstr "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
+msgid "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."
+msgstr "分别记录媒体身份和字符集：ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "feedPostingKind is functional"
@@ -62,8 +62,8 @@ msgid "mediaType is functional"
 msgstr "mediaType 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:mediaType is functional: a concrete content carrier — an email body part, a Manifestation, a Distribution — has exactly one IANA media (MIME) type, since one artifact is encoded in a single format and distinct encodings are modelled as distinct carrier objects rather than two media types on one."
-msgstr "在规范载体上断言 gmeow:mediaType 是函数式的:一个具体的内容载体——一个电子邮件正文部分、一个 Manifestation、一个 Distribution——恰好拥有一种 IANA 媒体(MIME)类型,因为一件工件以单一格式编码,不同的编码被建模为不同的载体对象,而不是在同一个对象上标注两种媒体类型。"
+msgid "Asserts that mediaType permits at most one MediaType value on an entity. Distinct media formats are modeled as distinct carriers; the assertion does not require every entity to declare a media type."
+msgstr "断言实体上的 mediaType 至多允许一个 MediaType 值。不同媒体格式建模为不同载体；此断言不要求每个实体声明媒体类型。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/pagePrincipalSubjectFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "pagePrincipalSubject is functional"
@@ -138,8 +138,8 @@ msgid "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrient
 msgstr "gmeow:imageOrientationFunctionality logic:characterizes gmeow:imageOrientation ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:mediaType names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:mediaType 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use to enforce the at-most-one mediaType identity invariant without introducing a required-value constraint."
+msgstr "用于强制执行 mediaType 身份至多一个的约束，而不引入必填值要求。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -674,6 +674,468 @@ msgstr "避免用于音视频的完整逐字转录（使用 gmeow:transcript）�
 msgctxt "https://blackcatinformatics.ca/gmeow/caption|http://www.w3.org/2004/02/skos/core#example"
 msgid "A structural segment carries a displayed caption: ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
 msgstr "结构片段承载显示的说明文字：ex:figure gmeow:caption \"Plan of the footbridge.\"@en ."
+
+# IRI-valued media identity and exact MIME names.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Media Type"
+msgstr "媒体类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of media-format values identified by IRIs. Registered MIME types use their IANA media-type resource; unregistered types use GMEOW media-types/<type>/<subtype> resources. Values are individuals, never carrier subclasses or charset encodings."
+msgstr "由 IRI 标识的开放媒体格式值词汇。已注册 MIME 类型使用其 IANA 媒体类型资源；未注册类型使用 GMEOW media-types/<type>/<subtype> 资源。值是个体，不是载体子类或字符编码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a carrier's media format independently of its character encoding, natural language and MIME parameters."
+msgstr "用于标识载体的媒体格式，独立于字符编码、自然语言和 MIME 参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a media type as a textual spelling, a language, a compression method or a Content-Type header including parameters."
+msgstr "避免将媒体类型视为文本拼写、语言、压缩方法或包含参数的 Content-Type 标头。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the carrier through mediaType to the appropriate IANA or GMEOW value and record its exact parameter-free machine spelling through mediaTypeName."
+msgstr "通过 mediaType 将载体关联到适当的 IANA 或 GMEOW 值，并通过 mediaTypeName 记录不含参数的精确机器拼写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open. Authored IRI policy does not perform registry lookup, normalize source strings or equate media identity with lang:profileEncoding or lang:renderingSerialization."
+msgstr "词汇保持开放。所编写的 IRI 策略不查询注册表、不规范化来源字符串，也不将媒体身份等同于 lang:profileEncoding 或 lang:renderingSerialization。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the format by its registered resource: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+msgstr "通过注册资源标识格式：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "media type name"
+msgstr "媒体类型名称"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string. It is a machine code, separate from the carrier's charset and other MIME parameters."
+msgstr "MediaType 值表示的不含参数的精确 MIME 类型/子类型拼写，以 xsd:string 表示。这是机器代码，独立于载体的 charset 和其他 MIME 参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the exact MIME spelling of an identified media-type value is needed by a consumer or at a serialization boundary."
+msgstr "用于使用方或序列化边界需要已标识媒体类型值的精确 MIME 拼写时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag, using xsd:token or appending charset or other parameters."
+msgstr "避免将此代码作为平行的字符串媒体类型属性放在载体上、附加语言标签、使用 xsd:token，或拼接 charset 及其他参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the exact type/subtype string on the MediaType value; retain source spelling evidence separately when a source header contains casing, parameters or other syntax beyond that identity."
+msgstr "在 MediaType 值上记录精确的类型/子类型字符串；若来源标头含有大小写形式、参数或超出该身份的语法，应单独保留来源拼写证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The name does not establish IANA registration or authenticate a resource. No MIME parser, registry service, parameter extraction or string normalization is implied."
+msgstr "名称不能证明 IANA 注册状态或认证资源，也不意味着存在 MIME 解析器、注册表服务、参数提取或字符串规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record the machine spelling on the value: <https://www.iana.org/assignments/media-types/application/pdf> gmeow:mediaTypeName \"application/pdf\" ."
+msgstr "在值上记录机器拼写：<https://www.iana.org/assignments/media-types/application/pdf> gmeow:mediaTypeName \"application/pdf\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "media type"
+msgstr "媒体类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The media-format value of an entity, identified by an IANA resource IRI for a registered MIME type or a GMEOW media-types/<type>/<subtype> IRI for an unregistered type. The relation permits at most one value and does not require every entity to declare a format."
+msgstr "实体的媒体格式值：已注册 MIME 类型使用 IANA 资源 IRI，未注册类型使用 GMEOW media-types/<type>/<subtype> IRI。该关系至多允许一个值，不要求每个实体声明格式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the media format of a concrete carrier, such as an email body part, manifestation, image or downloadable distribution."
+msgstr "用于标识具体载体的媒体格式，例如邮件正文部分、表现形式、图像或可下载分发文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid literal MIME strings, parameter-bearing identity IRIs, charset or language values. Distinct encodings use distinct carriers rather than two media types on one carrier."
+msgstr "避免使用 MIME 字符串字面量、带参数的身份 IRI，以及字符集或语言值。不同编码使用不同载体，不在同一载体上放置两种媒体类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point to a MediaType value using the registered or unregistered IRI policy; keep charset on the carrier and the exact MIME spelling on the value's mediaTypeName. The schema.org bindings retain the same IRI as an encodingFormat URL value."
+msgstr "按已注册或未注册 IRI 策略指向 MediaType 值；charset 保留在载体上，精确 MIME 拼写保留在值的 mediaTypeName 上。schema.org 绑定将同一 IRI 保留为 encodingFormat 的 URL 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The Entity domain is retained. Functionality is at-most-one, without a universal presence requirement. Media identity is independent of character encoding, serialization profiles and source header parameters."
+msgstr "保留 Entity 定义域。函数性表示至多一个值，不引入普遍存在要求。媒体身份独立于字符编码、序列化配置及来源标头参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mediaType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the attachment format: ex:attachment gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+msgstr "标识附件格式：ex:attachment gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "application/pdf media type"
+msgstr "application/pdf 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered application/pdf MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 application/pdf，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/application/pdf> and retain the exact application/pdf code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/application/pdf>，并在该值的 mediaTypeName 上保留精确代码 application/pdf。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/pdf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/pdf> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "application/ld+json media type"
+msgstr "application/ld+json 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered application/ld+json MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 application/ld+json，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/application/ld+json> and retain the exact application/ld+json code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/application/ld+json>，并在该值的 mediaTypeName 上保留精确代码 application/ld+json。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/application/ld+json|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/ld+json> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/application/ld+json> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image/avif media type"
+msgstr "image/avif 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered image/avif MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 image/avif，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/avif> and retain the exact image/avif code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/image/avif>，并在该值的 mediaTypeName 上保留精确代码 image/avif。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/avif|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image/svg+xml media type"
+msgstr "image/svg+xml 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered image/svg+xml MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 image/svg+xml，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/svg+xml> and retain the exact image/svg+xml code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/image/svg+xml>，并在该值的 mediaTypeName 上保留精确代码 image/svg+xml。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/svg+xml|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image/png media type"
+msgstr "image/png 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered image/png MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 image/png，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/image/png> and retain the exact image/png code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/image/png>，并在该值的 mediaTypeName 上保留精确代码 image/png。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/image/png|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/image/png> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text/turtle media type"
+msgstr "text/turtle 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered text/turtle MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 text/turtle，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/turtle> and retain the exact text/turtle code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/text/turtle>，并在该值的 mediaTypeName 上保留精确代码 text/turtle。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/turtle|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/turtle> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/turtle> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text/plain media type"
+msgstr "text/plain 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered text/plain MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 text/plain，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/plain> and retain the exact text/plain code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/text/plain>，并在该值的 mediaTypeName 上保留精确代码 text/plain。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/plain|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text/html media type"
+msgstr "text/html 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered text/html MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 text/html，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/html> and retain the exact text/html code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/text/html>，并在该值的 mediaTypeName 上保留精确代码 text/html。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/html|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "message/delivery-status media type"
+msgstr "message/delivery-status 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered message/delivery-status MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 message/delivery-status，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/message/delivery-status> and retain the exact message/delivery-status code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/message/delivery-status>，并在该值的 mediaTypeName 上保留精确代码 message/delivery-status。"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/message/delivery-status|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/message/delivery-status> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/message/delivery-status> ."
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text/calendar media type"
+msgstr "text/calendar 媒体类型"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The registered text/calendar MIME media type identified by its IANA registry resource. This identity names the format independently of charset and other parameters."
+msgstr "已注册的 MIME 媒体类型 text/calendar，由其 IANA 注册表资源标识。该身份命名格式，独立于字符集及其他参数。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://www.iana.org/assignments/media-types/text/calendar> and retain the exact text/calendar code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://www.iana.org/assignments/media-types/text/calendar>，并在该值的 mediaTypeName 上保留精确代码 text/calendar。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The IANA resource is reused as the registered identity. Its local annotations do not implement registry access, a charset default or parameter parsing."
+msgstr "复用 IANA 资源作为已注册身份。本地注释不实现注册表访问、默认字符集或参数解析。"
+
+msgctxt "https://www.iana.org/assignments/media-types/text/calendar|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/calendar> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://www.iana.org/assignments/media-types/text/calendar> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "text/x-gmeow-patch media type"
+msgstr "text/x-gmeow-patch 媒体类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The unregistered text/x-gmeow-patch MIME media type for GMEOW email-state patch or diff artifacts. Its GMEOW identity does not assert IANA registration or a universal patch-language semantics."
+msgstr "用于 GMEOW 邮件状态补丁或差异制品的未注册 MIME 媒体类型 text/x-gmeow-patch。其 GMEOW 身份不表示 IANA 注册状态或通用补丁语言语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a carrier explicitly has this media format."
+msgstr "用于载体明确具有此媒体格式时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this format identity for charset, language, MIME parameters or a claim that bytes were inspected."
+msgstr "避免将此格式身份用于字符集、语言、MIME 参数或声称已经检查字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the carrier through mediaType to <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> and retain the exact text/x-gmeow-patch code on this value's mediaTypeName."
+msgstr "通过 mediaType 从载体指向 <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>，并在该值的 mediaTypeName 上保留精确代码 text/x-gmeow-patch。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a GMEOW-owned unregistered media identity. Parameters remain outside the IRI and its MIME name; the resource does not introduce a parser."
+msgstr "这是 GMEOW 拥有的未注册媒体身份。参数不属于 IRI 或其 MIME 名称；该资源不引入解析器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use this format identity: ex:file gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ."
+msgstr "使用此格式身份：ex:file gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Media type IRI constraint"
+msgstr "媒体类型 IRI 约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied mediaType value is an IRI in the IANA registered-resource namespace or the GMEOW unregistered media-types namespace, with a type/subtype path and no parameter, query or fragment."
+msgstr "已提供的 mediaType 值是 IANA 已注册资源命名空间或 GMEOW 未注册 media-types 命名空间中的 IRI，具有类型/子类型路径，且不含参数、查询或片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to constrain a supplied media identity or MIME name without requiring a value on every carrier."
+msgstr "用于约束已提供的媒体身份或 MIME 名称，不要求每个载体都提供值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a syntax check as proof of registration, correct bytes, name-to-IRI agreement or successful parsing."
+msgstr "避免将语法检查视为注册状态、字节正确性、名称与 IRI 一致性或解析成功的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate the supplied value using this canonical formula; registry status and exact identity selection remain explicit authored facts."
+msgstr "使用此规范公式验证已提供的值；注册状态和精确身份选择仍是明确编写的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law checks syntax only. Regex behavior is projection-dialect dependent; no registry service, MIME parser or automatic normalization is implemented by this source declaration."
+msgstr "此法则仅检查语法。正则表达式行为取决于投影方言；此来源声明不实现注册表服务、MIME 解析器或自动规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use the canonical law: gmeow:MediaTypeIriConstraint logic:formalizes gmeow:mediaType ."
+msgstr "使用规范法则：gmeow:MediaTypeIriConstraint logic:formalizes gmeow:mediaType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeIriConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied mediaType value is an IRI in the IANA registered-resource namespace or the GMEOW unregistered media-types namespace, with a type/subtype path and no parameter, query or fragment."
+msgstr "已提供的 mediaType 值是 IANA 已注册资源命名空间或 GMEOW 未注册 media-types 命名空间中的 IRI，具有类型/子类型路径，且不含参数、查询或片段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Media type name syntax constraint"
+msgstr "媒体类型名称语法约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied mediaTypeName is a parameter-free type/subtype machine spelling. Charset, whitespace and other MIME parameters do not become part of media identity."
+msgstr "已提供的 mediaTypeName 是不含参数的类型/子类型机器拼写。字符集、空白及其他 MIME 参数不属于媒体身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to constrain a supplied media identity or MIME name without requiring a value on every carrier."
+msgstr "用于约束已提供的媒体身份或 MIME 名称，不要求每个载体都提供值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a syntax check as proof of registration, correct bytes, name-to-IRI agreement or successful parsing."
+msgstr "避免将语法检查视为注册状态、字节正确性、名称与 IRI 一致性或解析成功的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Validate the supplied value using this canonical formula; registry status and exact identity selection remain explicit authored facts."
+msgstr "使用此规范公式验证已提供的值；注册状态和精确身份选择仍是明确编写的事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law checks syntax only. Regex behavior is projection-dialect dependent; no registry service, MIME parser or automatic normalization is implemented by this source declaration."
+msgstr "此法则仅检查语法。正则表达式行为取决于投影方言；此来源声明不实现注册表服务、MIME 解析器或自动规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Use the canonical law: gmeow:MediaTypeNameSyntaxConstraint logic:formalizes gmeow:mediaTypeName ."
+msgstr "使用规范法则：gmeow:MediaTypeNameSyntaxConstraint logic:formalizes gmeow:mediaTypeName ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaTypeNameSyntaxConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied mediaTypeName is a parameter-free type/subtype machine spelling. Charset, whitespace and other MIME parameters do not become part of media identity."
+msgstr "已提供的 mediaTypeName 是不含参数的类型/子类型机器拼写。字符集、空白及其他 MIME 参数不属于媒体身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MediaObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the image's registered format: ex:photo a gmeow:MediaObject ; gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."
+msgstr "标识图像的已注册格式：ex:photo a gmeow:MediaObject ; gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ; gmeow:pixelWidth 4032 ; gmeow:depicts ex:lillith ."
 
 # Source-faithful conversation records.
 

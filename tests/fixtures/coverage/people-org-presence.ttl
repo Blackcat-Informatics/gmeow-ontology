@@ -111,7 +111,7 @@ ex:bii gmeow:email "work.with.us@blackcatinformatics.ca" , "hello@blackcatinform
     gmeow:telephone "+16042452120" .
 
 ex:photo a gmeow:MediaObject ; rdfs:label "a photo"@en ;
-    gmeow:mediaType "image/avif" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/image/avif> ;
     gmeow:hasExifTag ex:exAperture , ex:exColorSpace .
 ex:exAperture a gmeow:ExifTag ;
     gmeow:exifTagId "FNumber" ; gmeow:exifTagValue "f/2.0" ; rdfs:label "Aperture"@en .

@@ -73,5 +73,5 @@ ex:quotation a gmeow:ContentBlock ;
 ex:figure gmeow:caption "Plan of the footbridge."@en .
 # The class is an atomic retrieval boundary; a table may still contain cells,
 # and a figure may still contain an actual media artifact.
-ex:illustration a gmeow:MediaObject ; gmeow:mediaType "image/svg+xml" .
+ex:illustration a gmeow:MediaObject ; gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> .
 ex:figure gmeow:hasPart ex:illustration .

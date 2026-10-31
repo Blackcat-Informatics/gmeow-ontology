@@ -1227,7 +1227,10 @@ gmeow:mapSchemaEncodingFormat a gmeow:ProjectionMapping ;
         gmeow:anchor "efObj" ; gmeow:value "efType" ;
         gmeow:atom ( [ gmeow:subjectVar "efObj" ; gmeow:predicate gmeow:mediaType ; gmeow:objectVar "efType" ] ) ;
         gmeow:edoalSource gmeow:mediaType ] ;
-    gmeow:hasBinding [ gmeow:profile "schema-org" ; gmeow:toPredicate schema:encodingFormat ; gmeow:relation "=" ; gmeow:confidence 0.95 ] .
+    gmeow:hasBinding [
+        gmeow:profile "schema-org" ; gmeow:toPredicate schema:encodingFormat ;
+        gmeow:relation "<=" ; gmeow:confidence 0.95 ;
+        gmeow:lossyDrop "the media-type IRI is retained unchanged as a URL value; MediaType typing, mediaTypeName and authored registry policy are not emitted; charset and other MIME parameters are outside this binding" ] .
 
 gmeow:mapSchemaImage a gmeow:ProjectionMapping ;
     rdfs:label "depicted entity → schema:image (the depicting MediaObject)"@x-gmeow-english ;
@@ -1267,7 +1270,7 @@ gmeow:mapSchemaDataDownload a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:corpusMember ] ;
     gmeow:hasBinding [
         gmeow:profile "schema-org" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the member document is REUSED as the schema:DataDownload node; its GMEOW typing drops" ;
+        gmeow:lossyDrop "the member document is REUSED as the schema:DataDownload node; its GMEOW typing and MediaType/name/policy annotations are not emitted; a supplied media-type IRI is retained unchanged as a URL value, with charset and other MIME parameters outside this binding" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "ddCorpus" ; gmeow:tPred schema:distribution ; gmeow:tObj "ddDoc" ]
             [ gmeow:tSubj "ddDoc" ; gmeow:tPred rdf:type ; gmeow:tObjValue schema:DataDownload ]
