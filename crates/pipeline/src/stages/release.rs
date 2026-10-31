@@ -40,8 +40,6 @@ use purrdf::gts::model::Graph;
 use purrdf::gts::reader::read;
 use purrdf::gts::writer::digest_string;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
-#[cfg(test)]
-use purrdf::gts_compose::{DEFAULT_RSYNCABLE_THRESHOLD, emit_gts};
 use purrdf::{NativeRdfFormat, PROJECTION_CODECS, pair_loss_ledger, parse_dataset};
 
 use crate::error::Release;
@@ -53,8 +51,6 @@ pub use gmeow_bundle_view::graph_iris::GRAPH_ATTESTATIONS;
 
 use gmeow_ns::GMEOW_NS;
 const XSD_DATETIME: &str = "http://www.w3.org/2001/XMLSchema#dateTime";
-#[cfg(test)]
-const BLAKE3_256_DIGEST: &str = "https://blackcatinformatics.ca/gmeow/blake3_256Digest";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
