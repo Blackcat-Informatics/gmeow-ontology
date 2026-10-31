@@ -117,3 +117,12 @@ utteranceText retains the whole wording when a source records one Message as
 one utterance. Preserve an untagged string, language tag or RDF 1.2 base direction
 as supplied. Multipart chat wording belongs to each messagePartText in chat;
 do not concatenate parts, use labels as content, or invent a language.
+
+## Shared message kinds
+
+MessageKind and hasMessageKind belong to this transport-neutral slice.
+The open vocabulary permits overlapping behavioral and report kinds on any
+Message without choosing a primary category or inferring delivery.
+Email retains its specialized report-kind individuals; environment records
+supplies messageKindWorldNotice. The shared relation imposes no email-address
+or participant requirements on other notice transports.

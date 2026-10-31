@@ -366,3 +366,34 @@ gmeow:utteranceText
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/utteranceText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-faithful environment interactions and catalog records.
+
+gmeow:MessageKind
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Message Kind"@x-gmeow-english ;
+    skos:definition "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."@x-gmeow-english ;
+    gmeow:useWhen "Use for overlapping source classifications of any Message transport."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making kinds Message subclasses or forcing a single winning category."@x-gmeow-english ;
+    gmeow:howToUse "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."@x-gmeow-english ;
+    skos:scopeNote "This core vocabulary adds no email-address, delivery or recipient requirements."@x-gmeow-english ;
+    skos:example "For example: ex:localKind a gmeow:MessageKind ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:hasMessageKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has message kind"@x-gmeow-english ;
+    skos:definition "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source classifies the behavior or report purpose of a Message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Message to each supplied MessageKind without removing other attributed kinds."@x-gmeow-english ;
+    skos:scopeNote "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."@x-gmeow-english ;
+    skos:example "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:MessageKind .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasMessageKind" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -806,6 +806,9 @@ headers remain on `MessageHeader` (Principle 4).
 
 ### gmeow:MessageKind · gmeow:hasMessageKind
 
+These shared declarations are owned by core messaging. Email retains the
+specialized report-kind individuals described below.
+
 The behavioral / report kind of a message as an open value vocabulary —
 overlapping categories (a bounce is also auto-generated), so `hasMessageKind` is
 non-functional and no single category is forced to win (Principle 9).

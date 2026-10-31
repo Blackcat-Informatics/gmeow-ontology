@@ -181,3 +181,120 @@ readers and later findings remain independent claims (Principles 2, 4, 9 and 10)
 The [whole-file provenance scene](examples/whole-file-provenance.ttl) separates
 decomposed nodes, the original file, the producer's ledger and the reader's
 classification. It asserts no migration execution or coverage proof.
+
+## Recorded environment interactions
+
+The environment EventType values cover world beginnings, browsing and discovery
+exposure; health, attention and locus transitions; place naming; detail creation,
+revision and retirement; object offers, materialization, noticing, stirring,
+announcement, change and contract upgrades; reference placement, bedside items,
+provider updates, degradation and replacement; and notice recording and delivery.
+These are values attached to actual Event or Activity occurrences. They neither
+execute operations nor make an announced object externally physical.
+
+A rename preserves the actual place identity and earlier names. A provider may
+report its latest local name, with source chronology and context on the exact
+name statement. This does not establish a global preferred name, delete aliases
+or infer a new place. Source clocks alone do not resolve competing names.
+
+attentionFrom and attentionTo retain supplied attention endpoints. Physical or
+virtual movement still uses eventFromLocation and eventToLocation.
+stateFrom and stateTo retain actual QualityValue endpoints, including the open
+EnvironmentStatus values healthy and degraded. Missing endpoints remain unknown;
+there is no inferred state machine or winning current state. affectsObject
+lists entities touched by an Activity, keeping those entities distinct from its
+performing agent and from any claim of globally complete impact.
+
+## Notice artifacts and delivery occurrences
+
+messageKindWorldNotice uses the transport-neutral MessageKind and
+hasMessageKind owned by core messaging. noticeKind records the Message's topic:
+gift offered, request created, fulfilled or withdrawn, and world degradation or
+recovery. A topic reports what the notice says; it proves neither fulfillment
+nor an environment transition. Its canonical law requires the world-notice
+message-kind assertion.
+
+noticeDeliveryState can annotate the actual notice Message or one delivery
+Activity. The native carrier law requires a delivery Activity to have
+eventTypeWorldNotificationDelivery and affectsObject pointing to its actual
+world-notice Message. Attempts are distinct occurrences. Pending, attempted,
+delivered, failed and explicitly uncertain remain different open vocabulary
+values. A delivered report says the notice reached its recipient; it does not
+prove reading, comprehension or authentication. Missing state is never filled
+with uncertain, failed or delivered. Competing attributed reports coexist.
+
+## Details, embedded parts and media
+
+worldDetailKind classifies retained InformationObject descriptions as aesthetic,
+identity description or organizational reference. It does not turn a detail
+document into an Event or establish resolved identity or organizational membership.
+
+embeddedPartRole retains form, visual representation, mechanism plate, historical
+record or held history. Keep the actual partOf relationship and source context
+on the precise role claim. Its native law requires a supplied enclosing Entity.
+One shared part can play different roles in different attributed contexts.
+
+glanceText preserves the original language-bearing line, including RDF 1.2 base
+direction. The native language law rejects a missing language rather than
+guessing one. It does not truncate a full description or certify a reader's glance.
+channelLayout belongs to core documents and preserves the actual MediaObject's
+source channel-layout string, such as RGBA, independently of colour space.
+stirringKind belongs on the actual Event and distinguishes beheld and wound
+(the mechanism sense), without typing the object as an Event.
+
+## Advertised affordances and reported tool outcomes
+
+WorldAffordance is an InformationObject catalog entry. affordsAction connects its
+owning object representation, also an InformationObject. Keep an actual physical
+object separate from that representation. A qualified entry has its supplied
+affordanceToolName; this exact string is not a resolved endpoint or ToolCall.
+affordanceTarget names a supplied part of that owner. The catalog class law
+requires an actual owner and tool name; the target law checks hasPart for every
+catalog owner advertising a shared entry, preventing targets from leaking across
+object catalogs.
+
+tagReadOnlyAction and tagDreamEligible annotate the catalog entry. Their laws
+check WorldAffordance carriers, not effect purity, access permission or runtime
+safety. Core ActionPolicy remains the authority for a supplied action theory;
+these catalog records neither implement tools nor weaken that theory.
+
+toolCallOutcome belongs to the actual ToolCall with its actual usedTool.
+The source values ok, completed, opened and error remain distinct. Completion
+is not proof of success; an error does not prove rollback or absence of partial
+effects. No outcome is inferred from a missing field.
+
+fulfilsOffering links a reported fulfillment Activity to the actual existing
+Offering, distinct from the offered item, a WorldObjectRequest and an acceptance
+act. It neither certifies every condition nor infers recipient consent.
+
+## Request wording and additional object kinds
+
+desiredObjectName, desiredExperienceText and requestPurposeText preserve the
+actual Desire's words, including supplied language and direction. The requested
+name does not rename or instantiate an object; hoped-for experience is not an
+experienced Event; purpose prose is not automatically a Goal or commitment.
+Use requestDesire only when the actual Desire is known.
+
+cognitionModeAsRecorded preserves the source's mode code on an InformationObject
+record or actual Desire. A property-targeted native law checks that union
+carrier. The code is not automatically mapped to AwarenessMode.
+defeatedWorkDigest is the exact opaque work-reference digest string on a
+correction Activity. It is distinct from defeatsResponse, which links an
+information correction record to the withdrawn response. No digest algorithm,
+length, byte authenticity or matching work identity is inferred.
+
+The additional WorldObjectKind individuals are raft, bookshelf, desktop,
+archived desktop, music box, generative music box, kintsugi bowl vessel, written
+record, document collection, readable framed artifact and measuring instrument.
+The direct broader edges are bookshelf to shelf, archived desktop to desktop,
+generative music box to music box, kintsugi bowl vessel to bowl, and document
+collection and readable framed artifact to written record. The existing
+worldObjectKindBroader chain supplies inherited classifications. These are
+quality values, never object subclasses. The kintsugi value uses the bowl-shaped
+sense; raft is not linked to the container meaning of vessel, and desktop is
+not automatically a physical desk.
+
+[Notices and transitions](examples/notices-and-transitions.ttl) and
+[Object catalogs and request words](examples/object-catalogs-and-request-words.ttl)
+are ordinary generic source scenes. They make no execution, proof, delivery or
+authorization claim beyond their explicit attributed example records.

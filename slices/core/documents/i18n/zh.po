@@ -1194,3 +1194,33 @@ msgstr "独立的来源主张可以并存。这些声明保留证据，不认证
 msgctxt "https://blackcatinformatics.ca/gmeow/originalFilename|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:originalFilename."
 msgstr "保留 gmeow:originalFilename 的来源值。"
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "channel layout as recorded"
+msgstr "所记录通道布局"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source string naming an image's channel layout, such as RGBA, distinct from its colour space."
+msgstr "来源精确字符串，指明图像通道布局（例如 RGBA），区别于色彩空间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an actual MediaObject has a source-supplied channel-layout code."
+msgstr "用于实际 MediaObject 具有来源提供的通道布局代码时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid token whitespace collapse, inferred colour profiles or claims of verified decoded pixels."
+msgstr "避免 token 空白折叠、推断色彩配置或声称已验证解码像素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep exact case, spaces and spelling in xsd:string on the media artifact."
+msgstr "在媒体制品上以 xsd:string 保留精确大小写、空格和拼写。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No parser, channel-count computation or closed code enumeration is supplied."
+msgstr "不提供解析器、通道数计算或封闭代码枚举。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."
+msgstr "例如：ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."

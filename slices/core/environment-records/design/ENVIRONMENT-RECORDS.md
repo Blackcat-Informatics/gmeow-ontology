@@ -131,3 +131,75 @@ when the reader does not know it. The role does not imply that the producer
 has ceased to exist or that the ledger omits content; the reader's inability
 to prove complete restatement remains an epistemic limit. No new dependency
 or external projection vocabulary is needed (Principles 2, 4, 9, 17 and 19).
+
+## Interaction vocabulary and shared ownership
+
+The interaction layer adds source-valued EventType classifications, open
+QualityValue vocabularies and one InformationObject catalog kind. It introduces
+no parallel event hierarchy, mutable winner field or executable provider.
+Event kinds report beginnings, observations, modifications, provider lifecycle
+and notice occurrences; their existence is not proof of external effects.
+Latest local locus naming preserves old names and exact attribution without a
+global preferred-name rule (Principles 4, 9 and 10).
+
+MessageKind and hasMessageKind are shared messaging declarations with unchanged
+IRIs, open/nonfunctional meaning and Message domain. Their ownership moves from
+email to core messaging; email retains its specialized value individuals and
+already consumes messaging. This prevents a core-to-extension dependency.
+channelLayout is media metadata owned by documents. Environment records directly
+consumes messaging, agentic and documents for Message, ToolCall and MediaObject
+semantics; those manifests have no return edge to environment records.
+
+The notice carrier is the canonical union of Message and Activity. Its explicit
+binary-guarded law requires either a world-notice Message or a typed delivery
+Activity affecting the actual world-notice Message. This is a real subject
+admission check: the anonymous domain union alone does not produce such a check
+through the generic closed-world domain projection. Pending and uncertain are
+explicit reports, never absent-field defaults. Notice topics require the shared
+world-notice message kind but assert no verified environmental truth.
+
+Attention endpoints have Event domain and Entity range; state endpoints use
+QualityValue range. Activity affectsObject keeps performer and affected entity
+separate. Partial source transitions retain only supplied endpoints. No generic
+transition graph, success propagation or total chronology is invented.
+Details are InformationObjects; stirring occurrences are Events; embedded roles
+remain contextual to supplied partOf membership and source attribution.
+
+WorldAffordance specializes InformationObject as an actual catalog-entry kind.
+Its class-guarded law requires a catalog owner and supplied tool name, while
+incomplete fragments can remain plain InformationObjects. The target law checks
+universal agreement over every advertising owner's hasPart inventory. The named
+affordanceTarget domain and closure admit the WorldAffordance subject; its
+catalog class law separately requires owner existence and tool naming.
+A convenient owner cannot validate a shared entry's
+foreign target. These are source-record laws, not an implementation, purity
+proof or access-control mechanism. Tags are checked as affordance metadata and
+do not replace ActionPolicy or admit a call.
+
+The prose ranges preserve untagged source wording and actual language/base
+direction when supplied. glanceText specifically requires language through the
+native termHasLang relation. Machine fields channelLayout, affordanceToolName,
+cognitionModeAsRecorded and defeatedWorkDigest are exact xsd:string values,
+because token whitespace collapse would destroy source content. The latter
+three do not resolve a tool, a cognition category or a work identity.
+No range declaration is represented as a parser or cryptographic verifier.
+
+The cognition-mode carrier is InformationObject or Desire, with an explicit
+property-targeted disjunctive type law. Desire wording retains actual
+intentBearer and intentionGoal relationships independently; no Goal is
+manufactured from purpose prose. Correction Activity and correction
+InformationObject remain different: defeatedWorkDigest belongs to the former,
+while defeatsResponse belongs to the latter.
+
+All nine new integrity formulas have supported binary or class focus guards.
+Named domain/range and anonymous range-union closures retain the selected
+source type boundaries. Anonymous subject unions have explicit native laws.
+No global functionality, functional-carrier ledger change, authored shape,
+external OWL/RDFS alignment, engine extension or test producer is introduced.
+
+The six broader-kind edges use the existing canonical value hierarchy and
+property-chain authority. Bowl-shaped kintsugi is the narrow sense required
+by its bowl parent; the ontology does not claim every repaired vessel is a bowl.
+Virtual desktop and the raft's craft meaning deliberately receive no invented
+physical-surface or container parent. Inherited kind assertions remain inferred,
+with attribution to the original source description (Principles 2, 4, 9, 17 and 19).

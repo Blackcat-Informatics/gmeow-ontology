@@ -143,14 +143,6 @@ gmeow:MessageKeyword
     skos:definition "A flag/keyword applied to a message (IMAP flag or JMAP keyword) such as seen, flagged, answered, draft, forwarded, or junk."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-gmeow:MessageKind
-    a logic:AbstractIndividualType ,
-        logic:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "Message Kind"@x-gmeow-english ;
-    rdfs:subClassOf logic:QualityValue ;
-    skos:definition "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MessageParticipant
     a logic:Kind ,
@@ -573,14 +565,6 @@ gmeow:hasMailingList
     skos:definition "Relates an email message to the mailing list through which it was distributed. Non-functional: a message may theoretically be cross-posted to multiple lists."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:hasMessageKind
-    a logic:ObjectProperty ;
-    rdfs:domain gmeow:Message ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/email> ;
-    rdfs:label "has message kind"@x-gmeow-english ;
-    rdfs:range gmeow:MessageKind ;
-    skos:definition "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasMessageParticipant
     a logic:ObjectProperty ;

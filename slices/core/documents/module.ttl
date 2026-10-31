@@ -1505,3 +1505,21 @@ gmeow:originalFilename
     logic:range xsd:string .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/originalFilename" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-faithful environment interactions and catalog records.
+
+gmeow:channelLayout
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "channel layout as recorded"@x-gmeow-english ;
+    skos:definition "The exact source string naming an image's channel layout, such as RGBA, distinct from its colour space."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual MediaObject has a source-supplied channel-layout code."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid token whitespace collapse, inferred colour profiles or claims of verified decoded pixels."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact case, spaces and spelling in xsd:string on the media artifact."@x-gmeow-english ;
+    skos:scopeNote "No parser, channel-count computation or closed code enumeration is supplied."@x-gmeow-english ;
+    skos:example "For example: ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."@x-gmeow-english ;
+    logic:domain gmeow:MediaObject ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/channelLayout" ; logic:closureValue logic:ClosedWorldClosure ] .
