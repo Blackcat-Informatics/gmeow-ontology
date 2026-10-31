@@ -13,6 +13,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "charset"
+msgstr "字符集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The character encoding of an information object's textual content, recorded as a charset label such as utf-8 or iso-8859-1. The same property applies to MIME parts and other textual carriers."
+msgstr "信息对象文本内容的字符编码，以 utf-8 或 iso-8859-1 等字符集标签记录。同一属性适用于 MIME 部分和其他文本载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."
+msgstr "字符集标签构成开放词汇；此属性不强制采用封闭注册表，也不规范化所提供的字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."
+msgstr "在提供文本载体的字符编码时使用，无论该载体是否为消息正文的一部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."
+msgstr "避免将其用于自然语言、媒体类型、压缩或 MIME 内容传输编码。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."
+msgstr "在具体信息对象上记录所提供的字符集标签；将 mediaType 与 contentLanguage 或 contentLanguageCode 分开记录。对于 MIME 部分，在此记录其 Content-Type 的 charset 参数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
+msgstr "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/feedPostingKindFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "feedPostingKind is functional"
 msgstr "feedPostingKind 具有函数性"

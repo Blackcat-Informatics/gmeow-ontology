@@ -856,6 +856,20 @@ gmeow:imageOrientation
     gmeow:howToUse "Carry the rotation degrees on gmeow:imageOrientation of the gmeow:MediaObject; the solver applies the actual pixel transform when rendering."@x-gmeow-english ;
     gmeow:useWhen "Use for the clockwise EXIF rotation of an image from its normal orientation, in degrees (0/90/180/270); functional, one orientation per manifestation."@x-gmeow-english .
 
+gmeow:charset
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "charset"@x-gmeow-english ;
+    skos:definition "The character encoding of an information object's textual content, recorded as a charset label such as utf-8 or iso-8859-1. The same property applies to MIME parts and other textual carriers."@x-gmeow-english ;
+    skos:scopeNote "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."@x-gmeow-english ;
+    gmeow:useWhen "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."@x-gmeow-english ;
+    gmeow:howToUse "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."@x-gmeow-english ;
+    skos:example "ex:page a gmeow:WebPage ; gmeow:mediaType \"text/html\" ; gmeow:charset \"utf-8\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range rdfs:Literal .
+
 gmeow:mediaType
     a logic:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
