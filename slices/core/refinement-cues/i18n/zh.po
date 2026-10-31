@@ -1024,3 +1024,403 @@ msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语
 msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."
 msgstr "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grounding Rule Set"
+msgstr "落地规则集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named nonempty collection of actual logic:Rule declarations selected to derive cue grounding over a reader's supplied facts in one declared interpretation. Membership names executable rule structure, not prose guidance or a ReasoningProgram."
+msgstr "一种具名非空的实际 logic:Rule 声明集合，用于在一个声明的解释中，基于读者所提供事实导出线索落地。成员关系指定可执行规则结构，而非文字指南或 ReasoningProgram。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rule selection and input/world selection are separate mandatory operation inputs. The set does not import other worlds, close an external store or turn all rules in a vocabulary into an active program."
+msgstr "规则选择与输入、世界选择是操作的不同必需输入。此集合不导入其他世界，不封闭外部存储，也不将词汇中的所有规则变为活动程序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:policy a gmeow:GroundingRuleSet ; gmeow:groundingRule ex:rule . names a collection whose member must carry an actual logic:Rule AST."
+msgstr "ex:policy a gmeow:GroundingRuleSet ; gmeow:groundingRule ex:rule . 指定集合，其成员必须携带实际 logic:Rule AST。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounding rules"
+msgstr "线索落地规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared GroundingRuleSet selected for this Cue. At most one set is allowed locally; absence does not license inventing a grounding result or substituting detection guidance for rules."
+msgstr "为此 Cue 选定的声明 GroundingRuleSet。局部至多允许一个集合；缺失不授权虚构落地结果，或以检测指南替代规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The local maximum bounds sets per cue without requiring a set or identifying different cues that share one. A released cue's changed grounding declaration requires a new release."
+msgstr "局部上限约束每个线索的集合数，不要求集合存在，也不将共享集合的不同线索判为相同。已发布线索的落地声明发生改变时需新发布版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cue gmeow:cueGrounding gmeow:operationalCueGrounding . selects the named policy without claiming it ran."
+msgstr "ex:cue gmeow:cueGrounding gmeow:operationalCueGrounding . 选择具名策略，而不声称它已运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule"
+msgstr "落地规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual logic:Rule member of a GroundingRuleSet, retaining its native RDF 1.2 head, positive or negative body atoms and any supported guards. Every set contains at least one such rule."
+msgstr "GroundingRuleSet 的实际 logic:Rule 成员，保留原生 RDF 1.2 规则头、正向或否定规则体原子，以及受支持的守卫。每个集合至少包含一条此类规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Membership is unordered and may be shared across sets. Structural evidence checks do not replace the canonical Rule parser or certify stratification, termination or successful evaluation."
+msgstr "成员关系无序，且可在集合之间共享。结构证据检查不替代规范 Rule 解析器，也不认证分层、终止或求值成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . retains a real rule member."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . 保留实际规则成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounded"
+msgstr "线索已落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A derived match-to-cue fact produced by the cue's selected grounding rules over the selected input interpretation. Its cue is the match's actual matchedCue. It is never a source assertion or a verdict about a person's words."
+msgstr "由线索选定的落地规则在所选输入解释上生成的匹配到线索派生事实。其线索是匹配的实际 matchedCue。它绝非来源断言，也不是对人物话语的裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks the same matched cue and a declared nonempty rule set. A union-graph integrity check cannot authenticate asserted-versus-derived origin or prove that evaluation completed."
+msgstr "绑定定律检查相同匹配线索及声明的非空规则集。联合图完整性检查无法认证断言与派生的来源区别，也无法证明求值完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#example"
+msgid "The potential output ex:hit gmeow:cueGrounded ex:cue . belongs only to derived results; this annotation does not assert it in source data."
+msgstr "潜在输出 ex:hit gmeow:cueGrounded ex:cue . 仅属于派生结果；此注释不在来源数据中断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Machinery Record"
+msgstr "运行机制记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A derived cross-kind role for a resource explicitly admitted as operational machinery by the selected reader. Actual admitted attempt or intention-transition Events seed the role; only admitted descendant events and admitted generated information records propagate it. Neither an event kind nor automation alone assigns this role."
+msgstr "一种跨类别的派生角色，适用于被所选读者显式准入为运行机制的资源。实际获准的尝试或意向转移 Event 构成角色根；仅获准的后代事件和获准的生成信息记录传播它。事件种类或自动化本身均不赋予此角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Mixin spans Event, Activity and InformationObject sorts. Unary type publication is descriptive; reader-specific machineryForReader state controls propagation and exclusion, so one reader's classification cannot decide another reader's result."
+msgstr "此 Mixin 跨越 Event、Activity 和 InformationObject。一元类型发布仅作描述；读者特定的 machineryForReader 状态控制传播和排除，故某读者的分类不决定另一读者的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "An admitted ToolCall below an admitted attempt can acquire MachineryRecord without being retyped as an InformationObject."
+msgstr "获准尝试之下的获准 ToolCall 可获得 MachineryRecord，而不被重新定为 InformationObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "machinery admitted by"
+msgstr "运行机制准入者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit reader-supplied admission of this resource as an operational machinery record for the named reader or standpoint in the selected input world. It does not identify the resource's author or assert that software created it."
+msgstr "读者提供的显式准入，将此资源视为所选输入世界中供具名读者或立场使用的运行机制记录。它不标识资源作者，也不断言软件创建了它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and without a global subject domain: events and information records can both be admitted. Admission alone does not derive MachineryRecord without a permitted root or exact link."
+msgstr "可多值且无全局主体定义域：事件和信息记录均可获准。若无允许的根或精确链接，仅准入本身不导出 MachineryRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:operation gmeow:machineryAdmittedBy ex:reader . records the reader's operational classification input separately from source authorship."
+msgstr "ex:operation gmeow:machineryAdmittedBy ex:reader . 将读者的运行分类输入与来源作者归属分别记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operational-record cue grounding"
+msgstr "排除运行记录的线索落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared policy set containing explicitly activated reader-specific machinery rules and a stratified rule deriving cueGrounded for selected matches whose record lacks machineryForReader for that same reader in the completed selected interpretation."
+msgstr "声明的策略集合，包含显式激活的读者特定运行机制规则及一条分层规则，在完成的所选解释中，为记录对同一读者不具有 machineryForReader 的所选匹配导出 cueGrounded。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only subEventOf descendants and wasGeneratedBy information outputs propagate admitted machinery, with same-reader admission at both ends. Input artifacts and arbitrary provenance links do not propagate the role."
+msgstr "仅 subEventOf 后代和 wasGeneratedBy 信息输出传播获准的运行机制，且两端须由同一读者准入。输入制品和任意溯源链接不传播该角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue selecting this set can have a derived eligible match on an unclassified source while an admitted operational output remains excluded; neither outcome establishes the speaker's state."
+msgstr "选择此集合的线索可在未分类来源上获得派生合格匹配，而已准入的运行输出仍被排除；两种结果均不确立说话者状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding selected by"
+msgstr "落地选择者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader or standpoint explicitly selecting this rule set for the current supplied interpretation. This operation input activates only rules that also check their own membership in the selected set."
+msgstr "为当前所提供解释显式选择此规则集的读者或立场。此操作输入仅激活同时检查自身属于所选集合的规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued for independent readers. Selection is not an authorization grant or an evaluation receipt; every declared policy rule binds the same reader through its positive activation guard."
+msgstr "可为独立读者保留多值。选择不是授权或求值回执；每条声明策略规则均通过正向激活守卫绑定同一读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader . supplies selection, not derived grounding."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader . 提供选择，而非派生落地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounding reader"
+msgstr "线索落地读者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual reader or standpoint whose selected rule-set interpretation grounds this match report. Required when its cue declares grounding rules, and bounded to at most one reader locally without changing generic vantage."
+msgstr "其所选规则集解释对此匹配报告进行落地的实际读者或立场。当线索声明落地规则时必需，局部至多一个读者，不改变通用 vantage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The grounding rule joins this reader to groundingSelectedBy and the same reader-specific machinery state. A class-local maximum does not make the generic observation vantage functional."
+msgstr "落地规则将此读者与 groundingSelectedBy 及同一读者的运行机制状态连接。类局部上限不使通用观察 vantage 成为函数性关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:cueGroundingReader ex:reader . identifies the selected interpreter independently of the source writer."
+msgstr "ex:hit gmeow:cueGroundingReader ex:reader . 独立于来源作者标识所选解读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "machinery for reader"
+msgstr "供读者使用的运行机制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derived reader-specific operational-record state. Its resource and reader remain paired through the finite machinery rules and the negative grounding guard, preventing another reader's classification from controlling this interpretation."
+msgstr "派生的读者特定运行记录状态。资源与读者在有限运行机制规则及否定落地守卫中保持配对，防止其他读者的分类控制此解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No subject domain coerces every resource into an information object. Derived-only origin is an ownership contract; ordinary graph integrity checks do not authenticate a production derivation."
+msgstr "不以主体定义域强迫每个资源成为信息对象。仅派生来源是所有权契约；普通图完整性检查不认证生产派生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "The queried conclusion ex:operation gmeow:machineryForReader ex:reader . keeps the selected reader visible rather than claiming universal automation."
+msgstr "被查询的结论 ex:operation gmeow:machineryForReader ex:reader . 保留可见的所选读者，而非声称普遍自动化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted attempt machinery root"
+msgstr "获准尝试运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an actual attempt Event only with explicit admission and positive selection of this rule's containing set."
+msgstr "仅在显式准入并正向选择包含此规则的集合时，为实际尝试 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An eventTypeAttempt value alone does not classify a human or software attempt as machinery. No automation or author identity is inferred."
+msgstr "单凭 eventTypeAttempt 值不将人类或软件尝试定为运行机制。不推断自动化或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryAttemptRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryAttemptRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "active intention transition machinery root"
+msgstr "激活意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionActive and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionActive 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "paused intention transition machinery root"
+msgstr "暂停意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionPaused and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionPaused 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfied intention transition machinery root"
+msgstr "满足意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSatisfied and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionSatisfied 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abandoned intention transition machinery root"
+msgstr "放弃意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionAbandoned and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionAbandoned 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded intention transition machinery root"
+msgstr "取代意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSuperseded and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionSuperseded 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted event descendant propagation"
+msgstr "获准后代事件传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machineryForReader from a machinery Event to an Event related by subEventOf, requiring the same reader's explicit admission at both endpoints and explicit rule selection."
+msgstr "从运行机制 Event 向通过 subEventOf 关联的 Event 传播 machineryForReader，要求两端由同一读者显式准入并显式选择规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "subEventOf is transitive, so admitted descendants may be nested at any supplied or entailed depth. This is one permitted relation, not a promise of one physical edge or a walk over arbitrary links."
+msgstr "subEventOf 具有传递性，故获准后代可位于任何所提供或蕴涵的嵌套深度。这是一种允许关系，不承诺仅一条物理边，也不遍历任意链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryDescendantRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryDescendantRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted generated record propagation"
+msgstr "获准生成记录传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machineryForReader to an admitted InformationObject generated by a machinery Activity, with same-reader admission on output and activity and explicit rule selection."
+msgstr "向由运行机制 Activity 生成的获准 InformationObject 传播 machineryForReader，要求输出与活动由同一读者准入并显式选择规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only wasGeneratedBy carries this output edge. Human-authored outputs are not excluded without explicit admission; used, readArtifact, receiptArtifact, wasDerivedFrom and derivedBy do not propagate the role."
+msgstr "仅 wasGeneratedBy 承载此输出边。没有显式准入时不排除人类撰写的输出；used、readArtifact、receiptArtifact、wasDerivedFrom 和 derivedBy 不传播该角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryGeneratedRecordRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryGeneratedRecordRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "descriptive machinery type publication"
+msgstr "描述性运行机制类型发布"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Publish MachineryRecord type from actual reader-specific machineryForReader state under an explicitly selected containing rule set."
+msgstr "在显式选择包含该规则的集合时，从实际读者特定 machineryForReader 状态发布 MachineryRecord 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This unary type is descriptive and never drives recursive propagation or a negative grounding decision. Reader identity remains in the binary derived state."
+msgstr "此一元类型仅作描述，绝不驱动递归传播或否定落地决定。读者身份保留在二元派生状态中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryRecordPublicationRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryRecordPublicationRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected non-machinery cue grounding"
+msgstr "所选非运行记录线索落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive cueGrounded for a selected CueMatch only when its matched cue selects the active set, its source record and field are supplied, and no machineryForReader fact holds for that same grounding reader in the completed selected interpretation."
+msgstr "仅当所选 CueMatch 的匹配线索选择活动集合、提供来源记录及字段，并且在完成的所选解释中对同一落地读者不存在 machineryForReader 事实时，导出 cueGrounded。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Negation is scoped to the supplied reader/world model after positive machinery closure. It asserts neither universal absence of machinery nor source authorship, and it never changes suppression or evidence polarity."
+msgstr "否定限于运行机制正向闭包后的所提供读者、世界模型。它不断言运行机制普遍不存在或来源作者归属，也不改变抑制或证据极性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule head evidence"
+msgstr "落地规则头证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rule member of a GroundingRuleSet supplies a head reifier with an rdf:reifies target; prose membership alone is insufficient."
+msgstr "GroundingRuleSet 的每个规则成员均须提供带 rdf:reifies 目标的规则头重化记录；仅有文字成员关系不足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."
+msgstr "结构证据不替代规范 Rule 解析、所选执行或来源与派生来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleHeadEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."
+msgstr "gmeow:GroundingRuleHeadEvidenceConstraint logic:formalizes gmeow:groundingRule . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule body evidence"
+msgstr "落地规则体证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied positive or negative body atom on a grounding-rule member carries an rdf:reifies target. A ground empty-body rule remains legal."
+msgstr "落地规则成员中每个所提供的正向或否定规则体原子均携带 rdf:reifies 目标。无规则体的基规则仍合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."
+msgstr "结构证据不替代规范 Rule 解析、所选执行或来源与派生来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleBodyEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."
+msgstr "gmeow:GroundingRuleBodyEvidenceConstraint logic:formalizes gmeow:groundingRule . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected grounding reader required"
+msgstr "所选落地读者必需"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueMatch whose matched cue declares a cueGrounding set supplies its actual cueGroundingReader. Other cue matches acquire no unconditional reader requirement."
+msgstr "若 CueMatch 的匹配线索声明 cueGrounding 集合，则须提供其实际 cueGroundingReader。其他线索匹配不获得无条件读者要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is conditional presence, separate from local reader maximum and explicit rule-set activation. It does not turn source authorship into reader identity."
+msgstr "这是条件性存在要求，与读者局部上限及显式规则集激活分离。不将来源作者归属变为读者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueGroundingReaderRequiredConstraint logic:formalizes gmeow:cueGroundingReader . identifies this declaration law."
+msgstr "gmeow:CueGroundingReaderRequiredConstraint logic:formalizes gmeow:cueGroundingReader . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derived cue grounding binding"
+msgstr "派生线索落地绑定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueGrounded fact names the match's actual cue, retains a grounding reader and a selected nonempty rule set, and agrees with its reported held grounding outcome."
+msgstr "每个所提供的 cueGrounded 事实指定匹配的实际线索，保留落地读者及所选非空规则集，并与其报告的成立落地结果一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks retained binding evidence only. It cannot distinguish a forged source assertion from a genuine derived fact in a union graph or prove evaluation completion."
+msgstr "此检查仅验证保留的绑定证据。无法在联合图中区分伪造来源断言与真实派生事实，也无法证明求值完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueGroundedBindingConstraint logic:formalizes gmeow:cueGrounded . identifies this declaration law."
+msgstr "gmeow:CueGroundedBindingConstraint logic:formalizes gmeow:cueGrounded . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule set closed record"
+msgstr "落地规则集封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A GroundingRuleSet carries only its declared membership and selection fields, complete annotation coat and admitted provenance or operational-record metadata."
+msgstr "GroundingRuleSet 仅携带所声明成员及选择字段、完整注释，以及允许的溯源或运行记录元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure does not close the external fact world or assert that named rules ran. Richer provenance can remain on independent RDF 1.2 assertion reifiers."
+msgstr "谓词封闭性不封闭外部事实世界，也不断言具名规则已运行。更丰富溯源可保留于独立 RDF 1.2 断言重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifies this declaration law."
+msgstr "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . 标识此声明定律。"

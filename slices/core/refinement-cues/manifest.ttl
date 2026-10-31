@@ -24,6 +24,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/messaging>,
         <https://blackcatinformatics.ca/gmeow/slices/kernel>,
         <https://blackcatinformatics.ca/gmeow/slices/ai>,
+        <https://blackcatinformatics.ca/gmeow/slices/agency-records>,
         <https://blackcatinformatics.ca/gmeow/slices/observations>,
         <https://blackcatinformatics.ca/gmeow/slices/standpoint>,
         <https://blackcatinformatics.ca/gmeow/slices/provenance>,

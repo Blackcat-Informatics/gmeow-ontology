@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/selected-cue-grounding/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary synthetic declarations; no rule execution or derived result is asserted.
+ex:reader a gmeow:SoftwareAgent ; rdfs:label "Selected record reader"@en .
+ex:writer a gmeow:Agent ; rdfs:label "Original human writer"@en .
+ex:tool a gmeow:SoftwareAgent ; rdfs:label "Supplied tool identity"@en .
+ex:reading a gmeow:InformationObject ;
+    gmeow:description "A provisional inability-to-proceed reading, not a diagnosis."@en .
+ex:cue a gmeow:Cue ;
+    gmeow:cuePhrase "cannot continue"@en ;
+    gmeow:detectionGuidance "Distinguish a person's own signal from admitted operational records; an eligible phrase is not a verdict about its author."@en ;
+    gmeow:cueEvidenceFor ex:reading ;
+    gmeow:cueGrounding gmeow:operationalCueGrounding .
+
+# Selecting a named set is a separate positive operation input.
+gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader .
+
+ex:goal a gmeow:Goal .
+ex:intention a gmeow:Intention ;
+    gmeow:intentBearer ex:writer ; gmeow:intentionGoal ex:goal ;
+    gmeow:motivates ex:operationalAttempt, ex:humanAttempt .
+
+# An attempt may be human: its event kind is not an automation assertion.
+ex:humanAttempt a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttempt ;
+    gmeow:wasAssociatedWith ex:writer .
+ex:operationalAttempt a gmeow:Event ;
+    gmeow:eventType gmeow:eventTypeAttempt ;
+    gmeow:wasAssociatedWith ex:writer ;
+    gmeow:machineryAdmittedBy ex:reader .
+ex:call a gmeow:ToolCall ; gmeow:usedTool ex:tool ;
+    gmeow:subEventOf ex:operationalAttempt ;
+    gmeow:machineryAdmittedBy ex:reader ;
+    gmeow:readArtifact ex:input .
+
+# Inputs do not inherit classification through a read or use link.
+ex:input a gmeow:InformationObject ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:description "Source notes retained intact."@en .
+
+# Generation alone does not erase human authorship or classify every output.
+ex:operationalOutput a gmeow:InformationObject ;
+    gmeow:wasGeneratedBy ex:call ;
+    gmeow:machineryAdmittedBy ex:reader ;
+    gmeow:description "cannot continue"@en .
+ex:humanDraft a gmeow:InformationObject ;
+    gmeow:wasGeneratedBy ex:call ; gmeow:wasAttributedTo ex:writer ;
+    gmeow:description "cannot continue"@en .
+
+ex:operationalMatch a gmeow:CueMatch ;
+    gmeow:matchedCue ex:cue ; gmeow:matchRecord ex:operationalOutput ;
+    gmeow:matchField gmeow:description ;
+    gmeow:matchSourceLiteral "cannot continue"@en ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "15"^^xsd:nonNegativeInteger ;
+    gmeow:cueGroundingReader ex:reader ;
+    gmeow:matchGrounding gmeow:verdictNotHeld .
+ex:humanMatch a gmeow:CueMatch ;
+    gmeow:matchedCue ex:cue ; gmeow:matchRecord ex:humanDraft ;
+    gmeow:matchField gmeow:description ;
+    gmeow:matchSourceLiteral "cannot continue"@en ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "15"^^xsd:nonNegativeInteger ;
+    gmeow:cueGroundingReader ex:reader ;
+    gmeow:matchGrounding gmeow:verdictHeld .
+
+# These reported outcomes illustrate the policy; they were not computed here.
+# Query the selected completed interpretation for machineryForReader, its
+# descriptive MachineryRecord types and cueGrounded. None are source assertions.

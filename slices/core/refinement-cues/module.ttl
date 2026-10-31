@@ -480,7 +480,7 @@ gmeow:CueLexiconClosedRecordConstraint
     gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
     skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
     skos:example "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."@x-gmeow-english ;
-    logic:formalizes gmeow:CueLexicon ; logic:message "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueLexicon ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:cueReview ], [ logic:termIndex 12 ; logic:termIri gmeow:hasCue ], [ logic:termIndex 13 ; logic:termIri gmeow:supersedes ], [ logic:termIndex 14 ; logic:termIri gmeow:writtenInLanguage ] ] ] ] ] ] ] ] .
+    logic:formalizes gmeow:CueLexicon ; logic:message "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueLexicon ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:cueReview ], [ logic:termIndex 12 ; logic:termIri gmeow:hasCue ], [ logic:termIndex 13 ; logic:termIri gmeow:supersedes ], [ logic:termIndex 14 ; logic:termIri gmeow:writtenInLanguage ], [ logic:termIndex 15 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 16 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
 
 gmeow:CueClosedRecordConstraint
     a logic:Constraint ;
@@ -493,7 +493,7 @@ gmeow:CueClosedRecordConstraint
     gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
     skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
     skos:example "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."@x-gmeow-english ;
-    logic:formalizes gmeow:Cue ; logic:message "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Cue ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:writtenInLanguage ], [ logic:termIndex 12 ; logic:termIri gmeow:detectionGuidance ], [ logic:termIndex 13 ; logic:termIri gmeow:cuePhrase ], [ logic:termIndex 14 ; logic:termIri gmeow:cuePattern ], [ logic:termIndex 15 ; logic:termIri gmeow:cueReadsWordsOf ], [ logic:termIndex 16 ; logic:termIri gmeow:cueReadsField ], [ logic:termIndex 17 ; logic:termIri gmeow:cueEvidenceFor ], [ logic:termIndex 18 ; logic:termIri gmeow:cueEvidenceAgainst ], [ logic:termIndex 19 ; logic:termIri gmeow:cueExample ], [ logic:termIndex 20 ; logic:termIri gmeow:cueCounterExample ], [ logic:termIndex 21 ; logic:termIri gmeow:negatedBy ] ] ] ] ] ] ] ] .
+    logic:formalizes gmeow:Cue ; logic:message "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:Cue ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 9 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 10 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 11 ; logic:termIri gmeow:writtenInLanguage ], [ logic:termIndex 12 ; logic:termIri gmeow:detectionGuidance ], [ logic:termIndex 13 ; logic:termIri gmeow:cuePhrase ], [ logic:termIndex 14 ; logic:termIri gmeow:cuePattern ], [ logic:termIndex 15 ; logic:termIri gmeow:cueReadsWordsOf ], [ logic:termIndex 16 ; logic:termIri gmeow:cueReadsField ], [ logic:termIndex 17 ; logic:termIri gmeow:cueEvidenceFor ], [ logic:termIndex 18 ; logic:termIri gmeow:cueEvidenceAgainst ], [ logic:termIndex 19 ; logic:termIri gmeow:cueExample ], [ logic:termIndex 20 ; logic:termIri gmeow:cueCounterExample ], [ logic:termIndex 21 ; logic:termIri gmeow:negatedBy ], [ logic:termIndex 22 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 23 ; logic:termIri gmeow:machineryForReader ], [ logic:termIndex 24 ; logic:termIri gmeow:cueGrounding ] ] ] ] ] ] ] ] .
 
 gmeow:CueNegationClosedRecordConstraint
     a logic:Constraint ;
@@ -506,7 +506,7 @@ gmeow:CueNegationClosedRecordConstraint
     gmeow:howToUse "Evaluate the realized formula against retained source values and report every violation."@x-gmeow-english ;
     skos:scopeNote "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."@x-gmeow-english ;
     skos:example "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."@x-gmeow-english ;
-    logic:formalizes gmeow:CueNegation ; logic:message "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueNegation ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:negatingCue ], [ logic:termIndex 9 ; logic:termIri gmeow:negationScope ], [ logic:termIndex 10 ; logic:termIri gmeow:negationWindow ] ] ] ] ] ] ] ] .
+    logic:formalizes gmeow:CueNegation ; logic:message "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueNegation ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri gmeow:description ], [ logic:termIndex 5 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 6 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 7 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 8 ; logic:termIri gmeow:negatingCue ], [ logic:termIndex 9 ; logic:termIri gmeow:negationScope ], [ logic:termIndex 10 ; logic:termIri gmeow:negationWindow ], [ logic:termIndex 11 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 12 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
 
 # Intrinsic field types and required paths; matching remains an execution boundary.
 gmeow:NegationScope logic:equivalentClass [ a logic:Enumeration ; logic:oneOf ( gmeow:negationSameSentence gmeow:negationSameMessagePart gmeow:negationSameMessage gmeow:negationSameTurn gmeow:negationWithinWords ) ] .
@@ -901,7 +901,7 @@ gmeow:CueMatchClosedRecordConstraint
     skos:example "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . names the supplied-record law."@x-gmeow-english ;
     logic:formalizes gmeow:CueMatch ;
     logic:message "A CueMatch record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:matchedCue ], [ logic:termIndex 14 ; logic:termIri gmeow:matchRecord ], [ logic:termIndex 15 ; logic:termIri gmeow:matchField ], [ logic:termIndex 16 ; logic:termIri gmeow:matchSourceLiteral ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:matchSuppressedBy ], [ logic:termIndex 20 ; logic:termIri gmeow:matchGrounding ], [ logic:termIndex 21 ; logic:termIri lang:literalValue ] ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:matchedCue ], [ logic:termIndex 14 ; logic:termIri gmeow:matchRecord ], [ logic:termIndex 15 ; logic:termIri gmeow:matchField ], [ logic:termIndex 16 ; logic:termIri gmeow:matchSourceLiteral ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:matchSuppressedBy ], [ logic:termIndex 20 ; logic:termIri gmeow:matchGrounding ], [ logic:termIndex 21 ; logic:termIri lang:literalValue ], [ logic:termIndex 22 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 23 ; logic:termIri gmeow:machineryForReader ], [ logic:termIndex 24 ; logic:termIri gmeow:cueGrounded ], [ logic:termIndex 25 ; logic:termIri gmeow:cueGroundingReader ] ] ] ] ] ] ] ] .
 
 gmeow:CueEvalCaseClosedRecordConstraint
     a logic:Constraint ;
@@ -916,7 +916,7 @@ gmeow:CueEvalCaseClosedRecordConstraint
     skos:example "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . names the supplied-record law."@x-gmeow-english ;
     logic:formalizes gmeow:CueEvalCase ;
     logic:message "A CueEvalCase record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueEvalCase ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:evalCue ], [ logic:termIndex 14 ; logic:termIri gmeow:evalText ], [ logic:termIndex 15 ; logic:termIri gmeow:evalMatch ] ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueEvalCase ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:evalCue ], [ logic:termIndex 14 ; logic:termIri gmeow:evalText ], [ logic:termIndex 15 ; logic:termIri gmeow:evalMatch ], [ logic:termIndex 16 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 17 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
 
 gmeow:CueJudgementClosedRecordConstraint
     a logic:Constraint ;
@@ -931,4 +931,440 @@ gmeow:CueJudgementClosedRecordConstraint
     skos:example "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."@x-gmeow-english ;
     logic:formalizes gmeow:CueJudgement ;
     logic:message "A CueJudgement record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates." ;
-    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:vantage ], [ logic:termIndex 14 ; logic:termIri gmeow:cueVerdict ], [ logic:termIndex 15 ; logic:termIri gmeow:judgedMatch ], [ logic:termIndex 16 ; logic:termIri gmeow:judgedCase ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:observedFeature ], [ logic:termIndex 20 ; logic:termIri gmeow:observedAt ], [ logic:termIndex 21 ; logic:termIri gmeow:observationMethod ], [ logic:termIndex 22 ; logic:termIri gmeow:observationResult ] ] ] ] ] ] ] ] .
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueJudgement ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri gmeow:description ], [ logic:termIndex 6 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 7 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 8 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 9 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 10 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 11 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 12 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 13 ; logic:termIri gmeow:vantage ], [ logic:termIndex 14 ; logic:termIri gmeow:cueVerdict ], [ logic:termIndex 15 ; logic:termIri gmeow:judgedMatch ], [ logic:termIndex 16 ; logic:termIri gmeow:judgedCase ], [ logic:termIndex 17 ; logic:termIri gmeow:spanStart ], [ logic:termIndex 18 ; logic:termIri gmeow:spanEnd ], [ logic:termIndex 19 ; logic:termIri gmeow:observedFeature ], [ logic:termIndex 20 ; logic:termIri gmeow:observedAt ], [ logic:termIndex 21 ; logic:termIri gmeow:observationMethod ], [ logic:termIndex 22 ; logic:termIri gmeow:observationResult ], [ logic:termIndex 23 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 24 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
+
+# Explicitly selected grounding policies and reader-specific operational records.
+
+gmeow:GroundingRuleSet
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Grounding Rule Set"@x-gmeow-english ;
+    skos:definition "A named nonempty collection of actual logic:Rule declarations selected to derive cue grounding over a reader's supplied facts in one declared interpretation. Membership names executable rule structure, not prose guidance or a ReasoningProgram."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the precise rules a selected cue-grounding operation must evaluate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting set membership as proof that rules were compiled, executed or evaluated over complete facts."@x-gmeow-english ;
+    gmeow:howToUse "Supply at least one groundingRule with real head/body reifiers and retain supplied version, source and reader/world provenance. Unsupported rule capabilities must fail explicitly."@x-gmeow-english ;
+    skos:scopeNote "Rule selection and input/world selection are separate mandatory operation inputs. The set does not import other worlds, close an external store or turn all rules in a vocabulary into an active program."@x-gmeow-english ;
+    skos:example "ex:policy a gmeow:GroundingRuleSet ; gmeow:groundingRule ex:rule . names a collection whose member must carry an actual logic:Rule AST."@x-gmeow-english .
+
+gmeow:cueGrounding
+    a logic:ObjectProperty ;
+    logic:domain gmeow:Cue ;
+    logic:range gmeow:GroundingRuleSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue grounding rules"@x-gmeow-english ;
+    skos:definition "The declared GroundingRuleSet selected for this Cue. At most one set is allowed locally; absence does not license inventing a grounding result or substituting detection guidance for rules."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the complete declared grounding policy for a cue."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a rule-set link as an evaluation receipt or as a change to cue evidence polarity."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual set and preserve the exact cue release when supplied; evaluate its selected rules over the caller's chosen facts and world."@x-gmeow-english ;
+    skos:scopeNote "The local maximum bounds sets per cue without requiring a set or identifying different cues that share one. A released cue's changed grounding declaration requires a new release."@x-gmeow-english ;
+    skos:example "ex:cue gmeow:cueGrounding gmeow:operationalCueGrounding . selects the named policy without claiming it ran."@x-gmeow-english .
+
+gmeow:groundingRule
+    a logic:ObjectProperty ;
+    logic:domain gmeow:GroundingRuleSet ;
+    logic:range logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "grounding rule"@x-gmeow-english ;
+    skos:definition "An actual logic:Rule member of a GroundingRuleSet, retaining its native RDF 1.2 head, positive or negative body atoms and any supported guards. Every set contains at least one such rule."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate the real rules required by the selected grounding policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming prose-only rule descriptions or silently omitting a rule whose capabilities the selected evaluator lacks."@x-gmeow-english ;
+    gmeow:howToUse "Reference complete rule declarations; let the canonical compiler validate their reifiers and variables before native lowering and selected evaluation."@x-gmeow-english ;
+    skos:scopeNote "Membership is unordered and may be shared across sets. Structural evidence checks do not replace the canonical Rule parser or certify stratification, termination or successful evaluation."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . retains a real rule member."@x-gmeow-english .
+
+gmeow:cueGrounded
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range gmeow:Cue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue grounded"@x-gmeow-english ;
+    skos:definition "A derived match-to-cue fact produced by the cue's selected grounding rules over the selected input interpretation. Its cue is the match's actual matchedCue. It is never a source assertion or a verdict about a person's words."@x-gmeow-english ;
+    gmeow:useWhen "Use only for facts actually derived by the selected cue-grounding operation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hand-asserting a grounded result, deriving it from a reported held flag alone, or treating absence as falsity without a completed selected interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Keep source facts apart from derived outputs and retain the selected rule set, original match, reader and world evidence. Publish only a completed operation's actual derivations."@x-gmeow-english ;
+    skos:scopeNote "The binding law checks the same matched cue and a declared nonempty rule set. A union-graph integrity check cannot authenticate asserted-versus-derived origin or prove that evaluation completed."@x-gmeow-english ;
+    skos:example "The potential output ex:hit gmeow:cueGrounded ex:cue . belongs only to derived results; this annotation does not assert it in source data."@x-gmeow-english .
+
+gmeow:MachineryRecord
+    a logic:Class, logic:Mixin ;
+    logic:subClassOf gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Machinery Record"@x-gmeow-english ;
+    skos:definition "A derived cross-kind role for a resource explicitly admitted as operational machinery by the selected reader. Actual admitted attempt or intention-transition Events seed the role; only admitted descendant events and admitted generated information records propagate it. Neither an event kind nor automation alone assigns this role."@x-gmeow-english ;
+    gmeow:useWhen "Use as a derived exclusion role when a selected cue policy distinguishes operational records from a person's own signal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid classifying all human attempts, all SoftwareAgent products or all artifacts touched by a tool as machinery."@x-gmeow-english ;
+    gmeow:howToUse "Require reader-supplied admission and actual owner predicates, evaluate the finite declared propagation rules, and preserve original authorship and source words."@x-gmeow-english ;
+    skos:scopeNote "This Mixin spans Event, Activity and InformationObject sorts. Unary type publication is descriptive; reader-specific machineryForReader state controls propagation and exclusion, so one reader's classification cannot decide another reader's result."@x-gmeow-english ;
+    skos:example "An admitted ToolCall below an admitted attempt can acquire MachineryRecord without being retyped as an InformationObject."@x-gmeow-english .
+
+gmeow:machineryAdmittedBy
+    a logic:ObjectProperty ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "machinery admitted by"@x-gmeow-english ;
+    skos:definition "An explicit reader-supplied admission of this resource as an operational machinery record for the named reader or standpoint in the selected input world. It does not identify the resource's author or assert that software created it."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the selected reader actually supplies the operational-record classification input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing admission from SoftwareAgent typing, derivedBy, used, readArtifact or receiptArtifact."@x-gmeow-english ;
+    gmeow:howToUse "Retain the admitting reader or standpoint and its statement provenance; select only the relevant reader/world facts before applying classification rules."@x-gmeow-english ;
+    skos:scopeNote "Multi-valued and without a global subject domain: events and information records can both be admitted. Admission alone does not derive MachineryRecord without a permitted root or exact link."@x-gmeow-english ;
+    skos:example "ex:operation gmeow:machineryAdmittedBy ex:reader . records the reader's operational classification input separately from source authorship."@x-gmeow-english .
+
+gmeow:operationalCueGrounding
+    a gmeow:GroundingRuleSet ;
+    gmeow:groundingRule gmeow:MachineryAttemptRootRule, gmeow:MachineryIntentionActiveRootRule, gmeow:MachineryIntentionPausedRootRule, gmeow:MachineryIntentionSatisfiedRootRule, gmeow:MachineryIntentionAbandonedRootRule, gmeow:MachineryIntentionSupersededRootRule, gmeow:MachineryDescendantRule, gmeow:MachineryGeneratedRecordRule, gmeow:MachineryRecordPublicationRule, gmeow:CueNonMachineryGroundingRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ;
+    rdfs:label "operational-record cue grounding"@x-gmeow-english ;
+    skos:definition "The declared policy set containing explicitly activated reader-specific machinery rules and a stratified rule deriving cueGrounded for selected matches whose record lacks machineryForReader for that same reader in the completed selected interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader explicitly chooses the finite operational-record exclusion policy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting this policy as universal human-authorship recognition or treating unevaluated absence as a grounded result."@x-gmeow-english ;
+    gmeow:howToUse "Select its actual rules and the caller's reader/world facts, finish positive machinery closure before the negative grounding stratum, and retain exclusions and source provenance."@x-gmeow-english ;
+    skos:scopeNote "Only subEventOf descendants and wasGeneratedBy information outputs propagate admitted machinery, with same-reader admission at both ends. Input artifacts and arbitrary provenance links do not propagate the role."@x-gmeow-english ;
+    skos:example "A cue selecting this set can have a derived eligible match on an unclassified source while an admitted operational output remains excluded; neither outcome establishes the speaker's state."@x-gmeow-english .
+
+gmeow:groundingSelectedBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:GroundingRuleSet ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "grounding selected by"@x-gmeow-english ;
+    skos:definition "The reader or standpoint explicitly selecting this rule set for the current supplied interpretation. This operation input activates only rules that also check their own membership in the selected set."@x-gmeow-english ;
+    gmeow:useWhen "Use to make selected grounding execution explicit even when rule declarations are loaded globally."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving selection from a set declaration, cueGrounding link, source authorship or a SoftwareAgent type."@x-gmeow-english ;
+    gmeow:howToUse "Supply the actual reader's selection in the intended input world, and preserve other readers' selections independently."@x-gmeow-english ;
+    skos:scopeNote "Multi-valued for independent readers. Selection is not an authorization grant or an evaluation receipt; every declared policy rule binds the same reader through its positive activation guard."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader . supplies selection, not derived grounding."@x-gmeow-english .
+
+gmeow:cueGroundingReader
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CueMatch ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "cue grounding reader"@x-gmeow-english ;
+    skos:definition "The actual reader or standpoint whose selected rule-set interpretation grounds this match report. Required when its cue declares grounding rules, and bounded to at most one reader locally without changing generic vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a selected match report to its actual grounding reader without confusing source authorship."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid combining different readers into one report or requiring this field on unrelated pre-existing matches whose cues have no grounding policy."@x-gmeow-english ;
+    gmeow:howToUse "Supply the reader of the selected operation and retain separate reports for independently grounded readings of the same occurrence."@x-gmeow-english ;
+    skos:scopeNote "The grounding rule joins this reader to groundingSelectedBy and the same reader-specific machinery state. A class-local maximum does not make the generic observation vantage functional."@x-gmeow-english ;
+    skos:example "ex:hit gmeow:cueGroundingReader ex:reader . identifies the selected interpreter independently of the source writer."@x-gmeow-english .
+
+gmeow:machineryForReader
+    a logic:ObjectProperty ;
+    logic:range gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "machinery for reader"@x-gmeow-english ;
+    skos:definition "Derived reader-specific operational-record state. Its resource and reader remain paired through the finite machinery rules and the negative grounding guard, preventing another reader's classification from controlling this interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use only for actually derived state in the selected activated rule evaluation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting this state as source input or replacing its reader coordinate with unary MachineryRecord membership."@x-gmeow-english ;
+    gmeow:howToUse "Derive from explicit same-reader admissions and permitted roots or links, retain the world boundary, and publish any unary type only through the declared publication rule."@x-gmeow-english ;
+    skos:scopeNote "No subject domain coerces every resource into an information object. Derived-only origin is an ownership contract; ordinary graph integrity checks do not authenticate a production derivation."@x-gmeow-english ;
+    skos:example "The queried conclusion ex:operation gmeow:machineryForReader ex:reader . keeps the selected reader visible rather than claiming universal automation."@x-gmeow-english .
+
+# Required membership and local maxima do not create global functionality.
+gmeow:GroundingRuleSet logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:groundingRule ; logic:allValuesFrom logic:Rule ],
+    [ a logic:Restriction ; logic:onProperty gmeow:groundingSelectedBy ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:GroundingRuleSet ; logic:closureKey "https://blackcatinformatics.ca/gmeow/groundingRule" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:Cue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:cueGrounding ; logic:allValuesFrom gmeow:GroundingRuleSet ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueGrounding ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:GroundingRuleSet ] .
+gmeow:CueMatch logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:cueGroundingReader ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueGroundingReader ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:cueGrounded ; logic:allValuesFrom gmeow:Cue ] .
+gmeow:MachineryRecord logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:machineryAdmittedBy ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MachineryRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:MachineryAttemptRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "admitted attempt machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an actual attempt Event only with explicit admission and positive selection of this rule's containing set."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "An eventTypeAttempt value alone does not classify a human or software attempt as machinery. No automation or author identity is inferred."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryAttemptRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryAttemptRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeAttempt )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryIntentionActiveRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "active intention transition machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an admitted Event with eventTypeIntentionActive and an actual intentionTransitionOf target, under explicit selection of this rule."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionActive )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:intentionTransitionOf _:cueGround_intention )>> ],
+        [ rdf:reifies <<( _:cueGround_intention rdf:type gmeow:Intention )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryIntentionPausedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "paused intention transition machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an admitted Event with eventTypeIntentionPaused and an actual intentionTransitionOf target, under explicit selection of this rule."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionPaused )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:intentionTransitionOf _:cueGround_intention )>> ],
+        [ rdf:reifies <<( _:cueGround_intention rdf:type gmeow:Intention )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryIntentionSatisfiedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "satisfied intention transition machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSatisfied and an actual intentionTransitionOf target, under explicit selection of this rule."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionSatisfied )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:intentionTransitionOf _:cueGround_intention )>> ],
+        [ rdf:reifies <<( _:cueGround_intention rdf:type gmeow:Intention )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryIntentionAbandonedRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "abandoned intention transition machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an admitted Event with eventTypeIntentionAbandoned and an actual intentionTransitionOf target, under explicit selection of this rule."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionAbandoned )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:intentionTransitionOf _:cueGround_intention )>> ],
+        [ rdf:reifies <<( _:cueGround_intention rdf:type gmeow:Intention )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryIntentionSupersededRootRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "superseded intention transition machinery root"@x-gmeow-english ;
+    skos:definition "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSuperseded and an actual intentionTransitionOf target, under explicit selection of this rule."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:eventType gmeow:eventTypeIntentionSuperseded )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:intentionTransitionOf _:cueGround_intention )>> ],
+        [ rdf:reifies <<( _:cueGround_intention rdf:type gmeow:Intention )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryDescendantRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "admitted event descendant propagation"@x-gmeow-english ;
+    skos:definition "Propagate machineryForReader from a machinery Event to an Event related by subEventOf, requiring the same reader's explicit admission at both endpoints and explicit rule selection."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "subEventOf is transitive, so admitted descendants may be nested at any supplied or entailed depth. This is one permitted relation, not a promise of one physical edge or a walk over arbitrary links."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryDescendantRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryDescendantRule )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:Event )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:subEventOf _:cueGround_parent )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryAdmittedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryGeneratedRecordRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "admitted generated record propagation"@x-gmeow-english ;
+    skos:definition "Propagate machineryForReader to an admitted InformationObject generated by a machinery Activity, with same-reader admission on output and activity and explicit rule selection."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "Only wasGeneratedBy carries this output edge. Human-authored outputs are not excluded without explicit admission; used, readArtifact, receiptArtifact, wasDerivedFrom and derivedBy do not propagate the role."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryGeneratedRecordRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryGeneratedRecordRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:InformationObject )>> ],
+        [ rdf:reifies <<( _:cueGround_parent rdf:type gmeow:Activity )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:wasGeneratedBy _:cueGround_parent )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryForReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_parent gmeow:machineryAdmittedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryAdmittedBy _:cueGround_reader )>> ] .
+
+gmeow:MachineryRecordPublicationRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "descriptive machinery type publication"@x-gmeow-english ;
+    skos:definition "Publish MachineryRecord type from actual reader-specific machineryForReader state under an explicitly selected containing rule set."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "This unary type is descriptive and never drives recursive propagation or a negative grounding decision. Reader identity remains in the binary derived state."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryRecordPublicationRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_record rdf:type gmeow:MachineryRecord )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:MachineryRecordPublicationRule )>> ],
+        [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] .
+
+gmeow:CueNonMachineryGroundingRule
+    a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "selected non-machinery cue grounding"@x-gmeow-english ;
+    skos:definition "Derive cueGrounded for a selected CueMatch only when its matched cue selects the active set, its source record and field are supplied, and no machineryForReader fact holds for that same grounding reader in the completed selected interpretation."@x-gmeow-english ;
+    gmeow:useWhen "Use this declared rule only within an explicitly selected grounding set and reader/world interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid activating rules from declaration membership alone or using another reader's classification as this reader's result."@x-gmeow-english ;
+    gmeow:howToUse "Retain its native reified atoms, select its containing set positively, and keep source admissions separate from derived outputs."@x-gmeow-english ;
+    skos:scopeNote "Negation is scoped to the supplied reader/world model after positive machinery closure. It asserts neither universal absence of machinery nor source authorship, and it never changes suppression or evidence polarity."@x-gmeow-english ;
+    skos:example "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . names this actual rule without executing it."@x-gmeow-english ;
+    logic:head [ rdf:reifies <<( _:cueGround_match gmeow:cueGrounded _:cueGround_cue )>> ] ;
+    logic:body [ rdf:reifies <<( _:cueGround_set gmeow:groundingSelectedBy _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_set gmeow:groundingRule gmeow:CueNonMachineryGroundingRule )>> ],
+        [ rdf:reifies <<( _:cueGround_match rdf:type gmeow:CueMatch )>> ],
+        [ rdf:reifies <<( _:cueGround_match gmeow:matchedCue _:cueGround_cue )>> ],
+        [ rdf:reifies <<( _:cueGround_match gmeow:matchRecord _:cueGround_record )>> ],
+        [ rdf:reifies <<( _:cueGround_match gmeow:matchField _:cueGround_field )>> ],
+        [ rdf:reifies <<( _:cueGround_match gmeow:cueGroundingReader _:cueGround_reader )>> ],
+        [ rdf:reifies <<( _:cueGround_cue gmeow:cueGrounding _:cueGround_set )>> ] ;
+    logic:negatedBody [ rdf:reifies <<( _:cueGround_record gmeow:machineryForReader _:cueGround_reader )>> ] .
+
+# Native RDF 1.2 statement-position variables are local to each compiled rule.
+_:cueGround_cue logic:termVariable "cue" .
+_:cueGround_field logic:termVariable "field" .
+_:cueGround_intention logic:termVariable "intention" .
+_:cueGround_match logic:termVariable "match" .
+_:cueGround_parent logic:termVariable "parent" .
+_:cueGround_reader logic:termVariable "reader" .
+_:cueGround_record logic:termVariable "record" .
+_:cueGround_set logic:termVariable "set" .
+
+gmeow:GroundingRuleHeadEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "grounding rule head evidence"@x-gmeow-english ;
+    skos:definition "Every rule member of a GroundingRuleSet supplies a head reifier with an rdf:reifies target; prose membership alone is insufficient."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the retained grounding declaration and its supplied binding evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting structural validity as selected execution, complete facts or authenticated derivation."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized constraint over the selected supplied records and preserve the original evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."@x-gmeow-english ;
+    skos:example "gmeow:GroundingRuleHeadEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."@x-gmeow-english ;
+    logic:formalizes gmeow:groundingRule ;
+    logic:message "Every rule member of a GroundingRuleSet supplies a head reifier with an rdf:reifies target; prose membership alone is insufficient." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:GroundingRuleSet ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rule" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:groundingRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "head" ], [ logic:termIndex 1 ; logic:termVariable "headTarget" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:head ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ], [ logic:termIndex 1 ; logic:termVariable "head" ] ], [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "head" ], [ logic:termIndex 1 ; logic:termVariable "headTarget" ] ] ] ] ] ] ] ] .
+
+gmeow:GroundingRuleBodyEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "grounding rule body evidence"@x-gmeow-english ;
+    skos:definition "Every supplied positive or negative body atom on a grounding-rule member carries an rdf:reifies target. A ground empty-body rule remains legal."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the retained grounding declaration and its supplied binding evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting structural validity as selected execution, complete facts or authenticated derivation."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized constraint over the selected supplied records and preserve the original evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."@x-gmeow-english ;
+    skos:example "gmeow:GroundingRuleBodyEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."@x-gmeow-english ;
+    logic:formalizes gmeow:groundingRule ;
+    logic:message "Every supplied positive or negative body atom on a grounding-rule member carries an rdf:reifies target. A ground empty-body rule remains legal." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:GroundingRuleSet ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rule" ], [ logic:termIndex 1 ; logic:termVariable "atom" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:groundingRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ], [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation logic:body ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ], [ logic:termIndex 1 ; logic:termVariable "atom" ] ], [ a logic:Formula ; logic:relation logic:negatedBody ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ], [ logic:termIndex 1 ; logic:termVariable "atom" ] ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "bodyTarget" ] ; logic:exists [ a logic:Formula ; logic:relation rdf:reifies ; logic:argument [ logic:termIndex 0 ; logic:termVariable "atom" ], [ logic:termIndex 1 ; logic:termVariable "bodyTarget" ] ] ] ] ] ] ] .
+
+gmeow:CueGroundingReaderRequiredConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "selected grounding reader required"@x-gmeow-english ;
+    skos:definition "A CueMatch whose matched cue declares a cueGrounding set supplies its actual cueGroundingReader. Other cue matches acquire no unconditional reader requirement."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the retained grounding declaration and its supplied binding evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting structural validity as selected execution, complete facts or authenticated derivation."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized constraint over the selected supplied records and preserve the original evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "This is conditional presence, separate from local reader maximum and explicit rule-set activation. It does not turn source authorship into reader identity."@x-gmeow-english ;
+    skos:example "gmeow:CueGroundingReaderRequiredConstraint logic:formalizes gmeow:cueGroundingReader . identifies this declaration law."@x-gmeow-english ;
+    logic:formalizes gmeow:cueGroundingReader ;
+    logic:message "A CueMatch whose matched cue declares a cueGrounding set supplies its actual cueGroundingReader. Other cue matches acquire no unconditional reader requirement." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cue" ], [ logic:termIndex 1 ; logic:termVariable "set" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:matchedCue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ], [ a logic:Formula ; logic:relation gmeow:cueGrounding ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cue" ], [ logic:termIndex 1 ; logic:termVariable "set" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reader" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:cueGroundingReader ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ] ] ] ] ] ] .
+
+gmeow:CueGroundedBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "derived cue grounding binding"@x-gmeow-english ;
+    skos:definition "Every supplied cueGrounded fact names the match's actual cue, retains a grounding reader and a selected nonempty rule set, and agrees with its reported held grounding outcome."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the retained grounding declaration and its supplied binding evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting structural validity as selected execution, complete facts or authenticated derivation."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized constraint over the selected supplied records and preserve the original evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "This checks retained binding evidence only. It cannot distinguish a forged source assertion from a genuine derived fact in a union graph or prove evaluation completion."@x-gmeow-english ;
+    skos:example "gmeow:CueGroundedBindingConstraint logic:formalizes gmeow:cueGrounded . identifies this declaration law."@x-gmeow-english ;
+    logic:formalizes gmeow:cueGrounded ;
+    logic:message "Every supplied cueGrounded fact names the match's actual cue, retains a grounding reader and a selected nonempty rule set, and agrees with its reported held grounding outcome." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CueMatch ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "cue" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:cueGrounded ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:matchedCue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "cue" ] ], [ a logic:Formula ; logic:relation gmeow:matchGrounding ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reader" ], [ logic:termIndex 1 ; logic:termVariable "set" ], [ logic:termIndex 2 ; logic:termVariable "rule" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:cueGroundingReader ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ], [ a logic:Formula ; logic:relation gmeow:cueGrounding ; logic:argument [ logic:termIndex 0 ; logic:termVariable "cue" ], [ logic:termIndex 1 ; logic:termVariable "set" ] ], [ a logic:Formula ; logic:relation gmeow:groundingSelectedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ], [ logic:termIndex 1 ; logic:termVariable "reader" ] ], [ a logic:Formula ; logic:relation gmeow:groundingRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "set" ], [ logic:termIndex 1 ; logic:termVariable "rule" ] ] ] ] ] ] ] ] ] .
+
+gmeow:GroundingRuleSetClosedRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "grounding rule set closed record"@x-gmeow-english ;
+    skos:definition "A GroundingRuleSet carries only its declared membership and selection fields, complete annotation coat and admitted provenance or operational-record metadata."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the retained grounding declaration and its supplied binding evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting structural validity as selected execution, complete facts or authenticated derivation."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized constraint over the selected supplied records and preserve the original evidence when reporting a violation."@x-gmeow-english ;
+    skos:scopeNote "Predicate closure does not close the external fact world or assert that named rules ran. Richer provenance can remain on independent RDF 1.2 assertion reifiers."@x-gmeow-english ;
+    skos:example "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifies this declaration law."@x-gmeow-english ;
+    logic:formalizes gmeow:GroundingRuleSet ;
+    logic:message "A GroundingRuleSet carries only its declared membership and selection fields, complete annotation coat and admitted provenance or operational-record metadata." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:GroundingRuleSet ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri skos:definition ], [ logic:termIndex 6 ; logic:termIri skos:scopeNote ], [ logic:termIndex 7 ; logic:termIri skos:example ], [ logic:termIndex 8 ; logic:termIri gmeow:useWhen ], [ logic:termIndex 9 ; logic:termIri gmeow:avoidWhen ], [ logic:termIndex 10 ; logic:termIri gmeow:howToUse ], [ logic:termIndex 11 ; logic:termIri gmeow:description ], [ logic:termIndex 12 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 13 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 14 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 15 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 16 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 17 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 18 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 19 ; logic:termIri gmeow:groundingRule ], [ logic:termIndex 20 ; logic:termIri gmeow:groundingSelectedBy ], [ logic:termIndex 21 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 22 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .

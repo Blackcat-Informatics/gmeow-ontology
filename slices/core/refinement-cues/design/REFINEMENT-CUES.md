@@ -136,3 +136,57 @@ provide the required literal code-point length operation, so the upper bound
 and substring authentication are explicit consumer contracts. Predicate closure
 and complete shared-literal joins do not silently claim that missing execution
 capability, detector completeness or correct grounding has been proved.
+
+## Selected grounding and reader-specific operational state
+
+The agency owner supplies actual attempt and intention-transition event kinds,
+their `intentionTransitionOf` relation, artifact-operation activities and read
+links. The existing provenance owner supplies `wasGeneratedBy`; the events
+owner supplies transitive `subEventOf`. A dependency on agency-records makes
+this reuse explicit. No local attempt class, external-dispatch substitute,
+automation classifier or duplicated activity model is introduced.
+
+`MachineryRecord` is a Mixin across event/activity and information-record sorts.
+Roots require explicit `machineryAdmittedBy` facts supplied by the reader, plus
+the actual owning event kinds. Descendant and generated-record rules require
+the same reader's admission at both endpoints. Reading, use and receipt-target
+links do not transfer classification to input artifacts. Generation does not
+erase human authorship or replace a separate output admission.
+
+There are two independent scope protections in every productive policy clause:
+positive `groundingSelectedBy` activation and the clause's own `groundingRule`
+membership. Native compilation discovers Rule declarations globally; declaration
+membership alone cannot serve as activation. Recursive state is binary
+`machineryForReader(record, reader)`, not unary type membership. The same reader
+variable flows through root admission, every propagation step and the negative
+grounding guard. Unary type publication is descriptive and never drives a later
+classification or exclusion. This prevents cross-reader contamination in one
+selected fact model.
+
+Each selected operation still owns its exact input/world boundary. These
+relations are declared scope inputs, not a new execution framework, an access
+grant or a warrant to merge independent evaluations. A CueMatch binds its
+reader conditionally when its cue declares a grounding set; separate reports
+retain separate interpretations of one occurrence. No generic vantage or global
+property-functionality contract is strengthened.
+
+Native Rule ASTs use RDF 1.2 `rdf:reifies` statement targets and explicit
+`logic:termVariable` carriers. The grounding set retains all ten rules: six
+admitted roots, two finite propagation forms, descriptive type publication and
+one stratified negative eligibility rule. This policy has no existential output
+terms, reductions or hidden rule-order priority. The negative rule binds the
+actual match cue, record and field before testing same-reader state absence.
+An evaluator must complete the selected positive closure before treating that
+absence as a negative; unsupported capabilities or an unfinished operation
+cannot masquerade as a grounding result.
+Owner type closure is an explicit prerequisite of this policy input. A caller
+using only graph-free facts must supply those type consequences or selected
+rules that derive them; the converter alone supplies no ontology closure.
+
+The declaration laws require rule-head and body reifier evidence, conditional
+reader presence, grounded-result binding and allowed set predicates. They do
+not replace the compiler's full Rule parser, evaluate rules or authenticate
+EDB-versus-IDB provenance. Derived-only `cueGrounded`, `machineryForReader` and
+MachineryRecord publication remain explicit source/output ownership contracts.
+No union-graph formula is falsely presented as such an origin checker, and no
+new reasoning engine, test suite or external equivalence is added.
