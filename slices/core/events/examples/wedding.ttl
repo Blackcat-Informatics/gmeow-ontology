@@ -49,3 +49,16 @@ ex:partOfficiant a gmeow:Participation ;
     gmeow:participationEvent ex:wedding ;
     gmeow:participationParticipant ex:officiant ;
     gmeow:participationRole gmeow:roleOfficiant .
+
+# A separate source places an earlier wedding only within its reporting window.
+# The window's boundaries describe the window, never an inferred event instant.
+# The existing Holocene individual supplies an independently named period.
+ex:earlierWedding a gmeow:Event ;
+    rdfs:label "an earlier wedding in the archive"@x-gmeow-english ;
+    gmeow:eventDuring ex:reportingWindow , gmeow:periodHolocene .
+
+ex:reportingWindow a gmeow:TimeInterval ;
+    rdfs:label "the archive's reporting window"@x-gmeow-english ;
+    gmeow:startedAtTime "2025-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .

@@ -84,6 +84,25 @@ TimeInterval); a fuzzy date uses the `earliestStart`/`latestEnd` bounds plus a
 not smuggled into a string. All non-functional: competing standpoint-indexed dates
 coexist, confidence-weighted, annotated by the four statement clocks (temporal slice).
 
+### gmeow:eventDuring
+
+An event can be located within an established `gmeow:TimeInterval` or
+`gmeow:NamedPeriod` through `gmeow:eventDuring`, even when its exact instant or
+complete span is unknown. The referenced period supplies temporal placement;
+it does not become the event's duration. Multiple placements may coexist as
+standpoint-indexed claims.
+
+Use `eventInterval` for the event's full known span and `during` for strict
+Allen containment between events. Coincidence with a period boundary is
+permitted; `eventDuring` supplies no instant or boundary conversion. A relative
+phrase such as "last fall" needs its reference context resolved to an established
+period before this relation can name it. Existing instant-only consumers gain
+no period expansion or inclusion rule from this property.
+
+The [wedding example](examples/wedding.ttl) retains an earlier wedding's
+placement in a reporting interval and in the Holocene without inventing its
+`eventTime`.
+
 ### gmeow:eventLocation · gmeow:eventTrajectory · gmeow:eventSpacetime
 
 The spatial axis: one or more `gmeow:Location` values (geographic or virtual — a
