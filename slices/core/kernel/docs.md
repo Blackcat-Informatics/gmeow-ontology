@@ -40,6 +40,16 @@ asserted; `connectsTo` is neither symmetric nor transitive, and reachability is 
 work (P12). Unit linkage (`gmeow:unit`, QUDT by reference — Principle 5) is defined in the
 observations slice, grounding onto the `logic:` measurement seam.
 
+### Shared slot bearer
+
+`slotBearer` identifies the `Agent` whose state a source-scoped slot records.
+The kernel owns this property and its `slotBearerFunctionality` carrier once
+(Principles 4 and 17). Its range remains `Agent`; it has no global domain that
+would classify every subject as both a persona slot and an attention slot.
+Type each slot explicitly. The owning slot class retains its required bearer,
+range and consistency obligations; the shared carrier supplies at most one
+bearer without selecting a preferred state or merging source identities.
+
 ## The domain-free epistemic axes
 
 Four orthogonal, domain-free, non-functional facets may attach to any value,

@@ -451,19 +451,6 @@ gmeow:scopeSlot
     gmeow:howToUse "Retain the explicit scopeSlot value with its source, scope and record identity."@x-gmeow-english ;
     skos:example "The record names gmeow:scopeSlot explicitly."@x-gmeow-english .
 
-gmeow:slotBearer
-    a logic:ObjectProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    logic:domain gmeow:AttentionSlot ;
-    logic:range gmeow:Agent ;
-    rdfs:label "slot bearer"@x-gmeow-english ;
-    skos:definition "The agent whose attention slot this identity names."@x-gmeow-english ;
-    gmeow:useWhen "Use to record slot bearer within an attributed recall context."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from slotBearer alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain the explicit slotBearer value with its source, scope and record identity."@x-gmeow-english ;
-    skos:example "The record names gmeow:slotBearer explicitly."@x-gmeow-english .
-
 gmeow:slotRole
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;

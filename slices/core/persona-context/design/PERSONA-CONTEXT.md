@@ -97,6 +97,12 @@ moving their declarations or copying their source examples. Names are consumed
 for the personas’ register values in the illustrative scene. The manifest is the
 single identity, tier and dependency declaration for this slice.
 
+The kernel owns the shared `slotBearer` property and its existing
+`slotBearerFunctionality` carrier. Their Agent range and at-most-one obligation
+remain intact. The property has no global domain: an explicitly typed
+`PersonaSlot` retains this slice’s required bearer restriction and transition
+bearer laws without also becoming an `AttentionSlot` (Principles 4 and 17).
+
 ## Audience register remains distinct from worn state
 
 personaMode has an open domain and Persona range, without functionality or a

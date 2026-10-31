@@ -105,30 +105,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|http://www.w3.org/2004
 msgid "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
 msgstr "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slot bearer"
-msgstr "槽位承载者"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The Agent whose persona state is tracked by this source-scoped PersonaSlot. A slot record has one bearer; it does not designate one of that bearer’s personas as primary."
-msgstr "此来源作用域内的 PersonaSlot 所跟踪人格面貌状态的 Agent。槽位记录具有一个承载者；它不将该承载者的任何人格面貌指定为主要人格面貌。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to anchor a persona transition stream to its agent."
-msgstr "用于将人格面貌转换流锚定到其行动者。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid identifying a persona policy or an audience as the slot’s bearer."
-msgstr "避免将人格面貌策略或听众当作槽位承载者。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference the same Agent borne by the previous and replacement Personas."
-msgstr "引用原先及替代 Persona 所归属的同一个 Agent。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:expressionSlot gmeow:slotBearer ex:agent ."
-msgstr "ex:expressionSlot gmeow:slotBearer ex:agent ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transition slot"
 msgstr "转换槽位"
@@ -720,30 +696,6 @@ msgstr "GMEOW 人格面貌上下文模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Agent memory and conversation recall retaining which persona made a record, why persona state changed and the producer order of changes across containing activities."
 msgstr "保留记录建立时所用人格面貌、人格面貌状态变更原因，以及跨所属活动的生产者变更顺序的行动者记忆与会话检索。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slotBearer is functional"
-msgstr "slotBearer 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The intrinsic at-most-one slotBearer field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
-msgstr "单个来源作用域记录或成员固有的至多一个值的 slotBearer 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to keep the source record’s slotBearer field singular."
-msgstr "用于保持来源记录的 slotBearer 字段为单值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid using slotBearer functionality to merge independently attributed records."
-msgstr "避免利用 slotBearer 的函数性合并独立归属的记录。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read this obligation only on each record’s slotBearer slot; existence is specified separately by closed-world paths."
-msgstr "仅将此义务用于每条记录的 slotBearer 槽位；存在性由封闭世界路径另行规定。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
-msgstr "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transitionSlot is functional"

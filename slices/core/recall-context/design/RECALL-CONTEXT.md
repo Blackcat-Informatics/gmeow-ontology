@@ -28,7 +28,13 @@ finite allocation law. No hand-authored shape or SPARQL calculation owns the law
 AttentionSlot is an enduring slot identity. SlotPosition is a SubKind of the existing
 State Kind and retains its meaning as a position along a Path. A position references
 an existing resource; it neither copies that resource nor changes its foundational
-sort. Slot-state assignment claims are the reifiers of actual RDF 1.2 assertions.
+sort. The kernel owns the shared slotBearer property and its existing
+functionality carrier, with Agent range and no global domain. Explicit
+AttentionSlot typing retains this owner’s required bearer, range and maximum
+cardinality restrictions without also classifying the slot as a PersonaSlot
+(Principles 4 and 17).
+
+Slot-state assignment claims are the reifiers of actual RDF 1.2 assertions.
 Their authoritative reified tuples identify the slot and position directly;
 there are no independently authored role indexes. Supersession relates those
 claims, preserving the original records and competing reports (Principles 9

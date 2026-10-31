@@ -356,3 +356,51 @@ msgstr "contrainte de domaine de valeurs d'avoidForConsumer"
 msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every gmeow:avoidForConsumer value is a declared gmeow:ProjectionContext individual."
 msgstr "Une contrainte d'intégrité en monde clos : chaque valeur de gmeow:avoidForConsumer est un individu gmeow:ProjectionContext déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot bearer"
+msgstr "porteur d’emplacement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent whose state a source-scoped slot tracks. Each slot record has one bearer; this relation does not classify the slot as a particular kind of record."
+msgstr "Agent dont un emplacement limité à une source suit l’état. Chaque enregistrement d’emplacement a un seul porteur ; cette relation ne classe pas l’emplacement dans un type particulier d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the agent whose state a slot records."
+msgstr "Utiliser pour identifier l’agent dont un emplacement consigne l’état."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary entity as the bearer or inferring a slot class from this relation alone."
+msgstr "Éviter de prendre une entité quelconque comme porteur ou de déduire une classe d’emplacement de cette seule relation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source’s Agent and type the slot explicitly; the owning slot class supplies its required fields and consistency obligations."
+msgstr "Référencer l’Agent de la source et typer explicitement l’emplacement ; la classe qui possède l’emplacement fournit ses champs requis et ses obligations de cohérence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sourceSlot gmeow:slotBearer ex:agent ."
+msgstr "ex:sourceSlot gmeow:slotBearer ex:agent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slotBearer is functional"
+msgstr "slotBearer est fonctionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one Agent bearer of a source-scoped slot record. Independently sourced slots retain distinct identities; this obligation does not choose a preferred state."
+msgstr "Porteur Agent intrinsèque, au plus unique, d’un enregistrement d’emplacement limité à une source. Les emplacements de sources indépendantes conservent des identités distinctes ; cette obligation ne choisit aucun état préféré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep each slot record’s Agent bearer singular."
+msgstr "Utiliser pour conserver un seul porteur Agent par enregistrement d’emplacement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using bearer functionality to merge independently sourced slot identities."
+msgstr "Éviter d’utiliser la fonctionnalité du porteur pour fusionner des identités d’emplacement issues de sources indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this as an at-most-one obligation on slotBearer; the owning slot class specifies whether the bearer is required."
+msgstr "Lire ceci comme une obligation d’au plus une valeur pour slotBearer ; la classe qui possède l’emplacement précise si le porteur est requis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
+msgstr "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
