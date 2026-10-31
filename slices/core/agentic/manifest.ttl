@@ -20,5 +20,6 @@
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
-        <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+        <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
     gmeow:sliceConsumer "Project Lillith's agentic mode ( P15): tool-call trajectories audited in the same provenance graph as the agent's claims. First live producer: the gmeow memory MCP triad records its own store/revise calls as ToolCall provenance. Memetics consumes attention requests and their acknowledgement and resolution events."@x-gmeow-english.

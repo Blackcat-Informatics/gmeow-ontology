@@ -1,0 +1,97 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/stated-operation-reports/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary source records, not an executed operation or a verification result.
+ex:agent a gmeow:Agent .
+ex:producerA a gmeow:SoftwareAgent .
+ex:producerB a gmeow:SoftwareAgent .
+ex:tool a gmeow:SoftwareAgent .
+
+# General rationale has no Entity domain: this remains an Activity/Event.
+ex:decision a gmeow:Activity ;
+    gmeow:eventType gmeow:eventTypeDecision ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:statedRationale "Wait for the remaining account."@en,
+        "The available account is sufficient."@en .
+ex:firstReason rdf:reifies <<( ex:decision gmeow:statedRationale "Wait for the remaining account."@en )>> ;
+    gmeow:wasAttributedTo ex:producerA ;
+    gmeow:accordingTo ex:producerA .
+ex:otherReason rdf:reifies <<( ex:decision gmeow:statedRationale "The available account is sufficient."@en )>> ;
+    gmeow:wasAttributedTo ex:producerB ;
+    gmeow:accordingTo ex:producerB .
+
+# A retained information record can carry untagged or directional source wording.
+ex:account a gmeow:InformationObject ;
+    gmeow:statedRationale "Keep the unfinished version.",
+        "احتفظ بالنسخة غير المكتملة."@ar--rtl ;
+    gmeow:wasAttributedTo ex:producerA .
+
+# The actual calls have real tool identities, not identities invented from names.
+ex:writeCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:tool ;
+    gmeow:toolName "artifact.write" ;
+    gmeow:wasAssociatedWith ex:agent .
+ex:readCall a gmeow:ToolCall ;
+    gmeow:usedTool ex:tool ;
+    gmeow:toolName "artifact.read" ;
+    gmeow:wasAssociatedWith ex:agent .
+
+# A source can report a complete write of content that remains an unfinished draft.
+ex:draft a gmeow:InformationObject ;
+    gmeow:artifactComplete false .
+ex:writeReceipt a gmeow:ArtifactOperationReceipt ;
+    gmeow:receiptOperation gmeow:operationUpdated ;
+    gmeow:receiptArtifact ex:draft ;
+    gmeow:subEventOf ex:writeCall ;
+    gmeow:receiptTool "artifact.write" ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:receiptOperationComplete true, false .
+
+# Exact boolean reports carry independent provenance; neither is a default.
+ex:completeReport rdf:reifies <<( ex:writeReceipt gmeow:receiptOperationComplete true )>> ;
+    gmeow:wasAttributedTo ex:producerA ;
+    gmeow:accordingTo ex:producerA ;
+    gmeow:statedRationale "The producer reported that all requested output chunks were handled."@en .
+ex:incompleteReport rdf:reifies <<( ex:writeReceipt gmeow:receiptOperationComplete false )>> ;
+    gmeow:wasAttributedTo ex:producerB ;
+    gmeow:accordingTo ex:producerB ;
+    gmeow:statedRationale "The other producer reported that the final chunk remained unhandled."@en .
+
+# This actual read receipt has all required bindings but no completion bit.
+# Absence remains unknown; no read-back verdict is asserted.
+ex:readReceipt a gmeow:ArtifactOperationReceipt ;
+    gmeow:receiptOperation gmeow:operationRead ;
+    gmeow:receiptArtifact ex:draft ;
+    gmeow:readArtifact ex:draft ;
+    gmeow:subEventOf ex:readCall ;
+    gmeow:receiptTool "artifact.read" ;
+    gmeow:wasAssociatedWith ex:agent .
+
+# A document describing the receipt stays distinct from its operation Activity.
+ex:receiptAccount a gmeow:InformationObject ;
+    gmeow:wasDerivedFrom ex:writeReceipt ;
+    gmeow:wasAttributedTo ex:producerA ;
+    gmeow:statedRationale "Retain the source operation report without promoting it to proof."@en .
+
+# The specialized reason remains authored on the attention-disposition Event.
+# Its general statedRationale follows from the canonical subproperty axiom.
+ex:request a gmeow:AttentionRequest ;
+    gmeow:description "Return to the retained account."@en ;
+    gmeow:wasDerivedFrom ex:account ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:attentionRequestedAt "2030-05-01T09:00:00Z"^^xsd:dateTime .
+ex:resolution a gmeow:AttentionResolution ;
+    gmeow:resolves ex:request ;
+    gmeow:resolutionOutcome gmeow:resolutionDeferred ;
+    gmeow:resolutionRationale "Return after the remaining account arrives."@en ;
+    gmeow:resolutionEvidence ex:receiptAccount ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:eventTime "2030-05-01T09:01:00Z"^^xsd:dateTime .
+ex:resolutionReason rdf:reifies <<( ex:resolution gmeow:resolutionRationale "Return after the remaining account arrives."@en )>> ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:accordingTo ex:agent .

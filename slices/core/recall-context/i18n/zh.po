@@ -1153,30 +1153,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w
 msgid "Context-plan recall parameters, immutable attention-slot claims, record-specific exclusions, recall activities and asker verdicts."
 msgstr "上下文计划回忆参数、不可变注意槽主张、逐记录排除、回忆活动及提问者判定。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inferring successful execution, access permission or a preferred claim from slotBearer alone."
-msgstr "避免仅从 slotBearer 推断执行成功、访问权限或优先主张。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit slotBearer value with its source, scope and record identity."
-msgstr "连同来源、作用域和记录身份保留显式 slotBearer 值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to record slot bearer within an attributed recall context."
-msgstr "用于在带有归属的回忆上下文中记录槽持有者。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slot bearer"
-msgstr "槽持有者"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The agent whose attention slot this identity names."
-msgstr "该身份命名其注意槽的智能体。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
-msgid "The record names gmeow:slotBearer explicitly."
-msgstr "记录显式命名 gmeow:slotBearer。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid inferring successful execution, access permission or a preferred claim from slotHistory alone."
 msgstr "避免仅从 slotHistory 推断执行成功、访问权限或优先主张。"

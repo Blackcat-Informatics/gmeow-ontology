@@ -105,30 +105,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|http://www.w3.org/2004
 msgid "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
 msgstr "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slot bearer"
-msgstr "槽位承载者"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The Agent whose persona state is tracked by this source-scoped PersonaSlot. A slot record has one bearer; it does not designate one of that bearer’s personas as primary."
-msgstr "此来源作用域内的 PersonaSlot 所跟踪人格面貌状态的 Agent。槽位记录具有一个承载者；它不将该承载者的任何人格面貌指定为主要人格面貌。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to anchor a persona transition stream to its agent."
-msgstr "用于将人格面貌转换流锚定到其行动者。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid identifying a persona policy or an audience as the slot’s bearer."
-msgstr "避免将人格面貌策略或听众当作槽位承载者。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Reference the same Agent borne by the previous and replacement Personas."
-msgstr "引用原先及替代 Persona 所归属的同一个 Agent。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:expressionSlot gmeow:slotBearer ex:agent ."
-msgstr "ex:expressionSlot gmeow:slotBearer ex:agent ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transition slot"
 msgstr "转换槽位"
@@ -206,20 +182,20 @@ msgid "replaced persona lasted"
 msgstr "原人格面貌持续时长"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The producer-reported duration for which the replaced persona lasted before this change. The source xsd:duration is retained; it is not computed by subtracting producer-clock timestamps."
-msgstr "生产者报告的、被替代人格面貌在此次变更前持续的时长。保留来源的 xsd:duration；不通过相减生产者时钟时间戳来计算。"
+msgid "The source-reported duration for which the replaced persona lasted before this change, including a source-computed span when its derivation is stated on the exact duration claim. GMEOW retains the supplied xsd:duration and does not compute or verify timestamp subtraction."
+msgstr "来源报告的、被替代人格面貌在此次变更前持续的时长；若在确切的时长断言上说明推导过程，也包括来源计算的时长。GMEOW 保留提供的 xsd:duration，不计算或验证时间戳相减。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the source reports the tenure duration of the persona being replaced."
-msgstr "来源报告被替代人格面貌的持续时长时使用。"
+msgid "Use when the source reports a measured tenure duration or supplies a computed tenure duration with its stated derivation."
+msgstr "来源报告测得的持续时长，或提供计算出的持续时长并说明推导过程时使用。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inventing a zero duration when elapsed time was not measured."
-msgstr "未测量经过时长时，避免虚构零时长。"
+msgid "Avoid inventing a duration, timestamp precision or timezone, or treating a retained source calculation as verified arithmetic."
+msgstr "避免虚构时长、时间戳精度或时区，也不要把保留的来源计算视为已验证的算术结果。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the supplied duration and its units; omit this value when the source gives no elapsed-duration observation."
-msgstr "保留提供的时长及其单位；来源没有经过时长观测时省略此值。"
+msgid "Keep the supplied duration and units. For a source-computed span, link its exact RDF 1.2 statement reifier by wasDerivedFrom to the actual opening and closing state-claim reifiers, and preserve the source’s calculation and input roles with statedRationale. Omit when no duration is supplied."
+msgstr "保留提供的时长及其单位。对于来源计算的时长，通过 wasDerivedFrom 将其确切 RDF 1.2 语句的具化节点链接到实际开启和关闭状态的断言具化节点，并用 statedRationale 保留来源说明的计算过程及输入角色。未提供时长时省略。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."
@@ -720,30 +696,6 @@ msgstr "GMEOW 人格面貌上下文模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Agent memory and conversation recall retaining which persona made a record, why persona state changed and the producer order of changes across containing activities."
 msgstr "保留记录建立时所用人格面貌、人格面貌状态变更原因，以及跨所属活动的生产者变更顺序的行动者记忆与会话检索。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slotBearer is functional"
-msgstr "slotBearer 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The intrinsic at-most-one slotBearer field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
-msgstr "单个来源作用域记录或成员固有的至多一个值的 slotBearer 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to keep the source record’s slotBearer field singular."
-msgstr "用于保持来源记录的 slotBearer 字段为单值。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid using slotBearer functionality to merge independently attributed records."
-msgstr "避免利用 slotBearer 的函数性合并独立归属的记录。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read this obligation only on each record’s slotBearer slot; existence is specified separately by closed-world paths."
-msgstr "仅将此义务用于每条记录的 slotBearer 槽位；存在性由封闭世界路径另行规定。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
-msgstr "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "transitionSlot is functional"

@@ -802,3 +802,33 @@ msgstr "要求语句元数据降级已完成。此检查仅验证所保留的语
 msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
 msgstr "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stated rationale"
+msgstr "所述理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source's verbatim stated reason for the record or claim bearing it. The wording is an attributed explanation, not a computed cause, independently verified fact or proof that the explanation is true."
+msgstr "来源为承载它的记录或主张原样陈述的理由。措辞是带归属的解释，不是计算出的原因、独立验证的事实或解释为真的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a reason on an event, information record or exact statement reifier without a narrower applicable rationale relation."
+msgstr "用于来源在事件、信息记录或精确陈述重述节点上提供理由，且无适用的更窄理由关系时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an unstated reason, converting explanation text into causation or forcing its bearer into Entity through description."
+msgstr "避免虚构未陈述理由、把解释文本转为因果关系，或通过 description 将其载体强制归为 Entity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve exact text and supplied language or RDF 1.2 base direction. Keep writer and standpoint attribution on the original statement when supplied; specialized rationale statements retain their own source identity."
+msgstr "保留精确文本及已提供语言或 RDF 1.2 基本方向。已提供时在原陈述上保留记录者和观点归属；特化理由陈述保留自身来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property has no domain or description superproperty and is nonfunctional. Untagged source strings and competing attributed explanations remain valid; an inferred general rationale is not a newly authored source assertion."
+msgstr "该属性没有定义域或 description 上位属性，且非函数性。无语言标记的来源字符串和相互竞争的带归属解释均有效；推导的一般理由不是新撰写的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+msgstr "事件保留所述理由：ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."

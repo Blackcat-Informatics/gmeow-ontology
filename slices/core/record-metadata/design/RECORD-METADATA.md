@@ -116,3 +116,23 @@ respective owners; encoded byte length stays with the source artifact owner.
 These directions avoid an AI/record-metadata dependency cycle. Every new
 obligation is authored in canonical logic; no shape surface is authored
 (Principles 4, 7, 9, 10 and 17).
+
+## General stated rationale
+
+statedRationale follows the existing domain-independent metadata design.
+Its canonical range is the anonymous union of xsd:string, rdf:langString and
+rdf:dirLangString, with property-global ClosedWorldClosure validating supplied
+values. The closure demands no rationale on unrelated records. No functional
+characteristic, preferred reason or computed-cause bridge is introduced.
+
+resolutionRationale remains agentic-owned and retains its AttentionResolution
+domain; only its semantic specialization points here. The generic property
+does not specialize description, whose Entity domain would coerce an Event
+bearing a rationale into an endurant. Other narrower reason fields retain their own
+meanings and are not generalized incidentally.
+
+Exact authored statements can carry native writer and standpoint attribution.
+No new integrity law requires a reifier for every general rationale: a generic
+edge inferred from a specialized statement is not newly authored source evidence.
+The original specialized statement and its provenance remain canonical
+(Principles 2, 4, 9 and 17).

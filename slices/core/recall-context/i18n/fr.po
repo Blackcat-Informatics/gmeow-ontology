@@ -1153,30 +1153,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w
 msgid "Context-plan recall parameters, immutable attention-slot claims, record-specific exclusions, recall activities and asker verdicts."
 msgstr "Paramètres de rappel des plans de contexte, affirmations immuables de cases attentionnelles, exclusions par relevé, activités de rappel et verdicts du demandeur."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid inferring successful execution, access permission or a preferred claim from slotBearer alone."
-msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotBearer seul."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the explicit slotBearer value with its source, scope and record identity."
-msgstr "Conserver la valeur explicite de slotBearer avec sa source, sa portée et l’identité du relevé."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to record slot bearer within an attributed recall context."
-msgstr "Utiliser pour consigner porteur de case dans un contexte de rappel attribué."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "slot bearer"
-msgstr "porteur de case"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The agent whose attention slot this identity names."
-msgstr "Agent dont cette identité nomme une case attentionnelle."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
-msgid "The record names gmeow:slotBearer explicitly."
-msgstr "Le relevé nomme explicitement gmeow:slotBearer."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid inferring successful execution, access permission or a preferred claim from slotHistory alone."
 msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotHistory seul."

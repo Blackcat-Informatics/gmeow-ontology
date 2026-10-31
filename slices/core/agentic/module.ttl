@@ -377,12 +377,13 @@ gmeow:resolutionOutcome
 
 gmeow:resolutionRationale
     a logic:DatatypeProperty ; logic:domain gmeow:AttentionResolution ; logic:range rdfs:Literal ;
+    logic:subPropertyOf gmeow:statedRationale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "resolution rationale"@x-gmeow-english ;
     skos:definition "The resolving agent’s stated reason for an attention request disposition."@x-gmeow-english ;
     skos:example "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."@x-gmeow-english ;
-    skos:scopeNote "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."@x-gmeow-english ;
+    skos:scopeNote "Specializes statedRationale while retaining the AttentionResolution domain. Source wording keeps language and direction; the inferred general rationale is not a new source assertion or an independently verified cause."@x-gmeow-english ;
     gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
     gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
     gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .

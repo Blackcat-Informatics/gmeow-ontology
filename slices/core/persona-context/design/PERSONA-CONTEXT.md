@@ -46,7 +46,7 @@ separately.
 | Slot bearer | Required `Agent` reference and a canonical functionality record. |
 | Transition identity fields | All-values restrictions and canonical functionality records; no reasoner-created existential witnesses for required fields. |
 | Persona bearer consistency | Realized integrity formulas compare the previous and replacement personas’ bearers with the slot bearer. |
-| Optional duration | `xsd:duration` all-values restriction and at most one supplied observation; no required path or derived elapsed value. |
+| Optional duration | `xsd:duration` all-values restriction and at most one source-reported value, measured or computed with stated derivation; no required path or GMEOW-computed elapsed value. |
 | Automatic boundary | Realized guarded-existence formula requires a boundary when that cause is attributed. |
 | Audience-forced change | Realized guarded-existence formula requires an audience ring when that cause is attributed. |
 | Audience member | Required scheme reference and nonnegative rank with intrinsic singular fields; no closed value list. |
@@ -69,10 +69,20 @@ It is not the inverse of record attribution. No axiom bridges it to
 `wornModality` or infers a transition from an activating condition alone.
 
 `transitionAt` is a producer-clock observation of the change; `recordedAt` is
-creation time of a record at supplied precision. Duration is the reported tenure
-of the replaced persona, not a subtraction of those dates. The record is not an
-`Event` or `Activity`, and the event-domain `hasDuration` property is not applied
-to it.
+creation time of a record at supplied precision. Duration is the source-reported
+tenure of the single replaced persona. A source-computed span is admitted when
+the exact duration assertion’s native RDF 1.2 reifier links through
+`wasDerivedFrom` to the actual opening and closing state-claim reifiers and
+retains the source’s calculation and input roles through `statedRationale`.
+These existing domain-free relations preserve exact claim provenance without
+introducing an arithmetic executor, a new derivation profile or a general state
+calculus (Principles 2, 4 and 17). No law here claims to inspect nested claim
+tuples or verify subtraction, clock compatibility, precision or timezone.
+Original source values and attribution remain intact; missing duration or clock
+information is never synthesized.
+
+The record is not an `Event` or `Activity`, and the event-domain `hasDuration`
+property is not applied to it.
 
 The causes and boundaries are open value vocabularies under `logic:QualityValue`.
 They preserve source explanations without implementing a hold system, audience
@@ -86,6 +96,12 @@ record-metadata and names slices. It references their existing terms without
 moving their declarations or copying their source examples. Names are consumed
 for the personas’ register values in the illustrative scene. The manifest is the
 single identity, tier and dependency declaration for this slice.
+
+The kernel owns the shared `slotBearer` property and its existing
+`slotBearerFunctionality` carrier. Their Agent range and at-most-one obligation
+remain intact. The property has no global domain: an explicitly typed
+`PersonaSlot` retains this slice’s required bearer restriction and transition
+bearer laws without also becoming an `AttentionSlot` (Principles 4 and 17).
 
 ## Audience register remains distinct from worn state
 
