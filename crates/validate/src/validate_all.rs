@@ -124,6 +124,9 @@ pub struct ValidateOptions {
     /// Turtle text of the test DSL SHACL shapes. When provided, test DSL SHACL
     /// validation is run in Rust.
     pub test_dsl_shapes_ttl: Option<String>,
+    /// Explicit selected manifest inputs, independent of `slices_dir` and
+    /// its legacy example-materialization branches.
+    pub manifest_shacl: Option<crate::dsl_coverage::AuthoredManifestShacl>,
     /// Repository root whose SHAPE UNION supplies the normal SHACL shapes, loaded
     /// through `purrdf::shapes::shape_union::load_shapes`.
     ///
@@ -832,11 +835,10 @@ impl ValidationRun {
             intern_shacl_findings(&mut run_ledger, result);
         }
 
-        // Phases 11-13: mapping / statement / test DSL SHACL. Each builds its OWN
-        // merged store and runs one independent SHACL pass, so the three run
-        // concurrently via `rayon::join`. Each closure keeps its original guard and
-        // builds its own `Timing`; results are folded — and timings pushed — in fixed
-        // (mapping, statement, test) order AFTER the join, so the shared `timings`
+        // Mapping / statement / test / manifest SHACL each builds its own merged
+        // store and runs one independent pass concurrently via `rayon::join`.
+        // Each closure builds its own `Timing`; results are folded in fixed
+        // (mapping, statement, test, manifest) order after the join, so `timings`
         // vec is never touched concurrently and the output stays deterministic.
         type DslPhaseResult = gmeow_errors::Result<Option<(Vec<Finding>, Timing)>>;
 
@@ -912,10 +914,39 @@ impl ValidationRun {
             )))
         };
 
-        let (mapping_res, (statement_res, test_res)) =
-            rayon::join(dsl_mapping, || rayon::join(dsl_statement, dsl_test));
+        let dsl_manifest = || -> DslPhaseResult {
+            let Some(selected) = &options.manifest_shacl else {
+                return Ok(None);
+            };
+            if selected.paths.is_empty() || selected.shapes.trim().is_empty() {
+                return Err(Diag::of_kind(crate::error::Io {
+                    detail: "selected manifest SHACL requires nonempty paths and shapes".to_owned(),
+                }));
+            }
+            let start = Instant::now();
+            let (result, metadata) = check_dsl(
+                &selected.paths,
+                &selected.shapes,
+                "slice-manifest",
+                cache.as_ref(),
+            )?;
+            Ok(Some((
+                result,
+                Timing {
+                    phase: "slice-manifest-shacl".to_owned(),
+                    elapsed_ms: start.elapsed().as_millis(),
+                    metadata,
+                    example_work: None,
+                },
+            )))
+        };
 
-        for phase_res in [mapping_res, statement_res, test_res] {
+        let ((mapping_res, statement_res), (test_res, manifest_res)) = rayon::join(
+            || rayon::join(dsl_mapping, dsl_statement),
+            || rayon::join(dsl_test, dsl_manifest),
+        );
+
+        for phase_res in [mapping_res, statement_res, test_res, manifest_res] {
             if let Some((result, timing)) = phase_res? {
                 intern_shacl_findings(&mut run_ledger, result);
                 if options.timings {
@@ -2233,7 +2264,7 @@ fn collect_slice_test_files(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBu
 }
 
 /// Find every `slices/*/*/manifest.ttl` file under `slices_dir`, sorted.
-fn find_slice_manifests(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
+pub(crate) fn find_slice_manifests(slices_dir: &str) -> gmeow_errors::Result<Vec<PathBuf>> {
     let root = PathBuf::from(slices_dir);
     let mut manifests: Vec<PathBuf> = Vec::new();
     for group in std::fs::read_dir(&root)

@@ -51,7 +51,7 @@ gmeow:Slice a logic:Class ;
     [
         a logic:Restriction ;
         logic:onProperty dcterms:creator ;
-        logic:allValuesFrom xsd:string ;
+        logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     ] .
 
 # --------------------------------------------------------------------------- #
@@ -265,7 +265,7 @@ gmeow:SliceDependsOnCreatorRequiredConstraint
     logic:onClass gmeow:Slice ;
     logic:anyOf dcterms:creator ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)." .
+    logic:message "A slice names at least one creator as a proper-name literal, retaining its source language and base direction when supplied."@x-gmeow-english .
 
 gmeow:SliceProvidesSubcommandPatternConstraint
     a logic:Constraint ;

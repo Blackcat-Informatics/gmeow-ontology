@@ -18,19 +18,19 @@ const REQUIRED: &str =
 pub(super) fn compose(vocabulary: &[u8], residual: &str) -> gmeow_errors::Result<String> {
     let source = purrdf::parse_dataset(vocabulary, "text/turtle", None)?;
     let properties = vec![
-        rationale_property(source.as_ref(), CLASS, PATH)?,
-        rationale_property(
+        canonical_property(source.as_ref(), CLASS, PATH)?,
+        canonical_property(
             source.as_ref(),
             "https://blackcatinformatics.ca/gmeow/StructuralAssertion",
             "https://blackcatinformatics.ca/gmeow/saRationale",
         )?,
-        rationale_property(
+        canonical_property(
             source.as_ref(),
             "https://blackcatinformatics.ca/gmeow/ExampleConformance",
             "https://blackcatinformatics.ca/gmeow/conformanceRationale",
         )?,
     ];
-    let required = rationale_requiredness(source.as_ref())?;
+    let required = canonical_requiredness(source.as_ref(), CLASS, PATH, REQUIRED)?;
     let program = LogicProgram::new(Vec::new(), Vec::new(), Vec::new(), None)
         .with_validation_shapes(properties)
         .with_constraints(vec![required]);
@@ -41,9 +41,14 @@ pub(super) fn compose(vocabulary: &[u8], residual: &str) -> gmeow_errors::Result
     ))
 }
 
-fn rationale_requiredness(source: &purrdf::RdfDataset) -> gmeow_errors::Result<ConstraintIr> {
+pub(super) fn canonical_requiredness(
+    source: &purrdf::RdfDataset,
+    class: &str,
+    path: &str,
+    law: &str,
+) -> gmeow_errors::Result<ConstraintIr> {
     let required_kind = source.owned_quads().any(|quad| {
-        quad.subject == purrdf::RdfTerm::Iri(REQUIRED.to_owned())
+        quad.subject == purrdf::RdfTerm::Iri(law.to_owned())
             && quad.predicate == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
             && quad.object
                 == purrdf::RdfTerm::Iri(
@@ -52,57 +57,58 @@ fn rationale_requiredness(source: &purrdf::RdfDataset) -> gmeow_errors::Result<C
                 )
     });
     if !required_kind {
-        return Err(super::io_err(
-            "selected rationale law must be a canonical disjunctive requiredness constraint"
-                .to_owned(),
-        ));
+        return Err(super::io_err(format!(
+            "selected law <{law}> must be a canonical disjunctive requiredness constraint"
+        )));
     }
     let required_paths: Vec<_> = source
         .owned_quads()
         .filter(|quad| {
-            quad.subject == purrdf::RdfTerm::Iri(REQUIRED.to_owned())
+            quad.subject == purrdf::RdfTerm::Iri(law.to_owned())
                 && quad.predicate == "https://blackcatinformatics.ca/logic/anyOf"
         })
         .map(|quad| quad.object)
         .collect();
-    if required_paths != [purrdf::RdfTerm::Iri(PATH.to_owned())] {
-        return Err(super::io_err("selected rationale requiredness must require exactly cqRationale, without alternatives".to_owned()));
+    if required_paths != [purrdf::RdfTerm::Iri(path.to_owned())] {
+        return Err(super::io_err(format!(
+            "selected requiredness <{law}> must require exactly <{path}>, without alternatives"
+        )));
     }
     let (constraints, diagnostics) = frontend::extract_all_constraints(source);
     for diagnostic in diagnostics {
-        if diagnostic.subject.as_deref() == Some(REQUIRED)
+        if diagnostic.subject.as_deref() == Some(law)
             && diagnostic.severity == frontend::Severity::Error
         {
             return Err(super::io_err(format!(
-                "required canonical rationale law: {}",
+                "required canonical law <{law}>: {}",
                 diagnostic.message
             )));
         }
     }
     let mut required: Vec<_> = constraints
         .into_iter()
-        .filter(|constraint| constraint.iri == REQUIRED)
+        .filter(|constraint| constraint.iri == law)
         .collect();
     if required.len() != 1 {
-        return Err(super::io_err(
-            "requires exactly one canonical rationale requiredness constraint".to_owned(),
-        ));
+        return Err(super::io_err(format!(
+            "requires exactly one canonical requiredness constraint <{law}>"
+        )));
     }
     let required = required.remove(0);
-    if required.target != ShapeTarget::Class(CLASS.to_owned()) {
-        return Err(super::io_err(
-            "rationale requiredness constraint targets the wrong class".to_owned(),
-        ));
+    if required.target != ShapeTarget::Class(class.to_owned()) {
+        return Err(super::io_err(format!(
+            "requiredness constraint <{law}> must target <{class}>"
+        )));
     }
     if shapes::project_procedural_constraint(&required).is_empty() {
-        return Err(super::io_err(
-            "canonical rationale requiredness constraint is not projectable".to_owned(),
-        ));
+        return Err(super::io_err(format!(
+            "canonical requiredness constraint <{law}> is not projectable"
+        )));
     }
     Ok(required)
 }
 
-fn rationale_property(
+pub(super) fn canonical_property(
     source: &purrdf::RdfDataset,
     class: &str,
     path: &str,
@@ -117,22 +123,22 @@ fn rationale_property(
             .retain(|property| property.path == path && !property.inverse);
         if !shape.properties.is_empty() {
             if !shape.node_components.is_empty() {
-                return Err(super::io_err(
-                    "rationale path has ambiguous node-level obligations".to_owned(),
-                ));
+                return Err(super::io_err(format!(
+                    "selected path <{path}> has ambiguous node-level obligations"
+                )));
             }
             selected.push(shape);
         }
     }
     if selected.len() != 1 || selected[0].properties.len() != 1 {
         return Err(super::io_err(format!(
-            "requires exactly one canonical rationale property obligation for <{class}> <{path}>"
+            "requires exactly one canonical property obligation for <{class}> <{path}>"
         )));
     }
     if !shapes::shacl_residue(&selected[0]).is_empty() {
-        return Err(super::io_err(
-            "canonical rationale property obligation is not completely projectable".to_owned(),
-        ));
+        return Err(super::io_err(format!(
+            "canonical property obligation <{class}> <{path}> is not completely projectable"
+        )));
     }
     Ok(selected.remove(0))
 }

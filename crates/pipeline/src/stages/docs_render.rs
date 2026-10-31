@@ -821,6 +821,9 @@ pub(crate) fn docs_source_files(
     root: &Path,
 ) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
+    // Include selection-only slices too: the catalog documents their manifests
+    // even when they have no module.ttl to contribute to the ontology fold.
+    files.extend(crate::stages::source_load::all_manifest_files(root)?);
     for module in crate::stages::source_load::module_files(root)? {
         let dir = module.parent().unwrap_or(root);
         files.push(module.clone());
@@ -999,6 +1002,7 @@ impl Stage for DocsRenderStage {
         CachePolicy::Recompute
     }
     fn impl_version(&self) -> &str {
+        // v15: complete creator statements and manifest source dependencies.
         // v14: conformance fixture rationales retain complete native literal records.
         // v11: full native diagnostic reports replace JSON transport parsing.
         // v10: documentation verdicts require the pinned native reasoning result,
@@ -1023,7 +1027,7 @@ impl Stage for DocsRenderStage {
         // v6: adds `term_loss_digest_from_upstream`, folding the dynamic per-term
         // projection-loss join from the `stage-mappings` product's live
         // `GRAPH_PROJECTION_LEDGER` graph.
-        "docs_render.v14-conformance-rationale-literals"
+        "docs_render.v15-creator-source-statements"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // The raw-source half of this DocsRender leaf — declared so a guide /

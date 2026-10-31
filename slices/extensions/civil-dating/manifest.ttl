@@ -14,6 +14,7 @@
     rdfs:label "Civil dating"@x-gmeow-english ;
     skos:definition "Source-attributed civil-day expressions and event dating observations with explicit calendar frames and preserved source literals."@x-gmeow-english ;
     dcterms:title "Civil dating evidence"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceConsumer "Event archives and source record importers retaining civil-day assertions without inventing clock times."@x-gmeow-english ;
     gmeow:sliceDependsOn
         <https://blackcatinformatics.ca/gmeow/slices/logic>,

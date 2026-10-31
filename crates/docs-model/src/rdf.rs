@@ -478,6 +478,21 @@ pub fn to_gmeow_rdf(
 
     // Slices (model.slices is IRI-sorted).
     for slice in &model.slices {
+        // Retain original authorship of the slice, distinct from authorship of
+        // the generated documentation entry.
+        for creator in &slice.creators {
+            let value = purrdf::TermValue::from_rdf_term(&purrdf::RdfTerm::Literal(
+                creator.object().clone(),
+            ));
+            let mut object = String::new();
+            purrdf_core::write_term_value(&value, &mut object);
+            triple(
+                &format!("<{}>", creator.subject()),
+                creator.predicate().as_str(),
+                &object,
+                &mut lines,
+            );
+        }
         let slug = slice_slug(slice);
         let subject = format!("<{GMEOW}documentation/slice/{slug}>");
         triple(

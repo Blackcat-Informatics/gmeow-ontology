@@ -71,4 +71,12 @@ fn authored_source_invocation_wires_every_dsl_surface() {
             .is_some_and(|d| !d.is_empty()),
         "options.test_dsl_dir must be wired, not None/empty"
     );
+    let manifests = inv
+        .options
+        .manifest_shacl
+        .as_ref()
+        .expect("manifest inputs must be selected");
+    assert!(!manifests.paths.is_empty());
+    assert!(!manifests.shapes.trim().is_empty());
+    assert!(inv.options.slices_dir.is_none());
 }

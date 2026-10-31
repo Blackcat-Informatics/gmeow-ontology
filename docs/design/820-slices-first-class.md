@@ -414,35 +414,36 @@ insufficient and is replaced.
 
 ### S0.8 Manifest datatype contract (frozen — resolves §4's discrepancy)
 
-The §4 discrepancy — discovery coerces any RDF literal to a plain string while
-`shapes/slice-manifest-shapes.ttl` declared consumer literals `xsd:string`
-though every committed manifest uses *language-tagged* literals — is resolved
-here authoritatively, and encoded in `shapes/slice-manifest-shapes.ttl` by this
-child. Manifest literals split into exactly two classes, by the lang-tag
-discipline:
+Manifest prose, machine identifiers and creator names carry distinct literal
+contracts. Canonical creator obligations live in `slices/vocabulary.ttl`; the
+remaining manifest checks retain their own declared metadata contracts.
 
 - **PROSE (human-facing, localizable) → `sh:nodeKind sh:Literal` +
   `sh:languageIn ( "x-gmeow-english" )`, NEVER `@en`.**
   Properties: `gmeow:sliceConsumer`, `dcterms:title`, `rdfs:label`. These are
   translatable sentences/labels and carry the `@x-gmeow-english` source tag
   (every committed manifest already does).
-- **TOKEN / proper-name (programmatic or proper noun) → plain `xsd:string`,
+- **TOKEN (programmatic identifier) → plain `xsd:string`,
   NEVER lang-tagged.**
   Properties: `gmeow:sliceProfile`, `gmeow:providesSubcommand`,
-  `gmeow:builtAgainstCore`, and **`dcterms:creator`**. A `providesSubcommand`
+  and `gmeow:builtAgainstCore`. A `providesSubcommand`
   is a dispatch token; a `sliceProfile` names an OWL composition IRI + GTS tag;
-  a `dcterms:creator` is a **legal-entity / personal proper name** projected
-  verbatim into `CITATION.cff`. A proper name is not translatable prose, so
-  tagging it `@x-gmeow-english` would be a category error **and** would
-  hard-fail validation against the existing untagged manifests — therefore
-  `dcterms:creator` is frozen as a **plain token literal**, deliberately set
-  apart from the PROSE properties.
+  these identities retain exact token semantics.
+- **CREATOR (legal-entity or personal proper name) → `xsd:string`,
+  `rdf:langString`, or `rdf:dirLangString`.** A slice names at least one creator.
+  An untagged name remains valid; supplied language and base direction belong to
+  that source name and are preserved. These annotations do not authorize
+  translation, normalization, or a preferred name.
 
-The Python loader (`src/gmeow_tools/slices.py::_strings`) keeps its
-string-returning contract: it is a documented **lexical projection** that
-accepts either class and drops the language/datatype identity. Preserving that
-identity end-to-end is the native catalog's job (S1), not the structural Python
-view's.
+The canonical creator range and requiredness live in `slices/vocabulary.ttl`.
+The authored manifest validation path projects those laws and composes them with
+the residual manifest checks. The documentation model selects complete creator
+statements from the native catalog's retained manifest graph, preserving their
+original subject, predicate, literal datatype, language and base direction through
+its JSON cache and the documentation RDF graph. The existing `query_docs` MCP
+surface returns those terms through native RDF result codecs. Human documentation
+displays every creator, showing supplied language and direction beside annotated
+names without choosing a preferred language.
 
 ### S0.9 The crate-layering gate (frozen — delivered by this child)
 
