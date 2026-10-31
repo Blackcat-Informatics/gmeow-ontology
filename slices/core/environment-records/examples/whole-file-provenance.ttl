@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/whole-file-provenance/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Ordinary generic source records, not an execution receipt or a coverage proof.
+ex:reader a gmeow:Agent .
+ex:laterReader a gmeow:Agent .
+ex:writer a gmeow:SoftwareAgent .
+ex:producer a gmeow:SoftwareAgent .
+ex:world a logic:Thing .
+ex:storePerspective a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint ;
+    gmeow:description "The illustrated source store and its own root."@en .
+
+# The source supplies this actual ledger and production activity.
+ex:ledger a gmeow:InformationObject .
+ex:production a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:producer .
+ex:originalFile a gmeow:InformationObject, gmeow:RetiredWorldProjection ;
+    gmeow:providerWorld ex:world ;
+    gmeow:wasDerivedFrom ex:ledger ;
+    gmeow:wasGeneratedBy ex:production .
+
+# Any decomposed information node can retain its whole-file path and lineage.
+# Two nodes share a source file without becoming the same node.
+ex:placeDescription a gmeow:InformationObject ;
+    gmeow:description "The pier is quiet in the retained rendering."@en ;
+    gmeow:worldFilePath "snapshots/Quiet  Pier.txt" ;
+    gmeow:wasDerivedFrom ex:originalFile .
+ex:objectDescription a gmeow:InformationObject ;
+    gmeow:description "The rendering mentions a blue bench."@en ;
+    gmeow:worldFilePath "snapshots/Quiet  Pier.txt" ;
+    gmeow:wasDerivedFrom ex:originalFile .
+ex:placePathClaim rdf:reifies <<( ex:placeDescription gmeow:worldFilePath "snapshots/Quiet  Pier.txt" )>> ;
+    gmeow:accordingTo ex:storePerspective ;
+    gmeow:wasAttributedTo ex:writer .
+ex:objectPathClaim rdf:reifies <<( ex:objectDescription gmeow:worldFilePath "snapshots/Quiet  Pier.txt" )>> ;
+    gmeow:accordingTo ex:storePerspective ;
+    gmeow:wasAttributedTo ex:writer .
+
+# Reader judgment and writer responsibility attach to the exact type claim.
+# The assessment is not a statement that the ledger or rendering is false.
+ex:assessment a gmeow:InformationObject ;
+    gmeow:description "I retained the unmaintained rendering because I could not prove that the ledger restates all its content."@en ;
+    gmeow:wasAttributedTo ex:reader .
+ex:classification rdf:reifies <<( ex:originalFile rdf:type gmeow:RetiredWorldProjection )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasAttributedTo ex:writer ;
+    gmeow:wasDerivedFrom ex:assessment .
+ex:laterClassification rdf:reifies <<( ex:originalFile rdf:type gmeow:RetiredWorldProjection )>> ;
+    gmeow:accordingTo ex:laterReader ;
+    gmeow:wasAttributedTo ex:laterReader .
+
+# Another retained source reports ledger descent without naming that ledger
+# or its producer. No anonymous stand-in identities are fabricated for them.
+ex:otherFile a gmeow:InformationObject, gmeow:RetiredWorldProjection .
+ex:otherClassification rdf:reifies <<( ex:otherFile rdf:type gmeow:RetiredWorldProjection )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasAttributedTo ex:writer .

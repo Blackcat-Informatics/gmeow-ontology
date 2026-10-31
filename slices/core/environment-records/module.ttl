@@ -2095,3 +2095,49 @@ gmeow:CircleAudienceBindingConstraint
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamEpisodeAsRecorded" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamPhaseAsRecorded" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Whole-file decomposition provenance and reader-relative retention.
+
+gmeow:worldFilePath
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "world file path"@x-gmeow-english ;
+    skos:definition "The exact source path, relative to its world-store root, of the whole file from which this information node was decomposed. The same path may be retained on any node read from that file; equal strings in different stores do not identify one file."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies the original store-relative path for a decomposed information node."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the path as a global file identity, a ledger event identifier, a content-origin value or a resolved filesystem location."@x-gmeow-english ;
+    gmeow:howToUse "Preserve spelling, Unicode, separators, case and spaces as supplied. Retain the actual whole-file source with wasDerivedFrom and scope the exact path statement to its source store context; do not normalize or invent a root."@x-gmeow-english ;
+    skos:scopeNote "The property is nonfunctional and never required on every InformationObject. Multiple attributed source paths may coexist. It neither parses a filesystem nor proves ledger coverage, file existence or current maintenance."@x-gmeow-english ;
+    skos:example "Retain the original path: ex:node gmeow:worldFilePath \"snapshots/quiet pier.txt\" ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldFilePath" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RetiredWorldProjection
+    a logic:Class, logic:Role ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Retired World Projection"@x-gmeow-english ;
+    skos:definition "An information object in the reader-classified role of a ledger-derived world-state snapshot or rendering that its store no longer maintains, retained through decomposition because that reader could not prove that the ledger restates all its content. The classification does not assert false content."@x-gmeow-english ;
+    gmeow:useWhen "Use when an identified reader explicitly retains an unmaintained ledger projection whose complete restatement by the ledger remains unproved for that reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating missing coverage proof as proof of falsehood, disjointness from ledger content, universal unreadability or authority to delete the source."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original InformationObject identity and attribute its exact native RDF 1.2 type claim to the reader with accordingTo. Record the actual writer separately with wasAttributedTo; retain supplied ledger derivation and producer activity without fabricating unknown sources."@x-gmeow-english ;
+    skos:scopeNote "This extrinsic role adds no intrinsic artifact identity, permanent phase or content-truth judgment. Other readers and later coverage findings may coexist; retirement does not erase source history or establish that the producer ceased to exist."@x-gmeow-english ;
+    skos:example "Preserve the reader's classification: ex:classification rdf:reifies <<( ex:file a gmeow:RetiredWorldProjection )>> ; gmeow:accordingTo ex:reader ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:RetiredWorldProjectionAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Retired world projection attribution constraint"@x-gmeow-english ;
+    skos:definition "A retired-projection type claim has a native exact statement reifier whose accordingTo identifies the actual reader Agent. Attribution checks neither ledger coverage nor the truth of the projection's content."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reader-relative origin of a retired-projection classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attributing the classification to the producer merely because it generated the file."@x-gmeow-english ;
+    gmeow:howToUse "Reify the exact type assertion natively and retain its actual reader context; keep writer responsibility separate."@x-gmeow-english ;
+    skos:scopeNote "This law checks explicit attribution only. It does not run a migration, infer a missing ledger, prove falsity or certify retired maintenance."@x-gmeow-english ;
+    skos:example "Retain this law: gmeow:RetiredWorldProjectionAttributionConstraint logic:formalizes gmeow:RetiredWorldProjection ."@x-gmeow-english ;
+    logic:message "A retired-projection type claim has a native exact statement reifier whose accordingTo identifies the actual reader Agent. Attribution checks neither ledger coverage nor the truth of the projection's content."@x-gmeow-english ;
+    logic:formalizes gmeow:RetiredWorldProjection ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RetiredWorldProjection ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri rdf:type ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RetiredWorldProjection ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] ] ] ] ] .

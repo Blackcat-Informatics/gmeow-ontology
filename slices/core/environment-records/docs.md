@@ -155,3 +155,29 @@ All ontology obligations are authored in `logic:`; shape surfaces are derived.
 The reachability formulas use existing projection support. This source
 addition does not itself establish executed native reasoning, acyclicity
 certification, provider operations, hashing or disclosure enforcement.
+
+## Retain decomposed files and retired projections
+
+worldFilePath records the exact original path relative to a particular
+world-store root on an InformationObject decomposed from that whole file.
+Keep its spaces, case, Unicode and separators. Use wasDerivedFrom for the actual
+whole-file source and scope the exact path statement to the source store's
+standpoint. A path is neither a global file identity nor a ledger event.
+Several source paths can coexist; the property is not required everywhere and
+has no functionality or normalization rule.
+
+RetiredWorldProjection is the reader's role classification of an unmaintained
+ledger-derived snapshot or rendering. Keep the file's existing identity.
+Reify the exact native RDF 1.2 type assertion with accordingTo naming the actual
+reader. wasAttributedTo separately names the writer who recorded the claim.
+A class-targeted canonical law requires that exact reader attribution.
+
+Preserve an actual ledger with wasDerivedFrom and an actual production activity
+with wasGeneratedBy when supplied. Neither link is invented when its identity is
+unknown. Failure to prove that the ledger restates all content does not prove
+false content, permanent retirement or permission to discard the file. Other
+readers and later findings remain independent claims (Principles 2, 4, 9 and 10).
+
+The [whole-file provenance scene](examples/whole-file-provenance.ttl) separates
+decomposed nodes, the original file, the producer's ledger and the reader's
+classification. It asserts no migration execution or coverage proof.

@@ -3000,3 +3000,93 @@ msgstr "GMEOW 环境记录模块"
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/environment-records|https://blackcatinformatics.ca/gmeow/sliceConsumer"
 msgid "Environment providers and agent memory adapters retaining exact object, request and disclosure evidence without fabricated execution."
 msgstr "保留确切对象、请求与披露证据而不虚构执行的环境提供方与代理记忆适配器。"
+
+# Whole-file decomposition provenance and reader-relative retention.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "world file path"
+msgstr "世界文件路径"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source path, relative to its world-store root, of the whole file from which this information node was decomposed. The same path may be retained on any node read from that file; equal strings in different stores do not identify one file."
+msgstr "此信息节点所拆解自的完整文件的精确来源路径，相对于其世界存储根目录。读取自该文件的任何节点都可保留同一路径；不同存储中的相同字符串不标识同一文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the original store-relative path for a decomposed information node."
+msgstr "用于来源提供已拆解信息节点的原始存储相对路径时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the path as a global file identity, a ledger event identifier, a content-origin value or a resolved filesystem location."
+msgstr "避免将路径用作全局文件身份、账本事件标识、内容来源值或已解析的文件系统位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve spelling, Unicode, separators, case and spaces as supplied. Retain the actual whole-file source with wasDerivedFrom and scope the exact path statement to its source store context; do not normalize or invent a root."
+msgstr "保留所提供的拼写、Unicode、分隔符、大小写和空格。用 wasDerivedFrom 保留实际完整文件来源，并将精确路径陈述限定于来源存储情境；不得规范化或虚构根目录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property is nonfunctional and never required on every InformationObject. Multiple attributed source paths may coexist. It neither parses a filesystem nor proves ledger coverage, file existence or current maintenance."
+msgstr "该属性非函数性，并非每个 InformationObject 都必须具有。多个带归属的来源路径可以并存。它不解析文件系统，也不证明账本覆盖、文件存在或当前维护状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/worldFilePath|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the original path: ex:node gmeow:worldFilePath \"snapshots/quiet pier.txt\" ."
+msgstr "保留原始路径：ex:node gmeow:worldFilePath \"snapshots/quiet pier.txt\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Retired World Projection"
+msgstr "已停止维护的世界投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object in the reader-classified role of a ledger-derived world-state snapshot or rendering that its store no longer maintains, retained through decomposition because that reader could not prove that the ledger restates all its content. The classification does not assert false content."
+msgstr "由读取者归类为已停止维护的世界状态快照或呈现的信息对象角色；该快照或呈现派生自账本，由于读取者未能证明账本重述其全部内容而通过拆解保留。此分类不声称内容虚假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an identified reader explicitly retains an unmaintained ledger projection whose complete restatement by the ledger remains unproved for that reader."
+msgstr "用于已识别读取者明确保留停止维护的账本投影，且该读取者尚未证明账本完整重述其内容时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing coverage proof as proof of falsehood, disjointness from ledger content, universal unreadability or authority to delete the source."
+msgstr "避免将缺失覆盖证明视为虚假证明、与账本内容不相交、普遍不可读或有权删除来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original InformationObject identity and attribute its exact native RDF 1.2 type claim to the reader with accordingTo. Record the actual writer separately with wasAttributedTo; retain supplied ledger derivation and producer activity without fabricating unknown sources."
+msgstr "保留原有 InformationObject 身份，用 accordingTo 将其精确原生 RDF 1.2 类型主张归属于读取者。用 wasAttributedTo 单独记录实际记录者；保留已提供的账本派生关系和生产者活动，不虚构未知来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This extrinsic role adds no intrinsic artifact identity, permanent phase or content-truth judgment. Other readers and later coverage findings may coexist; retirement does not erase source history or establish that the producer ceased to exist."
+msgstr "这一外在角色不增加内在制品身份、永久阶段或内容真值判断。其他读取者和后续覆盖发现可以并存；停止维护不抹去来源历史，也不证明生产者已经不存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjection|http://www.w3.org/2004/02/skos/core#example"
+msgid "Preserve the reader's classification: ex:classification rdf:reifies <<( ex:file a gmeow:RetiredWorldProjection )>> ; gmeow:accordingTo ex:reader ."
+msgstr "保留读取者分类：ex:classification rdf:reifies <<( ex:file a gmeow:RetiredWorldProjection )>> ; gmeow:accordingTo ex:reader ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Retired world projection attribution constraint"
+msgstr "已停止维护世界投影归属约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retired-projection type claim has a native exact statement reifier whose accordingTo identifies the actual reader Agent. Attribution checks neither ledger coverage nor the truth of the projection's content."
+msgstr "已停止维护投影的类型主张具有精确原生陈述重述节点，其 accordingTo 标识实际读取者 Agent。归属检查既不检查账本覆盖，也不检查投影内容真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the reader-relative origin of a retired-projection classification."
+msgstr "用于保留已停止维护投影分类的读取者相对来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attributing the classification to the producer merely because it generated the file."
+msgstr "避免仅因生产者生成文件就将此分类归属于生产者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact type assertion natively and retain its actual reader context; keep writer responsibility separate."
+msgstr "原生重述精确类型断言并保留实际读取者情境；将记录者责任单独保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This law checks explicit attribution only. It does not run a migration, infer a missing ledger, prove falsity or certify retired maintenance."
+msgstr "此规则仅检查显式归属，不执行迁移、不推断缺失账本、不证明虚假，也不认证维护已停止。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain this law: gmeow:RetiredWorldProjectionAttributionConstraint logic:formalizes gmeow:RetiredWorldProjection ."
+msgstr "保留此规则：gmeow:RetiredWorldProjectionAttributionConstraint logic:formalizes gmeow:RetiredWorldProjection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RetiredWorldProjectionAttributionConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A retired-projection type claim has a native exact statement reifier whose accordingTo identifies the actual reader Agent. Attribution checks neither ledger coverage nor the truth of the projection's content."
+msgstr "已停止维护投影的类型主张具有精确原生陈述重述节点，其 accordingTo 标识实际读取者 Agent。归属检查既不检查账本覆盖，也不检查投影内容真值。"

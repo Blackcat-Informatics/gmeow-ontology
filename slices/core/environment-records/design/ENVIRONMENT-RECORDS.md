@@ -96,3 +96,38 @@ hand-authored shapes or protected existing-module edits. Class-local
 qualified cardinalities avoid new global functional-property carriers.
 Qualification must distinguish source consistency and frontend/projection
 support from any reasoning or provider operation actually executed.
+
+## Whole-file provenance and reader classification
+
+worldFilePath belongs here because its identity boundary is a source world
+store. Its InformationObject domain covers any decomposed information node,
+without coercing it into WorldObjectRecord or a ledger event. xsd:string
+preserves source spelling; xsd:token would collapse significant spaces.
+A property-scoped closure validates supplied literals without requiring paths on
+all information objects. Paths are nonfunctional: multiple attributed origins
+must not collapse files or nodes. The lexical value stays relative to its
+source root; no filesystem parser, root resolution or path rewrite is implied.
+
+RetiredWorldProjection is a logic:Role under InformationObject. Being retired
+depends on a store's maintenance relation and on a reader's coverage assessment,
+rather than supplying an intrinsic artifact identity. It is not a rigid Kind,
+a permanent intrinsic Phase or an assertion that content is false.
+The original InformationObject remains the same thing (Principles 4 and 9).
+
+RetiredWorldProjectionAttributionConstraint has a supported class-membership
+focus guard. Its realized Formula joins all three existing
+logic:reifiedStatementSubject, logic:reifiedStatementPredicate and
+logic:reifiedStatementObject facets for the exact native type claim, then
+requires accordingTo naming an actual reader Agent. Source data authors
+rdf:reifies; those join facets are derived, never hand-authored. The actual
+recording writer may differ from the reader. This law checks attribution,
+without claiming a parser, maintenance detector, ledger migration or proof
+engine.
+
+Actual ledger descent remains wasDerivedFrom, and supplied production activity
+remains wasGeneratedBy with its actual producer association. Citation is not
+substituted for descent. No ledger, producer or store identity is fabricated
+when the reader does not know it. The role does not imply that the producer
+has ceased to exist or that the ledger omits content; the reader's inability
+to prove complete restatement remains an epistemic limit. No new dependency
+or external projection vocabulary is needed (Principles 2, 4, 9, 17 and 19).
