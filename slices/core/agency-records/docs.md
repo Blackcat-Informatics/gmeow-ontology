@@ -312,3 +312,50 @@ The [runtime trace scene](examples/runtime-trace-states.ttl) retains all trace
 kinds, an earlier running reading and a later terminal outcome, and an
 outside-answer screening claim. These are illustrative source records, not an
 execution receipt or an authentication result.
+
+## Creatures, wants and answering occurrences
+
+The creature event kinds classify source-reported occurrences through the
+existing nonfunctional eventType relation. They mint no Creature subclass and
+do not identify a real animal, a fictional Character, a simulated actor and
+the program supplying its records as one thing.
+
+| EventType value | Reported occurrence |
+| --- | --- |
+| eventTypeCreatureGenesis | The creature came into being within its source environment. |
+| eventTypeCreatureRenamed | Its name changed while the source retained its identity. |
+| eventTypeCreatureTransition | It moved between places, independently of a mood or status change. |
+| eventTypeCreatureUtterance | It uttered something; actual words remain on their message artifact. |
+| eventTypeCreatureMemory | It remembered a moment; the memory record is distinct from remembering. |
+| eventTypeCreatureMoodShift | Its background mood changed, without choosing a latest global mood. |
+| eventTypeCreatureDemand | It expressed a demand, distinct from the underlying Desire. |
+| eventTypeCreatureDemandResolved | A demand was answered; this is not a satisfaction or acceptance verdict. |
+
+DemandKind is an open QualityValue vocabulary. demandKind belongs to the actual
+Desire, whose actual intentBearer and intentionGoal remain required. The
+initial choices are demandKindAnnouncement, demandKindCuddles, demandKindLap,
+demandKindPets and demandKindPlay. Announcement leaves speaker, wording and
+audience to the source. Pets means petting; lap keeps the source’s interaction
+meaning without inventing a physical body or location. Several kinds can coexist.
+
+DemandResponse is a separate open QualityValue vocabulary. demandResponse
+belongs to the actual answering Event and selects demandResponseCuddle,
+demandResponseLap or demandResponsePet, or another explicitly defined kind.
+answersDemand identifies the exact actual Desire addressed by that Event.
+The response and demanded kinds need not match; a response does not establish
+enjoyment, consent, acceptance, an improved mood or satisfied goals.
+
+Each supplied demandKind, demandResponse and answersDemand assertion retains
+its exact native RDF 1.2 claim with accordingTo naming the reader and
+wasDerivedFrom naming the documentary source. The writer may differ from both
+reader and creature. Canonical evidence laws preserve the actual Desire,
+bearer, Goal, Event and source identities. The answered-event kind also requires
+answersDemand when no response-kind code was supplied. Unknown response codes,
+times, goals and identities are never fabricated.
+
+The [ordinary creature scene](examples/creature-demands.ttl) keeps the acting
+software agent, provider program, source record and provider world separate.
+Its moods use the affect owner’s complete Mood contract. All reported events
+remain source-scoped; source structure supplies no simulation execution,
+actual-world travel, automatic delivery, native mood ingestion or EmotionML
+export (Principles 2, 4, 9, 11, 17 and 19).
