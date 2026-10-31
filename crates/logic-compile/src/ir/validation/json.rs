@@ -224,18 +224,25 @@ impl FromJson for ShapeValue {
     }
 }
 
-::purrdf_lex::json_record!(impl ToJson for PropertyConstraintIr {
-    "path" => path,
-    "min_count" => min_count,
-    "max_count" => max_count,
-    "cardinality_provenance" => cardinality_provenance,
-    "components" => components,
-    "inverse" => inverse,
-    "reifier_shape" => reifier_shape,
-    "reification_required" => reification_required,
-    "severity" => severity,
-    "message" => message,
-});
+impl ToJson for PropertyConstraintIr {
+    fn to_json(&self) -> Value {
+        Object::new()
+            .with("path", self.path.to_json())
+            .with("min_count", self.min_count.to_json())
+            .with("max_count", self.max_count.to_json())
+            .with(
+                "cardinality_provenance",
+                self.cardinality_provenance.to_json(),
+            )
+            .with("components", self.components.to_json())
+            .with("inverse", self.inverse.to_json())
+            .with("reifier_shape", self.reifier_shape.to_json())
+            .with("reification_required", self.reification_required.to_json())
+            .with("severity", self.severity.to_json())
+            .with("messages", literal_serde::to_json(&self.messages))
+            .into()
+    }
+}
 impl FromJson for PropertyConstraintIr {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {
         let mut fields = Record::new(value, "struct PropertyConstraintIr")?;
@@ -253,7 +260,7 @@ impl FromJson for PropertyConstraintIr {
             reifier_shape: fields.optional("reifier_shape")?,
             reification_required: fields.required("reification_required")?,
             severity: fields.optional("severity")?,
-            message: fields.optional("message")?,
+            messages: fields.required_with("messages", literal_serde::message_set::from_json)?,
         })
     }
 }

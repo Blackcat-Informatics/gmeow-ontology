@@ -463,8 +463,11 @@ fn property_shape_block(
     if let Some(sev) = p.severity {
         lines.push(format!("sh:severity sh:{}", sev.as_str()));
     }
-    if let Some(msg) = &p.message {
-        lines.push(format!("sh:message \"{}\"", esc_str(msg)));
+    for message in &p.messages {
+        lines.push(format!(
+            "sh:message {}",
+            purrdf::RdfTerm::literal(message.clone())
+        ));
     }
     format!("[ {} ]", lines.join(" ; "))
 }
@@ -1824,10 +1827,16 @@ fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     let formalizes = procedural_formalizes_term(c);
     let sev = c.severity.as_str();
     let target = procedural_target_clause(&c.target);
-    let message_line = match &c.message {
-        Some(m) => format!("        sh:message \"{}\" ;\n", esc_str(m)),
-        None => String::new(),
-    };
+    let message_line = c
+        .messages
+        .iter()
+        .map(|message| {
+            format!(
+                "        sh:message {} ;\n",
+                purrdf::RdfTerm::literal(message.clone())
+            )
+        })
+        .collect::<String>();
     let failure_line = c.failure_class.as_ref().map_or_else(String::new, |fc| {
         format!("    gmeow:enforcesFailureClass <{fc}> ;\n")
     });
