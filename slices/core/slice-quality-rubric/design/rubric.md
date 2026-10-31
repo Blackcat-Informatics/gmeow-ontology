@@ -83,3 +83,53 @@ decoration: it forces the slice to a full annotation coat, tri-language
 translations, worked examples including the epistemically hard case, and
 rationales that state ontological reasons and name no test artifact. The advisor
 run over this slice is the standing regression test for the instrument itself.
+
+## Version-one quality record fingerprint
+
+`gmeow:qualityRecordFingerprint` is the corpus’s grade-reconstruction integrity
+witness. Its value is a literal of the locally owned
+`gmeow:qualityRecordFingerprintV1` scheme datatype: exactly 64 lowercase
+hexadecimal digits with no prefix, language tag or base direction. The scheme
+uses plain BLAKE3 with its default 32-byte output, but its identity includes the
+following versioned reconstruction contract. It is not the generic
+`gmeow:blake3_256Digest` of the serialized corpus bytes.
+
+The preimage is the existing byte sequence, unchanged by the witness migration:
+
+1. Begin with the ASCII bytes `gmeow-slice-quality-record-v1`, followed by the
+   single byte `0x1e`.
+2. Visit assessments in ascending slice-IRI order, using Rust string ordering.
+   Append the slice IRI’s UTF-8 bytes and the single byte `0x1f`.
+3. Within each assessment, visit axis grades in ascending axis-IRI order.
+   For each grade append the axis IRI, `0x1f`, its score, `0x1f`, its tier IRI,
+   and `0x1f`. IRI fields use UTF-8. The score uses the producer’s `exact_score`
+   conversion: Rust Display’s shortest round-tripping decimal spelling of the
+   finite stored score, also encoded as UTF-8. It is not a fixed-width display
+   score or the RDF literal’s original lexical spelling.
+4. Append the ASCII bytes `rollup`, `0x1f`, the roll-up tier IRI’s UTF-8 bytes,
+   and `0x1e`. Continue with the next assessment.
+5. Apply BLAKE3 to that complete preimage. Encode the resulting 32 bytes as
+   64 lowercase hexadecimal digits, in output-byte order, and retain the
+   `gmeow:qualityRecordFingerprintV1` datatype IRI.
+
+There is no additional prefix, suffix, whitespace or normalization. The scheme
+retains the existing framing, sorting and numerical conversion. Re-serializing
+the same reconstructed grades does not change the witness; changing a score,
+axis, tier, slice roster or roll-up changes the input to the hash.
+
+The producer returns a complete native typed literal. The reader admits exactly
+one distinct native object term under `qualityRecordFingerprint`; identical
+terms repeated across graph labels remain one witness. It rejects absent or
+conflicting witnesses, nonliterals, the wrong datatype, language or direction,
+and any lexical form outside the lowercase 64-hex contract. It then compares
+the complete admitted typed literal with a fresh reconstruction. These are the
+owning reader’s concrete scheme checks, not a generic custom-datatype parser or
+a claim that the numerical grades were correctly measured.
+
+`versionFingerprint` continues to witness which authored sources were scored.
+It is unchanged and remains separate from what was recorded. The new property
+is not its subproperty: such a bridge would place two different witnesses in
+the source-fingerprint field. The existing corpus-witness law still requires
+both witnesses, now referencing `qualityRecordFingerprint`; the new field’s
+class-scoped maximum is one. Neither witness substitutes for the other
+(Principles 4 and 17).
