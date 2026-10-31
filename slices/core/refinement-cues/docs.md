@@ -300,3 +300,91 @@ original literals and records two illustrative match outcomes. It asserts no
 derived machinery or grounded fact and claims no executed evaluation. Existing
 released cue payloads remain unchanged; no input artifact identity or digest is
 fabricated (Principles 4, 9, 11, 17 and 19).
+
+## Reviewed reading parameters
+
+`ReadingRule` names an immutable parameter release, separate from its lineage,
+the versioned reader and a `logic:Rule` executable AST. Reuse `versionOf`,
+`versionLabel`, `contentDigest` and `wasAttributedTo`. The release and its
+lineage are distinct. A changed parameter or declared word inventory requires a
+new release; existing versions are retained. Numeric parameters are reviewed
+source vocabulary, not hidden implementation defaults.
+
+A generic rule may explicitly declare `minimumRun` and `minimumShare`.
+A run threshold is a positive integer; a share threshold is decimal, strictly
+greater than zero and at most one. Their absence does not authorize a consumer
+to invent a default. The selected rule contract determines which parameters it
+uses.
+
+`RestatementRule` specializes `ReadingRule` and requires
+`restatementMinimumRun` and `restatementMinimumUncommonWords`.
+The first specializes `minimumRun`. The uncommon-word threshold is nonnegative:
+zero is a deliberate setting, not a missing capability. A source shorter than
+the minimum run can qualify through whole-source repetition only under the
+declared uncommon-word condition. No implicit minimum-share threshold or
+unrequested relationship between the two integer thresholds is imposed.
+
+`restatementCommonWord` retains each machine token spelling exactly as the rule
+reads words, using strings rather than token whitespace normalization. The
+inventory is unordered and may be empty. Keep declared language and matching
+semantics on the version; do not invent a language, tokenizer, case fold,
+`Lexeme` or normalization pass from the string alone. Cue lexicons remain
+separate reviewed artifacts a reader may use alongside these parameters.
+These declarations do not execute a matcher.
+
+## Possible restatements and measured echoes
+
+The restatement reading is the existing `wasDerivedFrom` relation from the
+later text to its outside source. Retain it through explicit RDF 1.2 reification
+and `accordingTo`; use the canonical `standpointModalForce modalForcePossible`
+axis. A measured restatement carries no `confidence` or numeric
+`standpointCredence`. Its `restatementRun` is a positive-integer longest
+consecutive run, and `restatementShare` is decimal coverage of the outside
+source's words in (0, 1]. These are ranking measurements, not probabilities or
+independent support.
+
+`echoRun` and `echoShare` instead qualify the exact `echoesPremiseOf`
+reading between an answer and its concrete `Prompt`. The run is the longest
+prompt-word sequence repeated in order within one answer sentence. The share
+uses the answer's words as denominator. It is distinct from outside-source
+coverage and need not equal a ratio derived from that sentence's longest run.
+Both measures are supplied results, never computed or calibrated by these laws.
+
+The canonical reifier contracts require complete measurement pairs, original
+text bindings and a reader. Restatements also retain receipt time, basis and
+rule-version digest. Every annotation concerns its own exact statement
+predicate, subject and object through the existing lowered statement components.
+Consume type closure and completed statement-metadata lowering before these
+checks; a neighboring statement cannot supply a missing source or prompt.
+Quotation alone does not assert its content as a global fact.
+
+`restatementRuleVersion` keeps the exact digest RDF literal supplied on the
+actual immutable `RestatementRule` release linked through `wasDerivedFrom`
+on the reading reifier. Its graph-term join preserves lexical form and datatype.
+The parameter digest identifies the declared release; it is not a version label
+or a new token datatype. These declarations neither compute a hash nor supply
+missing native digest admission. A selected operation still requires its
+declared digest capability; no weaker validator is substituted. The ordinary
+scene retains a producer-supplied digest without claiming independent byte or
+algorithm verification.
+
+## Retain receipt interpretation
+
+`restatementReceivedAt` is the supplied date-time in the reader's receipt
+ordering. Preserve the original precision and timezone evidence; do not pad a
+coarse value or repair incomparable clocks. `ReceiptBasis` is an open
+`QualityValue` vocabulary, not a source artifact or observation result.
+
+The supplied bases distinguish message `receivedAt`, the latest supplied
+assertion time of acts named by the outside claim's evidence, and the outside
+claim's own assertion time. Their definitions preserve the reader's reported
+absence of a stronger receipt source. The message clock is storage receipt,
+not proof of human readership. No basis value automatically selects a fallback,
+calculates a latest time, proves earlier receipt or imposes a universal
+preference. Retain the actual source evidence and the selected reader's
+ordering contract separately.
+
+The [ordinary rule and reading scene](examples/reading-rules.ttl) retains
+immutable parameters, possible restatement, echo measurements and explicit
+empty-computation reports. Its declarations are synthetic source data, not
+executed word matching or authenticated computation.

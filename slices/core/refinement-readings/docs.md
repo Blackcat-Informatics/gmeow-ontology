@@ -200,3 +200,52 @@ are separate bindings. They may differ; neither silently converts the other.
 The ordinary [state-reading scene](examples/state-readings.ttl) retains a changed
 open-item interpretation, recurrence boundary evidence and a holder-relative
 activity figure without introducing an executor or a statistical certificate.
+
+## Unrecorded sources and completed empty readings
+
+`limitUnrecordedSource` specializes the existing `ReadingLimitReason`
+vocabulary. Missing source attribution prevents the selected reader from
+deciding whether words restate outside words the holder was told. It does not
+prove originality or a negative restatement result. When an actual record is
+excluded, retain its existing `QueryLoss`, source identity, input scope and
+reason through the established `ReadingLimit` contract. Missing source
+attribution is not permission to erase the offered record or invent its source.
+
+`foundNothing` is an explicit `Refinement` report of a completed selected
+computation with no selected reading. Its value is the number of distinct
+declared input records, not repeated visits. The report's `readingScope` and
+`observedFeature` name the same `ReadingScope`, and `vantage` retains the
+declared reader. Keep `refinementOutcome refinementUnresolved`, which already
+describes an explicit completed attempt with no interpretation, and no
+`observationResult`. Nothing derives this report from missing results or a
+computation that failed or never ran.
+
+Retain the actual generating `Activity` through `wasGeneratedBy`, its reader
+association through `wasAssociatedWith`, and its supplied `eventTime`.
+These are reported completion and execution claims, not authenticated receipts.
+The report has one count, scope, reader and generating activity. The same
+activity, scope and reader identify one report; a later execution has a distinct
+activity, preserving independent readings.
+
+Every `scopeRecord` in the declared roster retains its exact RDF identity
+as the report's `wasDerivedFrom` evidence, including supplied blank nodes
+or triple terms. That activity `used` the same `ReadingScope` information
+object, preserving the input roster without forcing its members into Entity.
+Conversely every `wasDerivedFrom` source of the report belongs to that scope.
+Rule and other execution provenance belongs on the activity, keeping the
+report's evidence roster exact. An actually unreadable offered record is
+retained as a limit rather than silently omitted from a complete empty report.
+
+The existing COUNT DISTINCT aggregate compares the report's exact retained input
+roster with `foundNothing`. The zero/positive evidence law handles the
+aggregate's no-row case: zero has no scoped input, and a positive count has an
+input. Two-way membership therefore also checks exact count agreement for
+larger batches. Empty input is legal; it remains an explicitly reported
+computation, not an inferred scalar or unexecuted operation.
+
+The original `ReadingScope` chronology contract remains in force, including
+for an empty scope. None of these statements proves completeness of the
+surrounding store, executes the selected reader, authenticates completion or
+proves that its declared inputs were actually read. They keep source evidence
+and intrinsic consistency distinct from those execution claims.
+See the [ordinary rule and reading scene](../refinement-cues/examples/reading-rules.ttl).

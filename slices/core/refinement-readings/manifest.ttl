@@ -23,6 +23,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/observations>,
         <https://blackcatinformatics.ca/gmeow/slices/query-context>,
         <https://blackcatinformatics.ca/gmeow/slices/provenance>,
+        <https://blackcatinformatics.ca/gmeow/slices/events>,
         <https://blackcatinformatics.ca/gmeow/slices/temporal>,
         <https://blackcatinformatics.ca/gmeow/slices/places>,
         <https://blackcatinformatics.ca/gmeow/slices/coreference>,

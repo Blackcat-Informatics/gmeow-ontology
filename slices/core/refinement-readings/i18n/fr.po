@@ -1609,3 +1609,149 @@ msgstr "Lire la formule réalisée avec le périmètre source et conserver les p
 msgctxt "https://blackcatinformatics.ca/gmeow/HabitMemberScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain this governing law: gmeow:HabitMemberScopeConstraint logic:formalizes gmeow:habitMember ."
 msgstr "Conserver cette loi : gmeow:HabitMemberScopeConstraint logic:formalizes gmeow:habitMember ."
+
+# Reading parameters and scoped reported measurements.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitUnrecordedSource|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "unrecorded source"
+msgstr "source non enregistrée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitUnrecordedSource|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected reader lacks recorded source attribution for the words, so it cannot determine whether they repeat outside words the holder was told. This is a scoped reading limitation, not proof of originality."
+msgstr "Le lecteur sélectionné ne dispose pas d’attribution source enregistrée pour les mots et ne peut déterminer s’ils répètent des mots extérieurs reçus par le détenteur. C’est une limite de lecture située, non une preuve d’originalité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitUnrecordedSource|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A missing attribution does not invent a source, reject the words or silently establish a negative restatement verdict."
+msgstr "L’absence d’attribution n’invente pas de source, ne rejette pas les mots et n’établit pas silencieusement un verdict négatif de reformulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/limitUnrecordedSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:limit gmeow:limitReason gmeow:limitUnrecordedSource ."
+msgstr "ex:limit gmeow:limitReason gmeow:limitUnrecordedSource ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foundNothing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "found nothing"
+msgstr "n’a rien trouvé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foundNothing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit report that a selected completed refinement read its declared input scope and produced no selected reading; the nonnegative integer counts distinct declared input records, not repeated visits."
+msgstr "Rapport explicite qu’un raffinement sélectionné et achevé a lu sa portée d’entrée déclarée sans produire de lecture sélectionnée ; l’entier non négatif compte les enregistrements d’entrée déclarés distincts, non les visites répétées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foundNothing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Two-way scope/evidence laws and COUNT DISTINCT check the reported input count, including an explicit zero-row presence contract. They do not execute the computation or authenticate its completion."
+msgstr "Les lois bidirectionnelles de portée/preuve et COUNT DISTINCT vérifient le compte rapporté, avec un contrat explicite pour les groupes sans ligne. Elles n’exécutent pas le calcul et n’authentifient pas son achèvement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/foundNothing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:emptyReading gmeow:foundNothing \"1\"^^xsd:nonNegativeInteger ."
+msgstr "ex:emptyReading gmeow:foundNothing \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing report constraint"
+msgstr "Contrainte de rapport sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every foundNothing report is an explicit Refinement over its own ReadingScope with the same observed scope, declared reader, generating Activity, reader association, supplied event time and unresolved outcome, and no selected observationResult."
+msgstr "Chaque rapport foundNothing est une Refinement explicite sur sa propre ReadingScope, avec la même portée observée, un lecteur déclaré, une Activity génératrice, une association au lecteur, une heure fournie et un résultat non résolu, sans observationResult sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "These are explicit completion and no-output claims with retained evidence, not authenticated execution, a failure fallback or global absence."
+msgstr "Ce sont des affirmations explicites d’achèvement et d’absence de sortie avec preuves conservées, non une exécution authentifiée, un repli sur échec ou une absence globale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingReportConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingReportConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingInputEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing input evidence constraint"
+msgstr "Contrainte de preuves d’entrée sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingInputEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every source record in a foundNothing report's scope retains its exact RDF identity as the report's own derivation evidence, including supplied blank nodes or triple terms."
+msgstr "Chaque enregistrement source de la portée d’un rapport foundNothing conserve son identité RDF exacte comme preuve de dérivation de ce rapport, y compris les nœuds anonymes ou termes triples fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingInputEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law preserves the declared input roster; it neither discovers missing inputs nor proves that an activity read them."
+msgstr "La loi conserve la liste d’entrées déclarée ; elle ne découvre pas d’entrées manquantes et ne prouve pas leur lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingInputEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingInputEvidenceConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingInputEvidenceConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingEvidenceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing evidence scope constraint"
+msgstr "Contrainte de portée des preuves sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingEvidenceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every wasDerivedFrom source on a foundNothing report is a member of its own declared input scope."
+msgstr "Chaque source wasDerivedFrom d’un rapport foundNothing appartient à sa propre portée d’entrée déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingEvidenceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Additional rule or execution provenance belongs on the generating activity, without contaminating the report's exact input evidence roster."
+msgstr "La provenance supplémentaire de règle ou d’exécution appartient à l’activité génératrice sans contaminer la liste exacte des preuves d’entrée du rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingEvidenceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingEvidenceScopeConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingEvidenceScopeConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingCountEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing count evidence constraint"
+msgstr "Contrainte de preuves du compte sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingCountEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A zero foundNothing count has no scoped input records; a positive count retains at least one scoped input record."
+msgstr "Un compte foundNothing nul ne possède aucun enregistrement d’entrée dans sa portée ; un compte positif en conserve au moins un."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingCountEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Zero/positive evidence closes empty aggregate groups. The separate COUNT DISTINCT law checks exact cardinality against the same retained input roster."
+msgstr "La preuve nul/positif couvre les groupes agrégés vides. La loi COUNT DISTINCT séparée vérifie la cardinalité exacte contre la même liste d’entrées conservée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingCountEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingCountEvidenceConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingCountEvidenceConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingFieldUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing field uniqueness constraint"
+msgstr "Contrainte d’unicité des champs sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingFieldUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A foundNothing report has one count, input scope, vantage and generating activity; independent executions or vantages retain distinct reports."
+msgstr "Un rapport foundNothing possède un compte, une portée d’entrée, un point de vue et une activité génératrice ; des exécutions ou points de vue indépendants gardent des rapports distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingFieldUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The conditional uniqueness law applies only to explicit foundNothing reports, not to all observations or provenance relationships."
+msgstr "L’unicité conditionnelle concerne uniquement les rapports foundNothing explicites, non toutes les observations ni relations de provenance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingFieldUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingFieldUniquenessConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingFieldUniquenessConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing report identity constraint"
+msgstr "Contrainte d’identité du rapport sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The same generating activity, input scope and reader identify one foundNothing report; a later execution has its own activity and report."
+msgstr "La même activité génératrice, portée d’entrée et lecteur identifient un rapport foundNothing ; une exécution ultérieure possède sa propre activité et son rapport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportIdentityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This prevents duplicate reports for one selected computation without collapsing reports from different executions or readers."
+msgstr "Cela empêche les rapports dupliqués pour un calcul sélectionné sans fusionner ceux d’exécutions ou lecteurs différents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingReportIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingReportIdentityConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingReportIdentityConstraint logic:formalizes gmeow:foundNothing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingExactCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Found-nothing exact input count constraint"
+msgstr "Contrainte de compte exact des entrées sans résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingExactCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The foundNothing value equals the number of distinct wasDerivedFrom input records retained on that report; two-way scope/evidence laws bind precisely the same declared scope roster."
+msgstr "La valeur foundNothing égale le nombre d’enregistrements d’entrée wasDerivedFrom distincts conservés sur ce rapport ; les lois bidirectionnelles lient exactement la même liste de portée déclarée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingExactCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The positive-input triple creates aggregate groups; the separate zero/positive evidence law covers the empty group. Repeated visits do not increase a distinct-record count."
+msgstr "Le triple d’entrée positif crée les groupes ; la loi nul/positif séparée couvre le groupe vide. Des visites répétées n’augmentent pas le compte distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FoundNothingExactCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:FoundNothingExactCountConstraint logic:formalizes gmeow:foundNothing ."
+msgstr "gmeow:FoundNothingExactCountConstraint logic:formalizes gmeow:foundNothing ."

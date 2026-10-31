@@ -1368,3 +1368,400 @@ gmeow:GroundingRuleSetClosedRecordConstraint
     logic:formalizes gmeow:GroundingRuleSet ;
     logic:message "A GroundingRuleSet carries only its declared membership and selection fields, complete annotation coat and admitted provenance or operational-record metadata." ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:GroundingRuleSet ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "predicate" ], [ logic:termIndex 2 ; logic:termVariable "value" ] ], [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "predicate" ], [ logic:termIndex 1 ; logic:termIri rdf:type ], [ logic:termIndex 2 ; logic:termIri rdfs:label ], [ logic:termIndex 3 ; logic:termIri rdfs:comment ], [ logic:termIndex 4 ; logic:termIri rdfs:isDefinedBy ], [ logic:termIndex 5 ; logic:termIri skos:definition ], [ logic:termIndex 6 ; logic:termIri skos:scopeNote ], [ logic:termIndex 7 ; logic:termIri skos:example ], [ logic:termIndex 8 ; logic:termIri gmeow:useWhen ], [ logic:termIndex 9 ; logic:termIri gmeow:avoidWhen ], [ logic:termIndex 10 ; logic:termIri gmeow:howToUse ], [ logic:termIndex 11 ; logic:termIri gmeow:description ], [ logic:termIndex 12 ; logic:termIri gmeow:graphBoxRole ], [ logic:termIndex 13 ; logic:termIri gmeow:accordingTo ], [ logic:termIndex 14 ; logic:termIri gmeow:wasAttributedTo ], [ logic:termIndex 15 ; logic:termIri gmeow:wasDerivedFrom ], [ logic:termIndex 16 ; logic:termIri gmeow:versionOf ], [ logic:termIndex 17 ; logic:termIri gmeow:versionLabel ], [ logic:termIndex 18 ; logic:termIri gmeow:contentDigest ], [ logic:termIndex 19 ; logic:termIri gmeow:groundingRule ], [ logic:termIndex 20 ; logic:termIri gmeow:groundingSelectedBy ], [ logic:termIndex 21 ; logic:termIri gmeow:machineryAdmittedBy ], [ logic:termIndex 22 ; logic:termIri gmeow:machineryForReader ] ] ] ] ] ] ] ] .
+
+# Reviewed reading parameters and reported textual measurements.
+gmeow:restatementRun
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement run"@x-gmeow-english ;
+    skos:definition "The longest consecutive word run a text repeats from the outside text it is read as restating, recorded on that wasDerivedFrom reading's reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reported longest repeated run for ranking a possible restatement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the run as confidence, a truth verdict or proof of word matching."@x-gmeow-english ;
+    gmeow:howToUse "Supply one positiveInteger on the attributed restatement reifier, retaining the source texts and rule version."@x-gmeow-english ;
+    skos:scopeNote "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range xsd:positiveInteger .
+
+gmeow:restatementShare
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement share"@x-gmeow-english ;
+    skos:definition "The supplied share of the outside text's words covered by the repeated consecutive run, strictly greater than zero and at most one, recorded on the possible restatement reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to rank possible restatements by coverage of their outside source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting an answer-word denominator or interpreting coverage as support."@x-gmeow-english ;
+    gmeow:howToUse "Supply one decimal in (0,1] with restatementRun on the same attributed reifier."@x-gmeow-english ;
+    skos:scopeNote "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementShare 0.5 ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range xsd:decimal .
+
+gmeow:restatementReceivedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement received at"@x-gmeow-english ;
+    skos:definition "The supplied date-time at which the reader orders the author as having received the outside words read as restated, accompanied by the stated receipt basis."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reader's reported receipt chronology for a possible restatement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid padding coarse source dates, inventing a timezone or equating storage receipt with human readership."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the source dateTime and restatementReceiptBasis on the attributed restatement reifier."@x-gmeow-english ;
+    skos:scopeNote "The timestamp is an attributed interpretation. These declarations do not select a fallback time, resolve incomparable clocks or prove that receipt preceded authorship."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range xsd:dateTime .
+
+gmeow:restatementReceiptBasis
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement receipt basis"@x-gmeow-english ;
+    skos:definition "What the reader reports having used to locate receipt of the outside words, retained on the possible restatement reifier separately from the receipt date-time."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the explicit basis of a reported receipt time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a preferred source, a missing receipt or a stronger clock from a basis value."@x-gmeow-english ;
+    gmeow:howToUse "Name one ReceiptBasis and retain its actual source evidence through provenance."@x-gmeow-english ;
+    skos:scopeNote "The open basis vocabulary describes a selected interpretation; it neither orders evidence globally nor executes a fallback procedure."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range gmeow:ReceiptBasis .
+
+gmeow:ReceiptBasis
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Receipt Basis"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary describing the source a reader used to locate receipt of outside words. Preference and availability belong to the selected reader and rule version."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify the stated source of a reader's receipt-time interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating basis identity as proof of receipt, source availability or a universal preference."@x-gmeow-english ;
+    gmeow:howToUse "Retain the chosen value, actual source evidence and selected rule version."@x-gmeow-english ;
+    skos:scopeNote "Values are semantic QualityValues, not source documents, observation results or automatically selected fallbacks."@x-gmeow-english ;
+    skos:example "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:receiptFromReceivedAt
+    a logic:NamedIndividual , gmeow:ReceiptBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "receipt from receivedAt"@x-gmeow-english ;
+    skos:definition "The reader reports using the source message's receivedAt value to locate receipt of the outside words. Storage receipt does not prove that their author read them."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader explicitly reports this receipt-time basis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving absence of a stronger source merely from this value."@x-gmeow-english ;
+    gmeow:howToUse "Retain the selected basis and its source evidence on the restatement reifier."@x-gmeow-english ;
+    skos:scopeNote "Basis values do not execute source selection or choose a universally preferred chronology."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."@x-gmeow-english .
+
+gmeow:receiptFromEvidenceAct
+    a logic:NamedIndividual , gmeow:ReceiptBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "receipt from evidence act"@x-gmeow-english ;
+    skos:definition "The reader reports that no receipt was recorded and uses the latest supplied assertion time of the acts named by the outside claim's evidence. Latest is a reported reader ordering, not a computed ontology result."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader explicitly reports this receipt-time basis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving absence of a stronger source merely from this value."@x-gmeow-english ;
+    gmeow:howToUse "Retain the selected basis and its source evidence on the restatement reifier."@x-gmeow-english ;
+    skos:scopeNote "Basis values do not execute source selection or choose a universally preferred chronology."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."@x-gmeow-english .
+
+gmeow:receiptFromAssertion
+    a logic:NamedIndividual , gmeow:ReceiptBasis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "receipt from assertion"@x-gmeow-english ;
+    skos:definition "The reader reports that no other source records receipt and uses the outside claim's own assertion time as its receipt-time basis. It remains an interpretation rather than a receipt observation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reader explicitly reports this receipt-time basis."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving absence of a stronger source merely from this value."@x-gmeow-english ;
+    gmeow:howToUse "Retain the selected basis and its source evidence on the restatement reifier."@x-gmeow-english ;
+    skos:scopeNote "Basis values do not execute source selection or choose a universally preferred chronology."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."@x-gmeow-english .
+
+gmeow:restatementRuleVersion
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement rule version"@x-gmeow-english ;
+    skos:definition "The exact digest literal of the immutable RestatementRule parameter release used for this reading, copied from that release's contentDigest without changing its datatype or lexical identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reported parameter-release digest on a restatement reifier."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an untyped substitute version token, an invented digest validator or a mutable rule node."@x-gmeow-english ;
+    gmeow:howToUse "Link the reifier through wasDerivedFrom to the actual RestatementRule version whose contentDigest is the identical RDF term."@x-gmeow-english ;
+    skos:scopeNote "The binding law checks term identity and retained release metadata. It does not compute a parameter hash or supply missing native digest admission."@x-gmeow-english ;
+    skos:example "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range rdfs:Literal .
+
+gmeow:ReadingRule
+    a logic:Class , logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reading Rule"@x-gmeow-english ;
+    skos:definition "An immutable, reviewed information artifact declaring a reader's matching parameters. Its version identity is separate from its lineage, the reading process and any logic:Rule execution structure."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the exact reviewed parameters selected by a reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a parameter artifact as an executable logic:Rule or mutating a released version."@x-gmeow-english ;
+    gmeow:howToUse "Retain versionOf, versionLabel, contentDigest and accountable provenance; declare only the thresholds this selected rule actually uses."@x-gmeow-english ;
+    skos:scopeNote "Generic thresholds are explicit, not defaults. A changed parameter or declared word inventory requires a new version; digest verification remains its existing owner's contract."@x-gmeow-english ;
+    skos:example "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:RestatementRule
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Restatement Rule"@x-gmeow-english ;
+    skos:definition "A ReadingRule parameter release for reading a text as restating outside words received earlier according to the selected reader. It declares its minimum run, short-source uncommon-word threshold and common-word inventory."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the exact restatement parameters used by a reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring earlier receipt, successful matching or source authorship from the rule declaration."@x-gmeow-english ;
+    gmeow:howToUse "Supply restatementMinimumRun and restatementMinimumUncommonWords; retain common words exactly as the declared rule reads them."@x-gmeow-english ;
+    skos:scopeNote "The common-word inventory may be empty. No implicit minimumShare is invented for this profile, and no lexical matcher or receipt selector is executed."@x-gmeow-english ;
+    skos:example "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ReadingRule .
+
+gmeow:restatementMinimumRun
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement minimum run"@x-gmeow-english ;
+    skos:definition "The fewest consecutive source words a text must repeat under this RestatementRule."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose this selected rule's actual matching threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling an absent threshold with a hidden default or treating it as a measured result."@x-gmeow-english ;
+    gmeow:howToUse "Keep the declared numeric value on the immutable rule version; changed parameters create a new release."@x-gmeow-english ;
+    skos:scopeNote "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."@x-gmeow-english ;
+    skos:example "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."@x-gmeow-english ;
+    logic:domain gmeow:RestatementRule ; logic:range xsd:positiveInteger ; logic:subPropertyOf gmeow:minimumRun .
+
+gmeow:restatementMinimumUncommonWords
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement minimum uncommon words"@x-gmeow-english ;
+    skos:definition "The least number of uncommon words required in a source shorter than the minimum run for a whole-source repetition to qualify under this RestatementRule."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose this selected rule's actual matching threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling an absent threshold with a hidden default or treating it as a measured result."@x-gmeow-english ;
+    gmeow:howToUse "Keep the declared numeric value on the immutable rule version; changed parameters create a new release."@x-gmeow-english ;
+    skos:scopeNote "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."@x-gmeow-english ;
+    skos:example "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:RestatementRule ; logic:range xsd:nonNegativeInteger .
+
+gmeow:minimumRun
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "minimum run"@x-gmeow-english ;
+    skos:definition "The explicitly declared least consecutive-word span of a match under this ReadingRule."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose this selected rule's actual matching threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling an absent threshold with a hidden default or treating it as a measured result."@x-gmeow-english ;
+    gmeow:howToUse "Keep the declared numeric value on the immutable rule version; changed parameters create a new release."@x-gmeow-english ;
+    skos:scopeNote "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."@x-gmeow-english ;
+    skos:example "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ; logic:range xsd:positiveInteger .
+
+gmeow:minimumShare
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "minimum share"@x-gmeow-english ;
+    skos:definition "The explicitly declared least share a match must reach under this ReadingRule, strictly greater than zero and at most one."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose this selected rule's actual matching threshold."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid filling an absent threshold with a hidden default or treating it as a measured result."@x-gmeow-english ;
+    gmeow:howToUse "Keep the declared numeric value on the immutable rule version; changed parameters create a new release."@x-gmeow-english ;
+    skos:scopeNote "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."@x-gmeow-english ;
+    skos:example "ex:ruleV1 gmeow:minimumShare 0.5 ."@x-gmeow-english ;
+    logic:domain gmeow:ReadingRule ; logic:range xsd:decimal .
+
+gmeow:restatementCommonWord
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "restatement common word"@x-gmeow-english ;
+    skos:definition "A common-word token spelling exactly as the selected RestatementRule reads words. It is part of that immutable parameter inventory, not a claim that the word is universally common."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose the rule's actual common-word inventory."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting Lexemes or imposing an undeclared tokenizer, case fold or language default."@x-gmeow-english ;
+    gmeow:howToUse "Keep each machine token as xsd:string and retain the rule's declared language and matching contract."@x-gmeow-english ;
+    skos:scopeNote "The inventory is unordered and may be empty. These declarations do not test tokenization, normalization or uncommon-word counts."@x-gmeow-english ;
+    skos:example "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."@x-gmeow-english ;
+    logic:domain gmeow:RestatementRule ; logic:range xsd:string .
+
+gmeow:echoRun
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "echo run"@x-gmeow-english ;
+    skos:definition "The longest run of a prompt's words that one sentence of an answer repeats in order, recorded on the echoesPremiseOf reading's reifier for ranking."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the reported longest sentence-level prompt echo."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing the run with a confidence score or the full-answer word-share measure."@x-gmeow-english ;
+    gmeow:howToUse "Supply one positiveInteger on the attributed echo reifier and preserve the answer and concrete Prompt."@x-gmeow-english ;
+    skos:scopeNote "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."@x-gmeow-english ;
+    skos:example "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range xsd:positiveInteger .
+
+gmeow:echoShare
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "echo share"@x-gmeow-english ;
+    skos:definition "The supplied share of an answer's words that are words of its prompt, strictly greater than zero and at most one, recorded on the attributed echo reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to rank reported echoes by answer-word coverage."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the outside-source denominator of restatementShare or deriving a truth verdict."@x-gmeow-english ;
+    gmeow:howToUse "Supply one decimal in (0,1] with echoRun on the same echo reifier."@x-gmeow-english ;
+    skos:scopeNote "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."@x-gmeow-english ;
+    skos:example "ex:echo gmeow:echoShare 0.75 ."@x-gmeow-english ;
+    logic:domain rdf:Statement ; logic:range xsd:decimal .
+
+
+# Intrinsic reading contracts; no lexical or execution computation.
+gmeow:ReadingRuleVersionIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reading rule version identity constraint"@x-gmeow-english ;
+    skos:definition "An immutable ReadingRule version is distinct from the lineage resource it versions."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Version identity and retained digest evidence do not authenticate review, bytes or an executed rule."@x-gmeow-english ;
+    skos:example "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."@x-gmeow-english ;
+    logic:formalizes gmeow:ReadingRule ; logic:message "An immutable ReadingRule version is distinct from the lineage resource it versions."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lineage" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReadingRule ] ] , [ a logic:Formula ; logic:relation gmeow:versionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ] .
+
+gmeow:RestatementAnnotationContractConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Restatement annotation contract constraint"@x-gmeow-english ;
+    skos:definition "Every supplied restatement measurement or receipt/version annotation binds to its own possible wasDerivedFrom reifier, retained source texts, reader, complete measurement fields and the actual immutable parameter release carrying the identical digest term; it carries no confidence or numeric credence."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The graph-term digest join preserves original literal identity. Statement-component lowering must be complete; no lexical matcher, chronology selector or native digest validator is supplied."@x-gmeow-english ;
+    skos:example "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."@x-gmeow-english ;
+    logic:formalizes gmeow:restatementRun ; logic:message "Every supplied restatement measurement or receipt/version annotation binds to its own possible wasDerivedFrom reifier, retained source texts, reader, complete measurement fields and the actual immutable parameter release carrying the identical digest term; it carries no confidence or numeric credence."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri rdf:Statement ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termVariable "supplied" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri rdf:Statement ] ] , [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "supplied" ] ] , [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termIri gmeow:restatementRun ] , [ logic:termIndex 2 ; logic:termIri gmeow:restatementShare ] , [ logic:termIndex 3 ; logic:termIri gmeow:restatementReceivedAt ] , [ logic:termIndex 4 ; logic:termIri gmeow:restatementReceiptBasis ] , [ logic:termIndex 5 ; logic:termIri gmeow:restatementRuleVersion ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "text" ] , [ logic:termIndex 1 ; logic:termVariable "outside" ] , [ logic:termIndex 2 ; logic:termVariable "reader" ] , [ logic:termIndex 3 ; logic:termVariable "run" ] , [ logic:termIndex 4 ; logic:termVariable "share" ] , [ logic:termIndex 5 ; logic:termVariable "received" ] , [ logic:termIndex 6 ; logic:termVariable "basis" ] , [ logic:termIndex 7 ; logic:termVariable "digest" ] , [ logic:termIndex 8 ; logic:termVariable "rule" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "text" ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:wasDerivedFrom ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "outside" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "text" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "outside" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:standpointModalForce ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:modalForcePossible ] ] , [ a logic:Formula ; logic:relation gmeow:restatementRun ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "run" ] ] , [ a logic:Formula ; logic:relation gmeow:restatementShare ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "share" ] ] , [ a logic:Formula ; logic:relation gmeow:restatementReceivedAt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "received" ] ] , [ a logic:Formula ; logic:relation gmeow:restatementReceiptBasis ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "basis" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "basis" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReceiptBasis ] ] , [ a logic:Formula ; logic:relation gmeow:restatementRuleVersion ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rule" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RestatementRule ] ] , [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "rule" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] , [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "absentValue" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:confidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "absentValue" ] ] ] ] , [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "absentValue" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:standpointCredence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "absentValue" ] ] ] ] ] ] ] ] ] .
+
+gmeow:EchoAnnotationContractConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Echo annotation contract constraint"@x-gmeow-english ;
+    skos:definition "Every supplied echo measure binds to its own echoesPremiseOf reifier, original answer, concrete Prompt, reader and complete run/share pair."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Ranking measures remain independent of confidence and source truth. Completed statement-component lowering supplies the retained binding evidence."@x-gmeow-english ;
+    skos:example "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."@x-gmeow-english ;
+    logic:formalizes gmeow:echoRun ; logic:message "Every supplied echo measure binds to its own echoesPremiseOf reifier, original answer, concrete Prompt, reader and complete run/share pair."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri rdf:Statement ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termVariable "supplied" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri rdf:Statement ] ] , [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "supplied" ] ] , [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termIri gmeow:echoRun ] , [ logic:termIndex 2 ; logic:termIri gmeow:echoShare ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "answer" ] , [ logic:termIndex 1 ; logic:termVariable "prompt" ] , [ logic:termIndex 2 ; logic:termVariable "reader" ] , [ logic:termIndex 3 ; logic:termVariable "run" ] , [ logic:termIndex 4 ; logic:termVariable "share" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "answer" ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:echoesPremiseOf ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "prompt" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "prompt" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Prompt ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:echoRun ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "run" ] ] , [ a logic:Formula ; logic:relation gmeow:echoShare ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "share" ] ] ] ] ] ] ] ] .
+
+gmeow:RestatementShareRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "restatement share range constraint"@x-gmeow-english ;
+    skos:definition "Every supplied restatementShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."@x-gmeow-english ;
+    skos:example "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."@x-gmeow-english ;
+    logic:formalizes gmeow:restatementShare ; logic:message "Every supplied restatementShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    logic:onClass rdf:Statement ; logic:valuePath gmeow:restatementShare ; logic:minExclusiveBound 0 ; logic:maxInclusiveBound 1 .
+
+gmeow:EchoShareRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "echo share range constraint"@x-gmeow-english ;
+    skos:definition "Every supplied echoShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."@x-gmeow-english ;
+    skos:example "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."@x-gmeow-english ;
+    logic:formalizes gmeow:echoShare ; logic:message "Every supplied echoShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    logic:onClass rdf:Statement ; logic:valuePath gmeow:echoShare ; logic:minExclusiveBound 0 ; logic:maxInclusiveBound 1 .
+
+gmeow:MinimumShareRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "minimum share range constraint"@x-gmeow-english ;
+    skos:definition "Every supplied minimumShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."@x-gmeow-english ;
+    skos:example "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."@x-gmeow-english ;
+    logic:formalizes gmeow:minimumShare ; logic:message "Every supplied minimumShare is strictly greater than zero and at most one."@x-gmeow-english ;
+    logic:onClass gmeow:ReadingRule ; logic:valuePath gmeow:minimumShare ; logic:minExclusiveBound 0 ; logic:maxInclusiveBound 1 .
+
+
+
+gmeow:RestatementVersionCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-cues> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Restatement version term count constraint"@x-gmeow-english ;
+    skos:definition "A restatement reifier carries at most one distinct restatementRuleVersion RDF term; independent readings retain separate reifiers."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the reported count against its own distinct retained RDF terms."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid counting neighboring reports, repeated visits or decoded literal values."@x-gmeow-english ;
+    gmeow:howToUse "Retain the binding and empty-group evidence laws alongside this aggregate."@x-gmeow-english ;
+    skos:scopeNote "This counts source RDF terms without interpreting or weakening their digest datatypes. The annotation contract separately requires a matching parameter release."@x-gmeow-english ;
+    skos:example "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."@x-gmeow-english ;
+    logic:formalizes gmeow:restatementRuleVersion ; logic:message "A restatement reifier carries at most one distinct restatementRuleVersion RDF term; independent readings retain separate reifiers."@x-gmeow-english ;
+    logic:onClass rdf:Statement ; logic:aggFunction "COUNT" ; logic:aggDistinct true ; logic:aggPath gmeow:restatementRuleVersion ; logic:aggComparator "<=" ; logic:aggCompareTo 1 .
+
+
+# Immutable parameter releases and declared, class-local numeric slots.
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:minimumRun ; logic:allValuesFrom xsd:positiveInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:minimumRun ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
+gmeow:ReadingRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:minimumShare ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:minimumShare ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+gmeow:RestatementRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementMinimumRun ; logic:allValuesFrom xsd:positiveInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementMinimumRun ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RestatementRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementMinimumRun" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RestatementRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementMinimumUncommonWords ; logic:allValuesFrom xsd:nonNegativeInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementMinimumUncommonWords ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RestatementRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords" ; logic:closureValue logic:ClosedWorldClosure ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementRun ; logic:allValuesFrom xsd:positiveInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementRun ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementShare ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementShare ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementReceivedAt ; logic:allValuesFrom xsd:dateTime ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementReceivedAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementReceiptBasis ; logic:allValuesFrom gmeow:ReceiptBasis ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:restatementReceiptBasis ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReceiptBasis ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:echoRun ; logic:allValuesFrom xsd:positiveInteger ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:echoRun ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
+rdf:Statement logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:echoShare ; logic:allValuesFrom xsd:decimal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:echoShare ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+
+
+# Explicit range reading does not require fields on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementRun" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementShare" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementReceivedAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementRuleVersion" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementMinimumRun" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/minimumRun" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/minimumShare" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/restatementCommonWord" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/echoRun" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/echoShare" ; logic:closureValue logic:ClosedWorldClosure ] .

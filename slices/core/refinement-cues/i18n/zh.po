@@ -1424,3 +1424,405 @@ msgstr "谓词封闭性不封闭外部事实世界，也不断言具名规则已
 msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifies this declaration law."
 msgstr "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . 标识此声明定律。"
+
+# Reading parameters and scoped reported measurements.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement run"
+msgstr "重述连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest consecutive word run a text repeats from the outside text it is read as restating, recorded on that wasDerivedFrom reading's reifier."
+msgstr "某文本被解读为重述外部文本时，重复的最长连续词序列，记录在该 wasDerivedFrom 解读的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share"
+msgstr "重述覆盖比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of the outside text's words covered by the repeated consecutive run, strictly greater than zero and at most one, recorded on the possible restatement reifier."
+msgstr "重复连续词序列覆盖外部文本词数的已提供比例，严格大于零且不超过一，记录在可能重述的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementShare 0.5 ."
+msgstr "ex:restatement gmeow:restatementShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement received at"
+msgstr "重述来源接收时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied date-time at which the reader orders the author as having received the outside words read as restated, accompanied by the stated receipt basis."
+msgstr "读者据以排序的已提供日期时间，表示被解读为重述者收到外部原话的时间，并附有声明的接收依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The timestamp is an attributed interpretation. These declarations do not select a fallback time, resolve incomparable clocks or prove that receipt preceded authorship."
+msgstr "时间戳是带归属的解释。这些声明不选择回退时间，不消解不可比时钟，也不证明接收早于写作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement receipt basis"
+msgstr "重述接收依据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What the reader reports having used to locate receipt of the outside words, retained on the possible restatement reifier separately from the receipt date-time."
+msgstr "读者报告用于定位外部原话接收时间的依据，与接收日期时间分别保留在可能重述的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The open basis vocabulary describes a selected interpretation; it neither orders evidence globally nor executes a fallback procedure."
+msgstr "开放依据词汇描述选定的解释；它不对证据作全局排序，也不执行回退过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Receipt Basis"
+msgstr "接收依据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary describing the source a reader used to locate receipt of outside words. Preference and availability belong to the selected reader and rule version."
+msgstr "描述读者用于定位外部原话接收时间之来源的开放质量值词汇。偏好和可用性属于选定读者及规则版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values are semantic QualityValues, not source documents, observation results or automatically selected fallbacks."
+msgstr "这些值是语义 QualityValue，不是来源文档、观测结果或自动选择的回退项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+msgstr "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from receivedAt"
+msgstr "依据 receivedAt 接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports using the source message's receivedAt value to locate receipt of the outside words. Storage receipt does not prove that their author read them."
+msgstr "读者报告使用来源消息的 receivedAt 值定位外部原话的接收。存储接收不证明作者已阅读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from evidence act"
+msgstr "依据证据行为接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no receipt was recorded and uses the latest supplied assertion time of the acts named by the outside claim's evidence. Latest is a reported reader ordering, not a computed ontology result."
+msgstr "读者报告未记录接收，并使用外部主张证据所指行为中最新的已提供断言时间。“最新”是报告的读者排序，而非本体计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from assertion"
+msgstr "依据断言接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no other source records receipt and uses the outside claim's own assertion time as its receipt-time basis. It remains an interpretation rather than a receipt observation."
+msgstr "读者报告没有其他来源记录接收，并使用外部主张自身的断言时间作为接收依据。这仍是解释，而非接收观测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement rule version"
+msgstr "重述规则版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact digest literal of the immutable RestatementRule parameter release used for this reading, copied from that release's contentDigest without changing its datatype or lexical identity."
+msgstr "此解读所用不可变 RestatementRule 参数版本的确切摘要字面量，从该版本的 contentDigest 复制，不改变数据类型或词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks term identity and retained release metadata. It does not compute a parameter hash or supply missing native digest admission."
+msgstr "规则检查项身份及所保留的版本元数据。它不计算参数哈希，也不补充缺失的原生摘要接纳能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+msgstr "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Rule"
+msgstr "解读规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed information artifact declaring a reader's matching parameters. Its version identity is separate from its lineage, the reading process and any logic:Rule execution structure."
+msgstr "声明读者匹配参数的不可变、经审阅的信息制品。其版本身份区别于版本谱系、解读过程及任何 logic:Rule 执行结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generic thresholds are explicit, not defaults. A changed parameter or declared word inventory requires a new version; digest verification remains its existing owner's contract."
+msgstr "通用阈值是显式声明，不是默认值。参数或声明词表改变要求新版本；摘要验证仍由现有所有者负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+msgstr "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement Rule"
+msgstr "重述规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ReadingRule parameter release for reading a text as restating outside words received earlier according to the selected reader. It declares its minimum run, short-source uncommon-word threshold and common-word inventory."
+msgstr "用于将文本解读为重述选定读者认为先前已接收之外部原话的 ReadingRule 参数版本。它声明最短连续词数、短来源的非常见词阈值及常见词表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The common-word inventory may be empty. No implicit minimumShare is invented for this profile, and no lexical matcher or receipt selector is executed."
+msgstr "常见词表可为空。不虚构隐式 minimumShare，也不执行词汇匹配器或接收选择器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum run"
+msgstr "重述最短连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fewest consecutive source words a text must repeat under this RestatementRule."
+msgstr "在此 RestatementRule 下，文本必须重复的最少连续来源词数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum uncommon words"
+msgstr "重述最少非常见词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The least number of uncommon words required in a source shorter than the minimum run for a whole-source repetition to qualify under this RestatementRule."
+msgstr "当来源短于最短连续词数时，为使完整重复在此 RestatementRule 下成立，来源中要求的最少非常见词数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum run"
+msgstr "最短连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least consecutive-word span of a match under this ReadingRule."
+msgstr "此 ReadingRule 下匹配项显式声明的最小连续词跨度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share"
+msgstr "最低比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least share a match must reach under this ReadingRule, strictly greater than zero and at most one."
+msgstr "此 ReadingRule 下匹配项必须达到的显式最低比例，严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumShare 0.5 ."
+msgstr "ex:ruleV1 gmeow:minimumShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement common word"
+msgstr "重述常见词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A common-word token spelling exactly as the selected RestatementRule reads words. It is part of that immutable parameter inventory, not a claim that the word is universally common."
+msgstr "严格按选定 RestatementRule 读取词语方式表示的常见词标记。它属于不可变参数词表，不宣称该词普遍常见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inventory is unordered and may be empty. These declarations do not test tokenization, normalization or uncommon-word counts."
+msgstr "词表无序且可为空。这些声明不检验分词、归一化或非常见词计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+msgstr "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo run"
+msgstr "回声连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest run of a prompt's words that one sentence of an answer repeats in order, recorded on the echoesPremiseOf reading's reifier for ranking."
+msgstr "回答中某一句按顺序重复提示词语的最长序列，记录在 echoesPremiseOf 解读的重化记录上以供排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+msgstr "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share"
+msgstr "回声比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of an answer's words that are words of its prompt, strictly greater than zero and at most one, recorded on the attributed echo reifier."
+msgstr "回答词语中属于其提示词语的已提供比例，严格大于零且不超过一，记录在带归属的回声重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoShare 0.75 ."
+msgstr "ex:echo gmeow:echoShare 0.75 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading rule version identity constraint"
+msgstr "解读规则版本身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable ReadingRule version is distinct from the lineage resource it versions."
+msgstr "不可变 ReadingRule 版本区别于其所属的版本谱系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Version identity and retained digest evidence do not authenticate review, bytes or an executed rule."
+msgstr "版本身份及保留的摘要证据不认证审阅、字节或规则执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+msgstr "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement annotation contract constraint"
+msgstr "重述注释契约约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatement measurement or receipt/version annotation binds to its own possible wasDerivedFrom reifier, retained source texts, reader, complete measurement fields and the actual immutable parameter release carrying the identical digest term; it carries no confidence or numeric credence."
+msgstr "每项已提供的重述度量或接收及版本注释均绑定其自身可能的 wasDerivedFrom 重化记录、来源文本、读者、完整度量字段，以及携带相同摘要项的实际不可变参数版本；不携带置信度或数值信念程度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The graph-term digest join preserves original literal identity. Statement-component lowering must be complete; no lexical matcher, chronology selector or native digest validator is supplied."
+msgstr "摘要图项连接保留原始字面量身份。语句组成部分降级必须完成；不提供词汇匹配器、时间选择器或原生摘要验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+msgstr "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Echo annotation contract constraint"
+msgstr "回声注释契约约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echo measure binds to its own echoesPremiseOf reifier, original answer, concrete Prompt, reader and complete run/share pair."
+msgstr "每项已提供回声度量均绑定其自身 echoesPremiseOf 重化记录、原始回答、具体 Prompt、读者及完整连续词数和比例对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ranking measures remain independent of confidence and source truth. Completed statement-component lowering supplies the retained binding evidence."
+msgstr "排序度量独立于置信度及来源真伪。已完成的语句组成部分降级提供保留的绑定证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+msgstr "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share range constraint"
+msgstr "重述覆盖比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatementShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 restatementShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+msgstr "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share range constraint"
+msgstr "回声比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echoShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 echoShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+msgstr "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share range constraint"
+msgstr "最低比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied minimumShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 minimumShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+msgstr "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement version term count constraint"
+msgstr "重述版本项数量约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A restatement reifier carries at most one distinct restatementRuleVersion RDF term; independent readings retain separate reifiers."
+msgstr "一个重述重化记录至多携带一个不同的 restatementRuleVersion RDF 项；独立解读保留独立重化记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This counts source RDF terms without interpreting or weakening their digest datatypes. The annotation contract separately requires a matching parameter release."
+msgstr "此规则统计来源 RDF 项，不解释或弱化其摘要类型。注释契约独立要求对应参数版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+msgstr "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
