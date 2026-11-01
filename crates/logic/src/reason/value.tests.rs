@@ -196,7 +196,7 @@ fn native_literal_membership_and_equality_preserve_large_exact_values() {
 
     // Algorithm identity survives native value interpretation and every boundary
     // rejects malformed lexicals instead of repairing or cross-typing them.
-    let hex = "0123456789abcdef".repeat(4);
+    let hex = crate::obligations::candidate_source_hash("native SHA-256 value");
     let digest = TermValue::typed_literal(&hex, SHA256_DIGEST);
     let sha = values.literal(&digest);
     assert_eq!(sha.named_datatype(SHA256_DIGEST), Some(true));
