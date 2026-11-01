@@ -377,6 +377,43 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
         .is_err(),
         "defining pattern bytes require the actual catalog home"
     );
+    let unclaimed = format!(
+        "{prefixes}g:RetiredDomainReference skos:closeMatch prov:Entity {{| g:sssomFile \"publication.tsv\" |}} ."
+    );
+    assert!(
+        admit(&unclaimed, domain_owner, mapping_path, &ownership)
+            .unwrap()
+            .is_empty(),
+        "an unclaimed ordinary source is not inferred to be kernel-owned from its namespace"
+    );
+    let combined = format!("{source}\n{unclaimed}");
+    let dataset = purrdf::parse_dataset(combined.as_bytes(), "text/turtle", None).unwrap();
+    let (program, _) = gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
+        &gmeow_logic_compile::ingest::DslView::new(&dataset), &ontology, &[],
+    ).unwrap();
+    let proof = &observations.native_kernel_evidence;
+    native_kernel::reconcile(&registry, &ownership, proof, &program).unwrap();
+    native_kernel::verify_transport(&registry, proof, ontology.dataset(), &program).unwrap();
+    let tagged = unclaimed.replace(
+        "g:sssomFile",
+        "a logic:GroundingCorrespondence ; g:sssomFile",
+    );
+    assert!(admit(&tagged, owner, mapping_path, &ownership).is_err());
+    let mut tagged_program = program.clone();
+    tagged_program
+        .correspondences
+        .iter_mut()
+        .find(|row| {
+            row.source_endpoint.as_deref()
+                == Some("https://blackcatinformatics.ca/gmeow/RetiredDomainReference")
+        })
+        .expect("ordinary source remains in the actual frontend programme")
+        .grounding = true;
+    assert!(native_kernel::reconcile(&registry, &ownership, proof, &tagged_program).is_err());
+    assert!(
+        native_kernel::verify_transport(&registry, proof, ontology.dataset(), &tagged_program)
+            .is_err()
+    );
     observations.native_kernel_evidence.clear();
     assert!(
         observations.validate().is_err(),

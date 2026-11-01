@@ -147,16 +147,7 @@ impl CanonicalOwnership {
 
     fn source(&self, source: &str) -> gmeow_errors::Result<Option<&ModuleDeclaration>> {
         let claims = self.claims.get(source);
-        if claims.is_none()
-            && ![
-                GMEOW,
-                "https://blackcatinformatics.ca/logic/",
-                "https://blackcatinformatics.ca/math/",
-                "https://blackcatinformatics.ca/lang/",
-            ]
-            .iter()
-            .any(|namespace| source.starts_with(namespace))
-        {
+        if claims.is_none() {
             return Ok(None);
         }
         let declaration = self.declarations.get(source);
@@ -932,16 +923,7 @@ pub(super) fn verify_transport(
                         "transported grounding source <{source}> requires a canonical kernel owner"
                     )));
                 }
-                if owners.is_empty()
-                    && ![
-                        GMEOW,
-                        "https://blackcatinformatics.ca/logic/",
-                        "https://blackcatinformatics.ca/math/",
-                        "https://blackcatinformatics.ca/lang/",
-                    ]
-                    .iter()
-                    .any(|namespace| source.starts_with(namespace))
-                {
+                if owners.is_empty() {
                     false
                 } else if owners.len() != 1 || owners[0].as_iri().is_none() {
                     return Err(registry_err(format!(
