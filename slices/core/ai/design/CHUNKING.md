@@ -12,16 +12,47 @@ segmentation of every possible source (Principles 4, 5 and 11).
 
 `chunkingRulesArtifact` specializes the existing `contextIncluded` relation: the rules
 artifact was present in the result’s creation context. The stronger local relation
-identifies which artifact supplies the rules. Each pin must match an actual
-`contentDigest` of its named artifact. Other algorithm-labelled digests remain
-valid on the artifact. A result may also carry its own digest, with its own byte
+identifies which artifact supplies the rules. Each pin must be the same complete
+RDF literal as a `contentDigest` of its named artifact: both the lowercase
+hexadecimal spelling and the algorithm datatype IRI match. BLAKE3-256, SHA-256
+and MD5 use `blake3_256Digest`, `sha256Digest` and `md5Digest`, respectively,
+grounded in the mathematics slice. They have no inline algorithm prefix,
+language or direction. Equal hexadecimal text under different algorithm
+datatypes does not satisfy the pin. Other algorithm digests remain valid on
+the artifact. A result may also carry its own digest, with its own byte
 meaning; neither the global digest property nor `hasGranularity` becomes
-functional. An explicit `hasGranularity` value is required on the selected
-chunking, using the existing open granularity vocabulary (Principles 9 and 19).
+functional. A Chunk admits at most one distinct digest per algorithm; several
+algorithms coexist. A selected source pin and contract pin each have exactly one
+value under the existing closed-world Chunking contract. Their datatypes admit
+supplied values; a typed literal alone does not verify the bytes. An explicit
+`hasGranularity` value is required on the selected chunking, using the existing open granularity vocabulary (Principles 9 and 19).
 
 The rules artifact is an `InformationObject`. `logic:ReasoningContract` selects
 reasoner semantics, and `logic:PrescriptionVersion` versions a plan; a rules file
 does not by itself assert either of those meanings or an executed workflow.
+
+## Artifact bytes and segmentation identity
+
+A Chunk digest hashes the exact supplied bytes of that chunk's own content.
+The source pin hashes the named source artifact, and the contract pin hashes
+the named rules artifact. Unicode-code-point span coordinates do not select an
+encoding or a byte normalization. If an application hashes a canonical document,
+it must identify that canonical artifact and its bytes; the digest cannot be
+reused as the identity of a different original serialization.
+
+The source artifact and its pin, the contract artifact and its pin, and the
+ordered selected members describe a segmentation together. Hashing that tuple
+under a scheme produces a scheme identifier, not the content digest of the
+source, rules or a member. A result's own content digest is valid only for its
+own identified artifact bytes. Existing same-term witness laws continue to bind
+source and contract pins separately (Principles 4, 7 and 19).
+
+The research-object chunk record set preserves every admitted digest as an item
+with `algorithm`, `datatype` and `value`. Its `digests` field is an ItemList;
+no lexically smallest digest or algorithm is selected. Missing declarations
+produce an empty list, since ordinary Chunk digests are not required. Malformed
+terms and conflicting values for one algorithm fail admission. The export does
+not recompute the source bytes or infer verification.
 
 ## Migrating the rules-artifact relation
 
@@ -104,16 +135,16 @@ without becoming a new atomic paragraph.
 
 ex:source a gmeow:InformationObject ;
     lang:literalValue "Alpha.\nBeta.\nGamma." ;
-    gmeow:contentDigest "sha256:7cf72eeddc0c6811824aa5087f4e560067d06a4dc33407822730b6d525248a14" .
+    gmeow:contentDigest "7cf72eeddc0c6811824aa5087f4e560067d06a4dc33407822730b6d525248a14"^^gmeow:sha256Digest .
 ex:rules a gmeow:InformationObject ;
     lang:literalValue "Use zero-based half-open Unicode code point offsets. Keep atomic blocks whole. Overlap is permitted. Coverage need not be exhaustive. Preserve the declared chunk order." ;
-    gmeow:contentDigest "sha256:b5a3b69e5ea5e6ba74ac565d740c281dd2d852286e7bf770286f7a413334af62" .
+    gmeow:contentDigest "b5a3b69e5ea5e6ba74ac565d740c281dd2d852286e7bf770286f7a413334af62"^^gmeow:sha256Digest .
 ex:paragraphLevel a gmeow:GranularityLevel .
 ex:segmentation a gmeow:Chunking ;
     gmeow:chunkingSource ex:source ;
-    gmeow:chunkingSourceDigest "sha256:7cf72eeddc0c6811824aa5087f4e560067d06a4dc33407822730b6d525248a14" ;
+    gmeow:chunkingSourceDigest "7cf72eeddc0c6811824aa5087f4e560067d06a4dc33407822730b6d525248a14"^^gmeow:sha256Digest ;
     gmeow:chunkingRulesArtifact ex:rules ;
-    gmeow:chunkingContractDigest "sha256:b5a3b69e5ea5e6ba74ac565d740c281dd2d852286e7bf770286f7a413334af62" ;
+    gmeow:chunkingContractDigest "b5a3b69e5ea5e6ba74ac565d740c281dd2d852286e7bf770286f7a413334af62"^^gmeow:sha256Digest ;
     gmeow:hasGranularity ex:paragraphLevel .
 ex:division a gmeow:ContentSegment ;
     gmeow:segmentType gmeow:segmentTypeChapter ;
@@ -136,12 +167,12 @@ ex:cExtent a gmeow:BlockExtent ;
 ex:first a gmeow:ChunkingMember ;
     gmeow:inChunking ex:segmentation ; gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
     gmeow:chunkOf ex:source ; gmeow:spanStart "0"^^xsd:nonNegativeInteger ; gmeow:spanEnd "6"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:e3b0b40be44bd13bc38213d1116b4ab4b61bb1a3ada1d2aaa22d74674926aaf1" ;
+    gmeow:contentDigest "e3b0b40be44bd13bc38213d1116b4ab4b61bb1a3ada1d2aaa22d74674926aaf1"^^gmeow:sha256Digest ;
     gmeow:coversBlockExtent ex:aExtent .
 ex:firstTwo a gmeow:ChunkingMember ;
     gmeow:inChunking ex:segmentation ; gmeow:entryOrdinal "1"^^xsd:nonNegativeInteger ;
     gmeow:chunkOf ex:source ; gmeow:spanStart "0"^^xsd:nonNegativeInteger ; gmeow:spanEnd "12"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:2621964493b8330a31a84ca7418dcbaa508f633436ad22b8eca4aa962437afc4" ;
+    gmeow:contentDigest "2621964493b8330a31a84ca7418dcbaa508f633436ad22b8eca4aa962437afc4"^^gmeow:sha256Digest ;
     gmeow:coversBlockExtent ex:aExtent, ex:bExtent .
 ```
 
@@ -161,11 +192,11 @@ Its exact UTF-8 content digest is shown. The retrieved account occupies
 ex:summaryCarrier a gmeow:Summary ;
     gmeow:wasDerivedFrom ex:division ;
     lang:literalValue "Summary: Alpha and beta.\n" ;
-    gmeow:contentDigest "sha256:cb3ad665f702398b477870fae600fe52503aa8f8df79f0195f6746f4ceed64df" .
+    gmeow:contentDigest "cb3ad665f702398b477870fae600fe52503aa8f8df79f0195f6746f4ceed64df"^^gmeow:sha256Digest .
 ex:retrievedSummary a gmeow:Chunk ;
     gmeow:chunkOf ex:summaryCarrier ;
     gmeow:spanStart "9"^^xsd:nonNegativeInteger ; gmeow:spanEnd "24"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:5d4e54583f969b7a942b5a7330714698f4d3499da46fae0fea23e9672116100e" .
+    gmeow:contentDigest "5d4e54583f969b7a942b5a7330714698f4d3499da46fae0fea23e9672116100e"^^gmeow:sha256Digest .
 ```
 
 One node may also be both `Summary` and `Chunk` when its own text is a condensed

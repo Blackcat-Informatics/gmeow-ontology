@@ -12,6 +12,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# Record-intake vocabulary and canonical integrity.
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/againstIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "againstIndex is functional"
@@ -978,8 +980,8 @@ msgid "score calibration"
 msgstr "étalonnage du score"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."
-msgstr "Le profil d’étalonnage déclaré d’un score, obligatoire pour la sémantique de probabilité étalonnée. L’étalonnage seul ne transforme jamais la probabilité en confiance épistémique."
+msgid "The identifier of the declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."
+msgstr "L’identifiant du profil d’étalonnage déclaré d’un score, requis pour une sémantique de probabilité étalonnée. L’étalonnage seul ne transforme jamais la probabilité en confiance épistémique."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemantics|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "score semantics"
@@ -1101,7 +1103,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold|http:
 msgid "A per-label threshold policy admitting zero, one or several labels. Applied thresholds remain explicit output provenance."
 msgstr "Une politique de seuil par étiquette admettant zéro, une ou plusieurs étiquettes. Les seuils appliqués restent une provenance explicite de sortie."
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/RegisteredClassifierLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Registered Classifier Label Set"
 msgstr "Ensemble d’étiquettes de classifieur enregistré"
@@ -1127,8 +1128,8 @@ msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a c
 msgstr "Affirme sur le porteur canonique que gmeow:producedBy est fonctionnelle : une sortie de classifieur est attribuée à exactement un dossier d’exécution ModelInferenceRun et ne peut donc nommer deux dossiers producteurs. Le dossier se distingue d’une Activity d’exécution."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The model task text captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task text."
-msgstr "Le texte de tâche du modèle capturé dans le dossier d’exécution, par exemple text-classification ou zero-shot-classification. La provenance d’hypothèse obligatoire découle de la sémantique déclarée du score d’implication, non de l’orthographe de ce texte."
+msgid "The model task identifier captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task identifier."
+msgstr "L’identifiant de tâche du modèle consigné dans le dossier d’exécution, par exemple text-classification ou zero-shot-classification. La provenance d’hypothèse requise suit la sémantique déclarée des scores d’implication, non la graphie de cet identifiant de tâche."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ZeroShotTemplatePresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An execution record named by an output declaring scoreEntailment must preserve its exact hypothesisTemplate."
@@ -1259,8 +1260,8 @@ msgid "chunking source digest"
 msgstr "empreinte source de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
-msgstr "L’empreinte contentDigest choisie de l’artefact chunkingSource exact, conservée comme valeur fixée sur ce résultat. Elle hache les octets source, non ce dossier de résultat. D’autres empreintes source nommant leur algorithme peuvent coexister."
+msgid "The selected contentDigest of the exact chunkingSource artifact, retained as the same complete RDF literal on this Chunking. Its lowercase hexadecimal spelling and grounded algorithm datatype both match the artifact declaration. It identifies the source bytes, not the enclosing result or its segmentation tuple. Other algorithm digests may coexist on the artifact."
+msgstr "La contentDigest choisie de l’artefact chunkingSource exact, conservée comme littéral RDF complet identique sur cette Chunking. Sa graphie hexadécimale minuscule et son type d’algorithme fondé correspondent tous deux à la déclaration de l’artefact. Elle identifie les octets du source, non le résultat englobant ni son tuple de segmentation. D’autres empreintes d’algorithmes peuvent coexister sur l’artefact."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "chunking rules artifact"
@@ -1295,8 +1296,8 @@ msgid "chunking contract digest"
 msgstr "empreinte du contrat de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
-msgstr "L’empreinte contentDigest choisie de l’artefact relié par chunkingRulesArtifact. Elle fixe ces octets de règles et n’est pas une contentDigest de la Chunking englobante. Aucun IRI, chemin ou hachage de résultat ne remplace cette empreinte obligatoire."
+msgid "The selected contentDigest of the exact rules artifact linked by chunkingRulesArtifact, retained as the same complete RDF literal on this Chunking. Its lowercase hexadecimal spelling and grounded algorithm datatype both match the artifact declaration. It identifies the contract bytes, not the enclosing result or its segmentation tuple. Other algorithm digests may coexist on the artifact."
+msgstr "La contentDigest choisie de l’artefact de règles exact relié par chunkingRulesArtifact, conservée comme littéral RDF complet identique sur cette Chunking. Sa graphie hexadécimale minuscule et son type d’algorithme fondé correspondent tous deux à la déclaration de l’artefact. Elle identifie les octets du contrat, non le résultat englobant ni son tuple de segmentation. D’autres empreintes d’algorithmes peuvent coexister sur l’artefact."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "in chunking"
@@ -1331,24 +1332,24 @@ msgid "The exact whole-source carrier whose Unicode-code-point origin these exte
 msgstr "Le support source entier exact dont ces bornes utilisent l’origine en points de code Unicode. Un rendu local au bloc ou une autre révision constitue un autre repère et ne peut être comparé silencieusement aux bornes du fragment."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier."
-msgstr "chunkOf nomme toujours le véritable support contenant le texte récupéré de ce fragment. Un résumé généré dérive de la division résumée par wasDerivedFrom, sans être découpé dans cette division originale. Summary et Chunk ne peuvent partager un nœud que si celui-ci est à la fois un compte rendu condensé et une découpe contiguë de son véritable support."
+msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier. A digest describes the exact supplied chunk bytes; Unicode-code-point coordinates imply neither an encoding nor normalization. A canonical-document digest names that canonical artifact, not another serialization or a segmentation identifier."
+msgstr "chunkOf nomme toujours le véritable support contenant le texte récupéré du fragment. Un résumé généré dérive de la division résumée par wasDerivedFrom, sans être découpé dans cette division originale. Summary et Chunk peuvent partager un nœud uniquement s’il est à la fois un compte rendu condensé et une découpe contiguë de son véritable support. Une empreinte décrit les octets exacts du fragment fournis ; les coordonnées en points de code Unicode n’impliquent ni encodage ni normalisation. L’empreinte d’un document canonique nomme cet artefact canonique, non une autre sérialisation ou un identifiant de segmentation."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking source digest witness constraint"
 msgstr "Contrainte de témoin d’empreinte source de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."
-msgstr "La chunkingSourceDigest choisie doit être une contentDigest de l’artefact chunkingSource exact. L’empreinte d’un dossier englobant ou d’une autre source ne satisfait pas cette valeur fixée."
+msgid "The selected chunkingSourceDigest must occur as the same complete RDF literal on the exact chunkingSource artifact through contentDigest. Both lexical form and algorithm datatype must match; a digest of another artifact or the enclosing result does not satisfy this pin."
+msgstr "La chunkingSourceDigest choisie doit figurer comme même littéral RDF complet sur l’artefact chunkingSource exact par contentDigest. La forme lexicale et le type d’algorithme doivent tous deux correspondre ; l’empreinte d’un autre artefact ou du résultat englobant ne satisfait pas cette valeur fixée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking contract digest witness constraint"
 msgstr "Contrainte de témoin d’empreinte du contrat de segmentation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
-msgstr "La chunkingContractDigest choisie doit être une contentDigest du véritable artefact de règles relié par chunkingRulesArtifact. Le hachage du résultat lui-même ne remplace pas l’identité de l’artefact de règles."
+msgid "The selected chunkingContractDigest must occur as the same complete RDF literal on the exact rules artifact linked by chunkingRulesArtifact through contentDigest. Both lexical form and algorithm datatype must match; a digest of another artifact or the enclosing result does not satisfy this pin."
+msgstr "La chunkingContractDigest choisie doit figurer comme même littéral RDF complet sur l’artefact de règles exact relié par chunkingRulesArtifact par contentDigest. La forme lexicale et le type d’algorithme doivent tous deux correspondre ; l’empreinte d’un autre artefact ou du résultat englobant ne satisfait pas cette valeur fixée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking member source constraint"
@@ -1389,8 +1390,6 @@ msgstr "Contrainte d’intersection de couverture de segmentation"
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
 msgstr "Une étendue déclarée couverte doit réellement intersecter le fragment sélectionné dans leur repère source entier commun. Des étendues qui touchent seulement une borne ou sont disjointes ne sont pas des blocs couverts."
-
-# Record-intake vocabulary and canonical integrity.
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Held Record"
@@ -1819,3 +1818,235 @@ msgstr "Cette loi vérifie l’intersection stricte de la couverture déclarée.
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
 msgstr "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model version tag"
+msgstr "étiquette de version du modèle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider's wire-level version identifier for the described snapshot. Use DOI/version-identity machinery for stable citation-grade identity."
+msgstr "Identifiant de version du protocole du fournisseur pour l’instantané décrit. Utiliser les mécanismes DOI et d’identité de version pour une identité de citation stable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:opusCard gmeow:modelVersionTag \"claude-opus-4-8[1m]\" ."
+msgstr "ex:opusCard gmeow:modelVersionTag \"claude-opus-4-8[1m]\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for citation-grade version identity (that rides the DOI/version-identity machinery) and avoid treating two different version tags as the same model snapshot."
+msgstr "Éviter de l’utiliser comme identité de version pour une citation, laquelle relève des mécanismes DOI et d’identité de version, ou de traiter deux étiquettes de version différentes comme le même instantané de modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the provider's supplied xsd:string or xsd:token version literal on ModelCard; pair with the DOI machinery when a stable, citable version identity is required."
+msgstr "Conserver le littéral de version xsd:string ou xsd:token fourni par le fournisseur sur ModelCard ; l’associer aux mécanismes DOI lorsqu’une identité de version stable et citable est nécessaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the provider's wire-level version string for the snapshot a gmeow:ModelCard describes — the exact identifier a gmeow:ModelInvocation can be matched against."
+msgstr "Utiliser pour consigner la chaîne de version du protocole du fournisseur pour l’instantané décrit par un gmeow:ModelCard — l’identifiant exact auquel un gmeow:ModelInvocation peut être comparé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source pins the exact label-set revision used by an inference run."
+msgstr "Utiliser lorsqu’une source fixe la révision exacte de l’ensemble d’étiquettes employé par une exécution d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a revision tag as the label inventory itself or inventing a revision when the source supplied none."
+msgstr "Éviter de traiter une étiquette de révision comme l’inventaire d’étiquettes lui-même ou d’inventer une révision que la source n’a pas fournie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied revision literal on ModelInferenceRun with its candidate inventory and exact hypothesisTemplate when applicable."
+msgstr "Conserver le littéral de révision fourni sur ModelInferenceRun avec son inventaire de candidats et son hypothesisTemplate exact, le cas échéant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:labelSetRevision \"candidate-inventory-v1\"^^xsd:token ."
+msgstr "ex:run gmeow:labelSetRevision \"candidate-inventory-v1\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the execution framework identifier reported for a model inference run."
+msgstr "Utiliser pour conserver l’identifiant du cadre d’exécution déclaré pour une exécution d’inférence de modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a framework name as a model identity, revision or proof that execution occurred."
+msgstr "Éviter de traiter un nom de cadre comme une identité de modèle, une révision ou une preuve d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied framework literal on ModelInferenceRun; retain modelIdentifier and modelRevision as separate execution coordinates."
+msgstr "Conserver le littéral de cadre fourni sur ModelInferenceRun ; garder modelIdentifier et modelRevision comme coordonnées d’exécution distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelFramework \"onnxruntime\"^^xsd:token ."
+msgstr "ex:run gmeow:modelFramework \"onnxruntime\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the model repository or artifact pinned by an inference record."
+msgstr "Utiliser pour identifier le dépôt ou l’artefact de modèle fixé par un dossier d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the pinned model identity with a mutable display name or merging identifiers from unrelated producer namespaces."
+msgstr "Éviter de remplacer l’identité de modèle fixée par un nom d’affichage modifiable ou de fusionner des identifiants provenant d’espaces de noms de producteurs indépendants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied identifier literal and its producer attribution on ModelInferenceRun, paired with the exact modelRevision."
+msgstr "Conserver le littéral d’identifiant fourni et son attribution au producteur sur ModelInferenceRun, associé au modelRevision exact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelIdentifier \"example/genre-nli\"^^xsd:token ."
+msgstr "ex:run gmeow:modelIdentifier \"example/genre-nli\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source records the immutable model revision for an inference run."
+msgstr "Utiliser lorsqu’une source consigne la révision immuable du modèle pour une exécution d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a revision from a mutable model name or treating equal revision spelling across different repositories as identity."
+msgstr "Éviter d’inventer une révision à partir d’un nom de modèle modifiable ou de déduire une identité d’une même graphie de révision dans des dépôts différents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied revision literal with modelIdentifier on the same ModelInferenceRun; retain evidence of the revision pin separately."
+msgstr "Conserver le littéral de révision fourni avec modelIdentifier sur le même ModelInferenceRun ; garder séparément la preuve du verrouillage de révision."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelRevision \"5f4d3c2b1a0987654321fedcba9876543210abcd\"^^xsd:token ."
+msgstr "ex:run gmeow:modelRevision \"5f4d3c2b1a0987654321fedcba9876543210abcd\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the task identifier reported by an inference execution record."
+msgstr "Utiliser pour conserver l’identifiant de tâche déclaré par un dossier d’exécution d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving score semantics or required hypothesis provenance from the spelling of the task identifier."
+msgstr "Éviter de déduire la sémantique des scores ou la provenance d’hypothèse requise de la graphie de l’identifiant de tâche."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied task literal on ModelInferenceRun; declare scoreSemantics on each output independently."
+msgstr "Conserver le littéral de tâche fourni sur ModelInferenceRun ; déclarer indépendamment scoreSemantics sur chaque sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelTask \"zero-shot-classification\"^^xsd:token ."
+msgstr "ex:run gmeow:modelTask \"zero-shot-classification\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the calibration profile declared for a classifier score."
+msgstr "Utiliser pour identifier le profil d’étalonnage déclaré pour un score de classifieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring calibration from a number in the unit interval or treating a calibration profile as epistemic confidence."
+msgstr "Éviter de déduire un étalonnage d’un nombre dans l’intervalle unitaire ou de traiter un profil d’étalonnage comme une confiance épistémique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied calibration-profile literal on ClassifierOutput beside its classifierScore and declared scoreSemantics."
+msgstr "Conserver le littéral de profil d’étalonnage fourni sur ClassifierOutput à côté de son classifierScore et de son scoreSemantics déclaré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:output gmeow:scoreCalibration \"temperature-scaling-v1\"^^xsd:token ."
+msgstr "ex:output gmeow:scoreCalibration \"temperature-scaling-v1\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source records the tokenizer revision used by an inference run."
+msgstr "Utiliser lorsque la source consigne la révision du segmenteur en jetons employée par une exécution d’inférence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a tokenizer revision from the model revision or discarding it because the model weights are unchanged."
+msgstr "Éviter de supposer une révision de segmenteur à partir de la révision du modèle ou de l’omettre parce que les poids du modèle sont inchangés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied tokenizer revision literal on ModelInferenceRun alongside the independent model revision."
+msgstr "Conserver le littéral de révision du segmenteur fourni sur ModelInferenceRun à côté de la révision indépendante du modèle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:tokenizerRevision \"tokenizer-v3\"^^xsd:token ."
+msgstr "ex:run gmeow:tokenizerRevision \"tokenizer-v3\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token et ne certifient aucune identité à partir d’une même graphie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A contiguous segment of a source information object, produced for retrieval and located by chunkOf, spanStart and spanEnd. Its contentDigest literals identify its exact supplied bytes using the grounded BLAKE3-256, SHA-256 or MD5 datatype; the algorithm remains part of literal identity. The segment is what a retriever returns, a model reads and an evidence span pins into."
+msgstr "Un segment contigu d’un objet informationnel source, produit pour la recherche et situé par chunkOf, spanStart et spanEnd. Ses littéraux contentDigest identifient ses octets exacts fournis au moyen du type fondé BLAKE3-256, SHA-256 ou MD5 ; l’algorithme fait partie de l’identité du littéral. Le segment est ce que renvoie la recherche, ce que lit un modèle et ce que fixe une plage de preuve."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the segment Chunk, retain chunkOf and its half-open Unicode-code-point spanStart and spanEnd, and record supplied contentDigest literals with their algorithm datatype and lowercase hexadecimal spelling. Keep all supplied algorithms, with at most one distinct value per algorithm. Record the actual input artifact if canonical bytes are hashed; a typed digest does not verify those bytes."
+msgstr "Typer le segment Chunk, conserver chunkOf et ses bornes spanStart et spanEnd en points de code Unicode, en intervalle semi-ouvert, puis consigner les littéraux contentDigest fournis avec leur type d’algorithme et leur graphie hexadécimale minuscule. Garder tous les algorithmes fournis, avec au plus une valeur distincte par algorithme. Identifier l’artefact d’entrée réel si les octets hachés sont canoniques ; une empreinte typée ne vérifie pas ces octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin the exact source revision selected by a Chunking while retaining algorithm identity and the artifact witness."
+msgstr "Utiliser pour fixer la révision exacte du source choisie par une Chunking, en conservant l’identité de l’algorithme et le témoin de l’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a path, IRI, the contract pin, an enclosing result digest or a scheme identifier. Equal hexadecimal text with another datatype does not satisfy this pin."
+msgstr "Éviter de substituer un chemin, un IRI, la valeur fixée du contrat, une empreinte du résultat englobant ou un identifiant de schéma. Un texte hexadécimal identique avec un autre type ne satisfait pas cette valeur fixée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy one supplied blake3_256Digest, sha256Digest or md5Digest literal from the named chunkingSource artifact without changing its lexical form or datatype. Keep the same literal as a contentDigest on that artifact."
+msgstr "Copier un littéral blake3_256Digest, sha256Digest ou md5Digest fourni depuis l’artefact chunkingSource nommé, sans modifier sa forme lexicale ni son type. Conserver le même littéral comme contentDigest sur cet artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing closed-world Chunking contract selects exactly one pin. The witness relation reuses the complete literal term; it does not strip a prefix, equate different datatypes, recompute bytes or prove contract execution. The global contentDigest property remains nonfunctional."
+msgstr "Le contrat Chunking existant à monde fermé choisit exactement une valeur fixée. La relation de témoin réutilise le terme littéral complet ; elle ne retire aucun préfixe, n’assimile pas les types distincts, ne recalcule pas les octets et ne prouve pas l’exécution du contrat. La propriété globale contentDigest reste non fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:chunkingSource ex:artifact ; gmeow:chunkingSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:r gmeow:chunkingSource ex:artifact ; gmeow:chunkingSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin the exact contract revision selected by a Chunking while retaining algorithm identity and the artifact witness."
+msgstr "Utiliser pour fixer la révision exacte du contrat choisie par une Chunking, en conservant l’identité de l’algorithme et le témoin de l’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a path, IRI, the source pin, an enclosing result digest or a scheme identifier. Equal hexadecimal text with another datatype does not satisfy this pin."
+msgstr "Éviter de substituer un chemin, un IRI, la valeur fixée de la source, une empreinte du résultat englobant ou un identifiant de schéma. Un texte hexadécimal identique avec un autre type ne satisfait pas cette valeur fixée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy one supplied blake3_256Digest, sha256Digest or md5Digest literal from the artifact linked by chunkingRulesArtifact without changing its lexical form or datatype. Keep the same literal as a contentDigest on that artifact."
+msgstr "Copier un littéral blake3_256Digest, sha256Digest ou md5Digest fourni depuis l’artefact relié par chunkingRulesArtifact, sans modifier sa forme lexicale ni son type. Conserver le même littéral comme contentDigest sur cet artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing closed-world Chunking contract selects exactly one pin. The witness relation reuses the complete literal term; it does not strip a prefix, equate different datatypes, recompute bytes or prove contract execution. The global contentDigest property remains nonfunctional."
+msgstr "Le contrat Chunking existant à monde fermé choisit exactement une valeur fixée. La relation de témoin réutilise le terme littéral complet ; elle ne retire aucun préfixe, n’assimile pas les types distincts, ne recalcule pas les octets et ne prouve pas l’exécution du contrat. La propriété globale contentDigest reste non fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:chunkingRulesArtifact ex:artifact ; gmeow:chunkingContractDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:r gmeow:chunkingRulesArtifact ex:artifact ; gmeow:chunkingContractDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunk"
+msgstr "Fragment"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."
+msgstr "Éviter de typer le document source entier comme Chunk (la source est un simple gmeow:InformationObject) et de redécouper en repointant : une nouvelle segmentation crée de nouveaux individus Chunk, puisque gmeow:chunkOf est fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."
+msgstr "Utiliser pour un segment adapté à la recherche, découpé dans une source plus grande : l’unité renvoyée par la recherche, lue par un modèle et ancrée par une plage de preuve ; le type d’objet informationnel manquant dans la chaîne Source → Chunk → EvidenceSpan → nœud d’affirmation."

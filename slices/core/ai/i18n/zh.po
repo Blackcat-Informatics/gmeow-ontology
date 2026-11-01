@@ -12,6 +12,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+# Record-intake vocabulary and canonical integrity.
+
 
 msgctxt "https://blackcatinformatics.ca/gmeow/againstIndexFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "againstIndex is functional"
@@ -978,8 +980,8 @@ msgid "score calibration"
 msgstr "分数校准"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."
-msgstr "分数的声明校准配置，校准概率语义必须具备。仅有校准绝不将概率转为认知置信度。"
+msgid "The identifier of the declared calibration profile of a score, required for calibrated-probability semantics. Calibration alone never turns probability into epistemic confidence."
+msgstr "分数所声明校准配置的标识符，校准概率语义要求提供它。仅有校准绝不使概率变为认识置信度。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemantics|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "score semantics"
@@ -1101,7 +1103,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/decisionIndependentThreshold|http:
 msgid "A per-label threshold policy admitting zero, one or several labels. Applied thresholds remain explicit output provenance."
 msgstr "逐标签阈值策略，允许零个、一个或多个标签。应用的阈值仍作为显式输出来源信息保留。"
 
-
 msgctxt "https://blackcatinformatics.ca/gmeow/RegisteredClassifierLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Registered Classifier Label Set"
 msgstr "已注册分类器标签集"
@@ -1127,8 +1128,8 @@ msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a c
 msgstr "在规范载体上断言 gmeow:producedBy 是函数性属性：分类器输出归属于恰好一个 ModelInferenceRun 执行记录，因而不能指定两个产生记录。记录与执行 Activity 保持区分。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The model task text captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task text."
-msgstr "执行记录捕获的模型任务文本，例如 text-classification 或 zero-shot-classification。必需的假设来源信息由声明的蕴含分数语义决定，而非此任务文本的拼写。"
+msgid "The model task identifier captured in the execution record, such as text-classification or zero-shot-classification. Required hypothesis provenance follows declared entailment score semantics, not the spelling of this task identifier."
+msgstr "执行记录中捕获的模型任务标识符，例如 text-classification 或 zero-shot-classification。所需的假设溯源依据已声明的蕴含分数语义，而不是此任务标识符的拼写。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ZeroShotTemplatePresentConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An execution record named by an output declaring scoreEntailment must preserve its exact hypothesisTemplate."
@@ -1259,8 +1260,8 @@ msgid "chunking source digest"
 msgstr "分块源摘要"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the exact chunkingSource artifact, captured as a pin on this result. It hashes the source bytes, not this result record. Other algorithm-labelled source digests may coexist."
-msgstr "确切 chunkingSource 制品的选定 contentDigest，作为本结果的固定值保存。它散列源字节，而非此结果记录。其他带算法标识的源摘要可以并存。"
+msgid "The selected contentDigest of the exact chunkingSource artifact, retained as the same complete RDF literal on this Chunking. Its lowercase hexadecimal spelling and grounded algorithm datatype both match the artifact declaration. It identifies the source bytes, not the enclosing result or its segmentation tuple. Other algorithm digests may coexist on the artifact."
+msgstr "确切 chunkingSource 制品的选定 contentDigest，在此 Chunking 上保留为完全相同的 RDF 字面量。其小写十六进制写法和有依据的算法数据类型均须与制品声明相同。它标识源字节，而非外围结果或其分块元组。制品上可并存其他算法的摘要。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "chunking rules artifact"
@@ -1295,8 +1296,8 @@ msgid "chunking contract digest"
 msgstr "分块契约摘要"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."
-msgstr "通过 chunkingRulesArtifact 关联的制品的选定 contentDigest。它固定规则字节，并非外围 Chunking 的 contentDigest。IRI、路径或结果散列均不能替代必需的契约摘要。"
+msgid "The selected contentDigest of the exact rules artifact linked by chunkingRulesArtifact, retained as the same complete RDF literal on this Chunking. Its lowercase hexadecimal spelling and grounded algorithm datatype both match the artifact declaration. It identifies the contract bytes, not the enclosing result or its segmentation tuple. Other algorithm digests may coexist on the artifact."
+msgstr "通过 chunkingRulesArtifact 关联的确切规则制品的选定 contentDigest，在此 Chunking 上保留为完全相同的 RDF 字面量。其小写十六进制写法和有依据的算法数据类型均须与制品声明相同。它标识契约字节，而非外围结果或其分块元组。制品上可并存其他算法的摘要。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/inChunking|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "in chunking"
@@ -1331,24 +1332,24 @@ msgid "The exact whole-source carrier whose Unicode-code-point origin these exte
 msgstr "这些范围边界所使用的 Unicode 码点原点对应的确切整体源载体。块局部呈现或其他版本属于不同坐标框架，不可悄然与块边界比较。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier."
-msgstr "chunkOf 始终指定实际包含此块检索文本的载体。生成的摘要通过 wasDerivedFrom 派生自被概述分区，并非从原始分区切取。仅当一个节点既是浓缩叙述，又是实际载体的连续切片时，Summary 和 Chunk 才可共用该节点。"
+msgid "chunkOf always names the actual carrier containing this chunk’s retrieved text. A generated summary is derived from its summarized division through wasDerivedFrom, not cut from that original division. Summary and Chunk may share a node only when that node is both a condensed account and a contiguous cut of its actual carrier. A digest describes the exact supplied chunk bytes; Unicode-code-point coordinates imply neither an encoding nor normalization. A canonical-document digest names that canonical artifact, not another serialization or a segmentation identifier."
+msgstr "chunkOf 始终指定实际包含此块检索文本的载体。生成的摘要通过 wasDerivedFrom 派生自被概述分区，并非从原始分区切取。仅当一个节点既是浓缩叙述，又是实际载体的连续切片时，Summary 和 Chunk 才可共用该节点。摘要描述所提供的确切块字节；Unicode 码点坐标并不隐含编码或规范化。规范文档的摘要标识该规范制品，而非另一序列化或分块标识符。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking source digest witness constraint"
 msgstr "分块源摘要见证约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingSourceDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."
-msgstr "选定 chunkingSourceDigest 必须是确切 chunkingSource 制品的 contentDigest。外围记录或其他源的摘要不满足此固定值。"
+msgid "The selected chunkingSourceDigest must occur as the same complete RDF literal on the exact chunkingSource artifact through contentDigest. Both lexical form and algorithm datatype must match; a digest of another artifact or the enclosing result does not satisfy this pin."
+msgstr "选定 chunkingSourceDigest 必须作为完全相同的 RDF 字面量，经 contentDigest 出现在确切 chunkingSource 制品上。词法形式和算法数据类型均须相同；其他制品或外围结果的摘要不满足此固定值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking contract digest witness constraint"
 msgstr "分块契约摘要见证约束"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingContractDigestWitnessConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."
-msgstr "选定 chunkingContractDigest 必须是通过 chunkingRulesArtifact 关联的实际规则制品的 contentDigest。结果记录自身的内容散列不能替代规则制品的标识。"
+msgid "The selected chunkingContractDigest must occur as the same complete RDF literal on the exact rules artifact linked by chunkingRulesArtifact through contentDigest. Both lexical form and algorithm datatype must match; a digest of another artifact or the enclosing result does not satisfy this pin."
+msgstr "选定 chunkingContractDigest 必须作为完全相同的 RDF 字面量，经 contentDigest 出现在通过 chunkingRulesArtifact 关联的确切规则制品上。词法形式和算法数据类型均须相同；其他制品或外围结果的摘要不满足此固定值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingMemberSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Chunking member source constraint"
@@ -1389,8 +1390,6 @@ msgstr "分块覆盖相交约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."
 msgstr "声明覆盖的范围必须在共享整体源框架中与选定块实际相交。仅边界接触或不相交的范围不是被覆盖块。"
-
-# Record-intake vocabulary and canonical integrity.
 
 msgctxt "https://blackcatinformatics.ca/gmeow/HeldRecord|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Held Record"
@@ -1819,3 +1818,235 @@ msgstr "此法则检查所声称覆盖的严格相交性。完整包含块属于
 msgctxt "https://blackcatinformatics.ca/gmeow/ChunkingCoverageIntersectionConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
 msgstr "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "model version tag"
+msgstr "模型版本标记"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The provider's wire-level version identifier for the described snapshot. Use DOI/version-identity machinery for stable citation-grade identity."
+msgstr "提供者在传输协议中为所述快照指定的版本标识符。稳定的引用级身份使用 DOI 和版本身份机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:opusCard gmeow:modelVersionTag \"claude-opus-4-8[1m]\" ."
+msgstr "ex:opusCard gmeow:modelVersionTag \"claude-opus-4-8[1m]\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for citation-grade version identity (that rides the DOI/version-identity machinery) and avoid treating two different version tags as the same model snapshot."
+msgstr "避免将其用作引用级版本身份，该身份由 DOI 和版本身份机制承载；也不要将两个不同的版本标记视为同一模型快照。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the provider's supplied xsd:string or xsd:token version literal on ModelCard; pair with the DOI machinery when a stable, citable version identity is required."
+msgstr "在 ModelCard 上保留提供者给出的 xsd:string 或 xsd:token 版本字面量；需要稳定且可引用的版本身份时，结合 DOI 机制使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record the provider's wire-level version string for the snapshot a gmeow:ModelCard describes — the exact identifier a gmeow:ModelInvocation can be matched against."
+msgstr "用于记录 gmeow:ModelCard 所描述快照的提供者协议版本字符串，即可与 gmeow:ModelInvocation 匹配的确切标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelVersionTag|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source pins the exact label-set revision used by an inference run."
+msgstr "来源固定某次推理运行所用标签集的确切修订时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a revision tag as the label inventory itself or inventing a revision when the source supplied none."
+msgstr "避免将修订标记当作标签清单本身，也不要凭空补出来源未提供的修订。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied revision literal on ModelInferenceRun with its candidate inventory and exact hypothesisTemplate when applicable."
+msgstr "在 ModelInferenceRun 上保留所提供的修订字面量、候选清单，以及适用时的确切 hypothesisTemplate。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:labelSetRevision \"candidate-inventory-v1\"^^xsd:token ."
+msgstr "ex:run gmeow:labelSetRevision \"candidate-inventory-v1\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/labelSetRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the execution framework identifier reported for a model inference run."
+msgstr "用于保留模型推理运行所报告的执行框架标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a framework name as a model identity, revision or proof that execution occurred."
+msgstr "避免将框架名称当作模型身份、修订或执行已经发生的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied framework literal on ModelInferenceRun; retain modelIdentifier and modelRevision as separate execution coordinates."
+msgstr "在 ModelInferenceRun 上保留所提供的框架字面量；将 modelIdentifier 和 modelRevision 作为独立的执行坐标保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelFramework \"onnxruntime\"^^xsd:token ."
+msgstr "ex:run gmeow:modelFramework \"onnxruntime\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelFramework|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the model repository or artifact pinned by an inference record."
+msgstr "用于标识推理记录所固定的模型仓库或制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the pinned model identity with a mutable display name or merging identifiers from unrelated producer namespaces."
+msgstr "避免用可变的显示名称替换已固定的模型身份，也不要合并来自不同生产者命名空间的标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied identifier literal and its producer attribution on ModelInferenceRun, paired with the exact modelRevision."
+msgstr "在 ModelInferenceRun 上保留所提供的标识符字面量及其生产者归属，并与确切的 modelRevision 配对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelIdentifier \"example/genre-nli\"^^xsd:token ."
+msgstr "ex:run gmeow:modelIdentifier \"example/genre-nli\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source records the immutable model revision for an inference run."
+msgstr "来源记录某次推理运行所用模型的不可变修订时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a revision from a mutable model name or treating equal revision spelling across different repositories as identity."
+msgstr "避免根据可变模型名称虚构修订，也不要将不同仓库中拼写相同的修订视为身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied revision literal with modelIdentifier on the same ModelInferenceRun; retain evidence of the revision pin separately."
+msgstr "在同一 ModelInferenceRun 上将所提供的修订字面量与 modelIdentifier 一同保留；另行保留固定该修订的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelRevision \"5f4d3c2b1a0987654321fedcba9876543210abcd\"^^xsd:token ."
+msgstr "ex:run gmeow:modelRevision \"5f4d3c2b1a0987654321fedcba9876543210abcd\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the task identifier reported by an inference execution record."
+msgstr "用于保留推理执行记录所报告的任务标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving score semantics or required hypothesis provenance from the spelling of the task identifier."
+msgstr "避免根据任务标识符的拼写推导分数语义或所需的假设溯源信息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied task literal on ModelInferenceRun; declare scoreSemantics on each output independently."
+msgstr "在 ModelInferenceRun 上保留所提供的任务字面量；在每个输出上独立声明 scoreSemantics。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:modelTask \"zero-shot-classification\"^^xsd:token ."
+msgstr "ex:run gmeow:modelTask \"zero-shot-classification\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modelTask|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the calibration profile declared for a classifier score."
+msgstr "用于标识为某个分类器分数声明的校准配置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring calibration from a number in the unit interval or treating a calibration profile as epistemic confidence."
+msgstr "避免从单位区间内的数值推断已经校准，也不要将校准配置当作认识置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied calibration-profile literal on ClassifierOutput beside its classifierScore and declared scoreSemantics."
+msgstr "在 ClassifierOutput 上将所提供的校准配置字面量与 classifierScore 及已声明的 scoreSemantics 一同保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:output gmeow:scoreCalibration \"temperature-scaling-v1\"^^xsd:token ."
+msgstr "ex:output gmeow:scoreCalibration \"temperature-scaling-v1\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scoreCalibration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source records the tokenizer revision used by an inference run."
+msgstr "来源记录某次推理运行所用分词器的修订时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a tokenizer revision from the model revision or discarding it because the model weights are unchanged."
+msgstr "避免根据模型修订假定分词器修订，也不要因模型权重未变而丢弃分词器修订。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied tokenizer revision literal on ModelInferenceRun alongside the independent model revision."
+msgstr "在 ModelInferenceRun 上保留所提供的分词器修订字面量，并同时保留独立的模型修订。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:run gmeow:tokenizerRevision \"tokenizer-v3\"^^xsd:token ."
+msgstr "ex:run gmeow:tokenizerRevision \"tokenizer-v3\"^^xsd:token ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerRevision|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker or certify identity from equal spelling."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器，也不以拼写相同证明身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A contiguous segment of a source information object, produced for retrieval and located by chunkOf, spanStart and spanEnd. Its contentDigest literals identify its exact supplied bytes using the grounded BLAKE3-256, SHA-256 or MD5 datatype; the algorithm remains part of literal identity. The segment is what a retriever returns, a model reads and an evidence span pins into."
+msgstr "源信息对象中供检索使用的连续片段，由 chunkOf、spanStart 和 spanEnd 定位。其 contentDigest 字面量通过有依据的 BLAKE3-256、SHA-256 或 MD5 数据类型标识所提供的确切字节；算法属于字面量标识的一部分。该片段是检索器返回、模型读取、证据范围锚定的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the segment Chunk, retain chunkOf and its half-open Unicode-code-point spanStart and spanEnd, and record supplied contentDigest literals with their algorithm datatype and lowercase hexadecimal spelling. Keep all supplied algorithms, with at most one distinct value per algorithm. Record the actual input artifact if canonical bytes are hashed; a typed digest does not verify those bytes."
+msgstr "将片段声明为 Chunk，保留 chunkOf 及其以 Unicode 码点计的半开 spanStart 和 spanEnd，并以算法数据类型和小写十六进制写法记录所提供的 contentDigest 字面量。保留所有提供的算法，每种算法至多一个不同值。若散列规范化字节，应标明实际输入制品；带类型的摘要本身并不验证字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:c1 a gmeow:Chunk ; gmeow:chunkOf ex:doc ; gmeow:spanStart \"0\"^^xsd:nonNegativeInteger ; gmeow:spanEnd \"512\"^^xsd:nonNegativeInteger ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin the exact source revision selected by a Chunking while retaining algorithm identity and the artifact witness."
+msgstr "用于固定 Chunking 所选的确切源版本，同时保留算法标识及制品见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a path, IRI, the contract pin, an enclosing result digest or a scheme identifier. Equal hexadecimal text with another datatype does not satisfy this pin."
+msgstr "不可用路径、IRI、契约固定值、外围结果摘要或方案标识符替代。相同十六进制文本若具有不同数据类型，仍不满足此固定值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy one supplied blake3_256Digest, sha256Digest or md5Digest literal from the named chunkingSource artifact without changing its lexical form or datatype. Keep the same literal as a contentDigest on that artifact."
+msgstr "从指定 chunkingSource 制品复制一个所提供的 blake3_256Digest、sha256Digest 或 md5Digest 字面量，不改变其词法形式或数据类型。在该制品上保留同一个 contentDigest 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing closed-world Chunking contract selects exactly one pin. The witness relation reuses the complete literal term; it does not strip a prefix, equate different datatypes, recompute bytes or prove contract execution. The global contentDigest property remains nonfunctional."
+msgstr "现有闭世界 Chunking 契约选定恰好一个固定值。见证关系复用完整字面量项；它不删除前缀、不等同不同数据类型、不重新计算字节，也不证明契约执行。全局 contentDigest 属性仍非函数型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:chunkingSource ex:artifact ; gmeow:chunkingSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:r gmeow:chunkingSource ex:artifact ; gmeow:chunkingSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to pin the exact contract revision selected by a Chunking while retaining algorithm identity and the artifact witness."
+msgstr "用于固定 Chunking 所选的确切契约版本，同时保留算法标识及制品见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a path, IRI, the source pin, an enclosing result digest or a scheme identifier. Equal hexadecimal text with another datatype does not satisfy this pin."
+msgstr "不可用路径、IRI、源固定值、外围结果摘要或方案标识符替代。相同十六进制文本若具有不同数据类型，仍不满足此固定值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Copy one supplied blake3_256Digest, sha256Digest or md5Digest literal from the artifact linked by chunkingRulesArtifact without changing its lexical form or datatype. Keep the same literal as a contentDigest on that artifact."
+msgstr "从通过 chunkingRulesArtifact 关联的制品复制一个所提供的 blake3_256Digest、sha256Digest 或 md5Digest 字面量，不改变其词法形式或数据类型。在该制品上保留同一个 contentDigest 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing closed-world Chunking contract selects exactly one pin. The witness relation reuses the complete literal term; it does not strip a prefix, equate different datatypes, recompute bytes or prove contract execution. The global contentDigest property remains nonfunctional."
+msgstr "现有闭世界 Chunking 契约选定恰好一个固定值。见证关系复用完整字面量项；它不删除前缀、不等同不同数据类型、不重新计算字节，也不证明契约执行。全局 contentDigest 属性仍非函数型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContractDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:r gmeow:chunkingRulesArtifact ex:artifact ; gmeow:chunkingContractDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:r gmeow:chunkingRulesArtifact ex:artifact ; gmeow:chunkingContractDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest . ex:artifact gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Chunk"
+msgstr "块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the whole source document as a Chunk (the source is a plain gmeow:InformationObject) and avoid re-chunking by re-pointing — a new segmentation mints fresh Chunk individuals, since gmeow:chunkOf is functional."
+msgstr "避免将整个源文档声明为 Chunk（源本身是普通 gmeow:InformationObject），也不要通过改指重新分块：新的分块方案应创建新的 Chunk 个体，因为 gmeow:chunkOf 是函数型属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Chunk|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."
+msgstr "用于从更大来源中切取的检索片段：检索器返回、模型读取、证据范围锚定的单元；它补足 Source → Chunk → EvidenceSpan → 声明节点链中缺少的信息对象种类。"

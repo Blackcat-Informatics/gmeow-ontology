@@ -69,6 +69,27 @@ direction is inferred. The score is not a
 `math:Quantity`, so it does not specialize `math:quantityValue`; no fake numeric
 grounding changes its subject sort or invents probability/confidence conversion.
 
+## Supplied machinery datatypes
+
+`modelVersionTag`, `labelSetRevision`, `modelFramework`, `modelIdentifier`,
+`modelRevision`, `modelTask`, `scoreCalibration` and `tokenizerRevision` admit
+supplied `xsd:string` and `xsd:token` literals through canonical datatype unions.
+Preserve the exact lexical form and datatype; do not normalize whitespace,
+retype a string or infer token typing from its spelling. A source recording one
+datatype does not authorize a consumer to recover another from lexical text alone.
+
+The model identifier/revision universal restrictions and the label-set revision
+universal and qualified maximum use the same union. Required paths, cardinalities,
+functionality and source attribution retain their existing scope. Equal strings
+from different producer namespaces do not identify the same model or revision.
+A model-card version tag remains separate from stable citation identity.
+
+`hypothesisTemplate` remains an exact source expression carried as `xsd:string`.
+Task identifiers do not select hypothesis obligations, and calibration-profile
+identifiers do not establish epistemic confidence. These datatype declarations
+add no lexical checker, model execution or token-preserving capture/recovery
+implementation (Principles 2, 4, 7, 9 and 17).
+
 ## A reference-work import scene
 
 An importer preserves a zero-shot genre assessment of one reference-work entry.

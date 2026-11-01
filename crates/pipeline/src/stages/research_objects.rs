@@ -358,25 +358,39 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
 
 // ── digest maps ────────────────────────────────────────────────────────────────
 
-/// Retain every supported digest algorithm; refuse a conflicting value instead of choosing one.
-fn digest_map(store: &Store, doc: &str) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
+/// Read every complete native digest term before selecting any external representation.
+fn content_digests(
+    store: &Store,
+    subject: &str,
+) -> Result<Vec<purrdf::TermValue>, gmeow_errors::Diag> {
     let mut digests = BTreeMap::new();
     for quad in store.triples() {
-        if !iri_is(&quad.subject, doc) || quad.predicate != g("contentDigest") {
+        if !iri_is(&quad.subject, subject) || quad.predicate != g("contentDigest") {
             continue;
         }
         let value = purrdf::TermValue::from_rdf_term(&quad.object);
-        let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
-        if let Some(previous) = digests.insert(algorithm.name().to_owned(), hex.to_owned())
-            && previous != hex
+        let (algorithm, _) = crate::projections::admit_content_digest(&value)?;
+        if let Some(previous) = digests.insert(algorithm, value.clone())
+            && previous != value
         {
             return Err(ro_err(format!(
-                "document {doc} has conflicting {} digests",
+                "artifact {subject} has conflicting {} digests",
                 algorithm.name()
             )));
         }
     }
-    Ok(digests)
+    Ok(digests.into_values().collect())
+}
+
+/// The document codec consumes algorithm/value pairs after full native admission.
+fn digest_map(store: &Store, doc: &str) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
+    content_digests(store, doc)?
+        .into_iter()
+        .map(|value| {
+            let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+            Ok((algorithm.name().to_owned(), hex.to_owned()))
+        })
+        .collect()
 }
 
 struct DocInfo {
@@ -936,12 +950,23 @@ fn build_research_source(
     if !chunks.is_empty() {
         let mut rows = Vec::with_capacity(chunks.len());
         for chunk in &chunks {
+            let digests = content_digests(store, chunk)?
+                .into_iter()
+                .map(|value| {
+                    let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+                    Ok(serde_json::json!({
+                        "algorithm": algorithm.name(),
+                        "datatype": algorithm.datatype(),
+                        "value": hex,
+                    }))
+                })
+                .collect::<Result<Vec<_>, gmeow_errors::Diag>>()?;
             rows.push(row_json(&serde_json::json!({
                 "chunks/id": chunk,
                 "chunks/source": text(store, chunk, &g("chunkOf")),
                 "chunks/spanStart": text(store, chunk, &g("spanStart")).parse::<i64>().unwrap_or(0),
                 "chunks/spanEnd": text(store, chunk, &g("spanEnd")).parse::<i64>().unwrap_or(0),
-                "chunks/digest": text(store, chunk, &g("contentDigest")),
+                "chunks/digests": digests,
             }))?);
         }
         emit_record_set(
@@ -954,7 +979,7 @@ fn build_research_source(
                 ("source", "sc:Text"),
                 ("spanStart", "sc:Integer"),
                 ("spanEnd", "sc:Integer"),
-                ("digest", "sc:Text"),
+                ("digests", "sc:ItemList"),
             ],
             &rows,
         )?;
@@ -1647,7 +1672,7 @@ impl Stage for ResearchObjectsStage {
         // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
         // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
-        "research_objects.v5"
+        "research_objects.v6"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the

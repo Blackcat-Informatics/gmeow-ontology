@@ -152,6 +152,15 @@ plus the integer offsets `gmeow:spanStart`/`gmeow:spanEnd` (zero-based, half-ope
 code points). The one genuinely missing information-object kind in the
 source → Chunk → EvidenceSpan → claim spine.
 
+A Chunk's `contentDigest` uses the mathematics-grounded `blake3_256Digest`,
+`sha256Digest` or `md5Digest` datatype with lowercase hexadecimal text and no
+algorithm prefix. Several algorithms may coexist, with at most one distinct
+value per algorithm. The literal describes the Chunk's exact supplied bytes;
+span coordinates remain Unicode code points and do not imply an encoding or
+canonicalization. A digest of a canonical document identifies that canonical
+artifact, rather than another serialization. The research-object `digests`
+ItemList retains every admitted algorithm, datatype IRI and lexical value.
+
 ### Chunks and narrative segments
 
 `Chunk` records retrieval segmentation; `ContentSegment` records structural
@@ -299,8 +308,13 @@ for candidate-set scope, calibration and the separate execution-activity boundar
 identified rules artifact. `ChunkingMember` selects actual chunks with scoped
 ordinals. `BlockExtent` places atomic ContentBlocks in the same whole-source
 coordinate frame as the chunks, enabling intrinsic no-split and coverage laws.
-Selected source and contract digests identify those artifacts’ own bytes;
-overlap and exhaustive coverage follow the declared contract without defaults.
+Selected source and contract digests identify those artifacts’ own bytes and
+match the complete typed literal on each named artifact. A matching hexadecimal
+string under another algorithm datatype does not satisfy a pin. The source,
+contract and ordered member tuple is distinct from any scheme identifier built
+from it. The local digest restrictions leave the global `contentDigest` range
+unchanged. Overlap and exhaustive coverage follow the declared contract without
+defaults.
 
 `chunkingRulesArtifact` identifies the actual rules artifact included in the
 creation context; `chunkingContractDigest` pins its selected content digest.

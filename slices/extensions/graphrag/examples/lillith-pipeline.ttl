@@ -33,7 +33,7 @@ ex:chunk-7 a gmeow:Chunk ;
     gmeow:chunkOf ex:mail-archive ;
     gmeow:spanStart "5200"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "6100"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "blake3:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210" ;
+    gmeow:contentDigest "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"^^gmeow:blake3_256Digest ;
     rdfs:label "mail-archive chunk 7 (bytes 5200-6100)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     skos:definition "A retrieval-sized chunk of ex:mail-archive (byte span 5200-6100), the unit the embedding, retrieval, and extraction steps operate over."@x-gmeow-english ;
