@@ -664,13 +664,13 @@ pub(crate) fn admit_candidate_source_hash(value: &TermValue) -> gmeow_errors::Re
             "logic:candidateSourceHash requires a SHA-256 literal".to_owned(),
         ));
     };
-    if datatype != "https://blackcatinformatics.ca/gmeow/sha256Digest"
-        || language.is_some()
-        || direction.is_some()
-        || lexical_form.len() != 64
-        || !lexical_form
-            .bytes()
-            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    if gmeow_logic_compile::literal_datatypes::Sha256Digest::from_parts(
+        lexical_form,
+        datatype,
+        language.as_deref(),
+        *direction,
+    )
+    .is_none()
     {
         return Err(obligation_err("logic:candidateSourceHash requires gmeow:sha256Digest with 64 lowercase hexadecimal digits and no language or direction".to_owned()));
     }

@@ -109,6 +109,22 @@ fn datatype_property_literal_domain_and_local_universals_are_actual_clash_produc
         literal(SUBJECT, P, "literal", STRING),
     ]);
     assert!(is_done(&run(&program(Vec::new()), &source(facts))));
+    let sha = gmeow_logic_compile::literal_datatypes::SHA256_DIGEST;
+    for (datatype, expected) in [(sha, false), (STRING, true)] {
+        let mut facts = base();
+        facts.extend([
+            fact(P, RANGE, sha),
+            fact(RECORD, ALL, sha),
+            fact(RECORD, SOME, sha),
+            literal(SUBJECT, P, &"0".repeat(64), datatype),
+        ]);
+        let result = run(&program(Vec::new()), &source(facts));
+        assert_eq!(is_done(&result), expected);
+        assert_eq!(
+            result.native_status,
+            crate::reason::refute::NativeClosureStatus::Completed
+        );
+    }
 }
 
 #[test]

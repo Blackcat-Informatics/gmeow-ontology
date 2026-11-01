@@ -120,7 +120,7 @@ substitute for such a row, and a survey citation does not claim one exists.
 
 ## Cluster C — Classification / subject taxonomies
 
-- **MSC2020 (+ MSC2020-SKOS)** — L | CC-BY-NC-SA | active — the field's lingua franca; **NC clause →
+- **MSC 2020 (+ `MSC2020-SKOS`)** — L | CC-BY-NC-SA | active — the field's lingua franca; **NC clause →
   align-to, never fold**.
 - **arXiv math.\* taxonomy** — L | CC0 labels | active — coarse category tags.
 - **ACM CCS (Mathematics of computing)** — L/S | ACM-free SKOS | active (2012) — cleaner license than
@@ -357,7 +357,7 @@ gaps to apologize for:
 |---|---|---|
 | **Subsume (S)** | OpenMath/Content-MathML, Metamath (CC0), NIST UnitsDB, OntoDT scales, ProbOnto/Distributome content, URW3, PhySH, SZS status, `xsd:float/double` | permissive only |
 | **Project (P)** | RDF Data Cube, DDI-CDI, Croissant, DCAT, CSVW, PMML, ONNX, XMLBIF/UAI, Presentation MathML, D-SI/DCC, QUDT | GMEOW canonical, target consumes |
-| **Link (L)** | Wikidata (hub), MSC2020 (NC), zbMATH/MR/DLMF/OEIS IDs, arXiv, DBpedia, QUDT/OM units, STATO/OBI/SIO/IAO, PROV-O, SOSA/SSN, IVOA STC | includes all NC/identifier-only |
+| **Link (L)** | Wikidata (hub), MSC 2020 (NC), zbMATH/MR/DLMF/OEIS IDs, arXiv, DBpedia, QUDT/OM units, STATO/OBI/SIO/IAO, PROV-O, SOSA/SSN, IVOA STC | includes all NC/identifier-only |
 | **Reference (R)** | mathlib & the ITPs, TPTP, VIM/GUM prose, Stan/BUGS, CAS runtimes, nLab, MathWorld, EngMath | restricted or non-RDF |
 
 Every alignment (S/L) is recorded as a `logic:Correspondence` with a `logic:preservationKind`; every
@@ -401,11 +401,16 @@ can be hashed as actual bytes, but its identifier must not lose its scheme
 meaning or become an assertion about different bytes.
 
 The canonical citation ledger is `metadata/references.ttl`. These are by-reference
-authorities, not imported algorithm implementations. Declaring the datatypes adds
-no parser, hash executor, artifact verifier or native custom-value interpretation.
-No lexical validation rule is claimed without an actual governed property
-contract. Existing `contentDigest` ranges, producers and consumers retain their
-current contracts.
+authorities, not imported algorithm implementations. The native reasoner admits
+SHA-256 through one strict algorithm-specific parser backed by the substrate’s
+canonical hexadecimal decoder. Its values carry the algorithm and 32 ordered
+bytes, distinct from string and generic binary values. The finite value space has
+2^256 members; capacity reasoning proves every representable `u128` demand without
+claiming an infinite space or an exact `u128` count. Invalid values remain
+uninterpreted, and unsupported facets remain undecided. This interpretation does
+not compute hashes or verify artifact bytes. BLAKE3 and MD5 retain their existing
+projection-boundary admission contracts; no native reasoning interpretation for
+them is claimed here. Existing `contentDigest` property ranges are unchanged.
 
 ### MD5 digest identity
 

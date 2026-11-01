@@ -3654,8 +3654,8 @@ msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype
 msgstr "保留来源的 64 个小写十六进制数字及此数据类型 IRI。另行保留确切输入字节的身份；不要进行规范化、添加算法标签前缀，也不要从类型化字面量推断已经验证。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
-msgstr "此声明规定带算法身份的摘要值及其词法形式；它不安装数据类型解析器、不计算哈希，也不验证制品字节。原生 RDF 传输可以不解释其值而保留该类型化字面量。使用 RDF sameTerm 比较提供的字面量，同时保留词法形式和数据类型 IRI；不声明其与 xsd:string、xsd:hexBinary 或其他算法数据类型相等。"
+msgid "The native reasoner interprets exactly 64 lowercase hexadecimal digits without language or direction as a SHA-256 value with 32 ordered bytes. Values are equal exactly when their bytes agree within this algorithm; they are distinct from xsd:string and xsd:hexBinary values. Invalid literals remain uninterpreted. Admission neither computes a hash nor verifies artifact bytes."
+msgstr "原生推理器将不带语言或方向的恰好 64 个小写十六进制数字解释为包含 32 个有序字节的 SHA-256 值。当且仅当同一算法内的字节一致时，值才相等；它们与 xsd:string 和 xsd:hexBinary 值不同。无效字面量保持未解释状态。接纳既不计算哈希，也不验证制品字节。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
 msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
