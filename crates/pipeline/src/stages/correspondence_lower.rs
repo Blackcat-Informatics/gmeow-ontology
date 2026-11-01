@@ -514,6 +514,9 @@ fn merge_ontology(
         b.push_dataset(&ds)?;
     }
     for (path, owner, bytes) in slice_artifacts(catalog, ArtifactRole::Example) {
+        if !crate::catalog_families::native_kernel::kernel_owner(owner) {
+            continue;
+        }
         let relative = path
             .strip_prefix(root)
             .map_err(|error| crate::error::parse_diag(error.to_string()))?;

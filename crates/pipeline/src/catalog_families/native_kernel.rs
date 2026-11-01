@@ -307,7 +307,7 @@ pub(super) fn check_regimes(
     Ok(())
 }
 
-fn kernel_owner(owner: &str) -> bool {
+pub(crate) fn kernel_owner(owner: &str) -> bool {
     matches!(
         owner,
         "https://blackcatinformatics.ca/gmeow/slices/logic"
