@@ -279,6 +279,39 @@ fn loss_identity_binds_all_literal_components_and_owner_context() {
         crate::ir::AxisEvidence::new(vec!["https://example.org/evidence".to_owned()], None, None)
             .unwrap();
     assert_ne!(changed.content_key(), baseline.content_key());
+
+    use purrdf_lex::json::record::FromJson as _;
+
+    let mut references = include_str!("fixtures/axis-evidence-identities-v1.jsonl").lines();
+    for evidence in [
+        crate::ir::AxisEvidence::default(),
+        changed.axis_evidence.clone(),
+        crate::ir::AxisEvidence {
+            sources: vec![
+                "https://example.org/z".to_owned(),
+                "https://example.org/可能性".to_owned(),
+                "https://example.org/z".to_owned(),
+            ],
+            scale: Some("https://example.org/échelle".to_owned()),
+            probability_model: Some("https://example.org/model".to_owned()),
+        },
+    ] {
+        let mut owner = baseline.clone();
+        owner.axis_evidence = evidence;
+        let row =
+            crate::projections::correspondence_preservation_result(&owner, &mut LossLedger::new())
+                .unwrap()
+                .unwrap();
+        let reference = purrdf_lex::json::read(references.next().unwrap()).unwrap();
+        let [axis_key, owner_key, target]: [String; 3] = Vec::<String>::from_json(&reference)
+            .unwrap()
+            .try_into()
+            .unwrap();
+        assert_eq!(owner.axis_evidence.content_key(), axis_key);
+        assert_eq!(owner.content_key(), owner_key);
+        assert_eq!(row.target, target);
+    }
+    assert!(references.next().is_none());
 }
 
 #[test]

@@ -331,6 +331,6 @@ impl Stage for ProfilesStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }

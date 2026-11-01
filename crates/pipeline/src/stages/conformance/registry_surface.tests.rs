@@ -30,7 +30,7 @@ fn registry_preserves_both_poles_and_their_characterizations() {
     record(&source, &mut artifacts).unwrap();
     assert_eq!(
         std::str::from_utf8(&artifacts[CHANNEL]).unwrap(),
-        r#"{"Ok":{"pattern_ids":["pattern"],"decided_ids":["decided"],"source_admission_ids":["admission"],"source_admission_requirements":{"admission":"selected owned list grammar"},"boundary_ids":["boundary"],"deciding_patterns":{"decided":"pattern"},"completeness_bounds":{"decided":"finite fragment"},"boundary_reasons":{"boundary":"unbounded fragment"}}}"#
+        r#"{"Ok":{"pattern_ids":["pattern"],"decided_ids":["decided"],"source_admission_ids":["admission"],"source_admission_requirements":{"admission":[{"subject":"https://blackcatinformatics.ca/logic/admission","predicate":"https://blackcatinformatics.ca/logic/sourceAdmissionRequirement","object":{"lexical_form":"selected owned list grammar","datatype":null,"language":null,"direction":null}}]},"boundary_ids":["boundary"],"deciding_patterns":{"decided":"pattern"},"completeness_bounds":{"decided":[{"subject":"https://blackcatinformatics.ca/logic/decided","predicate":"https://blackcatinformatics.ca/logic/fragmentCompletenessBound","object":{"lexical_form":"finite fragment","datatype":null,"language":null,"direction":null}}]},"boundary_reasons":{"boundary":[{"subject":"https://blackcatinformatics.ca/logic/boundary","predicate":"https://blackcatinformatics.ca/logic/fragmentBoundaryReason","object":{"lexical_form":"unbounded fragment","datatype":null,"language":null,"direction":null}}]}}}"#
     );
     let observed: Observation = record::from_slice(&artifacts[CHANNEL]).unwrap();
     assert_eq!(
@@ -42,16 +42,53 @@ fn registry_preserves_both_poles_and_their_characterizations() {
             source_admission_ids: BTreeSet::from(["admission".to_owned()]),
             source_admission_requirements: BTreeMap::from([(
                 "admission".to_owned(),
-                "selected owned list grammar".to_owned()
+                vec![
+                    gmeow_errors::SourceAnnotation::new(
+                        purrdf::iri::BaseIri::parse(
+                            "https://blackcatinformatics.ca/logic/admission"
+                        )
+                        .unwrap(),
+                        purrdf::iri::BaseIri::parse(
+                            "https://blackcatinformatics.ca/logic/sourceAdmissionRequirement"
+                        )
+                        .unwrap(),
+                        purrdf::RdfLiteral::simple("selected owned list grammar"),
+                    )
+                    .unwrap()
+                ]
             )]),
             deciding_patterns: BTreeMap::from([("decided".to_owned(), "pattern".to_owned())]),
             completeness_bounds: BTreeMap::from([(
                 "decided".to_owned(),
-                "finite fragment".to_owned()
+                vec![
+                    gmeow_errors::SourceAnnotation::new(
+                        purrdf::iri::BaseIri::parse("https://blackcatinformatics.ca/logic/decided")
+                            .unwrap(),
+                        purrdf::iri::BaseIri::parse(
+                            "https://blackcatinformatics.ca/logic/fragmentCompletenessBound"
+                        )
+                        .unwrap(),
+                        purrdf::RdfLiteral::simple("finite fragment"),
+                    )
+                    .unwrap()
+                ]
             )]),
             boundary_reasons: BTreeMap::from([(
                 "boundary".to_owned(),
-                "unbounded fragment".to_owned()
+                vec![
+                    gmeow_errors::SourceAnnotation::new(
+                        purrdf::iri::BaseIri::parse(
+                            "https://blackcatinformatics.ca/logic/boundary"
+                        )
+                        .unwrap(),
+                        purrdf::iri::BaseIri::parse(
+                            "https://blackcatinformatics.ca/logic/fragmentBoundaryReason"
+                        )
+                        .unwrap(),
+                        purrdf::RdfLiteral::simple("unbounded fragment"),
+                    )
+                    .unwrap()
+                ]
             )]),
         }
     );
@@ -135,7 +172,6 @@ fn registry_refuses_incomplete_ambiguous_or_semantically_misclassified_admission
         r#"logic:x a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement "one", "two" ."#,
         "logic:x a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement logic:Other .",
         r#"logic:x a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement " " ."#,
-        r#"logic:x a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement "grammar"@en ."#,
         r#"logic:x a logic:SourceAdmissionContract; logic:sourceAdmissionRequirement "grammar"^^<urn:custom-datatype> ."#,
         r#"logic:x a logic:SourceAdmissionContract, logic:DecidedFragment; logic:sourceAdmissionRequirement "grammar" ."#,
         r#"logic:x a logic:SourceAdmissionContract, logic:RefutationPattern; logic:sourceAdmissionRequirement "grammar" ."#,

@@ -52,6 +52,326 @@ const DOMAIN_TYPING_TBOX_PREDICATES: &[&str] =
 /// or the inverse), keyed by the *source* tag. Empty = no retag.
 pub type TagMap = BTreeMap<String, String>;
 
+/// The three exact-byte digest algorithms admitted by the selected checksum views.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum DigestAlgorithm {
+    Blake3,
+    Sha256,
+    Md5,
+}
+
+impl DigestAlgorithm {
+    pub(crate) fn datatype(self) -> &'static str {
+        match self {
+            Self::Blake3 => "https://blackcatinformatics.ca/gmeow/blake3_256Digest",
+            Self::Sha256 => "https://blackcatinformatics.ca/gmeow/sha256Digest",
+            Self::Md5 => "https://blackcatinformatics.ca/gmeow/md5Digest",
+        }
+    }
+
+    pub(crate) fn name(self) -> &'static str {
+        match self {
+            Self::Blake3 => "blake3",
+            Self::Sha256 => "sha256",
+            Self::Md5 => "md5",
+        }
+    }
+
+    pub(crate) fn from_spdx(iri: &str) -> gmeow_errors::Result<Self> {
+        match iri {
+            "http://spdx.org/rdf/terms#checksumAlgorithm_blake3" => Ok(Self::Blake3),
+            "http://spdx.org/rdf/terms#checksumAlgorithm_sha256" => Ok(Self::Sha256),
+            "http://spdx.org/rdf/terms#checksumAlgorithm_md5" => Ok(Self::Md5),
+            _ => Err(digest_error(format!(
+                "unsupported SPDX checksum algorithm <{iri}>"
+            ))),
+        }
+    }
+
+    pub(crate) fn admit_spdx_value(self, value: &purrdf::TermValue) -> gmeow_errors::Result<&str> {
+        let purrdf::TermValue::Literal {
+            lexical_form,
+            datatype,
+            language,
+            direction,
+        } = value
+        else {
+            return Err(digest_error("spdx:checksumValue requires a literal".into()));
+        };
+        if datatype != "http://www.w3.org/2001/XMLSchema#hexBinary"
+            || language.is_some()
+            || direction.is_some()
+        {
+            return Err(digest_error(
+                "spdx:checksumValue requires xsd:hexBinary without language or direction".into(),
+            ));
+        }
+        self.admit_hex(lexical_form)?;
+        Ok(lexical_form)
+    }
+
+    pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
+        let width = if self == Self::Md5 { 32 } else { 64 };
+        if lexical.len() != width
+            || !lexical
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        {
+            return Err(digest_error(format!(
+                "{} digest requires exactly {width} lowercase hexadecimal digits without a prefix",
+                self.name()
+            )));
+        }
+        Ok(())
+    }
+}
+
+fn digest_error(message: String) -> Diag {
+    Diag::of_kind(Projection { message })
+}
+
+/// Admit a complete source digest term without erasing algorithm or literal facets.
+pub(crate) fn admit_content_digest(
+    value: &purrdf::TermValue,
+) -> gmeow_errors::Result<(DigestAlgorithm, &str)> {
+    let purrdf::TermValue::Literal {
+        lexical_form,
+        datatype,
+        language,
+        direction,
+    } = value
+    else {
+        return Err(digest_error(
+            "contentDigest requires a typed literal".into(),
+        ));
+    };
+    if language.is_some() || direction.is_some() {
+        return Err(digest_error(
+            "contentDigest admits no language or direction".into(),
+        ));
+    }
+    let algorithm = match datatype.as_str() {
+        "https://blackcatinformatics.ca/gmeow/blake3_256Digest" => DigestAlgorithm::Blake3,
+        "https://blackcatinformatics.ca/gmeow/sha256Digest" => DigestAlgorithm::Sha256,
+        "https://blackcatinformatics.ca/gmeow/md5Digest" => DigestAlgorithm::Md5,
+        _ => {
+            return Err(digest_error(format!(
+                "unsupported contentDigest datatype <{datatype}>"
+            )));
+        }
+    };
+    algorithm.admit_hex(lexical_form)?;
+    Ok((algorithm, lexical_form))
+}
+
+/// Encode the existing internal BLAKE3 blob address at its RDF boundary.
+pub(crate) fn blake3_blob_literal(key: &str) -> gmeow_errors::Result<purrdf::RdfLiteral> {
+    let hex = key
+        .strip_prefix("blake3:")
+        .ok_or_else(|| digest_error("expected a blake3: internal blob address".into()))?;
+    DigestAlgorithm::Blake3.admit_hex(hex)?;
+    Ok(purrdf::RdfLiteral::typed(
+        hex,
+        DigestAlgorithm::Blake3.datatype(),
+    ))
+}
+
+/// Refuse malformed or conflicting checksums before datatype guards can omit them.
+pub(crate) fn admit_dcat_digest_sources(source: &purrdf::RdfDataset) -> gmeow_errors::Result<()> {
+    use purrdf::DatasetView;
+
+    let Some(member) = source.term_id_by_iri("https://blackcatinformatics.ca/gmeow/corpusMember")
+    else {
+        return Ok(());
+    };
+    let Some(digest) = source.term_id_by_iri("https://blackcatinformatics.ca/gmeow/contentDigest")
+    else {
+        return Ok(());
+    };
+    let members: BTreeSet<_> = source
+        .quads_for_pattern(None, Some(member), None, purrdf::GraphMatch::Any)
+        .map(|quad| quad.o)
+        .collect();
+    for subject in members {
+        let mut declared = BTreeMap::new();
+        for quad in
+            source.quads_for_pattern(Some(subject), Some(digest), None, purrdf::GraphMatch::Any)
+        {
+            let value = source.term_value(quad.o);
+            let (algorithm, hex) = admit_content_digest(&value)?;
+            if let Some(previous) = declared.insert(algorithm, hex.to_owned())
+                && previous != hex
+            {
+                return Err(digest_error(format!(
+                    "corpus member {:?} has conflicting {} checksum values",
+                    source.term_value(subject),
+                    algorithm.name()
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Resolve selected private carrier tags from the authored language model.
+/// Public tags are derived by the language bridge, never inferred from tag spelling.
+fn source_public_tags(
+    source: &purrdf::RdfDataset,
+    selected: &BTreeSet<String>,
+) -> gmeow_errors::Result<TagMap> {
+    use purrdf::{DatasetView, GraphMatch, TermRef, TermValue};
+
+    const CARRIER: &str = "https://blackcatinformatics.ca/lang/carrierTag";
+    let fail = |message| Diag::of_kind(Projection { message });
+    let mut carriers = BTreeMap::new();
+    let mut owners = BTreeMap::new();
+    if let Some(predicate) = source.term_id_by_value(&TermValue::iri(CARRIER)) {
+        for quad in source.quads_for_pattern(None, Some(predicate), None, GraphMatch::Any) {
+            let TermRef::Iri(variety) = source.resolve(quad.s) else {
+                return Err(fail("lang:carrierTag subject must be a variety IRI".into()));
+            };
+            let TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            } = source.resolve(quad.o)
+            else {
+                return Err(fail(format!(
+                    "<{variety}> lang:carrierTag must be a string literal"
+                )));
+            };
+            if language.is_some()
+                || direction.is_some()
+                || !matches!(
+                    source.resolve(datatype),
+                    TermRef::Iri("http://www.w3.org/2001/XMLSchema#string")
+                )
+                || !gmeow_validate::language_tags::is_internal_tag(lexical)
+            {
+                return Err(fail(format!(
+                    "<{variety}> has malformed lang:carrierTag {lexical:?}"
+                )));
+            }
+            let tag = lexical.to_ascii_lowercase();
+            if let Some(previous) = carriers.insert(variety.to_owned(), tag.clone())
+                && previous != tag
+            {
+                return Err(fail(format!(
+                    "<{variety}> has ambiguous lang:carrierTag values"
+                )));
+            }
+            if let Some((previous, _)) = owners.insert(tag.clone(), (variety.to_owned(), quad.s))
+                && previous != variety
+            {
+                return Err(fail(format!(
+                    "carrier tag {tag:?} names both <{previous}> and <{variety}>"
+                )));
+            }
+        }
+    }
+    let mut map = TagMap::new();
+    for tag in selected {
+        let Some((variety, id)) = owners.get(tag) else {
+            return Err(fail(format!(
+                "private language tag {tag:?} has no authored lang:carrierTag mapping"
+            )));
+        };
+        let derivation = gmeow_lang_bridge::bcp47::derive_bcp47_tag(source, *id);
+        let public = derivation.tag.ok_or_else(|| {
+            fail(format!(
+                "cannot publish carrier {tag:?} on <{variety}>: {}",
+                derivation
+                    .absence
+                    .as_deref()
+                    .unwrap_or("no BCP-47 derivation")
+            ))
+        })?;
+        if gmeow_validate::language_tags::is_internal_tag(&public) {
+            return Err(fail(format!(
+                "carrier {tag:?} derived a private publication tag {public:?}"
+            )));
+        }
+        map.insert(tag.clone(), public);
+    }
+    Ok(map)
+}
+
+/// Visit every literal in an owned term, including nested RDF 1.2 triple terms.
+fn visit_literals(
+    term: &mut RdfTerm,
+    visit: &mut impl FnMut(&mut purrdf::RdfLiteral) -> gmeow_errors::Result<()>,
+) -> gmeow_errors::Result<()> {
+    match term {
+        RdfTerm::Literal(literal) => visit(literal)?,
+        RdfTerm::Triple(triple) => {
+            visit_literals(&mut triple.subject, visit)?;
+            visit_literals(&mut triple.object, visit)?;
+        }
+        RdfTerm::Iri(_) | RdfTerm::BlankNode(_) => {}
+    }
+    Ok(())
+}
+
+/// Publicize a repository Turtle exit without changing source or compiler literals.
+/// The native flat codec retains assertions, reifiers, annotations and triple terms.
+/// Only mapped private language tags change; lexical forms, datatypes and directions
+/// remain exact. Public-only documents keep their original bytes after inspection.
+pub(crate) fn publicize_turtle(
+    document: &str,
+    source: &purrdf::RdfDataset,
+) -> gmeow_errors::Result<String> {
+    let parsed = purrdf::parse_dataset(document.as_bytes(), "text/turtle", None)
+        .with_ctx(|| "publication Turtle parse failed")?;
+    let mut quads = purrdf::flat_rdf_quads_from_dataset(&parsed);
+    let mut selected = BTreeSet::new();
+    for quad in &mut quads {
+        let mut collect = |literal: &mut purrdf::RdfLiteral| {
+            if let Some(language) = &literal.language
+                && gmeow_validate::language_tags::is_internal_tag(language)
+            {
+                selected.insert(language.to_ascii_lowercase());
+            }
+            Ok(())
+        };
+        visit_literals(&mut quad.subject, &mut collect)?;
+        visit_literals(&mut quad.object, &mut collect)?;
+        if let Some(graph) = &mut quad.graph_name {
+            visit_literals(graph, &mut collect)?;
+        }
+    }
+    if selected.is_empty() {
+        return Ok(document.to_owned());
+    }
+    let map = source_public_tags(source, &selected)?;
+    for quad in &mut quads {
+        let mut publicize = |literal: &mut purrdf::RdfLiteral| {
+            if let Some(language) = &literal.language
+                && gmeow_validate::language_tags::is_internal_tag(language)
+            {
+                let public = map.get(&language.to_ascii_lowercase()).ok_or_else(|| {
+                    Diag::of_kind(Projection {
+                        message: format!("private language tag {language:?} has no public mapping"),
+                    })
+                })?;
+                literal.language = Some(public.clone());
+            }
+            Ok(())
+        };
+        visit_literals(&mut quad.subject, &mut publicize)?;
+        visit_literals(&mut quad.object, &mut publicize)?;
+        if let Some(graph) = &mut quad.graph_name {
+            visit_literals(graph, &mut publicize)?;
+        }
+    }
+    let flat = purrdf::flat_dataset_from_quads(&quads)
+        .with_ctx(|| "publication flat dataset construction failed")?;
+    Ok(purrdf::turtle_normalize::render(
+        &flat,
+        &crate::stages::superset::rdf_prefixes(),
+    ))
+}
+
 /// A target projection profile: its registry name and the output prefixes a Turtle
 /// serialization would bind. The CONSTRUCT query itself is supplied by the caller
 /// (from `generated/queries/<name>.rq` or the bundle), mirroring the Python
@@ -207,6 +527,9 @@ pub fn project_graph(
             message: format!("source dataset build failed: {e}"),
         })
     })?;
+    if program.profile() == "dcat" {
+        admit_dcat_digest_sources(&ds)?;
+    }
     let result = program.execute(&ds)?;
     let SparqlResult::Graph(triples) = result else {
         return Err(Diag::of_kind(Projection {

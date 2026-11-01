@@ -535,7 +535,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
 
     correspondence_roundtrip::assert_roundtrip(&product);
 
-    let emitted: CompositionPlanReport = serde_json::from_slice(
+    let emitted: CompositionPlanReport = purrdf_lex::json::record::from_slice(
         product
             .artifact(CORRESPONDENCE_PLANS_PATH)
             .expect("certified correspondence physical plans"),
@@ -567,7 +567,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
     }
 
     let rchops21: gmeow_logic::correspondence_exec::plan_projection::PlanProjection =
-        serde_json::from_slice(
+        purrdf_lex::json::record::from_slice(
             product
                 .artifact(RCHOPS21_PLAN_PROJECTION_PATH)
                 .expect("certified RCHOPS21 plan projection"),
@@ -614,7 +614,7 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
         action.schema == "urn:gmeow:action:manage-reaction" && !action.effects.is_empty()
     }));
     let rchops21_recovery: gmeow_logic::correspondence_exec::plan_projection::PlanRecovery =
-        serde_json::from_slice(
+        purrdf_lex::json::record::from_slice(
             product
                 .artifact(RCHOPS21_PLAN_RECOVERY_PATH)
                 .expect("certified RCHOPS21 plan recovery"),

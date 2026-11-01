@@ -1,0 +1,1395 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: query-context, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Answer"
+msgstr "查询回答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed query-result information record carrying its loss ledger and independently reported information, evaluation and completeness axes. It is not automatically a logic:ReasoningResult or a claim of complete retrieval."
+msgstr "带有归属的查询结果信息记录，携带损失账本以及独立报告的信息、求值及完备性维度。它不自动成为 logic:ReasoningResult，也不声称检索完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain what a query answered together with its declared limits."
+msgstr "用于连同声明的限制保留查询回答。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating absent losses or reader acceptance as proof of completeness."
+msgstr "避免将缺失损失记录或读者接受视为完整性证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link queryAnswerFor and queryLossLedger; retain each supplied status on its own axis without inventing missing values."
+msgstr "填写 queryAnswerFor 及 queryLossLedger；在各自维度保留所提供状态，不虚构缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryAnswer ."
+msgstr "ex:record a gmeow:QueryAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss Ledger"
+msgstr "查询损失账本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object retaining the individual losses reported for query work. An empty ledger reports no listed loss within its scope, not global completeness or an evaluated negative."
+msgstr "保留查询工作所报告各项损失的信息对象。空账本仅表示作用域内未列出损失，不表示全局完整或已评估的否定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve loss identity across query answers and later composition."
+msgstr "用于跨查询回答及后续组合保留损失身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid rewriting acknowledged losses into an empty or successful ledger."
+msgstr "避免将已确认损失改写为空账本或成功账本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the original QueryLoss records with ledgerLoss and keep their causes, affected resources and acknowledgements."
+msgstr "用 ledgerLoss 关联原始 QueryLoss 记录，并保留原因、相关资源及确认。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryLossLedger ."
+msgstr "ex:record a gmeow:QueryLossLedger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss"
+msgstr "查询损失"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reified report of unavailable, missing, out-of-coverage, failed-family or coarser-than-requested query input. It identifies what is concerned and its cause; it is not a projection-loss code or proof that the missing content is false."
+msgstr "对查询输入不可用、缺失、超出覆盖、来源族失败或精度低于请求的具体化报告。它标识相关对象及原因；不是投影损失代码，也不证明缺失内容为假。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain one identifiable retrieval limitation rather than a free-text summary alone."
+msgstr "用于保留一项可标识检索限制，而非仅有自由文本摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using ProjectionLoss for an inaccessible query input."
+msgstr "避免对不可访问查询输入使用 ProjectionLoss。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply lossConcerns and lossCause, name an affected lossConstraint when known, and retain the same loss after acknowledgement."
+msgstr "提供 lossConcerns 及 lossCause；已知时命名受影响 lossConstraint，并在确认后保留同一损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLoss|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryLoss ."
+msgstr "ex:record a gmeow:QueryLoss ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Loss Cause"
+msgstr "查询损失原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for causes of unavailable or degraded query input. Its five seeded causes remain distinct from information-state, evaluation-status and completeness values."
+msgstr "用于查询输入不可用或退化原因的开放值词汇。五个初始原因区别于信息状态、求值状态及完备性值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a reported query-input loss."
+msgstr "用于分类所报告的查询输入损失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid closing the vocabulary or deriving a verdict solely from a cause."
+msgstr "避免封闭此词汇，或仅从原因推断判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a seeded cause through lossCause or add a reviewed source-specific individual."
+msgstr "通过 lossCause 引用初始原因，或添加经审核的来源专用个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryLossCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value missing"
+msgstr "值缺失"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A required or requested value was absent from the available query input. Absence is not a refutation of the requested fact."
+msgstr "可用查询输入中缺少必需或请求的值。缺失不反驳所请求事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports value missing."
+msgstr "来源报告值缺失时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossValueMissing as permission, truth or a successful replacement result."
+msgstr "避免将 lossValueMissing 解读为许可、真值或成功替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossValueMissing through lossCause and retain the original concerned resource."
+msgstr "通过 lossCause 附加 lossValueMissing 并保留原相关资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossValueMissing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossValueMissing ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossValueMissing ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "vault locked"
+msgstr "存储库锁定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A relevant vault or protected source was locked to this query context. The loss grants no access permission."
+msgstr "相关存储库或受保护来源对本查询上下文锁定。该损失不授予访问权限。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports vault locked."
+msgstr "来源报告存储库锁定时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossVaultLocked as permission, truth or a successful replacement result."
+msgstr "避免将 lossVaultLocked 解读为许可、真值或成功替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossVaultLocked through lossCause and retain the original concerned resource."
+msgstr "通过 lossCause 附加 lossVaultLocked 并保留原相关资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossVaultLocked|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossVaultLocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "coverage ends"
+msgstr "覆盖结束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Available source coverage ended before the query’s requested scope. No unsupported continuation is inferred."
+msgstr "可用来源覆盖在查询请求范围之前结束。不推断无依据的后续内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports coverage ends."
+msgstr "来源报告覆盖结束时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossCoverageEnds as permission, truth or a successful replacement result."
+msgstr "避免将 lossCoverageEnds 解读为许可、真值或成功替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossCoverageEnds through lossCause and retain the original concerned resource."
+msgstr "通过 lossCause 附加 lossCoverageEnds 并保留原相关资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCoverageEnds|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossCoverageEnds ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossCoverageEnds ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query family could not evaluate"
+msgstr "查询族无法评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A participating query or retrieval family could not perform its requested evaluation. This does not silently select a weaker procedure."
+msgstr "参与的查询或检索族无法执行请求的评估。这不暗中选择更弱过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports query family could not evaluate."
+msgstr "来源报告查询族无法评估时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossFamilyCouldNot as permission, truth or a successful replacement result."
+msgstr "避免将 lossFamilyCouldNot 解读为许可、真值或成功替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossFamilyCouldNot through lossCause and retain the original concerned resource."
+msgstr "通过 lossCause 附加 lossFamilyCouldNot 并保留原相关资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossFamilyCouldNot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossFamilyCouldNot ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossFamilyCouldNot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "precision coarser"
+msgstr "精度较粗"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The available input precision was coarser than requested. The ledger preserves that limitation rather than manufacturing detail."
+msgstr "可用输入精度低于请求。账本保留此限制，而非制造细节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports precision coarser."
+msgstr "来源报告精度较粗时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading lossPrecisionCoarser as permission, truth or a successful replacement result."
+msgstr "避免将 lossPrecisionCoarser 解读为许可、真值或成功替代结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach lossPrecisionCoarser through lossCause and retain the original concerned resource."
+msgstr "通过 lossCause 附加 lossPrecisionCoarser 并保留原相关资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossPrecisionCoarser|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:loss gmeow:lossCause gmeow:lossPrecisionCoarser ."
+msgstr "ex:loss gmeow:lossCause gmeow:lossPrecisionCoarser ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer for query"
+msgstr "回答所属查询"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared query whose result this answer records, without committing a query-text language or executor."
+msgstr "此回答记录其结果的已声明查询，不规定查询文本语言或执行器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s answer for query relation."
+msgstr "用于保留来源的回答所属查询关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryAnswerFor value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 queryAnswerFor 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryAnswerFor target and preserve source attribution and scope."
+msgstr "引用实际 queryAnswerFor 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryAnswerFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryAnswerFor ex:target ."
+msgstr "ex:record gmeow:queryAnswerFor ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query loss ledger"
+msgstr "查询损失账本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to a retained ledger of its reported retrieval limitations. Multiple source ledgers can coexist."
+msgstr "将回答关联到其所报告检索限制的保留账本。多个来源账本可共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query loss ledger relation."
+msgstr "用于保留来源的查询损失账本关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryLossLedger value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 queryLossLedger 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryLossLedger target and preserve source attribution and scope."
+msgstr "引用实际 queryLossLedger 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryLossLedger|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryLossLedger ex:target ."
+msgstr "ex:record gmeow:queryLossLedger ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ledger loss"
+msgstr "账本损失项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A particular QueryLoss retained in this ledger. Membership preserves the loss resource’s identity and acknowledgements."
+msgstr "此账本保留的具体 QueryLoss。成员资格保留损失资源身份及其确认。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s ledger loss relation."
+msgstr "用于保留来源的账本损失项关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a ledgerLoss value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 ledgerLoss 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual ledgerLoss target and preserve source attribution and scope."
+msgstr "引用实际 ledgerLoss 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ledgerLoss|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:ledgerLoss ex:target ."
+msgstr "ex:record gmeow:ledgerLoss ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss concerns resource"
+msgstr "损失相关资源"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource whose input, value, coverage or precision was unavailable or limited for this loss report."
+msgstr "此损失报告中输入、值、覆盖或精度不可用或受限的资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss concerns resource relation."
+msgstr "用于保留来源的损失相关资源关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossConcerns value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 lossConcerns 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossConcerns target and preserve source attribution and scope."
+msgstr "引用实际 lossConcerns 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConcerns|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossConcerns ex:target ."
+msgstr "ex:record gmeow:lossConcerns ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss cause"
+msgstr "损失原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-reported cause of this identifiable query loss, independently of result-status axes."
+msgstr "此可标识查询损失的来源报告原因，独立于结果状态维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss cause relation."
+msgstr "用于保留来源的损失原因关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossCause value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 lossCause 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossCause target and preserve source attribution and scope."
+msgstr "引用实际 lossCause 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossCause ex:target ."
+msgstr "ex:record gmeow:lossCause ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affected query constraint"
+msgstr "受影响查询约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual query constraint affected by the reported loss, when known. It need not be a logic:Constraint integrity rule."
+msgstr "已知时，报告损失实际影响的查询约束。不要求它是 logic:Constraint 完整性规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s affected query constraint relation."
+msgstr "用于保留来源的受影响查询约束关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossConstraint value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 lossConstraint 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossConstraint target and preserve source attribution and scope."
+msgstr "引用实际 lossConstraint 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossConstraint ex:target ."
+msgstr "ex:record gmeow:lossConstraint ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "loss acknowledged by reader"
+msgstr "损失确认读者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reader that acknowledged this reported limitation. Acknowledgement neither erases the loss nor repairs it, changes a result axis or authorizes access."
+msgstr "确认此已报告限制的读者。确认既不删除或修复损失，也不改变结果维度或授权访问。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s loss acknowledged by reader relation."
+msgstr "用于保留来源的损失确认读者关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a lossAcceptedBy value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 lossAcceptedBy 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual lossAcceptedBy target and preserve source attribution and scope."
+msgstr "引用实际 lossAcceptedBy 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lossAcceptedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:lossAcceptedBy ex:target ."
+msgstr "ex:record gmeow:lossAcceptedBy ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query information state"
+msgstr "查询信息状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported information verdict about the query’s proposition, using the existing InformationState vocabulary. Undetermined and not-evaluated remain on this axis."
+msgstr "使用现有 InformationState 词汇报告的查询命题信息判定。未确定及未评估仍属于此维度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query information state relation."
+msgstr "用于保留来源的查询信息状态关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryInformationState value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 queryInformationState 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryInformationState target and preserve source attribution and scope."
+msgstr "引用实际 queryInformationState 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryInformationState|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryInformationState ex:target ."
+msgstr "ex:record gmeow:queryInformationState ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query evaluation status"
+msgstr "查询求值状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported computation status of this query answer, independently of what information was supported and how complete the answer is."
+msgstr "此查询回答报告的计算状态，独立于支持了何种信息以及回答多完整。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query evaluation status relation."
+msgstr "用于保留来源的查询求值状态关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryEvaluationStatus value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 queryEvaluationStatus 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryEvaluationStatus target and preserve source attribution and scope."
+msgstr "引用实际 queryEvaluationStatus 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryEvaluationStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryEvaluationStatus ex:target ."
+msgstr "ex:record gmeow:queryEvaluationStatus ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query completeness status"
+msgstr "查询完备性状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported completeness relative to the declared query scope or fragment. It is not a second home for undetermined or not-evaluated information states."
+msgstr "相对于声明查询范围或片段报告的完整性。它不是未确定或未评估信息状态的另一归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source’s query completeness status relation."
+msgstr "用于保留来源的查询完备性状态关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a queryCompletenessStatus value from silence or another result axis."
+msgstr "避免从沉默或其他结果维度虚构 queryCompletenessStatus 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the actual queryCompletenessStatus target and preserve source attribution and scope."
+msgstr "引用实际 queryCompletenessStatus 目标并保留来源归属及作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/queryCompletenessStatus|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:queryCompletenessStatus ex:target ."
+msgstr "ex:record gmeow:queryCompletenessStatus ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "query context"
+msgstr "查询上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Query-result loss records and explicitly interpreted frame-composition descriptors, keeping result axes and context semantics distinct."
+msgstr "查询结果损失记录及明确解释的框架组合描述，区分结果维度及上下文语义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|http://purl.org/dc/terms/title"
+msgid "GMEOW Query Context Module"
+msgstr "GMEOW 查询上下文模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/query-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Governed query stores and recall adapters retaining unavailable-input reports and explicit frame-composition semantics without silent capability degradation."
+msgstr "保留不可用输入报告及明确框架组合语义，而不暗中降级能力的治理查询存储及检索适配器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Interpretation"
+msgstr "查询框架解释"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly scoped extensional interpretation of query frames, with a declared domain of evaluation contexts and frame memberships. Completeness is an author’s assertion about that interpretation, not a runtime certificate or proof about all possible semantic models."
+msgstr "查询框架的明确作用域外延解释，包含声明的求值上下文论域及框架成员关系。完整性是作者对此解释的断言，而非运行时证书或关于所有可能语义模型的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the exact interpretation in which frame-set equations are asserted."
+msgstr "用于声明框架集合等式在哪个确切解释中成立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a finite sample as a complete interpretation of a larger undeclared domain."
+msgstr "避免将有限样本当作更大未声明论域的完整解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name interpretationScope, retain interpretationMember entries, and assert interpretationComplete only for the declared model and scope."
+msgstr "命名 interpretationScope，保留 interpretationMember 条目，并仅针对声明模型及作用域断言 interpretationComplete。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryFrameInterpretation ."
+msgstr "ex:record a gmeow:QueryFrameInterpretation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Query Frame Extent"
+msgstr "查询框架外延"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded admitted evaluation contexts of a frame in one QueryFrameInterpretation. Empty extents can record incompatibility; they do not by themselves provide a usable standpoint or scenario."
+msgstr "某框架在一个 QueryFrameInterpretation 中记录的可接纳求值上下文。空外延可记录不相容，但本身不提供可用立场或情景。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make component and result membership explicit within a named interpretation."
+msgstr "用于在具名解释内明确组成部分及结果的成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining extents from different interpretations or inventing members for an empty result."
+msgstr "避免组合不同解释的外延，或为空结果虚构成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Bind extentInterpretation, name extentFrame when represented, and retain extentMember values inside that interpretation’s declared domain."
+msgstr "填写 extentInterpretation，在表示框架时命名 extentFrame，并将 extentMember 保留在该解释声明的论域内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/QueryFrameExtent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:QueryFrameExtent ."
+msgstr "ex:record a gmeow:QueryFrameExtent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Frame Composition"
+msgstr "框架组合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A binary query-frame composition descriptor with explicit left and right extents and one interpretation. Freely describing a request establishes neither a result, realization, compatibility nor a usable frame."
+msgstr "具有明确左右外延及一个解释的二元查询框架组合描述。自由描述请求不确立结果、实现、相容性或可用框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a requested or asserted frame composition independently of its realization."
+msgstr "用于独立于实现状态保留请求或声明的框架组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a semantic meet merely from the existence of a descriptor or a refinement poset."
+msgstr "避免仅从描述存在或细化偏序推断语义下确界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use a concrete composition kind, identify its interpretation and operands, and retain explicit result and realization claims only when supplied."
+msgstr "使用具体组合类型，标识解释及操作数；仅在来源提供时保留明确结果及实现断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FrameComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record a gmeow:FrameComposition ."
+msgstr "ex:record a gmeow:FrameComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint Meet Composition"
+msgstr "立场下确界组合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for the intersection of two standpoint precisification extents in an explicit interpretation. A represented nonempty intersection is a meet there; a partial order alone guarantees no such represented result."
+msgstr "在明确解释中对两个立场精确化外延取交集的描述。被表示的非空交集在该解释中是下确界；仅有偏序不保证存在此被表示结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared admissible precisifications of two standpoints."
+msgstr "用于两个立场共同接纳的精确化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading truth on an intersection as the requirement of truth throughout both original standpoints."
+msgstr "避免将交集上的真视为在两个原立场全部上下文中为真的要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply standpoint operands and an explicit result extent; a usable result additionally requires a nonempty complete-model realization claim."
+msgstr "提供立场操作数及明确结果外延；可用结果还要求完整模型中的非空实现断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointMeetComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:StandpointMeetComposition ."
+msgstr "ex:composition a gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-Standpoint Truth Composition"
+msgstr "双立场真值组合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for the union of two standpoint precisification extents. Universal truth over that union requires truth at every context of both inputs; it is different from their meet."
+msgstr "对两个立场精确化外延取并集的描述。在该并集上普遍为真要求在两个输入的每个上下文为真；它区别于两者下确界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent the frame domain needed for a true-from-both requirement."
+msgstr "用于表示“双立场皆真”要求所需的框架论域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing this union with precisification intersection or treating unknown truth as supported."
+msgstr "避免将此并集替换为精确化交集，或将未知真值当作有支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the two standpoint extents and the exact union result within the same interpretation."
+msgstr "在同一解释中保留两个立场外延及其确切并集结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointTruthUnionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:StandpointTruthUnionComposition ."
+msgstr "ex:composition a gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario Conjunction Composition"
+msgstr "情景合取组合"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A descriptor for jointly entertaining two scenario suppositions, represented by intersection of their satisfying evaluation-context extents. It neither adopts a standpoint nor asserts alethic possibility or actuality."
+msgstr "通过两个情景假设所满足求值上下文外延的交集来联合设想它们的描述。它不采纳立场，也不声明真势可能性或现实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record a joint hypothetical scenario in one declared interpretation."
+msgstr "用于在一个声明解释中记录联合假设情景。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mixing scenario conjunction with standpoint meet or cross-type accessibility."
+msgstr "避免将情景合取与立场下确界或跨类型可达性混合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference two scenario extents and retain their intersection, including an explicit empty incompatible result when applicable."
+msgstr "引用两个情景外延并保留其交集；适用时包括明确的空且不相容结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:composition a gmeow:ScenarioConjunctionComposition ."
+msgstr "ex:composition a gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation scope"
+msgstr "解释作用域"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit scope or model contract defining the evaluation-context universe represented here."
+msgstr "定义此处表示的求值上下文宇宙的明确作用域或模型契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit interpretation scope binding."
+msgstr "用于保留明确的解释作用域绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of interpretationScope from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 interpretationScope 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported interpretationScope resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 interpretationScope 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:interpretationScope ex:target ."
+msgstr "ex:record gmeow:interpretationScope ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation domain member"
+msgstr "解释论域成员"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An evaluation context in the declared interpretation domain. World typing does not assert the alethic PossibleWorld subtype."
+msgstr "声明解释论域内的求值上下文。World 类型不表示真势 PossibleWorld 子类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit interpretation domain member binding."
+msgstr "用于保留明确的解释论域成员绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of interpretationMember from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 interpretationMember 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported interpretationMember resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 interpretationMember 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:interpretationMember ex:target ."
+msgstr "ex:record gmeow:interpretationMember ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent interpretation"
+msgstr "外延所属解释"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single source interpretation in which this frame extent’s memberships are read."
+msgstr "解释此框架外延成员关系的单个来源解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit extent interpretation binding."
+msgstr "用于保留明确的外延所属解释绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentInterpretation from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 extentInterpretation 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentInterpretation resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 extentInterpretation 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentInterpretation ex:target ."
+msgstr "ex:record gmeow:extentInterpretation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "represented extent frame"
+msgstr "外延表示框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Standpoint or Scenario represented by the recorded extent. Empty incompatible result extents need not name a usable frame."
+msgstr "已记录外延所表示的 Standpoint 或 Scenario。空且不相容的结果外延无需命名可用框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit represented extent frame binding."
+msgstr "用于保留明确的外延表示框架绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentFrame from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 extentFrame 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentFrame resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 extentFrame 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentFrame ex:target ."
+msgstr "ex:record gmeow:extentFrame ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent member"
+msgstr "外延成员"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An evaluation context admitted by this frame extent in its explicit interpretation. Absence is read extensionally only under that interpretation’s completeness claim."
+msgstr "此框架外延在其明确解释中接纳的求值上下文。仅在该解释的完整性断言下才将缺失按外延读取。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit extent member binding."
+msgstr "用于保留明确的外延成员绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of extentMember from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 extentMember 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported extentMember resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 extentMember 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/extentMember|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:extentMember ex:target ."
+msgstr "ex:record gmeow:extentMember ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition interpretation"
+msgstr "组合所属解释"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The shared interpretation of this composition’s operand and result extents."
+msgstr "此组合操作数及结果外延共享的解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit composition interpretation binding."
+msgstr "用于保留明确的组合所属解释绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionInterpretation from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 compositionInterpretation 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionInterpretation resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 compositionInterpretation 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionInterpretation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionInterpretation ex:target ."
+msgstr "ex:record gmeow:compositionInterpretation ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "left composition operand"
+msgstr "组合左操作数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly identified left frame extent; operand position is not a priority between standpoints."
+msgstr "明确标识的左框架外延；操作数位置不是立场优先级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit left composition operand binding."
+msgstr "用于保留明确的组合左操作数绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionLeft from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 compositionLeft 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionLeft resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 compositionLeft 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionLeft|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionLeft ex:target ."
+msgstr "ex:record gmeow:compositionLeft ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "right composition operand"
+msgstr "组合右操作数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly identified right frame extent, interpreted in the same model as the left."
+msgstr "明确标识的右框架外延，与左外延在同一模型中解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit right composition operand binding."
+msgstr "用于保留明确的组合右操作数绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionRight from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 compositionRight 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionRight resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 compositionRight 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRight|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionRight ex:target ."
+msgstr "ex:record gmeow:compositionRight ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition result extent"
+msgstr "组合结果外延"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recorded result extent, which can be empty for an incompatible composition and is not automatically a usable semantic frame."
+msgstr "已记录结果外延，不相容组合时可为空，不自动成为可用语义框架。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit composition result extent binding."
+msgstr "用于保留明确的组合结果外延绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionResult from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 compositionResult 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionResult resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 compositionResult 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionResult ex:target ."
+msgstr "ex:record gmeow:compositionResult ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "usable composition frame"
+msgstr "可用组合框架"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicitly asserted represented result frame within the complete declared interpretation. It requires realized, compatible and nonempty result evidence, without certifying global semantic existence."
+msgstr "在完整声明解释中明确断言的被表示结果框架。它要求实现、相容及非空结果证据，而不证明全局语义存在性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the explicit usable composition frame binding."
+msgstr "用于保留明确的可用组合框架绑定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing the target of compositionFrame from descriptor existence alone."
+msgstr "避免仅从描述存在虚构 compositionFrame 的目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source-supported compositionFrame resource within its declared model and scope."
+msgstr "在声明模型及作用域内引用有来源支持的 compositionFrame 资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionFrame|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:compositionFrame ex:target ."
+msgstr "ex:record gmeow:compositionFrame ex:target ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "interpretation complete"
+msgstr "解释完整"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source assertion that the declared domain and recorded frame extents constitute a complete extensional interpretation for its named scope. It is not inferred from sample size."
+msgstr "来源断言声明论域及已记录框架外延构成具名作用域的完整外延解释。不从样本大小推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source interpretation complete assertion."
+msgstr "用于明确的来源解释完整断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting interpretationComplete from absent members or an unevaluated descriptor."
+msgstr "避免从成员缺失或未求值描述默认推断 interpretationComplete。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied interpretationComplete boolean with its exact interpretation scope."
+msgstr "连同确切解释作用域保留所提供 interpretationComplete 布尔值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/interpretationComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this interpretation complete: ex:record gmeow:interpretationComplete true ."
+msgstr "来源声明此解释完整： ex:record gmeow:interpretationComplete true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition realized"
+msgstr "组合已实现"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit source claim that this composition has a result interpreted by its declared complete model. It is not a runtime verification certificate."
+msgstr "明确来源断言，此组合在其声明的完整模型内具有被解释结果。它不是运行时验证证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source composition realized assertion."
+msgstr "用于明确的来源组合已实现断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting compositionRealized from absent members or an unevaluated descriptor."
+msgstr "避免从成员缺失或未求值描述默认推断 compositionRealized。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied compositionRealized boolean with its exact interpretation scope."
+msgstr "连同确切解释作用域保留所提供 compositionRealized 布尔值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionRealized|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this composition realized: ex:record gmeow:compositionRealized true ."
+msgstr "来源声明此组合已实现： ex:record gmeow:compositionRealized true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition compatible"
+msgstr "组合相容"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2004/02/skos/core#definition"
+msgid "For a realized composition, whether the result extent is nonempty in the declared interpretation. False records empty incompatibility; missing remains unknown."
+msgstr "对于已实现组合，结果外延在声明解释中是否非空。假记录空的不相容；缺失仍为未知。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit source composition compatible assertion."
+msgstr "用于明确的来源组合相容断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting compositionCompatible from absent members or an unevaluated descriptor."
+msgstr "避免从成员缺失或未求值描述默认推断 compositionCompatible。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied compositionCompatible boolean with its exact interpretation scope."
+msgstr "连同确切解释作用域保留所提供 compositionCompatible 布尔值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/compositionCompatible|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source declares this composition compatible: ex:record gmeow:compositionCompatible true ."
+msgstr "来源声明此组合相容： ex:record gmeow:compositionCompatible true ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Acknowledged loss ledger constraint"
+msgstr "已确认损失账本约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An acknowledged loss remains present as the same resource in a query loss ledger. Acknowledgement supplies no erasure or remedy."
+msgstr "已确认损失仍以同一资源保留在查询损失账本中。确认不提供删除或修复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve acknowledged loss ledger constraint."
+msgstr "用于保持已确认损失账本约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying AcknowledgedLossLedgerConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 AcknowledgedLossLedgerConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read AcknowledgedLossLedgerConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 AcknowledgedLossLedgerConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AcknowledgedLossLedgerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:AcknowledgedLossLedgerConstraint logic:formalizes gmeow:lossAcceptedBy ."
+msgstr "gmeow:AcknowledgedLossLedgerConstraint logic:formalizes gmeow:lossAcceptedBy ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Extent domain membership constraint"
+msgstr "外延成员论域约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every recorded extent member belongs to its explicitly identified interpretation domain."
+msgstr "每个已记录外延成员都属于明确标识的解释论域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve extent domain membership constraint."
+msgstr "用于保持外延成员论域约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ExtentDomainMembershipConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 ExtentDomainMembershipConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ExtentDomainMembershipConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 ExtentDomainMembershipConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentDomainMembershipConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExtentDomainMembershipConstraint logic:formalizes gmeow:extentMember ."
+msgstr "gmeow:ExtentDomainMembershipConstraint logic:formalizes gmeow:extentMember ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Composition operand interpretation constraint"
+msgstr "组合操作数解释约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both composition operands use the descriptor’s same interpretation; mixed-domain operands do not establish a composition."
+msgstr "组合的两个操作数使用描述的同一解释；混合论域操作数不能确立组合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve composition operand interpretation constraint."
+msgstr "用于保持组合操作数解释约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying CompositionOperandInterpretationConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 CompositionOperandInterpretationConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read CompositionOperandInterpretationConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 CompositionOperandInterpretationConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompositionOperandInterpretationConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompositionOperandInterpretationConstraint logic:formalizes gmeow:compositionInterpretation ."
+msgstr "gmeow:CompositionOperandInterpretationConstraint logic:formalizes gmeow:compositionInterpretation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Realized composition evidence constraint"
+msgstr "已实现组合证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A realization claim retains an explicit result and compatibility value in the same source-asserted complete interpretation. It is not an engine certificate."
+msgstr "实现断言在同一来源声明完整解释中保留明确结果及相容性值。它不是引擎证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve realized composition evidence constraint."
+msgstr "用于保持已实现组合证据约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RealizedCompositionEvidenceConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 RealizedCompositionEvidenceConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read RealizedCompositionEvidenceConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 RealizedCompositionEvidenceConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RealizedCompositionEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RealizedCompositionEvidenceConstraint logic:formalizes gmeow:compositionRealized ."
+msgstr "gmeow:RealizedCompositionEvidenceConstraint logic:formalizes gmeow:compositionRealized ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint composition operands constraint"
+msgstr "立场组合操作数约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Standpoint operands name nonempty represented standpoints; the unspecified default is excluded from the sharpening order."
+msgstr "立场操作数命名非空被表示立场；未指定默认立场不属于细化顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint composition operands constraint."
+msgstr "用于保持立场组合操作数约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying StandpointCompositionOperandsConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 StandpointCompositionOperandsConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read StandpointCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 StandpointCompositionOperandsConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StandpointCompositionOperandsConstraint logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:StandpointCompositionOperandsConstraint logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario composition operands constraint"
+msgstr "情景组合操作数约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Scenario conjunction operands represent scenarios rather than adopting standpoint or alethic context types."
+msgstr "情景合取操作数表示情景，而非采纳立场或真势上下文类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario composition operands constraint."
+msgstr "用于保持情景组合操作数约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioCompositionOperandsConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 ScenarioCompositionOperandsConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioCompositionOperandsConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 ScenarioCompositionOperandsConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionOperandsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioCompositionOperandsConstraint logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioCompositionOperandsConstraint logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Usable composition frame constraint"
+msgstr "可用组合框架约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exposed composition frame is explicitly represented by a realized compatible nonempty result. Minting a descriptor alone supplies none of this evidence."
+msgstr "公开的组合框架由已实现、相容且非空结果明确表示。仅创建描述不提供这些证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve usable composition frame constraint."
+msgstr "用于保持可用组合框架约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying UsableCompositionFrameConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 UsableCompositionFrameConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read UsableCompositionFrameConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 UsableCompositionFrameConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/UsableCompositionFrameConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:UsableCompositionFrameConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:UsableCompositionFrameConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Compatible composition nonempty constraint"
+msgstr "相容组合非空约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A compatible assertion requires a realized nonempty result in the declared interpretation."
+msgstr "相容断言要求在声明解释中存在已实现非空结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve compatible composition nonempty constraint."
+msgstr "用于保持相容组合非空约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying CompatibleCompositionNonemptyConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 CompatibleCompositionNonemptyConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read CompatibleCompositionNonemptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 CompatibleCompositionNonemptyConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompatibleCompositionNonemptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CompatibleCompositionNonemptyConstraint logic:formalizes gmeow:compositionCompatible ."
+msgstr "gmeow:CompatibleCompositionNonemptyConstraint logic:formalizes gmeow:compositionCompatible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incompatible composition empty constraint"
+msgstr "不相容组合空外延约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An incompatible assertion records a realized empty result, retained without a usable frame or vacuous universal-truth promotion."
+msgstr "不相容断言记录已实现空结果，予以保留而不提供可用框架或空真普遍断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve incompatible composition empty constraint."
+msgstr "用于保持不相容组合空外延约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying IncompatibleCompositionEmptyConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 IncompatibleCompositionEmptyConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read IncompatibleCompositionEmptyConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 IncompatibleCompositionEmptyConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/IncompatibleCompositionEmptyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:IncompatibleCompositionEmptyConstraint logic:formalizes gmeow:compositionCompatible ."
+msgstr "gmeow:IncompatibleCompositionEmptyConstraint logic:formalizes gmeow:compositionCompatible ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Standpoint composition result type constraint"
+msgstr "立场组合结果类型约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A usable standpoint intersection or truth-union frame remains a Standpoint rather than a Scenario."
+msgstr "可用立场交集或真值并集框架仍为 Standpoint，而非 Scenario。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint composition result type constraint."
+msgstr "用于保持立场组合结果类型约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying StandpointCompositionResultTypeConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 StandpointCompositionResultTypeConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read StandpointCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 StandpointCompositionResultTypeConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StandpointCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:StandpointCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:StandpointCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Scenario composition result type constraint"
+msgstr "情景组合结果类型约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A usable joint-scenario frame remains a Scenario and asserts no alethic possibility."
+msgstr "可用联合情景框架仍为 Scenario，不声明真势可能性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario composition result type constraint."
+msgstr "用于保持情景组合结果类型约束。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioCompositionResultTypeConstraint by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 ScenarioCompositionResultTypeConstraint。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioCompositionResultTypeConstraint against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 ScenarioCompositionResultTypeConstraint；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioCompositionResultTypeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+msgstr "gmeow:ScenarioCompositionResultTypeConstraint logic:formalizes gmeow:compositionFrame ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint meet result membership law"
+msgstr "立场下确界结果成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every standpoint-meet result member belongs to both operand extents in the complete declared interpretation."
+msgstr "在完整声明解释中，每个立场下确界结果成员都属于两个操作数外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint meet result membership law."
+msgstr "用于保持立场下确界结果成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying MeetResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 MeetResultMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read MeetResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 MeetResultMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MeetResultMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:MeetResultMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "standpoint meet common membership law"
+msgstr "立场下确界共同成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every context common to both standpoint-meet operand extents belongs to that operation’s result in the complete declared interpretation."
+msgstr "在完整声明解释中，两个立场下确界操作数外延共有的每个上下文都属于该操作结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve standpoint meet common membership law."
+msgstr "用于保持立场下确界共同成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying MeetCommonMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 MeetCommonMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read MeetCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 MeetCommonMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeetCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MeetCommonMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+msgstr "gmeow:MeetCommonMembershipLaw logic:formalizes gmeow:StandpointMeetComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scenario conjunction result membership law"
+msgstr "情景合取结果成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every scenario-conjunction result member belongs to both operand extents in the complete declared interpretation."
+msgstr "在完整声明解释中，每个情景合取结果成员都属于两个操作数外延。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario conjunction result membership law."
+msgstr "用于保持情景合取结果成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioConjunctionResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 ScenarioConjunctionResultMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioConjunctionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 ScenarioConjunctionResultMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioConjunctionResultMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioConjunctionResultMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scenario conjunction common membership law"
+msgstr "情景合取共同成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every context common to both scenario-conjunction operand extents belongs to that operation’s result in the complete declared interpretation."
+msgstr "在完整声明解释中，两个情景合取操作数外延共有的每个上下文都属于该操作结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve scenario conjunction common membership law."
+msgstr "用于保持情景合取共同成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ScenarioConjunctionCommonMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 ScenarioConjunctionCommonMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read ScenarioConjunctionCommonMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 ScenarioConjunctionCommonMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ScenarioConjunctionCommonMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ScenarioConjunctionCommonMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+msgstr "gmeow:ScenarioConjunctionCommonMembershipLaw logic:formalizes gmeow:ScenarioConjunctionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union result membership law"
+msgstr "双立场并集结果成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every union-result context belongs to at least one input extent; no additional context is admitted."
+msgstr "每个并集结果上下文都属于至少一个输入外延；不接纳额外上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union result membership law."
+msgstr "用于保持双立场并集结果成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionResultMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 TruthUnionResultMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionResultMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 TruthUnionResultMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionResultMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionResultMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionResultMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union left membership law"
+msgstr "双立场并集左成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every left operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."
+msgstr "每个左操作数上下文都属于并集结果，保留双输入普遍真所需的全部上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union left membership law."
+msgstr "用于保持双立场并集左成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionLeftMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 TruthUnionLeftMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionLeftMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 TruthUnionLeftMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionLeftMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionLeftMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionLeftMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Both-standpoint union right membership law"
+msgstr "双立场并集右成员定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every right operand context belongs to the union result, preserving all contexts required for universal truth in both inputs."
+msgstr "每个右操作数上下文都属于并集结果，保留双输入普遍真所需的全部上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve both-standpoint union right membership law."
+msgstr "用于保持双立场并集右成员定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying TruthUnionRightMembershipLaw by inventing membership, scope or realization evidence."
+msgstr "避免通过虚构成员、作用域或实现证据来满足 TruthUnionRightMembershipLaw。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read TruthUnionRightMembershipLaw against the explicitly declared source interpretation; it provides no global runtime certificate."
+msgstr "在明确声明来源解释中读取 TruthUnionRightMembershipLaw；它不提供全局运行时证书。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TruthUnionRightMembershipLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:TruthUnionRightMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+msgstr "gmeow:TruthUnionRightMembershipLaw logic:formalizes gmeow:StandpointTruthUnionComposition ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "extent frame congruence law"
+msgstr "框架外延一致性定律"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two extent records representing the same frame in the same explicitly complete interpretation have identical members while retaining their separate record identities."
+msgstr "在同一显式完整解释中表示同一框架的两个外延记录具有相同成员，同时保留各自独立的记录身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require one consistent denotation for a represented frame within a complete scoped interpretation."
+msgstr "用于要求所表示框架在完整的限定范围解释中具有一致的指称。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning different memberships to the same represented frame by creating another extent record in the same complete interpretation."
+msgstr "避免通过在同一完整解释中创建另一个外延记录，为同一所表示框架赋予不同成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the universally ordered extent pairs in both directions: shared interpretation and frame require every member of either record to belong to the other."
+msgstr "对全称量化的有序外延记录对按两个方向解读：共享解释和框架要求任一记录的每个成员也属于另一记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExtentFrameCongruenceLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."
+msgstr "gmeow:ExtentFrameCongruenceLaw logic:formalizes gmeow:extentFrame ."

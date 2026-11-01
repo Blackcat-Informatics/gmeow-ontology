@@ -1,16 +1,23 @@
-# TQL — events temporally within a focus event. Parameter: ?focus. Qualitative
-# Allen during-closure (gmeow:during+) unioned with quantitative interval
-# containment of a point event inside the focus's crisp interval.
+# TQL — qualitative during closure stays independent of numeric admission.
+# Numeric strict containment supports zoned dateTime point/interval operands in
+# absent/default UTC-Gregorian event and interval frames only. A supplied focus
+# point prevents numeric interval fallback. No coarse expansion.
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
 SELECT DISTINCT ?event WHERE {
     { ?event (gmeow:during|^gmeow:contains)+ ?focus . }
-    UNION
-    {
+    UNION {
+        FILTER NOT EXISTS { ?focus gmeow:eventTime ?focusPointPresent . }
         ?focus gmeow:eventInterval ?iv .
         ?iv gmeow:startedAtTime ?fs ; gmeow:endedAtTime ?fe .
         ?event gmeow:eventTime ?et .
-        FILTER(?et > ?fs && ?et < ?fe)
+        FILTER NOT EXISTS { ?event gmeow:eventTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+        FILTER NOT EXISTS { ?focus gmeow:eventTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+        FILTER NOT EXISTS { ?iv gmeow:hasTemporalFrame ?otherFrame . FILTER(?otherFrame != gmeow:temporalFrameUTCGregorian) }
+        FILTER(DATATYPE(?et) = xsd:dateTime && REGEX(STR(?et), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && DATATYPE(?fs) = xsd:dateTime && REGEX(STR(?fs), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && DATATYPE(?fe) = xsd:dateTime && REGEX(STR(?fe), "(Z|[+-][0-9]{2}:[0-9]{2})[ \\t\\r\\n]*$") && ?et > ?fs && ?et < ?fe)
     }
 }
 ORDER BY ?event

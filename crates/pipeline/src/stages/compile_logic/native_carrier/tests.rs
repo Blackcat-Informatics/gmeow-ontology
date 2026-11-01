@@ -274,7 +274,7 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     ));
     findings.add_finding(finding);
     let diagnostics = gmeow_errors::render::to_gmeow_dataset(&findings).unwrap();
-    let expected_diagnostics = purrdf::canonicalize(&diagnostics).nquads;
+    let expected_diagnostics = purrdf::try_canonicalize(&diagnostics).unwrap().nquads;
     assert!(expected_diagnostics.contains("synthetic-projection.ttl"));
     let artifacts = BTreeMap::from([(
         "pipeline/synthetic-proof.json".into(),
@@ -331,5 +331,8 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
         .unwrap();
     let restored =
         crate::stages::carrier::rooted_in_graph(&diagnostics, GRAPH_DIAGNOSTICS).unwrap();
-    assert_eq!(purrdf::canonicalize(&restored).nquads, expected_diagnostics);
+    assert_eq!(
+        purrdf::try_canonicalize(&restored).unwrap().nquads,
+        expected_diagnostics
+    );
 }

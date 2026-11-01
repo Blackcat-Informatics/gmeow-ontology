@@ -47,14 +47,10 @@ impl FromJson for ImportReceipt {
     }
 }
 
-impl ToJson for ReceiptEnvelope {
-    fn to_json(&self) -> Value {
-        Object::new()
-            .with("receipt_digest", self.receipt_digest.to_json())
-            .with("receipt", self.receipt.to_json())
-            .into()
-    }
-}
+::purrdf_lex::json_record! { impl ToJson for ReceiptEnvelope {
+    "receipt_digest" => receipt_digest,
+    "receipt" => receipt
+}}
 
 impl FromJson for ReceiptEnvelope {
     fn from_json(value: &Value) -> Result<Self, DecodeError> {

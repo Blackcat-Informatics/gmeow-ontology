@@ -434,7 +434,7 @@ impl Stage for PydanticStage {
         // version stamp, so it busts the cache too.
         let mut files = crate::stages::shape_union_fresh::authored_shape_files(root)?;
         files.extend(crate::stages::docs_render::docs_source_files(root)?);
-        files.extend(crate::stages::value_vocab::ontology_module_files(root));
+        files.extend(crate::stages::value_vocab::ontology_module_files(root)?);
         for module in crate::stages::source_load::module_files(root)? {
             if let Some(dir) = module.parent() {
                 files.push(dir.join("manifest.ttl"));
@@ -485,7 +485,7 @@ impl Stage for PydanticStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

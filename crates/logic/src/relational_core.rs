@@ -22,6 +22,8 @@
 //! or negative heads, further quantifier alternation, unbound universal head variables,
 //! compound function terms and unbounded sequence markers remain explicit residue.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::ir::{LOGIC_NAMESPACE, LogicProgram};
@@ -434,6 +436,17 @@ pub(crate) fn lower_violation_rules(
                     predicate: test.predicate,
                     expected: test.expected,
                 })
+                .chain(
+                    rc.term_identities
+                        .iter()
+                        .map(|test| QBuiltin::TermIdentity {
+                            left: test.left.clone(),
+                            left_component: test.left_component,
+                            right: test.right.clone(),
+                            right_component: test.right_component,
+                            expected: test.expected,
+                        }),
+                )
                 .chain(rc.term_equalities.iter().map(|test| QBuiltin::TermEqual {
                     left: test.left.clone(),
                     right: test.right.clone(),

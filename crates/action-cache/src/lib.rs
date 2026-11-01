@@ -12,12 +12,20 @@
 pub mod executable;
 pub mod selection;
 
+mod context_json;
+mod receipt_json;
+
+pub use receipt_json::EmptyPayload;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions, TryLockError};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 
-use serde::de::DeserializeOwned;
+use purrdf_lex::json::{
+    self,
+    record::{FromJson, ToJson},
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -162,8 +170,17 @@ impl ActionContext {
 
     #[must_use]
     pub fn key(&self) -> ActionKey {
-        let bytes = serde_json::to_vec(self).expect("closed ActionContext JSON");
-        ActionKey(content_digest(&[b"gmeow:action-key:v1", &bytes]))
+        use purrdf_lex::json::{self, record::ToJson as _};
+
+        let value = self.to_json();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        let encoded = json::write_with_memory(&value, json::Format::COMPACT, &mut memory)
+            .expect("closed native ActionContext JSON");
+        ActionKey(content_digest(&[
+            b"gmeow:action-key:v1",
+            encoded.as_bytes(),
+        ]))
     }
 }
 
@@ -203,7 +220,7 @@ pub struct BlobRef {
 }
 
 /// Common receipt plus a caller-owned semantic payload.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ActionReceipt<P> {
     pub schema_version: u32,
     pub action_key: ActionKey,
@@ -213,37 +230,17 @@ pub struct ActionReceipt<P> {
     pub payload: P,
 }
 
-impl<P: Serialize> ActionReceipt<P> {
+impl<P: ToJson> ActionReceipt<P> {
     #[must_use]
     pub fn digest(&self) -> String {
-        let value = canonical_json_value(
-            serde_json::to_value(self).expect("closed action receipt JSON value"),
-        );
-        let bytes = serde_json::to_vec(&value).expect("closed canonical action receipt JSON");
+        let mut value = self.to_json();
+        json::record::sorted_last_wins(&mut value);
+        let bytes = json::record::to_vec(&value);
         content_digest(&[b"gmeow:action-receipt:v1", &bytes])
     }
 }
 
-fn canonical_json_value(value: serde_json::Value) -> serde_json::Value {
-    match value {
-        serde_json::Value::Array(values) => {
-            serde_json::Value::Array(values.into_iter().map(canonical_json_value).collect())
-        }
-        serde_json::Value::Object(values) => {
-            let mut entries = values.into_iter().collect::<Vec<_>>();
-            entries.sort_by(|left, right| left.0.cmp(&right.0));
-            serde_json::Value::Object(
-                entries
-                    .into_iter()
-                    .map(|(key, value)| (key, canonical_json_value(value)))
-                    .collect(),
-            )
-        }
-        scalar => scalar,
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 struct ReceiptEnvelope<P> {
     receipt_digest: String,
     receipt: ActionReceipt<P>,
@@ -501,7 +498,7 @@ impl ActionStore {
         context: &ActionContext,
     ) -> Result<Option<VerifiedEntry<P>>, ActionCacheError>
     where
-        P: DeserializeOwned + Serialize,
+        P: FromJson + ToJson,
     {
         if self.inert {
             return Ok(None);
@@ -521,7 +518,7 @@ impl ActionStore {
         key: &ActionKey,
     ) -> Result<Option<VerifiedEntry<P>>, ActionCacheError>
     where
-        P: DeserializeOwned + Serialize,
+        P: FromJson + ToJson,
     {
         let path = self.receipt_path(key);
         if !path_entry_exists(&path)? {
@@ -538,7 +535,7 @@ impl ActionStore {
         context: &ActionContext,
     ) -> Result<Option<ActionReceipt<P>>, ActionCacheError>
     where
-        P: DeserializeOwned + Serialize,
+        P: FromJson + ToJson,
     {
         if self.inert {
             return Ok(None);
@@ -558,7 +555,7 @@ impl ActionStore {
         key: &ActionKey,
     ) -> Result<Option<ActionReceipt<P>>, ActionCacheError>
     where
-        P: DeserializeOwned + Serialize,
+        P: FromJson + ToJson,
     {
         let path = self.receipt_path(key);
         if !path_entry_exists(&path)? {
@@ -578,7 +575,7 @@ impl ActionStore {
         bytes: &[u8],
     ) -> Result<ActionReceipt<P>, ActionCacheError>
     where
-        P: Clone + DeserializeOwned + PartialEq + Serialize,
+        P: Clone + FromJson + PartialEq + ToJson,
     {
         if self.inert || self.read_only {
             return Err(ActionCacheError::message(
@@ -608,7 +605,7 @@ impl ActionStore {
             receipt_digest: receipt.digest(),
             receipt: receipt.clone(),
         };
-        let receipt_bytes = serde_json::to_vec_pretty(&envelope)?;
+        let receipt_bytes = receipt_json::encode_envelope(&envelope)?;
         let receipt_byte_count = u64::try_from(receipt_bytes.len()).unwrap_or(u64::MAX);
         if receipt_byte_count > self.limits.max_receipt_bytes {
             return Err(ActionCacheError::message(format!(
@@ -741,10 +738,11 @@ impl ActionStore {
 
     fn read_receipt<P>(&self, path: &Path) -> Result<ActionReceipt<P>, ActionCacheError>
     where
-        P: DeserializeOwned + Serialize,
+        P: FromJson + ToJson,
     {
         let bytes = read_bounded(path, self.limits.max_receipt_bytes, "action receipt")?;
-        let envelope: ReceiptEnvelope<P> = serde_json::from_slice(&bytes)?;
+        let envelope: ReceiptEnvelope<P> =
+            json::record::from_slice(&bytes).map_err(receipt_json::decode_error)?;
         if envelope.receipt.schema_version != RECEIPT_SCHEMA_VERSION {
             return Err(ActionCacheError::message(format!(
                 "action receipt schema {} != {RECEIPT_SCHEMA_VERSION}",
@@ -884,7 +882,7 @@ impl ActionStore {
                 .modified()
                 .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
             let bytes = read_bounded(&path, self.limits.max_receipt_bytes, "action receipt")?;
-            let receipt = self.read_receipt::<serde_json::Value>(&path)?;
+            let receipt = self.read_receipt::<json::Value>(&path)?;
             roots.push((
                 path,
                 modified,
@@ -981,7 +979,8 @@ impl ActionStore {
                 self.limits.max_receipt_bytes,
                 "action receipt",
             )?;
-            let envelope: ReceiptEnvelope<serde_json::Value> = serde_json::from_slice(&bytes)?;
+            let envelope: ReceiptEnvelope<json::Value> =
+                json::record::from_slice(&bytes).map_err(receipt_json::decode_error)?;
             live.insert(envelope.receipt.product_blob.digest);
         }
         for entry in fs::read_dir(self.dir.join("blobs"))? {

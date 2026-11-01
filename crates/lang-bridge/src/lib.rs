@@ -55,6 +55,7 @@ pub mod gmn_symbology;
 pub mod grammar;
 pub mod lower;
 pub mod nif;
+mod observation_json;
 pub mod ontolex;
 pub mod plain_text;
 pub mod rdf_scan;

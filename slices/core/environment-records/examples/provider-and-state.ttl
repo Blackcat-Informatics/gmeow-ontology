@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/environment-provider/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary attributed source scene. No operation or validation run is asserted.
+ex:provider a gmeow:SoftwareAgent .
+ex:otherProvider a gmeow:SoftwareAgent .
+ex:recorder a gmeow:Agent .
+ex:world a logic:Thing .
+ex:otherWorld a logic:Thing .
+ex:source a gmeow:InformationObject ;
+    dcterms:description "Original provider report for this illustrated inventory."@en .
+
+# Classifications and placements belong to this source description.
+# The canonical chain gives cup -> drinking vessel -> vessel -> container.
+# Those are inferred classifications, not extra direct self-assertions.
+ex:cup a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindCup ;
+    gmeow:onTopOf ex:desk ;
+    gmeow:hasPart ex:handle .
+ex:handle a gmeow:Entity .
+ex:glass a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindGlass ;
+    gmeow:onTopOf ex:desk .
+ex:desk a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindDesk .
+ex:box a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindBox .
+ex:book a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindBook ;
+    gmeow:insideOf ex:box ; gmeow:hasTag gmeow:tagReadable .
+ex:nightstand a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindNightstand ;
+    gmeow:besideOf ex:bed .
+ex:bed a gmeow:Entity ;
+    gmeow:worldObjectKind gmeow:worldObjectKindBed .
+
+ex:cupRecord a gmeow:WorldObjectRecord ;
+    gmeow:recordedWorldObject ex:cup ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:providerHandle "  object/7  " ;
+    gmeow:worldObjectCapability " inspect " ;
+    gmeow:firstSeenAt "2024-04-01T09:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+ex:handleRecord a gmeow:WorldObjectRecord ;
+    gmeow:recordedWorldObject ex:handle ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:providerHandle "object/7/handle" ;
+    gmeow:semanticTypeAsRecorded " curved grip v2 " ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+# Same opaque bytes in a different scope supply no sameAs conclusion.
+ex:otherObject a gmeow:Entity .
+ex:otherRecord a gmeow:WorldObjectRecord ;
+    gmeow:recordedWorldObject ex:otherObject ;
+    gmeow:providerProgram ex:otherProvider ; gmeow:providerWorld ex:otherWorld ;
+    gmeow:providerHandle "  object/7  " ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+ex:reportedCreation a gmeow:Activity ;
+    gmeow:worldIdentifier " world/alpha  " ;
+    gmeow:wasAssociatedWith ex:provider ;
+    gmeow:eventTime "2024-04-01T08:00:00Z"^^xsd:dateTime .
+
+# For illustration, the original profile bytes are exactly profile-v1\n.
+# The three original canonical state byte sequences are exactly:
+# {"label":"cup","place":"desk"}\n
+# {"label":"cup","place":"shelf"}\n
+# {"label":"blue cup","place":"desk"}\n
+# These full digests identify the depicted source artifacts; they certify
+# neither a provider execution nor a native hash-verification operation.
+ex:profile a gmeow:InformationObject ;
+    dcterms:description "Profile v1 selects label and place, encodes sorted JSON keys in UTF-8, no spaces, with one terminal LF."@en ;
+    gmeow:contentDigest "sha256:f060568aa439059577a390f7fc35411472c7d9c2e7667b1e02d20619f19749c9" .
+ex:stateBytes1 a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4" .
+ex:stateBytes2 a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e" .
+ex:stateBytes3 a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a" .
+
+ex:claim1 a gmeow:WorldObjectStateClaim ;
+    gmeow:recordedWorldObject ex:cup ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes1 ;
+    gmeow:worldObjectState "sha256:1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4" ;
+    gmeow:validFrom "2024-04-01T12:00:00Z"^^xsd:dateTime ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+# Source clock reversed, yet claim2 causally replaces claim1.
+ex:claim2 a gmeow:WorldObjectStateClaim ;
+    gmeow:recordedWorldObject ex:cup ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes2 ;
+    gmeow:worldObjectState "sha256:2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e" ;
+    gmeow:validFrom "2024-04-01T11:59:00Z"^^xsd:dateTime ;
+    gmeow:supersedes ex:claim1 ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+# A separate concurrent report also replaces claim1, but neither head
+# replaces the other. The bounded view retains both.
+ex:claim3 a gmeow:WorldObjectStateClaim ;
+    gmeow:recordedWorldObject ex:cup ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes3 ;
+    gmeow:worldObjectState "sha256:9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a" ;
+    gmeow:validFrom "2024-04-01T12:01:00Z"^^xsd:dateTime ;
+    gmeow:supersedes ex:claim1 ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
+ex:view a gmeow:WorldStateView ;
+    gmeow:recordedWorldObject ex:cup ;
+    gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
+    gmeow:stateEncodingProfile ex:profile ;
+    gmeow:stateViewMember ex:claim1, ex:claim2, ex:claim3 ;
+    gmeow:currentStateClaim ex:claim2, ex:claim3 ;
+    gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .

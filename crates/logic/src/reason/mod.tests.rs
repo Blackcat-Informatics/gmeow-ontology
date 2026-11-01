@@ -2519,20 +2519,19 @@ fn reason_program_routes_modal_evaluation_through_the_native_closure() {
 
 #[test]
 fn portable_semantic_identity_excludes_target_execution_contracts() {
-    use purrdf::datalog::seminaive::{
-        EvalOptions, NATIVE_DEFAULT_MAX_STORED_FACTS, WASM_DEFAULT_MAX_STORED_FACTS,
-    };
     let semantic = purrdf_substrate_identity();
     for regime in [purrdf::entail::Regime::OwlRl, purrdf::entail::Regime::D] {
         let rules = purrdf::entail::calculus_program(regime);
-        // Hash two real operation profiles without evaluating under either one.
+        // Hash the two operation profiles gmeow states, native and browser, without
+        // evaluating under either one.
+        let stated = crate::purrdf_limits::eval_options();
         let native = purrdf::datalog::cache::contract_hash_with(
             &rules,
-            &EvalOptions::default().with_max_stored_facts(NATIVE_DEFAULT_MAX_STORED_FACTS),
+            &stated.with_max_stored_facts(crate::purrdf_limits::NATIVE_MAX_STORED_FACTS),
         );
         let browser = purrdf::datalog::cache::contract_hash_with(
             &rules,
-            &EvalOptions::default().with_max_stored_facts(WASM_DEFAULT_MAX_STORED_FACTS),
+            &stated.with_max_stored_facts(crate::purrdf_limits::WASM32_MAX_STORED_FACTS),
         );
         assert_ne!(
             native, browser,

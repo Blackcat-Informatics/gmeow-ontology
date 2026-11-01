@@ -11,7 +11,9 @@
 //! pre-gate runs first (as part of the same orchestration); with `--deep`, the
 //! native Tier-2 reasoning pass folds in.
 
+use purrdf_lex::json::record::ToJson as _;
 use std::collections::{BTreeSet, HashSet};
+
 use std::path::Path;
 
 use gmeow_errors::Report;
@@ -273,41 +275,50 @@ pub fn validate(
         .timings
         .iter()
         .map(|timing| {
-            serde_json::json!({
-                "phase": timing.phase,
-                "elapsed_ms": timing.elapsed_ms,
-                "work_metadata": timing.metadata,
-                "example_work": timing.example_work,
-            })
+            purrdf_lex::json::Value::from(
+                purrdf_lex::json::Object::new()
+                    .with("phase", timing.phase.as_str())
+                    .with("elapsed_ms", timing.elapsed_ms)
+                    .with("work_metadata", timing.metadata.as_deref())
+                    .with("example_work", timing.example_work.as_ref().to_json()),
+            )
         })
         .collect::<Vec<_>>();
     let report = run.report;
 
     emit_report(&report);
     if let Some(path) = timings_json {
-        let payload = serde_json::json!({
-            "schema_version": TELEMETRY_SCHEMA_VERSION,
-            "command": "validate",
-            "gts": gts.map(|p| p.display().to_string()),
-            "deep": deep,
-            "ok": report.ok(),
-            "errors": report.error_count(),
-            "warnings": report.warning_count(),
-            "deterministic_work": {
-                "source_inputs": source_input_count,
-                "source_input_bytes": source_input_bytes,
-                "dataset_quads": dataset_quads,
-                "declared_terms": declared_terms,
-                "closure_constructions": usize::from(deep && gts.is_some()),
-                "findings": report.findings.len(),
-                "errors": report.error_count(),
-                "warnings": report.warning_count(),
-            },
-            "observations": {
-                "timings": phase_timings,
-            },
-            "timings": phase_timings,
-        });
+        let payload = purrdf_lex::json::Value::from(
+            purrdf_lex::json::Object::new()
+                .with("schema_version", TELEMETRY_SCHEMA_VERSION)
+                .with("command", "validate")
+                .with("gts", gts.map(|p| p.display().to_string()))
+                .with("deep", deep)
+                .with("ok", report.ok())
+                .with("errors", report.error_count())
+                .with("warnings", report.warning_count())
+                .with(
+                    "deterministic_work",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new()
+                            .with("source_inputs", source_input_count)
+                            .with("source_input_bytes", source_input_bytes)
+                            .with("dataset_quads", dataset_quads)
+                            .with("declared_terms", declared_terms)
+                            .with("closure_constructions", usize::from(deep && gts.is_some()))
+                            .with("findings", report.findings.len())
+                            .with("errors", report.error_count())
+                            .with("warnings", report.warning_count()),
+                    ),
+                )
+                .with(
+                    "observations",
+                    purrdf_lex::json::Value::from(
+                        purrdf_lex::json::Object::new().with("timings", phase_timings.to_json()),
+                    ),
+                )
+                .with("timings", phase_timings.to_json()),
+        );
         let code = write_timings_json(path, &payload);
         if code != 0 {
             return code;
@@ -325,7 +336,7 @@ pub fn validate(
 /// The fully-assembled authored-source invocation for `gmeow-dev validate` (the
 /// `make validate` gate): the source paths, the mapping/statement DSL directories
 /// passed positionally to [`ValidationRun::run`], and the [`ValidateOptions`] that
-/// carry the central-DSL SHACL surfaces (the three `*_shapes_ttl` and `test_dsl_dir`).
+/// carry the central-DSL SHACL surfaces and the explicit manifest selection.
 ///
 /// It exists so the DSL wiring lives in ONE testable place: the exact args whose
 /// prior absence was the historical original defect are built here, and
@@ -346,6 +357,8 @@ pub(crate) struct AuthoredSourceInvocation {
 /// from tests and slice-local test DSL (owned by `slicetest`) is not re-run as a duplicate
 /// corpus pass — see `docs/DSL-VALIDATION-COVERAGE.md` and the
 /// `VALIDATE_PHASE_COVERAGE` registry.
+/// Manifest validation has a separate explicit source selection; it does not
+/// enable `slices_dir` or produce example/test corpora.
 ///
 /// `merged_shacl` is a PARAMETER (not resolved here) so this assembly — and its
 /// test — never depend on a materialized `generated/` tree.
@@ -369,6 +382,8 @@ pub(crate) fn authored_source_invocation(
         Ok(dsl) => dsl,
         Err(e) => return Err(fail(format!("cannot resolve DSL SHACL inputs: {e}"))),
     };
+    let manifests = gmeow_validate::dsl_coverage::authored_manifest_shacl_inputs(root)
+        .map_err(|error| fail(format!("cannot resolve manifest SHACL inputs: {error}")))?;
     let options = ValidateOptions {
         timings,
         project_root: Some(root.to_path_buf()),
@@ -380,6 +395,7 @@ pub(crate) fn authored_source_invocation(
         statement_shapes_ttl: Some(dsl.statement_shapes),
         test_dsl_shapes_ttl: Some(dsl.test_shapes),
         test_dsl_dir: Some(dsl.test_dir),
+        manifest_shacl: Some(manifests),
         ..ValidateOptions::default()
     };
     Ok(AuthoredSourceInvocation {

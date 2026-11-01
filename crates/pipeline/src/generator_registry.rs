@@ -309,13 +309,25 @@ pub fn source_hash(root: &Path, generator: &GeneratorInfo) -> gmeow_errors::Resu
 }
 
 /// Metadata record emitted by `gmeow-dev sync --mode update --outputs generated --metadata`.
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone)]
 pub struct GeneratorMetadata {
     pub name: String,
     pub sources: Vec<String>,
     pub outputs: Vec<String>,
     pub dependencies: Vec<String>,
     pub source_hash: String,
+}
+
+impl purrdf_lex::json::record::ToJson for GeneratorMetadata {
+    fn to_json(&self) -> purrdf_lex::json::Value {
+        purrdf_lex::json::Object::new()
+            .with("name", self.name.as_str())
+            .with("sources", self.sources.to_json())
+            .with("outputs", self.outputs.to_json())
+            .with("dependencies", self.dependencies.to_json())
+            .with("source_hash", self.source_hash.as_str())
+            .into()
+    }
 }
 
 /// Build a metadata record for every registered generator.

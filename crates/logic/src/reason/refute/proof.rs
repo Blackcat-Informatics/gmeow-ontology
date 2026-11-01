@@ -3,6 +3,9 @@
 
 //! Supported contextual refutation, independently of local membership publication.
 
+mod receipt_cbor;
+mod source_issue_json;
+
 use purrdf::TermValue;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;

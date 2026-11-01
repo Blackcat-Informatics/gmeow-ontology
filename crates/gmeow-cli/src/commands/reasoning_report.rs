@@ -450,13 +450,15 @@ pub(crate) enum ReasoningPayload {
     },
     Classification {
         subsumptions: Vec<TermPair>,
-        direct_subsumptions: Vec<TermPair>,
+        /// `None` when purrdf withholds directness from an undecided run.
+        direct_subsumptions: Option<Vec<TermPair>>,
         equivalences: Vec<TermPair>,
         unsatisfiable: Vec<String>,
     },
     Realization {
         types: Vec<TermPair>,
-        direct_types: Vec<TermPair>,
+        /// `None` when purrdf withholds directness from an undecided run.
+        direct_types: Option<Vec<TermPair>>,
     },
     Empty,
 }
@@ -532,7 +534,7 @@ impl NativeReasoningReport {
                 for row in subsumptions {
                     println!("subsumption {} {}", row.left, row.right);
                 }
-                for row in direct_subsumptions {
+                for row in direct_subsumptions.iter().flatten() {
                     println!("direct {} {}", row.left, row.right);
                 }
                 for row in equivalences {
@@ -549,7 +551,7 @@ impl NativeReasoningReport {
                 for row in types {
                     println!("type {} {}", row.left, row.right);
                 }
-                for row in direct_types {
+                for row in direct_types.iter().flatten() {
                     println!("direct-type {} {}", row.left, row.right);
                 }
             }

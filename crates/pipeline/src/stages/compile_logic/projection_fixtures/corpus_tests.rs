@@ -11,7 +11,7 @@ fn run_case(case: &str) {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
             .expect("authenticated selected projection observations");
-        serde_json::from_slice(&bytes).expect("decode projection observations")
+        super::json::from_bytes(&bytes).expect("decode projection observations")
     });
     let observation = observations
         .get(case)

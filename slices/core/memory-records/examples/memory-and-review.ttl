@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/memory-records/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:agent a gmeow:Agent .
+ex:runtime a gmeow:SoftwareAgent .
+ex:innerAudience a gmeow:BankTier ; rdfs:label "The agent's inner audience"@en .
+ex:sharedAudience a gmeow:BankTier ; rdfs:label "The agent's workshop collaborators"@en .
+ex:bank a gmeow:MemoryBank ; rdfs:label "Workshop commitments"@en .
+
+# The persistent bank identity has no body. Each remembered revision is an
+# Observation role and retains its own actual content and lineage.
+ex:firstRevision a gmeow:MemoryItem ;
+    gmeow:versionOf ex:bank ; gmeow:memoryOf ex:agent ;
+    gmeow:memoryKind gmeow:memoryKindSemantic ;
+    gmeow:observedFeature ex:bank ; gmeow:vantage ex:agent ;
+    gmeow:memoryText "I will return the borrowed compass."@en ;
+    gmeow:bankTier ex:innerAudience ; gmeow:displayable false .
+ex:nextRevision a gmeow:MemoryItem ;
+    gmeow:versionOf ex:bank ; gmeow:supersedes ex:firstRevision ;
+    gmeow:memoryOf ex:agent ; gmeow:memoryKind gmeow:memoryKindSemantic ;
+    gmeow:observedFeature ex:bank ; gmeow:vantage ex:agent ;
+    gmeow:memoryText "I returned the compass and will inspect the hinge next."@en ;
+    gmeow:bankTier ex:innerAudience ;
+    gmeow:hasDisclosurePolicy gmeow:policyInternalOnly .
+
+# This claim's audience is local to its RDF 1.2 carrier. Audience classification
+# alone neither releases the revision body nor establishes access enforcement.
+ex:audienceClaim rdf:reifies <<( ex:nextRevision rdfs:label "Workshop update"@en )>> ;
+    gmeow:bankTier ex:sharedAudience ; gmeow:accordingTo ex:agent .
+
+# A review-decision instant can be recorded even when reading was partial.
+# It still names the exact old revision read, after the bank acquired a successor.
+ex:review a gmeow:BankReview ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:eventTime "2026-10-30T09:00:00Z"^^xsd:dateTime ;
+    gmeow:reviewedRevision ex:firstRevision ; gmeow:readToEnd false ;
+    gmeow:reviewDisposition gmeow:bankReviewDeferredChanged .
+
+ex:summary a gmeow:Summary ;
+    gmeow:wasDerivedFrom ex:nextRevision ; gmeow:wasAttributedTo ex:runtime ;
+    gmeow:summaryText "The compass was returned; hinge inspection is next."@en ;
+    gmeow:summaryAnchor "The revision moves from returning equipment to inspecting the hinge."@en .
+
+# Original appraisal wording remains on its actual source. The runtime's kept
+# copy is offered under its own standpoint, not fabricated as an adopted Note.
+ex:appraisalSource a gmeow:InformationObject ;
+    dcterms:description "I am still uncertain about the hinge clearance."@en ;
+    gmeow:wasAttributedTo ex:agent .
+ex:keptAppraisal a gmeow:BodyDistillation ;
+    gmeow:distillationFor ex:agent ; gmeow:wasAttributedTo ex:runtime ;
+    gmeow:accordingTo ex:runtime ; gmeow:wasDerivedFrom ex:appraisalSource ;
+    gmeow:distilledText "I am still uncertain about the hinge clearance."@en .

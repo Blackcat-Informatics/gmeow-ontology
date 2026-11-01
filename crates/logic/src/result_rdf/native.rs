@@ -4,42 +4,75 @@
 //! Lossless terminal carriage of the native execution record. Live consumers
 //! borrow the typed result; this codec runs only at an RDF publication boundary.
 
-use std::io::{Cursor, Write};
+use std::io::Write;
 
+use purrdf_lex::cbor::head;
+
+use crate::execution_cbor::{
+    ExecutionCbor, MAX_RECEIPT_BYTES, MAX_RECEIPT_DEPTH, Reader, check_structure, descend,
+};
 use crate::result::NativeExecutionEvidence;
 
 use super::result_err;
 
 const SCHEMA: &str = "gmeow-native-execution-v2";
-const MAX_RECEIPT_BYTES: usize = 256 * 1024 * 1024;
-const MAX_RECEIPT_DEPTH: usize = 64;
 
-/// CBOR preserves native terms, proof DAGs and finite u128 cardinalities. The
-/// enclosing content-addressed result binds these bytes; the receipt itself
-/// does not confer authorship or authorize an optimization rewrite.
+/// Preserve the typed projection kind as the direct diagnostic source and retain
+/// the native refusal beneath it, rather than replacing that kind's downcast.
+fn codec_err(
+    message: String,
+    cause: impl std::error::Error + Send + Sync + 'static,
+) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(crate::error::Result::caused_by(message, cause))
+}
+
+/// One complete envelope writer owns output, replay and encoded-size accounting.
+fn write_envelope<W: Write + ?Sized>(
+    execution: &NativeExecutionEvidence,
+    output: &mut W,
+) -> std::io::Result<()> {
+    head::write_head(output, head::ARRAY, 2)?;
+    head::write_text(output, SCHEMA)?;
+    ExecutionCbor::write_cbor(execution, output)
+}
+
+/// Preserve native terms, proof DAGs and finite u128 cardinalities at the actual
+/// RDF boundary. Semantic ownership and source admission remain with the caller.
 pub(super) fn encode(execution: &NativeExecutionEvidence) -> gmeow_errors::Result<String> {
+    // The original directional-term boundary could pass structural validation
+    // while its typed enum visitor exceeded the reader's budget. Check borrowed
+    // records before recursive emission without allocating a second execution record.
+    descend(MAX_RECEIPT_DEPTH)
+        .and_then(|remaining| execution.check_depth(remaining))
+        .map_err(|error| {
+            codec_err(
+                format!("native execution receipt exceeds its typed admission bound: {error}"),
+                error,
+            )
+        })?;
     let mut output = ReceiptWriter(Vec::new());
-    ciborium::ser::into_writer(&(SCHEMA, execution), &mut output).map_err(|error| {
-        result_err(format!(
-            "native execution receipt encoding failed: {error}; {}",
-            receipt_sizes(execution)
-        ))
+    write_envelope(execution, &mut output).map_err(|error| {
+        codec_err(
+            format!(
+                "native execution receipt encoding failed: {error}; {}",
+                receipt_sizes(execution)
+            ),
+            error,
+        )
     })?;
-    // Bound the emitted envelope with the same decoder stack limit before it
-    // becomes a published artifact. IgnoredAny walks structure without building
-    // a second execution record; deep typed terms cannot mint unreadable output.
-    let _: serde::de::IgnoredAny =
-        ciborium::de::from_reader_with_recursion_limit(output.0.as_slice(), MAX_RECEIPT_DEPTH)
-            .map_err(|error| {
-                result_err(format!(
-                    "native execution receipt exceeds its structural bound: {error}"
-                ))
-            })?;
+    // This is the old encoder's structural budget, independently of the typed
+    // decoder's visitor budget. Walk borrowed bytes without a second value tree.
+    check_structure(&output.0).map_err(|error| {
+        codec_err(
+            format!("native execution receipt exceeds its structural bound: {error}"),
+            error,
+        )
+    })?;
     Ok(purrdf_hash::hex::encode(&output.0))
 }
 
-/// Decode only the selected schema and one complete receipt. Semantic proof,
-/// scope and budget validation belongs to the enclosing result admission.
+/// Admit the selected schema and exact original emitted wire. The enclosing
+/// result admission remains responsible for semantic scope and source authority.
 pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvidence>> {
     if text.len() > MAX_RECEIPT_BYTES * 2 || !text.len().is_multiple_of(2) {
         return Err(result_err(
@@ -49,25 +82,40 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
     let bytes = purrdf_hash::hex::decode_canonical(text).map_err(|_| {
         result_err("native execution receipt requires canonical lowercase hex".into())
     })?;
-    let mut cursor = Cursor::new(bytes.as_slice());
-    let (schema, execution): (String, Box<NativeExecutionEvidence>) =
-        ciborium::de::from_reader_with_recursion_limit(&mut cursor, MAX_RECEIPT_DEPTH).map_err(
-            |error| result_err(format!("native execution receipt decoding failed: {error}")),
-        )?;
-    if schema != SCHEMA || cursor.position() != bytes.len() as u64 {
+    let mut input = Reader::new(&bytes).map_err(|error| {
+        codec_err(
+            format!("native execution receipt decoding failed: {error}"),
+            error,
+        )
+    })?;
+    let (schema, execution) = <(String, Box<NativeExecutionEvidence>)>::read_cbor(&mut input)
+        .map_err(|error| {
+            codec_err(
+                format!("native execution receipt decoding failed: {error}"),
+                error,
+            )
+        })?;
+    if schema != SCHEMA {
         return Err(result_err(
             "native execution receipt has the wrong schema or trailing bytes".into(),
         ));
     }
-    // Refuse unknown fields and alternate encodings that a permissive serde
-    // decoder might otherwise discard. Compare the selected codec's emission
-    // against the supplied bytes without allocating another receipt.
+    input.finish().map_err(|error| {
+        codec_err(
+            "native execution receipt has the wrong schema or trailing bytes".into(),
+            error,
+        )
+    })?;
     let mut canonical = ReceiptVerifier {
         expected: &bytes,
         consumed: 0,
     };
-    ciborium::ser::into_writer(&(SCHEMA, &execution), &mut canonical)
-        .map_err(|error| result_err(format!("noncanonical native execution receipt: {error}")))?;
+    write_envelope(&execution, &mut canonical).map_err(|error| {
+        codec_err(
+            format!("noncanonical native execution receipt: {error}"),
+            error,
+        )
+    })?;
     if canonical.consumed != bytes.len() {
         return Err(result_err(
             "native execution receipt contains unconsumed fields".into(),
@@ -78,9 +126,9 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
 
 /// The encoded size of each receipt field, so an oversized receipt names its cause.
 fn receipt_sizes(execution: &NativeExecutionEvidence) -> String {
-    fn size(value: &impl serde::Serialize) -> String {
+    fn size(value: &impl ExecutionCbor) -> String {
         let mut counter = ByteCounter(0);
-        match ciborium::ser::into_writer(value, &mut counter) {
+        match value.write_cbor(&mut counter) {
             Ok(()) => format!("{} B", counter.0),
             Err(error) => format!("unencodable ({error})"),
         }

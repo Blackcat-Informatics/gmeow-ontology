@@ -11,7 +11,7 @@ use gmeow_lang_bridge::registry::LangEmissionBatch;
 use gmeow_logic_compile::ir::{Correspondence, LegPath};
 use purrdf::slice::SliceCatalog;
 use purrdf::{ContentDigest, RdfDataset, parse_dataset};
-use serde::{Deserialize, Serialize};
+mod json;
 
 use crate::stages::gmn1_gate::{
     Gmn1CodebookDigestReport, Gmn1PackRootReport, check_gmn1_codebook_dataset,
@@ -23,7 +23,6 @@ pub(crate) const CHANNEL: &str = "pipeline/gmn-gate-observations.json";
 pub(crate) const NEGATIVE_SOURCE: &str =
     "slices/grounding/lang/tests/gmn1-vectors/negative-graph/envelope-digest-mismatch.ttl";
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct Observations {
     pub codebook: Gmn1CodebookDigestReport,
     pub codebook_sources: Vec<String>,
@@ -34,7 +33,6 @@ pub(crate) struct Observations {
     pub shipped: BTreeMap<String, ShippedWitness>,
 }
 
-#[derive(Serialize, Deserialize)]
 pub(crate) struct ShippedWitness {
     pub artifact_digest: String,
     pub source_iri: String,
@@ -47,6 +45,13 @@ pub(crate) struct ShippedWitness {
 pub(super) struct Recorder {
     pack: Option<(Arc<RdfDataset>, String)>,
     shipped: BTreeMap<String, ShippedWitness>,
+}
+
+impl Observations {
+    /// Publish the complete compact gate channel without a terminal newline.
+    pub(super) fn to_bytes(&self) -> Vec<u8> {
+        purrdf_lex::json::record::to_vec(self)
+    }
 }
 
 impl Recorder {
@@ -186,3 +191,6 @@ impl Recorder {
         })
     }
 }
+
+#[cfg(test)]
+mod tests;

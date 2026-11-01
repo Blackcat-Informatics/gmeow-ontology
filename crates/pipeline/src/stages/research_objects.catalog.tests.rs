@@ -31,6 +31,7 @@ fn authored_product(graph: &str, byte_bait: bool) -> StageProduct {
         BTreeMap::new()
     };
     StageProduct::from_artifacts_over("stage-mappings", dataset, artifacts)
+        .expect("the stage carrier digests")
 }
 
 fn admitted_catalog(product: StageProduct) -> GroundingCatalog {

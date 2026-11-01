@@ -1,0 +1,623 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:recordedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recorded at"@x-gmeow-english ;
+    skos:definition "A temporal value locating when this record was made, at the precision supplied by its source. This is transaction time of the record, distinct from occurrence, observation, assertion-witness, dispatch or creative-work creation time. A date, month or year does not assert midnight, a period-start instant or a timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use for record creation across record classes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the time of the described event for record creation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source datatype and timezone information exactly at the supplied precision; use recordedDuring for a period reference."@x-gmeow-english ;
+    skos:example "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+gmeow:updatedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "updated at"@x-gmeow-english ;
+    skos:definition "A temporal value locating the last change to this record or resource, at the precision supplied by its source. It does not date a change to the event described, assert an exact instant for a coarse value, or choose an unknown timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use for the last modification of the subject resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing recording or event time with a modification value."@x-gmeow-english ;
+    gmeow:howToUse "Preserve dateTime, date, gYearMonth or gYear as supplied; use updatedDuring for a period reference."@x-gmeow-english ;
+    skos:example "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] .
+
+gmeow:recordedDuring
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recorded during"@x-gmeow-english ;
+    skos:definition "Relates a record to an interval or a named period within which it was made. The period supplies temporal scope without manufacturing a recording instant."@x-gmeow-english ;
+    gmeow:useWhen "Use when record creation is located by a period entity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an unresolved phrase as a named period with established bounds."@x-gmeow-english ;
+    gmeow:howToUse "Reference an existing TimeInterval or NamedPeriod whose temporal meaning is established."@x-gmeow-english ;
+    skos:example "ex:record gmeow:recordedDuring ex:cataloguingSeason ."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:TimeInterval gmeow:NamedPeriod ) ] .
+
+gmeow:updatedDuring
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "updated during"@x-gmeow-english ;
+    skos:definition "Relates a resource to an interval or a named period within which its last change occurred. This locates modification without converting a period to an instant."@x-gmeow-english ;
+    gmeow:useWhen "Use when the last modification is known by a period entity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the period start as the last modification time."@x-gmeow-english ;
+    gmeow:howToUse "Reference the established interval or named period; retain any coarse literal independently."@x-gmeow-english ;
+    skos:example "ex:record gmeow:updatedDuring ex:revisionSeason ."@x-gmeow-english ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:TimeInterval gmeow:NamedPeriod ) ] .
+
+gmeow:entryOrdinal
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "entry ordinal"@x-gmeow-english ;
+    skos:definition "The zero-based position of an entry in its containing ordered sequence. Its scope is that sequence, not global identity, rank or importance. Different sequences or standpoints may order the same content differently."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve source document or list order on entry nodes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying a one-based or frame-dependent ordinal without conversion."@x-gmeow-english ;
+    gmeow:howToUse "Write a nonNegativeInteger on each occurrence node; use separate occurrences when content belongs to differently ordered sequences."@x-gmeow-english ;
+    skos:example "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:range xsd:nonNegativeInteger .
+
+gmeow:LabelledFacet
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Labelled Facet"@x-gmeow-english ;
+    skos:definition "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."@x-gmeow-english ;
+    gmeow:useWhen "Use for content whose field names are chosen at run time."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing reviewed domain properties with facets when their semantics already fit."@x-gmeow-english ;
+    gmeow:howToUse "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetLabel ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
+        [ a logic:Restriction ; logic:onProperty gmeow:facetValue ; logic:allValuesFrom rdfs:Literal ] .
+
+gmeow:hasFacet
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has facet"@x-gmeow-english ;
+    skos:definition "Relates a record or record part to a labelled content facet. It does not turn the facet label into a schema property or impose a single facet per label."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose run-time fields as graph content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring vocabulary identity from matching facet labels."@x-gmeow-english ;
+    gmeow:howToUse "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."@x-gmeow-english ;
+    logic:range gmeow:LabelledFacet .
+
+gmeow:facetLabel
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet label"@x-gmeow-english ;
+    skos:definition "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."@x-gmeow-english ;
+    gmeow:useWhen "Use for the exact run-time field name, including labels such as mood.tone or refs[]."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting this label into a predicate IRI or deriving facet identity from it."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetLabel \"mood.tone\" ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
+
+gmeow:facetLabelAsWritten
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet label as written"@x-gmeow-english ;
+    skos:definition "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source's label wording independently of the facet's required key or path."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."@x-gmeow-english ;
+    gmeow:howToUse "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."@x-gmeow-english ;
+    skos:scopeNote "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."@x-gmeow-english ;
+    skos:example "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:subPropertyOf lang:literalValue ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:LabelledFacet logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:facetLabelAsWritten ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+gmeow:facetText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet text"@x-gmeow-english ;
+    skos:definition "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."@x-gmeow-english ;
+    gmeow:useWhen "Use when the run-time field contains text."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stringifying numbers or booleans to fit this text property."@x-gmeow-english ;
+    gmeow:howToUse "Supply one string, language-tagged string or directional language string; use facetValue for typed scalar data."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:facetValue
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet value"@x-gmeow-english ;
+    skos:definition "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."@x-gmeow-english ;
+    gmeow:useWhen "Use when a run-time field carries a typed scalar literal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid representing a source null as an invented string or datatype value."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."@x-gmeow-english ;
+    skos:example "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range rdfs:Literal .
+
+gmeow:facetConcept
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet concept"@x-gmeow-english ;
+    skos:definition "A reviewed interpretation of a facet label as a GMEOW Concept. Multiple interpretations coexist; this relation neither replaces the label nor makes the concept a privileged meaning or schema predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use after reviewing a recurring facet label against a concept."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the truth of the labelled content from a label interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Link the facet to each reviewed Concept; retain the exact label and annotate the relation when standpoint or provenance matters."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetConcept ex:emotionalTone ."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ;
+    logic:range gmeow:Concept .
+
+gmeow:contextIncluded
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included"@x-gmeow-english ;
+    skos:definition "Relates a record to an information artifact present in the context in which the record was made. Inclusion records exposure, without asserting derivation, evidential support or actual use. The artifact carries its own contentDigest."@x-gmeow-english ;
+    gmeow:useWhen "Use to audit which input artifacts reached a creation context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating context presence as endorsement or causal dependence."@x-gmeow-english ;
+    gmeow:howToUse "Reference a reusable artifact node with its algorithm-labelled contentDigest; use the release or projection specialization when known."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncluded ex:inputArtifact ."@x-gmeow-english ;
+    logic:range gmeow:InformationObject .
+
+gmeow:contextIncludedRelease
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included release"@x-gmeow-english ;
+    skos:definition "Relates a record to the release artifact present in its creation context. The release is identified by its own digest, separately from any compiled projection; presence alone makes no claim of support or use."@x-gmeow-english ;
+    gmeow:useWhen "Use when the artifact supplied to the context is a release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching the release role to a projection merely derived from it."@x-gmeow-english ;
+    gmeow:howToUse "Link to the shared release node carrying contentDigest; type it as Manifestation only when it embodies an edition or format of an Expression."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncludedRelease ex:release ."@x-gmeow-english ;
+    logic:subPropertyOf gmeow:contextIncluded ;
+    logic:range gmeow:InformationObject .
+
+gmeow:contextIncludedProjection
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "context included projection"@x-gmeow-english ;
+    skos:definition "Relates a record to a compiled projection artifact present in its creation context. The projection has its own digest, distinct from the release it projects; inclusion does not assert that the original release was also present."@x-gmeow-english ;
+    gmeow:useWhen "Use when the context carries a compiled projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid copying the source release digest as the identity of projection bytes."@x-gmeow-english ;
+    gmeow:howToUse "Reference the shared projection node and its own contentDigest; record source derivation separately only with evidence."@x-gmeow-english ;
+    skos:example "ex:record gmeow:contextIncludedProjection ex:projection ."@x-gmeow-english ;
+    logic:subPropertyOf gmeow:contextIncluded ;
+    logic:range gmeow:InformationObject .
+
+gmeow:facetLabelFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetLabel is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetLabel on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetLabel slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetLabel functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetLabel."@x-gmeow-english ;
+    skos:example "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetLabel ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetLabel .
+
+gmeow:facetTextFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetText is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetText on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetText slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetText functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetText."@x-gmeow-english ;
+    skos:example "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetText ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetText .
+
+gmeow:facetValueFunctionality
+    a logic:NamedIndividual , logic:PropertyCharacteristicAssertion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "facetValue is functional"@x-gmeow-english ;
+    skos:definition "The canonical at-most-one obligation for facetValue on each facet. It does not require that the property be present."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce the single facetValue slot."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting facetValue functionality as a required value."@x-gmeow-english ;
+    gmeow:howToUse "Read with the facet restrictions; this record limits only facetValue."@x-gmeow-english ;
+    skos:example "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."@x-gmeow-english ;
+    logic:characterizes gmeow:facetValue ;
+    logic:characteristicSort logic:functionalProperty ;
+    logic:formalizes gmeow:facetValue .
+
+gmeow:FacetPayloadExclusionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Facet payload exclusion constraint"@x-gmeow-english ;
+    skos:definition "A facet with a text payload has no facetValue payload. Together with the two payload functionality records this admits zero or one total payload and rejects simultaneous text and typed-value slots."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep the two facet payload channels exclusive."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring either payload through this exclusion law."@x-gmeow-english ;
+    gmeow:howToUse "Apply to every subject of facetText; label-only facets satisfy this obligation."@x-gmeow-english ;
+    skos:example "ex:facet0 gmeow:facetText \"quiet\"@en ."@x-gmeow-english ;
+    logic:formalizes gmeow:LabelledFacet ;
+    logic:message "A facet must not carry both facetText and facetValue." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "text" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:facetText ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "text" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:facetValue ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ] ] .
+
+gmeow:ContextArtifactDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Context artifact digest constraint"@x-gmeow-english ;
+    skos:definition "Every artifact referenced by contextIncluded has a contentDigest value identifying its own bytes. The existing contentDigest contract retains multiple algorithm-labelled digests; this law invents no digest lexical datatype."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain artifact identity when auditing injected context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying artifact identity with the digest of the containing record."@x-gmeow-english ;
+    gmeow:howToUse "Place contentDigest on the referenced artifact; reuse that node across records."@x-gmeow-english ;
+    skos:example "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."@x-gmeow-english ;
+    logic:formalizes gmeow:contextIncluded ;
+    logic:message "A context artifact must carry its own contentDigest." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:contextIncluded ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "this" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+# The required label is a closed-world path, not an existential witness.
+[ a logic:ClosureEntry ;
+  logic:onClass gmeow:LabelledFacet ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/facetLabel" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+# These existing predicates describe last modification of the same resource.
+# Creative-work creation, observation and dispatch are deliberately not recording bridges.
+gmeow:noteModifiedAt logic:subPropertyOf gmeow:updatedAt .
+gmeow:dateModified logic:subPropertyOf gmeow:updatedAt .
+
+# Domain-free literal metadata still has an explicit closed-world range reading.
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/recordedAt" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/updatedAt" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ;
+  logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ;
+  logic:closureValue logic:ClosedWorldClosure ] .
+
+# Record intake: preserve source meaning and representation.
+gmeow:ReceptionChannel
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reception Channel"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the channel by which outside content reached a particular holder. It classifies reception, not authorship, truth or the content's subject."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish how outside content reached its holder."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a channel as proof of delivery, trust or a source node."@x-gmeow-english ;
+    gmeow:howToUse "Choose a channel on a holder-specific reception record; independent receptions use separate records."@x-gmeow-english ;
+    skos:scopeNote "The vocabulary is open. The same content can reach different holders or reach one holder through different receptions."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:receivedVia
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "received via"@x-gmeow-english ;
+    skos:definition "The channel by which outside content reached the holder of this reception record. The subject identifies one holder-specific reception, not a proposition shared by every holder."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported reception channel."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring the holder from source authorship or forcing independent receptions into one subject."@x-gmeow-english ;
+    gmeow:howToUse "Name one ReceptionChannel on the reception record and retain holder and source attribution with statement metadata."@x-gmeow-english ;
+    skos:scopeNote "Single-channel integrity is local to a reception record. Missing channel metadata does not imply a default channel."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."@x-gmeow-english ;
+    logic:range gmeow:ReceptionChannel .
+
+gmeow:originatingTrace
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "originating trace"@x-gmeow-english ;
+    skos:definition "The producer's unresolved identifier for the reasoning trace from which a record came, retained exactly as supplied. It is a source reference, not a trace object or proof of reasoning."@x-gmeow-english ;
+    gmeow:useWhen "Use when the producer supplies a trace identifier without a corresponding graph node."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a trace node or inferring trace identity from matching identifiers from unrelated producers."@x-gmeow-english ;
+    gmeow:howToUse "Keep the identifier as xsd:string; link an actual trace resource through provenance when it exists."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    skos:example "ex:record gmeow:originatingTrace \"trace:17\" ."@x-gmeow-english ;
+    logic:range xsd:string .
+
+gmeow:originatingPacket
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "originating packet"@x-gmeow-english ;
+    skos:definition "The producer's unresolved identifier for the message packet that produced or carried this record, retained exactly as supplied. It does not assert dispatch or receipt of a packet node."@x-gmeow-english ;
+    gmeow:useWhen "Use when a producer names an originating packet that is absent from the graph."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing an external packet identifier with the record's own identity."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string and retain its producer attribution; use actual message and provenance links when available."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    skos:example "ex:record gmeow:originatingPacket \"packet:8\" ."@x-gmeow-english ;
+    logic:range xsd:string .
+
+gmeow:MalformedValue
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Malformed Value"@x-gmeow-english ;
+    skos:definition "A rejected field occurrence retained as a LabelledFacet: the producer supplied a value that its declared contract did not admit. The occurrence preserves the field and source representation, not a repaired or asserted domain value."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a reported contract refusal beside the record that carried the field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the rejected text as a valid date, digest or domain code."@x-gmeow-english ;
+    gmeow:howToUse "Name the occurrence by source position; provide malformedField and valueAsSent and retain the refusal's provenance."@x-gmeow-english ;
+    skos:scopeNote "Typing records a reported refusal. These declarations do not execute an arbitrary producer contract or prove that its value was rejected."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."@x-gmeow-english ;
+    logic:subClassOf gmeow:LabelledFacet .
+
+gmeow:hasMalformedValue
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has malformed value"@x-gmeow-english ;
+    skos:definition "Relates a record to a retained rejected field occurrence supplied by its producer. It specializes hasFacet and does not assert the rejected value on the intended domain predicate."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep each rejected field occurrence reachable from its source record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping a refusal or silently replacing it with a guessed value."@x-gmeow-english ;
+    gmeow:howToUse "Link a separate MalformedValue for each occurrence, including repeated field names."@x-gmeow-english ;
+    skos:scopeNote "Several refused fields and repeated keys coexist. The relation records retention, not successful parsing or repair."@x-gmeow-english ;
+    skos:example "ex:record gmeow:hasMalformedValue ex:badDate ."@x-gmeow-english ;
+    logic:range gmeow:MalformedValue ; logic:subPropertyOf gmeow:hasFacet .
+
+gmeow:malformedField
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "malformed field"@x-gmeow-english ;
+    skos:definition "The exact producer field name, relative path or term spelling identifying a rejected field occurrence. It specializes facetLabel without imposing a universal path syntax."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain where the producer supplied a refused value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid token normalization or interpreting path punctuation without the producer's contract."@x-gmeow-english ;
+    gmeow:howToUse "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."@x-gmeow-english ;
+    skos:scopeNote "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."@x-gmeow-english ;
+    skos:example "ex:badDate gmeow:malformedField \"history[0].date\" ."@x-gmeow-english ;
+    logic:domain gmeow:MalformedValue ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ; logic:subPropertyOf gmeow:facetLabel .
+
+gmeow:valueAsSent
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "value as sent"@x-gmeow-english ;
+    skos:definition "The exact character representation supplied for a rejected field occurrence, retained as xsd:string. It preserves source characters without asserting the datatype or domain value the producer failed to supply."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a rejected representation for audit and possible later interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid repairing, trimming, normalizing or assigning an invalid domain datatype to the retained text."@x-gmeow-english ;
+    gmeow:howToUse "Keep the chosen source field representation character for character and document its capture boundary with provenance."@x-gmeow-english ;
+    skos:scopeNote "Character preservation does not certify original bytes, encoding, transport escapes or a complete source serialization; retain an artifact separately when those are needed."@x-gmeow-english ;
+    skos:example "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."@x-gmeow-english ;
+    logic:domain gmeow:MalformedValue ; logic:range xsd:string ; logic:subPropertyOf gmeow:facetText .
+
+gmeow:evidenceAsWritten
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evidence as written"@x-gmeow-english ;
+    skos:definition "Evidence cited by a record's writer, retained in the writer's own words, including a title, identifier spelling or sentence. It is not a resolved evidential link or a claim that the evidence supports the record."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source wording of an evidence citation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring support, citation identity or successful resolution from these words."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the text and any supplied language and direction; add established evidence links separately."@x-gmeow-english ;
+    skos:scopeNote "Untagged source text remains xsd:string. No language, evidence node or evidential verdict is invented."@x-gmeow-english ;
+    skos:example "ex:record gmeow:evidenceAsWritten \"See the workshop minutes.\"@en ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:evidenceReference
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evidence reference"@x-gmeow-english ;
+    skos:definition "An unresolved producer reference cited as evidence by a record, retained exactly as supplied. It preserves a reference without inventing the resource it might identify."@x-gmeow-english ;
+    gmeow:useWhen "Use for an evidence identifier that cannot be resolved to a graph node."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating identifiers from unrelated producer namespaces or treating them as support verdicts."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string with its source attribution; use a resolved evidence relation when established."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    skos:example "ex:record gmeow:evidenceReference \"minutes:17\" ."@x-gmeow-english ;
+    logic:range xsd:string .
+
+gmeow:durabilityReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "durability reason"@x-gmeow-english ;
+    skos:definition "Why a record was kept durably, exactly as its writer stated it. This descriptive wording does not itself establish a storage policy, retention duration or successful durable write."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve a stated reason for durable retention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving durable storage or a retention guarantee from the reason alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the writer's text with supplied language and direction; record actual storage evidence separately."@x-gmeow-english ;
+    skos:scopeNote "Reasons are nonfunctional descriptions: different writers and standpoints may supply different explanations."@x-gmeow-english ;
+    skos:example "ex:record gmeow:durabilityReason \"Keep the signed decision for audit.\"@en ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ; logic:subPropertyOf gmeow:description .
+
+gmeow:suppressionReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "suppression reason"@x-gmeow-english ;
+    skos:definition "Why a particular displayable false assertion was made, exactly as stated by its writer. The reason belongs on that assertion's RDF 1.2 reifier and does not itself suppress any resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the stated reason for a specific suppression assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying a reason to every statement about the same subject or inferring suppression from prose."@x-gmeow-english ;
+    gmeow:howToUse "Place the reason on the explicit rdf:reifies record for the displayable false statement and retain its attribution."@x-gmeow-english ;
+    skos:scopeNote "The binding law checks the existing lowered statement components. Validation needs completed statement-metadata lowering; it does not authenticate the writer or execute display policy."@x-gmeow-english ;
+    skos:example "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"Withdrawn by the writer.\"@en ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ; logic:subPropertyOf gmeow:description .
+
+gmeow:receptionChannelConversation
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "conversation"@x-gmeow-english ;
+    skos:definition "Content said to the holder by another participant in a conversation."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported conversation reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."@x-gmeow-english .
+
+gmeow:receptionChannelToolAnswer
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "tool answer"@x-gmeow-english ;
+    skos:definition "Content returned in answer to a tool call made by the holder."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported tool answer reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."@x-gmeow-english .
+
+gmeow:receptionChannelSensorFeed
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "sensor feed"@x-gmeow-english ;
+    skos:definition "Content perceived by the holder through a sensor feed."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported sensor feed reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."@x-gmeow-english .
+
+gmeow:receptionChannelDocumentRead
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "document read"@x-gmeow-english ;
+    skos:definition "Content read by the holder in a document, including a work passage or a repository file."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported document read reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."@x-gmeow-english .
+
+gmeow:receptionChannelWebFetch
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "web fetch"@x-gmeow-english ;
+    skos:definition "Content fetched from the web for the holder."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported web fetch reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."@x-gmeow-english .
+
+gmeow:receptionChannelOrganNotice
+    a logic:NamedIndividual , gmeow:ReceptionChannel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "component notice"@x-gmeow-english ;
+    skos:definition "Content sent to the holder as a notice by another component of the same system."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported component notice reception."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a channel from the content's author, truth or media type alone."@x-gmeow-english ;
+    gmeow:howToUse "Select this value on a holder-specific reception record; retain actual source links separately."@x-gmeow-english ;
+    skos:scopeNote "This value classifies reception only and does not establish trust, authorship or successful execution."@x-gmeow-english ;
+    skos:example "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."@x-gmeow-english .
+
+
+# Canonical record-intake integrity.
+gmeow:ReceptionChannelUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reception channel uniqueness constraint"@x-gmeow-english ;
+    skos:definition "A holder-specific reception record supplies at most one receivedVia channel. Independent receptions use distinct records, so the law does not identify channel values or choose a global winner."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared reception channel uniqueness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The law concerns the reception record's own supplied channels, not every holder of the same content."@x-gmeow-english ;
+    skos:example "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."@x-gmeow-english ;
+    logic:formalizes gmeow:receivedVia ;
+    logic:message "A holder-specific reception record supplies at most one receivedVia channel. Independent receptions use distinct records, so the law does not identify channel values or choose a global winner." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:receivedVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation gmeow:receivedVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:SuppressionReasonBindingConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Suppression reason binding constraint"@x-gmeow-english ;
+    skos:definition "Every supplied suppressionReason is attached to the reifier of a displayable false statement, identified by its existing lowered subject, predicate and object components."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the declared suppression reason binding constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this source-integrity law as an execution or authenticity receipt."@x-gmeow-english ;
+    gmeow:howToUse "Validate the supplied record and its own linked evidence in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Completed statement-metadata lowering is required. This checks retained statement binding, not author authenticity, asserted truth or execution of display policy."@x-gmeow-english ;
+    skos:example "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."@x-gmeow-english ;
+    logic:formalizes gmeow:suppressionReason ;
+    logic:message "Every supplied suppressionReason is attached to the reifier of a displayable false statement, identified by its existing lowered subject, predicate and object components." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:suppressionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reason" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "subject" ] , [ logic:termIndex 1 ; logic:termVariable "object" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "subject" ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:displayable ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "object" ] ] , [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "object" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] ] ] .
+
+
+
+gmeow:MalformedValue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:malformedField ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MalformedValue ; logic:closureKey "https://blackcatinformatics.ca/gmeow/malformedField" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:MalformedValue logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:valueAsSent ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:valueAsSent ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:MalformedValue ; logic:closureKey "https://blackcatinformatics.ca/gmeow/valueAsSent" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+
+# Explicit property-range validation; no required path on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/receivedVia" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/originatingTrace" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/originatingPacket" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasMalformedValue" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/malformedField" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/valueAsSent" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evidenceAsWritten" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evidenceReference" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/durabilityReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/suppressionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-attributed rationale and operation completion.
+
+gmeow:statedRationale
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "stated rationale"@x-gmeow-english ;
+    skos:definition "A source's verbatim stated reason for the record or claim bearing it. The wording is an attributed explanation, not a computed cause, independently verified fact or proof that the explanation is true."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source supplies a reason on an event, information record or exact statement reifier without a narrower applicable rationale relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an unstated reason, converting explanation text into causation or forcing its bearer into Entity through description."@x-gmeow-english ;
+    gmeow:howToUse "Preserve exact text and supplied language or RDF 1.2 base direction. Keep writer and standpoint attribution on the original statement when supplied; specialized rationale statements retain their own source identity."@x-gmeow-english ;
+    skos:scopeNote "The property has no domain or description superproperty and is nonfunctional. Untagged source strings and competing attributed explanations remain valid; an inferred general rationale is not a newly authored source assertion."@x-gmeow-english ;
+    skos:example "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/statedRationale" ; logic:closureValue logic:ClosedWorldClosure ] .

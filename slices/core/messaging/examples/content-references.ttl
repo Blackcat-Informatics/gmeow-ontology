@@ -1,0 +1,66 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/messaging/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A studio sends a generated chart. The body wrapper, delivery file and source
+# bytes retain separate identities. Digest literals stand for source-supplied
+# identities in this illustrative catalogue, not newly computed artifacts.
+ex:chartNotice a gmeow:Message ;
+    gmeow:hasBodyPart ex:chartPart ;
+    gmeow:partOfThread ex:studioThread ;
+    gmeow:contentOrigin gmeow:originComposed , gmeow:originGenerated ;
+    gmeow:sentAt "2026-10-29T10:00:00Z"^^xsd:dateTime ;
+    gmeow:receivedAt "2026-10-29T10:00:01Z"^^xsd:dateTime .
+
+ex:studioThread a gmeow:Thread .
+
+ex:chartPart a gmeow:BodyPart ;
+    gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
+    gmeow:partMedia ex:deliveryFile .
+
+ex:chartWork a gmeow:Work .
+ex:chartExpression a gmeow:Expression ;
+    gmeow:realizes ex:chartWork .
+
+ex:deliveryFile a gmeow:MediaObject ;
+    gmeow:embodies ex:chartExpression ;
+    gmeow:contentDigest "sha256:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:sourceMedia ex:generatorOutput ;
+    gmeow:hasTag gmeow:tagContainsIllustrativeText .
+
+# The source was not retained as a published file. Its producer-reported
+# identity is still useful for linking other encodings of the same source bytes.
+ex:generatorOutput a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:2222222222222222222222222222222222222222222222222222222222222222" .
+
+# A response answers words known only by digest. Nothing here asserts that
+# those words were a transmitted message or are available in this archive.
+ex:answer a gmeow:Message ;
+    gmeow:partOfThread ex:studioThread ;
+    gmeow:repliesToContent ex:externalWords ;
+    gmeow:contentOrigin gmeow:originComposed .
+
+ex:externalWords a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:3333333333333333333333333333333333333333333333333333333333333333" .
+
+# A deliberately stated commitment has the same composition source distinction,
+# without asserting that the commitment has been fulfilled.
+ex:commitmentText a gmeow:InformationObject ;
+    gmeow:contentOrigin gmeow:originComposed .
+
+# The archive also keeps communication that did not reach its intended audience.
+# These are separate source reports; none is inferred from missing reply edges.
+ex:blockedFollowup a gmeow:Message ;
+    gmeow:partOfThread ex:studioThread ;
+    gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard .
+
+ex:providerRejectedFollowup a gmeow:Message ;
+    gmeow:partOfThread ex:studioThread ;
+    gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider .
+
+ex:incomingRequest a gmeow:Message ;
+    gmeow:partOfThread ex:studioThread ;
+    gmeow:replyOutcome gmeow:replyFailedCognition .

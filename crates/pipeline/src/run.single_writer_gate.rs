@@ -8,13 +8,13 @@ use std::collections::BTreeMap;
 fn gts_writer(id: &str) -> StageProduct {
     let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     a.insert(GTS_PATH.to_string(), b"gts-bytes".to_vec());
-    StageProduct::from_artifacts(id, a)
+    StageProduct::from_artifacts(id, a).expect("the stage carrier digests")
 }
 
 fn plain(id: &str) -> StageProduct {
     let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
     a.insert("generated/other.ttl".to_string(), b"x".to_vec());
-    StageProduct::from_artifacts(id, a)
+    StageProduct::from_artifacts(id, a).expect("the stage carrier digests")
 }
 
 fn products(items: Vec<StageProduct>) -> BTreeMap<String, StageProduct> {

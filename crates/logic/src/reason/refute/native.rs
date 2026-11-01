@@ -4,6 +4,7 @@
 //! World-local family observations over the shared native fixed point. Positive
 //! conflict support is independent of writer completion and whole-model admission.
 
+mod receipt_cbor;
 mod source_support;
 pub(crate) use source_support::NativeProofLookup;
 

@@ -18,8 +18,8 @@ fn native_observation_preserves_literal_components_and_polarity() {
         negated: true,
     };
     let observed = inspect_atom(&atom).unwrap();
-    let bytes = serde_json::to_vec(&observed).unwrap();
-    let restored: RcAtom = serde_json::from_slice(&bytes).unwrap();
+    let bytes = purrdf_lex::json::record::to_vec(&observed);
+    let restored: RcAtom = purrdf_lex::json::record::from_slice(&bytes).unwrap();
     assert!(restored.negated);
     assert_eq!(restored.subject, RcTerm::Var("?s".to_owned()));
     assert_eq!(restored.object, RcTerm::Literal(literal));

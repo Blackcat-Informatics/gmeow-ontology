@@ -1,0 +1,870 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: record-metadata, language: fr).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label as written"
+msgstr "étiquette de facette telle qu’écrite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."
+msgstr "Formulation d’une étiquette de facette fournie par la source, conservée à côté de sa clé machine ou de son chemin relatif. Le littéral préserve sa forme lexicale ainsi que toute langue et direction fournies ; une langue ou une direction non précisée reste non précisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's label wording independently of the facet's required key or path."
+msgstr "Utiliser pour conserver la formulation de l’étiquette source indépendamment de la clé ou du chemin requis de la facette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."
+msgstr "Éviter de remplacer facetLabel, de traiter la formulation de l’étiquette comme une charge facetText, de normaliser les espaces ou d’inventer une clé token à partir de la formulation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."
+msgstr "Conserver chaque littéral d’étiquette fourni avec sa forme lexicale, sa langue et sa direction d’origine. Garder facetLabel séparément et utiliser la provenance des assertions pour les formulations attribuées indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."
+msgstr "Facultative et non fonctionnelle : plusieurs formulations d’étiquette fournies peuvent coexister. Cette propriété ne spécialise ni facetLabel ni facetText, ne fournit aucune clé ou charge manquante et ne choisit aucune formulation préférée ni ne déduit d’identité de vocabulaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."
+msgstr "Une facette peut conserver la formulation de l’étiquette source séparément de sa clé machine requise et de sa charge textuelle ou typée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded at"
+msgstr "enregistré à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A temporal value locating when this record was made, at the precision supplied by its source. This is transaction time of the record, distinct from occurrence, observation, assertion-witness, dispatch or creative-work creation time. A date, month or year does not assert midnight, a period-start instant or a timezone."
+msgstr "Valeur temporelle situant la création de cet enregistrement, à la précision fournie par sa source. Il s’agit du temps de transaction de l’enregistrement, distinct du temps de survenue, d’observation, de témoignage d’assertion, d’envoi ou de création d’une œuvre. Une date, un mois ou une année n’affirme ni minuit, ni un instant de début de période, ni un fuseau horaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for record creation across record classes."
+msgstr "Utiliser pour la création d’enregistrements de toute classe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the time of the described event for record creation."
+msgstr "Éviter de substituer le temps de l’événement décrit à la création de l’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source datatype and timezone information exactly at the supplied precision; use recordedDuring for a period reference."
+msgstr "Conserver le type de données et les informations de fuseau horaire de la source à la précision fournie ; utiliser recordedDuring pour une référence à une période."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."
+msgstr "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "updated at"
+msgstr "modifié à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A temporal value locating the last change to this record or resource, at the precision supplied by its source. It does not date a change to the event described, assert an exact instant for a coarse value, or choose an unknown timezone."
+msgstr "Valeur temporelle situant la dernière modification de cet enregistrement ou de cette ressource, à la précision fournie par sa source. Elle ne date pas une modification de l’événement décrit, n’affirme pas un instant exact pour une valeur grossière et ne choisit pas un fuseau horaire inconnu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the last modification of the subject resource."
+msgstr "Utiliser pour la dernière modification de la ressource sujet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing recording or event time with a modification value."
+msgstr "Éviter de remplacer le temps d’enregistrement ou d’événement par une valeur de modification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve dateTime, date, gYearMonth or gYear as supplied; use updatedDuring for a period reference."
+msgstr "Conserver dateTime, date, gYearMonth ou gYear tel que fourni ; utiliser updatedDuring pour une référence à une période."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."
+msgstr "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded during"
+msgstr "enregistré durant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to an interval or a named period within which it was made. The period supplies temporal scope without manufacturing a recording instant."
+msgstr "Relie un enregistrement à un intervalle ou à une période nommée durant lequel il a été créé. La période fournit une portée temporelle sans fabriquer un instant d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when record creation is located by a period entity."
+msgstr "Utiliser lorsque la création d’un enregistrement est située par une entité période."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an unresolved phrase as a named period with established bounds."
+msgstr "Éviter de traiter une expression non résolue comme une période nommée aux bornes établies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an existing TimeInterval or NamedPeriod whose temporal meaning is established."
+msgstr "Référencer un TimeInterval ou un NamedPeriod existant dont le sens temporel est établi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:recordedDuring ex:cataloguingSeason ."
+msgstr "ex:record gmeow:recordedDuring ex:cataloguingSeason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "updated during"
+msgstr "modifié durant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a resource to an interval or a named period within which its last change occurred. This locates modification without converting a period to an instant."
+msgstr "Relie une ressource à un intervalle ou à une période nommée durant lequel sa dernière modification a eu lieu. Cela situe la modification sans convertir une période en instant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the last modification is known by a period entity."
+msgstr "Utiliser lorsque la dernière modification est connue par une entité période."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the period start as the last modification time."
+msgstr "Éviter de traiter le début de la période comme le temps de dernière modification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the established interval or named period; retain any coarse literal independently."
+msgstr "Référencer l’intervalle ou la période nommée établi ; conserver indépendamment toute valeur littérale grossière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:updatedDuring ex:revisionSeason ."
+msgstr "ex:record gmeow:updatedDuring ex:revisionSeason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry ordinal"
+msgstr "rang de l’entrée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The zero-based position of an entry in its containing ordered sequence. Its scope is that sequence, not global identity, rank or importance. Different sequences or standpoints may order the same content differently."
+msgstr "Position d’une entrée, comptée à partir de zéro, dans la séquence ordonnée qui la contient. Sa portée est cette séquence, et non l’identité globale, le classement ou l’importance. Des séquences ou points de vue différents peuvent ordonner différemment le même contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve source document or list order on entry nodes."
+msgstr "Utiliser pour préserver l’ordre du document source ou de la liste sur les nœuds d’entrée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a one-based or frame-dependent ordinal without conversion."
+msgstr "Éviter de copier sans conversion un rang compté à partir de un ou dépendant d’un cadre."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write a nonNegativeInteger on each occurrence node; use separate occurrences when content belongs to differently ordered sequences."
+msgstr "Inscrire un nonNegativeInteger sur chaque nœud d’occurrence ; utiliser des occurrences distinctes lorsque le contenu appartient à des séquences ordonnées différemment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+msgstr "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Labelled Facet"
+msgstr "Facette étiquetée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."
+msgstr "Objet informationnel portant une étiquette d’exécution conservée textuellement et au plus une charge littérale parmi facetText et facetValue. Une facette sans charge préserve une clé présente ; elle ne distingue pas une valeur nulle d’une valeur source vide. Les étiquettes sont des données, pas des prédicats ontologiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for content whose field names are chosen at run time."
+msgstr "Utiliser pour du contenu dont les noms de champs sont choisis à l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing reviewed domain properties with facets when their semantics already fit."
+msgstr "Éviter de remplacer des propriétés de domaine révisées par des facettes lorsque leur sens convient déjà."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."
+msgstr "Nommer une facette selon sa position source, la rattacher avec hasFacet, préserver facetLabel et ajouter seulement la charge appropriée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"quiet\"@en ."
+msgstr "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"calme\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has facet"
+msgstr "a pour facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record or record part to a labelled content facet. It does not turn the facet label into a schema property or impose a single facet per label."
+msgstr "Relie un enregistrement ou une partie d’enregistrement à une facette de contenu étiquetée. Cette relation ne transforme pas l’étiquette en propriété de schéma et n’impose pas une facette unique par étiquette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose run-time fields as graph content."
+msgstr "Utiliser pour exposer des champs d’exécution comme contenu du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring vocabulary identity from matching facet labels."
+msgstr "Éviter d’inférer une identité de vocabulaire à partir d’étiquettes de facettes identiques."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."
+msgstr "Relier chaque occurrence de feuille à l’enregistrement ou à la partie qui la contient ; conserver l’ordre source avec entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."
+msgstr "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label"
+msgstr "étiquette de facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."
+msgstr "La clé source verbatim ou le chemin relatif fourni par le producteur qui étiquette une facette. Conserver le type xsd:string ou xsd:token fourni, la casse, les espaces et la ponctuation ; aucune normalisation des espaces ni grammaire de chemin n’est impliquée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the exact run-time field name, including labels such as mood.tone or refs[]."
+msgstr "Utiliser pour le nom exact du champ d’exécution, y compris des étiquettes comme mood.tone ou refs[]."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting this label into a predicate IRI or deriving facet identity from it."
+msgstr "Éviter de placer cette étiquette dans une IRI de prédicat ou d’en déduire l’identité de la facette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."
+msgstr "Fournir exactement un littéral source par facette en conservant son type xsd:string ou xsd:token ; garder les clés répétées sur des facettes distinctes nommées par position."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
+msgstr "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet text"
+msgstr "texte de facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."
+msgstr "Charge textuelle d’une facette étiquetée, conservée textuellement avec toute langue et direction de la source. Elle exclut un facetValue simultané mais permet à la facette de ne porter aucune charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the run-time field contains text."
+msgstr "Utiliser lorsque le champ d’exécution contient du texte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stringifying numbers or booleans to fit this text property."
+msgstr "Éviter de convertir des nombres ou booléens en chaînes pour cette propriété textuelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one string, language-tagged string or directional language string; use facetValue for typed scalar data."
+msgstr "Fournir une chaîne, une chaîne avec étiquette de langue ou une chaîne directionnelle avec langue ; utiliser facetValue pour les données scalaires typées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetText \"quiet\"@en ."
+msgstr "ex:facet0 gmeow:facetText \"calme\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet value"
+msgstr "valeur de facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."
+msgstr "Charge littérale d’une facette étiquetée avec le type de données fourni par sa source, notamment les nombres et booléens. Son type est conservé sans conversion en chaîne ; aucun facetText simultané n’est permis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a run-time field carries a typed scalar literal."
+msgstr "Utiliser lorsqu’un champ d’exécution porte un littéral scalaire typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid representing a source null as an invented string or datatype value."
+msgstr "Éviter de représenter une valeur source nulle par une chaîne ou une valeur typée inventée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."
+msgstr "Conserver le type et la forme lexicale du littéral original ; omettre les deux propriétés de charge pour une facette sans charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."
+msgstr "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet concept"
+msgstr "concept de facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reviewed interpretation of a facet label as a GMEOW Concept. Multiple interpretations coexist; this relation neither replaces the label nor makes the concept a privileged meaning or schema predicate."
+msgstr "Interprétation révisée d’une étiquette de facette comme Concept GMEOW. Plusieurs interprétations coexistent ; cette relation ne remplace pas l’étiquette et ne fait du concept ni un sens privilégié ni un prédicat de schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use after reviewing a recurring facet label against a concept."
+msgstr "Utiliser après révision d’une étiquette de facette récurrente au regard d’un concept."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the truth of the labelled content from a label interpretation."
+msgstr "Éviter d’inférer la vérité du contenu étiqueté à partir d’une interprétation de l’étiquette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the facet to each reviewed Concept; retain the exact label and annotate the relation when standpoint or provenance matters."
+msgstr "Relier la facette à chaque Concept révisé ; conserver l’étiquette exacte et annoter la relation lorsque le point de vue ou la provenance importe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetConcept ex:emotionalTone ."
+msgstr "ex:facet0 gmeow:facetConcept ex:emotionalTone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included"
+msgstr "contexte contenant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to an information artifact present in the context in which the record was made. Inclusion records exposure, without asserting derivation, evidential support or actual use. The artifact carries its own contentDigest."
+msgstr "Relie un enregistrement à un artefact informationnel présent dans le contexte de sa création. L’inclusion consigne une exposition sans affirmer dérivation, appui probant ou utilisation effective. L’artefact porte son propre contentDigest."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to audit which input artifacts reached a creation context."
+msgstr "Utiliser pour auditer les artefacts d’entrée présents dans un contexte de création."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating context presence as endorsement or causal dependence."
+msgstr "Éviter de traiter la présence dans le contexte comme une approbation ou une dépendance causale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a reusable artifact node with its algorithm-labelled contentDigest; use the release or projection specialization when known."
+msgstr "Référencer un nœud d’artefact réutilisable avec son contentDigest préfixé par l’algorithme ; utiliser la spécialisation de publication ou de projection lorsqu’elle est connue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncluded ex:inputArtifact ."
+msgstr "ex:record gmeow:contextIncluded ex:inputArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included release"
+msgstr "contexte contenant une publication"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to the release artifact present in its creation context. The release is identified by its own digest, separately from any compiled projection; presence alone makes no claim of support or use."
+msgstr "Relie un enregistrement à l’artefact de publication présent dans son contexte de création. La publication est identifiée par sa propre empreinte, séparément de toute projection compilée ; sa présence seule n’affirme ni appui ni utilisation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the artifact supplied to the context is a release."
+msgstr "Utiliser lorsque l’artefact fourni au contexte est une publication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching the release role to a projection merely derived from it."
+msgstr "Éviter d’attribuer le rôle de publication à une projection simplement dérivée de celle-ci."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link to the shared release node carrying contentDigest; type it as Manifestation only when it embodies an edition or format of an Expression."
+msgstr "Relier au nœud partagé de publication portant contentDigest ; le typer comme Manifestation seulement lorsqu’il matérialise une édition ou un format d’une Expression."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncludedRelease ex:release ."
+msgstr "ex:record gmeow:contextIncludedRelease ex:release ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included projection"
+msgstr "contexte contenant une projection"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to a compiled projection artifact present in its creation context. The projection has its own digest, distinct from the release it projects; inclusion does not assert that the original release was also present."
+msgstr "Relie un enregistrement à un artefact de projection compilée présent dans son contexte de création. La projection possède sa propre empreinte, distincte de la publication projetée ; son inclusion n’affirme pas que la publication originale était aussi présente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the context carries a compiled projection."
+msgstr "Utiliser lorsque le contexte contient une projection compilée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying the source release digest as the identity of projection bytes."
+msgstr "Éviter de copier l’empreinte de la publication source comme identité des octets de projection."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the shared projection node and its own contentDigest; record source derivation separately only with evidence."
+msgstr "Référencer le nœud partagé de projection et son propre contentDigest ; consigner séparément la dérivation de la source seulement avec des éléments probants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncludedProjection ex:projection ."
+msgstr "ex:record gmeow:contextIncludedProjection ex:projection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetLabel is functional"
+msgstr "facetLabel est fonctionnel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetLabel on each facet. It does not require that the property be present."
+msgstr "Obligation canonique d’au plus une valeur de facetLabel par facette. Elle n’exige pas la présence de cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetLabel slot."
+msgstr "Utiliser pour faire respecter l’unicité du champ facetLabel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetLabel functionality as a required value."
+msgstr "Éviter d’interpréter la fonctionnalité de facetLabel comme une valeur obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetLabel."
+msgstr "Lire avec les restrictions de facette ; cet énoncé limite uniquement facetLabel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."
+msgstr "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetText is functional"
+msgstr "facetText est fonctionnel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetText on each facet. It does not require that the property be present."
+msgstr "Obligation canonique d’au plus une valeur de facetText par facette. Elle n’exige pas la présence de cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetText slot."
+msgstr "Utiliser pour faire respecter l’unicité du champ facetText."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetText functionality as a required value."
+msgstr "Éviter d’interpréter la fonctionnalité de facetText comme une valeur obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetText."
+msgstr "Lire avec les restrictions de facette ; cet énoncé limite uniquement facetText."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."
+msgstr "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetValue is functional"
+msgstr "facetValue est fonctionnel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetValue on each facet. It does not require that the property be present."
+msgstr "Obligation canonique d’au plus une valeur de facetValue par facette. Elle n’exige pas la présence de cette propriété."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetValue slot."
+msgstr "Utiliser pour faire respecter l’unicité du champ facetValue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetValue functionality as a required value."
+msgstr "Éviter d’interpréter la fonctionnalité de facetValue comme une valeur obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetValue."
+msgstr "Lire avec les restrictions de facette ; cet énoncé limite uniquement facetValue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."
+msgstr "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Facet payload exclusion constraint"
+msgstr "Contrainte d’exclusion des charges de facette"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A facet with a text payload has no facetValue payload. Together with the two payload functionality records this admits zero or one total payload and rejects simultaneous text and typed-value slots."
+msgstr "Une facette portant une charge textuelle ne porte aucune charge facetValue. Avec les deux énoncés de fonctionnalité des charges, cela admet zéro ou une charge totale et rejette la présence simultanée des champs textuel et typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the two facet payload channels exclusive."
+msgstr "Utiliser pour rendre exclusifs les deux canaux de charge de facette."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring either payload through this exclusion law."
+msgstr "Éviter d’exiger une charge par cette loi d’exclusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply to every subject of facetText; label-only facets satisfy this obligation."
+msgstr "Appliquer à tout sujet de facetText ; les facettes sans charge satisfont cette obligation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetText \"quiet\"@en ."
+msgstr "ex:facet0 gmeow:facetText \"calme\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Context artifact digest constraint"
+msgstr "Contrainte d’empreinte des artefacts de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every artifact referenced by contextIncluded has a contentDigest value identifying its own bytes. The existing contentDigest contract retains multiple algorithm-labelled digests; this law invents no digest lexical datatype."
+msgstr "Tout artefact référencé par contextIncluded porte une valeur contentDigest identifiant ses propres octets. Le contrat existant de contentDigest conserve plusieurs empreintes préfixées par l’algorithme ; cette loi n’invente aucun type lexical d’empreinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain artifact identity when auditing injected context."
+msgstr "Utiliser pour conserver l’identité des artefacts lors de l’audit du contexte injecté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying artifact identity with the digest of the containing record."
+msgstr "Éviter de satisfaire l’identité de l’artefact avec l’empreinte de l’enregistrement qui le contient."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place contentDigest on the referenced artifact; reuse that node across records."
+msgstr "Placer contentDigest sur l’artefact référencé ; réutiliser ce nœud entre les enregistrements."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
+msgstr "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "record metadata"
+msgstr "métadonnées d’enregistrement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Generic recording and modification time, local sequence order, run-time labelled content and digest-identified creation-context artifacts."
+msgstr "Temps génériques d’enregistrement et de modification, ordre local de séquence, contenu étiqueté à l’exécution et artefacts du contexte de création identifiés par empreinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://purl.org/dc/terms/title"
+msgid "GMEOW Record Metadata Module"
+msgstr "Module GMEOW de métadonnées d’enregistrement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Record stores, structured-content importers and context-exposure audits that need domain-independent metadata without inventing predicates from run-time keys."
+msgstr "Magasins d’enregistrements, importateurs de contenu structuré et audits d’exposition au contexte nécessitant des métadonnées indépendantes du domaine sans inventer des prédicats à partir de clés d’exécution."
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception Channel"
+msgstr "Canal de réception"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the channel by which outside content reached a particular holder. It classifies reception, not authorship, truth or the content's subject."
+msgstr "Vocabulaire ouvert des canaux par lesquels un contenu extérieur parvient à un détenteur particulier. Il classe la réception, non la paternité, la vérité ou le sujet du contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open. The same content can reach different holders or reach one holder through different receptions."
+msgstr "Le vocabulaire est ouvert. Un même contenu peut parvenir à plusieurs détenteurs ou par plusieurs réceptions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received via"
+msgstr "reçu par"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The channel by which outside content reached the holder of this reception record. The subject identifies one holder-specific reception, not a proposition shared by every holder."
+msgstr "Canal par lequel un contenu extérieur est parvenu au détenteur de cet enregistrement de réception. Le sujet identifie une réception propre à un détenteur, non une proposition commune à tous."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Single-channel integrity is local to a reception record. Missing channel metadata does not imply a default channel."
+msgstr "L’intégrité d’un canal unique porte sur un enregistrement de réception. L’absence de métadonnée ne donne aucun canal par défaut."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating trace"
+msgstr "trace d’origine"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the reasoning trace from which a record came, retained exactly as supplied. It is a source reference, not a trace object or proof of reasoning."
+msgstr "Identifiant non résolu, fourni par le producteur, de la trace de raisonnement dont provient un enregistrement, conservé exactement. C’est une référence de source, non un objet trace ni une preuve de raisonnement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingTrace \"trace:17\" ."
+msgstr "ex:record gmeow:originatingTrace \"trace:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating packet"
+msgstr "paquet d’origine"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the message packet that produced or carried this record, retained exactly as supplied. It does not assert dispatch or receipt of a packet node."
+msgstr "Identifiant non résolu du producteur pour le paquet de message ayant produit ou porté cet enregistrement, conservé exactement. Il n’affirme ni envoi ni réception d’un nœud de paquet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingPacket \"packet:8\" ."
+msgstr "ex:record gmeow:originatingPacket \"packet:8\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Value"
+msgstr "Valeur mal formée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rejected field occurrence retained as a LabelledFacet: the producer supplied a value that its declared contract did not admit. The occurrence preserves the field and source representation, not a repaired or asserted domain value."
+msgstr "Occurrence de champ refusée, conservée comme LabelledFacet : le producteur a fourni une valeur que son contrat déclaré n’admettait pas. L’occurrence conserve le champ et sa représentation source, non une valeur réparée ou affirmée dans le domaine."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Typing records a reported refusal. These declarations do not execute an arbitrary producer contract or prove that its value was rejected."
+msgstr "Le typage consigne un refus rapporté. Ces déclarations n’exécutent pas un contrat de producteur arbitraire et ne prouvent pas son refus."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has malformed value"
+msgstr "a pour valeur mal formée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to a retained rejected field occurrence supplied by its producer. It specializes hasFacet and does not assert the rejected value on the intended domain predicate."
+msgstr "Relie un enregistrement à une occurrence de champ refusée fournie par son producteur. Spécialise hasFacet sans affirmer la valeur refusée sur le prédicat de domaine prévu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several refused fields and repeated keys coexist. The relation records retention, not successful parsing or repair."
+msgstr "Plusieurs champs refusés et clés répétées coexistent. La relation consigne la conservation, non une analyse ou réparation réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "malformed field"
+msgstr "champ mal formé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact producer field name, relative path or term spelling identifying a rejected field occurrence. It specializes facetLabel without imposing a universal path syntax."
+msgstr "Nom de champ, chemin relatif ou graphie de terme exact du producteur identifiant une occurrence refusée. Spécialise facetLabel sans imposer une syntaxe de chemin universelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Le libellé du champ est un contenu, pas un nouveau prédicat ni une instruction de résolution. Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:malformedField \"history[0].date\" ."
+msgstr "ex:badDate gmeow:malformedField \"history[0].date\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value as sent"
+msgstr "valeur telle qu’envoyée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact character representation supplied for a rejected field occurrence, retained as xsd:string. It preserves source characters without asserting the datatype or domain value the producer failed to supply."
+msgstr "Représentation exacte en caractères fournie pour une occurrence de champ refusée, conservée comme xsd:string. Elle préserve les caractères source sans affirmer le type ni la valeur de domaine que le producteur n’a pas su fournir."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Character preservation does not certify original bytes, encoding, transport escapes or a complete source serialization; retain an artifact separately when those are needed."
+msgstr "La conservation des caractères ne certifie pas les octets, l’encodage, les échappements de transport ni une sérialisation complète ; conserver séparément l’artefact si nécessaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+msgstr "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence as written"
+msgstr "preuve telle qu’écrite"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Evidence cited by a record's writer, retained in the writer's own words, including a title, identifier spelling or sentence. It is not a resolved evidential link or a claim that the evidence supports the record."
+msgstr "Preuve citée par l’auteur d’un enregistrement, conservée dans ses propres mots : titre, graphie d’identifiant ou phrase. Ce n’est ni un lien probatoire résolu ni une affirmation que la preuve soutient l’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged source text remains xsd:string. No language, evidence node or evidential verdict is invented."
+msgstr "Le texte sans étiquette reste xsd:string. Aucune langue, aucun nœud de preuve ni verdict probatoire n’est inventé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceAsWritten \"See the workshop minutes.\"@en ."
+msgstr "ex:record gmeow:evidenceAsWritten \"Voir le compte rendu de l’atelier.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence reference"
+msgstr "référence de preuve"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An unresolved producer reference cited as evidence by a record, retained exactly as supplied. It preserves a reference without inventing the resource it might identify."
+msgstr "Référence non résolue du producteur citée comme preuve par un enregistrement, conservée exactement. Elle préserve une référence sans inventer la ressource qu’elle pourrait identifier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceReference \"minutes:17\" ."
+msgstr "ex:record gmeow:evidenceReference \"minutes:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "durability reason"
+msgstr "raison de conservation durable"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a record was kept durably, exactly as its writer stated it. This descriptive wording does not itself establish a storage policy, retention duration or successful durable write."
+msgstr "Pourquoi un enregistrement a été conservé durablement, exactement selon son auteur. Ces mots descriptifs n’établissent ni politique de stockage, ni durée de conservation, ni écriture durable réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reasons are nonfunctional descriptions: different writers and standpoints may supply different explanations."
+msgstr "Les raisons sont des descriptions non fonctionnelles : auteurs et points de vue peuvent fournir des explications différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:durabilityReason \"Keep the signed decision for audit.\"@en ."
+msgstr "ex:record gmeow:durabilityReason \"Conserver la décision signée pour l’audit.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "suppression reason"
+msgstr "raison de suppression d’affichage"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a particular displayable false assertion was made, exactly as stated by its writer. The reason belongs on that assertion's RDF 1.2 reifier and does not itself suppress any resource."
+msgstr "Pourquoi une assertion displayable false particulière a été faite, exactement selon son auteur. La raison appartient au réificateur RDF 1.2 de cette assertion et ne supprime elle-même aucune ressource."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks the existing lowered statement components. Validation needs completed statement-metadata lowering; it does not authenticate the writer or execute display policy."
+msgstr "La loi de liaison vérifie les composants d’énoncé abaissés existants. La validation exige cet abaissement achevé ; elle n’authentifie pas l’auteur et n’exécute pas la politique d’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"Withdrawn by the writer.\"@en ."
+msgstr "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"Retiré par son auteur.\"@fr ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conversation"
+msgstr "conversation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content said to the holder by another participant in a conversation."
+msgstr "Contenu dit au détenteur par un autre participant à une conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool answer"
+msgstr "réponse d’outil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content returned in answer to a tool call made by the holder."
+msgstr "Contenu retourné en réponse à un appel d’outil effectué par le détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sensor feed"
+msgstr "flux de capteur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content perceived by the holder through a sensor feed."
+msgstr "Contenu perçu par le détenteur au moyen d’un flux de capteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "document read"
+msgstr "lecture de document"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content read by the holder in a document, including a work passage or a repository file."
+msgstr "Contenu lu par le détenteur dans un document, notamment un passage d’œuvre ou un fichier de dépôt."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "web fetch"
+msgstr "récupération web"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content fetched from the web for the holder."
+msgstr "Contenu récupéré sur le web pour le détenteur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component notice"
+msgstr "notification de composant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content sent to the holder as a notice by another component of the same system."
+msgstr "Contenu envoyé au détenteur comme notification par un autre composant du même système."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "Cette valeur classe uniquement la réception et n’établit ni confiance, ni paternité, ni exécution réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception channel uniqueness constraint"
+msgstr "Contrainte d’unicité du canal de réception"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A holder-specific reception record supplies at most one receivedVia channel. Independent receptions use distinct records, so the law does not identify channel values or choose a global winner."
+msgstr "Un enregistrement de réception propre à un détenteur fournit au plus un canal receivedVia. Des réceptions indépendantes utilisent des enregistrements distincts, sans identifier les canaux ni choisir un gagnant global."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law concerns the reception record's own supplied channels, not every holder of the same content."
+msgstr "La loi concerne les canaux fournis sur cet enregistrement, non tous les détenteurs du même contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+msgstr "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Suppression reason binding constraint"
+msgstr "Contrainte de liaison de la raison de suppression"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied suppressionReason is attached to the reifier of a displayable false statement, identified by its existing lowered subject, predicate and object components."
+msgstr "Chaque suppressionReason fournie est attachée au réificateur d’un énoncé displayable false, identifié par ses composants sujet, prédicat et objet abaissés existants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering is required. This checks retained statement binding, not author authenticity, asserted truth or execution of display policy."
+msgstr "L’abaissement des métadonnées d’énoncé doit être achevé. Le contrôle porte sur la liaison conservée, non l’authenticité de l’auteur, la vérité affirmée ou l’exécution de l’affichage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+msgstr "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stated rationale"
+msgstr "justification déclarée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source's verbatim stated reason for the record or claim bearing it. The wording is an attributed explanation, not a computed cause, independently verified fact or proof that the explanation is true."
+msgstr "Raison déclarée textuellement par une source pour l’enregistrement ou l’énoncé qui la porte. La formulation est une explication attribuée, non une cause calculée, un fait vérifié indépendamment ou une preuve de sa véracité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a reason on an event, information record or exact statement reifier without a narrower applicable rationale relation."
+msgstr "À employer lorsqu’une source fournit une raison sur un événement, un enregistrement informationnel ou un réificateur d’énoncé exact sans relation de justification plus précise applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an unstated reason, converting explanation text into causation or forcing its bearer into Entity through description."
+msgstr "Éviter d’inventer une raison non déclarée, de convertir une explication en causalité ou de forcer son porteur dans Entity par description."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve exact text and supplied language or RDF 1.2 base direction. Keep writer and standpoint attribution on the original statement when supplied; specialized rationale statements retain their own source identity."
+msgstr "Conserver le texte exact et la langue ou direction de base RDF 1.2 fournie. Garder l’attribution du rédacteur et du point de vue sur l’énoncé original lorsqu’elle est fournie ; les justifications spécialisées conservent leur identité source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property has no domain or description superproperty and is nonfunctional. Untagged source strings and competing attributed explanations remain valid; an inferred general rationale is not a newly authored source assertion."
+msgstr "La propriété n’a ni domaine ni superpropriété description et n’est pas fonctionnelle. Les chaînes source sans langue et explications attribuées concurrentes restent valides ; une justification générale déduite n’est pas une nouvelle assertion source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+msgstr "Un événement conserve sa raison déclarée : ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
+msgstr "Fournir un xsd:string ou un xsd:token explicitement fourni sur chaque MalformedValue ; conserver le type source, les espaces, la casse et la ponctuation."

@@ -9,6 +9,8 @@
 @prefix geo:     <http://www.opengis.net/ont/geosparql#> .
 @prefix oa:      <http://www.w3.org/ns/oa#> .
 
+
+
 # =============================================================================
 # GMEOW mapping DSL — the single authoring source for the alignment layer.
 #
@@ -513,6 +515,28 @@ gmeow:opEncodeForUri a gmeow:ExpressionOperator ; rdfs:label "ENCODE_FOR_URI"@x-
 gmeow:opDecimal a gmeow:ExpressionOperator ; rdfs:label "xsd:decimal"@x-gmeow-english ;
     skos:definition "Cast a numeric value to canonical xsd:decimal — normalizes a source's scientific-notation xsd:double or bare xsd:integer (e.g. a coordinate 5.35e+01 or 47) to a clean decimal, so projected geographic coordinates carry a consistent, human-readable datatype."@x-gmeow-english .
 
+gmeow:opDate a gmeow:ExpressionOperator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox ;
+    rdfs:label "xsd:date"@x-gmeow-english ;
+    skos:definition "Cast one supported calendar value to xsd:date through the native XML Schema calendar cast, preserving its date and timezone and applying the parsed dateTime calendar rollover."@x-gmeow-english ;
+    gmeow:useWhen "Use when a projection selects the calendar date of a source timestamp."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substring extraction, padding an incomplete date, or using this cast to validate arbitrary source text."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one native calendar expression. The selected cast must succeed; the projection declares the loss of clock precision."@x-gmeow-english ;
+    skos:example "A dateTime at 24:00:00 casts to the following calendar date."@x-gmeow-english ;
+    skos:scopeNote "The cast changes the projected datatype and may canonicalize its lexical form; it does not change the source literal or convert a non-default calendar frame."@x-gmeow-english .
+
+gmeow:opGYear a gmeow:ExpressionOperator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox ;
+    rdfs:label "xsd:gYear"@x-gmeow-english ;
+    skos:definition "Cast one supported calendar value to xsd:gYear through the native XML Schema calendar cast, preserving the parsed year and timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use when a selected projection deliberately retains only the year of a date."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying gYearMonth to this native cast; that source datatype is outside the current cast contract."@x-gmeow-english ;
+    gmeow:howToUse "Supply exactly one supported native calendar expression and declare the lost month, day or clock precision in the owning projection."@x-gmeow-english ;
+    skos:example "A supplied xsd:date can project to its xsd:gYear while retaining the timezone."@x-gmeow-english ;
+    skos:scopeNote "This operator supplies no missing date fields and performs no calendar-frame conversion. A separate declared component projection is needed for validated gYearMonth values."@x-gmeow-english .
+
 # Infix operators (rendered (a OP b)). Arithmetic, comparison, boolean.
 gmeow:opAdd a gmeow:ExpressionOperator ; rdfs:label "+"@x-gmeow-english ; skos:definition "Numeric addition."@x-gmeow-english .
 gmeow:opSub a gmeow:ExpressionOperator ; rdfs:label "-"@x-gmeow-english ; skos:definition "Numeric subtraction."@x-gmeow-english .
@@ -696,7 +720,7 @@ gmeow:fnNicknameName a gmeow:ProjectionFunction ;
 
 gmeow:fnBirthEventToDate a gmeow:ProjectionFunction ;
     rdfs:label "Birth life-event → schema:birthDate"@x-gmeow-english ;
-    skos:definition "Extracts a person's birth date by traversing the reified event model: an event with gmeow:eventType gmeow:eventTypeBirth, whose principal Participation (gmeow:participationRole gmeow:roleParticipantPrincipal, gmeow:participationParticipant ?person) and gmeow:eventTime yield ?person schema:birthDate. GMEOW models birth as an event (with place, sources, confidence, participant roles); this downcasts the event's instant to the flat schema:birthDate / vCard BDAY field."@x-gmeow-english ;
+    skos:definition "Extracts a person's birth placement through the principal Participation and eventTime while retaining the source path. The owning target mapping selects its calendar-component projection: schema.org retains a date or natively casts a timestamp to a date; vCard retains a timestamp or year and explicitly coarsens date/month values. The source placement is never padded or rewritten."@x-gmeow-english ;
     gmeow:fnInput gmeow:eventTime ;
     gmeow:fnOutput gmeow:projectedBirthDate ; gmeow:fnOutputType rdfs:Literal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .

@@ -1,0 +1,870 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: record-metadata, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label as written"
+msgstr "按原样书写的分面标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Source-supplied wording of a facet label, retained beside its machine key or relative path. The literal preserves its lexical form and any supplied language and direction; unspecified language or direction remains unspecified."
+msgstr "来源提供的分面标签措辞，与其机器键或相对路径并列保留。字面量保留其词法形式及来源提供的语言和方向；未指定的语言或方向仍保持未指定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source's label wording independently of the facet's required key or path."
+msgstr "用于独立于分面必需的键或路径保留来源的标签措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing facetLabel, treating label wording as facetText payload, normalizing whitespace or inventing a token key from the wording."
+msgstr "避免替代 facetLabel、把标签措辞当作 facetText 载荷、规范化空白，或根据措辞臆造 token 键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep each supplied label literal with its original lexical form, language and direction. Retain facetLabel separately and use statement provenance for independently attributed wording."
+msgstr "保留每个来源提供的标签字面量及其原始词法形式、语言和方向。单独保留 facetLabel，并通过语句溯源记录分别归属的措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Optional and nonfunctional: several supplied label wordings may coexist. This property specializes neither facetLabel nor facetText, supplies no missing key or payload, and does not choose a preferred wording or infer vocabulary identity."
+msgstr "可选且非函数性：多个来源提供的标签措辞可以共存。此属性既不特化 facetLabel，也不特化 facetText，不补造缺失的键或载荷，也不选择优先措辞或推断词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "A facet can retain the source's label wording separately from its required machine key and its textual or typed payload."
+msgstr "分面可以单独保留来源的标签措辞，而不混同于其必需的机器键及文本或类型化载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded at"
+msgstr "记录于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A temporal value locating when this record was made, at the precision supplied by its source. This is transaction time of the record, distinct from occurrence, observation, assertion-witness, dispatch or creative-work creation time. A date, month or year does not assert midnight, a period-start instant or a timezone."
+msgstr "按来源提供的精度定位此记录何时建立的时间值。这是记录的事务时间，区别于事件发生、观察、断言见证、发送或作品创作的时间。日期、月份或年份不表示午夜、期间起点时刻或时区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for record creation across record classes."
+msgstr "用于各种记录类别的建立时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the time of the described event for record creation."
+msgstr "避免用所述事件的时间代替记录建立时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source datatype and timezone information exactly at the supplied precision; use recordedDuring for a period reference."
+msgstr "保留来源的数据类型及其提供精度下的时区信息；期间引用使用 recordedDuring。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."
+msgstr "ex:record gmeow:recordedAt \"2026-10\"^^xsd:gYearMonth ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "updated at"
+msgstr "更新于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A temporal value locating the last change to this record or resource, at the precision supplied by its source. It does not date a change to the event described, assert an exact instant for a coarse value, or choose an unknown timezone."
+msgstr "按来源提供的精度定位此记录或资源最后一次变更的时间值。它不表示所述事件的变更时间，不把粗粒度值断言为精确时刻，也不选择未知时区。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the last modification of the subject resource."
+msgstr "用于主体资源的最后修改时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing recording or event time with a modification value."
+msgstr "避免以修改时间替换记录建立或事件时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve dateTime, date, gYearMonth or gYear as supplied; use updatedDuring for a period reference."
+msgstr "按来源保留 dateTime、date、gYearMonth 或 gYear；期间引用使用 updatedDuring。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."
+msgstr "ex:record gmeow:updatedAt \"2026-10-29\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recorded during"
+msgstr "记录于期间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to an interval or a named period within which it was made. The period supplies temporal scope without manufacturing a recording instant."
+msgstr "将记录关联到其建立时所在的区间或具名期间。期间提供时间范围，而不制造记录建立的精确时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when record creation is located by a period entity."
+msgstr "当记录建立时间以期间实体定位时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an unresolved phrase as a named period with established bounds."
+msgstr "避免把尚未解释的短语当作边界已确定的具名期间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference an existing TimeInterval or NamedPeriod whose temporal meaning is established."
+msgstr "引用时间含义已确定的现有 TimeInterval 或 NamedPeriod。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordedDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:recordedDuring ex:cataloguingSeason ."
+msgstr "ex:record gmeow:recordedDuring ex:cataloguingSeason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "updated during"
+msgstr "更新于期间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a resource to an interval or a named period within which its last change occurred. This locates modification without converting a period to an instant."
+msgstr "将资源关联到其最后变更发生时所在的区间或具名期间。这定位修改时间，而不将期间转换成时刻。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the last modification is known by a period entity."
+msgstr "当最后修改时间以期间实体确定时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the period start as the last modification time."
+msgstr "避免把期间起点当作最后修改时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the established interval or named period; retain any coarse literal independently."
+msgstr "引用已确定的区间或具名期间；独立保留任何粗粒度字面值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/updatedDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:updatedDuring ex:revisionSeason ."
+msgstr "ex:record gmeow:updatedDuring ex:revisionSeason ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "entry ordinal"
+msgstr "条目序号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The zero-based position of an entry in its containing ordered sequence. Its scope is that sequence, not global identity, rank or importance. Different sequences or standpoints may order the same content differently."
+msgstr "条目在所属有序序列中从零开始的位置。其作用域为该序列，而非全局身份、等级或重要性。不同序列或立场可以对相同内容采用不同顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve source document or list order on entry nodes."
+msgstr "用于在条目节点上保留源文档或列表顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying a one-based or frame-dependent ordinal without conversion."
+msgstr "避免未经转换复制从一开始或依赖框架的序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Write a nonNegativeInteger on each occurrence node; use separate occurrences when content belongs to differently ordered sequences."
+msgstr "在每个出现节点上填写 nonNegativeInteger；内容属于顺序不同的序列时使用不同出现节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/entryOrdinal|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+msgstr "ex:entry gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Labelled Facet"
+msgstr "带标签分面"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."
+msgstr "保存一个原样运行时标签，并在 facetText 和 facetValue 两者中至多保存一个字面值载荷的信息对象。仅有标签的分面保留存在但无载荷的键；它不区分空值与来源中的空内容。标签是数据而非本体谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for content whose field names are chosen at run time."
+msgstr "用于字段名称在运行时选择的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing reviewed domain properties with facets when their semantics already fit."
+msgstr "已有经过审核且语义适用的领域属性时，避免用分面替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."
+msgstr "按来源位置命名分面，用 hasFacet 关联，保留 facetLabel，仅添加适当的载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"quiet\"@en ."
+msgstr "ex:record gmeow:hasFacet ex:facet0 . ex:facet0 a gmeow:LabelledFacet ; gmeow:facetLabel \"mood.tone\" ; gmeow:facetText \"平静\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has facet"
+msgstr "具有分面"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record or record part to a labelled content facet. It does not turn the facet label into a schema property or impose a single facet per label."
+msgstr "将记录或记录部分关联到带标签的内容分面。它不把分面标签变成模式属性，也不要求每个标签只有一个分面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose run-time fields as graph content."
+msgstr "用于将运行时字段呈现为图内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring vocabulary identity from matching facet labels."
+msgstr "避免从相同分面标签推断词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."
+msgstr "将每个叶节点出现关联到所属记录或部分；用 entryOrdinal 保留来源顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."
+msgstr "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet label"
+msgstr "分面标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim source key or producer-supplied relative path labelling a facet. Retain the supplied xsd:string or xsd:token datatype, case, spacing and punctuation; no whitespace normalization or path grammar is implied."
+msgstr "标记分面的原样源键或生产者提供的相对路径。保留所提供的 xsd:string 或 xsd:token 数据类型、大小写、空白和标点；不隐含空白规范化或路径语法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the exact run-time field name, including labels such as mood.tone or refs[]."
+msgstr "用于确切的运行时字段名，包括 mood.tone 或 refs[] 等标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting this label into a predicate IRI or deriving facet identity from it."
+msgstr "避免把此标签放进谓词 IRI 或从标签导出分面身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply exactly one source literal per facet, retaining its xsd:string or xsd:token datatype; keep repeated keys on distinct position-named facets."
+msgstr "每个分面提供恰好一个源字面量，保留其 xsd:string 或 xsd:token 数据类型；重复键保留在按位置命名的不同分面上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
+msgstr "ex:facet0 gmeow:facetLabel \"mood.tone\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet text"
+msgstr "分面文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."
+msgstr "带标签分面的原样文本载荷，保留来源的语言和方向。它排斥同时存在的 facetValue，但允许分面完全不带载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the run-time field contains text."
+msgstr "运行时字段包含文本时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stringifying numbers or booleans to fit this text property."
+msgstr "避免为了使用此文本属性而将数字或布尔值转成字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one string, language-tagged string or directional language string; use facetValue for typed scalar data."
+msgstr "提供一个字符串、带语言标签的字符串或带方向的语言字符串；带类型标量数据使用 facetValue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetText \"quiet\"@en ."
+msgstr "ex:facet0 gmeow:facetText \"平静\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet value"
+msgstr "分面值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."
+msgstr "带标签分面的字面值载荷，保留来源提供的数据类型，包括数字和布尔值。不强制转换为字符串；不允许同时存在 facetText。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a run-time field carries a typed scalar literal."
+msgstr "运行时字段具有带类型标量字面值时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid representing a source null as an invented string or datatype value."
+msgstr "避免把来源空值表示为虚构字符串或数据类型值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."
+msgstr "保留原字面值的数据类型和词法形式；仅有标签的分面省略两个载荷属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."
+msgstr "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet concept"
+msgstr "分面概念"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A reviewed interpretation of a facet label as a GMEOW Concept. Multiple interpretations coexist; this relation neither replaces the label nor makes the concept a privileged meaning or schema predicate."
+msgstr "经审核的、将分面标签解释为 GMEOW Concept 的关联。多种解释可以共存；该关联不替换标签，也不使概念成为优先含义或模式谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use after reviewing a recurring facet label against a concept."
+msgstr "审核反复出现的分面标签与概念的对应后使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the truth of the labelled content from a label interpretation."
+msgstr "避免从标签解释推断所标内容的真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the facet to each reviewed Concept; retain the exact label and annotate the relation when standpoint or provenance matters."
+msgstr "将分面关联到每个经审核的 Concept；保留原标签，并在立场或来源重要时注释该关联。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetConcept|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetConcept ex:emotionalTone ."
+msgstr "ex:facet0 gmeow:facetConcept ex:emotionalTone ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included"
+msgstr "上下文包含"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to an information artifact present in the context in which the record was made. Inclusion records exposure, without asserting derivation, evidential support or actual use. The artifact carries its own contentDigest."
+msgstr "将记录关联到建立该记录时上下文中存在的信息制品。包含关系记录接触情况，不断言派生、证据支持或实际使用。制品携带自己的 contentDigest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to audit which input artifacts reached a creation context."
+msgstr "用于审计哪些输入制品进入了建立记录的上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating context presence as endorsement or causal dependence."
+msgstr "避免把上下文中的存在视作认可或因果依赖。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a reusable artifact node with its algorithm-labelled contentDigest; use the release or projection specialization when known."
+msgstr "引用可复用的制品节点及其带算法标识的 contentDigest；已知角色时使用发行版或投影专门属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncluded|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncluded ex:inputArtifact ."
+msgstr "ex:record gmeow:contextIncluded ex:inputArtifact ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included release"
+msgstr "上下文包含发行版"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to the release artifact present in its creation context. The release is identified by its own digest, separately from any compiled projection; presence alone makes no claim of support or use."
+msgstr "将记录关联到其建立上下文中存在的发行版制品。发行版以自身摘要标识，与任何编译投影分开；仅存在并不表示支持或使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the artifact supplied to the context is a release."
+msgstr "提供给上下文的制品为发行版时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching the release role to a projection merely derived from it."
+msgstr "避免仅因投影派生自某发行版就赋予它发行版角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link to the shared release node carrying contentDigest; type it as Manifestation only when it embodies an edition or format of an Expression."
+msgstr "关联到携带 contentDigest 的共享发行版节点；仅当其体现某 Expression 的版本或格式时才将其标为 Manifestation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedRelease|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncludedRelease ex:release ."
+msgstr "ex:record gmeow:contextIncludedRelease ex:release ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context included projection"
+msgstr "上下文包含投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to a compiled projection artifact present in its creation context. The projection has its own digest, distinct from the release it projects; inclusion does not assert that the original release was also present."
+msgstr "将记录关联到其建立上下文中存在的编译投影制品。投影具有自身摘要，与被投影的发行版区分；包含投影不表示原始发行版也存在于上下文中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the context carries a compiled projection."
+msgstr "上下文含有编译投影时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid copying the source release digest as the identity of projection bytes."
+msgstr "避免将来源发行版摘要复制为投影字节的身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the shared projection node and its own contentDigest; record source derivation separately only with evidence."
+msgstr "引用共享投影节点及其自身 contentDigest；有证据时才独立记录来源派生关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextIncludedProjection|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:contextIncludedProjection ex:projection ."
+msgstr "ex:record gmeow:contextIncludedProjection ex:projection ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetLabel is functional"
+msgstr "facetLabel 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetLabel on each facet. It does not require that the property be present."
+msgstr "每个分面的 facetLabel 至多有一个值的规范义务。不要求该属性存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetLabel slot."
+msgstr "用于约束 facetLabel 的单值槽位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetLabel functionality as a required value."
+msgstr "避免把 facetLabel 的函数性解释为必须存在值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetLabel."
+msgstr "结合分面限制读取；此记录仅限制 facetLabel。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabelFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."
+msgstr "gmeow:facetLabelFunctionality logic:characterizes gmeow:facetLabel ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetText is functional"
+msgstr "facetText 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetText on each facet. It does not require that the property be present."
+msgstr "每个分面的 facetText 至多有一个值的规范义务。不要求该属性存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetText slot."
+msgstr "用于约束 facetText 的单值槽位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetText functionality as a required value."
+msgstr "避免把 facetText 的函数性解释为必须存在值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetText."
+msgstr "结合分面限制读取；此记录仅限制 facetText。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetTextFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."
+msgstr "gmeow:facetTextFunctionality logic:characterizes gmeow:facetText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facetValue is functional"
+msgstr "facetValue 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical at-most-one obligation for facetValue on each facet. It does not require that the property be present."
+msgstr "每个分面的 facetValue 至多有一个值的规范义务。不要求该属性存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to enforce the single facetValue slot."
+msgstr "用于约束 facetValue 的单值槽位。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting facetValue functionality as a required value."
+msgstr "避免把 facetValue 的函数性解释为必须存在值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read with the facet restrictions; this record limits only facetValue."
+msgstr "结合分面限制读取；此记录仅限制 facetValue。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetValueFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."
+msgstr "gmeow:facetValueFunctionality logic:characterizes gmeow:facetValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Facet payload exclusion constraint"
+msgstr "分面载荷互斥约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A facet with a text payload has no facetValue payload. Together with the two payload functionality records this admits zero or one total payload and rejects simultaneous text and typed-value slots."
+msgstr "具有文本载荷的分面没有 facetValue 载荷。结合两个载荷函数性记录，这允许总共零个或一个载荷，并拒绝文本与带类型值槽位同时存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the two facet payload channels exclusive."
+msgstr "用于保持两个分面载荷通道互斥。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring either payload through this exclusion law."
+msgstr "避免通过此互斥律要求必须存在载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply to every subject of facetText; label-only facets satisfy this obligation."
+msgstr "应用于每个 facetText 主体；仅有标签的分面满足此义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetPayloadExclusionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:facet0 gmeow:facetText \"quiet\"@en ."
+msgstr "ex:facet0 gmeow:facetText \"平静\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Context artifact digest constraint"
+msgstr "上下文制品摘要约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every artifact referenced by contextIncluded has a contentDigest value identifying its own bytes. The existing contentDigest contract retains multiple algorithm-labelled digests; this law invents no digest lexical datatype."
+msgstr "contextIncluded 引用的每个制品都具有标识其自身字节的 contentDigest 值。现有 contentDigest 契约保留多个带算法标识的摘要；此律不发明摘要词法数据类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain artifact identity when auditing injected context."
+msgstr "用于审计注入上下文时保留制品身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying artifact identity with the digest of the containing record."
+msgstr "避免用包含该制品的记录的摘要满足制品身份要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place contentDigest on the referenced artifact; reuse that node across records."
+msgstr "将 contentDigest 放在被引用制品上；在记录之间复用该节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
+msgstr "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "record metadata"
+msgstr "记录元数据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Generic recording and modification time, local sequence order, run-time labelled content and digest-identified creation-context artifacts."
+msgstr "通用记录建立及修改时间、序列内顺序、运行时带标签内容，以及按摘要标识的建立上下文制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://purl.org/dc/terms/title"
+msgid "GMEOW Record Metadata Module"
+msgstr "GMEOW 记录元数据模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Record stores, structured-content importers and context-exposure audits that need domain-independent metadata without inventing predicates from run-time keys."
+msgstr "需要不依赖领域的元数据、且不从运行时键发明谓词的记录存储、结构化内容导入器及上下文接触审计。"
+
+# Record-intake vocabulary and canonical integrity.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception Channel"
+msgstr "接收渠道"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the channel by which outside content reached a particular holder. It classifies reception, not authorship, truth or the content's subject."
+msgstr "描述外部内容到达特定持有者所经渠道的开放值词汇。它分类接收方式，不表示作者归属、真伪或内容主题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open. The same content can reach different holders or reach one holder through different receptions."
+msgstr "词汇保持开放。同一内容可到达不同持有者，或通过不同接收事件到达同一持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannel|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received via"
+msgstr "接收渠道为"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The channel by which outside content reached the holder of this reception record. The subject identifies one holder-specific reception, not a proposition shared by every holder."
+msgstr "外部内容到达此接收记录持有者所经的渠道。主体标识特定持有者的一次接收，而非所有持有者共享的命题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Single-channel integrity is local to a reception record. Missing channel metadata does not imply a default channel."
+msgstr "单一渠道完整性仅针对一次接收记录。缺失渠道元数据不蕴含默认渠道。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedVia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating trace"
+msgstr "来源推理轨迹"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the reasoning trace from which a record came, retained exactly as supplied. It is a source reference, not a trace object or proof of reasoning."
+msgstr "生产者提供的、记录所源自推理轨迹的未解析标识符，按原样保留。它是来源引用，不是轨迹对象或推理证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingTrace \"trace:17\" ."
+msgstr "ex:record gmeow:originatingTrace \"trace:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "originating packet"
+msgstr "来源消息包"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer's unresolved identifier for the message packet that produced or carried this record, retained exactly as supplied. It does not assert dispatch or receipt of a packet node."
+msgstr "生产者提供的、生成或承载此记录的消息包未解析标识符，按原样保留。它不声明某消息包节点已发送或接收。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:originatingPacket \"packet:8\" ."
+msgstr "ex:record gmeow:originatingPacket \"packet:8\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Malformed Value"
+msgstr "格式错误值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A rejected field occurrence retained as a LabelledFacet: the producer supplied a value that its declared contract did not admit. The occurrence preserves the field and source representation, not a repaired or asserted domain value."
+msgstr "作为 LabelledFacet 保留的被拒字段出现：生产者提供了其声明契约不接纳的值。该出现保留字段及来源表示，不保存修复后的值，也不将其断言为领域值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Typing records a reported refusal. These declarations do not execute an arbitrary producer contract or prove that its value was rejected."
+msgstr "此类型记录报告的拒绝。这些声明不执行任意生产者契约，也不证明其已拒绝该值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate . ex:badDate a gmeow:MalformedValue ; gmeow:malformedField \"date\" ; gmeow:valueAsSent \"yesterday-ish\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has malformed value"
+msgstr "具有格式错误值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a record to a retained rejected field occurrence supplied by its producer. It specializes hasFacet and does not assert the rejected value on the intended domain predicate."
+msgstr "将记录连接到生产者提供、已保留的被拒字段出现。它特化 hasFacet，不在预期领域谓词上断言被拒值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several refused fields and repeated keys coexist. The relation records retention, not successful parsing or repair."
+msgstr "多个被拒字段和重复键可共存。该关系记录保留，不表示解析或修复成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMalformedValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:hasMalformedValue ex:badDate ."
+msgstr "ex:record gmeow:hasMalformedValue ex:badDate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "malformed field"
+msgstr "格式错误字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact producer field name, relative path or term spelling identifying a rejected field occurrence. It specializes facetLabel without imposing a universal path syntax."
+msgstr "标识被拒字段出现的生产者原始字段名、相对路径或术语拼写。它特化 facetLabel，不规定通用路径语法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The field label is content, not a new predicate or a resolver instruction. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "字段标签是内容，不是新谓词或解析指令。保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:malformedField \"history[0].date\" ."
+msgstr "ex:badDate gmeow:malformedField \"history[0].date\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "value as sent"
+msgstr "发送时原值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact character representation supplied for a rejected field occurrence, retained as xsd:string. It preserves source characters without asserting the datatype or domain value the producer failed to supply."
+msgstr "以 xsd:string 保留的被拒字段原始字符表示。它保留来源字符，不断言生产者未能提供的有效数据类型或领域值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Character preservation does not certify original bytes, encoding, transport escapes or a complete source serialization; retain an artifact separately when those are needed."
+msgstr "字符保留不认证原始字节、编码、传输转义或完整来源序列化；需要这些信息时应另行保留制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/valueAsSent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+msgstr "ex:badDate gmeow:valueAsSent \"  2026-99-04  \" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence as written"
+msgstr "按原文记录的证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Evidence cited by a record's writer, retained in the writer's own words, including a title, identifier spelling or sentence. It is not a resolved evidential link or a claim that the evidence supports the record."
+msgstr "按记录作者原话保留的所引证据，包括标题、标识符拼写或句子。它不是已解析的证据链接，也不宣称证据支持该记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged source text remains xsd:string. No language, evidence node or evidential verdict is invented."
+msgstr "未标记的来源文本仍为 xsd:string。不虚构语言、证据节点或证据裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceAsWritten|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceAsWritten \"See the workshop minutes.\"@en ."
+msgstr "ex:record gmeow:evidenceAsWritten \"参见研讨会纪要。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evidence reference"
+msgstr "证据引用"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An unresolved producer reference cited as evidence by a record, retained exactly as supplied. It preserves a reference without inventing the resource it might identify."
+msgstr "记录作为证据引用、按原样保留的生产者未解析引用。它保留引用，不虚构引用可能标识的资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:evidenceReference \"minutes:17\" ."
+msgstr "ex:record gmeow:evidenceReference \"minutes:17\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "durability reason"
+msgstr "持久保留理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a record was kept durably, exactly as its writer stated it. This descriptive wording does not itself establish a storage policy, retention duration or successful durable write."
+msgstr "按作者原话记录为何持久保留此记录。这些描述文字本身不确立存储策略、保留期限或持久写入成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reasons are nonfunctional descriptions: different writers and standpoints may supply different explanations."
+msgstr "理由是非函数性的描述：不同作者和立场可提供不同解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/durabilityReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:durabilityReason \"Keep the signed decision for audit.\"@en ."
+msgstr "ex:record gmeow:durabilityReason \"保留已签署的决定以供审计。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "suppression reason"
+msgstr "抑制显示理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Why a particular displayable false assertion was made, exactly as stated by its writer. The reason belongs on that assertion's RDF 1.2 reifier and does not itself suppress any resource."
+msgstr "按作者原话记录为何作出某条 displayable false 断言。理由属于该断言的 RDF 1.2 重化记录，本身不抑制任何资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks the existing lowered statement components. Validation needs completed statement-metadata lowering; it does not authenticate the writer or execute display policy."
+msgstr "绑定规则检查已有的降级语句组成部分。验证要求语句元数据降级已完成；它不认证作者，也不执行显示策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/suppressionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"Withdrawn by the writer.\"@en ."
+msgstr "ex:reason rdf:reifies <<( ex:facet gmeow:displayable false )>> ; gmeow:suppressionReason \"由撰写者撤回。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conversation"
+msgstr "对话"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content said to the holder by another participant in a conversation."
+msgstr "另一参与者在对话中向持有者说出的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelConversation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool answer"
+msgstr "工具回答"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content returned in answer to a tool call made by the holder."
+msgstr "响应持有者发起的工具调用而返回的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelToolAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelToolAnswer ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sensor feed"
+msgstr "传感器数据流"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content perceived by the holder through a sensor feed."
+msgstr "持有者通过传感器数据流感知的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelSensorFeed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelSensorFeed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "document read"
+msgstr "阅读文档"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content read by the holder in a document, including a work passage or a repository file."
+msgstr "持有者在文档中读取的内容，包括作品片段或仓库文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelDocumentRead|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelDocumentRead ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "web fetch"
+msgstr "网页获取"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content fetched from the web for the holder."
+msgstr "为持有者从网络获取的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelWebFetch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelWebFetch ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "component notice"
+msgstr "组件通知"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content sent to the holder as a notice by another component of the same system."
+msgstr "同一系统的另一组件以通知形式发送给持有者的内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This value classifies reception only and does not establish trust, authorship or successful execution."
+msgstr "此值仅分类接收方式，不确立可信性、作者归属或执行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receptionChannelOrganNotice|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+msgstr "ex:reception gmeow:receivedVia gmeow:receptionChannelOrganNotice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reception channel uniqueness constraint"
+msgstr "接收渠道唯一性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A holder-specific reception record supplies at most one receivedVia channel. Independent receptions use distinct records, so the law does not identify channel values or choose a global winner."
+msgstr "特定持有者的一次接收记录至多提供一个 receivedVia 渠道。独立接收使用不同记录，因此此规则不合并渠道值，也不选择全局优先者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The law concerns the reception record's own supplied channels, not every holder of the same content."
+msgstr "此规则仅涉及该接收记录自身提供的渠道，不涉及同一内容的所有持有者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceptionChannelUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+msgstr "gmeow:ReceptionChannelUniquenessConstraint logic:formalizes gmeow:receivedVia ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Suppression reason binding constraint"
+msgstr "抑制理由绑定约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied suppressionReason is attached to the reifier of a displayable false statement, identified by its existing lowered subject, predicate and object components."
+msgstr "每个已提供的 suppressionReason 均附着于 displayable false 语句的重化记录，并通过已有降级的主语、谓词和宾语组成部分标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Completed statement-metadata lowering is required. This checks retained statement binding, not author authenticity, asserted truth or execution of display policy."
+msgstr "要求语句元数据降级已完成。此检查仅验证所保留的语句绑定，不认证作者、断言真伪或显示策略执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SuppressionReasonBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+msgstr "gmeow:SuppressionReasonBindingConstraint logic:formalizes gmeow:suppressionReason ."
+
+# Source-attributed rationale and operation completion.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "stated rationale"
+msgstr "所述理由"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source's verbatim stated reason for the record or claim bearing it. The wording is an attributed explanation, not a computed cause, independently verified fact or proof that the explanation is true."
+msgstr "来源为承载它的记录或主张原样陈述的理由。措辞是带归属的解释，不是计算出的原因、独立验证的事实或解释为真的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a reason on an event, information record or exact statement reifier without a narrower applicable rationale relation."
+msgstr "用于来源在事件、信息记录或精确陈述重述节点上提供理由，且无适用的更窄理由关系时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an unstated reason, converting explanation text into causation or forcing its bearer into Entity through description."
+msgstr "避免虚构未陈述理由、把解释文本转为因果关系，或通过 description 将其载体强制归为 Entity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve exact text and supplied language or RDF 1.2 base direction. Keep writer and standpoint attribution on the original statement when supplied; specialized rationale statements retain their own source identity."
+msgstr "保留精确文本及已提供语言或 RDF 1.2 基本方向。已提供时在原陈述上保留记录者和观点归属；特化理由陈述保留自身来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property has no domain or description superproperty and is nonfunctional. Untagged source strings and competing attributed explanations remain valid; an inferred general rationale is not a newly authored source assertion."
+msgstr "该属性没有定义域或 description 上位属性，且非函数性。无语言标记的来源字符串和相互竞争的带归属解释均有效；推导的一般理由不是新撰写的来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/statedRationale|http://www.w3.org/2004/02/skos/core#example"
+msgid "An event keeps its stated reason: ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+msgstr "事件保留所述理由：ex:event a gmeow:Event ; gmeow:statedRationale \"Wait for the remaining account.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetLabel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
+msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
+msgstr "在每个 MalformedValue 上提供一个 xsd:string 或明确提供的 xsd:token；保留源数据类型、空白、大小写和标点。"

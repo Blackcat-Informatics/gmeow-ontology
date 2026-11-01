@@ -12,6 +12,70 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event time"
+msgstr "date de l’événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The placement of a point-like event at the precision supplied by its source: xsd:dateTime, xsd:date, xsd:gYearMonth or xsd:gYear. Competing standpoint-indexed placements coexist; no value supplies an unstated clock time or event duration."
+msgstr "Le repérage d’un événement ponctuel à la précision fournie par sa source : xsd:dateTime, xsd:date, xsd:gYearMonth ou xsd:gYear. Les repérages concurrents indexés par point de vue coexistent ; aucune valeur ne fournit une heure non énoncée ni une durée de l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:birth gmeow:eventTime \"1947-06-14\"^^xsd:date ."
+msgstr "ex:birth gmeow:eventTime \"1947-06-14\"^^xsd:date ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source dates a point-like occurrence to a timestamp, day, month or year without asserting a complete event interval."
+msgstr "À utiliser lorsqu’une source date une occurrence ponctuelle par un horodatage, un jour, un mois ou une année sans affirmer un intervalle complet de l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid padding a coarse placement to midnight, treating its calendar extent as the event's duration, or selecting one competing placement as preferred. Use eventDuring for placement in an established period."
+msgstr "Éviter de compléter un repérage grossier par minuit, de traiter son étendue calendaire comme la durée de l’événement ou de privilégier un repérage concurrent. Utiliser eventDuring pour un repérage dans une période établie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each source literal's lexical form, datatype and timezone. Annotate competing statements with accordingTo and confidence; retain a supplied eventTemporalFrame. A frame does not reinterpret the Gregorian semantics of an XSD datatype."
+msgstr "Conserver la forme lexicale, le type de données et le fuseau horaire de chaque littéral source. Annoter les assertions concurrentes avec accordingTo et confidence ; conserver tout eventTemporalFrame fourni. Un cadre ne réinterprète pas la sémantique grégorienne d’un type XSD."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTime|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An absent eventTemporalFrame retains the existing UTC-Gregorian default. No more precise timestamp, interval boundary or calendar conversion follows from a day, month or year placement. Precision-aware consumers must declare the fragment they support."
+msgstr "L’absence d’eventTemporalFrame conserve le cadre UTC-grégorien par défaut existant. Aucun horodatage plus précis, aucune borne d’intervalle ni conversion calendaire ne découle d’un repérage par jour, mois ou année. Les consommateurs sensibles à la précision doivent déclarer le fragment qu’ils prennent en charge."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event during"
+msgstr "événement survenu pendant"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Locates an event's occurrence within an established TimeInterval or NamedPeriod. The enclosing period supplies temporal placement, not the event's own duration or a particular occurrence instant."
+msgstr "Situe la survenue d’un événement dans un TimeInterval ou un NamedPeriod établi. La période englobante fournit un repérage temporel, et non la durée propre de l’événement ou un instant précis de survenue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source places an event within an identified interval or named period without supplying its exact instant or complete span."
+msgstr "À utiliser lorsqu’une source situe un événement dans un intervalle identifié ou une période nommée sans fournir son instant exact ni son étendue complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using it for the event's full known span, strict Allen containment between events, or an unresolved relative phrase such as last fall."
+msgstr "Éviter de l’utiliser pour l’étendue complète connue de l’événement, pour le confinement strict d’Allen entre événements ou pour une expression relative non résolue telle que l’automne dernier."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Event to each established TimeInterval or NamedPeriod supplied by the source. Keep competing placements as separate standpoint-indexed claims; the relation is nonfunctional."
+msgstr "Relier l’Event à chaque TimeInterval ou NamedPeriod établi fourni par la source. Conserver les repérages concurrents sous forme d’assertions distinctes indexées par point de vue ; la relation est non fonctionnelle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:earlierWedding a gmeow:Event ; gmeow:eventDuring gmeow:periodHolocene ."
+msgstr "ex:earlierWedding a gmeow:Event ; gmeow:eventDuring gmeow:periodHolocene ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventDuring|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Coincidence with a period boundary is permitted. This placement supplies no instant or boundary conversion, resolves no relative period expression and does not entail that the event lasted throughout the referenced period."
+msgstr "La coïncidence avec une borne de la période est permise. Ce repérage ne fournit aucun instant ni aucune conversion de borne, ne résout aucune expression de période relative et n’implique pas que l’événement a duré pendant toute la période référencée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventHasTypeOrTimeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Event has type or time constraint"
+msgstr "Contrainte de présence d’un type ou d’un repère temporel pour un événement"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventHasTypeOrTimeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed-world integrity constraint (Warning): a gmeow:Event carries at least a gmeow:eventType or some temporal placement (gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt)."
+msgstr "Une contrainte d’intégrité en monde fermé (avertissement) : un gmeow:Event porte au moins un gmeow:eventType ou un repérage temporel (gmeow:eventTime / eventInterval / eventDuring / earliestStart / latestEnd / atTime / ingestedAt)."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/durationValueFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "durationValue is functional"

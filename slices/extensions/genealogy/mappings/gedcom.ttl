@@ -267,7 +267,7 @@ gmeow:mapGedcomMarriageDate a gmeow:ProjectionMapping ;
         gmeow:edoalSource gmeow:hasCoupleEvent ] ;
     gmeow:hasBinding [
         gmeow:profile "gedcom" ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; only date + place survive on the Marriage node" ;
+        gmeow:lossyDrop "the marriage event's participants, evidence and standpoint drop; only date + place survive on the Marriage node; all four supplied eventTime datatypes and lexical forms pass through unchanged; temporal frames and statement metadata are omitted without calendar conversion; the datatype and wire contract of this exact SWAP GEDCOM target remains unverified, and no admission claim is imported from another GEDCOM vocabulary" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:date ; gmeow:tObj "gmdDate" ]
             [ gmeow:tSubj "gmdMarriage" ; gmeow:tPred gedcom:place ; gmeow:tObj "gmdPlace" ] ) ] .

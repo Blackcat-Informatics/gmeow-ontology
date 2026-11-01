@@ -15,7 +15,7 @@
 //! forbidden patterns, …) that later tasks project to `sh:SPARQLConstraint`.
 //!
 //! Identity is the content-addressed [`ConstraintIr::content_key`], folded over the
-//! iri + target + integrity-formula key + severity. The advisory `message` is
+//! iri + target + integrity-formula key + severity. The advisory `messages` set is
 //! **load-bearing-false** — it never enters the content key (two constraints differing only
 //! in their message share an identity). The `formalizes` back-reference mirrors the
 //! `logic:formalizes` *annotation* property (which carries "no DL or EL profile weight"), so
@@ -475,10 +475,15 @@ pub struct ConstraintIr {
     pub target: ShapeTarget,
     /// The `sh:severity` a violation reports at.
     pub severity: ShaclSeverity,
-    /// The advisory violation message (`None` ⇒ none). **Load-bearing-false**: carried for
+    /// Complete advisory violation literals, sorted and deduplicated; empty means absent.
+    /// **Load-bearing-false**: carried for
     /// validation-failure UX but MUST NOT enter [`Self::content_key`], so two constraints
     /// differing only in message share one identity.
-    pub message: Option<String>,
+    #[serde(
+        serialize_with = "super::literal_serde::serialize",
+        deserialize_with = "super::literal_serde::message_set::deserialize"
+    )]
+    pub messages: Vec<purrdf::RdfLiteral>,
     /// The gmeow-domain term this constraint formalizes (`None` ⇒ none) — the back-reference
     /// later projected as `logic:formalizes`. Annotation-level (like the `logic:formalizes`
     /// annotation property, which carries no DL/EL profile weight), so excluded from the
@@ -522,27 +527,21 @@ impl ConstraintIr {
         iri: impl Into<String>,
         integrity: Formula,
         severity: ShaclSeverity,
-        message: Option<String>,
+        mut messages: Vec<purrdf::RdfLiteral>,
     ) -> gmeow_errors::Result<Self> {
         let iri = iri.into();
         if iri.trim().is_empty() {
             return Err(ir_err("ConstraintIr.iri must be a non-empty IRI string"));
         }
-        if let Some(msg) = &message
-            && msg.trim().is_empty()
-        {
-            return Err(ir_err(
-                "ConstraintIr.message must be a non-empty string when present; pass None to \
-                 leave it unset",
-            ));
-        }
+        super::literal_serde::normalize_messages(&mut messages)
+            .map_err(|detail| ir_err(format!("ConstraintIr.messages: {detail}")))?;
         let target = target_from_integrity(&integrity)?;
         Ok(Self {
             iri,
             integrity,
             target,
             severity,
-            message,
+            messages,
             formalizes: None,
             also_formalizes: Vec::new(),
             failure_class: None,
@@ -682,7 +681,7 @@ impl ConstraintIr {
     /// A deterministic full-content key for canonical equality. Public to the crate so
     /// [`super::LogicProgram::canonical_key`] can fold it into the program key at the fixed
     /// tail. Folded over `iri` + `target` + `integrity`'s alpha/order-normalized key +
-    /// `severity`. The advisory `message` and the annotation-level `formalizes` are
+    /// `severity`. The advisory `messages` and the annotation-level `formalizes` are
     /// **excluded** by design.
     pub(crate) fn content_key(&self) -> String {
         let base = format!(

@@ -5,6 +5,8 @@
 //! selected by projection templates. Catalog facts are authority inputs, never
 //! additional authored constructs in a slice's residue denominator.
 
+mod cbor;
+
 use std::collections::BTreeMap;
 
 use super::correspondence::CorrespondenceProgram;

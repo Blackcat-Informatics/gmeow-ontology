@@ -9,6 +9,8 @@
 //! explicitly named producer entry point used by the pre-test producer stage; test code
 //! is forbidden from calling it.
 
+mod receipt_payload_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write as _;
 use std::path::Path;
@@ -17,6 +19,7 @@ use std::sync::Arc;
 use gmeow_action_cache::{
     ActionContext, ActionInput, ActionStore, ProducerIdentity, STORE_FORMAT_VERSION, StoreLimits,
 };
+use purrdf_lex::json::{self, record::ToJson as _};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
@@ -98,7 +101,7 @@ pub struct StageFixture {
     pub outcome: FixtureOutcome,
 }
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq)]
 struct StageFixtureManifest {
     schema_version: u32,
     build_fingerprint: String,
@@ -253,7 +256,7 @@ fn settled_source_load_digest(
         hit.product.bundle(),
         crate::stages::carrier::REP_SPAN_TABLE,
     )?;
-    let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped));
+    let settled = StageProduct::from_bundle(hit.product.stage_id.clone(), Arc::new(stripped))?;
     let witness = SettledSourceLoadWitness {
         schema_version: 1,
         source_action_key: source.action_key.clone(),
@@ -384,10 +387,10 @@ fn validate_stage_fixture_manifest(
 pub fn prepare_stage_fixture_candidate(
     root: &Path,
     run_receipts: &[StageReceipt],
-) -> gmeow_errors::Result<serde_json::Value> {
+) -> gmeow_errors::Result<json::Value> {
     let manifest = stage_fixture_manifest(run_receipts)?;
-    let value = serde_json::to_value(&manifest)
-        .map_err(|error| fixture_manifest_error(format!("encode fixture receipts: {error}")))?;
+    let mut value = manifest.to_json();
+    json::record::sorted_last_wins(&mut value);
     write_stage_fixture_record(root, STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH, &manifest)?;
     Ok(value)
 }
@@ -407,7 +410,11 @@ fn write_stage_fixture_record(
     relative_path: &str,
     manifest: &StageFixtureManifest,
 ) -> Result<String, gmeow_errors::Diag> {
-    let mut bytes = serde_json::to_vec_pretty(manifest)
+    let value = manifest.to_json();
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    let mut bytes = json::write_with_memory(&value, json::Format::PRETTY, &mut memory)
+        .map(String::into_bytes)
         .map_err(|error| fixture_manifest_error(format!("encode fixture receipts: {error}")))?;
     bytes.push(b'\n');
     let digest = sha256(&bytes);
@@ -528,7 +535,7 @@ pub fn reuse_stage_fixture_candidate(
             )));
         }
     };
-    let manifest: StageFixtureManifest = match serde_json::from_slice(&bytes) {
+    let manifest: StageFixtureManifest = match json::record::from_slice(&bytes) {
         Ok(manifest) => manifest,
         Err(error) => {
             return Ok(warm_manifest_miss(format_args!(
@@ -848,7 +855,7 @@ pub const AUTHENTICATED_SOURCE_ARTIFACTS: &[(&str, &str)] = &[
     ),
     (
         "stage-goal-directed",
-        crate::stages::goal_directed::OBSERVATION_CHANNEL,
+        gmeow_logic::goal_directed::GOAL_DIRECTED_OBSERVATION_CHANNEL,
     ),
     (
         "stage-compile-logic",
@@ -1015,8 +1022,8 @@ pub fn authenticated_reasoned_gates(
         gmeow_logic::verify::PREPARED_GATES_CHANNEL,
     )
     .map_err(|error| fail(error.to_string()))?;
-    let gates: gmeow_logic::verify::PreparedReasonedGates =
-        serde_json::from_slice(&bytes).map_err(|error| fail(error.to_string()))?;
+    let gates = gmeow_logic::verify::PreparedReasonedGates::from_json_bytes(&bytes)
+        .map_err(|error| error.with_context("decode selected prepared verification laws"))?;
     gates.validate_source_identity()?;
     Ok(gates)
 }
@@ -1106,12 +1113,20 @@ pub fn export_source_artifacts(
 /// Refuses missing selections, mixed parent identities, changed artifact commitments,
 /// or corrupt export actions. This operation never constructs or publishes a product.
 pub fn verify_source_artifacts(root: &Path) -> gmeow_errors::Result<BTreeMap<String, usize>> {
-    #[derive(Deserialize)]
     struct Selection {
-        #[serde(flatten)]
         stages: StageFixtureManifest,
-        #[serde(flatten)]
         artifacts: gmeow_action_cache::selection::source_artifacts::SourceArtifactSelector,
+    }
+    impl purrdf_lex::json::record::FromJson for Selection {
+        fn from_json(
+            value: &purrdf_lex::json::Value,
+        ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+            // Both owners read their fields from the same open selector root.
+            Ok(Self {
+                stages: <StageFixtureManifest as purrdf_lex::json::record::FromJson>::from_json(value)?,
+                artifacts: <gmeow_action_cache::selection::source_artifacts::SourceArtifactSelector as purrdf_lex::json::record::FromJson>::from_json(value)?,
+            })
+        }
     }
     let selected: Selection =
         gmeow_action_cache::selection::load_manifest(root).map_err(action_cache_error)?;

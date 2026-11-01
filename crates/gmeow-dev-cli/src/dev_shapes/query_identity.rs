@@ -135,6 +135,14 @@ pub(super) fn raw_sparql_block_key(
     }) else {
         return Err(crate::error::clearance(format!("missing native shape {iri}")));
     };
+    // Exported roots retain targets and rules; the original constraint body and
+    // its reporting/deactivation metadata belong to that root's native owner.
+    let owner = shape.owner.as_ref().ok_or_else(|| {
+        crate::error::clearance(format!("native shape {iri} has no definition owner"))
+    })?;
+    let definition = owner.definition(&shape.id).ok_or_else(|| {
+        crate::error::clearance(format!("native shape {iri} has no owned definition"))
+    })?;
     let [
         Target::Sparql {
             select,
@@ -148,12 +156,16 @@ pub(super) fn raw_sparql_block_key(
     if !substitutions.is_empty()
         || !shape.property_shapes.is_empty()
         || !shape.rules.is_empty()
-        || shape.constraints.is_empty()
+        || !shape.deactivated_when.is_empty()
+        || !definition.property_shapes.is_empty()
+        || !definition.rules.is_empty()
+        || !definition.deactivated_when.is_empty()
+        || definition.constraints.is_empty()
     {
         return Ok(None);
     }
     let mut constraints = Vec::new();
-    for (index, constraint) in shape.constraints.iter().enumerate() {
+    for (index, constraint) in definition.constraints.iter().enumerate() {
         let Constraint::Sparql {
             select,
             messages,
@@ -163,20 +175,25 @@ pub(super) fn raw_sparql_block_key(
         else {
             return Ok(None);
         };
-        let override_ = shape
+        let override_ = definition
             .constraint_annotations
             .iter()
             .find(|annotation| annotation.constraint == AnnotatedConstraint::Constraint(index));
+        // Arbitrary focus-dependent guards need a separate equivalence proof;
+        // comparing the unguarded SELECTs would discard their activation law.
+        if override_.is_some_and(|annotation| !annotation.deactivated_when.is_empty()) {
+            return Ok(None);
+        }
         let severity = override_
             .and_then(|annotation| annotation.severity.as_ref())
             .or(severity.as_ref())
-            .unwrap_or(&shape.severity);
+            .unwrap_or(&definition.severity);
         let messages = override_
             .map(|annotation| annotation.messages.as_slice())
             .filter(|messages| !messages.is_empty())
             .unwrap_or_else(|| {
                 if messages.is_empty() {
-                    &shape.messages
+                    &definition.messages
                 } else {
                     messages
                 }
@@ -199,7 +216,7 @@ pub(super) fn raw_sparql_block_key(
     Ok(Some(BlockKey {
         target: query_key(select, false)?,
         constraints,
-        deactivated: shape.deactivated,
-        box_roles: format!("{:?}", shape.box_roles),
+        deactivated: shape.deactivated || definition.deactivated,
+        box_roles: format!("{:?}", definition.box_roles),
     }))
 }

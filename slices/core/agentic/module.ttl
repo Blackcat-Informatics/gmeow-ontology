@@ -1,4 +1,5 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
@@ -376,12 +377,13 @@ gmeow:resolutionOutcome
 
 gmeow:resolutionRationale
     a logic:DatatypeProperty ; logic:domain gmeow:AttentionResolution ; logic:range rdfs:Literal ;
+    logic:subPropertyOf gmeow:statedRationale ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "resolution rationale"@x-gmeow-english ;
     skos:definition "The resolving agent’s stated reason for an attention request disposition."@x-gmeow-english ;
     skos:example "ex:resolution gmeow:resolutionRationale \"Return after the visit.\"@en ."@x-gmeow-english ;
-    skos:scopeNote "Language-tagged and directional text may be retained; the rationale is not an independently verified fact."@x-gmeow-english ;
+    skos:scopeNote "Specializes statedRationale while retaining the AttentionResolution domain. Source wording keeps language and direction; the inferred general rationale is not a new source assertion or an independently verified cause."@x-gmeow-english ;
     gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
     gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
     gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
@@ -409,3 +411,21 @@ gmeow:attentionRequestedAt
     gmeow:avoidWhen "Do not collapse acknowledgement, postponement, dismissal and completed attention into one mutable success flag."@x-gmeow-english ;
     gmeow:howToUse "Retain the request, its description and source, and the separate event actors, times, rationale and evidence."@x-gmeow-english ;
     gmeow:useWhen "Use when recording the explicit attention-request lifecycle rather than inferring it from silence."@x-gmeow-english .
+
+# Source-faithful goals, attempts and self-commitments (Principles 4, 9, 17).
+
+gmeow:attentionMessage
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "attention message"@x-gmeow-english ;
+    skos:definition "The verbatim source message of an AttentionRequest, retaining supplied language and direction. A message neither acknowledges the request nor asserts that its requested work was performed."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:attentionMessage \"source-value\" ."@x-gmeow-english ;
+    logic:domain gmeow:AttentionRequest ;
+    logic:range rdfs:Literal .
+
+gmeow:AttentionRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:attentionMessage ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .

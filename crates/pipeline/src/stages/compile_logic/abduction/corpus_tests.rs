@@ -10,7 +10,7 @@ fn observation() -> Observation {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
         .expect("authenticated producer-selected abduction observation");
-    serde_json::from_slice(&bytes).expect("complete typed abduction observation")
+    purrdf_lex::json::record::from_slice(&bytes).expect("complete typed abduction observation")
 }
 
 /// Authored abductive vocabulary must survive compilation without malformed nodes.

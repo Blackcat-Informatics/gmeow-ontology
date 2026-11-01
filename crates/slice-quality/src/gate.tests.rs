@@ -35,7 +35,7 @@ fn mk_axis(producer: &str) -> crate::model::Axis {
         thresholds: vec![],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 
@@ -109,7 +109,7 @@ fn staleness_reds_when_producer_resolves() {
             exemptions: vec![Exemption {
                 iri: "ex:e".to_owned(),
                 axis_iri: "ex:a".to_owned(),
-                reason: "unlanded".to_owned(),
+                reasons: vec![purrdf::RdfLiteral::simple("unlanded")],
                 date: "2026-07-07".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
@@ -145,7 +145,7 @@ fn completeness_gate_reds_on_empty_exemption_reason() {
         }],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     };
     let rubric = Rubric {
         standard: MeasurementStandard {
@@ -156,7 +156,7 @@ fn completeness_gate_reds_on_empty_exemption_reason() {
             exemptions: vec![Exemption {
                 iri: "ex:e".to_owned(),
                 axis_iri: "ex:a".to_owned(),
-                reason: "   ".to_owned(),
+                reasons: vec![purrdf::RdfLiteral::simple("   ")],
                 date: "2026-07-08".to_owned(),
                 producer: "DocMaturity".to_owned(),
             }],
@@ -368,7 +368,7 @@ fn co_axis(iri: &str) -> Axis {
         ],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

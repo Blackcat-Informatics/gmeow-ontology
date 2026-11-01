@@ -140,7 +140,7 @@ impl Stage for YamlLdStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 
@@ -289,9 +289,9 @@ pub fn roundtrip_isomorphic(
         "jsonld" => parse_jsonld_star(star_bytes)?,
         "yamlld" => parse_jsonld_star(yaml_ld_star_to_json(star_bytes)?.as_bytes())?,
         other => {
-            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode {
-                message: format!("unknown star format {other:?}; expected 'jsonld' or 'yamlld'"),
-            }));
+            return Err(gmeow_errors::Diag::of_kind(crate::error::Decode::new(
+                format!("unknown star format {other:?}; expected 'jsonld' or 'yamlld'"),
+            )));
         }
     };
     Ok(canonical_lines(&original) == canonical_lines(&roundtrip))

@@ -5,30 +5,15 @@
 
 use std::collections::BTreeMap;
 
-use gmeow_logic::reason::refute::{FragmentBoundary, PreparedClassAnalysis, RefutationSourceIssue};
-use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic};
+pub(crate) use gmeow_logic::reason::refute::LIST_CORPUS_CHANNEL as CHANNEL;
+use gmeow_logic::reason::refute::{
+    FragmentBoundary, ListCorpusObservation, PreparedClassAnalysis, RefutationSourceIssue,
+    encode_list_corpus_observation,
+};
+use gmeow_logic_compile::frontend::CompiledTheory;
 use purrdf::{DatasetView, GraphMatch, RdfDataset, RdfTerm};
-use serde::Serialize;
 
 use crate::stages::parse_sources::SourceCatalog;
-
-pub(crate) const CHANNEL: &str = "pipeline/logic-list-corpus-observation.json";
-
-#[derive(Debug, Serialize)]
-struct ListCorpusObservation {
-    schema_version: u32,
-    source_catalog_id: String,
-    source_modules: BTreeMap<String, String>,
-    destination_graph: String,
-    admission_contract: String,
-    selected_world_count: usize,
-    list_diagnostics: Vec<Diagnostic>,
-    blank_list_fields: Vec<String>,
-    invalid_constructor_objects: Vec<String>,
-    list_sizes: BTreeMap<String, usize>,
-    list_errors: Vec<String>,
-    admission_defects: Vec<RefutationSourceIssue>,
-}
 
 pub(super) fn record(
     catalog: &SourceCatalog,
@@ -39,9 +24,7 @@ pub(super) fn record(
     let observation = super::observed(observe(catalog, theory, canonical));
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observation).map_err(|error| {
-            super::stage_err(format!("encode list corpus observation: {error}"))
-        })?,
+        encode_list_corpus_observation(&observation),
     );
     Ok(())
 }

@@ -10,12 +10,13 @@ mod test_support;
 #[cfg(test)]
 pub(crate) use test_support::shared;
 
+mod json;
+
 use std::collections::BTreeMap;
 use std::sync::OnceLock;
 
 use gmeow_logic_compile::frontend::{CompiledTheory, Diagnostic};
 use purrdf::RdfDataset;
-use serde::{Deserialize, Serialize};
 use sha2::{Digest as _, Sha256};
 
 use crate::reason::{enactment, math_gate};
@@ -39,7 +40,7 @@ pub const GATE_SOURCES: [(&str, &str); 2] = [
 /// Native compiled rules and all lowering evidence needed by reasoned-graph gates.
 /// The producer-selected action authenticates this entire value; its native fields
 /// remain private so a consumer cannot substitute an unrelated law inventory.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PreparedReasonedGates {
     schema_version: u32,
     source_digests: BTreeMap<String, String>,
@@ -48,13 +49,13 @@ pub struct PreparedReasonedGates {
     pub(crate) math_compilation: MathCompilation,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct MathCompilation {
     pub(crate) diagnostics: Vec<Diagnostic>,
     pub(crate) constraints: Vec<MathConstraint>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct MathConstraint {
     pub(crate) iri: String,
     pub(crate) target: String,
@@ -184,3 +185,6 @@ fn prepare_embedded() -> gmeow_errors::Result<PreparedReasonedGates> {
         &digests[GATE_SOURCES[1].0],
     )
 }
+
+#[cfg(test)]
+mod tests;

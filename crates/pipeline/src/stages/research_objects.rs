@@ -217,26 +217,6 @@ fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
     set.into_iter().collect()
 }
 
-/// All object lexical/IRI values for `(subject, predicate)`, sorted unique.
-fn objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
-    let mut set: BTreeSet<String> = BTreeSet::new();
-    for q in store.triples() {
-        if !iri_is(&q.subject, subject) || q.predicate != predicate {
-            continue;
-        }
-        match &q.object {
-            RdfTerm::Literal(l) => {
-                set.insert(canonical_lexical(l));
-            }
-            RdfTerm::Iri(n) => {
-                set.insert(n.clone());
-            }
-            _ => {}
-        }
-    }
-    set.into_iter().collect()
-}
-
 fn slug(iri: &str) -> String {
     let trimmed = iri.trim_end_matches('/');
     let tail = trimmed.rsplit('/').next().unwrap_or(trimmed);
@@ -378,17 +358,25 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
 
 // ── digest maps ────────────────────────────────────────────────────────────────
 
-/// Collect `gmeow:contentDigest` values keyed by `algorithm` (unprefixed → "digest").
-fn digest_map(store: &Store, doc: &str) -> BTreeMap<String, String> {
-    let mut digests: BTreeMap<String, String> = BTreeMap::new();
-    for raw in objects(store, doc, &g("contentDigest")) {
-        let (key, hex) = match raw.split_once(':') {
-            Some((algo, hex)) => (algo.to_string(), hex.to_string()),
-            None => ("digest".to_string(), raw.clone()),
-        };
-        digests.entry(key).or_insert(hex);
+/// Retain every supported digest algorithm; refuse a conflicting value instead of choosing one.
+fn digest_map(store: &Store, doc: &str) -> Result<BTreeMap<String, String>, gmeow_errors::Diag> {
+    let mut digests = BTreeMap::new();
+    for quad in store.triples() {
+        if !iri_is(&quad.subject, doc) || quad.predicate != g("contentDigest") {
+            continue;
+        }
+        let value = purrdf::TermValue::from_rdf_term(&quad.object);
+        let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
+        if let Some(previous) = digests.insert(algorithm.name().to_owned(), hex.to_owned())
+            && previous != hex
+        {
+            return Err(ro_err(format!(
+                "document {doc} has conflicting {} digests",
+                algorithm.name()
+            )));
+        }
     }
-    digests
+    Ok(digests)
 }
 
 struct DocInfo {
@@ -398,14 +386,16 @@ struct DocInfo {
     digests: BTreeMap<String, String>,
 }
 
-fn documents(store: &Store) -> Vec<DocInfo> {
+fn documents(store: &Store) -> Result<Vec<DocInfo>, gmeow_errors::Diag> {
     subjects_of_type(store, &g("Document"))
         .into_iter()
-        .map(|doc| DocInfo {
-            name: label(store, &doc),
-            content_url: text(store, &doc, &g("sourceLocation")),
-            digests: digest_map(store, &doc),
-            iri: doc,
+        .map(|doc| {
+            Ok(DocInfo {
+                name: label(store, &doc),
+                content_url: text(store, &doc, &g("sourceLocation")),
+                digests: digest_map(store, &doc)?,
+                iri: doc,
+            })
         })
         .collect()
 }
@@ -428,8 +418,9 @@ fn research_limits() -> Result<purrdf::ProjectionLimits, gmeow_errors::Diag> {
 
 /// The complete caller-owned RDF vocabulary binding: how the source research-object
 /// A-Box built by [`build_research_source`] expresses each semantic role. gmeow
-/// predicates/classes for the concepts the worked example carries; the real rdf:/xsd:
-/// datatype IRIs the pivot compares literal datatypes against; a distinct absolute
+/// predicates/classes for the concepts the worked example carries; the external
+/// schema:encodingFormat lexical slot; the real rdf:/xsd: datatype IRIs the pivot
+/// compares literal datatypes against; a distinct absolute
 /// gmeow IRI for every remaining role (purrdf rejects any missing, relative, or
 /// duplicate binding). Because [`build_research_source`] emits triples keyed off THIS
 /// same map, source and reader can never drift.
@@ -461,7 +452,10 @@ fn research_roles() -> Result<purrdf::ResearchObjectRoles, gmeow_errors::Diag> {
             RR::ResourceDescription => g("resourceDescription"),
             RR::ResourcePath => g("resourcePath"),
             RR::ResourceUrl => g("contentUrl"),
-            RR::MediaType => g("mediaType"),
+            // This native codec slot is lexical external-profile metadata, not
+            // the canonical resource-valued gmeow:mediaType relation. Neither
+            // private source builder currently emits a media value.
+            RR::MediaType => "https://schema.org/encodingFormat".to_string(),
             RR::Format => g("resourceFormat"),
             RR::ByteSize => g("byteSize"),
             RR::Checksum => g("hasChecksum"),
@@ -848,7 +842,7 @@ fn build_research_source(
 
     // ── resources: each gmeow:Document, minted under the entity base ────────────
     let mut seen_resource: BTreeSet<String> = BTreeSet::new();
-    for doc in documents(store) {
+    for doc in documents(store)? {
         let base = slug(&doc.iri).to_lowercase().replace('_', "-");
         let mut name = base.clone();
         let mut disambiguate = 2;
@@ -1508,6 +1502,7 @@ fn render_dcat(
     let refs: Vec<&RdfDataset> = parsed.iter().map(AsRef::as_ref).collect();
     let dataset = Arc::new(RdfDataset::union(&refs)?);
 
+    crate::projections::admit_dcat_digest_sources(&dataset)?;
     let graph = match prepared.execute(&dataset)? {
         SparqlResult::Graph(graph) => graph,
         _ => {
@@ -1520,8 +1515,39 @@ fn render_dcat(
     // forms to the W3C XSD mapping (the native codecs preserve raw lexical forms),
     // serialize to N-Triples (NO gts round-trip), then canonicalize to Turtle.
     let mut quads = purrdf::native_quads::flat_rdf_quads_from_dataset(&graph);
+    // SPDX fixes lowercase hex, whereas XSD's generic canonical hex is uppercase.
+    // Validate each external algorithm/value pair before preserving that selected spelling.
+    for quad in &quads {
+        if quad.predicate != "http://spdx.org/rdf/terms#checksumValue" {
+            continue;
+        }
+        if quads.iter().any(|candidate| {
+            candidate.subject == quad.subject
+                && candidate.predicate == quad.predicate
+                && candidate.object != quad.object
+        }) {
+            return Err(ro_err("SPDX checksum has conflicting values".into()));
+        }
+        let mut algorithms = quads.iter().filter(|candidate| {
+            candidate.subject == quad.subject
+                && candidate.predicate == "http://spdx.org/rdf/terms#algorithm"
+        });
+        let first = algorithms
+            .next()
+            .ok_or_else(|| ro_err("SPDX checksum has no algorithm".into()))?;
+        if algorithms.any(|candidate| candidate.object != first.object) {
+            return Err(ro_err("SPDX checksum has conflicting algorithms".into()));
+        }
+        let RdfTerm::Iri(algorithm) = &first.object else {
+            return Err(ro_err("SPDX checksum algorithm must be an IRI".into()));
+        };
+        let value = purrdf::TermValue::from_rdf_term(&quad.object);
+        crate::projections::DigestAlgorithm::from_spdx(algorithm)?.admit_spdx_value(&value)?;
+    }
     for quad in &mut quads {
-        canonicalize_term_xsd(&mut quad.object)?;
+        if quad.predicate != "http://spdx.org/rdf/terms#checksumValue" {
+            canonicalize_term_xsd(&mut quad.object)?;
+        }
     }
     let canon = purrdf::native_quads::flat_dataset_from_quads(&quads).map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -1621,7 +1647,7 @@ impl Stage for ResearchObjectsStage {
         // whole-ontology typed DCAT CONSTRUCT. Scores, typed projection and native
         // catalog ride in from the
         // consumed stage-export-evals / stage-mappings products (never a git-ignored disk read).
-        "research_objects.v4"
+        "research_objects.v5"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Pure authored-source reads: the FIVE authored worked-example A-Box inputs and the
@@ -1681,7 +1707,7 @@ impl Stage for ResearchObjectsStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_research_objects(input.root, dcat_program, correspondence_program, scores_ttl)?,
-        )))
+        )?))
     }
 }
 

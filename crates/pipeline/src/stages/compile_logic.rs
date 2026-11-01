@@ -500,7 +500,7 @@ impl Stage for CompileLogicStage {
     }
     /// Require producer-owned diagnostics shape-migration parity in validation fixtures.
     fn impl_version(&self) -> &str {
-        "compile-logic.v45-conjunctive-node-kinds"
+        "compile-logic.v46-component-identity"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, gmeow_errors::Diag> {
         // Explicit OPT, worked-example and counterexample selections are direct inputs.
@@ -748,17 +748,21 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(
             CORRESPONDENCE_PLANS_PATH.into(),
-            physical_plans.report_json()?,
+            physical_plans.report_json(),
         );
-        let mut rchops21_projection_json = serde_json::to_vec_pretty(&rchops21_projection)
-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan projection: {error}")))?;
+        let mut rchops21_projection_json = purrdf_lex::json::write_pretty(
+            &purrdf_lex::json::record::ToJson::to_json(&rchops21_projection),
+        )
+        .into_bytes();
         rchops21_projection_json.push(b'\n');
         artifacts.insert(
             RCHOPS21_PLAN_PROJECTION_PATH.into(),
             rchops21_projection_json,
         );
-        let mut rchops21_recovery_json = serde_json::to_vec_pretty(&rchops21_recovery)
-            .map_err(|error| stage_err(format!("encode RCHOPS21 plan recovery: {error}")))?;
+        let mut rchops21_recovery_json = purrdf_lex::json::write_pretty(
+            &purrdf_lex::json::record::ToJson::to_json(&rchops21_recovery),
+        )
+        .into_bytes();
         rchops21_recovery_json.push(b'\n');
         artifacts.insert(RCHOPS21_PLAN_RECOVERY_PATH.into(), rchops21_recovery_json);
         artifacts.insert(
@@ -829,14 +833,8 @@ impl Stage for CompileLogicStage {
                     ))
                 })
         };
-        let validation_shapes_ttl = vs_content("shacl-core")?;
-        purrdf::parse_dataset(validation_shapes_ttl.as_bytes(), "text/turtle", None).map_err(
-            |error| {
-                stage_err(format!(
-                    "compile: emitted validation SHACL is not valid Turtle: {error}"
-                ))
-            },
-        )?;
+        let validation_shapes_ttl =
+            crate::projections::publicize_turtle(&vs_content("shacl-core")?, ontology)?;
         artifacts.insert(
             VALIDATION_SHAPES_TTL_PATH.to_string(),
             validation_shapes_ttl.into_bytes(),
@@ -853,7 +851,8 @@ impl Stage for CompileLogicStage {
         );
         artifacts.insert(
             PROCEDURAL_CONSTRAINTS_PATH.to_string(),
-            vs_content("procedural-constraint")?.into_bytes(),
+            crate::projections::publicize_turtle(&vs_content("procedural-constraint")?, ontology)?
+                .into_bytes(),
         );
 
         // The COMMITTED projection report is no longer emitted here: the loss ledger
@@ -987,7 +986,7 @@ impl Stage for CompileLogicStage {
             diag_blob,
         )?;
         Ok(StageOutput {
-            product: StageProduct::from_bundle(self.id(), Arc::new(bundle)),
+            product: StageProduct::from_bundle(self.id(), Arc::new(bundle))?,
             diags: nodes,
             timings: Vec::new(),
         })

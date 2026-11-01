@@ -459,16 +459,16 @@ pub(crate) fn finance(reporter: &dyn Reporter, command: &FinanceCommands) -> i32
         let mut shapes_text = String::new();
         for (path, bytes) in bundle.shapes()? {
             shapes_text.push_str(std::str::from_utf8(&bytes).map_err(|error| {
-                gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
-                    detail: format!("invalid bundled shape {path}: {error}"),
-                })
+                gmeow_errors::Diag::of_kind(gmeow_logic::error::Result::new(format!(
+                    "invalid bundled shape {path}: {error}"
+                )))
             })?);
             shapes_text.push('\n');
         }
         let shapes = purrdf::shapes::engine::parse_shapes(&shapes_text, None).map_err(|error| {
-            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
-                detail: format!("invalid complete bundled financial projections: {error}"),
-            })
+            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result::new(format!(
+                "invalid complete bundled financial projections: {error}"
+            )))
         })?;
         let identity = format!(
             "blake3:{}",
@@ -779,9 +779,9 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                         .split_once('=')
                         .filter(|(s, q)| !s.is_empty() && !q.is_empty())
                         .ok_or_else(|| {
-                            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
-                                detail: "--bind requires SYMBOL=QUANTITY".into(),
-                            })
+                            gmeow_errors::Diag::of_kind(gmeow_logic::error::Result::new(
+                                "--bind requires SYMBOL=QUANTITY".into(),
+                            ))
                             .with_context("gmeow math evaluate")
                             .with_location(gmeow_errors::Location {
                                 path: Some(source.display().to_string()),
@@ -792,9 +792,9 @@ fn math_interchange(reporter: &dyn Reporter, command: &MathCommands) -> i32 {
                         .insert(symbol.to_owned(), quantity.to_owned())
                         .is_some()
                     {
-                        return Err(gmeow_errors::Diag::of_kind(gmeow_logic::error::Result {
-                            detail: format!("duplicate --bind for {symbol}"),
-                        })
+                        return Err(gmeow_errors::Diag::of_kind(gmeow_logic::error::Result::new(
+                            format!("duplicate --bind for {symbol}"),
+                        ))
                         .with_context("gmeow math evaluate")
                         .with_location(gmeow_errors::Location {
                             path: Some(source.display().to_string()),

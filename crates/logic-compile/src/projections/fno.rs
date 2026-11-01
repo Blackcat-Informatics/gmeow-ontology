@@ -7,8 +7,9 @@
 //!
 //! FnO is the *transform-function* lowering of the correspondence calculus. The
 //! signatures (parameters typed from each input predicate's ontology `rdfs:range`,
-//! the output) are exact; FnO is not an entailment surface, so the ledger-row
-//! preservation is `ValidationOnly`. The derivation (range typing, IRI minting, the
+//! the output) retain named types. Anonymous datatype unions use a Literal carrier
+//! with their erased alternatives disclosed in the owning function's loss row.
+//! FnO is not an entailment surface; preservation is `ValidationOnly`. The derivation (range typing, IRI minting, the
 //! `used_by`/`transform_cells` scan, `_var_for_predicate`/`_output_var`, the sort
 //! order, the deterministic blank-node labels) is reproduced exactly; the
 //! [`purrdf::fno`] serializer owns the triple shapes. Extraction runs over the
@@ -24,12 +25,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_errors::Diag;
 use purrdf::fno::{
-    self, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping,
-    FnoCatalog,
+    self, FnBlank, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping,
+    FnReturnMapping, FnoCatalog, FnoCatalogInput,
 };
-use purrdf::{RdfLiteral, RdfQuad, RdfTerm, turtle};
+use purrdf::{BlankScope, RdfLiteral, RdfQuad, RdfTerm, TermValue, turtle};
 
-use crate::ingest::DslView;
+use crate::ingest::{DslTerm, DslView};
 use crate::loss_ledger::LossLedger;
 use crate::projections::correspondence_frontend::CorrespondenceAnalysis;
 use crate::projections::get_leg::{Expr, ProjectionCell as MappingCell};
@@ -100,8 +101,9 @@ pub struct FnoLowering {
     /// The single FnO catalog N-Triples text.
     pub catalog: String,
     /// One [`ProjectionResult`] per projection function, interface or operation declaration — FnO is
-    /// `ValidationOnly`: signatures are exact, but the relation, caveats, and standpoint
-    /// scope are dropped, so every function contributes a preservation row.
+    /// `ValidationOnly`: named types are retained; anonymous datatype unions use
+    /// disclosed Literal carriers. Relation, caveats and standpoint scope are
+    /// dropped, so every function contributes a preservation row.
     pub ledger: Vec<ProjectionResult>,
     /// The per-correspondence loss store this lowering interned every drop into (keyed by
     /// target focus). The mappings stage unions it into the single report loss store so the
@@ -116,7 +118,7 @@ pub fn lower_fno(
 ) -> gmeow_errors::Result<FnoLowering> {
     let functions = extract_functions(dsl)?;
     let cells = extract_cells(analysis.projection_cells())?;
-    let mut catalog_model = build_catalog(&functions, &cells, onto)?;
+    let mut catalog_input = build_catalog(&functions, &cells, onto)?;
     let mut signatures = signatures::Signatures::admit(dsl)?;
     let mut onto_signatures = signatures::Signatures::admit(onto)?;
     if let Some(collision) = onto_signatures
@@ -140,13 +142,13 @@ pub fn lower_fno(
     signatures.functions.sort_by(|a, b| a.iri.cmp(&b.iri));
     signatures.params.sort_by(|a, b| a.iri.cmp(&b.iri));
     let signature_targets: Vec<_> = signatures.functions.iter().map(|f| f.iri.clone()).collect();
-    let existing: BTreeSet<&str> = catalog_model
+    let existing: BTreeSet<&str> = catalog_input
         .functions
         .iter()
         .flat_map(|f| [f.iri.as_str(), f.output.iri.as_str()])
-        .chain(catalog_model.params.iter().map(|p| p.iri.as_str()))
-        .chain(catalog_model.implementations.iter().map(|i| i.iri.as_str()))
-        .chain(std::iter::once(catalog_model.document_iri.as_str()))
+        .chain(catalog_input.params.iter().map(|p| p.iri.as_str()))
+        .chain(catalog_input.implementations.iter().map(|i| i.iri.as_str()))
+        .chain(std::iter::once(catalog_input.document_iri.as_str()))
         .collect();
     if let Some(collision) = signatures
         .subjects
@@ -183,8 +185,16 @@ pub fn lower_fno(
             ),
         }));
     }
-    catalog_model.functions.append(&mut signatures.functions);
-    catalog_model.params.append(&mut signatures.params);
+    catalog_input.functions.append(&mut signatures.functions);
+    catalog_input.params.append(&mut signatures.params);
+    // purrdf admits the complete catalog: it refuses malformed values, conflicting
+    // descriptions of one subject and unresolved references, and canonicalizes the
+    // set-valued members. A refusal is a hard failure of this lowering.
+    let catalog = FnoCatalog::try_new(catalog_input).map_err(|error| {
+        Diag::of_kind(crate::error::Fno {
+            detail: format!("purrdf refused the FnO catalog: {error}"),
+        })
+    })?;
     let tag_map = build_tag_map(onto);
     // `purrdf::fno::to_quads` never emits `rdfs:isDefinedBy`/`gmeow:graphBoxRole` for
     // any subject, and its external `FnImpl` model carries no label/description
@@ -192,22 +202,31 @@ pub fn lower_fno(
     // quads BEFORE the carrier-tag retag, so any label/definition this pass derives
     // rides the exact same `x-gmeow-english` → public-BCP-47 remap every other
     // catalog literal goes through.
-    let mut emitted = fno::to_quads(&catalog_model);
+    let mut emitted = fno::to_quads(&catalog);
     signatures.restore_annotations(&mut emitted);
     emitted.extend(signatures.extensions);
     emitted.extend(declarations.quads);
-    let completed = complete_fno_abox_annotations(emitted, &catalog_model.document_iri);
+    let completed = complete_fno_abox_annotations(emitted, &catalog.as_input().document_iri);
     let quads: Vec<RdfQuad> = completed
         .into_iter()
         .map(|q| retag_quad(q, &tag_map))
         .collect();
     let catalog: String = quads.iter().map(turtle::emit_quad).collect();
 
-    // One preservation row per function correspondence: FnO carries exact signatures but
-    // is not an entailment surface, so the relation, caveats, and standpoint scope are
-    // dropped (the dialect structural drops, attributed to the get leg).
+    // Each function owns its signature projection losses. Named types remain exact;
+    // anonymous datatype alternatives are disclosed when their carrier is widened.
+    // FnO remains a validation surface, not a canonical entailment surface.
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     let mut loss = LossLedger::new();
+    let mut type_losses = BTreeMap::<String, BTreeSet<String>>::new();
+    for function in &functions {
+        for predicate in function.inputs.iter().chain(&function.optional_inputs) {
+            type_losses
+                .entry(function.iri.clone())
+                .or_default()
+                .extend(projected_predicate_types(onto, predicate)?.residue);
+        }
+    }
     for target in functions
         .iter()
         .map(|func| &func.iri)
@@ -218,7 +237,11 @@ pub fn lower_fno(
             &mut loss,
             "fno",
             target,
-            Vec::new(),
+            type_losses
+                .remove(target)
+                .unwrap_or_default()
+                .into_iter()
+                .collect(),
             None,
         ));
     }
@@ -229,10 +252,132 @@ pub fn lower_fno(
     })
 }
 
-/// The single shared `rdfs:range` lookup (the FnO `fno:type` derivation + the lint's
-/// `fno-ref`/type check): every range IRI of a predicate in the ontology view.
-pub fn predicate_ranges(onto: &DslView, predicate: &str) -> Vec<String> {
-    onto.object_iris(predicate, RDFS_RANGE)
+/// The FnO carrier types and constraints erased by this target projection.
+pub(crate) struct PredicateTypeProjection {
+    pub types: Vec<String>,
+    pub residue: Vec<String>,
+}
+
+/// Project an input property's declared range into FnO's IRI-valued type slot.
+/// Named ranges remain named. A finite union of concrete native datatypes uses
+/// the Literal carrier and exposes every erased alternative in its loss evidence.
+/// Malformed lists and unsupported anonymous forms are errors, never missing ranges.
+pub(crate) fn projected_predicate_types(
+    onto: &DslView<'_>,
+    predicate: &str,
+) -> gmeow_errors::Result<PredicateTypeProjection> {
+    let invalid = |detail: String| {
+        Diag::of_kind(crate::error::Fno {
+            detail: format!("{predicate}: {detail}"),
+        })
+    };
+    let mut ranges = onto.objects_of(predicate, RDFS_RANGE);
+    for range in onto.objects_of(predicate, "https://blackcatinformatics.ca/logic/range") {
+        if !ranges.contains(&range) {
+            ranges.push(range);
+        }
+    }
+    if ranges.iter().all(|range| matches!(range, DslTerm::Iri(_))) {
+        return Ok(PredicateTypeProjection {
+            types: ranges
+                .iter()
+                .filter_map(|range| range.as_iri().map(str::to_owned))
+                .collect(),
+            residue: Vec::new(),
+        });
+    }
+    let [range] = ranges.as_slice() else {
+        return Err(invalid(
+            "FnO requires one anonymous datatype range, without competing range declarations"
+                .to_owned(),
+        ));
+    };
+    if !matches!(range, DslTerm::Blank { .. }) {
+        return Err(invalid(
+            "an anonymous range must be a datatype resource".to_owned(),
+        ));
+    }
+    let types = onto.objects_of_term(range, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    if !types.iter().any(|kind| {
+        matches!(
+            kind.as_iri(),
+            Some(
+                "http://www.w3.org/2000/01/rdf-schema#Datatype"
+                    | "https://blackcatinformatics.ca/logic/Datarange"
+            )
+        )
+    }) {
+        return Err(invalid(
+            "FnO supports anonymous datatype unions, not anonymous class ranges".to_owned(),
+        ));
+    }
+    for construct in [
+        "onDatatype",
+        "withRestrictions",
+        "intersectionOf",
+        "complementOf",
+        "datatypeComplementOf",
+        "oneOf",
+    ] {
+        for namespace in [
+            "https://blackcatinformatics.ca/logic/",
+            "http://www.w3.org/2002/07/owl#",
+        ] {
+            if !onto
+                .objects_of_term(range, &format!("{namespace}{construct}"))
+                .is_empty()
+            {
+                return Err(invalid(format!(
+                    "unsupported anonymous datatype constructor {construct}"
+                )));
+            }
+        }
+    }
+    let mut heads = onto.objects_of_term(range, "https://blackcatinformatics.ca/logic/unionOf");
+    for head in onto.objects_of_term(range, "http://www.w3.org/2002/07/owl#unionOf") {
+        if !heads.contains(&head) {
+            heads.push(head);
+        }
+    }
+    let [head] = heads.as_slice() else {
+        return Err(invalid(
+            "FnO requires exactly one finite datatype union".to_owned(),
+        ));
+    };
+    let members = onto.rdf_list_strict(head)?;
+    if members.is_empty() {
+        return Err(invalid(
+            "FnO cannot project an empty datatype union".to_owned(),
+        ));
+    }
+    let mut alternatives = BTreeSet::new();
+    for member in members {
+        let Some(datatype) = member.as_iri() else {
+            return Err(invalid(
+                "FnO datatype-union alternatives must be named concrete datatypes".to_owned(),
+            ));
+        };
+        if purrdf::xsd::XsdDatatype::from_iri(datatype).is_none()
+            && datatype != "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+            && datatype != "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        {
+            return Err(invalid(format!(
+                "unsupported FnO datatype-union alternative <{datatype}>"
+            )));
+        }
+        alternatives.insert(datatype.to_owned());
+    }
+    Ok(PredicateTypeProjection {
+        types: vec!["http://www.w3.org/2000/01/rdf-schema#Literal".to_owned()],
+        residue: vec![format!(
+            "FnO input <{predicate}> uses the rdfs:Literal carrier; its canonical allowed-datatype union ({}) is not represented by the FnO parameter type. The exact restriction remains in the canonical ontology.",
+            alternatives
+                .into_iter()
+                .map(|iri| format!("<{iri}>"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )],
+    })
 }
 
 // ── Extraction (over the oxigraph-free DslView) ──────────────────────────────────
@@ -377,7 +522,7 @@ fn build_catalog(
     functions: &[ProjectionFunction],
     cells: &[ProjectionCell],
     onto: &DslView,
-) -> gmeow_errors::Result<FnoCatalog> {
+) -> gmeow_errors::Result<FnoCatalogInput> {
     let mut used_by: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut transform_cells: BTreeMap<(String, String), Vec<usize>> = BTreeMap::new();
     for (idx, cell) in cells.iter().enumerate() {
@@ -417,7 +562,11 @@ fn build_catalog(
             .chain(func.optional_inputs.iter().map(|p| (p, false)))
         {
             let param = param_iri(predicate);
-            let Some(rng) = predicate_ranges(onto, predicate).into_iter().next() else {
+            let Some(rng) = projected_predicate_types(onto, predicate)?
+                .types
+                .into_iter()
+                .next()
+            else {
                 return Err(Diag::of_kind(crate::error::Fno {
                     detail: format!(
                         "{}: input {predicate} has no rdfs:range — cannot derive its fno:type",
@@ -452,8 +601,8 @@ fn build_catalog(
                     predicate: Some(predicate.clone()),
                     r#type: rng,
                     required,
-                    label: Some(label),
-                    description: Some(description),
+                    label: Some(english(label)),
+                    description: Some(english(description)),
                 });
             }
         }
@@ -462,11 +611,11 @@ fn build_catalog(
             predicate_label_and_description(onto, &func.output, "output");
         catalog_fns.push(FnFunction {
             iri: func.iri.clone(),
-            label: func.label.clone(),
+            label: english(func.label.clone()),
             description: if func.description.is_empty() {
                 None
             } else {
-                Some(func.description.clone())
+                Some(english(func.description.clone()))
             },
             kind_types: vec![GM_PROJECTION_FUNCTION.to_owned()],
             see_also: Some(see_also),
@@ -475,8 +624,8 @@ fn build_catalog(
                 iri: output_iri(&func.iri),
                 predicate: Some(func.output.clone()),
                 r#type: func.output_type.clone(),
-                label: Some(output_label),
-                description: Some(output_description),
+                label: Some(english(output_label)),
+                description: Some(english(output_description)),
             },
         });
     }
@@ -527,8 +676,10 @@ fn build_catalog(
                 let param_local = local(param);
                 for var in vars {
                     parameter_mappings.push(FnParamMapping {
-                        bnode_label: format!("param-{fn_local}-{profile}-{param_local}-{var}"),
-                        label: format!("{param_local} ↦ ?{var}"),
+                        node: mapping_node(format!(
+                            "param-{fn_local}-{profile}-{param_local}-{var}"
+                        )),
+                        label: english(format!("{param_local} ↦ ?{var}")),
                         function_parameter: param.clone(),
                         implementation_property: var.clone(),
                     });
@@ -537,16 +688,16 @@ fn build_catalog(
             let mut return_mappings: Vec<FnReturnMapping> = Vec::new();
             for var in &out_vars {
                 return_mappings.push(FnReturnMapping {
-                    bnode_label: format!("return-{fn_local}-{profile}-{var}"),
-                    label: format!("{fn_local} output ↦ ?{var}"),
+                    node: mapping_node(format!("return-{fn_local}-{profile}-{var}")),
+                    label: english(format!("{fn_local} output ↦ ?{var}")),
                     function_output: out_node.clone(),
                     implementation_property: var.clone(),
                 });
             }
 
             mappings.push(FnMapping {
-                bnode_label: format!("mapping-{fn_local}-{profile}"),
-                label: format!("{fn_local} → {profile} (FnO mapping)"),
+                node: mapping_node(format!("mapping-{fn_local}-{profile}")),
+                label: english(format!("{fn_local} → {profile} (FnO mapping)")),
                 function: func.iri.clone(),
                 implementation: impl_node,
                 parameter_mappings,
@@ -555,11 +706,11 @@ fn build_catalog(
         }
     }
 
-    Ok(FnoCatalog {
+    Ok(FnoCatalogInput {
         ontology_iri: ONTOLOGY_IRI.to_owned(),
         document_iri: format!("{ONTOLOGY_IRI}/projections/functions"),
-        doc_label: DOC_LABEL.to_owned(),
-        banner: GENERATED_BANNER.to_owned(),
+        doc_label: english(DOC_LABEL),
+        banner: english(GENERATED_BANNER),
         functions: catalog_fns,
         params: catalog_params,
         implementations,
@@ -615,9 +766,9 @@ fn humanize_local(local: &str) -> String {
 /// The `fno:` A-Box individual `rdf:type`s this completion pass covers — every
 /// IRI-subject type `purrdf::fno::to_quads` mints for the catalog. Its
 /// `fno:Mapping`/`fnom:PropertyParameterMapping`/`fnom:DefaultReturnMapping`
-/// subjects are ALWAYS deterministic blank nodes (`purrdf::fno`'s internal
-/// `bnode(label)`), never IRIs, so the structural lint's IRI-subject-only A-Box
-/// scope already excludes them without help — they need no completion here.
+/// subjects are ALWAYS the deterministic blank nodes [`build_catalog`] names
+/// through [`mapping_node`], never IRIs, so the structural lint's IRI-subject-only
+/// A-Box scope already excludes them without help — they need no completion here.
 const FNO_FUNCTION: &str = "https://w3id.org/function/ontology#Function";
 const FNO_OUTPUT: &str = "https://w3id.org/function/ontology#Output";
 const FNO_PARAMETER: &str = "https://w3id.org/function/ontology#Parameter";
@@ -891,26 +1042,31 @@ fn build_tag_map(onto: &DslView) -> BTreeMap<String, String> {
     map
 }
 
-/// purrdf's FnO serializer stamps every localizable literal with its own neutral
-/// placeholder tag until the consuming ontology remaps it (purrdf-core `fno`
-/// `X_PURRDF_ENGLISH`). gmeow's catalog content is authored in gmeow-english, so
-/// treat that placeholder as gmeow's internal `x-gmeow-english` tag — the
-/// ontology-driven [`build_tag_map`] then remaps it to the public BCP-47 tag.
-const PURRDF_FNO_ENGLISH_PLACEHOLDER: &str = "x-purrdf-english";
+/// gmeow's catalog prose is authored in gmeow-english, so every literal the catalog
+/// model carries is tagged with the internal `x-gmeow-english` carrier tag; the
+/// ontology-driven [`build_tag_map`] remaps it to the public BCP-47 tag on egress.
 const GMEOW_INTERNAL_ENGLISH: &str = "x-gmeow-english";
+
+/// A catalog literal in gmeow's internal English carrier.
+fn english(text: impl Into<String>) -> TermValue {
+    TermValue::lang_literal(text, GMEOW_INTERNAL_ENGLISH)
+}
+
+/// The blank identity of a mapping node. The whole catalog is one document, so
+/// every derived mapping label lives in the default blank scope.
+fn mapping_node(label: String) -> FnBlank {
+    FnBlank {
+        label,
+        scope: BlankScope::DEFAULT,
+    }
+}
 
 fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
     if let RdfTerm::Literal(lit) = &mut quad.object
         && let Some(lang) = &lit.language
+        && let Some(ext) = tag_map.get(lang.as_str())
     {
-        let internal = if lang == PURRDF_FNO_ENGLISH_PLACEHOLDER {
-            GMEOW_INTERNAL_ENGLISH
-        } else {
-            lang.as_str()
-        };
-        if let Some(ext) = tag_map.get(internal) {
-            lit.language = Some(ext.clone());
-        }
+        lit.language = Some(ext.clone());
     }
     quad
 }

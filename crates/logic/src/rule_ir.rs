@@ -43,6 +43,8 @@
 //! keeps a crate-internal `dead_code` allowance rather than exporting them.
 #![allow(dead_code)]
 
+mod json;
+
 use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap};
 use std::hash::{BuildHasher, Hash, Hasher};

@@ -15,7 +15,7 @@ fn corpus_logic_vocabulary_surface() {
     let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
         .expect("producer-authenticated native vocabulary observation");
     let observation: Observation =
-        serde_json::from_slice(&bytes).expect("decode vocabulary observation");
+        purrdf_lex::json::record::from_slice(&bytes).expect("decode vocabulary observation");
     assert_eq!(observation.source, super::super::SOURCE_PATH);
     let contracts: [VocabularyContract; 13] = [
         (

@@ -16,12 +16,28 @@
     gmeow:sliceTier gmeow:tierExtension ;
     gmeow:sliceProfile "narrative" ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/agency-records> ,
+        <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ,
+        <https://blackcatinformatics.ca/gmeow/slices/citations> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/entities> ,
+        <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
+        <https://blackcatinformatics.ca/gmeow/slices/standpoint> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/places> ,
         <https://blackcatinformatics.ca/gmeow/slices/provenance> ,
         <https://blackcatinformatics.ca/gmeow/slices/observations> ,
+        <https://blackcatinformatics.ca/gmeow/slices/inquiry> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ,
+        <https://blackcatinformatics.ca/gmeow/slices/messaging> ,
+        <https://blackcatinformatics.ca/gmeow/slices/ai> ,
+        <https://blackcatinformatics.ca/gmeow/slices/notes> ,
+        <https://blackcatinformatics.ca/gmeow/slices/tags> ,
+        <https://blackcatinformatics.ca/gmeow/slices/versions> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     gmeow:sliceConsumer "Narrative frames and myth tellings for the deception slice's worked examples and creative works. The narrative interior (arc samples as Observations over narrative positions, scoped roles, and motifs riding the narration seam) serves the lbox foundation-docs importer (design context: 16,445 arc samples, 779 role links, 16,002 tags / 669 concepts) ahead of the narrative consumer child."@x-gmeow-english.

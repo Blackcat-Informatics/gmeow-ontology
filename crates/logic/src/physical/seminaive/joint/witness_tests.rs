@@ -290,6 +290,8 @@ fn minimum_and_generic_invention_share_world_contract_and_committed_head_protoco
 
 #[test]
 fn native_witness_receipt_rejects_missing_heads_wrong_scope_and_tampered_proof() {
+    use purrdf_lex::json::{self, Value, record::ToJson as _};
+
     let result = run(&prepare(&[], &[subject_and_object()]), &[WORLD], None);
     let witness = &result.witness_derivations[0];
     let wire = witness.to_wire().unwrap();
@@ -308,7 +310,88 @@ fn native_witness_receipt_rejects_missing_heads_wrong_scope_and_tampered_proof()
             _ => changed.rule_iri = "urn:foreign-rule".to_owned(),
         }
         assert!(changed.validate().is_err(), "mutation {mutation}");
+        assert!(changed.to_wire().is_err(), "encoding mutation {mutation}");
+        let invalid = format!(
+            "gmeow-witness-v2:{}",
+            json::write_compact(&changed.to_json())
+        );
+        assert!(
+            WitnessDerivation::from_wire(&invalid).is_err(),
+            "decoding mutation {mutation}"
+        );
     }
+    let contract = format!(
+        "\"contract\":{}",
+        json::write_compact(&witness.scope.contract.to_json())
+    );
+    let frontier = Value::Array(
+        witness
+            .frontier
+            .iter()
+            .map(crate::term_serde::to_json)
+            .collect(),
+    );
+    let frontier = format!(",\"frontier\":{}", json::write_compact(&frontier));
+    let ordinal = format!("\"ordinal\":{}", witness.ordinal);
+    let positional = Value::Array(
+        witness
+            .to_json()
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(_, value)| value.clone())
+            .collect(),
+    );
+    for (boundary, invalid) in [
+        ("missing frontier", wire.replacen(&frontier, "", 1)),
+        (
+            "short commitment",
+            wire.replacen(&contract, "\"contract\":[]", 1),
+        ),
+        (
+            "invalid commitment byte",
+            wire.replacen(
+                &contract,
+                &format!("\"contract\":[256{}]", ",0".repeat(31)),
+                1,
+            ),
+        ),
+        (
+            "negative ordinal",
+            wire.replacen(&ordinal, "\"ordinal\":-1", 1),
+        ),
+        (
+            "duplicate witness",
+            wire.replacen(
+                "\"witness\":",
+                &format!(
+                    "\"witness\":{},\"witness\":",
+                    json::write_compact(&witness.witness.to_json())
+                ),
+                1,
+            ),
+        ),
+        (
+            "unknown member",
+            wire.replacen("\"witness\":", "\"unexpected\":null,\"witness\":", 1),
+        ),
+        (
+            "positional receipt",
+            format!("gmeow-witness-v2:{}", json::write_compact(&positional)),
+        ),
+    ] {
+        assert_ne!(invalid, wire, "{boundary} changes the selected receipt");
+        let error = WitnessDerivation::from_wire(&invalid).expect_err(boundary);
+        assert_eq!(error.code(), crate::error::Physical::register());
+        assert!(
+            error.is::<purrdf_lex::json::record::DecodeError>(),
+            "{boundary}"
+        );
+    }
+    let malformed = WitnessDerivation::from_wire("gmeow-witness-v2:{")
+        .expect_err("a malformed selected receipt must fail");
+    assert_eq!(malformed.code(), crate::error::Physical::register());
+    assert!(malformed.is::<purrdf_lex::json::Error>());
     assert!(
         WitnessDerivation::from_wire("{}").is_err(),
         "unversioned receipts are refused"

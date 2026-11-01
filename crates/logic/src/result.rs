@@ -36,9 +36,12 @@
 //! means "the engine could not look". The three are never interchangeable. The
 //! invariant is enforced at construction by [`ReasoningResult::validate`].
 
+mod execution_scope_cbor;
 mod native;
 pub use native::NativeExecutionEvidence;
 pub(crate) use native::validate_committed_native;
+
+mod provenance_cbor;
 
 use std::collections::BTreeSet;
 use std::fmt;
@@ -53,7 +56,7 @@ use crate::reason::{DlVerdict, InconsistencyWitness};
 /// Wrap a reasoning-result condition message as a typed diagnostic on the shared
 /// substrate, preserving the authored text verbatim.
 fn result_err(detail: String) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Result { detail })
+    gmeow_errors::Diag::of_kind(crate::error::Result::new(detail))
 }
 
 // --------------------------------------------------------------------------- //
@@ -593,6 +596,14 @@ pub struct ResultContext {
     /// The predicate-path IRI, when the answer rode a named path.
     pub path: Option<String>,
 }
+
+::purrdf_lex::json_record!(impl ToJson for ResultContext {
+    "world" => world,
+    "standpoint" => standpoint,
+    "attributed" => attributed,
+    "time" => time,
+    "path" => path,
+});
 
 /// The engine identity that produced a result.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]

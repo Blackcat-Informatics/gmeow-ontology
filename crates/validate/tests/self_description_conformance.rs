@@ -88,18 +88,6 @@ fn has_predicate(ds: &RdfDataset, subj: &str, pred: &str) -> bool {
         .is_some()
 }
 
-/// Whether `<s> <p>` has a literal object whose lexical form equals `lex`.
-fn has_literal_triple(ds: &RdfDataset, subj: &str, pred: &str, lex: &str) -> bool {
-    let (Some(sid), Some(pid)) = (
-        ds.term_id_by_value(&TermValue::iri(subj)),
-        ds.term_id_by_value(&TermValue::iri(pred)),
-    ) else {
-        return false;
-    };
-    ds.quads_for_pattern(Some(sid), Some(pid), None, GraphMatch::Any)
-        .any(|q| matches!(ds.resolve(q.o), TermRef::Literal { lexical, .. } if lexical == lex))
-}
-
 /// The first literal object of `<s> <p>` (its lexical form), if any.
 fn first_literal(ds: &RdfDataset, subj: &str, pred: &str) -> Option<String> {
     let sid = ds.term_id_by_value(&TermValue::iri(subj))?;
@@ -215,11 +203,11 @@ fn models_project_repository_and_brand_assets() {
         RDF_TYPE,
         &g("MediaObject")
     ));
-    assert!(has_literal_triple(
+    assert!(has_iri_triple(
         &ds,
         &s("logo-svg"),
         &g("mediaType"),
-        "image/svg+xml"
+        "https://www.iana.org/assignments/media-types/image/svg+xml"
     ));
     // Negative: the logo is the emblem OF GMEOW, it does not gmeow:depicts anything —
     // predicate-absence, so a stray `depicts <other>` cannot slip past the invariant.

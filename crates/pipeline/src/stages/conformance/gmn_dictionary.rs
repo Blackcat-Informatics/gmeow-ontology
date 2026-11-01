@@ -10,19 +10,19 @@ use gmeow_lang_bridge::{
     per_claim_standalone_check,
 };
 use purrdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm, RdfTriple};
-use serde::{Deserialize, Serialize};
 
 use crate::stages::parse_sources::{SourceCatalog, language::LANG};
 
 mod cases;
 pub(super) mod costs;
+mod json;
 mod notation;
 mod stamps;
 
 pub(super) const CHANNEL: &str = "pipeline/gmn-dictionary-observations.json";
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub aliases: BTreeMap<String, String>,
     pub nec_reverse: Option<String>,
@@ -40,7 +40,7 @@ pub(super) struct Observations {
 }
 
 /// Raw authored coordinates, independent of the dictionary's validated registry.
-#[derive(Default, Serialize, Deserialize)]
+#[derive(Debug, Default)]
 pub(super) struct GlyphSource {
     pub codepoints: BTreeSet<String>,
     pub scopes: BTreeSet<String>,
@@ -155,7 +155,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::record::to_vec(&observed),
     );
     Ok(())
 }

@@ -83,7 +83,7 @@ fn product_over(result: ReasoningResult, summary: &RdfDataset) -> StageProduct {
             pinned,
         )
         .expect("native graph pin");
-    StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+    StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 /// Every control enters through the same upstream ownership key as production.
@@ -398,7 +398,8 @@ fn absent_graph_released_carrier_and_wrong_producer_refuse() {
             pin,
         )
         .unwrap();
-    let absent = StageProduct::from_bundle("stage-reason", Arc::new(bundle));
+    let absent = StageProduct::from_bundle("stage-reason", Arc::new(bundle))
+        .expect("the stage carrier digests");
     assert!(
         reasoning_verdict_from_reason(&upstream(absent))
             .unwrap_err()
@@ -422,7 +423,8 @@ fn retained_snapshot_owns_the_post_dag_documentation_verdict() {
         LOGIC_SUBCLASS,
         LOGIC_NOTHING,
     )]));
-    let snapshot = StageProduct::from_bundle("stage-snapshot", Arc::clone(reason.bundle()));
+    let snapshot = StageProduct::from_bundle("stage-snapshot", Arc::clone(reason.bundle()))
+        .expect("the stage carrier digests");
     let released = reason.into_carrier_released().unwrap();
     assert!(reasoning_verdict_from_reason(&upstream(released)).is_err());
     let verdict = reasoning_verdict_from_product(&snapshot, "stage-snapshot")

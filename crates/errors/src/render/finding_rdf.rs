@@ -97,9 +97,12 @@ impl Sink for TextSink<'_> {
             super::nq_escape(&value.lexical_form)
         )
         .expect("writing to a String is infallible");
-        // This projection authors plain, typed or carrier-language literals only.
         if let Some(language) = value.language {
             write!(self.output, "@{language}").expect("writing to a String is infallible");
+            if let Some(direction) = value.direction {
+                write!(self.output, "--{}", direction.as_str())
+                    .expect("writing to a String is infallible");
+            }
         } else if let Some(datatype) = value.datatype {
             write!(self.output, "^^<{datatype}>").expect("writing to a String is infallible");
         }
@@ -172,6 +175,13 @@ fn emit<S: Sink>(report: &Report, graph: &str, sink: &mut S) -> Result<(), S::Er
                 super::stable_fingerprint(finding)
             )
         });
+        for annotation in &finding.source_annotations {
+            sink.literal(
+                annotation.subject().as_str(),
+                annotation.predicate().as_str(),
+                annotation.object().clone(),
+            )?;
+        }
         sink.iri(&subject, RDF_TYPE, &format!("{GMEOW}Finding"))?;
         if let Some(source_graph) = &finding.source_graph {
             sink.iri(

@@ -1,0 +1,74 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/refinement-cues/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary synthetic declarations, read with cues-v2.ttl and review-and-echo.ttl.
+# No detector, grounding evaluation or judge was executed to produce this scene.
+ex:exampleWriter a gmeow:Agent ; rdfs:label "Synthetic source author"@en .
+ex:exampleJudge a gmeow:Agent ; rdfs:label "Illustrative cue judge"@en .
+ex:otherJudge a gmeow:Agent ; rdfs:label "Joint illustrative judge"@en .
+ex:matchSource gmeow:wasAttributedTo ex:exampleWriter ;
+    gmeow:description "not cannot continue. Cannot continue."@en,
+        "A different literal on the same field."@en .
+
+# Both reports select the same whole source literal, not either substring.
+# The first interval is [4,19); the second is [21,36), in code points.
+# Uppercase after the period keeps the reports in separate default sentences.
+ex:suppressedHit a gmeow:CueMatch ;
+    gmeow:matchedCue ex:blockedEnglish ;
+    gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
+    gmeow:spanStart "4"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "19"^^xsd:nonNegativeInteger ;
+    gmeow:matchGrounding gmeow:verdictHeld ;
+    gmeow:matchSuppressedBy ex:notInSentence
+        {| gmeow:wasDerivedFrom ex:negatingHit |} ;
+    gmeow:wasDerivedFrom ex:cuesV2 .
+
+# Suppression and grounding remain independent reported dimensions.
+ex:ungroundedHit a gmeow:CueMatch ;
+    gmeow:matchedCue ex:blockedEnglish ;
+    gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
+    gmeow:spanStart "21"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "36"^^xsd:nonNegativeInteger ;
+    gmeow:matchGrounding gmeow:verdictNotHeld ;
+    gmeow:wasDerivedFrom ex:cuesV2 .
+
+# The rule is the suppression target; the actual occurrence is separate evidence.
+ex:negatingHit a gmeow:CueMatch ;
+    gmeow:matchedCue ex:notCue ;
+    gmeow:matchRecord ex:matchSource ; gmeow:matchField gmeow:description ;
+    gmeow:matchSourceLiteral "not cannot continue. Cannot continue."@en ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "3"^^xsd:nonNegativeInteger ;
+    gmeow:matchGrounding gmeow:verdictHeld ;
+    gmeow:wasDerivedFrom ex:cuesV2 .
+
+# All reports for this cue and input are retained, including both exclusions.
+# The negator is a different cue and therefore is not a member of this case.
+ex:reportedCase a gmeow:CueEvalCase ;
+    gmeow:evalCue ex:blockedEnglish ;
+    gmeow:evalText "not cannot continue. Cannot continue."@en ;
+    gmeow:evalMatch ex:suppressedHit, ex:ungroundedHit ;
+    gmeow:wasDerivedFrom ex:matchSource, ex:cuesV2 .
+
+# An empty reported inventory is legal; it does not prove there was no occurrence.
+ex:missedCase a gmeow:CueEvalCase ;
+    gmeow:evalCue ex:blockedEnglish ; gmeow:evalText "cannot continue"@en ;
+    gmeow:wasDerivedFrom ex:cuesV2 .
+
+ex:reportedJudgement a gmeow:CueJudgement ;
+    gmeow:vantage ex:exampleJudge, ex:otherJudge ;
+    gmeow:cueVerdict gmeow:verdictUndetermined ;
+    gmeow:judgedMatch ex:suppressedHit .
+
+ex:missedJudgement a gmeow:CueJudgement ;
+    gmeow:vantage ex:exampleJudge ; gmeow:cueVerdict gmeow:verdictHeld ;
+    gmeow:judgedCase ex:missedCase ;
+    gmeow:spanStart "0"^^xsd:nonNegativeInteger ;
+    gmeow:spanEnd "15"^^xsd:nonNegativeInteger .

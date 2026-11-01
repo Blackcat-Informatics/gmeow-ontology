@@ -162,6 +162,7 @@ fn context(
     ))
 }
 
+/// Record every selected case and publish the complete keyed consistency evidence.
 pub(super) fn record(
     root: &Path,
     catalog: &SourceCatalog,
@@ -181,7 +182,10 @@ pub(super) fn record(
     for case in cases {
         let context = context(root, &case, library_digest)?;
         index.insert(case.case_id.clone());
-        if let Some(hit) = store.get::<()>(&context).map_err(fail)? {
+        if let Some(hit) = store
+            .get::<gmeow_action_cache::EmptyPayload>(&context)
+            .map_err(fail)?
+        {
             artifacts.insert(format!("{PREFIX}{}.json", case.case_id), hit.bytes);
         } else {
             misses.push((case, context));
@@ -240,7 +244,7 @@ pub(super) fn record(
             let result = store
                 .coordinate::<_, gmeow_action_cache::ActionCacheError, _, _>(
                     &context.key(),
-                    || store.get::<()>(context),
+                    || store.get::<gmeow_action_cache::EmptyPayload>(context),
                     || {
                         let observation = Observation {
                             case_id: case.case_id.clone(),
@@ -277,7 +281,12 @@ pub(super) fn record(
                             .map_err(super::record_failure),
                         };
                         let bytes = serde_json::to_vec(&observation)?;
-                        let receipt = store.publish(context, bytes_digest(&bytes), (), &bytes)?;
+                        let receipt = store.publish(
+                            context,
+                            bytes_digest(&bytes),
+                            gmeow_action_cache::EmptyPayload,
+                            &bytes,
+                        )?;
                         Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
                     },
                 )
@@ -294,7 +303,10 @@ pub(super) fn record(
     artifacts.insert(INDEX.to_owned(), serde_json::to_vec(&index).map_err(fail)?);
     artifacts.insert(
         CONSISTENCY_CHANNEL.to_owned(),
-        serde_json::to_vec(&observations.consistency).map_err(fail)?,
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(
+            &observations.consistency,
+        ))
+        .into_bytes(),
     );
     Ok(observations.admissions)
 }
@@ -340,7 +352,7 @@ pub(super) fn cached_consistency(
     path: &Path,
     store: &ActionStore,
 ) -> gmeow_errors::Result<gmeow_conformance::consistency::Observation> {
-    cached_observation(root, path, store, "native-consistency", |bytes| {
+    cached_native_observation(root, path, store, "native-consistency", |bytes| {
         let dataset =
             purrdf::parse_dataset(bytes, purrdf::NativeRdfFormat::NQuads.media_type(), None)
                 .map_err(gmeow_errors::Diag::from)?;
@@ -448,10 +460,19 @@ pub(super) fn cached_bytes(
     );
     let hit = store.coordinate::<_, gmeow_errors::Diag, _, _>(
         &context.key(),
-        || store.get::<()>(&context).map_err(gmeow_errors::Diag::from),
+        || {
+            store
+                .get::<gmeow_action_cache::EmptyPayload>(&context)
+                .map_err(gmeow_errors::Diag::from)
+        },
         || {
             let bytes = produce()?;
-            let receipt = store.publish(&context, bytes_digest(&bytes), (), &bytes)?;
+            let receipt = store.publish(
+                &context,
+                bytes_digest(&bytes),
+                gmeow_action_cache::EmptyPayload,
+                &bytes,
+            )?;
             Ok(gmeow_action_cache::VerifiedEntry { receipt, bytes })
         },
     )?;

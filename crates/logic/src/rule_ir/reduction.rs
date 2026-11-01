@@ -4,6 +4,8 @@
 //! Validated canonical reduce operators. RDF value arithmetic stays in PurRDF;
 //! variable scope, complete grouping and rule provenance belong to this engine.
 
+mod json;
+
 use std::collections::BTreeSet;
 
 use gmeow_logic_compile::ir::{AtomicTerm, LogicRule};

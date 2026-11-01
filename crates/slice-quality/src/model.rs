@@ -107,8 +107,8 @@ pub struct Axis {
     pub weight: f64,
     /// The read-breadth coeffect (`gmeow:axisContextScope`).
     pub scope: ContextScope,
-    /// The opinionated uplift advice (`gmeow:axisAdviceTemplate`).
-    pub advice: String,
+    /// All uplift advice literals (`gmeow:axisAdviceTemplate`), including language and direction.
+    pub advice: Vec<purrdf::RdfLiteral>,
 }
 
 /// A dated, self-cleaning exemption — a `gmeow:AxisExemption` individual.
@@ -118,8 +118,8 @@ pub struct Exemption {
     pub iri: String,
     /// The axis it covers.
     pub axis_iri: String,
-    /// The doctrine-anchored reason.
-    pub reason: String,
+    /// Every doctrine-anchored reason, retaining datatype, language and direction.
+    pub reasons: Vec<purrdf::RdfLiteral>,
     /// The date it was minted (ISO `xsd:date` lexical form).
     pub date: String,
     /// The Rust symbol whose resolution in-repo makes the exemption stale.

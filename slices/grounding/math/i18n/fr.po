@@ -12,6 +12,34 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "MD5 digest"
+msgstr "empreinte MD5"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An MD5 hash result as specified by RFC 1321, computed over the exact supplied input bytes. Its value pairs the MD5 algorithm identity with the ordered 16 digest bytes. The lexical form is exactly 32 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du hachage MD5 défini par le RFC 1321, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité de l’algorithme MD5 aux 16 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 32 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source-supplied MD5 digest without dropping its algorithm identity or relabeling it as another algorithm's result."
+msgstr "Utiliser pour conserver une empreinte MD5 fournie par la source sans perdre l’identité de son algorithme ni la rebaptiser comme résultat d’un autre algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring cryptographic security, artifact verification or digest equality across algorithms from this datatype. Do not relabel a scheme identifier as the digest of different artifact bytes."
+msgstr "Éviter de déduire de ce type de données une sécurité cryptographique, une vérification d’artefact ou une égalité d’empreintes entre algorithmes. Ne pas rebaptiser un identifiant de schéma comme empreinte d’autres octets d’artefact."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source's 32 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; domain-tag bytes remain part of the input when actually supplied."
+msgstr "Préserver les 32 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; les octets d’une étiquette de domaine restent partie de l’entrée lorsqu’ils sont réellement fournis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "RFC 1321 is an informational RFC from April 1992, not an Internet standard. This declaration installs no parser, computes no hash and verifies no artifact. Native RDF transport can retain the literal opaquely. Compare supplied literals by RDF sameTerm; no value-space equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Le RFC 1321 est un RFC informatif d’avril 1992 et non une norme Internet. Cette déclaration n’installe aucun analyseur, ne calcule aucun hachage et ne vérifie aucun artefact. Le transport RDF natif peut conserver le littéral de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF ; aucune égalité d’espace de valeurs avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/md5Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A source-supplied MD5 digest retains its own algorithm identity beside separately supplied digests of the same artifact, without asserting that any digest was checked."
+msgstr "Une empreinte MD5 fournie par la source conserve sa propre identité d’algorithme à côté d’empreintes du même artefact fournies séparément, sans affirmer qu’une empreinte a été vérifiée."
+
 msgctxt "https://blackcatinformatics.ca/math/ExactPreservationViolated|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Exact Preservation Violated"
 msgstr "Préservation exacte violée"
@@ -1507,24 +1535,24 @@ msgid "Chain Complex"
 msgstr "Complexe de chaînes"
 
 msgctxt "https://blackcatinformatics.ca/math/ChainComplex|skos:definition"
-msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive."
-msgstr "Une suite graduée de modules reliés par des applications bord dont toute composée consécutive est nulle. Ce n’est pas seulement une collection graduée : la loi de bord de carré nul est constitutive."
+msgid "A graded sequence of modules connected by boundary maps whose consecutive composite is zero. It is not a graded collection alone: the square-zero boundary law is constitutive. That square-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw), scoped to regular/simplicial complexes as the combinatorial diamond involution; the general-CW per-instance finite sum is enforced by math:GeneralBoundarySquareZeroConstraint, and the universal class law is the honest boundary math:cellBoundarySumBoundary. It names its boundary operator through math:chainBoundary."
+msgstr "Une suite graduée de modules reliés par des applications bord dont toute composée consécutive est nulle. Ce n’est pas seulement une collection graduée : la loi de bord de carré nul est constitutive. Cette condition ∂∘∂ = 0 est rédigée sous forme machine comme la logic:Formula du premier ordre math:boundarySquareZeroLaw (math:definingLaw), limitée aux complexes réguliers ou simpliciaux sous la forme de l’involution combinatoire en losange ; pour les complexes CW généraux, la somme finie propre à chaque instance est imposée par math:GeneralBoundarySquareZeroConstraint, et la loi universelle de classe est consignée comme la limite expressive explicite math:cellBoundarySumBoundary. Le complexe nomme son opérateur bord par math:chainBoundary."
 
 msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|rdfs:label"
 msgid "Boundary Operator"
 msgstr "Opérateur bord"
 
 msgctxt "https://blackcatinformatics.ca/math/BoundaryOperator|skos:definition"
-msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation."
-msgstr "L'opération de degré moins un d'un complexe de chaînes, de carré nul, dont l'homologie décrit les cycles modulo les bords. Ce n’est ni une dérivée générique ni une opération de bord géométrique non typée."
+msgid "The degree-minus-one operation on a chain complex whose square is zero and whose homology records cycles modulo boundaries. It is not a generic derivative or an untyped geometric boundary operation. Its square-is-zero condition ∂∘∂ = 0 is authored in machine form as the first-order logic:Formula math:boundarySquareZeroLaw (math:definingLaw); the coboundary is its adjoint (math:boundaryCoboundaryAdjunctionLaw, δ = ∂*)."
+msgstr "L’opération de degré moins un sur un complexe de chaînes, de carré nul, dont l’homologie décrit les cycles modulo les bords. Ce n’est ni une dérivée générique ni une opération de bord géométrique non typée. Sa condition de carré nul ∂∘∂ = 0 est rédigée sous forme machine comme la logic:Formula du premier ordre math:boundarySquareZeroLaw (math:definingLaw) ; le cobord est son adjoint (math:boundaryCoboundaryAdjunctionLaw, δ = ∂*)."
 
 msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|rdfs:label"
 msgid "Coboundary Operator"
 msgstr "Opérateur de cobord"
 
 msgctxt "https://blackcatinformatics.ca/math/CoboundaryOperator|skos:definition"
-msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required."
-msgstr "L'opération de degré plus un d'un complexe de cochaînes, duale de l'opérateur bord et de carré nul. Ce n’est pas un opérateur delta arbitraire : la graduation des cochaînes et la loi de carré nul sont requises."
+msgid "The degree-plus-one operation on a cochain complex, dual to a boundary operator, whose square is zero. It is not an arbitrary delta operator: the cochain grading and square-zero law are required. Its square-is-zero condition δ∘δ = 0 is authored in machine form as the first-order logic:Formula math:coboundarySquareZeroLaw (math:definingLaw), the transposed dual of the boundary law; it is the adjoint of the boundary operator (math:coboundaryAdjoint, math:boundaryCoboundaryAdjunctionLaw)."
+msgstr "L’opération de degré plus un sur un complexe de cochaînes, duale d’un opérateur bord et de carré nul. Ce n’est pas un opérateur delta arbitraire : la graduation des cochaînes et la loi de carré nul sont requises. Sa condition de carré nul δ∘δ = 0 est rédigée sous forme machine comme la logic:Formula du premier ordre math:coboundarySquareZeroLaw (math:definingLaw), duale transposée de la loi de bord ; il s’agit de l’adjoint de l’opérateur bord (math:coboundaryAdjoint, math:boundaryCoboundaryAdjunctionLaw)."
 
 msgctxt "https://blackcatinformatics.ca/math/VietorisRipsComplex|rdfs:label"
 msgid "Vietoris–Rips Complex"
@@ -1683,8 +1711,8 @@ msgid "Cellular Sheaf"
 msgstr "Faisceau cellulaire"
 
 msgctxt "https://blackcatinformatics.ca/math/CellularSheaf|skos:definition"
-msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation."
-msgstr "Un faisceau sur un complexe cellulaire qui attribue un germe à chaque cellule et une application de restriction compatible à chaque relation de face."
+msgid "A sheaf on a cell complex assigning a stalk to each cell and a compatible restriction map to each face relation. Unlike a constant sheaf, its stalks and restriction maps may differ from cell to cell, and it is not merely the underlying cell complex, which carries no stalk data."
+msgstr "Un faisceau sur un complexe cellulaire qui attribue une fibre à chaque cellule et une application de restriction compatible à chaque relation de face. Contrairement à un faisceau constant, ses fibres et ses applications de restriction peuvent varier d’une cellule à l’autre ; il ne se réduit pas au complexe cellulaire sous-jacent, qui ne porte aucune donnée de fibre."
 
 msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
 msgid "Sheaf Stalk"
@@ -1699,8 +1727,8 @@ msgid "Restriction Map"
 msgstr "Application de restriction"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafRestrictionMap|skos:definition"
-msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws."
-msgstr "Un morphisme de faisceaux transportant les données locales entre germes le long d'une inclusion ou incidence, soumis aux lois d'identité et de composition."
+msgid "A sheaf morphism transporting local data between stalks along an inclusion or incidence relation, subject to identity and composition laws. Its ACTION on a specific source stalk value — the concrete image the map sends that value to, identity for a math:ConstantSheaf but genuinely non-identity in general — is reified per declared value through math:restrictionImage, so gluing consistency (math:SectionGluingConsistencyConstraint) can be checked against the map's actual transport rather than assumed identity."
+msgstr "Un morphisme de faisceaux transportant les données locales entre fibres le long d’une inclusion ou d’une relation d’incidence, soumis aux lois d’identité et de composition. Son ACTION sur une valeur donnée de la fibre source — l’image concrète de cette valeur par l’application, égale à la valeur de départ pour un math:ConstantSheaf mais pouvant réellement en différer dans le cas général — est réifiée pour chaque valeur déclarée par math:restrictionImage. La cohérence du recollement (math:SectionGluingConsistencyConstraint) peut ainsi être vérifiée par rapport au transport réel de l’application plutôt qu’à une identité supposée."
 
 msgctxt "https://blackcatinformatics.ca/math/SheafSection|rdfs:label"
 msgid "Sheaf Section"
@@ -1723,8 +1751,8 @@ msgid "Sheaf Laplacian"
 msgstr "Laplacien de faisceau"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafLaplacian|skos:definition"
-msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data."
-msgstr "Un laplacien construit à partir des applications de cobord d'un faisceau cellulaire et de produits scalaires, mesurant l'incompatibilité des données locales."
+msgid "A Laplacian built from cellular-sheaf coboundary maps and inner products, measuring incompatibility of local data. Unlike a scalar graph Laplacian, it acts on sheaf-valued cochains through the declared restriction maps, not on plain vertex functions."
+msgstr "Un laplacien construit à partir des applications de cobord d’un faisceau cellulaire et de produits scalaires, mesurant l’incompatibilité des données locales. Contrairement à un laplacien scalaire de graphe, il agit sur des cochaînes à valeurs dans le faisceau par les applications de restriction déclarées, et non sur de simples fonctions définies sur les sommets."
 
 msgctxt "https://blackcatinformatics.ca/math/HodgeLaplacian|rdfs:label"
 msgid "Hodge Laplacian"
@@ -1739,8 +1767,8 @@ msgid "Hodge Decomposition"
 msgstr "Décomposition de Hodge"
 
 msgctxt "https://blackcatinformatics.ca/math/HodgeDecomposition|skos:definition"
-msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products."
-msgstr "Une décomposition orthogonale d'une chaîne, cochaîne ou d'un flot en composantes exacte, coexacte et harmonique sous des produits scalaires déclarés."
+msgid "An orthogonal decomposition of a chain, cochain, or flow into exact, coexact, and harmonic components under declared inner products. Unlike an arbitrary direct sum, its three components are mutually orthogonal and the harmonic part is uniquely determined, not freely chosen."
+msgstr "Une décomposition orthogonale d’une chaîne, d’une cochaîne ou d’un flot en composantes exacte, coexacte et harmonique sous des produits scalaires déclarés. Contrairement à une somme directe arbitraire, ses trois composantes sont mutuellement orthogonales et la partie harmonique est déterminée de manière unique, et non choisie librement."
 
 msgctxt "https://blackcatinformatics.ca/math/HarmonicComponent|rdfs:label"
 msgid "Harmonic Component"
@@ -1835,16 +1863,16 @@ msgid "Information Entropy"
 msgstr "Entropie informationnelle"
 
 msgctxt "https://blackcatinformatics.ca/math/Entropy|skos:definition"
-msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame."
-msgstr "Une mesure de l'incertitude d'une distribution déclarée, dont la base logarithmique et les unités font partie du cadre."
+msgid "An information measure of uncertainty in a declared probability distribution, with the logarithm base and units forming part of its frame. Unlike math:CrossEntropy or math:KullbackLeiblerDivergence, it scores a single distribution against itself, not one distribution against a separate reference distribution."
+msgstr "Une mesure informationnelle de l’incertitude d’une distribution de probabilité déclarée, dont la base logarithmique et les unités font partie du cadre. Contrairement à math:CrossEntropy ou math:KullbackLeiblerDivergence, elle évalue une seule distribution par rapport à elle-même, et non une distribution par rapport à une distribution de référence distincte."
 
 msgctxt "https://blackcatinformatics.ca/math/MutualInformation|rdfs:label"
 msgid "Mutual Information"
 msgstr "Information mutuelle"
 
 msgctxt "https://blackcatinformatics.ca/math/MutualInformation|skos:definition"
-msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence."
-msgstr "La divergence entre une distribution jointe et le produit de ses marginales, mesurant la dépendance statistique."
+msgid "The divergence between a joint distribution and the product of its marginals, measuring statistical dependence. It is not a math:Distance: it vanishes exactly when the variables are independent and is never negative, but it does not obey the triangle inequality."
+msgstr "La divergence entre une distribution jointe et le produit de ses marginales, mesurant la dépendance statistique. Ce n’est pas une math:Distance : elle s’annule exactement lorsque les variables sont indépendantes et n’est jamais négative, mais elle ne satisfait pas l’inégalité triangulaire."
 
 msgctxt "https://blackcatinformatics.ca/math/KullbackLeiblerDivergence|rdfs:label"
 msgid "Kullback–Leibler Divergence"
@@ -1859,8 +1887,8 @@ msgid "Cross Entropy"
 msgstr "Entropie croisée"
 
 msgctxt "https://blackcatinformatics.ca/math/CrossEntropy|skos:definition"
-msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another."
-msgstr "L'espérance de la log-vraisemblance négative attribuée par une distribution aux résultats tirés d'une autre."
+msgid "The expected negative log likelihood assigned by one declared distribution to outcomes drawn from another. Unlike math:Entropy, it scores a model distribution against a separate data distribution and is therefore never below that data distribution's own entropy; unlike math:KullbackLeiblerDivergence, it keeps that irreducible entropy term rather than subtracting it out."
+msgstr "L’espérance de la log-vraisemblance négative attribuée par une distribution déclarée aux résultats tirés d’une autre. Contrairement à math:Entropy, elle évalue une distribution de modèle par rapport à une distribution de données distincte et n’est donc jamais inférieure à l’entropie propre de cette distribution de données ; contrairement à math:KullbackLeiblerDivergence, elle conserve ce terme d’entropie irréductible au lieu de le soustraire."
 
 msgctxt "https://blackcatinformatics.ca/math/FisherInformation|rdfs:label"
 msgid "Fisher Information"
@@ -2171,24 +2199,24 @@ msgid "Vector Binding"
 msgstr "Liaison vectorielle"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBinding|skos:definition"
-msgid "A vector-symbolic operation combining two representations into a representation of their association."
-msgstr "Une opération vectorielle-symbolique qui combine deux représentations en une représentation de leur association."
+msgid "A vector-symbolic operation combining two representations into a representation of their association. Unlike math:VectorBundling, its result is dissimilar to both operands rather than similar to them, and it is undone by math:VectorUnbinding rather than being idempotent."
+msgstr "Une opération vectorielle-symbolique qui combine deux représentations en une représentation de leur association. Contrairement à math:VectorBundling, son résultat est dissemblable aux deux opérandes plutôt que semblable à eux ; elle est inversée par math:VectorUnbinding plutôt qu’idempotente."
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBundling|rdfs:label"
 msgid "Vector Bundling"
 msgstr "Agrégation vectorielle"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorBundling|skos:definition"
-msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate."
-msgstr "Une opération vectorielle-symbolique qui superpose plusieurs représentations en un agrégat préservant la similarité."
+msgid "A vector-symbolic operation superposing several representations into a similarity-preserving aggregate. Unlike math:VectorBinding, its result stays similar to each superposed operand and is not invertible into its individual factors."
+msgstr "Une opération vectorielle-symbolique qui superpose plusieurs représentations en un agrégat préservant la similarité. Contrairement à math:VectorBinding, son résultat reste semblable à chaque opérande superposé et ne peut pas être inversé pour retrouver ses facteurs individuels."
 
 msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|rdfs:label"
 msgid "Vector Unbinding"
 msgstr "Déliaison vectorielle"
 
 msgctxt "https://blackcatinformatics.ca/math/VectorUnbinding|skos:definition"
-msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law."
-msgstr "Une opération vectorielle-symbolique qui récupère un facteur lié lorsque l'autre facteur et une loi de liaison sont fournis."
+msgid "A vector-symbolic operation approximately or exactly recovering one bound factor when supplied with the other and a declared binding law. Unlike math:VectorBundling, it inverts math:VectorBinding rather than superposing, and its recovery is approximate unless an exact algebra is declared, never lossless by default."
+msgstr "Une opération vectorielle-symbolique qui récupère approximativement ou exactement un facteur lié lorsque l’autre facteur et une loi de liaison déclarée sont fournis. Contrairement à math:VectorBundling, elle inverse math:VectorBinding au lieu de superposer ; sa récupération est approximative sauf si une algèbre exacte est déclarée, et jamais sans perte par défaut."
 
 msgctxt "https://blackcatinformatics.ca/math/QuadraticSpace|rdfs:label"
 msgid "Quadratic Space"
@@ -2363,8 +2391,8 @@ msgid "Direct-Sum Decomposition"
 msgstr "Décomposition en somme directe"
 
 msgctxt "https://blackcatinformatics.ca/math/DirectSumDecomposition|skos:definition"
-msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category."
-msgstr "Une décomposition en facteurs nommés, d'intersection deux à deux nulle et d'enveloppe conjointe exhaustive dans la catégorie déclarée."
+msgid "A decomposition of one mathematical object into explicitly named summands with zero pairwise intersection and a jointly exhaustive span in the declared category. Unlike a mere set partition, its summands are subobjects whose internal sum reconstructs the whole, not disjoint blocks of elements."
+msgstr "Une décomposition d’un objet mathématique en sous-objets explicitement nommés, d’intersection deux à deux nulle et dont l’enveloppe conjointe est exhaustive dans la catégorie déclarée. Contrairement à une simple partition ensembliste, ses composantes sont des sous-objets dont la somme interne reconstitue le tout, et non des blocs disjoints d’éléments."
 
 msgctxt "https://blackcatinformatics.ca/math/CliffordModuleDecomposition|rdfs:label"
 msgid "Clifford Module Decomposition"
@@ -2915,8 +2943,8 @@ msgid "Tensor Shape"
 msgstr "Forme de tenseur"
 
 msgctxt "https://blackcatinformatics.ca/math/TensorShape|skos:definition"
-msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by a shape object carrying no axis."
-msgstr "La forme déclarée d'un tenseur : son math:tensorRank accompagné d'un math:TensorAxis par axe, chacun portant un math:axisIndex commençant à zéro et son étendue. Une sous-classe de math:MathematicalObject partagée par tout ce qui A cette forme — le math:ExpressionType typant un emplacement de tenseur et le math:WeightTensor qui l'occupe nomment le même objet de forme, de sorte que « ces deux tenseurs ont la même forme » relève de l'identité dans le graphe et non de l'égalité de deux étiquettes rendues. C'est une forme, jamais une charge utile : une étendue dit la longueur d'un axe et ne dit rien du contenu du tenseur. L'absence de forme est une affirmation réelle et plus faible que le rang 0 ; elle s'écrit en ne nommant aucun math:tensorShape, jamais par un objet de forme sans axe."
+msgid "The declared shape of a tensor: its math:tensorRank together with one math:TensorAxis per axis, each carrying a zero-based math:axisIndex and its extent. A subclass of math:MathematicalObject shared by everything that HAS that shape — the math:ExpressionType typing a tensor slot and the math:WeightTensor occupying it name the same shape object, so 'these two tensors have the same shape' is graph identity rather than string equality between two rendered labels. It is a shape, never a payload: an extent says how long an axis is and says nothing about what the tensor contains. The absence of a shape is a real and weaker claim than rank 0 and is spelled by naming no math:tensorShape at all, never by an incomplete shape object with no declared rank. An explicit rank-zero shape with no axes is a scalar."
+msgstr "La forme déclarée d'un tenseur : son math:tensorRank accompagné d'un math:TensorAxis par axe, chacun portant un math:axisIndex commençant à zéro et son étendue. Une sous-classe de math:MathematicalObject partagée par tout ce qui A cette forme — le math:ExpressionType typant un emplacement de tenseur et le math:WeightTensor qui l'occupe nomment le même objet de forme, de sorte que « ces deux tenseurs ont la même forme » relève de l'identité dans le graphe et non de l'égalité de deux étiquettes rendues. C'est une forme, jamais une charge utile : une étendue dit la longueur d'un axe et ne dit rien du contenu du tenseur. L'absence de forme est une affirmation réelle et plus faible que le rang 0 ; elle s'écrit en ne nommant aucun math:tensorShape, jamais par un objet de forme incomplet sans rang déclaré. Une forme de rang zéro explicite sans axe est un scalaire."
 
 msgctxt "https://blackcatinformatics.ca/math/TensorAxis|rdfs:label"
 msgid "Tensor Axis"
@@ -2947,8 +2975,8 @@ msgid "tensor rank"
 msgstr "rang de tenseur"
 
 msgctxt "https://blackcatinformatics.ca/math/tensorRank|skos:definition"
-msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than left to be counted, for two reasons: rank 0 (a scalar — a shape with no axis) must be positively assertable and not indistinguishable from a shape node whose axes were dropped, and a counting aggregate is outside the decidable fragment the native constraints are written in, so a rank that a constraint can compare against the math:shapeAxis family has to be present as a value."
-msgstr "Le nombre d'axes qu'un math:TensorShape déclare. Domaine math:TensorShape, portée xsd:nonNegativeInteger (précisé en prose). Porté explicitement plutôt que laissé à compter, pour deux raisons : le rang 0 (un scalaire — une forme sans axe) doit pouvoir être affirmé positivement et ne pas être indiscernable d'un nœud de forme dont les axes auraient été perdus, et un agrégat de comptage est hors du fragment décidable dans lequel les contraintes natives sont écrites, de sorte qu'un rang qu'une contrainte doit comparer à la famille math:shapeAxis doit être présent comme valeur."
+msgid "The number of axes a math:TensorShape declares. Domain math:TensorShape, range xsd:nonNegativeInteger (stated in prose). Carried explicitly rather than inferred from axis presence: rank 0 positively declares a scalar shape with no axes, while a shape with no rank is incomplete. The canonical count law checks the declared value against the distinct math:shapeAxis nodes; it does not infer a missing rank."
+msgstr "Le nombre d’axes qu’un math:TensorShape déclare. Domaine math:TensorShape, portée xsd:nonNegativeInteger, énoncés en prose. Il est porté explicitement, pas inféré de la présence d’axes : le rang 0 déclare positivement un scalaire sans axe, tandis qu’une forme sans rang est incomplète. La loi canonique de comptage confronte la valeur déclarée aux nœuds math:shapeAxis distincts ; elle n’infère pas un rang absent."
 
 msgctxt "https://blackcatinformatics.ca/math/shapeAxis|rdfs:label"
 msgid "shape axis"
@@ -3448,3 +3476,187 @@ msgstr "Le lien vers la norme enregistre pourquoi cette distance possède une in
 msgctxt "https://blackcatinformatics.ca/math/Distance|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
 msgstr "ex:affectDistance a math:Distance ; math:inducedByNorm ex:intensityNorm ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor rank nonnegative constraint"
+msgstr "Contrainte de rang tensoriel non négatif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:tensorRank is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:tensorRank fourni est non négatif ; le profil tensoriel exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorRankNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 0 ."
+msgstr "ex:shape math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index nonnegative constraint"
+msgstr "Contrainte d’indice d’axe tensoriel non négatif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisIndex is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:axisIndex fourni est non négatif ; le profil d’axe exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisIndex 0 ."
+msgstr "ex:axis math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor concrete extent nonnegative constraint"
+msgstr "Contrainte d’étendue tensorielle concrète non négative"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied math:axisExtent is nonnegative; its tensor profile separately requires an integer-family literal."
+msgstr "Chaque math:axisExtent fourni est non négatif ; le profil d’axe exige séparément un littéral de la famille des entiers."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Integer lexical validity and cardinality remain with the owning TensorShape or TensorAxis profile."
+msgstr "La validité lexicale des entiers et la cardinalité relèvent du profil TensorShape ou TensorAxis concerné."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentNonNegativeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis math:axisExtent 0 ."
+msgstr "ex:axis math:axisExtent 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor shape axis-count constraint"
+msgstr "Contrainte de nombre d’axes tensoriels"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared tensor rank equals the number of distinct axis nodes belonging to that shape."
+msgstr "Le rang tensoriel déclaré égale le nombre de nœuds d’axes distincts appartenant à cette forme."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "COUNT is an existing structured aggregate satellite, not a new first-order counting builtin."
+msgstr "COUNT est un satellite agrégé structuré existant, pas une nouvelle primitive de comptage du premier ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorShapeCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:row, ex:column ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Positive tensor rank axis-presence constraint"
+msgstr "Contrainte de présence d’axe pour un rang positif"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorShape with a positive rank declares at least one axis, closing the zero-row aggregate case."
+msgstr "Une TensorShape de rang positif déclare au moins un axe, fermant le cas agrégé sans ligne."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with count agreement this rule preserves scalar rank zero and rejects an empty positive-rank family."
+msgstr "Avec l’accord de comptage, cette règle préserve le scalaire de rang zéro et rejette une famille positive vide."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorPositiveRankAxisConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+msgstr "ex:scalar a math:TensorShape ; math:tensorRank 0 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis index upper-bound constraint"
+msgstr "Contrainte de borne supérieure d’indice tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every axis index is strictly below the rank of its own parent TensorShape."
+msgstr "Chaque indice d’axe est strictement inférieur au rang de sa propre TensorShape parente."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Count agreement and numeric uniqueness then force the exact contiguous index family zero through rank minus one."
+msgstr "L’accord de comptage et l’unicité numérique forcent alors exactement les indices contigus de zéro au rang moins un."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+msgstr "ex:shape math:tensorRank 2 ; math:shapeAxis ex:axis . ex:axis math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis numeric-index uniqueness constraint"
+msgstr "Contrainte d’unicité numérique des indices tensoriels"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Two axes of the same TensorShape with numerically equal indices are the same axis node."
+msgstr "Deux axes d’une même TensorShape ayant des indices numériquement égaux sont le même nœud d’axe."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The existing self-join sugar shares an RDF term; this law deliberately uses separate values and numeric equality."
+msgstr "Le sucre d’auto-jointure partage un terme RDF ; cette loi emploie volontairement des valeurs séparées et l’égalité numérique."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisIndexUniquenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+msgstr "ex:a math:axisIndex 0 . ex:b math:axisIndex 1 ."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Tensor axis extent-choice constraint"
+msgstr "Contrainte de choix d’étendue d’axe tensoriel"
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A TensorAxis carries at most one of concrete axisExtent and symbolicExtent; either may remain absent."
+msgstr "Une TensorAxis porte au plus un des rôles axisExtent concret et symbolicExtent ; chacun peut rester absent."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is property-presence exclusion, separate from the at-most-one value contract of each extent role."
+msgstr "L’exclusion de présence des propriétés est distincte de la cardinalité au plus un de chaque rôle d’étendue."
+
+msgctxt "https://blackcatinformatics.ca/math/TensorAxisExtentChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+msgstr "ex:axis a math:TensorAxis ; math:axisIndex 0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "BLAKE3-256 digest"
+msgstr "empreinte BLAKE3-256"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A plain unkeyed BLAKE3 hash result with the default 256-bit output, computed over the exact supplied input bytes. Its value pairs the BLAKE3 hash-mode identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du mode de hachage BLAKE3 simple et sans clé, avec sa sortie par défaut de 256 bits, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité du mode de hachage BLAKE3 aux 32 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 64 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies the default-length plain BLAKE3 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "Utiliser lorsqu’une source fournit l’empreinte BLAKE3 simple de longueur par défaut pour des octets déterminés et que l’algorithme doit rester partie intégrante de l’identité du littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid keyed_hash, derive_key, other output lengths, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "Éviter keyed_hash, derive_key, les autres longueurs de sortie, ou de rebaptiser un identifiant de schéma ou de modèle canonique comme empreinte d’autres octets d’artefact. Les octets d’une étiquette de domaine sont permis lorsqu’ils font réellement partie de l’entrée fournie ; ne pas effacer le sens d’un schéma d’identification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "Préserver les 64 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; ne pas normaliser, ajouter une étiquette d’algorithme en préfixe ni déduire une vérification du littéral typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Cette déclaration spécifie une valeur d’empreinte portant l’identité de son algorithme et sa forme lexicale ; elle n’installe aucun analyseur de type de données, ne calcule aucun hachage et ne vérifie aucun octet d’artefact. Le transport RDF natif peut conserver le littéral typé de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF, en préservant la forme lexicale et l’IRI du type de données ; aucune égalité avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/blake3_256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest declares BLAKE3 hash-mode identity; it does not assert that an artifact was checked."
+msgstr "Un littéral fourni tel que \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest déclare l’identité du mode de hachage BLAKE3 ; il n’affirme pas qu’un artefact a été vérifié."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SHA-256 digest"
+msgstr "empreinte SHA-256"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A SHA-256 hash result as specified by NIST FIPS 180-4, computed over the exact supplied input bytes. Its value pairs the SHA-256 algorithm identity with the ordered 32 digest bytes. The lexical form is exactly 64 lowercase hexadecimal digits, two per output byte in order, without an algorithm prefix."
+msgstr "Résultat du hachage SHA-256 défini par NIST FIPS 180-4, calculé sur les octets d’entrée exacts fournis. Sa valeur associe l’identité de l’algorithme SHA-256 aux 32 octets ordonnés de l’empreinte. La forme lexicale comporte exactement 64 chiffres hexadécimaux minuscules, deux par octet de sortie dans l’ordre, sans préfixe d’algorithme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source supplies a SHA-256 digest of specified bytes and the algorithm must remain part of the literal identity."
+msgstr "Utiliser lorsqu’une source fournit une empreinte SHA-256 pour des octets déterminés et que l’algorithme doit rester partie intégrante de l’identité du littéral."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid SHA-512/256, truncated hashes, HMAC results, or relabeling a scheme or canonical-model identifier as the digest of different artifact bytes. Domain-tag bytes are permitted when they are actually part of the supplied input; do not erase an identifier scheme’s meaning."
+msgstr "Éviter SHA-512/256, les hachages tronqués, les résultats HMAC, ou de rebaptiser un identifiant de schéma ou de modèle canonique comme empreinte d’autres octets d’artefact. Les octets d’une étiquette de domaine sont permis lorsqu’ils font réellement partie de l’entrée fournie ; ne pas effacer le sens d’un schéma d’identification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the source’s 64 lowercase hexadecimal digits and this datatype IRI. Retain the identity of the exact input bytes separately; do not normalize, prepend an algorithm label or infer verification from the typed literal."
+msgstr "Préserver les 64 chiffres hexadécimaux minuscules de la source et cet IRI de type de données. Conserver séparément l’identité des octets d’entrée exacts ; ne pas normaliser, ajouter une étiquette d’algorithme en préfixe ni déduire une vérification du littéral typé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration specifies an algorithm-tagged digest value and its lexical form; it does not install a datatype parser, compute a hash or verify artifact bytes. Native RDF transport can retain the typed literal opaquely. Compare supplied literals by RDF sameTerm, preserving both lexical form and datatype IRI; no equality with xsd:string, xsd:hexBinary or another algorithm datatype is asserted."
+msgstr "Cette déclaration spécifie une valeur d’empreinte portant l’identité de son algorithme et sa forme lexicale ; elle n’installe aucun analyseur de type de données, ne calcule aucun hachage et ne vérifie aucun octet d’artefact. Le transport RDF natif peut conserver le littéral typé de façon opaque. Comparer les littéraux fournis avec sameTerm de RDF, en préservant la forme lexicale et l’IRI du type de données ; aucune égalité avec xsd:string, xsd:hexBinary ou le type de données d’un autre algorithme n’est affirmée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sha256Digest|http://www.w3.org/2004/02/skos/core#example"
+msgid "A supplied literal such as \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest retains SHA-256 identity even when another algorithm’s literal has the same hexadecimal spelling."
+msgstr "Un littéral fourni tel que \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest conserve l’identité SHA-256 même si le littéral d’un autre algorithme possède la même écriture hexadécimale."

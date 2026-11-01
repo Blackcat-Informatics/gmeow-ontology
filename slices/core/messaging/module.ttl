@@ -1,0 +1,399 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Message
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Message"@x-gmeow-english ;
+    skos:definition "A communicative information artifact addressed or intended for other agents. Its existence does not assert dispatch, delivery, receipt or a reply; email and chat messages specialize this shared kind."@x-gmeow-english ;
+    gmeow:useWhen "Use for authored or received communication, including an intended message refused before dispatch."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful communication from message typing alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain source participants, parts, thread and outcome claims using the transport-specific specialization where known."@x-gmeow-english ;
+    skos:example "ex:message a gmeow:Message ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:BodyPart
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Body Part"@x-gmeow-english ;
+    skos:definition "An information object representing one constituent of a message body. It is transport-neutral; a MIME part is one specialization of this content-part role."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a distinct body constituent with its own content identity and metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming every body part has MIME headers or is itself the media file it carries."@x-gmeow-english ;
+    gmeow:howToUse "Attach it with hasBodyPart; use partMedia for a separate carried media artifact and entryOrdinal for supplied source order."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:Thread
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Thread"@x-gmeow-english ;
+    skos:definition "A conversation grouping messages related by reply or reference chains. Membership does not imply that every message was delivered or answered."@x-gmeow-english ;
+    gmeow:useWhen "Use for the shared conversation identity of related messages."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating a thread with one response turn or one network room."@x-gmeow-english ;
+    gmeow:howToUse "Link messages through partOfThread and retain direct reply edges separately."@x-gmeow-english ;
+    skos:example "ex:message gmeow:partOfThread ex:conversation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:hasBodyPart
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has body part"@x-gmeow-english ;
+    skos:definition "Relates a message to a constituent of its body, specializing hasPart without requiring a MIME representation. Several parts coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use for a message’s retained body structure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading RDF statement order as body-part order."@x-gmeow-english ;
+    gmeow:howToUse "Link each part and keep any known zero-based source position on its occurrence with entryOrdinal."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part0 , ex:part1 ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:BodyPart ;
+    logic:subPropertyOf gmeow:hasPart .
+
+gmeow:inReplyTo
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "in reply to"@x-gmeow-english ;
+    skos:definition "Relates a message to the message it directly answers. Both ends are messages; a digest-only reference to words instead uses repliesToContent."@x-gmeow-english ;
+    gmeow:useWhen "Use when the replied-to message is known as a message resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a transmitted message solely to hold a content digest."@x-gmeow-english ;
+    gmeow:howToUse "Retain the direct source reply relation; record unknown content-only targets separately."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:inReplyTo ex:message ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:Message .
+
+gmeow:partOfThread
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "part of thread"@x-gmeow-english ;
+    skos:definition "Relates a message to the conversation thread it belongs to, specializing the universal partOf relation. It does not determine delivery state or response-turn boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use to group messages under a conversation identity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring that every thread member was visible to every participant."@x-gmeow-english ;
+    gmeow:howToUse "Link the message to each source-supported Thread, preserving attributed alternative groupings."@x-gmeow-english ;
+    skos:example "ex:message gmeow:partOfThread ex:conversation ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:Thread ;
+    logic:subPropertyOf gmeow:partOf .
+
+gmeow:sentAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "sent at"@x-gmeow-english ;
+    skos:definition "The source-reported dateTime of a message’s sending. In email it can preserve the RFC 5322 Date claim; it is not independent proof of dispatch or arrival."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a source sending-time claim."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid bridging sending time to record creation or delivery success."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied dateTime and actual timezone information; preserve its provenance when the source is an authored header."@x-gmeow-english ;
+    skos:example "ex:message gmeow:sentAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range xsd:dateTime .
+
+gmeow:receivedAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "received at"@x-gmeow-english ;
+    skos:definition "When the message was received by the storing system, as reported by the source. This retains provider receive time and does not prove that a human or another intended recipient saw the message."@x-gmeow-english ;
+    gmeow:useWhen "Use for the retaining system’s receive-time observation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading storage receipt as readership or a successful reply."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied dateTime, including provider internal receive dates; retain occurrence and record time independently."@x-gmeow-english ;
+    skos:example "ex:message gmeow:receivedAt \"2026-10-29T10:00:01Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range xsd:dateTime .
+
+gmeow:DeliveryOutcome
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Delivery Outcome"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for an explicitly reported message-delivery outcome. Its failure values retain refusal by a sender guard and rejection by a provider; absence proves no success."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify reported delivery failures without losing the intended message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating missing failure data as a delivered state."@x-gmeow-english ;
+    gmeow:howToUse "Reference these values through deliveryOutcome; preserve attempt, recipient, time and standpoint on the attribution when needed."@x-gmeow-english ;
+    skos:example "ex:message gmeow:deliveryOutcome ex:outcome ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:deliveryOutcome
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "delivery outcome"@x-gmeow-english ;
+    skos:definition "A source-attributed DeliveryOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s deliveryOutcome assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting absence of deliveryOutcome as success."@x-gmeow-english ;
+    gmeow:howToUse "Link supported DeliveryOutcome values; several reports may coexist with their own statement provenance."@x-gmeow-english ;
+    skos:example "ex:message gmeow:deliveryOutcome ex:outcome ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:DeliveryOutcome .
+
+gmeow:ReplyOutcome
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reply Outcome"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for an explicit outcome of answering a message. It distinguishes a reported cognition failure from merely having no known reply."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explanation of a failed answering attempt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving failure from the absence of an inReplyTo edge."@x-gmeow-english ;
+    gmeow:howToUse "Reference the reported value with replyOutcome and keep later successful replies without deleting the earlier failure."@x-gmeow-english ;
+    skos:example "ex:message gmeow:replyOutcome ex:outcome ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:replyOutcome
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reply outcome"@x-gmeow-english ;
+    skos:definition "A source-attributed ReplyOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the source’s replyOutcome assertion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting absence of replyOutcome as success."@x-gmeow-english ;
+    gmeow:howToUse "Link supported ReplyOutcome values; several reports may coexist with their own statement provenance."@x-gmeow-english ;
+    skos:example "ex:message gmeow:replyOutcome ex:outcome ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:ReplyOutcome .
+
+gmeow:deliveryRefusedByGuard
+    a gmeow:DeliveryOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "refused by sender guard"@x-gmeow-english ;
+    skos:definition "The sender’s own guard refused this message’s delivery attempt. The intended message is retained even though it did not reach the recipient in that attempt."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly reported sender-guard refusal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid conflating sender refusal with provider rejection."@x-gmeow-english ;
+    gmeow:howToUse "Attribute deliveryRefusedByGuard through deliveryOutcome with its source context."@x-gmeow-english ;
+    skos:example "ex:message gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ."@x-gmeow-english .
+
+gmeow:deliveryRejectedByProvider
+    a gmeow:DeliveryOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "rejected by provider"@x-gmeow-english ;
+    skos:definition "A provider rejected this message’s delivery attempt. It records that refusal without asserting that every later attempt also failed."@x-gmeow-english ;
+    gmeow:useWhen "Use for a reported provider-side rejection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading provider rejection as a judgment about content truth."@x-gmeow-english ;
+    gmeow:howToUse "Attribute deliveryRejectedByProvider through deliveryOutcome with its source context."@x-gmeow-english ;
+    skos:example "ex:message gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider ."@x-gmeow-english .
+
+gmeow:replyFailedCognition
+    a gmeow:ReplyOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reply failed through cognition"@x-gmeow-english ;
+    skos:definition "The recipient’s answering attempt failed because its cognition failed. This is an explicit source report, not a deduction from unanswered conversation history."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports cognition failure as the reason no answer was produced in an attempt."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid diagnosing cognition from silence or elapsed time."@x-gmeow-english ;
+    gmeow:howToUse "Attribute replyFailedCognition through replyOutcome with its source context."@x-gmeow-english ;
+    skos:example "ex:message gmeow:replyOutcome gmeow:replyFailedCognition ."@x-gmeow-english .
+
+gmeow:partMedia
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "part media"@x-gmeow-english ;
+    skos:definition "Relates a body-part occurrence to the separate MediaObject it carries, specializing hasPart. The wrapper and file can have different identities and metadata."@x-gmeow-english ;
+    gmeow:useWhen "Use when a message part carries a distinct image, audio or video artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating transport-wrapper bytes with the carried media bytes."@x-gmeow-english ;
+    gmeow:howToUse "Link the BodyPart to its MediaObject and retain each artifact’s own digest where known."@x-gmeow-english ;
+    skos:example "ex:part gmeow:partMedia ex:deliveredImage ."@x-gmeow-english ;
+    logic:domain gmeow:BodyPart ;
+    logic:range gmeow:MediaObject ;
+    logic:subPropertyOf gmeow:hasPart .
+
+gmeow:sourceMedia
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source media artifact"@x-gmeow-english ;
+    skos:definition "Relates a delivered MediaObject to the InformationObject whose bytes it was produced from before delivery encoding. The source carries its own contentDigest and need not be stored or published. This relation asserts actual byte-source derivation."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish generated source bytes from delivery-encoded bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a source digest for the delivered artifact’s own digest or claiming derivation from mere context presence."@x-gmeow-english ;
+    gmeow:howToUse "Reference a digest-identified source artifact and keep the delivered MediaObject’s contentDigest separate."@x-gmeow-english ;
+    skos:example "ex:deliveredImage gmeow:sourceMedia ex:generatedBytes ."@x-gmeow-english ;
+    logic:domain gmeow:MediaObject ;
+    logic:range gmeow:InformationObject ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .
+
+gmeow:repliesToContent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "replies to content"@x-gmeow-english ;
+    skos:definition "Relates a message to the words or other content it answers when only that content’s digest identity is known. The target is an InformationObject, without asserting that a message was transmitted or exists in the retaining store."@x-gmeow-english ;
+    gmeow:useWhen "Use for a digest-only reply target without fabricating a sent-message resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making this content reference a subproperty of inReplyTo."@x-gmeow-english ;
+    gmeow:howToUse "Create a reusable content node with its own contentDigest; record inReplyTo separately only when the source message is known."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:repliesToContent ex:externalWords ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:InformationObject .
+
+gmeow:originComposed
+    a gmeow:ContentOrigin ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "composed"@x-gmeow-english ;
+    skos:definition "Content deliberately authored by an agent to communicate or commit, including speech, a written message or a stated intention. This source attribution can coexist with generated process origin and says neither that the content is true nor that its commitment was fulfilled."@x-gmeow-english ;
+    gmeow:useWhen "Use when deliberate communicative or committing composition is supported by the source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring deliberate authorship solely from generative production, perception or recall."@x-gmeow-english ;
+    gmeow:howToUse "Attribute through contentOrigin; retain generated, imagined, remembered or perceived origins when they also apply."@x-gmeow-english ;
+    skos:example "ex:message gmeow:contentOrigin gmeow:originComposed ."@x-gmeow-english .
+
+gmeow:tagContainsIllustrativeText
+    a gmeow:Tag ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "contains illustrative text"@x-gmeow-english ;
+    skos:definition "A positive tag for an image whose pixels contain text belonging to the picture, such as a drawn label or sign. A missing tag does not assert absence of such text and the tag supplies no transcription."@x-gmeow-english ;
+    gmeow:useWhen "Use when only the presence of text within an image is known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using the tag as searchable transcription or as a negative result when absent."@x-gmeow-english ;
+    gmeow:howToUse "Attach with hasTag to the image artifact; retain any transcription or region description separately when available."@x-gmeow-english ;
+    skos:example "ex:deliveredImage gmeow:hasTag gmeow:tagContainsIllustrativeText ."@x-gmeow-english .
+
+# Canonical value and source-presence obligations.
+
+gmeow:Message logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:sentAt ; logic:allValuesFrom xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:receivedAt ; logic:allValuesFrom xsd:dateTime ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasBodyPart ; logic:allValuesFrom gmeow:BodyPart ],
+    [ a logic:Restriction ; logic:onProperty gmeow:inReplyTo ; logic:allValuesFrom gmeow:Message ],
+    [ a logic:Restriction ; logic:onProperty gmeow:deliveryOutcome ; logic:allValuesFrom gmeow:DeliveryOutcome ],
+    [ a logic:Restriction ; logic:onProperty gmeow:replyOutcome ; logic:allValuesFrom gmeow:ReplyOutcome ],
+    [ a logic:Restriction ; logic:onProperty gmeow:repliesToContent ; logic:allValuesFrom gmeow:InformationObject ] .
+
+gmeow:BodyPart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:partMedia ; logic:allValuesFrom gmeow:MediaObject ] .
+
+gmeow:MediaObject logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:sourceMedia ; logic:allValuesFrom gmeow:InformationObject ] .
+
+gmeow:SourceMediaDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Source media digest constraint"@x-gmeow-english ;
+    skos:definition "Every sourceMedia target carries contentDigest for the original source bytes, independently of the delivered artifact’s digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain source-byte identity across delivery encodings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying source identity with only a digest on the delivered object."@x-gmeow-english ;
+    gmeow:howToUse "Put the known algorithm-labelled digest on the referenced source artifact."@x-gmeow-english ;
+    skos:example "ex:deliveredImage gmeow:sourceMedia ex:content ."@x-gmeow-english ;
+    logic:formalizes gmeow:sourceMedia ;
+    logic:message "A sourceMedia target must carry its own contentDigest." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sourceMedia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+gmeow:ReplyContentDigestConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reply content digest constraint"@x-gmeow-english ;
+    skos:definition "Every repliesToContent target carries its own contentDigest, identifying the answered content without a fictitious transmitted-message assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use for durable digest-only reply references."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the target digest with the replying message’s digest."@x-gmeow-english ;
+    gmeow:howToUse "Reuse the digest-identified content artifact across replies without typing it as Message merely for the reference."@x-gmeow-english ;
+    skos:example "ex:message gmeow:repliesToContent ex:content ."@x-gmeow-english ;
+    logic:formalizes gmeow:repliesToContent ;
+    logic:message "A repliesToContent target must carry its own contentDigest." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:repliesToContent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "digest" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ] ] ] .
+
+# Display annotations share the module authority used by translation catalogs.
+
+gmeow:mapsetMessaging
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Messaging mappings"@x-gmeow-english ;
+    skos:definition "Close-match alignments for shared messages, threads and source time. Confidence and manual-curation justification stay attached to each alignment."@x-gmeow-english ;
+    gmeow:useWhen "Use to export the shared messaging alignment set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading a close match as exact identity of all message semantics."@x-gmeow-english ;
+    gmeow:howToUse "Keep linkage annotations with their mapping cell; transport-specific correspondences remain with their owner."@x-gmeow-english ;
+    skos:example "gmeow:Message skos:closeMatch schema:Message ."@x-gmeow-english .
+
+gmeow:mapSiocContainer
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "SIOC conversation container projection"@x-gmeow-english ;
+    skos:definition "Projects a shared Thread as both SIOC Thread and Container using its declared profile binding. The projection keeps its source pattern and preservation declaration."@x-gmeow-english ;
+    gmeow:useWhen "Use for the shared conversation-container projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this recipe to assert that a conversation is an email message."@x-gmeow-english ;
+    gmeow:howToUse "Apply the declared sioc binding to Thread resources, independently of message transport."@x-gmeow-english ;
+    skos:example "ex:conversation a gmeow:Thread ."@x-gmeow-english .
+
+gmeow:mapSiocHasContainer
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "SIOC conversation membership projection"@x-gmeow-english ;
+    skos:definition "Projects shared message-thread membership to the declared SIOC has_container and container_of edges."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the shared thread-membership projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading membership projection as delivery or readership evidence."@x-gmeow-english ;
+    gmeow:howToUse "Apply its unchanged source membership pattern and explicit paired target edges."@x-gmeow-english ;
+    skos:example "ex:message gmeow:partOfThread ex:conversation ."@x-gmeow-english .
+
+gmeow:mapSiocReplyOf
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "SIOC direct reply projection"@x-gmeow-english ;
+    skos:definition "Projects the shared message-to-message reply relation to the declared SIOC reply_of and has_reply edges. Digest-only content targets are outside this source pattern."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the direct-message reply projection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid passing repliesToContent targets through this message-only mapping."@x-gmeow-english ;
+    gmeow:howToUse "Match inReplyTo and emit the two explicit SIOC reply edges."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:inReplyTo ex:message ."@x-gmeow-english .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:utteranceText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "utterance text"@x-gmeow-english ;
+    skos:definition "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:utteranceText."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/utteranceText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-faithful environment interactions and catalog records.
+
+gmeow:MessageKind
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Message Kind"@x-gmeow-english ;
+    skos:definition "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."@x-gmeow-english ;
+    gmeow:useWhen "Use for overlapping source classifications of any Message transport."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making kinds Message subclasses or forcing a single winning category."@x-gmeow-english ;
+    gmeow:howToUse "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."@x-gmeow-english ;
+    skos:scopeNote "This core vocabulary adds no email-address, delivery or recipient requirements."@x-gmeow-english ;
+    skos:example "For example: ex:localKind a gmeow:MessageKind ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:hasMessageKind
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/messaging> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has message kind"@x-gmeow-english ;
+    skos:definition "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source classifies the behavior or report purpose of a Message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."@x-gmeow-english ;
+    gmeow:howToUse "Link the actual Message to each supplied MessageKind without removing other attributed kinds."@x-gmeow-english ;
+    skos:scopeNote "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."@x-gmeow-english ;
+    skos:example "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:MessageKind .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasMessageKind" ; logic:closureValue logic:ClosedWorldClosure ] .

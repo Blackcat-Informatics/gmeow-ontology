@@ -76,7 +76,8 @@ pub fn emit_action_identity(fingerprint_env: &str, pipeline_metadata: bool) -> R
             if digest(&bytes) != expected {
                 return Err(fail("source selection document changed after admission"));
             }
-            let selection: ProductionSelection = serde_json::from_slice(&bytes).map_err(fail)?;
+            let selection: ProductionSelection =
+                purrdf_lex::json::record::from_slice(&bytes).map_err(fail)?;
             let selection = selection.scoped_to_manifest(&manifest)?;
             let inventory = InputInventory::collect(&workspace, &selection)?;
             inventory.emit_cargo_rerun_directives(&workspace);
@@ -94,7 +95,7 @@ pub fn emit_action_identity(fingerprint_env: &str, pipeline_metadata: bool) -> R
         }
     };
     context.insert("source".into(), source);
-    let fingerprint = digest(&serde_json::to_vec(&context).map_err(fail)?);
+    let fingerprint = digest(&purrdf_lex::json::record::to_vec(&context));
     println!("cargo:rustc-env={fingerprint_env}={fingerprint}");
     if pipeline_metadata {
         println!("cargo:rustc-env=GMEOW_PRODUCER_BUILD_CONTRACT={producer}");

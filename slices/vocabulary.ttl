@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 @prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
@@ -50,7 +51,7 @@ gmeow:Slice a logic:Class ;
     [
         a logic:Restriction ;
         logic:onProperty dcterms:creator ;
-        logic:allValuesFrom xsd:string ;
+        logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     ] .
 
 # --------------------------------------------------------------------------- #
@@ -264,7 +265,7 @@ gmeow:SliceDependsOnCreatorRequiredConstraint
     logic:onClass gmeow:Slice ;
     logic:anyOf dcterms:creator ;
     logic:formalizes gmeow:Slice ;
-    logic:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)." .
+    logic:message "A slice names at least one creator as a proper-name literal, retaining its source language and base direction when supplied."@x-gmeow-english .
 
 gmeow:SliceProvidesSubcommandPatternConstraint
     a logic:Constraint ;
@@ -373,7 +374,7 @@ gmeow:dependencyStatus a logic:DatatypeProperty ;
 gmeow:dependencyEvidence a logic:DatatypeProperty ;
     rdfs:label "dependency evidence"@x-gmeow-english ;
     logic:domain gmeow:computedSliceDependency ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
     skos:definition "A human-readable summary of the evidence that produced this computed dependency edge: the referenced terms and the artifact paths that triggered the cross-slice reference."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
@@ -499,3 +500,5 @@ gmeow:sliceDslBuiltAgainstCoreFunctionality
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:builtAgainstCore ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dependencyEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .

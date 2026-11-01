@@ -25,6 +25,31 @@ pub fn read_diagnostic_document<T: FromJson>(bytes: &[u8]) -> Result<T, DecodeEr
     )?)
 }
 
+/// Implement native JSON for a tuple newtype holding one unconstrained String.
+///
+/// GMEOW owns the typed wrapper; PurRDF owns string admission and writing.
+/// This adapter deliberately has no validation or alternate construction hook.
+#[macro_export]
+macro_rules! json_string_newtype {
+    ($type:ty) => {
+        impl ::purrdf_lex::json::record::ToJson for $type {
+            fn to_json(&self) -> ::purrdf_lex::json::Value {
+                ::purrdf_lex::json::record::ToJson::to_json(&self.0)
+            }
+        }
+        impl ::purrdf_lex::json::record::FromJson for $type {
+            fn from_json(
+                value: &::purrdf_lex::json::Value,
+            ) -> ::std::result::Result<Self, ::purrdf_lex::json::record::DecodeError> {
+                <::std::string::String as ::purrdf_lex::json::record::FromJson>::from_json(value)
+                    .map(Self)
+            }
+        }
+    };
+}
+
+pub use crate::json_string_newtype;
+
 /// Read an unsigned integer token followed by a checked target-width conversion.
 ///
 /// Signed zero, negative, fraction and exponent tokens are refused. `expected`
@@ -40,6 +65,37 @@ pub fn read_unsigned<T: TryFrom<u64>>(value: &Value, expected: &str) -> Result<T
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
 }
 
+/// Read the named subject, predicate and object fields of a statement record.
+/// Each transport retains its own subject/object types and record diagnostic.
+///
+/// # Errors
+/// Refuses missing, repeated or mistyped fields in subject/predicate/object order.
+pub fn read_statement_fields<S: FromJson, O: FromJson>(
+    value: &Value,
+    expected: &str,
+) -> Result<(S, String, O), DecodeError> {
+    let mut fields = Record::new(value, expected)?;
+    Ok((
+        fields.required("subject")?,
+        fields.required("predicate")?,
+        fields.required("object")?,
+    ))
+}
+
+/// Read one fixed-width commitment as strictly unsigned byte tokens.
+/// The containing record supplies its field pointer; native array admission
+/// retains the index of any malformed or out-of-range byte.
+///
+/// # Errors
+/// Refuses nonarrays, non-byte tokens and a commitment of any other width.
+pub fn read_byte_array<const N: usize>(value: &Value) -> Result<[u8; N], DecodeError> {
+    purrdf_lex::json::record::items_with(value, |value| {
+        read_unsigned::<u8>(value, "an unsigned byte")
+    })?
+    .try_into()
+    .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} unsigned bytes")))
+}
+
 /// Read one fixed-width row of verbatim strings using native element admission.
 ///
 /// # Errors
@@ -50,16 +106,30 @@ pub fn read_string_row<const N: usize>(value: &Value) -> Result<[String; N], Dec
         .map_err(|_| DecodeError::invalid_value(value, &format!("exactly {N} string cells")))
 }
 
-/// Read a signed i32 integer token, excluding the float-like spelling `-0`.
+/// Admit the null payload of a successful unit observation.
+/// The owning transport supplies its existing diagnostic wording.
 ///
 /// # Errors
-/// Returns a native value refusal for invalid token syntax or i32 overflow.
-pub fn read_signed_i32(value: &Value, expected: &str) -> Result<i32, DecodeError> {
+/// Refuses every non-null value without normalization.
+pub fn read_null(value: &Value, expected: &str) -> Result<(), DecodeError> {
+    if matches!(value, Value::Null) {
+        Ok(())
+    } else {
+        Err(DecodeError::invalid_type(value, expected))
+    }
+}
+
+/// Read a signed integer token followed by a checked target-width conversion.
+/// The float-like spelling `-0` is refused.
+///
+/// # Errors
+/// Returns a native value refusal for invalid token syntax or target overflow.
+pub fn read_signed<T: TryFrom<i128>>(value: &Value, expected: &str) -> Result<T, DecodeError> {
     value
         .as_number()
         .filter(|number| number.lexeme() != "-0")
         .and_then(|number| number.as_i128())
-        .and_then(|number| i32::try_from(number).ok())
+        .and_then(|number| T::try_from(number).ok())
         .ok_or_else(|| DecodeError::invalid_value(value, expected))
 }
 
@@ -120,12 +190,69 @@ pub fn read_recorded_result<T: FromJson>(
     }
 }
 
+/// A complete producer outcome admitted at a native JSON boundary.
+/// Readers unwrap the result after hydration; the recorded failure is retained verbatim.
+#[derive(Debug)]
+pub struct RecordedOutcome<T>(
+    /// The complete typed success or owned recorded diagnostic.
+    pub Result<T, crate::RecordedDiag>,
+);
+
+impl<T: FromJson> FromJson for RecordedOutcome<T> {
+    /// Hydrate the singleton outcome through the shared recorded-result reader.
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        read_recorded_result(value, "recorded outcome", "one recorded outcome variant").map(Self)
+    }
+}
+
 /// Write a producer outcome with the same singleton tags as its recorded-result reader.
 /// The failure payload is always the complete owned RecordedDiag, including causes.
 #[must_use]
 pub fn recorded_result_to_json<T: ToJson>(outcome: &Result<T, crate::RecordedDiag>) -> Value {
     match outcome {
         Ok(value) => Object::new().with("Ok", value.to_json()).into(),
+        Err(error) => Object::new().with("Err", error.to_json()).into(),
+    }
+}
+
+/// Project sorted producer keys and complete typed recorded outcomes without cloning.
+#[must_use]
+pub fn recorded_map_to_json<T: ToJson>(
+    outcomes: &std::collections::BTreeMap<String, Result<T, crate::RecordedDiag>>,
+) -> Value {
+    outcomes
+        .iter()
+        .map(|(name, outcome)| (name.as_str(), recorded_result_to_json(outcome)))
+        .collect::<Object>()
+        .into()
+}
+
+struct UnitSuccess;
+
+impl FromJson for UnitSuccess {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        read_null(value, "null unit success").map(|()| Self)
+    }
+}
+
+/// Read a recorded unit outcome through the same typed variant admission.
+///
+/// # Errors
+/// Refuses malformed variants, non-null successes and incomplete diagnostics.
+pub fn read_recorded_unit_result(
+    value: &Value,
+    type_expected: &str,
+    cardinality_expected: &str,
+) -> Result<Result<(), crate::RecordedDiag>, DecodeError> {
+    read_recorded_result::<UnitSuccess>(value, type_expected, cardinality_expected)
+        .map(|outcome| outcome.map(|UnitSuccess| ()))
+}
+
+/// Write a null unit success or its complete recorded causal diagnostic.
+#[must_use]
+pub fn recorded_unit_result_to_json(outcome: &Result<(), crate::RecordedDiag>) -> Value {
+    match outcome {
+        Ok(()) => Object::new().with("Ok", Value::Null).into(),
         Err(error) => Object::new().with("Err", error.to_json()).into(),
     }
 }

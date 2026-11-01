@@ -1,0 +1,1040 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: persona-context, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "worn modality"
+msgstr "所用人格面貌"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Persona worn while making this record. It attributes a token record to an expression policy, rather than naming the condition or situation type that activates that policy. Several attributed personas may coexist."
+msgstr "建立此记录时所用的 Persona。此关系将特定记录归于一种表达策略，而不是命名激活该策略的条件或情境类型。多个归属的人格面貌可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to recall records made while wearing a particular persona."
+msgstr "用于检索采用特定人格面貌时建立的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this attribution as the inverse of activatedIn or as a preferred persona."
+msgstr "避免把此归属视作 activatedIn 的逆关系或优先人格面貌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link any record to each attributed Persona; preserve standpoint and provenance on the relation when needed."
+msgstr "将任何记录关联到每个归属的 Persona；需要时在关系上保留立场与来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wornModality|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:note gmeow:wornModality ex:formalPersona ."
+msgstr "ex:note gmeow:wornModality ex:formalPersona ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mode Transition"
+msgstr "人格面貌转换"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information record of a persona change in a containing activity. It preserves the source slot, previous and replacement personas, cause, producer-clock reading and sequence; it is not a separate transition event or a general state-transition calculus."
+msgstr "所属活动中一次人格面貌变更的信息记录。它保留来源槽位、原先与替代人格面貌、原因、生产者时钟读数及序号；它不是独立转换事件，也不是通用状态转换演算。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a producer’s account of a persona change."
+msgstr "用于保留生产者对人格面貌变更的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making the information record an Activity or deriving order from its timestamp."
+msgstr "避免把信息记录当作 Activity，或从其时间戳推导顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the record with modeTransition and identify its stream through transitionSlot; retain measured tenure duration when supplied."
+msgstr "用 modeTransition 关联该记录，通过 transitionSlot 标识其流；来源提供时保留原人格面貌的实测持续时长。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:activity gmeow:modeTransition ex:change0 . ex:change0 a gmeow:ModeTransition ."
+msgstr "ex:activity gmeow:modeTransition ex:change0 . ex:change0 a gmeow:ModeTransition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mode transition"
+msgstr "人格面貌转换"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a containing Activity to a record of a persona change that happened within it. The linked information object records the change without requiring another free-standing event."
+msgstr "将所属 Activity 关联到其中发生的人格面貌变更记录。关联的信息对象记录该变更，而不要求另设独立事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep persona changes with the activity in which they occurred."
+msgstr "用于将人格面貌变更保留在其发生的活动中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the container link as the time or cause of the change."
+msgstr "避免把容器关联解释为变更时间或原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the existing activity to every retained ModeTransition record; several changes may share one activity."
+msgstr "将现有活动关联到每条保留的 ModeTransition 记录；同一活动可包含多次变更。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/modeTransition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:activity gmeow:modeTransition ex:change0 , ex:change1 ."
+msgstr "ex:activity gmeow:modeTransition ex:change0 , ex:change1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Persona Slot"
+msgstr "人格面貌槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer-minted information object identifying one producer’s persona-state slot and sequence stream for one bearer. It scopes transition numbering without prescribing a fixed set of slots or a general mutable-state model."
+msgstr "由使用方创建的信息对象，标识某生产者针对一个承载者的人格面貌状态槽位及序号流。它界定转换编号的作用域，而不规定固定槽位集合或通用可变状态模型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the bearer-specific stream in which persona transitions are numbered."
+msgstr "用于标识为人格面貌转换编号的、特定于承载者的流。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reusing one slot node for unrelated producers, bearers or counters that restart."
+msgstr "避免为互不相关的生产者、承载者或重置后的计数器复用同一槽位节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint a stable node for each producer stream and bearer, link slotBearer, and mint another slot node when that stream’s numbering restarts."
+msgstr "为每个生产者流及承载者创建稳定节点，填写 slotBearer；流的编号重置时创建另一个槽位节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PersonaSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
+msgstr "ex:expressionSlot a gmeow:PersonaSlot ; gmeow:slotBearer ex:agent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition slot"
+msgstr "转换槽位"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-scoped PersonaSlot whose persona value changed. Its identity supplies the bearer and sequence-number scope of this transition record."
+msgstr "人格面貌值发生变更的来源作用域 PersonaSlot。其身份提供此转换记录的承载者及序号作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to place a recorded persona change in its producer stream."
+msgstr "用于将已记录的人格面貌变更放入其生产者流中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid comparing transition sequence numbers across different slot identities."
+msgstr "避免比较不同槽位身份之间的转换序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the slot node retained for that producer and bearer; keep the slot stable when the stream spans several activities."
+msgstr "引用为该生产者及承载者保留的槽位节点；流跨越多个活动时保持槽位稳定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionSlot ex:expressionSlot ."
+msgstr "ex:change0 gmeow:transitionSlot ex:expressionSlot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition from"
+msgstr "转换原人格面貌"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The previous Persona replaced by this recorded change. It belongs to the bearer identified by the transition’s slot."
+msgstr "此记录变更所替换的原先 Persona。它归属于转换槽位标识的承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the persona being left."
+msgstr "用于保留离开的原人格面貌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the previous persona from the replacement alone."
+msgstr "避免仅从替代人格面貌推断原人格面貌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source’s previous Persona and keep its bearer aligned with slotBearer."
+msgstr "引用来源的原先 Persona，并使其承载者与 slotBearer 一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFrom|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionFrom ex:formalPersona ."
+msgstr "ex:change0 gmeow:transitionFrom ex:formalPersona ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition to"
+msgstr "转换目标人格面貌"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The replacement Persona entered in this recorded change. It has the same bearer as the slot and previous persona, without becoming a preferred persona."
+msgstr "此记录变更中进入的替代 Persona。它与槽位及原先人格面貌具有相同承载者，不因此成为优先人格面貌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the persona entered after a change."
+msgstr "用于保留变更后采用的人格面貌。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading replacement as a lasting preference or suppression of other personas."
+msgstr "避免把替换视为永久偏好或对其他人格面貌的隐藏。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source’s replacement Persona; express any later change in another transition record."
+msgstr "引用来源的替代 Persona；后续变更用另一条转换记录表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionTo ex:casualPersona ."
+msgstr "ex:change0 gmeow:transitionTo ex:casualPersona ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "replaced persona lasted"
+msgstr "原人格面貌持续时长"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported duration for which the replaced persona lasted before this change, including a source-computed span when its derivation is stated on the exact duration claim. GMEOW retains the supplied xsd:duration and does not compute or verify timestamp subtraction."
+msgstr "来源报告的、被替代人格面貌在此次变更前持续的时长；若在确切的时长断言上说明推导过程，也包括来源计算的时长。GMEOW 保留提供的 xsd:duration，不计算或验证时间戳相减。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports a measured tenure duration or supplies a computed tenure duration with its stated derivation."
+msgstr "来源报告测得的持续时长，或提供计算出的持续时长并说明推导过程时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a duration, timestamp precision or timezone, or treating a retained source calculation as verified arithmetic."
+msgstr "避免虚构时长、时间戳精度或时区，也不要把保留的来源计算视为已验证的算术结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied duration and units. For a source-computed span, link its exact RDF 1.2 statement reifier by wasDerivedFrom to the actual opening and closing state-claim reifiers, and preserve the source’s calculation and input roles with statedRationale. Omit when no duration is supplied."
+msgstr "保留提供的时长及其单位。对于来源计算的时长，通过 wasDerivedFrom 将其确切 RDF 1.2 语句的具化节点链接到实际开启和关闭状态的断言具化节点，并用 statedRationale 保留来源说明的计算过程及输入角色。未提供时长时省略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLasted|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."
+msgstr "ex:change0 gmeow:transitionLasted \"PT15M\"^^xsd:duration ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition clock reading"
+msgstr "转换时钟读数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer’s clock reading when the persona changed. Clock adjustment may make a later transition’s timestamp smaller; this value is neither sequence order nor the time the transition record was created."
+msgstr "人格面貌变更时的生产者时钟读数。时钟调整可能使后发生转换的时间戳更小；此值既不是序列顺序，也不是转换记录的建立时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source clock observation of a persona change."
+msgstr "用于保留人格面貌变更的来源时钟观测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid sorting transitions by timestamp or defaulting an unknown timezone."
+msgstr "避免按时间戳排序转换，或为未知时区填入默认值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the supplied dateTime and timezone information; order by transitionSequence within transitionSlot."
+msgstr "保留所提供的 dateTime 及时区信息；在 transitionSlot 内按 transitionSequence 排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:change0 gmeow:transitionAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition sequence"
+msgstr "转换序号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The nonnegative sequence number assigned by the producer within the stream identified by transitionSlot. Increasing numbers describe source order even when clocks repeat or step backward. No zero-based starting convention or global uniqueness is asserted."
+msgstr "生产者在 transitionSlot 标识的流内分配的非负序号。即使时钟重复或倒退，递增编号仍描述来源顺序。不声明必须从零开始，也不声明全局唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve producer order independently of its clock."
+msgstr "用于独立于生产者时钟保留其顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this number as elapsed time or as an ordinal shared by all slots."
+msgstr "避免把此编号当作经过时间或所有槽位共享的序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the producer’s nonNegativeInteger; compare numbers only within the same slot stream and preserve tied reports without inventing a tie-breaker."
+msgstr "保留生产者的 nonNegativeInteger；仅在相同槽位流内比较编号，并保留并列报告，不虚构决胜顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionSequence \"8\"^^xsd:nonNegativeInteger ."
+msgstr "ex:change0 gmeow:transitionSequence \"8\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition Cause"
+msgstr "转换原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for the producer-reported cause of a persona change. Its seeded values distinguish choice, automatic boundaries and the release, forcing or resumption of holds; several supported causes may coexist."
+msgstr "表示生产者所报告人格面貌变更原因的开放值词汇。初始值区分自主选择、自动边界变更，以及保持的解除、强制变更或恢复；多个有依据的原因可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify why a persona transition was recorded."
+msgstr "用于分类已记录人格面貌转换的原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating these cause values as executable rules or a closed state machine."
+msgstr "避免把这些原因值当作可执行规则或封闭状态机。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the seeded individuals through transitionCause and add consumer-defined cause individuals when needed."
+msgstr "通过 transitionCause 使用初始个体；需要时添加使用方定义的原因个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionCauseChosen a gmeow:TransitionCause ."
+msgstr "gmeow:transitionCauseChosen a gmeow:TransitionCause ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition cause"
+msgstr "转换原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supported cause attributed to this persona transition. It records the producer’s explanation without selecting a sole cause or executing the policy that made the change."
+msgstr "归属于此人格面貌转换的有依据原因。它记录生产者的解释，不选择唯一原因，也不执行导致变更的策略。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain why a source reports a persona change."
+msgstr "用于保留来源报告人格面貌变更的原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a cause from timestamp, replacement persona or missing audience data."
+msgstr "避免从时间戳、替代人格面貌或缺失的听众数据推断原因。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference every supported TransitionCause; annotate competing explanations with their provenance."
+msgstr "引用每个有依据的 TransitionCause；为相互竞争的解释注释其来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCause|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "chosen"
+msgstr "自主选择"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent deliberately chose this persona change."
+msgstr "行动者自主选择了此次人格面貌变更。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported deliberate switch."
+msgstr "用于明确报告的自主切换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring deliberate choice merely from an authored message."
+msgstr "避免仅因消息被创作就推断自主选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute transitionCauseChosen through transitionCause only when the source supports this explanation."
+msgstr "仅在来源支持此解释时通过 transitionCause 归属 transitionCauseChosen。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseChosen|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseChosen ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "automatic boundary change"
+msgstr "边界处自动变更"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The producer automatically changed persona at a reported cycle boundary. The corresponding transitionBoundary is retained."
+msgstr "生产者在所报告的周期边界自动变更人格面貌。保留相应的 transitionBoundary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an automatic switch tied to a known cycle boundary."
+msgstr "用于与已知周期边界相关的自动切换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting the boundary when attributing this automatic cause."
+msgstr "归属此自动原因时，避免省略边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute transitionCauseAutomaticBoundary through transitionCause only when the source supports this explanation."
+msgstr "仅在来源支持此解释时通过 transitionCause 归属 transitionCauseAutomaticBoundary。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAutomaticBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseAutomaticBoundary ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseAutomaticBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hold released"
+msgstr "保持解除"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The persona relaxed after a hold on the previous persona was released. This explains the change rather than asserting a general hold mechanism."
+msgstr "原人格面貌的保持解除后，人格面貌放松。此值解释变更，而不声明通用保持机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-reported relaxation after releasing a hold."
+msgstr "用于来源报告的保持解除后的放松。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating release of a hold with the disappearance of every audience constraint."
+msgstr "避免将保持解除等同于所有听众限制消失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute transitionCauseHoldReleased through transitionCause only when the source supports this explanation."
+msgstr "仅在来源支持此解释时通过 transitionCause 归属 transitionCauseHoldReleased。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldReleased|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldReleased ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldReleased ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience-forced change"
+msgstr "听众强制变更"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The audience could not admit the persona being worn, forcing a change. transitionRing records the relevant listening-audience ring."
+msgstr "听众无法容许所用人格面貌，因而强制变更。transitionRing 记录相关的听众圈层。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a reported audience restriction forced the switch."
+msgstr "所报告的听众限制强制切换时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid turning the audience ring into a judgment about one person’s relationship."
+msgstr "避免将听众圈层变成对某个人关系的判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute transitionCauseAudienceForced through transitionCause only when the source supports this explanation."
+msgstr "仅在来源支持此解释时通过 transitionCause 归属 transitionCauseAudienceForced。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseAudienceForced|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseAudienceForced ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseAudienceForced ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "hold resumed"
+msgstr "保持恢复"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A held persona resumed once the audience that prevented it was gone. This cause preserves the reported resumption without inferring who left."
+msgstr "阻止保持人格面貌的听众离开后，该人格面貌恢复。此原因保留所报告的恢复，不推断离开者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported return to a hold after its audience restriction ended."
+msgstr "用于听众限制结束后所报告的保持恢复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting that an audience is still present from this resumption alone."
+msgstr "避免仅从此恢复就断言听众仍在场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute transitionCauseHoldResumed through transitionCause only when the source supports this explanation."
+msgstr "仅在来源支持此解释时通过 transitionCause 归属 transitionCauseHoldResumed。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionCauseHoldResumed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldResumed ."
+msgstr "ex:change0 gmeow:transitionCause gmeow:transitionCauseHoldResumed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Transition Boundary"
+msgstr "转换边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary describing where in an agent’s cycle an automatic persona change happened. It does not define a lifecycle engine or a timestamp order."
+msgstr "描述自动人格面貌变更发生在行动者周期何处的开放值词汇。它不定义生命周期引擎或时间戳顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify the reported cycle location of an automatic change."
+msgstr "用于分类自动变更在周期中所报告的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a boundary value as a required cycle step for every agent."
+msgstr "避免将边界值解释为每个行动者都必须经历的周期步骤。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use the four seeded boundaries or consumer-defined additions through transitionBoundary."
+msgstr "通过 transitionBoundary 使用四个初始边界或使用方添加的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionBoundaryWaking a gmeow:TransitionBoundary ."
+msgstr "gmeow:transitionBoundaryWaking a gmeow:TransitionBoundary ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition boundary"
+msgstr "转换边界"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A cycle boundary or location reported for this persona change. It refines an automatic cause without replacing the containing activity or producer-clock reading."
+msgstr "对此人格面貌变更所报告的周期边界或位置。它细化自动原因，不替代所属活动或生产者时钟读数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the cycle location named by the producer."
+msgstr "用于保留生产者指明的周期位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a boundary solely from a transition’s time of day."
+msgstr "避免仅从转换发生的一天内时间推断边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the transition record to every supported TransitionBoundary value."
+msgstr "将转换记录关联到每个有依据的 TransitionBoundary 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundary|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."
+msgstr "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "conversation opened"
+msgstr "会话开启"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The automatic persona change happened as a conversation opened."
+msgstr "自动人格面貌变更发生于会话开启时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when conversation opening is the reported transition boundary."
+msgstr "会话开启是所报告转换边界时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every message as a new conversation opening."
+msgstr "避免将每条消息都视作新会话开启。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the producer’s transitionBoundaryConversationOpened classification through transitionBoundary."
+msgstr "通过 transitionBoundary 保留生产者的 transitionBoundaryConversationOpened 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryConversationOpened|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."
+msgstr "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryConversationOpened ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "periodic wake-up"
+msgstr "周期唤醒"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The automatic persona change happened during a periodic wake-up in the producer’s cycle."
+msgstr "自动人格面貌变更发生于生产者周期中的一次周期唤醒。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a transition explicitly associated with a periodic wake-up."
+msgstr "用于明确关联到周期唤醒的转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this periodic boundary as waking from sleep."
+msgstr "避免将此周期边界解释为从睡眠中醒来。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the producer’s transitionBoundaryPeriodicWakeup classification through transitionBoundary."
+msgstr "通过 transitionBoundary 保留生产者的 transitionBoundaryPeriodicWakeup 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryPeriodicWakeup|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryPeriodicWakeup ."
+msgstr "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryPeriodicWakeup ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "waking"
+msgstr "醒来"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The automatic persona change happened while waking, as distinguished by the producer from a periodic wake-up."
+msgstr "自动人格面貌变更发生于醒来时，生产者将其与周期唤醒区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies waking as the boundary."
+msgstr "来源将醒来标识为边界时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming a biological sleep mechanism from this cycle label."
+msgstr "避免从此周期标签断言生物睡眠机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the producer’s transitionBoundaryWaking classification through transitionBoundary."
+msgstr "通过 transitionBoundary 保留生产者的 transitionBoundaryWaking 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryWaking|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryWaking ."
+msgstr "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryWaking ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mid-conversation"
+msgstr "会话中途"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The automatic persona change happened within an ongoing conversation rather than at its opening."
+msgstr "自动人格面貌变更发生于持续会话中，而非会话开启时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a producer-reported automatic change during an existing conversation."
+msgstr "用于生产者报告的现有会话中的自动变更。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this location as a new conversation or a reply outcome."
+msgstr "避免将此位置视作新会话或回复结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve the producer’s transitionBoundaryMidConversation classification through transitionBoundary."
+msgstr "通过 transitionBoundary 保留生产者的 transitionBoundaryMidConversation 分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionBoundaryMidConversation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryMidConversation ."
+msgstr "ex:change0 gmeow:transitionBoundary gmeow:transitionBoundaryMidConversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Audience Ring"
+msgstr "听众圈层"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open, consumer-minted value for a listening-audience ring within one AudienceRingScheme. Its rank is local to that scheme, innermost first; it does not classify one person’s relationship to the agent."
+msgstr "由使用方创建的、某 AudienceRingScheme 内听众圈层的开放值。其等级仅在该方案内适用，最内层在先；它不分类某个人与行动者的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the audience context responsible for a persona restriction."
+msgstr "用于保留导致人格面貌限制的听众上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating ring rank as a universal scale of intimacy or a person identifier."
+msgstr "避免将圈层等级视作通用亲密度尺度或人员标识符。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint ring members in a consumer scheme, link audienceRingScheme and supply audienceRingRank; no fixed ring members are prescribed."
+msgstr "在使用方方案中创建圈层成员，填写 audienceRingScheme 并提供 audienceRingRank；不规定固定圈层成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:studioAudience a gmeow:AudienceRing ; gmeow:audienceRingScheme ex:audienceScheme ; gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."
+msgstr "ex:studioAudience a gmeow:AudienceRing ; gmeow:audienceRingScheme ex:audienceScheme ; gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Audience Ring Scheme"
+msgstr "听众圈层方案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A consumer-defined information object identifying the scope of audience-ring membership and rank. Different schemes may rank audience descriptions differently without a global winner."
+msgstr "由使用方定义的信息对象，标识听众圈层成员资格及等级的作用域。不同方案可对听众描述采用不同排序，而无全局优胜者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make the local meaning of an audience rank explicit."
+msgstr "用于明确听众等级的局部含义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging separately defined schemes merely because their labels match."
+msgstr "避免仅因标签相同就合并独立定义的方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint a scheme node for the consumer’s rank convention and keep member nodes distinct across independently defined schemes."
+msgstr "为使用方的等级约定创建方案节点，并在独立定义的方案之间保持成员节点不同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceRingScheme|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:audienceScheme a gmeow:AudienceRingScheme ."
+msgstr "ex:audienceScheme a gmeow:AudienceRingScheme ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience ring scheme"
+msgstr "听众圈层方案"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer scheme that defines this audience-ring member and the meaning of its rank. A scheme-scoped member record is not reused as a member of an unrelated scheme."
+msgstr "定义此听众圈层成员及其等级含义的使用方方案。方案作用域内的成员记录不被复用为无关方案的成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind an audience-ring value to its ranking context."
+msgstr "用于将听众圈层值绑定到其排序上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting this scheme link as audience presence in an activity."
+msgstr "避免将此方案关联解释为听众在活动中存在。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the member’s defining AudienceRingScheme and compare its rank only with members of that same scheme."
+msgstr "引用定义该成员的 AudienceRingScheme，并仅与相同方案成员的等级比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingScheme|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:studioAudience gmeow:audienceRingScheme ex:audienceScheme ."
+msgstr "ex:studioAudience gmeow:audienceRingScheme ex:audienceScheme ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience ring rank"
+msgstr "听众圈层等级"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A nonnegative rank of this ring within its audienceRingScheme. Smaller values are more inward; equal ranks coexist. The vocabulary need not start at zero, and ranks from different schemes are incomparable here."
+msgstr "此圈层在其 audienceRingScheme 内的非负等级。值越小越靠内；相同等级可以共存。词汇无需从零开始，此处不同方案的等级不可比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve a consumer’s innermost-first audience ordering."
+msgstr "用于保留使用方最内层在先的听众顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this local rank as a transition sequence or a globally preferred audience."
+msgstr "避免将此局部等级视作转换序号或全局优先听众。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the consumer’s nonNegativeInteger on its scheme-scoped ring node; use different members for independently ranked schemes."
+msgstr "在方案作用域的圈层节点上保留使用方的 nonNegativeInteger；独立排序的方案使用不同成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:studioAudience gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."
+msgstr "ex:studioAudience gmeow:audienceRingRank \"1\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transition audience ring"
+msgstr "转换听众圈层"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An audience-ring context reported as responsible for an audience-forced persona change. It records who could listen as a consumer classification, not a relationship assigned to one person."
+msgstr "所报告的、导致听众强制人格面貌变更的听众圈层上下文。它以使用方分类记录谁能够听见，而非赋予某个人的关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the audience ring that forced a change."
+msgstr "来源标识强制变更的听众圈层时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting current audience presence merely because an earlier transition names a ring."
+msgstr "避免仅因较早转换命名了某圈层就断言听众当前在场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the consumer’s scheme-scoped AudienceRing; preserve multiple supported audience explanations."
+msgstr "引用使用方的方案作用域 AudienceRing；保留多个有依据的听众解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionRing ex:studioAudience ."
+msgstr "ex:change0 gmeow:transitionRing ex:studioAudience ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "persona context"
+msgstr "人格面貌上下文"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Record-level persona attribution and source-scoped persona transition records with producer time, sequence, cause, cycle boundary and locally ranked audience context."
+msgstr "记录级人格面貌归属，以及来源作用域的人格面貌转换记录，包含生产者时间、序号、原因、周期边界及局部排序的听众上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|http://purl.org/dc/terms/title"
+msgid "GMEOW Persona Context Module"
+msgstr "GMEOW 人格面貌上下文模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/persona-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory and conversation recall retaining which persona made a record, why persona state changed and the producer order of changes across containing activities."
+msgstr "保留记录建立时所用人格面貌、人格面貌状态变更原因，以及跨所属活动的生产者变更顺序的行动者记忆与会话检索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionSlot is functional"
+msgstr "transitionSlot 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionSlot field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionSlot 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionSlot field singular."
+msgstr "用于保持来源记录的 transitionSlot 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionSlot functionality to merge independently attributed records."
+msgstr "避免利用 transitionSlot 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionSlot slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionSlot 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSlotFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionSlotFunctionality logic:characterizes gmeow:transitionSlot ."
+msgstr "gmeow:transitionSlotFunctionality logic:characterizes gmeow:transitionSlot ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionFrom is functional"
+msgstr "transitionFrom 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionFrom field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionFrom 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionFrom field singular."
+msgstr "用于保持来源记录的 transitionFrom 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionFrom functionality to merge independently attributed records."
+msgstr "避免利用 transitionFrom 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionFrom slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionFrom 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionFromFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionFromFunctionality logic:characterizes gmeow:transitionFrom ."
+msgstr "gmeow:transitionFromFunctionality logic:characterizes gmeow:transitionFrom ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionTo is functional"
+msgstr "transitionTo 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionTo field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionTo 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionTo field singular."
+msgstr "用于保持来源记录的 transitionTo 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionTo functionality to merge independently attributed records."
+msgstr "避免利用 transitionTo 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionTo slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionTo 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionToFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionToFunctionality logic:characterizes gmeow:transitionTo ."
+msgstr "gmeow:transitionToFunctionality logic:characterizes gmeow:transitionTo ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionLasted is functional"
+msgstr "transitionLasted 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionLasted field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionLasted 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionLasted field singular."
+msgstr "用于保持来源记录的 transitionLasted 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionLasted functionality to merge independently attributed records."
+msgstr "避免利用 transitionLasted 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionLasted slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionLasted 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionLastedFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionLastedFunctionality logic:characterizes gmeow:transitionLasted ."
+msgstr "gmeow:transitionLastedFunctionality logic:characterizes gmeow:transitionLasted ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionAt is functional"
+msgstr "transitionAt 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionAt field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionAt 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionAt field singular."
+msgstr "用于保持来源记录的 transitionAt 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionAt functionality to merge independently attributed records."
+msgstr "避免利用 transitionAt 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionAt slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionAt 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionAtFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionAtFunctionality logic:characterizes gmeow:transitionAt ."
+msgstr "gmeow:transitionAtFunctionality logic:characterizes gmeow:transitionAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionSequence is functional"
+msgstr "transitionSequence 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one transitionSequence field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 transitionSequence 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s transitionSequence field singular."
+msgstr "用于保持来源记录的 transitionSequence 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using transitionSequence functionality to merge independently attributed records."
+msgstr "避免利用 transitionSequence 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s transitionSequence slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 transitionSequence 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/transitionSequenceFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:transitionSequenceFunctionality logic:characterizes gmeow:transitionSequence ."
+msgstr "gmeow:transitionSequenceFunctionality logic:characterizes gmeow:transitionSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audienceRingScheme is functional"
+msgstr "audienceRingScheme 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one audienceRingScheme field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 audienceRingScheme 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s audienceRingScheme field singular."
+msgstr "用于保持来源记录的 audienceRingScheme 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using audienceRingScheme functionality to merge independently attributed records."
+msgstr "避免利用 audienceRingScheme 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s audienceRingScheme slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 audienceRingScheme 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingSchemeFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:audienceRingSchemeFunctionality logic:characterizes gmeow:audienceRingScheme ."
+msgstr "gmeow:audienceRingSchemeFunctionality logic:characterizes gmeow:audienceRingScheme ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audienceRingRank is functional"
+msgstr "audienceRingRank 具有函数性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one audienceRingRank field of an individual source-scoped record or member. Conflicting source accounts use distinct records; this does not choose a preferred persona or explanation."
+msgstr "单个来源作用域记录或成员固有的至多一个值的 audienceRingRank 字段。冲突的来源叙述使用不同记录；此约束不选择优先人格面貌或解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep the source record’s audienceRingRank field singular."
+msgstr "用于保持来源记录的 audienceRingRank 字段为单值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using audienceRingRank functionality to merge independently attributed records."
+msgstr "避免利用 audienceRingRank 的函数性合并独立归属的记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this obligation only on each record’s audienceRingRank slot; existence is specified separately by closed-world paths."
+msgstr "仅将此义务用于每条记录的 audienceRingRank 槽位；存在性由封闭世界路径另行规定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/audienceRingRankFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:audienceRingRankFunctionality logic:characterizes gmeow:audienceRingRank ."
+msgstr "gmeow:audienceRingRankFunctionality logic:characterizes gmeow:audienceRingRank ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mode transition activity constraint"
+msgstr "人格面貌转换活动约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every ModeTransition is retained under at least one containing activity through an incoming modeTransition relation. The activity is distinct from the transition’s information record."
+msgstr "每个 ModeTransition 都通过入向 modeTransition 关系保留在至少一个所属活动下。该活动区别于转换的信息记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep persona transition records attached to their occurrence context."
+msgstr "用于保持人格面貌转换记录关联到其发生上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an orphan information record as a complete contained transition."
+msgstr "避免把孤立的信息记录当作完整的所属转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply an existing activity with modeTransition pointing to the record; nested containing activities are permitted."
+msgstr "提供一个通过 modeTransition 指向该记录的现有活动；允许嵌套所属活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModeTransitionActivityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:activity gmeow:modeTransition ex:change0 ."
+msgstr "ex:activity gmeow:modeTransition ex:change0 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionFrom bearer constraint"
+msgstr "transitionFrom 承载者约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Persona referenced by transitionFrom has the same bearer as the transition slot. This preserves the identity of the agent across the recorded persona change."
+msgstr "transitionFrom 引用的 Persona 与转换槽位具有相同承载者。这保留所记录人格面貌变更中的行动者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent transitionFrom from silently changing the slot’s agent."
+msgstr "用于防止 transitionFrom 默默变更槽位的行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a different agent’s persona as the transitionFrom value."
+msgstr "避免用另一个行动者的人格面貌作为 transitionFrom 的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check personaBearer on the transitionFrom target against slotBearer on transitionSlot."
+msgstr "将 transitionFrom 目标的 personaBearer 与 transitionSlot 的 slotBearer 比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionFromBearerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionFrom ex:formalPersona ."
+msgstr "ex:change0 gmeow:transitionFrom ex:formalPersona ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "transitionTo bearer constraint"
+msgstr "transitionTo 承载者约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Persona referenced by transitionTo has the same bearer as the transition slot. This preserves the identity of the agent across the recorded persona change."
+msgstr "transitionTo 引用的 Persona 与转换槽位具有相同承载者。这保留所记录人格面貌变更中的行动者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to prevent transitionTo from silently changing the slot’s agent."
+msgstr "用于防止 transitionTo 默默变更槽位的行动者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a different agent’s persona as the transitionTo value."
+msgstr "避免用另一个行动者的人格面貌作为 transitionTo 的值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check personaBearer on the transitionTo target against slotBearer on transitionSlot."
+msgstr "将 transitionTo 目标的 personaBearer 与 transitionSlot 的 slotBearer 比较。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TransitionToBearerConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionTo ex:formalPersona ."
+msgstr "ex:change0 gmeow:transitionTo ex:formalPersona ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Automatic transition boundary constraint"
+msgstr "自动转换边界约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A transition attributed to an automatic boundary change names at least one producer-reported transitionBoundary. No particular boundary is guessed."
+msgstr "归属于自动边界变更的转换至少命名一个生产者报告的 transitionBoundary。不猜测特定边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the location that explains an automatic switch."
+msgstr "用于保留解释自动切换的位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an automatic-boundary cause without its reported boundary."
+msgstr "避免使用自动边界原因却不记录所报告边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source’s boundary value on the same transition record."
+msgstr "在相同转换记录上保留来源的边界值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AutomaticTransitionBoundaryConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionBoundary ex:sourceValue ."
+msgstr "ex:change0 gmeow:transitionBoundary ex:sourceValue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Audience-forced transition ring constraint"
+msgstr "听众强制转换圈层约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A transition attributed to audience forcing names at least one transitionRing identifying the audience context responsible. This does not infer a relationship category for a listener."
+msgstr "归属于听众强制的转换至少命名一个 transitionRing，以标识导致变更的听众上下文。这不推断听者的关系类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the audience context behind a forced persona change."
+msgstr "用于保留强制人格面貌变更背后的听众上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying a forced-change explanation by inventing a default audience ring."
+msgstr "避免通过虚构默认听众圈层满足强制变更解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the producer’s scheme-scoped audience ring on that transition."
+msgstr "在该转换上引用生产者的方案作用域听众圈层。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AudienceForcedTransitionRingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:change0 gmeow:transitionRing ex:sourceValue ."
+msgstr "ex:change0 gmeow:transitionRing ex:sourceValue ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "audience persona mode"
+msgstr "面向受众的人格表达模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Persona register in which a particular record was made for its audience. This audience-facing expression policy is distinct from the Persona worn as state and does not select a globally preferred persona."
+msgstr "特定记录面向其受众时采用的 Persona 表达语体。这种面向受众的表达策略区别于作为状态穿戴的 Persona，不选择全局优先人格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/personaMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:personaMode."
+msgstr "保留 gmeow:personaMode 的来源值。"

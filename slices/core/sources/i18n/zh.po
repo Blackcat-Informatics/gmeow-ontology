@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: sources, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "encoded byte length"
+msgstr "编码字节长度"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly supplied size in bytes of this information object's particular encoded representation. It describes the same encoded artifact as its content digest, not a creative work's human-readable extent or a Unicode character count."
+msgstr "此信息对象特定编码表示的、显式提供的字节大小。它与内容摘要描述同一编码制品，不是作品的人类可读篇幅或 Unicode 字符数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A size is metadata, not proof that bytes were read or a digest was verified. Attributed size claims may coexist."
+msgstr "大小是元数据，不是已读取字节或验证摘要的证明。带归属的大小声明可共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
+msgstr "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."

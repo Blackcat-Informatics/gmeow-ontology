@@ -34,11 +34,36 @@ impl FromJson for NativeFragmentRegistry {
             pattern_ids: fields.required("pattern_ids")?,
             decided_ids: fields.required("decided_ids")?,
             source_admission_ids: fields.required("source_admission_ids")?,
-            source_admission_requirements: fields.required("source_admission_requirements")?,
+            source_admission_requirements: fields
+                .required_with("source_admission_requirements", |value| {
+                    characterizations(value, "sourceAdmissionRequirement")
+                })?,
             boundary_ids: fields.required("boundary_ids")?,
             deciding_patterns: fields.required("deciding_patterns")?,
-            completeness_bounds: fields.required("completeness_bounds")?,
-            boundary_reasons: fields.required("boundary_reasons")?,
+            completeness_bounds: fields.required_with("completeness_bounds", |value| {
+                characterizations(value, "fragmentCompletenessBound")
+            })?,
+            boundary_reasons: fields.required_with("boundary_reasons", |value| {
+                characterizations(value, "fragmentBoundaryReason")
+            })?,
         })
     }
+}
+
+/// Check every supplied map value before the established last-wins key admission.
+fn characterizations(
+    value: &Value,
+    property: &str,
+) -> Result<std::collections::BTreeMap<String, Vec<gmeow_errors::SourceAnnotation>>, DecodeError> {
+    let object = value
+        .as_object()
+        .ok_or_else(|| DecodeError::invalid_value(value, "a characterization map"))?;
+    let mut result = std::collections::BTreeMap::new();
+    for (local, value) in object.iter() {
+        let annotations = Vec::<gmeow_errors::SourceAnnotation>::from_json(value)?;
+        super::validate_characterization(local, property, &annotations)
+            .map_err(DecodeError::custom)?;
+        result.insert(local.clone(), annotations);
+    }
+    Ok(result)
 }

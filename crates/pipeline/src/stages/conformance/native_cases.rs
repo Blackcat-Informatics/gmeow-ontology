@@ -122,6 +122,26 @@ impl NativeInput {
         Ok(self)
     }
 
+    fn parsed(&self) -> gmeow_errors::Result<&RdfDataset> {
+        self.dataset
+            .get_or_try_init(|| {
+                parse_dataset(&self.bytes, NativeRdfFormat::NQuads.media_type(), None)
+                    .map_err(gmeow_errors::Diag::from)
+            })
+            .map(|dataset| dataset.as_ref())
+    }
+
+    fn observe_native<T: purrdf_lex::json::record::ToJson + purrdf_lex::json::record::FromJson>(
+        &self,
+        store: &ActionStore,
+        operation: &str,
+        observe: impl Fn(&RdfDataset) -> Result<T, gmeow_errors::Diag>,
+    ) -> gmeow_errors::Result<T> {
+        super::execution::cached_native_inputs(store, operation, self.inputs.clone(), || {
+            observe(self.parsed()?)
+        })
+    }
+
     fn observe<T: serde::Serialize + serde::de::DeserializeOwned>(
         &self,
         store: &ActionStore,
@@ -129,11 +149,7 @@ impl NativeInput {
         observe: impl Fn(&RdfDataset) -> Result<T, gmeow_errors::Diag>,
     ) -> gmeow_errors::Result<T> {
         super::execution::cached_inputs(store, operation, self.inputs.clone(), || {
-            let dataset = self.dataset.get_or_try_init(|| {
-                parse_dataset(&self.bytes, NativeRdfFormat::NQuads.media_type(), None)
-                    .map_err(gmeow_errors::Diag::from)
-            })?;
-            observe(dataset)
+            observe(self.parsed()?)
         })
     }
 }
@@ -258,6 +274,7 @@ fn full_native_observation(dataset: &RdfDataset) -> gmeow_errors::Result<NativeE
     Ok(result.native_execution()?.clone())
 }
 
+/// Observe selected native cases through their shared authenticated action cache.
 pub(super) fn record(
     root: &Path,
     consistency_inputs: Vec<PathBuf>,
@@ -292,12 +309,12 @@ pub(super) fn record(
                 .to_string_lossy()
                 .into_owned();
             let consistency = selected.consistency.then(|| {
-                input.observe(store, "native-consistency", |dataset| {
+                input.observe_native(store, "native-consistency", |dataset| {
                     gmeow_conformance::consistency::observe(dataset)
                 })
             });
             let admission = selected.class_admission.then(|| {
-                input.observe(store, "class-source-admission-v1", |dataset| {
+                input.observe_native(store, "class-source-admission-v1", |dataset| {
                     let observed = gmeow_conformance::native_observation::observe(dataset, *purrdf_hash::blake3::hash(&input.bytes).as_bytes(),
                         gmeow_conformance::native_observation::NativeCaseOperation::ClassSourceAdmission)?;
                     let gmeow_conformance::native_observation::NativeCaseObservation::ClassSourceAdmission(observed) = observed else {
@@ -346,7 +363,8 @@ pub(super) fn record(
     );
     artifacts.insert(
         CLASS_ADMISSION_CHANNEL.to_owned(),
-        serde_json::to_vec(&admissions).map_err(|error| super::stage_err(&error.to_string()))?,
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&admissions))
+            .into_bytes(),
     );
     Ok(NativeObservations {
         consistency,
@@ -357,3 +375,8 @@ pub(super) fn record(
 #[path = "native_cases.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod admission_json;
+#[cfg(test)]
+pub(super) use admission_json::from_bytes as admissions_from_bytes;

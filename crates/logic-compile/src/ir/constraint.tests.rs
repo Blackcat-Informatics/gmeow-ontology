@@ -320,7 +320,7 @@ fn subjects_of_and_objects_of_targets_are_derived_from_the_guard() {
         "https://ex/cs",
         mk(guard_subj),
         ShaclSeverity::Violation,
-        None,
+        Vec::new(),
     )
     .unwrap();
     assert_eq!(subj.target, ShapeTarget::SubjectsOf("https://ex/P".into()));
@@ -328,7 +328,7 @@ fn subjects_of_and_objects_of_targets_are_derived_from_the_guard() {
         "https://ex/co",
         mk(guard_obj),
         ShaclSeverity::Violation,
-        None,
+        Vec::new(),
     )
     .unwrap();
     assert_eq!(obj.target, ShapeTarget::ObjectsOf("https://ex/P".into()));
@@ -354,14 +354,24 @@ fn message_is_excluded_from_content_key() {
         "https://ex/c",
         integrity.clone(),
         ShaclSeverity::Violation,
-        Some("first message".into()),
+        vec![purrdf::RdfLiteral {
+            lexical_form: "first message".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }],
     )
     .unwrap();
     let b = ConstraintIr::new(
         "https://ex/c",
         integrity,
         ShaclSeverity::Violation,
-        Some("a completely different message".into()),
+        vec![purrdf::RdfLiteral {
+            lexical_form: "a completely different message".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }],
     )
     .unwrap();
     assert_eq!(
@@ -388,7 +398,8 @@ fn target_extraction_hard_fails_on_a_non_guarded_formula() {
         vec![Term::Var("x".into()), Term::Var("y".into())],
     )
     .unwrap();
-    let err = ConstraintIr::new("https://ex/c", bare, ShaclSeverity::Violation, None).unwrap_err();
+    let err =
+        ConstraintIr::new("https://ex/c", bare, ShaclSeverity::Violation, Vec::new()).unwrap_err();
     assert!(
         err.message().contains("range-restricted universal"),
         "got: {err}"
@@ -405,8 +416,13 @@ fn target_extraction_hard_fails_on_a_non_guarded_formula() {
             .unwrap(),
         ),
     };
-    let err =
-        ConstraintIr::new("https://ex/c", unguarded, ShaclSeverity::Violation, None).unwrap_err();
+    let err = ConstraintIr::new(
+        "https://ex/c",
+        unguarded,
+        ShaclSeverity::Violation,
+        Vec::new(),
+    )
+    .unwrap_err();
     assert!(err.message().contains("guarded implication"), "got: {err}");
 }
 
@@ -428,8 +444,13 @@ fn aggregate_satellite_participates_in_the_content_key() {
             Box::new(Formula::atom(Term::Iri("https://ex/ok".into()), vec![this]).unwrap()),
         )),
     };
-    let base =
-        ConstraintIr::new("https://ex/c", integrity, ShaclSeverity::Violation, None).unwrap();
+    let base = ConstraintIr::new(
+        "https://ex/c",
+        integrity,
+        ShaclSeverity::Violation,
+        Vec::new(),
+    )
+    .unwrap();
     let eq = base.clone().with_aggregate(
         AggregateComparison::new(
             "COUNT",
@@ -476,8 +497,13 @@ fn join_aggregate_satellite_participates_in_the_content_key_and_is_append_only()
             Box::new(Formula::atom(Term::Iri("https://ex/ok".into()), vec![this]).unwrap()),
         )),
     };
-    let base =
-        ConstraintIr::new("https://ex/bsq", integrity, ShaclSeverity::Violation, None).unwrap();
+    let base = ConstraintIr::new(
+        "https://ex/bsq",
+        integrity,
+        ShaclSeverity::Violation,
+        Vec::new(),
+    )
+    .unwrap();
     let leg = |value: &str| {
         JoinLeg::new(
             Some("https://ex/Incidence".to_owned()),
@@ -596,7 +622,13 @@ fn non_empty_constraints_perturb_the_program_key() {
             Box::new(Formula::atom(Term::Iri("https://ex/ok".into()), vec![this]).unwrap()),
         )),
     };
-    let c = ConstraintIr::new("https://ex/c", integrity, ShaclSeverity::Violation, None).unwrap();
+    let c = ConstraintIr::new(
+        "https://ex/c",
+        integrity,
+        ShaclSeverity::Violation,
+        Vec::new(),
+    )
+    .unwrap();
     let base = LogicProgram::new(vec![], vec![], vec![], None);
     let with_c = LogicProgram::new(vec![], vec![], vec![], None).with_constraints(vec![c]);
     assert_ne!(base.canonical_key(), with_c.canonical_key());

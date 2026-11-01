@@ -3,6 +3,9 @@
 
 //! Explicit native case operations; source admission never implies consistency.
 
+mod cbor;
+mod json;
+
 use gmeow_logic::reason::refute::{ClassAdmissionObservation, PreparedClassAnalysis};
 use purrdf::{NativeRdfFormat, RdfDataset, dataset_from_bytes};
 use serde::{Deserialize, Serialize};

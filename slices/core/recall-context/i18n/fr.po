@@ -1,0 +1,1838 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from AttentionSlot alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de AttentionSlot seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit AttentionSlot value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de AttentionSlot avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Attention Slot within an attributed recall context."
+msgstr "Utiliser pour consigner Case attentionnelle dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Attention Slot"
+msgstr "Case attentionnelle"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The continuing identity of one agent’s named attention slot. A slot is not a history position and is not itself the record it points to."
+msgstr "Identité continue d’une case attentionnelle nommée d’un agent. Une case n’est ni une position historique ni le relevé qu’elle référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AttentionSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:AttentionSlot explicitly."
+msgstr "Le relevé nomme explicitement gmeow:AttentionSlot."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallAnswer alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallAnswer seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallAnswer value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallAnswer avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Answer within an attributed recall context."
+msgstr "Utiliser pour consigner Réponse de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Answer"
+msgstr "Réponse de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall activity answering a cue, parenting its retrieval activities and retaining selected records, outcome and completeness. It is not the question or a claim that the returned material is true."
+msgstr "Activité de rappel répondant à un indice, regroupant ses récupérations et conservant relevés sélectionnés, résultat et complétude. Ce n’est ni la question ni une affirmation de vérité des éléments retournés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAnswer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallAnswer explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallAnswer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallBudget alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallBudget seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallBudget value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallBudget avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Budget within an attributed recall context."
+msgstr "Utiliser pour consigner Budget de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Budget"
+msgstr "Budget de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A finite plan-local allocation roster whose operation records share one enactment’s token budget. It is not the enactment or a second plan."
+msgstr "Liste finie d’allocations locale à un plan dont les opérations partagent le budget de jetons d’une exécution. Ce n’est ni l’exécution ni un second plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudget|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallBudget explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallBudget."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallDepth alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallDepth seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallDepth value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallDepth avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Depth within an attributed recall context."
+msgstr "Utiliser pour consigner Profondeur de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Depth"
+msgstr "Profondeur de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of explicitly selected retrieval capability profiles. Selecting a depth requires its declared capabilities; absence never selects a weaker profile."
+msgstr "Vocabulaire ouvert de profils de capacités de récupération explicitement sélectionnés. Sélectionner une profondeur exige ses capacités déclarées ; l’absence ne sélectionne jamais un profil plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallDepth explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallDepth."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallOperation alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallOperation seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallOperation value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallOperation avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Operation within an attributed recall context."
+msgstr "Utiliser pour consigner Opération de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Operation"
+msgstr "Opération de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One plan-local recall operation schema with its own allocation identity and parameters. Reusing a template twice requires two operation records, each carrying its own share."
+msgstr "Schéma d’opération de rappel local à un plan, avec identité d’allocation et paramètres propres. Deux usages d’un modèle exigent deux relevés d’opération portant chacun leur part."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallOperation explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallOperation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallOutcome alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallOutcome seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallOutcome value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallOutcome avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Outcome within an attributed recall context."
+msgstr "Utiliser pour consigner Résultat de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Outcome"
+msgstr "Résultat de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of reported recall outcomes, separate from the asker’s judgement and the truth of recalled content."
+msgstr "Vocabulaire ouvert des résultats de rappel rapportés, séparé du jugement du demandeur et de la vérité du contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallOutcome explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallOutcome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallScope alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallScope seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallScope value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallScope avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Scope within an attributed recall context."
+msgstr "Utiliser pour consigner Portée de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Scope"
+msgstr "Portée de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."
+msgstr "Spécification de portée ancrée à une case attentionnelle identifiée et décrivant les relevés connexes demandés par une opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallScope explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallScope."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdictValue alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallVerdictValue seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallVerdictValue value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallVerdictValue avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Verdict Value within an attributed recall context."
+msgstr "Utiliser pour consigner Valeur de verdict de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Verdict Value"
+msgstr "Valeur de verdict de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary for the asker’s found, partly, not-found or wrong judgement. These values neither rank people nor determine objective truth."
+msgstr "Vocabulaire ouvert du jugement trouvé, partiel, non trouvé ou erroné du demandeur. Ces valeurs ne classent pas les personnes et ne déterminent pas la vérité objective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallVerdictValue explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallVerdictValue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdict alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecallVerdict seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecallVerdict value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecallVerdict avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recall Verdict within an attributed recall context."
+msgstr "Utiliser pour consigner Verdict de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recall Verdict"
+msgstr "Verdict de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s attributed judgement of one recall answer, preserving its exact words independently of search completeness."
+msgstr "Jugement attribué du demandeur sur une réponse de rappel, conservant ses mots exacts indépendamment de la complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecallVerdict explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecallVerdict."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecalledRecordClaim alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecalledRecordClaim seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecalledRecordClaim value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecalledRecordClaim avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recalled Record Claim within an attributed recall context."
+msgstr "Utiliser pour consigner Affirmation de relevé rappelé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recalled Record Claim"
+msgstr "Affirmation de relevé rappelé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An RDF 1.2 reifier of one recalledRecord assertion, retaining its answer-specific rank and attribution."
+msgstr "Réificateur RDF 1.2 d’une assertion recalledRecord, conservant rang propre à la réponse et attribution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecalledRecordClaim explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecalledRecordClaim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from RecollectionForm alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de RecollectionForm seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit RecollectionForm value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de RecollectionForm avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Recollection Form within an attributed recall context."
+msgstr "Utiliser pour consigner Forme de remémoration dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Recollection Form"
+msgstr "Forme de remémoration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary describing how recalled material is presented, independently of retrieval depth and confidence."
+msgstr "Vocabulaire ouvert décrivant la présentation des éléments rappelés, indépendamment de la profondeur de récupération et de la confiance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecollectionForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:RecollectionForm explicitly."
+msgstr "Le relevé nomme explicitement gmeow:RecollectionForm."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from SlotAssignmentClaim alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de SlotAssignmentClaim seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit SlotAssignmentClaim value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de SlotAssignmentClaim avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Slot Assignment Claim within an attributed recall context."
+msgstr "Utiliser pour consigner Affirmation d’affectation de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Assignment Claim"
+msgstr "Affirmation d’affectation de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed RDF 1.2 reifier of one slotState assertion. Successor claims name the claims they supersede; records and historical claims are retained."
+msgstr "Réificateur RDF 1.2 attribué d’une assertion slotState. Les affirmations suivantes nomment celles qu’elles remplacent ; relevés et affirmations historiques sont conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotAssignmentClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:SlotAssignmentClaim explicitly."
+msgstr "Le relevé nomme explicitement gmeow:SlotAssignmentClaim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from SlotPosition alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de SlotPosition seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit SlotPosition value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de SlotPosition avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record Slot Position within an attributed recall context."
+msgstr "Utiliser pour consigner Position de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Slot Position"
+msgstr "Position de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable position in one attention slot’s history, holding a pointer to an existing record. It specializes State as a path position rather than a mutable slot."
+msgstr "Position immuable dans l’historique d’une case attentionnelle, portant un pointeur vers un relevé existant. Elle spécialise State comme position sur un chemin et non comme case mutable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPosition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:SlotPosition explicitly."
+msgstr "Le relevé nomme explicitement gmeow:SlotPosition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from answerDepth alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de answerDepth seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit answerDepth value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de answerDepth avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record answer depth within an attributed recall context."
+msgstr "Utiliser pour consigner profondeur de réponse dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "answer depth"
+msgstr "profondeur de réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall capability profile actually reported for this answer, distinct from the schema’s requested profile."
+msgstr "Profil de capacités de rappel effectivement rapporté pour cette réponse, distinct du profil demandé par le schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/answerDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:answerDepth explicitly."
+msgstr "Le relevé nomme explicitement gmeow:answerDepth."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetForPlan alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de budgetForPlan seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetForPlan value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de budgetForPlan avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget for plan within an attributed recall context."
+msgstr "Utiliser pour consigner budget pour le plan dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget for plan"
+msgstr "budget pour le plan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing plan whose finite recall allocations this budget describes; it does not define another program body."
+msgstr "Plan existant dont ce budget décrit les allocations finies de rappel ; il ne définit pas un autre corps de programme."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetForPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetForPlan explicitly."
+msgstr "Le relevé nomme explicitement gmeow:budgetForPlan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetOperation alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de budgetOperation seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetOperation value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de budgetOperation avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget operation within an attributed recall context."
+msgstr "Utiliser pour consigner opération du budget dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget operation"
+msgstr "opération du budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An individually identified operation allocation in this finite budget roster, counted once by record identity even when another operation has the same share or schema."
+msgstr "Allocation d’opération individuellement identifiée dans cette liste finie, comptée une fois par identité même si une autre partage sa valeur ou son schéma."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetOperation explicitly."
+msgstr "Le relevé nomme explicitement gmeow:budgetOperation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from budgetShare alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de budgetShare seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit budgetShare value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de budgetShare avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record budget share within an attributed recall context."
+msgstr "Utiliser pour consigner part de budget dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget share"
+msgstr "part de budget"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "This operation’s exact decimal share of the enactment token budget, strictly positive and at most one. Its plan-local operation identity determines its contribution to the total."
+msgstr "Part décimale exacte du budget de jetons de l’exécution attribuée à cette opération, strictement positive et au plus égale à un. Son identité locale au plan détermine sa contribution au total."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/budgetShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:budgetShare explicitly."
+msgstr "Le relevé nomme explicitement gmeow:budgetShare."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from contextPlanCondition alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de contextPlanCondition seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit contextPlanCondition value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de contextPlanCondition avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record context plan condition within an attributed recall context."
+msgstr "Utiliser pour consigner condition de plan de contexte dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan condition"
+msgstr "condition de plan de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The situation condition under which a precomposed context plan is selected, without asserting that it currently obtains."
+msgstr "Condition de situation sous laquelle un plan de contexte précomposé est sélectionné, sans affirmer qu’elle est actuellement réalisée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contextPlanCondition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:contextPlanCondition explicitly."
+msgstr "Le relevé nomme explicitement gmeow:contextPlanCondition."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from exclusionReason alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de exclusionReason seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit exclusionReason value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de exclusionReason avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record exclusion reason within an attributed recall context."
+msgstr "Utiliser pour consigner raison d’exclusion dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusion reason"
+msgstr "raison d’exclusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Language-bearing words explaining why this particular reified assemblyExcluded assertion withheld its record. The reason belongs to the record-specific exclusion, not to all exclusions at once."
+msgstr "Mots portant une langue expliquant pourquoi cette assertion assemblyExcluded réifiée a écarté son relevé. La raison appartient à cette exclusion particulière, pas à toutes les exclusions."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/exclusionReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:exclusionReason explicitly."
+msgstr "Le relevé nomme explicitement gmeow:exclusionReason."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from positionInSlot alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de positionInSlot seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit positionInSlot value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de positionInSlot avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record position in slot within an attributed recall context."
+msgstr "Utiliser pour consigner position dans la case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "position in slot"
+msgstr "position dans la case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one continuing slot whose history contains this immutable position."
+msgstr "Case continue unique dont l’historique contient cette position immuable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/positionInSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:positionInSlot explicitly."
+msgstr "Le relevé nomme explicitement gmeow:positionInSlot."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from prescriptionKindContextPlan alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de prescriptionKindContextPlan seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit prescriptionKindContextPlan value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de prescriptionKindContextPlan avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record context plan within an attributed recall context."
+msgstr "Utiliser pour consigner plan de contexte dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan"
+msgstr "plan de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A prescription kind whose precomposed recall operations assemble context when a condition on the agent’s situation holds. The agent does not choose these steps at run time."
+msgstr "Genre de prescription dont les opérations de rappel précomposées assemblent le contexte lorsqu’une condition sur la situation de l’agent est vérifiée. L’agent ne choisit pas ces étapes à l’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/prescriptionKindContextPlan|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:prescriptionKindContextPlan explicitly."
+msgstr "Le relevé nomme explicitement gmeow:prescriptionKindContextPlan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallAsker alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallAsker seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallAsker value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallAsker avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall asker within an attributed recall context."
+msgstr "Utiliser pour consigner demandeur du rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall asker"
+msgstr "demandeur du rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent whose cue this recall activity answers. It does not select a global owner for the Question."
+msgstr "Agent dont cette activité traite l’indice. Cela ne choisit pas un propriétaire global de la Question."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallAsker|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallAsker explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallAsker."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallBudgetTotal alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallBudgetTotal seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallBudgetTotal value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallBudgetTotal avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall budget total within an attributed recall context."
+msgstr "Utiliser pour consigner total du budget de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget total"
+msgstr "total du budget de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derived sum of budgetShare over operation records in a recall budget. It is a derived view, never an independently authored second share source."
+msgstr "Somme dérivée de budgetShare sur les relevés d’opération d’un budget. C’est une vue dérivée, jamais une deuxième source de parts rédigée indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallBudgetTotal|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallBudgetTotal explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallBudgetTotal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallComplete alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallComplete seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallComplete value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallComplete avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall complete within an attributed recall context."
+msgstr "Utiliser pour consigner rappel complet dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall complete"
+msgstr "rappel complet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whether the declared recall scope was completely searched, independent of whether records were returned or the asker liked them."
+msgstr "Indique si la portée déclarée a été entièrement parcourue, indépendamment des relevés retournés ou de l’appréciation du demandeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallComplete explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallComplete."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthDeep alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallDepthDeep seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthDeep value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallDepthDeep avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record deep recall depth within an attributed recall context."
+msgstr "Utiliser pour consigner profondeur de rappel approfondie dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deep recall depth"
+msgstr "profondeur de rappel approfondie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile includes ordinary recall followed by link expansion and distant-band retrieval; it promises no particular answer."
+msgstr "Profil sélectionné comprenant le rappel ordinaire puis l’expansion par liens et la récupération dans les bandes distantes ; il ne promet aucune réponse particulière."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthDeep|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthDeep explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallDepthDeep."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthOrdinary alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallDepthOrdinary seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthOrdinary value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallDepthOrdinary avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record ordinary recall depth within an attributed recall context."
+msgstr "Utiliser pour consigner profondeur de rappel ordinaire dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ordinary recall depth"
+msgstr "profondeur de rappel ordinaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile searches every declared surface with lexical and nearest-neighbour retrieval and reranking."
+msgstr "Profil sélectionné recherchant sur toutes les surfaces déclarées par récupération lexicale, plus proches voisins et reclassement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthOrdinary|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthOrdinary explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallDepthOrdinary."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepthQuick alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallDepthQuick seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepthQuick value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallDepthQuick avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record quick recall depth within an attributed recall context."
+msgstr "Utiliser pour consigner profondeur de rappel rapide dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quick recall depth"
+msgstr "profondeur de rappel rapide"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected profile recalls attended and recent records through lexical retrieval only."
+msgstr "Profil sélectionné rappelant les relevés suivis et récents uniquement par récupération lexicale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepthQuick|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepthQuick explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallDepthQuick."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallDepth alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallDepth seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallDepth value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallDepth avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall depth within an attributed recall context."
+msgstr "Utiliser pour consigner profondeur de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall depth"
+msgstr "profondeur de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The selected capability profile required by this recall operation, not evidence that those capabilities ran."
+msgstr "Profil de capacités sélectionné requis par cette opération, sans preuve qu’elles ont été exécutées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallDepth|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallDepth explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallDepth."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallLatest alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallLatest seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallLatest value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallLatest avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record latest recall count within an attributed recall context."
+msgstr "Utiliser pour consigner nombre de relevés récents rappelés dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "latest recall count"
+msgstr "nombre de relevés récents rappelés"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive count of newest records requested within scope, not an age window or a claim that this many records exist."
+msgstr "Nombre positif de relevés les plus récents demandés dans la portée, sans fenêtre d’âge ni affirmation que ce nombre existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallLatest|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallLatest explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallLatest."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeDeadline alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallOutcomeDeadline seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeDeadline value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallOutcomeDeadline avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall deadline reached within an attributed recall context."
+msgstr "Utiliser pour consigner échéance de rappel atteinte dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall deadline reached"
+msgstr "échéance de rappel atteinte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall reached its deadline before completing the declared search; already selected records remain retained."
+msgstr "Le rappel a atteint son échéance avant de terminer la recherche déclarée ; les relevés déjà sélectionnés sont conservés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeDeadline|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeDeadline explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallOutcomeDeadline."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeEmptyComplete alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallOutcomeEmptyComplete seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeEmptyComplete value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallOutcomeEmptyComplete avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record complete empty recall within an attributed recall context."
+msgstr "Utiliser pour consigner rappel vide complet dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complete empty recall"
+msgstr "rappel vide complet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared scope was completely searched and no records were returned. This does not prove absence outside that scope."
+msgstr "La portée déclarée a été entièrement parcourue sans relevé retourné. Cela ne prouve aucune absence hors de cette portée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeEmptyComplete|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeEmptyComplete explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallOutcomeEmptyComplete."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomePartial alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallOutcomePartial seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomePartial value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallOutcomePartial avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record incomplete search within an attributed recall context."
+msgstr "Utiliser pour consigner recherche incomplète dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "incomplete search"
+msgstr "recherche incomplète"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Some declared search scope was not searched. This is distinct from a complete empty result."
+msgstr "Une partie de la portée déclarée n’a pas été parcourue. Cela diffère d’un résultat vide complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomePartial|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomePartial explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallOutcomePartial."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeRecollections alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallOutcomeRecollections seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcomeRecollections value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallOutcomeRecollections avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recollections returned within an attributed recall context."
+msgstr "Utiliser pour consigner remémorations retournées dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollections returned"
+msgstr "remémorations retournées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recall returned one or more records. This outcome alone does not assert complete search."
+msgstr "Le rappel a retourné au moins un relevé. Ce résultat seul n’affirme pas une recherche complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcomeRecollections|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcomeRecollections explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallOutcomeRecollections."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallOutcome alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallOutcome seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallOutcome value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallOutcome avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall outcome within an attributed recall context."
+msgstr "Utiliser pour consigner résultat de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall outcome"
+msgstr "résultat de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported outcome of this recall activity; complete-empty and interrupted search remain distinct."
+msgstr "Résultat rapporté par la source pour cette activité ; vide complet et recherche interrompue restent distincts."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallOutcome explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallOutcome."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallRank alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallRank seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallRank value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallRank avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall rank within an attributed recall context."
+msgstr "Utiliser pour consigner rang de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall rank"
+msgstr "rang de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one-based ordering position of this particular recalledRecord assertion in its answer, never a confidence or truth score."
+msgstr "Position d’ordre à partir de un de cette assertion recalledRecord dans sa réponse, jamais une confiance ou un score de vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallRank|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallRank explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallRank."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallSchema alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallSchema seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallSchema value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallSchema avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record reused recall schema within an attributed recall context."
+msgstr "Utiliser pour consigner schéma de rappel réutilisé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reused recall schema"
+msgstr "schéma de rappel réutilisé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reusable action schema specialized by this plan-local operation; repeated use retains distinct allocation records."
+msgstr "Schéma d’action réutilisable spécialisé par cette opération locale ; les usages répétés gardent des allocations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallSchema|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallSchema explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallSchema."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallScope alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallScope seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallScope value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallScope avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall scope within an attributed recall context."
+msgstr "Utiliser pour consigner portée de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall scope"
+msgstr "portée de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicit record scope requested by this recall schema, anchored through its scope slot."
+msgstr "Portée explicite des relevés demandés par ce schéma de rappel, ancrée par sa case de portée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallScope explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallScope."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictFound alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallVerdictFound seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictFound value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallVerdictFound avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record found recall verdict within an attributed recall context."
+msgstr "Utiliser pour consigner verdict de rappel trouvé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "found recall verdict"
+msgstr "verdict de rappel trouvé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer found what they sought."
+msgstr "Le demandeur rapporte que la réponse a trouvé ce qu’il cherchait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictFound|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictFound explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallVerdictFound."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictNotFound alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallVerdictNotFound seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictNotFound value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallVerdictNotFound avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record not-found recall verdict within an attributed recall context."
+msgstr "Utiliser pour consigner verdict de rappel non trouvé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "not-found recall verdict"
+msgstr "verdict de rappel non trouvé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer did not find what they sought, without asserting complete search."
+msgstr "Le demandeur rapporte que la réponse n’a pas trouvé ce qu’il cherchait, sans affirmer une recherche complète."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictNotFound|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictNotFound explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallVerdictNotFound."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictPartly alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallVerdictPartly seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictPartly value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallVerdictPartly avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record partly found recall verdict within an attributed recall context."
+msgstr "Utiliser pour consigner verdict de rappel partiellement trouvé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "partly found recall verdict"
+msgstr "verdict de rappel partiellement trouvé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker reports that the recall answer found only part of what they sought."
+msgstr "Le demandeur rapporte que la réponse n’a trouvé qu’une partie de ce qu’il cherchait."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictPartly|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictPartly explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallVerdictPartly."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictWrong alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallVerdictWrong seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdictWrong value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallVerdictWrong avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record wrong recall verdict within an attributed recall context."
+msgstr "Utiliser pour consigner verdict de rappel erroné dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "wrong recall verdict"
+msgstr "verdict de rappel erroné"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker judges the recall answer to be wrong; this remains that asker’s attributed judgement."
+msgstr "Le demandeur juge la réponse erronée ; cela reste son jugement attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdictWrong|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdictWrong explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallVerdictWrong."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recallVerdict alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recallVerdict seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recallVerdict value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recallVerdict avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recall verdict within an attributed recall context."
+msgstr "Utiliser pour consigner verdict de rappel dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall verdict"
+msgstr "verdict de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s reported verdict value for this answer, separate from retrieval completeness and objective truth."
+msgstr "Valeur de verdict rapportée par le demandeur sur cette réponse, séparée de la complétude et de la vérité objective."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recallVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recallVerdict explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recallVerdict."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recalledRecord alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recalledRecord seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recalledRecord value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recalledRecord avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recalled record within an attributed recall context."
+msgstr "Utiliser pour consigner relevé rappelé dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recalled record"
+msgstr "relevé rappelé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual record selected by this recall answer. Rank and attribution ride this assertion’s RDF 1.2 reifier."
+msgstr "Relevé effectivement sélectionné par cette réponse. Rang et attribution portent sur le réificateur RDF 1.2 de cette assertion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recalledRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recalledRecord explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recalledRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormSummaryHandle alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recollectionFormSummaryHandle seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionFormSummaryHandle value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recollectionFormSummaryHandle avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record summary and handle recollection form within an attributed recall context."
+msgstr "Utiliser pour consigner forme de remémoration résumé et référence dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "summary and handle recollection form"
+msgstr "forme de remémoration résumé et référence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Present a short attributed summary and a resolvable handle to the original record, retaining the original rather than replacing it."
+msgstr "Présenter un bref résumé attribué et une référence résoluble au relevé original, conservé plutôt que remplacé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormSummaryHandle|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionFormSummaryHandle explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recollectionFormSummaryHandle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormVerbatim alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recollectionFormVerbatim seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionFormVerbatim value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recollectionFormVerbatim avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verbatim recollection form within an attributed recall context."
+msgstr "Utiliser pour consigner forme de remémoration verbatim dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verbatim recollection form"
+msgstr "forme de remémoration verbatim"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Present the retained source wording verbatim with its provenance; verbatim does not assert truth."
+msgstr "Présenter mot pour mot le texte source conservé avec sa provenance ; le verbatim n’affirme pas sa vérité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormVerbatim|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionFormVerbatim explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recollectionFormVerbatim."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from recollectionForm alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de recollectionForm seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit recollectionForm value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de recollectionForm avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record recollection form within an attributed recall context."
+msgstr "Utiliser pour consigner forme de remémoration dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recollection form"
+msgstr "forme de remémoration"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The presentation form requested for records found by this operation."
+msgstr "Forme de présentation demandée pour les relevés trouvés par cette opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionForm|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:recollectionForm explicitly."
+msgstr "Le relevé nomme explicitement gmeow:recollectionForm."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from scopeSlot alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de scopeSlot seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit scopeSlot value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de scopeSlot avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record scope slot within an attributed recall context."
+msgstr "Utiliser pour consigner case de portée dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "scope slot"
+msgstr "case de portée"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."
+msgstr "Case attentionnelle ancrant la sélection des relevés, résolue par le consommateur plutôt que copiée dans la portée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/scopeSlot|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:scopeSlot explicitly."
+msgstr "Le relevé nomme explicitement gmeow:scopeSlot."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://purl.org/dc/terms/title"
+msgid "GMEOW Recall Context Module"
+msgstr "Module GMEOW de contexte de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Agent memory services retaining contextual recall plans, pointer histories, selected records and attributed feedback without weakening execution contracts."
+msgstr "Services de mémoire conservant plans de rappel contextuel, historiques de pointeurs, relevés sélectionnés et retours attribués sans affaiblir les contrats d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall context"
+msgstr "contexte de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/recall-context|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Context-plan recall parameters, immutable attention-slot claims, record-specific exclusions, recall activities and asker verdicts."
+msgstr "Paramètres de rappel des plans de contexte, affirmations immuables de cases attentionnelles, exclusions par relevé, activités de rappel et verdicts du demandeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotHistory alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotHistory seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotHistory value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de slotHistory avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot history within an attributed recall context."
+msgstr "Utiliser pour consigner historique de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot history"
+msgstr "historique de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The history path whose positions record this slot’s changes. It grants no cross-slot causal ordering."
+msgstr "Chemin historique dont les positions consignent les changements de cette case, sans ordre causal entre cases."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotHistory|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotHistory explicitly."
+msgstr "Le relevé nomme explicitement gmeow:slotHistory."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotPointer alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotPointer seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotPointer value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de slotPointer avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot pointer within an attributed recall context."
+msgstr "Utiliser pour consigner pointeur de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot pointer"
+msgstr "pointeur de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The existing record IRI referenced at a slot history position, never a copy of that record. Assert only while the consumer can resolve the target."
+msgstr "IRI du relevé existant référencé à une position historique, jamais une copie. À affirmer seulement tant que le consommateur peut résoudre la cible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotPointer|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotPointer explicitly."
+msgstr "Le relevé nomme explicitement gmeow:slotPointer."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotRole alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotRole seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotRole value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de slotRole avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot role within an attributed recall context."
+msgstr "Utiliser pour consigner rôle de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot role"
+msgstr "rôle de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer-defined named role of an attention slot, such as current conversation. Roles are resources, not a fixed built-in list."
+msgstr "Rôle nommé défini par le consommateur, tel que conversation actuelle. Les rôles sont des ressources et non une liste intégrée fermée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotRole explicitly."
+msgstr "Le relevé nomme explicitement gmeow:slotRole."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from slotState alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de slotState seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit slotState value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de slotState avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record slot state within an attributed recall context."
+msgstr "Utiliser pour consigner état de case dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot state"
+msgstr "état de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The slot’s selected current history position in a consumer’s view. Each assertion has its own claim identity; competing claims are retained rather than globally overwritten."
+msgstr "Position historique actuelle sélectionnée dans la vue d’un consommateur. Chaque assertion a son identité ; les affirmations concurrentes sont conservées plutôt qu’écrasées globalement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotState|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:slotState explicitly."
+msgstr "Le relevé nomme explicitement gmeow:slotState."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from verdictOn alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de verdictOn seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit verdictOn value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de verdictOn avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verdict on answer within an attributed recall context."
+msgstr "Utiliser pour consigner verdict sur la réponse dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict on answer"
+msgstr "verdict sur la réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The particular recall answer judged by this verdict, not merely the shared cue text."
+msgstr "Réponse de rappel particulière jugée, et non le seul texte commun de l’indice."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictOn|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:verdictOn explicitly."
+msgstr "Le relevé nomme explicitement gmeow:verdictOn."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful execution, access permission or a preferred claim from verdictWords alone."
+msgstr "Éviter de déduire une exécution réussie, une permission d’accès ou une affirmation préférée de verdictWords seul."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the explicit verdictWords value with its source, scope and record identity."
+msgstr "Conserver la valeur explicite de verdictWords avec sa source, sa portée et l’identité du relevé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to record verdict words within an attributed recall context."
+msgstr "Utiliser pour consigner mots du verdict dans un contexte de rappel attribué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict words"
+msgstr "mots du verdict"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The asker’s exact language-bearing words, preserving language, base direction and source wording without paraphrase."
+msgstr "Mots exacts du demandeur portant une langue, conservant langue, direction de base et formulation sans paraphrase."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/verdictWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record names gmeow:verdictWords explicitly."
+msgstr "Le relevé nomme explicitement gmeow:verdictWords."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ContextPlanHasConditionAndBudgetConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire ContextPlanHasConditionAndBudgetConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ContextPlanHasConditionAndBudgetConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer ContextPlanHasConditionAndBudgetConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve context plan condition and budget constraint."
+msgstr "Utiliser pour préserver contrainte de condition et budget du plan de contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "context plan condition and budget constraint"
+msgstr "contrainte de condition et budget du plan de contexte"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected context-plan kind names a situation condition and one finite recall budget for the same plan."
+msgstr "Un genre de plan de contexte sélectionné nomme une condition de situation et un budget de rappel fini pour ce plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContextPlanHasConditionAndBudgetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:ContextPlanHasConditionAndBudgetConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:ContextPlanHasConditionAndBudgetConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying ExclusionReasonLanguageConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire ExclusionReasonLanguageConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply ExclusionReasonLanguageConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer ExclusionReasonLanguageConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve exclusion reason language constraint."
+msgstr "Utiliser pour préserver contrainte de langue des raisons d’exclusion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusion reason language constraint"
+msgstr "contrainte de langue des raisons d’exclusion"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."
+msgstr "Chaque formulation conserve sa langue, ainsi que la direction de base RDF 1.2 lorsqu’elle est présente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExclusionReasonLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:ExclusionReasonLanguageConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:ExclusionReasonLanguageConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallAskerAskedQuestionConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallAskerAskedQuestionConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallAskerAskedQuestionConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallAskerAskedQuestionConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall asker question constraint."
+msgstr "Utiliser pour préserver contrainte de question du demandeur du rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall asker question constraint"
+msgstr "contrainte de question du demandeur du rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The answer’s identified asker holds open the actual Question answered, not merely an equal cue string."
+msgstr "Le demandeur identifié tient ouverte la Question effectivement traitée, pas seulement une chaîne d’indice égale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallAskerAskedQuestionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallAskerAskedQuestionConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallAskerAskedQuestionConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallBudgetOnePerPlanConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallBudgetOnePerPlanConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallBudgetOnePerPlanConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallBudgetOnePerPlanConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve one recall budget per plan constraint."
+msgstr "Utiliser pour préserver contrainte d’un budget de rappel par plan."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one recall budget per plan constraint"
+msgstr "contrainte d’un budget de rappel par plan"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One plan-local budget roster owns the allocation total, so independent rosters cannot each spend the whole plan budget."
+msgstr "Une liste budgétaire locale possède le total, empêchant plusieurs listes indépendantes de dépenser chacune tout le budget."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetOnePerPlanConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallBudgetOnePerPlanConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallBudgetOnePerPlanConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget finite sum rule"
+msgstr "règle de somme finie du budget de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive the per-budget finite sum over full operation substitutions, retaining repeated equal shares and schema reuse as distinct operation contributions."
+msgstr "Dériver la somme finie par budget sur les substitutions complètes d’opérations, conservant parts égales répétées et réutilisations de schémas comme contributions distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallBudgetTotalBoundConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallBudgetTotalBoundConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallBudgetTotalBoundConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallBudgetTotalBoundConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall budget total bound law."
+msgstr "Utiliser pour préserver loi de borne du total du budget de rappel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall budget total bound law"
+msgstr "loi de borne du total du budget de rappel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The derived finite sum of operation shares must be at most one. Equal numeric shares from distinct operations contribute separately."
+msgstr "La somme finie dérivée des parts est au plus un. Des parts numériques égales d’opérations distinctes contribuent séparément."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetTotalBoundConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallBudgetTotalBoundConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallBudgetTotalBoundConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallEmptyCompleteConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallEmptyCompleteConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallEmptyCompleteConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallEmptyCompleteConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve complete empty recall constraint."
+msgstr "Utiliser pour préserver contrainte de rappel vide complet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complete empty recall constraint"
+msgstr "contrainte de rappel vide complet"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complete-empty outcome requires recallComplete true and no recalledRecord membership."
+msgstr "Un résultat vide complet exige recallComplete vrai et aucune appartenance recalledRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallEmptyCompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallEmptyCompleteConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallEmptyCompleteConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallOperationOneBudgetConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallOperationOneBudgetConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallOperationOneBudgetConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallOperationOneBudgetConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve operation allocation ownership constraint."
+msgstr "Utiliser pour préserver contrainte de propriété de l’allocation d’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operation allocation ownership constraint"
+msgstr "contrainte de propriété de l’allocation d’opération"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An operation allocation belongs to one budget roster; reuse in another plan requires another operation identity."
+msgstr "Une allocation appartient à une seule liste ; sa réutilisation dans un autre plan exige une autre identité d’opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallOperationOneBudgetConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallOperationOneBudgetConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallOperationOneBudgetConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallRecollectionsHaveRecordsConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallRecollectionsHaveRecordsConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallRecollectionsHaveRecordsConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallRecollectionsHaveRecordsConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve returned recollections membership constraint."
+msgstr "Utiliser pour préserver contrainte d’appartenance des remémorations retournées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "returned recollections membership constraint"
+msgstr "contrainte d’appartenance des remémorations retournées"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recollections outcome retains at least one selected record without claiming completeness."
+msgstr "Un résultat de remémorations conserve au moins un relevé sélectionné sans affirmer la complétude."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRecollectionsHaveRecordsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallRecollectionsHaveRecordsConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallRecollectionsHaveRecordsConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallVerdictIsAskersOwnConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallVerdictIsAskersOwnConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallVerdictIsAskersOwnConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallVerdictIsAskersOwnConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve asker verdict attribution constraint."
+msgstr "Utiliser pour préserver contrainte d’attribution du verdict au demandeur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "asker verdict attribution constraint"
+msgstr "contrainte d’attribution du verdict au demandeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A recall verdict is attributed to the same agent who asked the judged answer’s cue. Other agents’ judgements are separate records and do not resolve this asker’s question."
+msgstr "Un verdict est attribué à l’agent ayant demandé l’indice de la réponse jugée. Les jugements d’autres agents sont des relevés distincts et ne résolvent pas sa question."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictIsAskersOwnConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallVerdictIsAskersOwnConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallVerdictIsAskersOwnConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying RecallVerdictWordsLanguageConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire RecallVerdictWordsLanguageConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallVerdictWordsLanguageConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer RecallVerdictWordsLanguageConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve verdict wording language constraint."
+msgstr "Utiliser pour préserver contrainte de langue des mots du verdict."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "verdict wording language constraint"
+msgstr "contrainte de langue des mots du verdict"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."
+msgstr "Chaque formulation conserve sa langue, ainsi que la direction de base RDF 1.2 lorsqu’elle est présente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallVerdictWordsLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:RecallVerdictWordsLanguageConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:RecallVerdictWordsLanguageConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying SlotPointerIsIriConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire SlotPointerIsIriConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotPointerIsIriConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer SlotPointerIsIriConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot pointer IRI constraint."
+msgstr "Utiliser pour préserver contrainte IRI du pointeur de case."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot pointer IRI constraint"
+msgstr "contrainte IRI du pointeur de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A slot pointer names an existing record by IRI. Runtime resolution remains a consumer obligation; an IRI-shape check does not prove availability."
+msgstr "Un pointeur nomme un relevé existant par IRI. Sa résolution reste une obligation du consommateur ; vérifier la forme IRI ne prouve pas sa disponibilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPointerIsIriConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:SlotPointerIsIriConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:SlotPointerIsIriConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying SlotPositionBelongsToItsSlotConstraint by inventing records or selecting a weaker operation."
+msgstr "Éviter de satisfaire SlotPositionBelongsToItsSlotConstraint en inventant des relevés ou en sélectionnant une opération plus faible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotPositionBelongsToItsSlotConstraint to the explicit scoped records and retain the original evidence."
+msgstr "Appliquer SlotPositionBelongsToItsSlotConstraint aux relevés de portée explicite et conserver les éléments originaux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot position owner constraint."
+msgstr "Utiliser pour préserver contrainte de propriétaire de position de case."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot position owner constraint"
+msgstr "contrainte de propriétaire de position de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A selected slotState position belongs to that same continuing slot."
+msgstr "Une position slotState sélectionnée appartient à cette même case continue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotPositionBelongsToItsSlotConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The declared records are checked against gmeow:SlotPositionBelongsToItsSlotConstraint."
+msgstr "Les relevés déclarés sont examinés selon gmeow:SlotPositionBelongsToItsSlotConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating BudgetShareBoundsConstraint as a runtime certificate."
+msgstr "Éviter de traiter BudgetShareBoundsConstraint comme certificat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply BudgetShareBoundsConstraint to actual records while retaining independent obligations."
+msgstr "Appliquer BudgetShareBoundsConstraint aux relevés réels en conservant les obligations indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve budget share bounds law."
+msgstr "Utiliser pour préserver loi des bornes de part budgétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "budget share bounds law"
+msgstr "loi des bornes de part budgétaire"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied share is greater than zero and at most one; the separate plan-total law still applies."
+msgstr "Toute part fournie est supérieure à zéro et au plus égale à un ; la loi distincte du total reste applicable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BudgetShareBoundsConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by gmeow:BudgetShareBoundsConstraint."
+msgstr "Le relevé est régi par gmeow:BudgetShareBoundsConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallRankReifierCompletenessConstraint as a runtime certificate."
+msgstr "Éviter de traiter RecallRankReifierCompletenessConstraint comme certificat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallRankReifierCompletenessConstraint to actual records while retaining independent obligations."
+msgstr "Appliquer RecallRankReifierCompletenessConstraint aux relevés réels en conservant les obligations indépendantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve recall rank reifier completeness constraint."
+msgstr "Utiliser pour préserver contrainte de complétude du réificateur de rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recall rank reifier completeness constraint"
+msgstr "contrainte de complétude du réificateur de rang"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every actual recalled-record reifier has a rank. Schema-level reification obligations are not returned-record occurrences."
+msgstr "Chaque réificateur réel de relevé rappelé porte un rang. Les obligations de réification de schéma ne sont pas des occurrences retournées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallRankReifierCompletenessConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The record is governed by gmeow:RecallRankReifierCompletenessConstraint."
+msgstr "Le relevé est régi par gmeow:RecallRankReifierCompletenessConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting schema metadata as an actual returned record or slot change."
+msgstr "Éviter de présenter les métadonnées de schéma comme relevé retourné ou changement de case réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."
+msgstr "Déclarer classe de sujet, prédicat et classe du réificateur sous forme canonique d’obligation de réification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the typed reifier for gmeow:recalledRecord assertions."
+msgstr "Utiliser pour exiger le réificateur typé des assertions gmeow:recalledRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recalled-record reification obligation"
+msgstr "obligation de réification du relevé rappelé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every recalledRecord assertion carries its own RecalledRecordClaim reifier, whose actual occurrence must retain its rank."
+msgstr "Chaque assertion recalledRecord porte son réificateur RecalledRecordClaim, dont l’occurrence réelle conserve son rang."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecalledRecordReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The obligation governs gmeow:recalledRecord reifiers."
+msgstr "L’obligation régit les réificateurs de gmeow:recalledRecord."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid presenting schema metadata as an actual returned record or slot change."
+msgstr "Éviter de présenter les métadonnées de schéma comme relevé retourné ou changement de case réel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."
+msgstr "Déclarer classe de sujet, prédicat et classe du réificateur sous forme canonique d’obligation de réification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require the typed reifier for gmeow:slotState assertions."
+msgstr "Utiliser pour exiger le réificateur typé des assertions gmeow:slotState."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot-state reification obligation"
+msgstr "obligation de réification de l’état de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every slotState assertion carries its own SlotAssignmentClaim reifier. This schema-level obligation is not an assignment occurrence."
+msgstr "Chaque assertion slotState porte son réificateur SlotAssignmentClaim. Cette obligation de schéma n’est pas une occurrence d’affectation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotStateReificationObligation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The obligation governs gmeow:slotState reifiers."
+msgstr "L’obligation régit les réificateurs de gmeow:slotState."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to derive the total from the complete finite operation roster."
+msgstr "Utiliser pour dériver le total de la liste finie complète des opérations."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid independently authoring a total or collapsing equal shares from distinct operations."
+msgstr "Éviter de rédiger indépendamment un total ou de fusionner les parts égales d’opérations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain operation identity in full body substitutions and group SUM by budget identity."
+msgstr "Conserver l’identité d’opération dans les substitutions complètes du corps et grouper SUM par identité budgétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallBudgetSumRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two identified operations with share 0.4 derive a budget total of 0.8."
+msgstr "Deux opérations identifiées de part 0.4 dérivent un total budgétaire de 0.8."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallDeadlineIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "Éviter de traiter RecallDeadlineIsIncompleteConstraint comme preuve d’une exécution non consignée ou de comparaisons de tuples."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallDeadlineIsIncompleteConstraint to the actual source records without inventing missing facts."
+msgstr "Appliquer RecallDeadlineIsIncompleteConstraint aux relevés sources réels sans inventer les faits manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve deadline recall completeness constraint."
+msgstr "Utiliser pour préserver contrainte de complétude du rappel à échéance."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "deadline recall completeness constraint"
+msgstr "contrainte de complétude du rappel à échéance"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A deadline outcome requires recallComplete false, even when some records were returned."
+msgstr "Un résultat à échéance exige recallComplete faux, même si des relevés ont été retournés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallDeadlineIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:RecallDeadlineIsIncompleteConstraint."
+msgstr "Le relevé source est régi par gmeow:RecallDeadlineIsIncompleteConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating RecallPartialIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "Éviter de traiter RecallPartialIsIncompleteConstraint comme preuve d’une exécution non consignée ou de comparaisons de tuples."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply RecallPartialIsIncompleteConstraint to the actual source records without inventing missing facts."
+msgstr "Appliquer RecallPartialIsIncompleteConstraint aux relevés sources réels sans inventer les faits manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve partial recall completeness constraint."
+msgstr "Utiliser pour préserver contrainte de complétude du rappel partiel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "partial recall completeness constraint"
+msgstr "contrainte de complétude du rappel partiel"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial-search outcome requires recallComplete false, even when some records were returned."
+msgstr "Un résultat de recherche partielle exige recallComplete faux, même si des relevés ont été retournés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecallPartialIsIncompleteConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:RecallPartialIsIncompleteConstraint."
+msgstr "Le relevé source est régi par gmeow:RecallPartialIsIncompleteConstraint."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating SlotClaimPredecessorConstraint as evidence of unrecorded execution or tuple comparisons."
+msgstr "Éviter de traiter SlotClaimPredecessorConstraint comme preuve d’une exécution non consignée ou de comparaisons de tuples."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply SlotClaimPredecessorConstraint to the actual source records without inventing missing facts."
+msgstr "Appliquer SlotClaimPredecessorConstraint aux relevés sources réels sans inventer les faits manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve slot claim predecessor constraint."
+msgstr "Utiliser pour préserver contrainte de prédécesseur des affirmations de case."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot claim predecessor constraint"
+msgstr "contrainte de prédécesseur des affirmations de case"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A slot-assignment successor names another actual RDF 1.2 assignment claim as predecessor. The consumer verifies same-slot history from the authoritative reified tuples; recorder attribution need not remain equal."
+msgstr "Une affectation suivante nomme comme prédécesseur une autre affirmation RDF 1.2 réelle. Le consommateur vérifie l’historique de même case à partir des tuples réifiés faisant autorité ; l’attribution du rédacteur n’a pas à rester égale."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SlotClaimPredecessorConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The source record is governed by gmeow:SlotClaimPredecessorConstraint."
+msgstr "Le relevé source est régi par gmeow:SlotClaimPredecessorConstraint."
+
+
+# Source-scoped invocation readings and requested recollection strategies.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "recency-graded recollection strategy"
+msgstr "stratégie de recollection graduée par récence"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested presentation strategy that grades recalled records by source recency: newest records verbatim, older records as summaries, and oldest records as a line with a handle. It is selected on an ActionSchema rather than asserted as a delivered record's form."
+msgstr "Stratégie de présentation demandée qui gradue les souvenirs selon leur récence source : les plus récents textuellement, les plus anciens en résumés, puis les plus éloignés en une ligne avec un identifiant de rappel. Elle est choisie sur une ActionSchema et non affirmée comme forme d’un enregistrement livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source plan explicitly requests recency-dependent presentation rather than one uniform verbatim, gist or summary-with-handle mode."
+msgstr "Utiliser lorsqu’un plan source demande explicitement une présentation dépendante de la récence plutôt qu’un mode uniforme textuel, synthétique ou résumé avec identifiant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring age bands, a reference clock, summary content, available handles or completed rendering from selection of this strategy."
+msgstr "Éviter de déduire les tranches d’âge, une horloge de référence, le contenu des résumés, les identifiants disponibles ou un rendu achevé du choix de cette stratégie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value with recollectionForm on the actual recall ActionSchema and retain any source-specified recency rules separately. Preserve the original records and actual output evidence independently."
+msgstr "Choisir cette valeur avec recollectionForm sur l’ActionSchema réelle de rappel et conserver séparément les règles de récence fournies. Conserver indépendamment les enregistrements originaux et les preuves réelles de sortie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Grading direction does not define numeric cutoffs or implement a summarizer. The strategy is independent of recall depth and does not substitute for the standalone one-line gist form."
+msgstr "La direction de graduation ne définit aucun seuil numérique et n’implémente pas de résumeur. La stratégie est indépendante de la profondeur de rappel et ne remplace pas la forme autonome de synthèse en une ligne."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFading|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request graded presentation: ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+msgstr "Demander une présentation graduée : ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "one-line gist recollection form"
+msgstr "forme de recollection en synthèse d’une ligne"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A requested concise one-line gist of a recalled record, without requiring a handle and without claiming verbatim wording. It is a uniform presentation choice, distinct from a recency-grading strategy."
+msgstr "Synthèse concise demandée en une ligne d’un enregistrement rappelé, sans exiger d’identifiant de rappel ni prétendre à une formulation textuelle. C’est un choix uniforme de présentation, distinct d’une stratégie graduée par récence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source asks for a one-line gist and neither verbatim presentation nor a summary with a mandatory handle describes that request."
+msgstr "Utiliser lorsque la source demande une synthèse en une ligne que ni une présentation textuelle ni un résumé avec identifiant obligatoire ne décrivent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating the gist with original words, silently adding a handle requirement or treating one line as a numeric recency band."
+msgstr "Éviter d’assimiler la synthèse aux paroles originales, d’ajouter silencieusement une obligation d’identifiant ou de traiter une ligne comme tranche numérique de récence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."
+msgstr "Choisir cette valeur par recollectionForm sur l’ActionSchema réelle ; conserver la provenance de l’original et tout identifiant fourni séparément sans le rendre obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."
+msgstr "La valeur demande une présentation ; elle n’affirme ni production d’une synthèse, ni achèvement d’une recherche, ni vérité de la synthèse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recollectionFormOneLineGist|http://www.w3.org/2004/02/skos/core#example"
+msgid "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."
+msgstr "Demander une synthèse sans exiger d’identifiant : ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."

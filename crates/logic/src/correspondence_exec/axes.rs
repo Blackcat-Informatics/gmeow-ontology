@@ -14,6 +14,7 @@ use gmeow_logic_compile::ir::{
 };
 use gmeow_logic_compile::relational_core::{RcRule, RcTerm, formula_analysis};
 use purrdf::{RdfLiteral, TermValue};
+use purrdf_lex::json::{Format, Object, Value, record::ToJson};
 
 use crate::materialize::{Materialization, MaterializationLimits, materialize_prepared_store};
 use crate::store::WorldStore;
@@ -39,8 +40,7 @@ fn error(detail: impl std::fmt::Display) -> gmeow_errors::Diag {
 }
 
 /// Explicit result of one selected coordinate; absent inputs are never zero or one.
-#[derive(Debug, serde::Serialize)]
-#[serde(tag = "status", rename_all = "kebab-case")]
+#[derive(Debug)]
 pub enum AxisResult {
     /// No rule for this axis was selected, and no composite value claimed.
     NotSelected,
@@ -51,6 +51,20 @@ pub enum AxisResult {
         value: Box<FiniteNumericLiteral>,
         claimed: bool,
     },
+}
+
+impl ToJson for AxisResult {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::NotSelected => Object::new().with("status", "not-selected"),
+            Self::NotEvaluated => Object::new().with("status", "not-evaluated"),
+            Self::Computed { value, claimed } => Object::new()
+                .with("status", "computed")
+                .with("value", value.as_ref().to_json())
+                .with("claimed", claimed.to_json()),
+        }
+        .into()
+    }
 }
 
 /// One immutable source-bound run. Restoring its report does not recreate authority.
@@ -81,35 +95,31 @@ impl SourceAxes {
     }
     /// Terminal observations only, distinct from source and native execution evidence.
     pub fn report(&self) -> gmeow_errors::Result<Vec<u8>> {
-        #[derive(serde::Serialize)]
-        struct RunReport<'a> {
-            rules: &'a [String],
-            standpoint: &'a str,
-            derivations: &'a [crate::seam::DerivedQuad],
-            preservation: &'a crate::result::PreservationClaim,
-            frontier: &'a crate::query_ir::CompletionFrontier,
-        }
-        #[derive(serde::Serialize)]
-        struct Report<'a> {
-            results: &'a BTreeMap<String, BTreeMap<String, AxisResult>>,
-            runs: Vec<RunReport<'a>>,
-        }
-        let runs = self
-            .runs
-            .iter()
-            .map(|run| RunReport {
-                rules: &run.rules,
-                standpoint: &run.standpoint,
-                derivations: &run.materialization.quads,
-                preservation: &run.materialization.preservation,
-                frontier: &run.materialization.frontier,
+        let runs = Value::Array(
+            self.runs
+                .iter()
+                .map(|run| {
+                    Object::new()
+                        .with("rules", run.rules.to_json())
+                        .with("standpoint", run.standpoint.to_json())
+                        .with("derivations", run.materialization.quads.to_json())
+                        .with("preservation", run.materialization.preservation.to_json())
+                        .with("frontier", run.materialization.frontier.to_json())
+                        .into()
+                })
+                .collect(),
+        );
+        let report = Object::new()
+            .with("results", self.results.to_json())
+            .with("runs", runs)
+            .into();
+        let mut resident = purrdf_lex::allocation::Resident;
+        let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+        purrdf_lex::json::write_with_memory(&report, Format::PRETTY, &mut memory)
+            .map(String::into_bytes)
+            .map_err(|error| {
+                gmeow_errors::Diag::from(error).with_context("serialize correspondence axes report")
             })
-            .collect();
-        serde_json::to_vec_pretty(&Report {
-            results: &self.results,
-            runs,
-        })
-        .map_err(error)
     }
 }
 

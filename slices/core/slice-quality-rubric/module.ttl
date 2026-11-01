@@ -157,11 +157,11 @@ gmeow:axisThreshold
     gmeow:useWhen "Use on an axis to pin, as data, the per-tier score floors that turn a measured decimal into a tier grade."@x-gmeow-english .
 
 gmeow:axisAdviceTemplate
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis advice template"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The opinionated uplift advice the axis emits when a slice falls short — the next-best-action text, which MUST cite the SLICE_GUIDE section or Constitution principle it discharges and MUST NOT reference a development ticket or issue number (process linkage lives outside the repo). It is NOT the finding message alone: it is the doctrine-anchored remediation the advisor ranks and offers."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalGrounding gmeow:axisAdviceTemplate \"Ground each bare class on the triad — assign a foundation stereotype and a mediates relation (SLICE_GUIDE §4; Principle 19).\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid citing an issue or PR number (cite SLICE_GUIDE §/Principle instead), avoid duplicating doctrine prose verbatim (reference it), and avoid template text so generic it names no concrete action."@x-gmeow-english ;
@@ -308,6 +308,8 @@ gmeow:AxisExemption
     gmeow:howToUse "Mint a gmeow:AxisExemption naming the exempted axis, a reason, a gmeow:exemptionDate, and the gmeow:exemptionProducer symbol; the completeness gate accepts it in lieu of a measured axis and the staleness gate removes the escape once the symbol lands."@x-gmeow-english ;
     gmeow:useWhen "Use to record, transparently and datedly, that a specific axis or sub-metric awaits an unlanded producer — so the gap is checked, not hidden."@x-gmeow-english .
 
+gmeow:AxisExemption logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:exemptionReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
 gmeow:exemptsAxis
     a logic:ObjectProperty ;
     rdfs:domain gmeow:AxisExemption ;
@@ -322,11 +324,11 @@ gmeow:exemptsAxis
     gmeow:useWhen "Use on an exemption to name the axis it covers."@x-gmeow-english .
 
 gmeow:exemptionReason
-    a logic:AnnotationProperty ;
+    a logic:DatatypeProperty ;
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption reason"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range rdfs:Literal ;
     skos:definition "The prose justification for the exemption — why the producer is genuinely unlanded and why the axis's headline still functions without it. It must cite doctrine, never a ticket number."@x-gmeow-english ;
     skos:example "gmeow:exemptionDocsPanels gmeow:exemptionReason \"Multi-format docs panels are measured for adoption as they land; their producer is not yet in-repo.\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an issue/PR number in the reason and avoid a reason that would equally justify skipping a landed producer."@x-gmeow-english ;
@@ -2068,7 +2070,7 @@ gmeow:qualityDimensionProjection
     a gmeow:SliceQualityDimension ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "projection"@x-gmeow-english ;
-    skos:definition "The data-quality dimension for maximal projection — whether a slice ships the projection-source surfaces its content requires (SHACL shapes for its structural constraints, a mappings file for its external links), the sources from which lossy projections and their loss-ledger entries derive (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The data-quality dimension for pure validation projection and required mapping sources: canonical logic: constraints generate validation views instead of maintaining a parallel authored shape surface, and external links have their mapping source. This dimension does not certify content survival or loss-ledger completeness (Principles 4/7/17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:qualityDimensionTesting
@@ -2214,13 +2216,13 @@ gmeow:axisMaximalProjection
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Maximal Projection"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice ships the projection SOURCE surfaces its content requires: a shapes.ttl when it declares structural constraints (OWL Restriction / OWL disjointWith), and a mappings/equivalences.ttl when its own terms link to external vocabularies. It is NOT linkage (the source alignments), and it does NOT yet verify content survival across SSSOM/EDOAL/FnO or loss-ledger entries — it checks the presence of the required projection-source files (Principles 4/7/17)."@x-gmeow-english ;
+    skos:definition "The axis for pure validation projection and required mapping sources. A slice carrying restriction or class-disjointness constraints earns validation credit when it has no parallel authored shapes.ttl; its canonical logic: constraints belong in module.ttl and project to generated/shapes/*. A slice whose own terms link to external vocabularies must supply mappings/equivalences.ttl. This axis checks those authoring-surface and mapping-file obligations, not content survival across SSSOM/EDOAL/FnO or loss-ledger completeness (Principles 4/7/17)."@x-gmeow-english ;
     skos:example "gmeow:axisMaximalProjection gmeow:axisProducer \"projection_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as content-survival verification (it checks source-file presence, not that every triple survives a projection) and avoid conflating a projection source with its source mappings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source-surface checks as proof that every triple survives projection. Absence of an authored shapes.ttl earns the constraint projection credit; it does not itself prove the migration equivalence required before deleting legacy validation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor checks that a slice declaring structural constraints ships shapes.ttl and a slice linking out ships mappings/equivalences.ttl, naming each missing projection-source file as advice."@x-gmeow-english ;
-    gmeow:useWhen "Use to measure whether a slice ships the SHACL-shape and mapping projection sources its content requires."@x-gmeow-english ;
+    gmeow:howToUse "The advisor recognizes restriction and disjointness constraints in logic: or their OWL views, credits the validation obligation when shapes.ttl is absent, and reports any authored shapes.ttl as migration debt. It also checks mappings/equivalences.ttl when the slice's own terms link out. Preserve legacy validation until its equivalent generated projection is proved."@x-gmeow-english ;
+    gmeow:useWhen "Use to assess whether validation avoids a parallel authored shape surface and the slice supplies its required mapping projection source."@x-gmeow-english ;
     gmeow:axisProducer "projection_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
     gmeow:axisContextScope gmeow:scopeDepsClosure ;
@@ -2229,18 +2231,18 @@ gmeow:axisMaximalProjection
         gmeow:thrProjectionLinked ,
         gmeow:thrProjectionExemplified ,
         gmeow:thrProjectionMaximal ;
-    gmeow:axisAdviceTemplate "Ship a shapes.ttl when the slice declares structural constraints (OWL Restriction / OWL disjointWith) and a mappings/equivalences.ttl when its terms link to external vocabularies, so its content has a projection source (Principles 4/7/17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Author validation in canonical logic: axioms or logic:Constraint records in module.ttl and derive generated/shapes/*. Prove equivalent coverage before retiring legacy authored shapes.ttl. Supply mappings/equivalences.ttl when the slice's own terms link to external vocabularies (Principles 4/7/17)."@x-gmeow-english .
 
 gmeow:axisShapeMigration
     a gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Shape Migration"@x-gmeow-english ;
-    skos:definition "The axis for whether a slice's hand-authored shapes.ttl validation shapes are GROUNDED — every sh:NodeShape / sh:PropertyShape carries a logic:formalizes back-reference, the same criterion the blanket projection-purity gate enforces. A validation shape is a generated lossy projection of the logic: canon (Principle 17), never a hand-authored second source of truth; an un-backed authored shape is migration debt. It is NOT projection-source presence (axisMaximalProjection checks that a shapes.ttl EXISTS; this checks that the shapes it holds are backed) and it is NOT the reasoner's own grounding of classes."@x-gmeow-english ;
+    skos:definition "The historical axis measuring the fraction of typed sh:NodeShape / sh:PropertyShape blocks in a legacy authored shapes.ttl that carry a logic:formalizes back-reference. This presence-only measure does not prove projection equivalence or authorize deletion. Validation belongs in canonical logic: sources and shapes are generated views (Principle 17). Unlike axisMaximalProjection, which credits a constraint-bearing slice when the parallel authored file is absent, this axis measures the retained legacy inventory; it is not the foundation grounding of domain classes."@x-gmeow-english ;
     skos:example "gmeow:axisShapeMigration gmeow:axisProducer \"shape_migration_axis\" ; gmeow:axisContextScope gmeow:scopeDepsClosure ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as shapes.ttl presence (a slice with NO shapes.ttl scores a vacuous 1.0 — it has nothing to migrate) and avoid conflating a logic:formalizes-backed residue shape with an un-backed hand-authored second source."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxConfigBox ;
-    gmeow:howToUse "The advisor parses the slice's shapes.ttl, counts the sh:NodeShape / sh:PropertyShape blocks, and names every one lacking logic:formalizes as a migration target — migrate its obligation into module.ttl so the projector reproduces it (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never OWL cardinality), then delete the block; or back a genuine ValidationOnly residue with logic:formalizes."@x-gmeow-english ;
+    gmeow:howToUse "The advisor counts typed legacy shape blocks and reports those without a logic:formalizes back-reference. Author their obligations as EL-safe logic: axioms or logic:Constraint records in module.ttl, with explicit closure entries for required closed-world paths. Prove that the generated projection reproduces each check before retiring its authored block; a back-reference alone is not equivalence evidence."@x-gmeow-english ;
     gmeow:useWhen "Use to measure how much of a slice's hand-authored validation-shape surface still needs migrating into the logic: canon."@x-gmeow-english ;
     gmeow:axisProducer "shape_migration_axis" ;
     gmeow:axisDimension gmeow:qualityDimensionProjection ;
@@ -2250,7 +2252,7 @@ gmeow:axisShapeMigration
         gmeow:thrShapeMigrationLinked ,
         gmeow:thrShapeMigrationExemplified ,
         gmeow:thrShapeMigrationMaximal ;
-    gmeow:axisAdviceTemplate "Migrate each hand-authored sh:NodeShape lacking logic:formalizes: author its cardinality / class / datatype obligation in module.ttl (OWL FunctionalProperty for at-most-one, OWL someValuesFrom for existence, never the out-of-fragment OWL cardinality) so the projector reproduces it and the block is deleted, or back a genuine ValidationOnly residue (exactly-N cardinality, node-level sh:or, cross-node sh:sparql) with logic:formalizes naming its canonical logic: source (Principle 17)."@x-gmeow-english .
+    gmeow:axisAdviceTemplate "Migrate each unbacked legacy validation shape to canonical logic: axioms or a logic:Constraint in module.ttl, using explicit closure for required paths. Prove equivalent generated validation before deleting the authored block. Unsupported legacy conditions must remain explicitly recorded as projection loss, not silently discarded (Principle 17)."@x-gmeow-english .
 
 gmeow:axisOptimalTesting
     a gmeow:QualityAxis ;
@@ -3620,12 +3622,12 @@ gmeow:QualityAssessmentCorpus
         logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Quality Assessment Corpus"@x-gmeow-english ;
-    skos:definition "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:contentDigest over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."@x-gmeow-english ;
-    skos:example "<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:…\" ; gmeow:contentDigest \"blake3:…\" ."@x-gmeow-english ;
+    skos:definition "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:qualityRecordFingerprint over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."@x-gmeow-english ;
+    skos:example "<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ; gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."@x-gmeow-english ;
     skos:scopeNote "Exactly one corpus node per sweep, emitted ahead of the per-slice blocks. Individuals are generated by the sweep, never hand-authored — a hand-written corpus would be a claim about a sweep nobody ran."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing a single slice's assessment as a corpus, avoid minting one by hand, and avoid reading a corpus that carries only one of the two witnesses — half a witness answers only half the question."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Read the corpus node, verify gmeow:versionFingerprint against a freshly canonicalized digest of the authored sources and gmeow:contentDigest against a re-fold of the recorded grades, and only then resolve a slice's assessment out of it."@x-gmeow-english ;
+    gmeow:howToUse "Read the corpus node, verify gmeow:versionFingerprint against a freshly canonicalized digest of the authored sources and gmeow:qualityRecordFingerprint against a re-fold of the recorded grades, and only then resolve a slice's assessment out of it."@x-gmeow-english ;
     gmeow:useWhen "Use to name the whole recorded sweep a consumer reads a grade out of, so freshness and integrity are properties of a typed object rather than of a file path."@x-gmeow-english .
 
 gmeow:SliceQualityConformanceFailure
@@ -3647,7 +3649,7 @@ gmeow:UnreadableQualityRecord
     logic:subClassOf gmeow:SliceQualityConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Unreadable Quality Record"@x-gmeow-english ;
-    skos:definition "The failure raised when the recorded quality-assessment corpus cannot be read back as an authoritative record: it is absent, it does not parse, it is structurally incomplete (a slice the tree contains missing from it, or a grade missing its axis, its score, or its tier), or it is STALE — its gmeow:versionFingerprint does not match a fresh canonicalization of the authored sources, or its gmeow:contentDigest does not match a re-fold of the grades it carries. HARD FAIL in every one of those shapes: a consumer reads the record INSTEAD of re-running the sweep, so a partial reading is not a weaker grade but a grade about a different tree, and falling back to 'read what is there' would let a hand-raised score pass as a measurement. It is NOT a low score and never a verdict about a slice's quality — the record's readability and the slice's grade are different questions, and this class only ever answers the first."@x-gmeow-english ;
+    skos:definition "The failure raised when the recorded quality-assessment corpus cannot be read back as an authoritative record: it is absent, it does not parse, it is structurally incomplete (a slice the tree contains missing from it, or a grade missing its axis, its score, or its tier), or it is STALE — its gmeow:versionFingerprint does not match a fresh canonicalization of the authored sources, or its gmeow:qualityRecordFingerprint does not match a re-fold of the grades it carries. HARD FAIL in every one of those shapes: a consumer reads the record INSTEAD of re-running the sweep, so a partial reading is not a weaker grade but a grade about a different tree, and falling back to 'read what is there' would let a hand-raised score pass as a measurement. It is NOT a low score and never a verdict about a slice's quality — the record's readability and the slice's grade are different questions, and this class only ever answers the first."@x-gmeow-english ;
     skos:example "ex:staleQualitySweep a gmeow:UnreadableQualityRecord ."@x-gmeow-english ;
     skos:scopeNote "Freshness and integrity are separate obligations that this one class covers because both make the record unreadable in the same way: the fingerprint asks whether the record describes THIS tree, the content digest asks whether the record is what the scorer wrote, and an input-only witness answers only the first."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for a slice that scored below a floor (that is a floor breach, a measured verdict), avoid resolving it by editing the recorded digest or fingerprint to match — that asserts an identity nothing measured — and avoid downgrading it to a warning so a build can proceed on a record of unknown vintage."@x-gmeow-english ;
@@ -3664,17 +3666,17 @@ gmeow:QualityAssessmentCorpusWitnessedConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "Quality-assessment corpus witnessed constraint"@x-gmeow-english ;
-    skos:definition "A closed-world integrity constraint: a gmeow:QualityAssessmentCorpus carries BOTH its gmeow:versionFingerprint (which sources were scored) AND its gmeow:contentDigest (what was recorded). A corpus missing either witness cannot be read as a substitute for re-running the sweep — with no fingerprint a consumer cannot tell whether the record describes this tree, and with no content digest it cannot tell whether the record is what the scorer wrote — so the record is gmeow:UnreadableQualityRecord rather than a weaker record."@x-gmeow-english ;
+    skos:definition "A closed-world integrity constraint: a gmeow:QualityAssessmentCorpus carries BOTH its gmeow:versionFingerprint (which sources were scored) AND its gmeow:qualityRecordFingerprint (what was recorded). A corpus missing either witness cannot be read as a substitute for re-running the sweep — with no fingerprint a consumer cannot tell whether the record describes this tree, and with no content digest it cannot tell whether the record is what the scorer wrote — so the record is gmeow:UnreadableQualityRecord rather than a weaker record."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:enforcesFailureClass gmeow:UnreadableQualityRecord ;
     logic:formalizes gmeow:QualityAssessmentCorpus ;
     logic:severity "Violation" ;
-    logic:message "A gmeow:QualityAssessmentCorpus must carry a gmeow:versionFingerprint and a gmeow:contentDigest; a corpus missing either witness cannot be read instead of re-running the sweep (gmeow:UnreadableQualityRecord)." ;
+    logic:message "A gmeow:QualityAssessmentCorpus must carry a gmeow:versionFingerprint and a gmeow:qualityRecordFingerprint; a corpus missing either witness cannot be read instead of re-running the sweep (gmeow:UnreadableQualityRecord)." ;
     logic:integrity gmeow:qacwForall .
 gmeow:qacwForall a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "quality-assessment-corpus-witnessed formula"@x-gmeow-english ;
-    skos:definition "The top-level ∀→(∃∧∃) integrity formula of gmeow:QualityAssessmentCorpusWitnessedConstraint: every gmeow:QualityAssessmentCorpus carries a gmeow:versionFingerprint and a gmeow:contentDigest."@x-gmeow-english ;
+    skos:definition "The top-level ∀→(∃∧∃) integrity formula of gmeow:QualityAssessmentCorpusWitnessedConstraint: every gmeow:QualityAssessmentCorpus carries a gmeow:versionFingerprint and a gmeow:qualityRecordFingerprint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
     logic:forall gmeow:qacwImpl .
@@ -3695,14 +3697,14 @@ gmeow:qacwGuard a logic:Formula ;
 gmeow:qacwCons a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "both-witnesses existential"@x-gmeow-english ;
-    skos:definition "The ∃f,d consequent of gmeow:QualityAssessmentCorpusWitnessedConstraint: the corpus binds a fingerprint value and a content-digest value."@x-gmeow-english ;
+    skos:definition "The ∃f,d consequent of gmeow:QualityAssessmentCorpusWitnessedConstraint: the corpus binds a fingerprint value and a record-fingerprint value."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "f" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] ;
     logic:exists gmeow:qacwBody .
 gmeow:qacwBody a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "both-witnesses conjunction"@x-gmeow-english ;
-    skos:definition "The conjunction under gmeow:qacwCons: the fingerprint atom AND the content-digest atom must both hold, because either alone answers only half the readability question."@x-gmeow-english ;
+    skos:definition "The conjunction under gmeow:qacwCons: the fingerprint atom AND the record-fingerprint atom must both hold, because either alone answers only half the readability question."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:and gmeow:qacwFingerprintAtom , gmeow:qacwDigestAtom .
 gmeow:qacwFingerprintAtom a logic:Formula ;
@@ -3714,10 +3716,10 @@ gmeow:qacwFingerprintAtom a logic:Formula ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "f" ] .
 gmeow:qacwDigestAtom a logic:Formula ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
-    rdfs:label "content-digest atom"@x-gmeow-english ;
-    skos:definition "The gmeow:contentDigest atom of gmeow:QualityAssessmentCorpusWitnessedConstraint: the corpus ?this binds the digest ?d over the grades it recorded."@x-gmeow-english ;
+    rdfs:label "record-fingerprint atom"@x-gmeow-english ;
+    skos:definition "The gmeow:qualityRecordFingerprint atom of gmeow:QualityAssessmentCorpusWitnessedConstraint: the corpus ?this binds the digest ?d over the grades it recorded."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    logic:relation gmeow:contentDigest ;
+    logic:relation gmeow:qualityRecordFingerprint ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "d" ] .
 
 # Explicit consumer measurement profiles (Principles 4 and 17).
@@ -3936,3 +3938,39 @@ gmeow:projVocab-schema-value a gmeow:ProjectionVocabulary ;
     gmeow:vocabularyCountKind "countKindTypedAxiom" ;
     gmeow:vocabularyDefaultCeiling 0 ;
     gmeow:vocabularyPreservation logic:ValidationOnly .
+
+gmeow:QualityAxis logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:axisAdviceTemplate ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# The quality record witness has its own scheme identity.
+
+gmeow:qualityRecordFingerprint
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:QualityAssessmentCorpus ;
+    logic:range gmeow:qualityRecordFingerprintV1 ;
+    rdfs:label "quality record fingerprint"@x-gmeow-english ;
+    skos:definition "The versioned scheme fingerprint of a quality-assessment corpus’s reconstructed grades and roll-up tiers. It witnesses what the record contains, separately from versionFingerprint over the source set, and is not a byte-exact digest of the RDF serialization."@x-gmeow-english ;
+    gmeow:useWhen "Use for the recorded-grade integrity witness emitted by the quality sweep and recomputed by its reader."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid contentDigest, the source-set versionFingerprint, or another scheme’s hash in place of this witness. Do not select one of conflicting witness terms."@x-gmeow-english ;
+    gmeow:howToUse "Emit one distinct qualityRecordFingerprintV1 literal for the whole corpus. The reader requires that exact datatype, no language or direction, exactly 64 lowercase hexadecimal digits, and equality with the complete recomputed typed literal."@x-gmeow-english ;
+    skos:scopeNote "Identical native terms repeated across graph labels are one witness. Distinct terms, missing witnesses and malformed values fail the owning reader. This is a concrete scheme admission contract, not a generic custom-datatype parser."@x-gmeow-english ;
+    skos:example "ex:corpus gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."@x-gmeow-english .
+
+gmeow:qualityRecordFingerprintV1
+    a rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:seeAlso gmeow:blake3_256Digest ;
+    rdfs:label "quality record fingerprint version one"@x-gmeow-english ;
+    skos:definition "The version-one identifier scheme for a quality-assessment corpus’s grade reconstruction: BLAKE3 over the fixed gmeow-slice-quality-record-v1 domain tag and the ordered slice, axis, exact-score, tier and roll-up fields. Its value retains that scheme identity; the lexical form is exactly 64 lowercase hexadecimal digits without a prefix."@x-gmeow-english ;
+    gmeow:useWhen "Use only for the quality-record scheme whose exact byte encoding is defined in the rubric design."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a bare blake3_256Digest, a digest of serialized RDF bytes, or the source-set fingerprint. A shared hash algorithm does not make different identifier schemes equal."@x-gmeow-english ;
+    gmeow:howToUse "Retain the scheme datatype and lowercase lexical form together. Reconstruct the recorded grades, encode each score with the producer’s shortest round-tripping decimal spelling, apply the version-one byte encoding, and compare native literal terms."@x-gmeow-english ;
+    skos:scopeNote "The quality reader implements this selected scheme’s lexical and reconstruction checks. Declaration alone does not install a generic datatype parser or certify the correctness of the recorded grades. The two corpus witnesses remain separate and neither substitutes for the other."@x-gmeow-english ;
+    skos:example "\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 retains the quality-record scheme identity."@x-gmeow-english .
+
+gmeow:QualityAssessmentCorpus logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:qualityRecordFingerprint ;
+      logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+      logic:onDataRange gmeow:qualityRecordFingerprintV1 ] .

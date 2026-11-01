@@ -4,11 +4,13 @@
 //! Reviewable, syntax-directed relocation of inline test modules. Production
 //! identity never strips tokens: this migration creates real external modules.
 
+#[path = "extract/json.rs"]
+mod json;
+
 use gmeow_build_inputs::{Result, checked_path, digest};
 fn fail(error: impl std::fmt::Display) -> gmeow_build_inputs::InputError {
     gmeow_build_inputs::InputError(error.to_string())
 }
-use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use std::path::Path;
 use syn::{
@@ -18,14 +20,14 @@ use syn::{
 };
 
 /// An exact source replacement; application checks the original byte commitment.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Replacement {
     pub path: String,
     pub before_sha256: Option<String>,
     pub contents: String,
 }
 /// Byte-preservation evidence for one moved module, including every function body.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Preservation {
     pub source: String,
     pub destination: String,
@@ -37,7 +39,7 @@ pub struct Preservation {
     pub function_bodies: Vec<(String, String)>,
 }
 /// A plan is an artifact for review. Unsupported forms block its application.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct ExtractionPlan {
     pub sources: Vec<String>,
     pub replacements: Vec<Replacement>,
@@ -444,7 +446,7 @@ fn tokens_contain_ident(tokens: proc_macro2::TokenStream, expected: &str) -> boo
 }
 
 /// One exact-file observation after a formatter-only pass.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub struct FormattedPreservation {
     pub path: String,
     pub planned_sha256: String,

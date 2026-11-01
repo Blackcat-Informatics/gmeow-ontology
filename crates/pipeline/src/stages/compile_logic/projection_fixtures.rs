@@ -5,6 +5,8 @@
 //! Native RDF outputs go directly to their terminal comparison representation;
 //! they are never serialized to Turtle and reparsed to hand data to this stage.
 
+mod json;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -12,7 +14,6 @@ use gmeow_logic_compile::frontend::{Diagnostic, parse_logic_dataset};
 use gmeow_logic_compile::ir::LogicProgram;
 use gmeow_logic_compile::projections::compile_program;
 use purrdf::{RdfDataset, SerializeGraph, serialize_dataset};
-use serde::{Deserialize, Serialize};
 
 const CHANNEL: &str = "pipeline/projection-fixtures.json";
 const CASES: [&str; 3] = [
@@ -23,7 +24,7 @@ const CASES: [&str; 3] = [
 
 type Observations = BTreeMap<String, Result<ProjectionObservation, gmeow_errors::RecordedDiag>>;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 struct ProjectionObservation {
     diagnostics: Vec<Diagnostic>,
     projections: Result<BTreeMap<String, String>, gmeow_errors::RecordedDiag>,
@@ -60,9 +61,8 @@ pub(super) fn record(
         .collect();
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observations).map_err(|error| {
-            super::stage_err(format!("encode projection observations: {error}"))
-        })?,
+        purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_map_to_json(&observations))
+            .into_bytes(),
     );
     Ok(())
 }

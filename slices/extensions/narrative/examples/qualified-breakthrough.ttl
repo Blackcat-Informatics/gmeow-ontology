@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/narrative-breakthrough/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Read with breakthrough.ttl, qualified-source-records.ttl and signal-confidence-v1.ttl.
+# All classifications and numeric values are supplied synthetic teller claims,
+# not results from an executed matching, counting or review engine.
+ex:sourceSnapshot a gmeow:InformationObject ;
+    gmeow:contentDigest "sha256:65bdd8fea0ffb6874057a614f283826d49b2268be98f645378c7ef6e2600eef7" ;
+    rdfs:label "Exact retained source-record payload"@en .
+ex:confidenceLineage a gmeow:InformationObject ;
+    rdfs:label "Archive teller confidence policy lineage"@en .
+ex:confidenceRuleV1 a gmeow:SignalConfidenceRule ;
+    gmeow:versionOf ex:confidenceLineage ; gmeow:versionLabel "1" ;
+    gmeow:contentDigest "sha256:25950ef24369ce74a23f06e58b0b733723ab115ed7929cda88a96c70934412dc" ;
+    gmeow:wasDerivedFrom ex:sourceSnapshot ;
+    gmeow:wasAttributedTo ex:teller ;
+    gmeow:signalConfidenceReview ex:confidenceReview ;
+    rdfs:seeAlso ex:unitRange .
+ex:confidenceReview a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:reviewer ;
+    gmeow:atTime "2026-10-30T12:00:00Z"^^xsd:dateTime .
+ex:unitRange a math:Interval ;
+    math:lowerEndpoint "0"^^xsd:decimal ; math:lowerInclusion math:closedEndpoint ;
+    math:upperEndpoint "1"^^xsd:decimal ; math:upperInclusion math:closedEndpoint .
+ex:qualifiedReadingMethod a gmeow:ObservationMethod ;
+    rdfs:isDefinedBy ex:confidenceRuleV1 ;
+    rdfs:label "Exact reviewed archive reading method"@en .
+
+ex:decisionSample a gmeow:ArcSample ;
+    gmeow:vantage ex:teller ; gmeow:observedFeature ex:subject ;
+    gmeow:sampleSubject ex:subject ; gmeow:samplePosition ex:after ;
+    gmeow:sampleState gmeow:emotionSelfCorrection ;
+    gmeow:sampleProgress gmeow:progressStateMoving ;
+    gmeow:observationMethod ex:qualifiedReadingMethod ;
+    gmeow:wasDerivedFrom ex:decisionNote ;
+    gmeow:resolutionSignal gmeow:resolutionSignalAct {|
+        gmeow:confidence "0.9"^^xsd:decimal ;
+        gmeow:accordingTo ex:teller ;
+        gmeow:wasDerivedFrom ex:actSetting, ex:decisionNote ;
+        gmeow:description "The next-step note has the exact decisionTag and is attributed to the subject. This value is the teller's reviewed rule setting, not the subject's truth."@en
+    |} .
+
+# The exact next record supports a narrower type; earlier impasse evidence is unchanged.
+ex:decisionArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeDecision ; gmeow:accordingTo ex:teller ;
+    gmeow:arcFirstRecord ex:firstRecord ; gmeow:arcNextRecord ex:decisionNote ;
+    gmeow:arcThreadKind gmeow:threadKindQuestion ; gmeow:arcThread ex:question ;
+    gmeow:arcSample ex:decisionSample ; gmeow:wasDerivedFrom ex:sourceSnapshot .
+ex:insightArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeInsight ; gmeow:accordingTo ex:teller ;
+    gmeow:arcFirstRecord ex:firstRecord ; gmeow:arcNextRecord ex:insightNote ;
+    gmeow:arcThreadKind gmeow:threadKindQuestion ; gmeow:arcThread ex:question ;
+    gmeow:wasDerivedFrom ex:sourceSnapshot .
+ex:settledArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeSettledQuestion ; gmeow:accordingTo ex:teller ;
+    gmeow:arcFirstRecord ex:firstRecord ; gmeow:arcNextRecord ex:resolvedStatusRecord ;
+    gmeow:arcThreadKind gmeow:threadKindQuestion ; gmeow:arcThread ex:question ;
+    gmeow:wasDerivedFrom ex:sourceSnapshot .
+ex:ambiguousArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeBreakthrough ; gmeow:accordingTo ex:teller ;
+    gmeow:arcFirstRecord ex:firstRecord ; gmeow:arcNextRecord ex:ambiguousNote ;
+    gmeow:arcThreadKind gmeow:threadKindQuestion ; gmeow:arcThread ex:question ;
+    gmeow:wasDerivedFrom ex:sourceSnapshot .
+
+# One root-conversation population: two root messages plus both follow-up messages.
+# No direct reply edge is needed for interveningMessage or undatedMessage membership.
+ex:conversationArc a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:subject ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeBreakthrough ; gmeow:accordingTo ex:teller ;
+    gmeow:arcThreadKind gmeow:threadKindConversation ;
+    gmeow:arcThread ex:rootConversation ;
+    gmeow:arcCountThread ex:rootConversation ;
+    gmeow:arcFirstRecord ex:impasseMessage ; gmeow:arcNextRecord ex:nextMessage ;
+    gmeow:arcCountRecord ex:impasseMessage, ex:interveningMessage,
+        ex:nextMessage, ex:undatedMessage ;
+    gmeow:arcCountTimeProperty gmeow:recordedAt ;
+    gmeow:arcBetweenCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:arcUndatedCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:wasDerivedFrom ex:sourceSnapshot .

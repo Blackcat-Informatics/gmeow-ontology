@@ -37,7 +37,7 @@ use gmeow_logic_compile::projections::correspondence_soundness::{
 };
 use gmeow_logic_compile::projections::get_leg::{self, ProjectionCell};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
-use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, parse_dataset};
 
 const GMEOW_PREFIX: &str = "gmeow:";
@@ -165,7 +165,7 @@ fn merge_ontology(
     let mut b = RdfDatasetBuilder::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
-        let bytes = std::fs::read(&onto).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(&onto).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
         b.push_dataset(&ds)?;
     }
@@ -198,8 +198,8 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), gmeow_err
     if !dir.is_dir() {
         return Ok(());
     }
-    for entry in std::fs::read_dir(dir).map_err(SliceError::Io)? {
-        let path = entry.map_err(SliceError::Io)?.path();
+    for entry in std::fs::read_dir(dir).map_err(crate::error::io_diag)? {
+        let path = entry.map_err(crate::error::io_diag)?.path();
         if path.is_dir() {
             collect_ttl_files(&path, out)?;
         } else if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
@@ -223,7 +223,7 @@ fn merge_dsl(
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
     files.sort();
     for path in &files {
-        let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(path).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
         b.push_dataset(&ds)?;
     }
@@ -259,18 +259,17 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, gmeow_errors::Diag> 
     // stage folding stale bytes into the bundle). None of its output reaches gmeow.gts.
     let mappings_dir = root.join("generated").join("mappings");
     if !mappings_dir.is_dir() {
-        return Err(SliceError::Io(std::io::Error::new(
+        return Err(crate::error::io_diag(std::io::Error::new(
             std::io::ErrorKind::NotFound,
             format!(
                 "missing SSSOM mappings directory {}",
                 mappings_dir.display()
             ),
-        ))
-        .into());
+        )));
     }
     let mut files: Vec<PathBuf> = Vec::new();
-    for entry in std::fs::read_dir(&mappings_dir).map_err(SliceError::Io)? {
-        let path = entry.map_err(SliceError::Io)?.path();
+    for entry in std::fs::read_dir(&mappings_dir).map_err(crate::error::io_diag)? {
+        let path = entry.map_err(crate::error::io_diag)?.path();
         if path.is_file()
             && path
                 .file_name()
@@ -283,9 +282,9 @@ fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, gmeow_errors::Diag> 
     files.sort();
     let mut mappings: Vec<Mapping> = Vec::new();
     for path in &files {
-        let text = std::fs::read_to_string(path).map_err(SliceError::Io)?;
+        let text = std::fs::read_to_string(path).map_err(crate::error::io_diag)?;
         let rows = parse_sssom_tsv(&text)
-            .map_err(|e| SliceError::Parse(format!("{}: {e}", path.display())))?;
+            .map_err(|e| crate::error::parse_diag(format!("{}: {e}", path.display())))?;
         mappings.extend(rows);
     }
     Ok(mappings)
@@ -342,7 +341,7 @@ fn load_target_axioms(
         .join("targets")
         .join(format!("{prefix}.ttl"));
     if snapshot.is_file() {
-        let bytes = std::fs::read(&snapshot).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(&snapshot).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, &snapshot.display().to_string())?;
         b.push_dataset(&ds)?;
         has = true;
@@ -353,7 +352,7 @@ fn load_target_axioms(
         .join("target_axioms")
         .join(format!("{prefix}.ttl"));
     if fixture.is_file() {
-        let bytes = std::fs::read(&fixture).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(&fixture).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, &fixture.display().to_string())?;
         b.push_dataset(&ds)?;
         has = true;
@@ -370,7 +369,7 @@ fn load_target_axioms(
 /// are never substituted for the selected generated artifact.
 fn fno_catalog(projections: &Path) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
     let functions = projections.join(FNO_FUNCTIONS_FILE);
-    let bytes = std::fs::read(&functions).map_err(SliceError::Io)?;
+    let bytes = std::fs::read(&functions).map_err(crate::error::io_diag)?;
     parse_turtle(&bytes, &functions.display().to_string())
 }
 
@@ -380,8 +379,8 @@ fn edoal_datasets(
 ) -> Result<Vec<(String, Arc<RdfDataset>)>, gmeow_errors::Diag> {
     let mut files: Vec<PathBuf> = Vec::new();
     if projections.is_dir() {
-        for entry in std::fs::read_dir(projections).map_err(SliceError::Io)? {
-            let path = entry.map_err(SliceError::Io)?.path();
+        for entry in std::fs::read_dir(projections).map_err(crate::error::io_diag)? {
+            let path = entry.map_err(crate::error::io_diag)?.path();
             if path
                 .file_name()
                 .and_then(|n| n.to_str())
@@ -399,7 +398,7 @@ fn edoal_datasets(
             .and_then(|n| n.to_str())
             .unwrap_or_default()
             .to_owned();
-        let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(path).map_err(crate::error::io_diag)?;
         out.push((name, parse_turtle(&bytes, &path.display().to_string())?));
     }
     Ok(out)
@@ -414,13 +413,13 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Di
         .iter()
         .find(|s| s.prefix == prefix)
         .ok_or_else(|| {
-            SliceError::Io(std::io::Error::new(
+            crate::error::io_diag(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
                 format!("no network source configured for target {prefix}"),
             ))
         })?;
     let namespace = gmeow_logic_compile::ingest::registry_iri(prefix).ok_or_else(|| {
-        SliceError::Io(std::io::Error::new(
+        crate::error::io_diag(std::io::Error::new(
             std::io::ErrorKind::NotFound,
             format!("no namespace configured for target {prefix}"),
         ))
@@ -436,7 +435,7 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Di
         .build()
         .call()
         .map_err(|e| {
-            SliceError::Io(std::io::Error::other(format!(
+            crate::error::io_diag(std::io::Error::other(format!(
                 "network fetch failed for {prefix}: {e}"
             )))
         })?;
@@ -444,10 +443,12 @@ fn fetch_target_axioms(prefix: &str) -> Result<Arc<RdfDataset>, gmeow_errors::Di
         .into_body()
         .into_with_config()
         .read_to_vec()
-        .map_err(|e| SliceError::Io(std::io::Error::other(format!("read body {prefix}: {e}"))))?;
+        .map_err(|e| {
+            crate::error::io_diag(std::io::Error::other(format!("read body {prefix}: {e}")))
+        })?;
 
     let parsed = parse_dataset(&bytes, source.media_type, None)
-        .map_err(|e| SliceError::Parse(format!("parse error fetching {prefix}: {e}")))?;
+        .map_err(|e| crate::error::parse_diag(format!("parse error fetching {prefix}: {e}")))?;
 
     // Keep only the structural axiom / property-type quads whose subject is in the target
     // namespace (the historical filter), rebuilt as a fresh dataset.
@@ -570,7 +571,7 @@ impl Corpus {
 ///
 /// # Errors
 ///
-/// Returns [`SliceError`] on any missing/unparsable required source (the ontology, the
+/// Returns a diagnostic on any missing/unparsable required source (the ontology, the
 /// SSSOM tables, the FnO catalog) — no degraded fallback (CONSTITUTION / no-compromises).
 pub fn lint_correspondence_soundness(
     root: &Path,
@@ -599,17 +600,17 @@ pub fn lint_correspondence_soundness(
         Some(catalog) => gmeow_validate::grounding_catalog::owned_sources(root, catalog),
         None => gmeow_validate::grounding_catalog::discover(root),
     }
-    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let selected_catalog =
         gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::from_sources(
             &owned,
             &DslView::new(&ontology),
         )
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let cells: Vec<ProjectionCell> = {
         let dsl_view = DslView::new(&dsl);
         get_leg::projections(&dsl_view, &selected_catalog)
-            .map_err(|e| SliceError::Parse(e.to_string()))?
+            .map_err(|e| crate::error::parse_diag(e.to_string()))?
     };
 
     // Scope the ontology view so its borrow of `ontology` ends before `ontology` is moved

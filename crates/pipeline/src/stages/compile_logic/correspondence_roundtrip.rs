@@ -15,6 +15,27 @@ use purrdf::RdfDataset;
 
 const CHANNEL: &str = "pipeline/correspondence-roundtrip.json";
 
+struct Outcome(Result<(), gmeow_errors::RecordedDiag>);
+
+impl purrdf_lex::json::record::ToJson for Outcome {
+    fn to_json(&self) -> purrdf_lex::json::Value {
+        gmeow_errors::json::recorded_unit_result_to_json(&self.0)
+    }
+}
+
+impl purrdf_lex::json::record::FromJson for Outcome {
+    fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Self, purrdf_lex::json::record::DecodeError> {
+        gmeow_errors::json::read_recorded_unit_result(
+            value,
+            "correspondence reconstruction outcome",
+            "one correspondence reconstruction outcome variant",
+        )
+        .map(Self)
+    }
+}
+
 fn observe(authored: &CorrespondenceProgram, projection: &RdfDataset) -> gmeow_errors::Result<()> {
     let reconstructed = parse_correspondence(projection)?;
     if reconstructed != *authored {
@@ -32,8 +53,7 @@ pub(super) fn record(
 ) -> gmeow_errors::Result<()> {
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&super::observed(observe(authored, projection)))
-            .map_err(gmeow_errors::Diag::from)?,
+        purrdf_lex::json::record::to_vec(&Outcome(super::observed(observe(authored, projection)))),
     );
     Ok(())
 }

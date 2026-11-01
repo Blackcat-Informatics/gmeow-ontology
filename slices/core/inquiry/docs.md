@@ -252,3 +252,11 @@ likewise has no stable external IRI counterpart and is intentionally left unmapp
   on `gmeow:tenureQuestion`.
 - **Annotation completeness** (Principle 8) — all 18 locally-declared terms carry an `rdfs:label`, a
   `skos:definition`, and `rdfs:isDefinedBy` the inquiry slice IRI.
+
+## Retained question context
+
+questionContext preserves the source's surrounding context for a Question,
+including untagged strings or supplied language and RDF 1.2 base direction.
+It does not replace questionText, identify the Question by wording, assert a
+presupposition or record an accepted answer. Several attributed contexts may
+coexist without a preferred context.

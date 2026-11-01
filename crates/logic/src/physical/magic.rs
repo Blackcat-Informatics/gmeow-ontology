@@ -224,6 +224,20 @@ fn builtin_of(b: &QBuiltin) -> QBuiltin {
             comparison: *comparison,
             expected: *expected,
         },
+        QBuiltin::TermIdentity {
+            left,
+            left_component,
+            right,
+            right_component,
+            expected,
+        } => QBuiltin::TermIdentity {
+            left: left.map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            left_component: *left_component,
+            right: right
+                .map_variable(|name| format!("?{}", name.strip_prefix('?').unwrap_or(name))),
+            right_component: *right_component,
+            expected: *expected,
+        },
         QBuiltin::TermEqual {
             left,
             right,
@@ -542,6 +556,7 @@ fn negated_body_flounders(body: &[EvalAtom], builtins: &[QBuiltin]) -> bool {
             // surface this backward-magic analysis covers) never generate a value.
             QBuiltin::Is { .. }
             | QBuiltin::TermKind { .. }
+            | QBuiltin::TermIdentity { .. }
             | QBuiltin::TermEqual { .. }
             | QBuiltin::TermCompare { .. }
             | QBuiltin::Compare { .. }

@@ -15,6 +15,8 @@ use super::grounding_catalog::{
 };
 use super::selected_templates::SelectedTemplate;
 
+mod cbor;
+
 const BINDING_DOMAIN: purrdf_hash::Domain = purrdf_hash::Domain::new(b"projection-binding-v1");
 const INPUT_CHECK_DOMAIN: purrdf_hash::Domain =
     purrdf_hash::Domain::new(b"projection-input-check-v1");

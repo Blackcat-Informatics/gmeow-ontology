@@ -1,0 +1,88 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/fictional-characters/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# An ordinary illustrative source scene, not an execution receipt or fixture.
+ex:critic a gmeow:Agent .
+ex:otherCritic a gmeow:Agent .
+ex:recorder a gmeow:Agent .
+ex:original a gmeow:InformationObject ;
+    dcterms:description "Original character analysis with an arc-phase field and source prose."@en ;
+    gmeow:wasAttributedTo ex:critic .
+ex:otherOriginal a gmeow:InformationObject ;
+    dcterms:description "A second interpreter's source description."@en ;
+    gmeow:wasAttributedTo ex:otherCritic .
+
+ex:order a gmeow:Axis .
+ex:canon a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis ex:order ; gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:adaptation a gmeow:NarrativeReferenceFrame ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis ex:order ; gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
+    gmeow:frameKind gmeow:frameKindNarrative ; gmeow:requiresHost false ;
+    gmeow:determinacyModel gmeow:determinacyDisputed .
+ex:novel a gmeow:CreativeWork ; gmeow:sourceFor ex:canon .
+ex:adaptedPlay a gmeow:CreativeWork ; gmeow:sourceFor ex:adaptation .
+
+# These are distinct referents; no same-name identity rule is asserted.
+ex:engineer a gmeow:Character ;
+    gmeow:hasReferenceFrame ex:canon ;
+    rdfs:label "the engineer in the novel"@en .
+ex:adaptedEngineer a gmeow:Character ;
+    gmeow:hasReferenceFrame ex:adaptation ;
+    rdfs:label "the engineer in the adaptation"@en .
+ex:engineer gmeow:counterpartOf ex:adaptedEngineer
+    {| gmeow:accordingTo ex:critic ; gmeow:wasDerivedFrom ex:original |} .
+
+# A fictional historical portrayal is still not the represented Person.
+# The unnamed historical participant here is part of the illustrative source.
+ex:historicalEngineer a gmeow:Person .
+ex:engineer gmeow:counterpartOf ex:historicalEngineer
+    {| gmeow:accordingTo ex:critic ; gmeow:wasDerivedFrom ex:original |} .
+
+# Prose is attributed to each interpreter, not endorsed by the character.
+ex:engineer gmeow:motivation "She wants to repair the bridge."@en
+    {| gmeow:accordingTo ex:critic ; gmeow:wasAttributedTo ex:recorder ;
+       gmeow:wasDerivedFrom ex:original |} .
+ex:engineer gmeow:motivation "She wants to escape the town."@en
+    {| gmeow:accordingTo ex:otherCritic ; gmeow:wasAttributedTo ex:recorder ;
+       gmeow:wasDerivedFrom ex:otherOriginal |} .
+# Direction is original source data, not a translated ontology annotation.
+ex:engineer gmeow:motivation "إصلاح الجسر"@ar--rtl
+    {| gmeow:accordingTo ex:critic ; gmeow:wasAttributedTo ex:recorder ;
+       gmeow:wasDerivedFrom ex:original |} .
+ex:engineer gmeow:relationshipText "She describes the ferryman as a rival."@en
+    {| gmeow:accordingTo ex:critic ; gmeow:wasAttributedTo ex:recorder ;
+       gmeow:wasDerivedFrom ex:original |} .
+# No ferryman entity, reciprocal relation or ferryman endorsement is invented.
+
+# The source's phase field belongs to this record. It creates no ArcSample,
+# NarrativePosition, beat classification, affect state or pursuit verdict.
+ex:phaseRecord a gmeow:InformationObject ;
+    gmeow:hasReferenceFrame ex:canon ;
+    gmeow:wasDerivedFrom ex:original ; gmeow:wasAttributedTo ex:recorder ;
+    gmeow:arcPositionLabel "rising"@en
+        {| gmeow:accordingTo ex:critic ; gmeow:wasDerivedFrom ex:original |} .
+# The same property can preserve an actual field on a Character instead.
+ex:adaptedEngineer gmeow:arcPositionLabel "unresolved"@en
+    {| gmeow:accordingTo ex:otherCritic ; gmeow:wasDerivedFrom ex:otherOriginal |} .
+
+# Existing Entity-valued semantic spines accept the fictional subject.
+ex:questReading a gmeow:CharacterArc ;
+    gmeow:arcSubject ex:engineer ; gmeow:arcFrame ex:canon ;
+    gmeow:arcType gmeow:arcTypeQuest ; gmeow:arcEvidence ex:original ;
+    gmeow:accordingTo ex:critic .
+ex:protagonistReading a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer ex:engineer ;
+    gmeow:narrativeRoleScope ex:canon ;
+    gmeow:narrativeRoleValue gmeow:roleProtagonist ;
+    gmeow:accordingTo ex:critic .

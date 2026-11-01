@@ -536,14 +536,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/vocabularySubsumedByFunctionality|
 msgid "Scope: this record carries ONE integrity obligation about gmeow:vocabularySubsumedBy and nothing else. It is not a definition of gmeow:vocabularySubsumedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:vocabularySubsumedBy 的一项完整性义务，别无其他。它不是 gmeow:vocabularySubsumedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "ceiling relocation — the week cycle, organization to temporal"
-msgstr "上限迁移——星期周期，由 organization 迁往 temporal"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The record that the week-cycle value vocabulary left the organization slice for the temporal slice: gmeow:DayOfWeek and its seven ISO-8601 day individuals are calendar structure, and they sat in organization only because gmeow:openingDay needed a range. The rdfs subsumption edge gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue is the one guarded construct the move carries, so organization surrenders one unit of rdfs headroom and temporal takes exactly that unit on. This is the movement record the ceiling accounting joins against the measurement; it is not itself a permit, and it retires once the move is absorbed at the merge base."
-msgstr "该记录表明：星期周期的取值词表已经离开 organization 切片、迁往 temporal 切片。gmeow:DayOfWeek 及其七个 ISO-8601 日期个体属于历法结构，它们当初留在 organization，只是因为 gmeow:openingDay 需要一个值域。此次移动所携带的唯一受守卫构造，是 rdfs 包含边 gmeow:DayOfWeek rdfs:subClassOf logic:QualityValue，因此 organization 让出一个单位的 rdfs 余量，而 temporal 恰好承接这一个单位。这是上限核算据以与测量相互印证的移动记录；它本身并不构成许可，一旦该移动在合并基线处被吸收，它就随即失效。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/CeilingRelocation|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Ceiling Relocation"
 msgstr "上限迁移"
@@ -615,10 +607,6 @@ msgstr "迁移声明被创建时所标注的日期——与每个 gmeow:AxisExem
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDate|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
 msgstr "gmeow:reloc-affect-to-cognition gmeow:relocationDate \"2026-07-28\"^^xsd:date ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/reloc-organization-to-temporal-week-cycle|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
-msgstr "gmeow:reloc-organization-to-temporal-week-cycle gmeow:relocationTerm gmeow:DayOfWeek ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/relocationDateFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "relocationDate is functional"
@@ -711,12 +699,12 @@ msgid "Quality Assessment Corpus"
 msgstr "质量评估语料"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:contentDigest over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."
-msgstr "已记录的切片质量评估语料：一个代表整轮扫描的节点——每个被发现的切片都依此评分标准打分——并携带两个见证，使消费者可以读取评分而非重新计算。它携带一个覆盖该轮扫描所读取的、经规范化的已编写源集合的 gmeow:versionFingerprint（评定了哪些源），以及一个覆盖其自身所记录评分的 gmeow:contentDigest（记录了什么）。二者不可互换，任何一个都不能替代另一个：某条记录其指纹仍与工作树相符，但其分数被手工编辑过，则满足前者而违反后者。它是语料，绝非单个切片的评估（那是携带 gmeow:assessmentAxis 的 gmeow:QualityAssessment），也非评分标准本身（那是本切片声明的 gmeow:QualityAxis / gmeow:QualityTier 词汇）。"
+msgid "The recorded slice-quality assessment corpus: one node standing for a whole sweep — every discovered slice scored against this rubric — carrying the two witnesses that let a consumer read a grade instead of recomputing it. It carries a gmeow:versionFingerprint over the canonicalized authored source set the sweep read (WHICH sources were scored) and a gmeow:qualityRecordFingerprint over its own recorded grades (WHAT was recorded). The two are NOT interchangeable and neither substitutes for the other: a record whose fingerprint still matches the working tree but whose scores were edited by hand satisfies the first and violates the second. It is the CORPUS, never one slice's assessment (that is a gmeow:QualityAssessment carrying a gmeow:assessmentAxis) and never the rubric itself (that is the gmeow:QualityAxis / gmeow:QualityTier vocabulary this slice declares)."
+msgstr "已记录的切片质量评估语料：一个代表整轮扫描的节点——每个被发现的切片都依此评分标准打分——并携带两个见证，使消费者可以读取评分而非重新计算。它携带一个覆盖该轮扫描所读取的、经规范化的已编写源集合的 gmeow:versionFingerprint（评定了哪些源），以及一个覆盖其自身所记录评分的 gmeow:qualityRecordFingerprint（记录了什么）。二者不可互换，任何一个都不能替代另一个：某条记录其指纹仍与工作树相符，但其分数被手工编辑过，则满足前者而违反后者。它是语料，绝非单个切片的评估（那是携带 gmeow:assessmentAxis 的 gmeow:QualityAssessment），也非评分标准本身（那是本切片声明的 gmeow:QualityAxis / gmeow:QualityTier 词汇）。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#example"
-msgid "<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:…\" ; gmeow:contentDigest \"blake3:…\" ."
-msgstr "示例：<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:…\" ; gmeow:contentDigest \"blake3:…\" ."
+msgid "<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ; gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."
+msgstr "示例：<https://blackcatinformatics.ca/gmeow/graph/slice-quality> a gmeow:QualityAssessmentCorpus ; gmeow:versionFingerprint \"blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ; gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/QualityAssessmentCorpus|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Exactly one corpus node per sweep, emitted ahead of the per-slice blocks. Individuals are generated by the sweep, never hand-authored — a hand-written corpus would be a claim about a sweep nobody ran."
@@ -755,8 +743,8 @@ msgid "Unreadable Quality Record"
 msgstr "不可读的质量记录"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The failure raised when the recorded quality-assessment corpus cannot be read back as an authoritative record: it is absent, it does not parse, it is structurally incomplete (a slice the tree contains missing from it, or a grade missing its axis, its score, or its tier), or it is STALE — its gmeow:versionFingerprint does not match a fresh canonicalization of the authored sources, or its gmeow:contentDigest does not match a re-fold of the grades it carries. HARD FAIL in every one of those shapes: a consumer reads the record INSTEAD of re-running the sweep, so a partial reading is not a weaker grade but a grade about a different tree, and falling back to 'read what is there' would let a hand-raised score pass as a measurement. It is NOT a low score and never a verdict about a slice's quality — the record's readability and the slice's grade are different questions, and this class only ever answers the first."
-msgstr "当所记录的质量评估语料无法作为权威记录被读回时所引发的失败：它缺失、无法解析、结构上不完整（树中包含的某个切片在其中缺失，或某条评分缺少其轴、分数或层级），或者已过期——其 gmeow:versionFingerprint 与对已编写源的新鲜规范化不符，或其 gmeow:contentDigest 与对其所载评分的重新折叠不符。以上每一种形态都是硬性失败：消费者读取该记录以代替重新运行扫描，因此片面的读取并非较弱的评分，而是关于另一棵树的评分；退回到「读取现有内容」将使手工抬高的分数冒充测量结果。它不是低分，也绝非对切片质量的裁断——记录的可读性与切片的评分是不同的问题，而本类始终只回答前者。"
+msgid "The failure raised when the recorded quality-assessment corpus cannot be read back as an authoritative record: it is absent, it does not parse, it is structurally incomplete (a slice the tree contains missing from it, or a grade missing its axis, its score, or its tier), or it is STALE — its gmeow:versionFingerprint does not match a fresh canonicalization of the authored sources, or its gmeow:qualityRecordFingerprint does not match a re-fold of the grades it carries. HARD FAIL in every one of those shapes: a consumer reads the record INSTEAD of re-running the sweep, so a partial reading is not a weaker grade but a grade about a different tree, and falling back to 'read what is there' would let a hand-raised score pass as a measurement. It is NOT a low score and never a verdict about a slice's quality — the record's readability and the slice's grade are different questions, and this class only ever answers the first."
+msgstr "当所记录的质量评估语料无法作为权威记录被读回时所引发的失败：它缺失、无法解析、结构上不完整（树中包含的某个切片在其中缺失，或某条评分缺少其轴、分数或层级），或者已过期——其 gmeow:versionFingerprint 与对已编写源的新鲜规范化不符，或其 gmeow:qualityRecordFingerprint 与对其所载评分的重新折叠不符。以上每一种形态都是硬性失败：消费者读取该记录以代替重新运行扫描，因此片面的读取并非较弱的评分，而是关于另一棵树的评分；退回到「读取现有内容」将使手工抬高的分数冒充测量结果。它不是低分，也绝非对切片质量的裁断——记录的可读性与切片的评分是不同的问题，而本类始终只回答前者。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/UnreadableQualityRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Freshness and integrity are separate obligations that this one class covers because both make the record unreadable in the same way: the fingerprint asks whether the record describes THIS tree, the content digest asks whether the record is what the scorer wrote, and an input-only witness answers only the first."
@@ -1149,3 +1137,71 @@ msgstr "不要将此前缀视为仅匹配 value 的精确 IRI，也不要把目�
 msgctxt "https://blackcatinformatics.ca/gmeow/projVocab-schema-value|gmeow:howToUse"
 msgid "Admit selectors against the separate owned catalog before namespace filtering; retain only their validated virtual target witnesses in the surface count."
 msgstr "在命名空间筛选之前，使用独立的所属目录准入选择器；表面计数仅保留其经过验证的虚拟目标见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisMaximalProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The axis for pure validation projection and required mapping sources. A slice carrying restriction or class-disjointness constraints earns validation credit when it has no parallel authored shapes.ttl; its canonical logic: constraints belong in module.ttl and project to generated/shapes/*. A slice whose own terms link to external vocabularies must supply mappings/equivalences.ttl. This axis checks those authoring-surface and mapping-file obligations, not content survival across SSSOM/EDOAL/FnO or loss-ledger completeness (Principles 4/7/17)."
+msgstr "衡量纯粹验证投影及必需映射源的轴。带有限制或类不相交约束的切片，在没有并行手写 shapes.ttl 时获得验证得分；其规范 logic: 约束应写在 module.ttl 中，并投影到 generated/shapes/*。自身词项链接到外部词汇表的切片必须提供 mappings/equivalences.ttl。此轴检查这些编写表面与映射文件义务，而不检查内容在 SSSOM/EDOAL/FnO 中是否保留，或损失台账是否完整（原则 4/7/17）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityDimensionProjection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The data-quality dimension for pure validation projection and required mapping sources: canonical logic: constraints generate validation views instead of maintaining a parallel authored shape surface, and external links have their mapping source. This dimension does not certify content survival or loss-ledger completeness (Principles 4/7/17)."
+msgstr "衡量纯粹验证投影及必需映射源的数据质量维度：规范 logic: 约束生成验证视图，而不是维护并行手写形状表面；外部链接具有其映射源。此维度不证明内容保留或损失台账完整性（原则 4/7/17）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/axisShapeMigration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The historical axis measuring the fraction of typed sh:NodeShape / sh:PropertyShape blocks in a legacy authored shapes.ttl that carry a logic:formalizes back-reference. This presence-only measure does not prove projection equivalence or authorize deletion. Validation belongs in canonical logic: sources and shapes are generated views (Principle 17). Unlike axisMaximalProjection, which credits a constraint-bearing slice when the parallel authored file is absent, this axis measures the retained legacy inventory; it is not the foundation grounding of domain classes."
+msgstr "衡量旧手写 shapes.ttl 中带有 logic:formalizes 回指的已定型 sh:NodeShape / sh:PropertyShape 块所占比例的历史轴。这种仅检查存在性的度量既不证明投影等价，也不授权删除。验证属于规范 logic: 源，形状是生成视图（原则 17）。axisMaximalProjection 在带约束切片不存在并行手写文件时给予得分；与之不同，此轴衡量保留的旧形状清单，而不是领域类的基础扎根程度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quality record fingerprint"
+msgstr "质量记录指纹"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The versioned scheme fingerprint of a quality-assessment corpus’s reconstructed grades and roll-up tiers. It witnesses what the record contains, separately from versionFingerprint over the source set, and is not a byte-exact digest of the RDF serialization."
+msgstr "质量评估语料库中重建的评分及汇总等级的版本化方案指纹。它见证记录所含内容，与针对源集合的 versionFingerprint 分开，并非 RDF 序列化的精确字节摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the recorded-grade integrity witness emitted by the quality sweep and recomputed by its reader."
+msgstr "用于质量扫描生成并由其读取器重新计算的已记录评分完整性见证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid contentDigest, the source-set versionFingerprint, or another scheme’s hash in place of this witness. Do not select one of conflicting witness terms."
+msgstr "不要以 contentDigest、源集合的 versionFingerprint 或其他方案的哈希替代此见证。不要从冲突的见证项中选取一个。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Emit one distinct qualityRecordFingerprintV1 literal for the whole corpus. The reader requires that exact datatype, no language or direction, exactly 64 lowercase hexadecimal digits, and equality with the complete recomputed typed literal."
+msgstr "为整个语料库生成一个不同值的 qualityRecordFingerprintV1 字面量。读取器要求确切的数据类型、不含语言或方向、恰为 64 个小写十六进制数字，并与重新计算的完整类型化字面量相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Identical native terms repeated across graph labels are one witness. Distinct terms, missing witnesses and malformed values fail the owning reader. This is a concrete scheme admission contract, not a generic custom-datatype parser."
+msgstr "在不同图标签下重复的相同原生项视为同一个见证。不同的项、缺失的见证及格式错误的值均使所属读取器失败。这是具体方案的准入约定，并非通用的自定义数据类型解析器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:corpus gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."
+msgstr "ex:corpus gmeow:qualityRecordFingerprint \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quality record fingerprint version one"
+msgstr "质量记录指纹第一版"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The version-one identifier scheme for a quality-assessment corpus’s grade reconstruction: BLAKE3 over the fixed gmeow-slice-quality-record-v1 domain tag and the ordered slice, axis, exact-score, tier and roll-up fields. Its value retains that scheme identity; the lexical form is exactly 64 lowercase hexadecimal digits without a prefix."
+msgstr "质量评估语料库评分重建的第一版标识方案：对固定域标签 gmeow-slice-quality-record-v1 及有序的切片、轴、精确分数、等级与汇总等级字段进行 BLAKE3 计算。其值保留该方案身份；词法形式恰为 64 个小写十六进制数字，不含前缀。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only for the quality-record scheme whose exact byte encoding is defined in the rubric design."
+msgstr "仅用于其确切字节编码在评分规则设计中定义的质量记录方案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a bare blake3_256Digest, a digest of serialized RDF bytes, or the source-set fingerprint. A shared hash algorithm does not make different identifier schemes equal."
+msgstr "不用于普通 blake3_256Digest、序列化 RDF 字节的摘要或源集合指纹。使用相同的哈希算法不使不同标识方案相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the scheme datatype and lowercase lexical form together. Reconstruct the recorded grades, encode each score with the producer’s shortest round-tripping decimal spelling, apply the version-one byte encoding, and compare native literal terms."
+msgstr "同时保留方案数据类型和小写词法形式。重建已记录评分，以生产者可精确往返的最短十进制写法编码每个分数，应用第一版字节编码，再比较原生字面量项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The quality reader implements this selected scheme’s lexical and reconstruction checks. Declaration alone does not install a generic datatype parser or certify the correctness of the recorded grades. The two corpus witnesses remain separate and neither substitutes for the other."
+msgstr "质量读取器实现所选方案的词法及重建检查。仅作声明不会安装通用数据类型解析器，也不证明记录评分的正确性。两个语料库见证保持分离，彼此不能替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/qualityRecordFingerprintV1|http://www.w3.org/2004/02/skos/core#example"
+msgid "\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 retains the quality-record scheme identity."
+msgstr "\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:qualityRecordFingerprintV1 保留质量记录方案身份。"

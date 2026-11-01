@@ -463,8 +463,11 @@ fn property_shape_block(
     if let Some(sev) = p.severity {
         lines.push(format!("sh:severity sh:{}", sev.as_str()));
     }
-    if let Some(msg) = &p.message {
-        lines.push(format!("sh:message \"{}\"", esc_str(msg)));
+    for message in &p.messages {
+        lines.push(format!(
+            "sh:message {}",
+            purrdf::RdfTerm::literal(message.clone())
+        ));
     }
     format!("[ {} ]", lines.join(" ; "))
 }
@@ -1144,6 +1147,43 @@ fn filter_atom_expr(
     let Term::Iri(pred) = relation else {
         return None;
     };
+    if pred == "https://blackcatinformatics.ca/logic/termSameComponent" {
+        let [
+            left,
+            Term::Iri(left_selector),
+            right,
+            Term::Iri(right_selector),
+        ] = args.as_slice()
+        else {
+            return Some(Err(proj_err(
+                "termSameComponent requires (term, selector IRI, term, selector IRI)",
+            )));
+        };
+        let component = |term: &Term, selector: &str| -> gmeow_errors::Result<String> {
+            use crate::ir::TermComponent;
+            let selected = TermComponent::from_iri(selector)
+                .ok_or_else(|| proj_err(format!("unknown term component selector <{selector}>")))?;
+            let term = constraint_term(term, focus)?;
+            Ok(match selected {
+                TermComponent::Whole => term,
+                TermComponent::Datatype => format!("DATATYPE({term})"),
+                TermComponent::TripleSubject => format!("SUBJECT({term})"),
+                TermComponent::TriplePredicate => format!("PREDICATE({term})"),
+                TermComponent::TripleObject => format!("OBJECT({term})"),
+            })
+        };
+        let expression = || -> gmeow_errors::Result<String> {
+            let left = component(left, left_selector)?;
+            let right = component(right, right_selector)?;
+            let boolean = format!("COALESCE(sameTerm({left}, {right}), false)");
+            Ok(if negate {
+                format!("!{boolean}")
+            } else {
+                boolean
+            })
+        };
+        return Some(expression());
+    }
     if let Some((pos, neg)) = binary_comparison_ops(pred) {
         if args.len() != 2 {
             return Some(Err(proj_err(format!(
@@ -1750,6 +1790,13 @@ fn aggregate_balance_select(bal: &AggregateBalance) -> String {
 /// aggregate `GROUP BY`/`HAVING` form when it carries an [`AggregateComparison`] satellite, else
 /// the range-restricted `guard ∧ ¬φ` violation query lowered from the integrity formula.
 fn constraint_select(c: &ConstraintIr) -> gmeow_errors::Result<String> {
+    crate::relational_core::admit_component_constraint(c).map_err(|gap| {
+        proj_err(format!(
+            "component identity constraint <{}> failed bound integrity admission: {}",
+            c.iri,
+            gap.as_str()
+        ))
+    })?;
     // Hard-fail rather than silently pick a winner: a constraint carrying more than one
     // aggregate satellite would otherwise have the lower-priority satellite(s) below silently
     // dropped from the projected shape (a no-optionality violation).
@@ -1824,10 +1871,16 @@ fn try_project_block(c: &ConstraintIr) -> gmeow_errors::Result<String> {
     let formalizes = procedural_formalizes_term(c);
     let sev = c.severity.as_str();
     let target = procedural_target_clause(&c.target);
-    let message_line = match &c.message {
-        Some(m) => format!("        sh:message \"{}\" ;\n", esc_str(m)),
-        None => String::new(),
-    };
+    let message_line = c
+        .messages
+        .iter()
+        .map(|message| {
+            format!(
+                "        sh:message {} ;\n",
+                purrdf::RdfTerm::literal(message.clone())
+            )
+        })
+        .collect::<String>();
     let failure_line = c.failure_class.as_ref().map_or_else(String::new, |fc| {
         format!("    gmeow:enforcesFailureClass <{fc}> ;\n")
     });

@@ -856,7 +856,7 @@ impl Stage for ArchiveBlobsStage {
         Ok(StageOutput::new(StageProduct::from_bundle(
             self.id(),
             Arc::new(bundle),
-        )))
+        )?))
     }
 }
 

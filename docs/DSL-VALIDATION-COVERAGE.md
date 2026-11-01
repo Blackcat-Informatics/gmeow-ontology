@@ -37,6 +37,7 @@ cannot pass silently.
 | 11 — **mapping** DSL SHACL | `dsl/mappings/**/*.ttl` vs `shapes/mapping-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:910`; `dev_validate.rs` (authored-source path) |
 | 12 — **statement** DSL SHACL | `dsl/statements/**/*.ttl` vs `shapes/statement-dsl-shapes.ttl` | `make check` | The live `validate` gate | `validate_all.rs:930`; `dev_validate.rs` |
 | 13 — **test** DSL SHACL, central | `dsl/tests/**/*.ttl` vs residual `shapes/test-dsl-shapes.ttl` plus canonical rationale projections | `make check` | The live `validate` gate | `validate_all.rs`; `dsl_coverage.rs`; `dev_validate.rs` |
+| **Slice manifest** SHACL | Exact `slices/*/*/manifest.ttl` inputs vs residual manifest shapes plus canonical creator range and requiredness | `make check` | The live `validate` gate, using explicit manifest inputs independently of `slices_dir` | `validate_all.rs`; `dsl_coverage.rs`; `dev_validate.rs` |
 
 ### Why these placements
 
@@ -45,6 +46,10 @@ cannot pass silently.
   `make check`. The three central DSL trees are tiny (the whole `dsl/` tree is a
   few dozen `.ttl` files) and `validate_dsl` merges them standalone (no TBox
   fan-out), so runtime is set by the edit, not by corpus breadth.
+- **Manifest validation consumes source metadata only.** Its selected input holds
+  exact manifest paths and shapes projected from `slices/vocabulary.ttl` alongside
+  the residual checks. Missing inputs fail closed. It does not enable the
+  `slices_dir` example or test-materialization paths and never produces a corpus.
 - **No Rust test rebuilds the example corpus.** The former `example_sweep` test
   walked all authored examples and materialized `TBox + example` corpora inside
   nextest. That producer-reachable lane was removed under the repository's absolute

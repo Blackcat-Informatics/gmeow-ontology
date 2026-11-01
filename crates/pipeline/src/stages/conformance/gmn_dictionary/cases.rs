@@ -8,7 +8,6 @@ use gmeow_lang_bridge::{
     classify_model, gmn0_canonically_equal, gmn1_read, gmn1_write,
 };
 use purrdf::{RdfDatasetBuilder, RdfLiteral};
-use serde::{Deserialize, Serialize};
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
@@ -23,20 +22,20 @@ const PRED_GMN_REPAIR_ID: &str = "https://blackcatinformatics.ca/gmeow/gmnRepair
 const PRED_GMN_REPAIR_CLASS: &str = "https://blackcatinformatics.ca/gmeow/gmnRepairClass";
 const PRED_OCCURRENT_BOUNDARY: &str = "https://blackcatinformatics.ca/logic/occurrentBoundary";
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Records {
     pub sigils: Result<Written, Gmn1Error>,
     pub scoped: Result<Scoped, Gmn1Error>,
     pub process: Result<Process, Gmn1Error>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Written {
     pub text: String,
     pub canonical_equal: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Scoped {
     pub written: Written,
     pub fallback: Result<bool, Gmn1Error>,
@@ -44,7 +43,7 @@ pub(in crate::stages::conformance) struct Scoped {
     pub wrong_fallback_scope: Result<(), Gmn1Error>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug)]
 pub(in crate::stages::conformance) struct Process {
     pub written: Written,
     pub primary: Option<QuadCoverage>,

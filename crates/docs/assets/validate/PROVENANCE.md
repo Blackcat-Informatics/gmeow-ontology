@@ -36,7 +36,7 @@ make maint-refresh-validate-asset
 ```
 
 This rebuilds the wasm package (`make validate-wasm-pkg`: `cargo build … --target
-wasm32-unknown-unknown --release`, then wasm-bindgen 0.2.125 `--target web`, then the
+wasm32-unknown-unknown --release`, then wasm-bindgen 0.2.129 `--target web`, then the
 REQUIRED `wasm-opt -Oz`) and copies the four artifacts here, rewriting `DIGESTS.blake3`
 under `GMEOW_VALIDATE_BLESS=1`. It must be run whenever the validator source changes;
 otherwise the vendored engine drifts from source. Two gates guard against a stale/broken

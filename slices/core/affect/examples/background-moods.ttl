@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/background-moods/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Four illustrative attributed modes. No timing, clinical diagnosis, felt
+# experience, classifier execution or current-state choice is asserted.
+ex:actor a gmeow:Agent .
+ex:reader a gmeow:Agent .
+ex:writer a gmeow:SoftwareAgent .
+ex:source a gmeow:InformationObject ;
+    gmeow:description "The retained source describes four background modes without giving their observation times."@en ;
+    gmeow:wasAttributedTo ex:reader .
+
+ex:warmMode a gmeow:Mood ;
+    gmeow:moodBearer ex:actor ;
+    gmeow:moodType gmeow:moodTypeAffectionate .
+ex:reservedMode a gmeow:Mood ;
+    gmeow:moodBearer ex:actor ;
+    gmeow:moodType gmeow:moodTypeAloof .
+ex:quietMode a gmeow:Mood ;
+    gmeow:moodBearer ex:actor ;
+    gmeow:moodType gmeow:moodTypeContent .
+ex:unsettledMode a gmeow:Mood ;
+    gmeow:moodBearer ex:actor ;
+    gmeow:moodType gmeow:moodTypeRestless .
+
+ex:warmClaim rdf:reifies <<( ex:warmMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:reservedClaim rdf:reifies <<( ex:reservedMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:quietClaim rdf:reifies <<( ex:quietMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+ex:unsettledClaim rdf:reifies <<( ex:unsettledMode rdf:type gmeow:Mood )>> ;
+    gmeow:accordingTo ex:reader ;
+    gmeow:wasDerivedFrom ex:source ;
+    gmeow:wasAttributedTo ex:writer .
+
+# The actor bears these attributed modes; source, reader and writer retain
+# separate identities. No Emotion-domain target or bearer property is reused.

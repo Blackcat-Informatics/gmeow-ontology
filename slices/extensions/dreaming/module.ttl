@@ -1,4 +1,6 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
@@ -50,7 +52,7 @@ DREAM COMPOSITION.
   * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.
 
 DOCTRINE.
-  * No new primitives (Principle 4 / Principle 6): this slice adds only gmeow:DreamReport and gmeow:dreamElement. Every dream kind is composed from existing core classes and value vocabularies; the dream itself is a composed gmeow:Experience, the dream report is a composed recollection gmeow:Experience, and dream elements are linked through one new object property whose domain is gmeow:Experience and whose range stays open.
+  * Core composition (Principle 4 / Principle 6): dream and recollection episodes, selection and waking-appraisal information records, source provenance and recorded phase dispositions compose existing core classes and value vocabularies. Dream kinds remain compositions of gmeow:Experience; retained source records do not become new kinds of experience.
   * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.
   * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
@@ -58,3 +60,547 @@ DOCTRINE.
     skos:definition "The GMEOW Dreaming Module — a published extension-tier composition over the experiential/mentation layer: dreams, dream reports, and dream elements are built from gmeow:Experience, gmeow:AwarenessMode, gmeow:ContentOrigin, gmeow:LearningEvent, gmeow:Analogy, and metacognition with no new primitives."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxConfigBox ,
         gmeow:boxTBox .
+
+# Source-faithful goals, attempts and self-commitments (Principles 4, 9, 17).
+
+gmeow:requestedByDream
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "requested by dream"@x-gmeow-english ;
+    skos:definition "The actual DreamReport recollection episode from which an AttentionRequest was derived. This extension-owned provenance link does not turn the episode into an enduring document or assert that dream content occurred externally."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
+    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    skos:example "ex:record gmeow:requestedByDream ex:target ."@x-gmeow-english ;
+    logic:domain gmeow:AttentionRequest ;
+    logic:range gmeow:DreamReport ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:inspiredByDream
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "inspired by dream"@x-gmeow-english ;
+    skos:definition "The actual DreamReport recollection episode from which a message was composed, specializing source derivation. The episode remains an occurrent; dream content is not asserted as external fact and no message delivery is inferred."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:inspiredByDream."@x-gmeow-english ;
+    logic:domain gmeow:Message ;
+    logic:range gmeow:DreamReport ;
+    logic:subPropertyOf gmeow:wasDerivedFrom .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/inspiredByDream" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Source-faithful selection, waking appraisal and phase retention.
+
+gmeow:DreamSelection
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Dream Selection"@x-gmeow-english ;
+    skos:definition "A retained information record of how a dream was chosen, including the selected awareness mode, actual self-inquiry question, consumer category and draw digest when supplied. It is distinct from the selecting act and the dream itself."@x-gmeow-english ;
+    gmeow:useWhen "Use for the retained choice record accompanying a dream."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the selecting act or dream episode as this record."@x-gmeow-english ;
+    gmeow:howToUse "Link the dream through selectedBy; attach only the supplied question, chosen mode, category and draw digest."@x-gmeow-english ;
+    skos:scopeNote "A partial record remains partial; missing selection details are never reconstructed."@x-gmeow-english ;
+    skos:example "For example: ex:choice a gmeow:DreamSelection ; gmeow:selectionQuestion ex:question ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:selectedBy
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected by"@x-gmeow-english ;
+    skos:definition "Relates a dream experience to its actual retained selection record; no random draw or inquiry is inferred from an absent field."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies a dream's selection record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing at the draw's digest string or the selector Agent."@x-gmeow-english ;
+    gmeow:howToUse "Connect the Experience to the actual DreamSelection InformationObject."@x-gmeow-english ;
+    skos:scopeNote "Several source-attributed selections may coexist; this edge executes no selection."@x-gmeow-english ;
+    skos:example "For example: ex:dream gmeow:selectedBy ex:choice ."@x-gmeow-english ;
+    logic:domain gmeow:Experience ;
+    logic:range gmeow:DreamSelection .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectedBy" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:InquiryCategory
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Inquiry Category"@x-gmeow-english ;
+    skos:definition "An open consumer-owned category vocabulary for the self-inquiry question used in dream selection. It supplies no members and does not replace the question's answerhood type or operational InquiryKind."@x-gmeow-english ;
+    gmeow:useWhen "Use for a consumer's own classification of a selected self-inquiry question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing QuestionType or InquiryKind with this thematic category."@x-gmeow-english ;
+    gmeow:howToUse "Mint category individuals in the consumer namespace and reference them through inquiryCategory."@x-gmeow-english ;
+    skos:scopeNote "The vocabulary is open and intentionally seeds no member."@x-gmeow-english ;
+    skos:example "For example: ex:localCategory a gmeow:InquiryCategory ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:inquiryCategory
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "inquiry category"@x-gmeow-english ;
+    skos:definition "The consumer-supplied category of the selection's self-inquiry question. Categories may coexist without a preferred member."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source category chosen for a selection's question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a category from the question's wording or answer."@x-gmeow-english ;
+    gmeow:howToUse "Point the DreamSelection at actual InquiryCategory individuals."@x-gmeow-english ;
+    skos:scopeNote "Categories may overlap; no single category is preferred or required."@x-gmeow-english ;
+    skos:example "For example: ex:choice gmeow:inquiryCategory ex:localCategory ."@x-gmeow-english ;
+    logic:domain gmeow:DreamSelection ;
+    logic:range gmeow:InquiryCategory .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/inquiryCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:lotteryDigest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "lottery digest"@x-gmeow-english ;
+    skos:definition "The source-supplied algorithm-tagged digest of the draw that selected the dream. It names draw evidence, not the selection record's own content bytes or proof of fairness."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source supplies the digest naming its selection draw."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the selection artifact's contentDigest or inventing an algorithm tag."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact tagged xsd:string; require its algorithm name and nonempty payload."@x-gmeow-english ;
+    skos:scopeNote "Lexical validation neither verifies bytes nor proves draw fairness or randomness."@x-gmeow-english ;
+    skos:example "For example: ex:choice gmeow:lotteryDigest \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
+    logic:domain gmeow:DreamSelection ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/lotteryDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:dreamSequence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "dream sequence"@x-gmeow-english ;
+    skos:definition "The source-recorded nonnegative number of a dream in its dreamer's own source-scoped sequence. Numbers may tie, have gaps or restart in another source context; they are not global identities or timestamps."@x-gmeow-english ;
+    gmeow:useWhen "Use for the dreamer's source-recorded nonnegative dream counter."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating equal numbers as one dream or sorting dreams globally by this field."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual experiencer and attribute the exact native number statement to its source context."@x-gmeow-english ;
+    skos:scopeNote "Ties, gaps and independently scoped restarts are permitted; no global uniqueness follows."@x-gmeow-english ;
+    skos:example "For example: ex:dream gmeow:dreamSequence \"12\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:Experience ;
+    logic:range xsd:nonNegativeInteger .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/dreamSequence" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:WakingAppraisal
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Waking Appraisal"@x-gmeow-english ;
+    skos:definition "A retained information record of what a dreamer made of a dream on waking: source wording, proposed waking connections, carry-forward material and self-inquiry response. It is not the appraisal act or a truth verdict."@x-gmeow-english ;
+    gmeow:useWhen "Use for a retained account of the dreamer's waking interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the recollection episode or appraisal act as an information record."@x-gmeow-english ;
+    gmeow:howToUse "Attach through hasWakingAppraisal; preserve wording and actual descriptor or analogy parts."@x-gmeow-english ;
+    skos:scopeNote "Competing appraisals coexist; an appraisal supplies no accepted answer or truth verdict."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal a gmeow:WakingAppraisal ; gmeow:appraisalText \"The pier recalled a walk.\"@en ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:hasWakingAppraisal
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has waking appraisal"@x-gmeow-english ;
+    skos:definition "Relates a DreamReport recollection episode to an actual waking-appraisal record. Several attributed appraisals may coexist without turning the report event into a document."@x-gmeow-english ;
+    gmeow:useWhen "Use when a recollection has an actual retained waking-appraisal record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching appraisal text directly as this object's value."@x-gmeow-english ;
+    gmeow:howToUse "Link the DreamReport event to the distinct WakingAppraisal artifact."@x-gmeow-english ;
+    skos:scopeNote "The relation is nonfunctional and does not turn its report subject into an endurant."@x-gmeow-english ;
+    skos:example "For example: ex:recollection gmeow:hasWakingAppraisal ex:appraisal ."@x-gmeow-english ;
+    logic:domain gmeow:DreamReport ;
+    logic:range gmeow:WakingAppraisal .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:appraisalText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "appraisal text"@x-gmeow-english ;
+    skos:definition "The waking appraisal's retained wording exactly as supplied, with its original language and base direction when present."@x-gmeow-english ;
+    gmeow:useWhen "Use for the appraisal's own retained wording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the wording with a naming label or a guessed translation."@x-gmeow-english ;
+    gmeow:howToUse "Put the original literal on WakingAppraisal and retain supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Untagged, language-tagged and directional strings are admitted without automatic concatenation."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal gmeow:appraisalText \"The pause mattered.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:WakingAppraisal ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/appraisalText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:rawAppraisalText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "raw appraisal text"@x-gmeow-english ;
+    skos:definition "The original appraisal output retained only when it carries source content beyond a mere serialization of the parsed appraisal. Lexical difference alone does not establish that additional content."@x-gmeow-english ;
+    gmeow:useWhen "Use only when original output preserves content beyond the parsed appraisal's serialization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid retaining a redundant serialization merely because its spacing differs."@x-gmeow-english ;
+    gmeow:howToUse "Keep the actual original output and its source attribution alongside the parsed appraisal."@x-gmeow-english ;
+    skos:scopeNote "Additional content is a source judgment; lexical difference alone cannot prove it."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal gmeow:rawAppraisalText \"Warning: output stopped. Appraisal: The pause mattered.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:WakingAppraisal ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/rawAppraisalText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:carryForward
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "carry forward"@x-gmeow-english ;
+    skos:definition "What the waking appraisal asked to carry forward, verbatim. It neither adopts a goal nor executes a request."@x-gmeow-english ;
+    gmeow:useWhen "Use for material the waking appraisal asked to retain beyond the dream."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the words as adoption of an Intention or execution of a request."@x-gmeow-english ;
+    gmeow:howToUse "Retain the appraisal's exact carry-forward wording on its information record."@x-gmeow-english ;
+    skos:scopeNote "The wording is source content, not a persistence policy or task scheduler."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal gmeow:carryForward \"Keep the contrast between quiet and urgency.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:WakingAppraisal ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/carryForward" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:selfInquiryAddress
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "self-inquiry address"@x-gmeow-english ;
+    skos:definition "The source wording of how the appraisal addressed the self-inquiry question, distinct from the question's identity and from its proposed response."@x-gmeow-english ;
+    gmeow:useWhen "Use for how the appraisal says it approached its self-inquiry question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this text as the Question node or its proposed answer."@x-gmeow-english ;
+    gmeow:howToUse "Keep the approach wording separate from selectionQuestion and selfInquiryResponse."@x-gmeow-english ;
+    skos:scopeNote "No inquiry resolution follows from recording that a question was addressed."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal gmeow:selfInquiryAddress \"I considered why the scene persisted.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:WakingAppraisal ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selfInquiryAddress" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:selfInquiryResponse
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "self-inquiry response"@x-gmeow-english ;
+    skos:definition "The appraisal's response to its self-inquiry question, verbatim. Recording a response does not resolve the Question or assert that an agent accepts it."@x-gmeow-english ;
+    gmeow:useWhen "Use for the appraisal's literal response to the selected self-inquiry question."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a recorded response as an accepted or known answer."@x-gmeow-english ;
+    gmeow:howToUse "Retain the response text; use the existing inquiry and epistemic relations for separately supplied answer claims."@x-gmeow-english ;
+    skos:scopeNote "Different attributed responses may coexist without choosing a winning answer."@x-gmeow-english ;
+    skos:example "For example: ex:appraisal gmeow:selfInquiryResponse \"Perhaps the pause mattered more.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:WakingAppraisal ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selfInquiryResponse" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:wakingOverrideText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "waking override text"@x-gmeow-english ;
+    skos:definition "The exact source text of a waking override reported to end or redirect a dream. The wording alone does not enact an override or identify a phase."@x-gmeow-english ;
+    gmeow:useWhen "Use for the reported words of an override that ended or redirected dreaming."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a performed override, phase identity or cancellation from words alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original wording on its actual source record or identified override occurrence."@x-gmeow-english ;
+    skos:scopeNote "The open domain accommodates source records and actual occurrences without conflating them."@x-gmeow-english ;
+    skos:example "For example: ex:overrideRecord gmeow:wakingOverrideText \"Return attention to the waiting conversation.\"@en ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wakingOverrideText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:connectionText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "connection text"@x-gmeow-english ;
+    skos:definition "A source-proposed connection expressed in plain text. It may annotate an actual Analogy or a retained unstructured information record without fabricating structured mapping endpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use for the full wording of a source-proposed waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring structured Analogy endpoints from a plain-text connection."@x-gmeow-english ;
+    gmeow:howToUse "Put wording on an InformationObject descriptor or an already grounded actual Analogy."@x-gmeow-english ;
+    skos:scopeNote "An unresolved descriptor remains an information record; actual analogies retain their existing structural obligations."@x-gmeow-english ;
+    skos:example "For example: ex:connection gmeow:connectionText \"The still pier may recall an earlier pause.\"@en ."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:InformationObject gmeow:Analogy ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/connectionText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:connectionRelation
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "connection relation wording"@x-gmeow-english ;
+    skos:definition "The exact wording of the relation a waking connection proposes. A relation name in text is not an executable predicate or an established analogy."@x-gmeow-english ;
+    gmeow:useWhen "Use for the relation wording proposed by a waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a textual relation name as an executable predicate."@x-gmeow-english ;
+    gmeow:howToUse "Retain the phrase on a connection descriptor or actual Analogy, with its supplied language."@x-gmeow-english ;
+    skos:scopeNote "The union domain admits InformationObject descriptors and actual Analogy records; the phrase establishes no inference warrant."@x-gmeow-english ;
+    skos:example "For example: ex:connection gmeow:connectionRelation \"may recall\"@en ."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:InformationObject gmeow:Analogy ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/connectionRelation" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:wakingCandidate
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "waking candidate"@x-gmeow-english ;
+    skos:definition "The source's wording for a waking-life candidate when no actual target node is supplied. The string neither resolves an entity nor supplies an Analogy endpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source names a possible waking target only in words."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a target identity from the string or supplying it as an Analogy endpoint."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original candidate phrase on an InformationObject descriptor or existing Analogy."@x-gmeow-english ;
+    skos:scopeNote "An actual target, if later identified, is recorded through the existing structured mapping independently."@x-gmeow-english ;
+    skos:example "For example: ex:connection gmeow:wakingCandidate \"an earlier walk whose record I have not located\"@en ."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:InformationObject gmeow:Analogy ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wakingCandidate" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:wakingEvidence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "waking evidence wording"@x-gmeow-english ;
+    skos:definition "The evidence a waking connection cites as source wording. Textual citation is not verified evidence or genealogical derivation."@x-gmeow-english ;
+    gmeow:useWhen "Use for the evidence wording cited by a proposed waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating citation text as verified evidence or wasDerivedFrom lineage."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact citation wording on its descriptor or actual Analogy."@x-gmeow-english ;
+    skos:scopeNote "Textual evidence can remain unresolved without fabricated source objects or verification receipts."@x-gmeow-english ;
+    skos:example "For example: ex:connection gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."@x-gmeow-english ;
+    logic:domain [ a logic:Class ; logic:unionOf ( gmeow:InformationObject gmeow:Analogy ) ] ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wakingEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:PhaseCompletion
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Phase Completion"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for explicitly reported ways a dream phase ended other than as written. Absence supplies no success, terminal claim or failure default."@x-gmeow-english ;
+    gmeow:useWhen "Use for explicit nonstandard endings of recorded dream-phase occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating a new phase class or treating absence as normal completion."@x-gmeow-english ;
+    gmeow:howToUse "Reference completion individuals through phaseCompletion on the actual Event."@x-gmeow-english ;
+    skos:scopeNote "The vocabulary is open; a value describes source disposition without executing a lifecycle transition."@x-gmeow-english ;
+    skos:example "For example: ex:localEnding a gmeow:PhaseCompletion ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:phaseCompletion
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "phase completion"@x-gmeow-english ;
+    skos:definition "Relates an actual dream-phase Event occurrence to its reported completion disposition. The retained phase output is only what it reached; the value asserts no terminal record or complete output."@x-gmeow-english ;
+    gmeow:useWhen "Use when a recorded phase has an explicit completion disposition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid attaching it to a phase name or substituting it for retained partial output."@x-gmeow-english ;
+    gmeow:howToUse "Use an Event with eventType and subEventOf the actual dreaming Experience."@x-gmeow-english ;
+    skos:scopeNote "No terminal record, complete output or success is inferred; values are nonfunctional source reports."@x-gmeow-english ;
+    skos:example "For example: ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."@x-gmeow-english ;
+    logic:domain gmeow:Event ;
+    logic:range gmeow:PhaseCompletion .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/phaseCompletion" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:phaseCompletionCompletedWithoutTerminalClaim
+    a logic:NamedIndividual, gmeow:PhaseCompletion ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "phase completed without terminal claim"@x-gmeow-english ;
+    skos:definition "The source reports that the phase ran but never wrote its terminal record; whatever output it produced is retained. This is not proof of successful completion or absence of unrecorded work."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source reports a phase ran without writing its terminal record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading the value as successful completion or as proof that nothing else happened."@x-gmeow-english ;
+    gmeow:howToUse "Attach to the actual phase and retain its produced text on a separate derived InformationObject."@x-gmeow-english ;
+    skos:scopeNote "Missing terminal evidence is preserved rather than replaced with invented terminal output."@x-gmeow-english ;
+    skos:example "For example: ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."@x-gmeow-english .
+
+gmeow:preemptedAfter
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "preempted after"@x-gmeow-english ;
+    skos:definition "Relates a dream to the actual constituent phase after which cooperative preemption was reported. It does not infer an unrecorded phase, total order, cancellation or rollback."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source identifies the actual phase after which a dream was cooperatively preempted."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing to an unrelated dream's phase or inferring rollback and cancellation."@x-gmeow-english ;
+    gmeow:howToUse "Link the Experience to its own typed phase Event and preserve the phase's subEventOf membership."@x-gmeow-english ;
+    skos:scopeNote "The edge records this boundary only; it creates no total phase chronology."@x-gmeow-english ;
+    skos:example "For example: ex:dream gmeow:preemptedAfter ex:phase ."@x-gmeow-english ;
+    logic:domain gmeow:Experience ;
+    logic:range gmeow:Event .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/preemptedAfter" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:continuationReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "continuation reason"@x-gmeow-english ;
+    skos:definition "The source's verbatim reason why a dream continued, retained on an information record as a specialization of description. It does not itself continue a dream or retype its Event as an enduring Entity."@x-gmeow-english ;
+    gmeow:useWhen "Use for source wording explaining why a dream continued."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing this description subproperty on the dream Event itself."@x-gmeow-english ;
+    gmeow:howToUse "Retain the reason on an InformationObject account, keeping its actual dream lineage separately."@x-gmeow-english ;
+    skos:scopeNote "The record remains an endurant; its reason does not execute continuation or promise completion."@x-gmeow-english ;
+    skos:example "For example: ex:account gmeow:continuationReason \"Another integration pass was needed.\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    logic:subPropertyOf gmeow:description .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/continuationReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:selectionQuestion
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selection question"@x-gmeow-english ;
+    skos:definition "The actual self-inquiry Question through which the source says this dream selection was made. It is not erotetic implication, a wording identity or an accepted answer."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the actual question used to choose a dream."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using evokes, which states erotetic implication, for this selection relationship."@x-gmeow-english ;
+    gmeow:howToUse "Link DreamSelection to Question; retain its wording through questionText and context through questionContext."@x-gmeow-english ;
+    skos:scopeNote "Selecting a question neither resolves it nor asserts an accepted response."@x-gmeow-english ;
+    skos:example "For example: ex:choice gmeow:selectionQuestion ex:question ."@x-gmeow-english ;
+    logic:domain gmeow:DreamSelection ;
+    logic:range gmeow:Question .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectionQuestion" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:selectedAwarenessMode
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "selected awareness mode"@x-gmeow-english ;
+    skos:definition "The awareness mode explicitly chosen in the dream selection record. It records the choice rather than asserting that the selection artifact or the dream actually occupied that mode."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-recorded choice of dream awareness mode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting awarenessMode on the selection artifact to express the choice."@x-gmeow-english ;
+    gmeow:howToUse "Point DreamSelection to the chosen AwarenessMode; record actual experienced mode separately."@x-gmeow-english ;
+    skos:scopeNote "Choice and experienced state may differ; this relation supplies no enactment bridge."@x-gmeow-english ;
+    skos:example "For example: ex:choice gmeow:selectedAwarenessMode gmeow:modeImmersiveDreaming ."@x-gmeow-english ;
+    logic:domain gmeow:DreamSelection ;
+    logic:range gmeow:AwarenessMode .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:LotteryDigestTagConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Lottery digest tag constraint"@x-gmeow-english ;
+    skos:definition "Every supplied lotteryDigest has an explicit algorithm tag and a nonempty payload. The law neither replays the draw nor verifies bytes, randomness, algorithm support or fairness."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the algorithm tag of each supplied draw digest."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this syntax check verifies bytes or fairness."@x-gmeow-english ;
+    gmeow:howToUse "Read the binary lotteryDigest guard and the tagged-string regular expression."@x-gmeow-english ;
+    skos:scopeNote "Missing digests remain missing; untagged digests fail without a guessed algorithm."@x-gmeow-english ;
+    skos:example "For example: gmeow:LotteryDigestTagConstraint logic:formalizes gmeow:lotteryDigest ."@x-gmeow-english ;
+    logic:message "Every supplied lotteryDigest has an explicit algorithm tag and a nonempty payload. The law neither replays the draw nor verifies bytes, randomness, algorithm support or fairness."@x-gmeow-english ;
+    logic:formalizes gmeow:lotteryDigest ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:lotteryDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "digest" ] , [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z][A-Za-z0-9+._-]*:[^:]+$" ] ] ] ] .
+
+gmeow:DreamSequenceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Dream sequence source scope constraint"@x-gmeow-english ;
+    skos:definition "A supplied dreamSequence retains the actual experiencer and an exact native sequence-statement reifier with its source context. The number establishes neither global uniqueness nor clock order."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve the dreamer and source scope of dream counters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting global uniqueness for missing source context."@x-gmeow-english ;
+    gmeow:howToUse "Join all three native reifier facets and accordingTo for the exact sequence statement."@x-gmeow-english ;
+    skos:scopeNote "The binary dreamSequence target requires no arithmetic progression or cross-context ordering."@x-gmeow-english ;
+    skos:example "For example: gmeow:DreamSequenceScopeConstraint logic:formalizes gmeow:dreamSequence ."@x-gmeow-english ;
+    logic:message "A supplied dreamSequence retains the actual experiencer and an exact native sequence-statement reifier with its source context. The number establishes neither global uniqueness nor clock order."@x-gmeow-english ;
+    logic:formalizes gmeow:dreamSequence ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "number" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:dreamSequence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "number" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dreamer" ] , [ logic:termIndex 1 ; logic:termVariable "claim" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:experiencer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dreamer" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "dreamer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termIri gmeow:dreamSequence ] ] , [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "number" ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "claim" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] ] ] ] ] .
+
+gmeow:DreamPhaseCompletionOccurrenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Dream phase completion occurrence constraint"@x-gmeow-english ;
+    skos:definition "A phaseCompletion assertion belongs to an actual Event occurrence with an EventType and a containing dream Experience. A bare phase name or output string cannot stand in for that occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish an actual phase occurrence from its label."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a containing dream to satisfy this law."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the phaseCompletion subject's eventType and subEventOf dreaming Experience."@x-gmeow-english ;
+    skos:scopeNote "The binary subject guard checks occurrence structure, not successful runtime completion."@x-gmeow-english ;
+    skos:example "For example: gmeow:DreamPhaseCompletionOccurrenceConstraint logic:formalizes gmeow:phaseCompletion ."@x-gmeow-english ;
+    logic:message "A phaseCompletion assertion belongs to an actual Event occurrence with an EventType and a containing dream Experience. A bare phase name or output string cannot stand in for that occurrence."@x-gmeow-english ;
+    logic:formalizes gmeow:phaseCompletion ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "completion" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:phaseCompletion ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "completion" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "dream" ] , [ logic:termIndex 1 ; logic:termVariable "kind" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ] , [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "kind" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EventType ] ] , [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "dream" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "dream" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Experience ] ] , [ a logic:Formula ; logic:relation gmeow:mentalProcessType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "dream" ] , [ logic:termIndex 1 ; logic:termIri gmeow:processDreaming ] ] ] ] ] ] .
+
+gmeow:DreamPreemptedPhaseScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Dream preempted phase scope constraint"@x-gmeow-english ;
+    skos:definition "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind preemption to a phase of that exact dream."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a same-named phase from another dream."@x-gmeow-english ;
+    gmeow:howToUse "Require the preemptedAfter target's typed membership in its subject dream."@x-gmeow-english ;
+    skos:scopeNote "The binary guard preserves scope without executing preemption or establishing total order."@x-gmeow-english ;
+    skos:example "For example: gmeow:DreamPreemptedPhaseScopeConstraint logic:formalizes gmeow:preemptedAfter ."@x-gmeow-english ;
+    logic:message "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."@x-gmeow-english ;
+    logic:formalizes gmeow:preemptedAfter ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "phase" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:preemptedAfter ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "phase" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "kind" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Event ] ] , [ a logic:Formula ; logic:relation gmeow:eventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termVariable "kind" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "kind" ] , [ logic:termIndex 1 ; logic:termIri gmeow:EventType ] ] , [ a logic:Formula ; logic:relation gmeow:subEventOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "phase" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation gmeow:mentalProcessType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:processDreaming ] ] ] ] ] ] .
+
+# Explicit admission checks for the waking-connection carrier union.
+
+gmeow:ConnectionTextSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Connection text subject constraint"@x-gmeow-english ;
+    skos:definition "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of a plain-text waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an Analogy when only a textual descriptor was supplied."@x-gmeow-english ;
+    gmeow:howToUse "Check the connectionText subject against either named carrier class; preserve the source's original wording."@x-gmeow-english ;
+    skos:scopeNote "The binary property target includes malformed subjects; the disjunction admits a descriptor without inventing structured analogy evidence."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."@x-gmeow-english ;
+    logic:message "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."@x-gmeow-english ;
+    logic:formalizes gmeow:connectionText ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:connectionText ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:ConnectionRelationSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Connection relation subject constraint"@x-gmeow-english ;
+    skos:definition "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of proposed waking-relation wording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the relation phrase itself as a structured relation or analogy."@x-gmeow-english ;
+    gmeow:howToUse "Apply the InformationObject-or-Analogy type condition to each subject carrying connectionRelation."@x-gmeow-english ;
+    skos:scopeNote "Validation admits either carrier class and does not execute or establish the proposed relation."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."@x-gmeow-english ;
+    logic:message "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."@x-gmeow-english ;
+    logic:formalizes gmeow:connectionRelation ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:connectionRelation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:WakingCandidateSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Waking candidate subject constraint"@x-gmeow-english ;
+    skos:definition "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of an unresolved waking-life candidate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid resolving the candidate string into a fabricated target to satisfy the law."@x-gmeow-english ;
+    gmeow:howToUse "Check the wakingCandidate subject's InformationObject or Analogy type, keeping its literal candidate unchanged."@x-gmeow-english ;
+    skos:scopeNote "The property target checks the source carrier, not the existence or identity of the proposed waking object."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."@x-gmeow-english ;
+    logic:message "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."@x-gmeow-english ;
+    logic:formalizes gmeow:wakingCandidate ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:wakingCandidate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .
+
+gmeow:WakingEvidenceSubjectConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/dreaming> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Waking evidence subject constraint"@x-gmeow-english ;
+    skos:definition "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the carrier of evidence wording cited by a waking connection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this carrier check for evidence verification or source derivation."@x-gmeow-english ;
+    gmeow:howToUse "Require either InformationObject or Analogy for each wakingEvidence subject and retain its citation literal."@x-gmeow-english ;
+    skos:scopeNote "The binary guard covers every supplied citation assertion; the law certifies neither cited content nor analogy quality."@x-gmeow-english ;
+    skos:example "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."@x-gmeow-english ;
+    logic:message "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."@x-gmeow-english ;
+    logic:formalizes gmeow:wakingEvidence ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:wakingEvidence ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Analogy ] ] ] ] ] .

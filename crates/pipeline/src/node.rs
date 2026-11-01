@@ -158,40 +158,59 @@ impl StageProduct {
 
     /// Construct a product from emitted named byte artifacts; they ride the
     /// bundle's byte-artifact lane and the digest is the bundle's content fold.
+    ///
+    /// # Errors
+    /// As [`Self::from_bundle`].
     pub fn from_artifacts(
         stage_id: impl Into<String>,
         artifacts: BTreeMap<String, Vec<u8>>,
-    ) -> Self {
+    ) -> Result<Self, gmeow_errors::Diag> {
         let bundle = bundle_from_artifacts(artifacts, DatasetProvenance::new());
         Self::from_bundle(stage_id, Arc::new(bundle))
     }
 
     /// Construct a product from named byte artifacts riding over an explicit
     /// backing `dataset` (the lane travels alongside the frozen graph).
+    ///
+    /// # Errors
+    /// As [`Self::from_bundle`].
     pub fn from_artifacts_over(
         stage_id: impl Into<String>,
         dataset: Arc<RdfDataset>,
         artifacts: BTreeMap<String, Vec<u8>>,
-    ) -> Self {
+    ) -> Result<Self, gmeow_errors::Diag> {
         let bundle = bundle_from_artifacts_over(dataset, artifacts, DatasetProvenance::new());
         Self::from_bundle(stage_id, Arc::new(bundle))
     }
 
     /// Construct a product wrapping an already-assembled carrier; the digest is the
     /// bundle's content fold plus each complete typed handle binding.
+    ///
+    /// # Errors
+    /// [`StageFailed`](crate::error::StageFailed) naming the stage when purrdf
+    /// refuses to canonicalize the carrier: the product would have no content
+    /// identity to cache or publish.
     pub fn from_bundle(
         stage_id: impl Into<String>,
         bundle: Arc<PipelineBundle<PipelineHandle>>,
-    ) -> Self {
+    ) -> Result<Self, gmeow_errors::Diag> {
+        let stage_id = stage_id.into();
         let handle_commitments = crate::handle_identity::handle_commitments(&bundle);
-        let digest = crate::handle_identity::product_digest(&bundle, &handle_commitments);
-        Self {
-            stage_id: stage_id.into(),
+        let digest = crate::handle_identity::product_digest(&bundle, &handle_commitments).map_err(
+            |error| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: stage_id.clone(),
+                    message: format!("cannot digest the stage carrier: {error}"),
+                })
+            },
+        )?;
+        Ok(Self {
+            stage_id,
             digest,
             bundle,
             carrier_released: false,
             handle_commitments,
-        }
+        })
     }
 
     /// This product with its carrier RELEASED: the frozen dataset, typed handles,
@@ -320,9 +339,9 @@ impl StageProduct {
     pub fn span_index(&self) -> gmeow_errors::Result<crate::ingest::SpanIndex> {
         match crate::bundle::bundle_rep_blob(&self.bundle, crate::stages::carrier::REP_SPAN_TABLE) {
             Some(bytes) => purrdf_lex::json::record::from_slice(bytes).map_err(|e| {
-                gmeow_errors::Diag::of_kind(crate::error::Decode {
-                    message: format!("source-span table blob JSON: {e}"),
-                })
+                gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                    "source-span table blob JSON: {e}"
+                )))
             }),
             None => Err(gmeow_errors::Diag::of_kind(
                 crate::error::SpanTableConsumedAfterDrop {

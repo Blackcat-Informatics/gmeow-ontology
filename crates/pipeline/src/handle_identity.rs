@@ -6,9 +6,13 @@
 use std::collections::BTreeMap;
 
 use gmeow_action_cache::content_digest;
-use purrdf::{PipelineBundle, RdfTerm};
+use purrdf::{PipelineBundle, PipelineBundleError, RdfTerm};
+use purrdf_hash::Domain;
 
 use crate::bundle::PipelineHandle;
+
+/// Frozen domain for complete diagnostic payloads retaining lexical JSON evidence.
+const DIAGNOSTICS_JSON_EVIDENCE_DOMAIN: Domain = Domain::new(b"diagnostics-json-evidence-v2");
 
 /// An immutable commitment calculated once when a producer publishes its handle.
 #[derive(Debug, Clone)]
@@ -55,6 +59,48 @@ pub(crate) fn typed_digest(value: &impl serde::Serialize) -> String {
     purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
 }
 
+/// Hash an owned native writer without retaining a serialized payload.
+/// Each caller retains its existing infallible-sink diagnostic context.
+fn native_digest(
+    write: impl FnOnce(&mut TypedDigest) -> std::io::Result<()>,
+    expectation: &str,
+) -> String {
+    let mut sink = TypedDigest::default();
+    write(&mut sink).expect(expectation);
+    purrdf_hash::hex::encode(sink.0.finalize().as_bytes())
+}
+
+/// Stream the complete original source-catalog tuple in recorded receipt order.
+/// The version tag, optional base metadata and duplicate receipts are retained.
+///
+/// # Errors
+/// Returns the sink's original failure without reporting partial success.
+pub(crate) fn write_source_catalog_cbor<W: std::io::Write + ?Sized>(
+    receipts: &[gmeow_logic_compile::frontend::SourceDocument],
+    out: &mut W,
+) -> std::io::Result<()> {
+    use purrdf_lex::cbor::head;
+
+    head::write_head(out, head::ARRAY, 2)?;
+    head::write_text(out, "source-catalog-v1")?;
+    head::write_head(out, head::ARRAY, receipts.len() as u64)?;
+    for receipt in receipts {
+        receipt.write_cbor(out)?;
+    }
+    Ok(())
+}
+
+/// Hash the complete original source-catalog tuple without retaining its bytes.
+/// Receipt order and multiplicity remain part of the producer's source identity.
+pub(crate) fn source_catalog_digest(
+    receipts: &[gmeow_logic_compile::frontend::SourceDocument],
+) -> String {
+    native_digest(
+        |sink| write_source_catalog_cbor(receipts, sink),
+        "native source-catalog serialization into an infallible hash sink",
+    )
+}
+
 /// The complete payload identity is independent of its governed RDF projection.
 pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
     let key = match handle {
@@ -62,12 +108,22 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::Logic(program) => typed_digest(program.as_ref()),
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
         PipelineHandle::Diagnostics(publication) => content_digest(&[
-            b"diagnostics-json-evidence-v2",
-            typed_digest(publication.as_ref()).as_bytes(),
+            DIAGNOSTICS_JSON_EVIDENCE_DOMAIN.as_bytes(),
+            native_digest(
+                |sink| publication.write_cbor(sink),
+                "native diagnostic serialization into an infallible hash sink",
+            )
+            .as_bytes(),
         ]),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
-        PipelineHandle::RelationalCore(program) => typed_digest(program.as_ref()),
-        PipelineHandle::Correspondence(program) => typed_digest(program.as_ref()),
+        PipelineHandle::RelationalCore(program) => native_digest(
+            |sink| program.write_cbor(sink),
+            "native relational serialization into an infallible hash sink",
+        ),
+        PipelineHandle::Correspondence(program) => native_digest(
+            |sink| program.write_cbor(sink),
+            "native correspondence serialization into an infallible hash sink",
+        ),
     };
     content_digest(&[
         b"typed-payload-v2",
@@ -108,19 +164,23 @@ pub(crate) fn handle_commitment(
 }
 
 /// The whole product includes typed bindings even when their graph is lossy.
+///
+/// # Errors
+/// Returns the carrier's canonicalization refusal; a product without a content
+/// identity has no digest to publish.
 pub(crate) fn product_digest(
     bundle: &PipelineBundle<PipelineHandle>,
     handles: &BTreeMap<String, HandleCommitment>,
-) -> String {
-    let base = bundle.digest().to_hex();
+) -> Result<String, PipelineBundleError> {
+    let base = bundle.digest()?.to_hex();
     if handles.is_empty() {
-        return base;
+        return Ok(base);
     }
     let mut fields = vec![b"typed-product-v1".as_slice(), base.as_bytes()];
     for binding in handles.values() {
         fields.extend([binding.identity.as_bytes(), binding.digest.as_bytes()]);
     }
-    content_digest(&fields)
+    Ok(content_digest(&fields))
 }
 
 /// A selected graph includes its typed payload binding when one is declared.

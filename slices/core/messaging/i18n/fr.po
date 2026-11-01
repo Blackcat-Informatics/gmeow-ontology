@@ -1,0 +1,738 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: messaging, language: fr).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message"
+msgstr "Message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A communicative information artifact addressed or intended for other agents. Its existence does not assert dispatch, delivery, receipt or a reply; email and chat messages specialize this shared kind."
+msgstr "Artefact informationnel de communication adressé ou destiné à d’autres agents. Son existence n’affirme ni envoi, ni livraison, ni réception, ni réponse ; les messages électroniques et de discussion spécialisent ce genre commun."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for authored or received communication, including an intended message refused before dispatch."
+msgstr "Utiliser pour une communication rédigée ou reçue, y compris un message prévu refusé avant l’envoi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful communication from message typing alone."
+msgstr "Éviter de déduire une communication réussie du seul typage comme message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain source participants, parts, thread and outcome claims using the transport-specific specialization where known."
+msgstr "Conserver les participants, parties, fil et résultats rapportés par la source en utilisant la spécialisation de transport connue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message a gmeow:Message ."
+msgstr "ex:message a gmeow:Message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Body Part"
+msgstr "Partie de corps"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object representing one constituent of a message body. It is transport-neutral; a MIME part is one specialization of this content-part role."
+msgstr "Objet informationnel représentant un constituant du corps d’un message. Il est indépendant du transport ; une partie MIME est une spécialisation de ce rôle de contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a distinct body constituent with its own content identity and metadata."
+msgstr "Utiliser pour conserver un constituant distinct du corps avec sa propre identité de contenu et ses métadonnées."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every body part has MIME headers or is itself the media file it carries."
+msgstr "Éviter de supposer que toute partie possède des en-têtes MIME ou est le fichier média qu’elle porte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with hasBodyPart; use partMedia for a separate carried media artifact and entryOrdinal for supplied source order."
+msgstr "La rattacher avec hasBodyPart ; utiliser partMedia pour un artefact média porté distinct et entryOrdinal pour l’ordre source fourni."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part ."
+msgstr "ex:message gmeow:hasBodyPart ex:part ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thread"
+msgstr "Fil de conversation"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conversation grouping messages related by reply or reference chains. Membership does not imply that every message was delivered or answered."
+msgstr "Conversation regroupant des messages liés par des chaînes de réponses ou de références. L’appartenance n’implique pas que chaque message a été livré ou a reçu une réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared conversation identity of related messages."
+msgstr "Utiliser pour l’identité commune de conversation de messages liés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a thread with one response turn or one network room."
+msgstr "Éviter de confondre un fil avec un tour de réponse ou un salon réseau."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link messages through partOfThread and retain direct reply edges separately."
+msgstr "Relier les messages par partOfThread et conserver séparément les liens directs de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has body part"
+msgstr "a pour partie de corps"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to a constituent of its body, specializing hasPart without requiring a MIME representation. Several parts coexist."
+msgstr "Relie un message à un constituant de son corps, en spécialisant hasPart sans exiger une représentation MIME. Plusieurs parties coexistent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a message’s retained body structure."
+msgstr "Utiliser pour la structure conservée du corps d’un message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading RDF statement order as body-part order."
+msgstr "Éviter de lire l’ordre des énoncés RDF comme l’ordre des parties."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each part and keep any known zero-based source position on its occurrence with entryOrdinal."
+msgstr "Relier chaque partie et conserver toute position source connue comptée à partir de zéro sur son occurrence avec entryOrdinal."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part0 , ex:part1 ."
+msgstr "ex:message gmeow:hasBodyPart ex:part0 , ex:part1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in reply to"
+msgstr "en réponse à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the message it directly answers. Both ends are messages; a digest-only reference to words instead uses repliesToContent."
+msgstr "Relie un message au message auquel il répond directement. Les deux extrémités sont des messages ; une référence aux mots identifiés uniquement par empreinte utilise repliesToContent."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the replied-to message is known as a message resource."
+msgstr "Utiliser lorsque le message auquel on répond est connu comme ressource de message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a transmitted message solely to hold a content digest."
+msgstr "Éviter de créer un message transmis uniquement pour porter une empreinte de contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the direct source reply relation; record unknown content-only targets separately."
+msgstr "Conserver la relation directe de réponse de la source ; consigner séparément les cibles inconnues identifiées par contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:inReplyTo ex:message ."
+msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part of thread"
+msgstr "fait partie du fil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the conversation thread it belongs to, specializing the universal partOf relation. It does not determine delivery state or response-turn boundaries."
+msgstr "Relie un message au fil de conversation auquel il appartient, en spécialisant la relation universelle partOf. Elle ne détermine ni l’état de livraison ni les limites des tours de réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to group messages under a conversation identity."
+msgstr "Utiliser pour regrouper des messages sous une identité de conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that every thread member was visible to every participant."
+msgstr "Éviter de déduire que chaque membre du fil était visible pour chaque participant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the message to each source-supported Thread, preserving attributed alternative groupings."
+msgstr "Relier le message à chaque Thread étayé par la source, en préservant les regroupements alternatifs attribués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sent at"
+msgstr "envoyé à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported dateTime of a message’s sending. In email it can preserve the RFC 5322 Date claim; it is not independent proof of dispatch or arrival."
+msgstr "DateTime d’envoi d’un message rapporté par la source. En courrier électronique, il peut préserver l’affirmation Date de RFC 5322 ; ce n’est pas une preuve indépendante d’envoi ou d’arrivée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source sending-time claim."
+msgstr "Utiliser pour conserver une affirmation source sur le temps d’envoi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bridging sending time to record creation or delivery success."
+msgstr "Éviter de relier le temps d’envoi à la création de l’enregistrement ou à une livraison réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied dateTime and actual timezone information; preserve its provenance when the source is an authored header."
+msgstr "Conserver le dateTime et les informations de fuseau horaire fournis ; préserver sa provenance lorsque la source est un en-tête rédigé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:sentAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:message gmeow:sentAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received at"
+msgstr "reçu à"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When the message was received by the storing system, as reported by the source. This retains provider receive time and does not prove that a human or another intended recipient saw the message."
+msgstr "Moment où le système de stockage a reçu le message, selon la source. Cela conserve le temps de réception du fournisseur sans prouver qu’un humain ou un autre destinataire prévu a vu le message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the retaining system’s receive-time observation."
+msgstr "Utiliser pour l’observation du temps de réception par le système conservateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading storage receipt as readership or a successful reply."
+msgstr "Éviter de lire la réception en stockage comme une lecture ou une réponse réussie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied dateTime, including provider internal receive dates; retain occurrence and record time independently."
+msgstr "Conserver le dateTime fourni, y compris les dates internes de réception du fournisseur ; conserver indépendamment le temps de survenue et d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:receivedAt \"2026-10-29T10:00:01Z\"^^xsd:dateTime ."
+msgstr "ex:message gmeow:receivedAt \"2026-10-29T10:00:01Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Delivery Outcome"
+msgstr "Résultat de livraison"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for an explicitly reported message-delivery outcome. Its failure values retain refusal by a sender guard and rejection by a provider; absence proves no success."
+msgstr "Vocabulaire ouvert de résultats de livraison de message explicitement rapportés. Ses valeurs d’échec conservent le refus par une garde de l’expéditeur et le rejet par un fournisseur ; l’absence ne prouve aucun succès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify reported delivery failures without losing the intended message."
+msgstr "Utiliser pour classifier les échecs de livraison rapportés sans perdre le message prévu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing failure data as a delivered state."
+msgstr "Éviter de traiter des données d’échec absentes comme un état livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference these values through deliveryOutcome; preserve attempt, recipient, time and standpoint on the attribution when needed."
+msgstr "Référencer ces valeurs via deliveryOutcome ; préserver tentative, destinataire, temps et point de vue sur l’attribution si nécessaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome ex:outcome ."
+msgstr "ex:message gmeow:deliveryOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "delivery outcome"
+msgstr "résultat de livraison"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed DeliveryOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."
+msgstr "DeliveryOutcome de ce message attribué par la source, conservant un résultat explicite plutôt que de le déduire de liens manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s deliveryOutcome assertion."
+msgstr "Utiliser pour préserver l’affirmation deliveryOutcome de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting absence of deliveryOutcome as success."
+msgstr "Éviter d’interpréter l’absence de deliveryOutcome comme un succès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link supported DeliveryOutcome values; several reports may coexist with their own statement provenance."
+msgstr "Relier les valeurs DeliveryOutcome étayées ; plusieurs rapports peuvent coexister avec leur provenance d’énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome ex:outcome ."
+msgstr "ex:message gmeow:deliveryOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reply Outcome"
+msgstr "Résultat de réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for an explicit outcome of answering a message. It distinguishes a reported cognition failure from merely having no known reply."
+msgstr "Vocabulaire ouvert de résultats explicites de réponse à un message. Il distingue un échec cognitif rapporté de la simple absence de réponse connue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explanation of a failed answering attempt."
+msgstr "Utiliser pour conserver l’explication d’une tentative de réponse échouée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving failure from the absence of an inReplyTo edge."
+msgstr "Éviter de déduire un échec de l’absence d’un lien inReplyTo."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the reported value with replyOutcome and keep later successful replies without deleting the earlier failure."
+msgstr "Référencer la valeur rapportée avec replyOutcome et conserver les réponses ultérieures réussies sans supprimer l’échec antérieur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome ex:outcome ."
+msgstr "ex:message gmeow:replyOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply outcome"
+msgstr "résultat de réponse"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed ReplyOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."
+msgstr "ReplyOutcome de ce message attribué par la source, conservant un résultat explicite plutôt que de le déduire de liens manquants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s replyOutcome assertion."
+msgstr "Utiliser pour préserver l’affirmation replyOutcome de la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting absence of replyOutcome as success."
+msgstr "Éviter d’interpréter l’absence de replyOutcome comme un succès."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link supported ReplyOutcome values; several reports may coexist with their own statement provenance."
+msgstr "Relier les valeurs ReplyOutcome étayées ; plusieurs rapports peuvent coexister avec leur provenance d’énoncé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome ex:outcome ."
+msgstr "ex:message gmeow:replyOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refused by sender guard"
+msgstr "refusé par la garde de l’expéditeur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sender’s own guard refused this message’s delivery attempt. The intended message is retained even though it did not reach the recipient in that attempt."
+msgstr "La garde de l’expéditeur a refusé cette tentative de livraison. Le message prévu est conservé même s’il n’a pas atteint le destinataire lors de cette tentative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported sender-guard refusal."
+msgstr "Utiliser pour un refus de garde d’expéditeur explicitement rapporté."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid conflating sender refusal with provider rejection."
+msgstr "Éviter de confondre refus de l’expéditeur et rejet du fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute deliveryRefusedByGuard through deliveryOutcome with its source context."
+msgstr "Attribuer deliveryRefusedByGuard via deliveryOutcome avec son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ."
+msgstr "ex:message gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected by provider"
+msgstr "rejeté par le fournisseur"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A provider rejected this message’s delivery attempt. It records that refusal without asserting that every later attempt also failed."
+msgstr "Un fournisseur a rejeté cette tentative de livraison. Cela consigne ce refus sans affirmer que toute tentative ultérieure a aussi échoué."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported provider-side rejection."
+msgstr "Utiliser pour un rejet rapporté du côté fournisseur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading provider rejection as a judgment about content truth."
+msgstr "Éviter de lire un rejet du fournisseur comme un jugement de vérité du contenu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute deliveryRejectedByProvider through deliveryOutcome with its source context."
+msgstr "Attribuer deliveryRejectedByProvider via deliveryOutcome avec son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider ."
+msgstr "ex:message gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply failed through cognition"
+msgstr "réponse échouée par défaillance cognitive"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recipient’s answering attempt failed because its cognition failed. This is an explicit source report, not a deduction from unanswered conversation history."
+msgstr "La tentative de réponse du destinataire a échoué à cause d’une défaillance de sa cognition. Il s’agit d’un rapport source explicite, pas d’une déduction de l’historique sans réponse."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports cognition failure as the reason no answer was produced in an attempt."
+msgstr "Utiliser lorsque la source rapporte un échec cognitif comme raison de l’absence de réponse lors d’une tentative."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing cognition from silence or elapsed time."
+msgstr "Éviter de diagnostiquer la cognition à partir du silence ou du temps écoulé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute replyFailedCognition through replyOutcome with its source context."
+msgstr "Attribuer replyFailedCognition via replyOutcome avec son contexte source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome gmeow:replyFailedCognition ."
+msgstr "ex:message gmeow:replyOutcome gmeow:replyFailedCognition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part media"
+msgstr "média porté par la partie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a body-part occurrence to the separate MediaObject it carries, specializing hasPart. The wrapper and file can have different identities and metadata."
+msgstr "Relie une occurrence de partie de corps au MediaObject distinct qu’elle porte, en spécialisant hasPart. L’enveloppe et le fichier peuvent avoir des identités et métadonnées différentes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a message part carries a distinct image, audio or video artifact."
+msgstr "Utiliser lorsqu’une partie porte un artefact image, audio ou vidéo distinct."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating transport-wrapper bytes with the carried media bytes."
+msgstr "Éviter d’assimiler les octets d’enveloppe de transport aux octets média portés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the BodyPart to its MediaObject and retain each artifact’s own digest where known."
+msgstr "Relier le BodyPart à son MediaObject et conserver l’empreinte propre de chaque artefact lorsqu’elle est connue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:part gmeow:partMedia ex:deliveredImage ."
+msgstr "ex:part gmeow:partMedia ex:deliveredImage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source media artifact"
+msgstr "artefact média source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a delivered MediaObject to the InformationObject whose bytes it was produced from before delivery encoding. The source carries its own contentDigest and need not be stored or published. This relation asserts actual byte-source derivation."
+msgstr "Relie un MediaObject livré à l’InformationObject dont les octets ont servi à le produire avant l’encodage de livraison. La source porte son propre contentDigest et n’a pas besoin d’être stockée ou publiée. Cette relation affirme une dérivation réelle des octets."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish generated source bytes from delivery-encoded bytes."
+msgstr "Utiliser pour distinguer les octets sources générés des octets encodés pour livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a source digest for the delivered artifact’s own digest or claiming derivation from mere context presence."
+msgstr "Éviter de substituer une empreinte source à celle de l’artefact livré ou d’affirmer une dérivation par simple présence dans le contexte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a digest-identified source artifact and keep the delivered MediaObject’s contentDigest separate."
+msgstr "Référencer un artefact source identifié par empreinte et conserver séparément le contentDigest du MediaObject livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:sourceMedia ex:generatedBytes ."
+msgstr "ex:deliveredImage gmeow:sourceMedia ex:generatedBytes ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "replies to content"
+msgstr "répond au contenu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the words or other content it answers when only that content’s digest identity is known. The target is an InformationObject, without asserting that a message was transmitted or exists in the retaining store."
+msgstr "Relie un message aux mots ou autre contenu auxquels il répond lorsque seule leur identité par empreinte est connue. La cible est un InformationObject, sans affirmer qu’un message a été transmis ou existe dans le magasin conservateur."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a digest-only reply target without fabricating a sent-message resource."
+msgstr "Utiliser pour une cible de réponse identifiée uniquement par empreinte sans fabriquer une ressource de message envoyé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making this content reference a subproperty of inReplyTo."
+msgstr "Éviter de faire de cette référence de contenu une sous-propriété de inReplyTo."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create a reusable content node with its own contentDigest; record inReplyTo separately only when the source message is known."
+msgstr "Créer un nœud de contenu réutilisable avec son propre contentDigest ; consigner séparément inReplyTo seulement lorsque le message source est connu."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:repliesToContent ex:externalWords ."
+msgstr "ex:reply gmeow:repliesToContent ex:externalWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composed"
+msgstr "composé délibérément"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content deliberately authored by an agent to communicate or commit, including speech, a written message or a stated intention. This source attribution can coexist with generated process origin and says neither that the content is true nor that its commitment was fulfilled."
+msgstr "Contenu délibérément rédigé par un agent pour communiquer ou s’engager, notamment une parole, un message écrit ou une intention énoncée. Cette attribution peut coexister avec une origine de processus généré et n’affirme ni la vérité du contenu ni l’accomplissement de l’engagement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when deliberate communicative or committing composition is supported by the source."
+msgstr "Utiliser lorsque la composition délibérée de communication ou d’engagement est étayée par la source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring deliberate authorship solely from generative production, perception or recall."
+msgstr "Éviter de déduire une rédaction délibérée de la seule génération, perception ou remémoration."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute through contentOrigin; retain generated, imagined, remembered or perceived origins when they also apply."
+msgstr "Attribuer via contentOrigin ; conserver les origines générées, imaginées, remémorées ou perçues lorsqu’elles s’appliquent aussi."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:contentOrigin gmeow:originComposed ."
+msgstr "ex:message gmeow:contentOrigin gmeow:originComposed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contains illustrative text"
+msgstr "contient du texte dans l’image"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A positive tag for an image whose pixels contain text belonging to the picture, such as a drawn label or sign. A missing tag does not assert absence of such text and the tag supplies no transcription."
+msgstr "Étiquette positive pour une image dont les pixels contiennent du texte appartenant à l’image, comme une étiquette dessinée ou un panneau. L’absence d’étiquette n’affirme pas l’absence de texte et l’étiquette ne fournit aucune transcription."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when only the presence of text within an image is known."
+msgstr "Utiliser lorsque seule la présence de texte dans une image est connue."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the tag as searchable transcription or as a negative result when absent."
+msgstr "Éviter d’utiliser l’étiquette comme transcription interrogeable ou comme résultat négatif lorsqu’elle est absente."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach with hasTag to the image artifact; retain any transcription or region description separately when available."
+msgstr "Rattacher avec hasTag à l’artefact image ; conserver séparément toute transcription ou description de région disponible."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:hasTag gmeow:tagContainsIllustrativeText ."
+msgstr "ex:deliveredImage gmeow:hasTag gmeow:tagContainsIllustrativeText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "messaging"
+msgstr "messagerie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Shared communicative artifacts, body parts, conversation links, explicit failure outcomes and digest-identified content references for email and chat."
+msgstr "Artefacts de communication, parties de corps, liens de conversation, résultats explicites d’échec et références de contenu identifiées par empreinte communs au courrier et à la discussion."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://purl.org/dc/terms/title"
+msgid "GMEOW Messaging Module"
+msgstr "Module GMEOW de messagerie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Message archives and governed conversation stores retaining intended communication, source content identity and explicit outcomes independently of transport success."
+msgstr "Archives de messages et magasins de conversation gouvernés conservant la communication prévue, l’identité du contenu source et les résultats explicites indépendamment du succès du transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source media digest constraint"
+msgstr "Contrainte d’empreinte du média source"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every sourceMedia target carries contentDigest for the original source bytes, independently of the delivered artifact’s digest."
+msgstr "Chaque cible sourceMedia porte contentDigest pour les octets originaux, indépendamment de l’empreinte de l’artefact livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain source-byte identity across delivery encodings."
+msgstr "Utiliser pour conserver l’identité des octets sources entre encodages de livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying source identity with only a digest on the delivered object."
+msgstr "Éviter de satisfaire l’identité source avec seulement une empreinte sur l’objet livré."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put the known algorithm-labelled digest on the referenced source artifact."
+msgstr "Placer l’empreinte connue préfixée par l’algorithme sur l’artefact source référencé."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:sourceMedia ex:content ."
+msgstr "ex:deliveredImage gmeow:sourceMedia ex:content ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reply content digest constraint"
+msgstr "Contrainte d’empreinte du contenu répondu"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every repliesToContent target carries its own contentDigest, identifying the answered content without a fictitious transmitted-message assertion."
+msgstr "Chaque cible repliesToContent porte son propre contentDigest, identifiant le contenu répondu sans affirmation fictive de message transmis."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for durable digest-only reply references."
+msgstr "Utiliser pour des références de réponse durables identifiées uniquement par empreinte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the target digest with the replying message’s digest."
+msgstr "Éviter de remplacer l’empreinte cible par celle du message répondant."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the digest-identified content artifact across replies without typing it as Message merely for the reference."
+msgstr "Réutiliser l’artefact identifié par empreinte entre réponses sans le typer comme Message pour la seule référence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:repliesToContent ex:content ."
+msgstr "ex:message gmeow:repliesToContent ex:content ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Messaging mappings"
+msgstr "Correspondances de messagerie"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Close-match alignments for shared messages, threads and source time. Confidence and manual-curation justification stay attached to each alignment."
+msgstr "Alignements proches pour messages, fils et temps source communs. Confiance et justification de curation manuelle restent attachées à chaque alignement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to export the shared messaging alignment set."
+msgstr "Utiliser pour exporter l’ensemble commun d’alignements de messagerie."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a close match as exact identity of all message semantics."
+msgstr "Éviter de lire une correspondance proche comme identité exacte de toute la sémantique des messages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep linkage annotations with their mapping cell; transport-specific correspondences remain with their owner."
+msgstr "Garder les annotations de liaison avec leur cellule ; les correspondances propres au transport restent chez leur propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:Message skos:closeMatch schema:Message ."
+msgstr "gmeow:Message skos:closeMatch schema:Message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC conversation container projection"
+msgstr "Projection de conteneur de conversation SIOC"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects a shared Thread as both SIOC Thread and Container using its declared profile binding. The projection keeps its source pattern and preservation declaration."
+msgstr "Projette un Thread commun comme Thread et Container SIOC selon sa liaison de profil déclarée. La projection garde son motif source et sa déclaration de préservation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared conversation-container projection."
+msgstr "Utiliser pour la projection commune de conteneur de conversation."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this recipe to assert that a conversation is an email message."
+msgstr "Éviter d’utiliser cette recette pour affirmer qu’une conversation est un message électronique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the declared sioc binding to Thread resources, independently of message transport."
+msgstr "Appliquer la liaison sioc déclarée aux ressources Thread, indépendamment du transport."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:conversation a gmeow:Thread ."
+msgstr "ex:conversation a gmeow:Thread ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC conversation membership projection"
+msgstr "Projection d’appartenance à une conversation SIOC"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects shared message-thread membership to the declared SIOC has_container and container_of edges."
+msgstr "Projette l’appartenance commune message-fil vers les liens SIOC has_container et container_of déclarés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the shared thread-membership projection."
+msgstr "Utiliser pour préserver la projection commune d’appartenance au fil."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading membership projection as delivery or readership evidence."
+msgstr "Éviter de lire la projection d’appartenance comme preuve de livraison ou de lecture."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply its unchanged source membership pattern and explicit paired target edges."
+msgstr "Appliquer son motif source d’appartenance et ses deux liens cibles explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC direct reply projection"
+msgstr "Projection de réponse directe SIOC"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects the shared message-to-message reply relation to the declared SIOC reply_of and has_reply edges. Digest-only content targets are outside this source pattern."
+msgstr "Projette la relation commune de réponse entre messages vers les liens SIOC reply_of et has_reply déclarés. Les cibles de contenu identifiées seulement par empreinte sont hors de ce motif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the direct-message reply projection."
+msgstr "Utiliser pour préserver la projection directe de réponse entre messages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid passing repliesToContent targets through this message-only mapping."
+msgstr "Éviter de passer des cibles repliesToContent dans cette correspondance réservée aux messages."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Match inReplyTo and emit the two explicit SIOC reply edges."
+msgstr "Faire correspondre inReplyTo et émettre les deux liens de réponse SIOC explicites."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:inReplyTo ex:message ."
+msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "utterance text"
+msgstr "texte de l’énoncé"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."
+msgstr "Texte source complet d’un message enregistré comme un seul énoncé, avec langue et direction fournies. Le texte multipartie reste sur ses parties ; cette propriété ne les concatène pas et n’implique aucune livraison."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "À employer lorsque la source fournit explicitement cet enregistrement ou ce champ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:utteranceText."
+msgstr "Conserver la valeur fournie pour gmeow:utteranceText."
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message Kind"
+msgstr "Type de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."
+msgstr "Type comportemental ou de rapport d’un message — vocabulaire de VALEURS (individus, jamais sous-classes). Les catégories peuvent se recouper (un rebond est aussi généré automatiquement ; un accusé de lecture aussi). Principe 9 : aucune catégorie unique ne l’emporte."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for overlapping source classifications of any Message transport."
+msgstr "À employer pour les classifications source superposées de tout transport de Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making kinds Message subclasses or forcing a single winning category."
+msgstr "Éviter de faire des types des sous-classes de Message ou d’imposer une catégorie gagnante."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."
+msgstr "Joindre un individu de type réel par hasMessageKind ; les propriétaires courriel et environnement fournissent leurs valeurs."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This core vocabulary adds no email-address, delivery or recipient requirements."
+msgstr "Ce vocabulaire central n’ajoute aucune exigence d’adresse électronique, livraison ou destinataire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localKind a gmeow:MessageKind ."
+msgstr "Par exemple : ex:localKind a gmeow:MessageKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has message kind"
+msgstr "a pour type de message"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."
+msgstr "Relie un message à l’un de ses types comportementaux ou de rapport. Non fonctionnel : un message peut porter plusieurs types superposés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source classifies the behavior or report purpose of a Message."
+msgstr "À employer lorsqu’une source classe le comportement ou but de rapport d’un Message."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."
+msgstr "Éviter d’interpréter un type comme livraison réussie ou de contraindre un avis en EmailMessage."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Message to each supplied MessageKind without removing other attributed kinds."
+msgstr "Relier le Message réel à chaque MessageKind fourni sans retirer les autres types attribués."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."
+msgstr "La relation reste non fonctionnelle et indépendante du transport ; les individus propres au courriel restent dans ce propriétaire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+msgstr "Par exemple : ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."

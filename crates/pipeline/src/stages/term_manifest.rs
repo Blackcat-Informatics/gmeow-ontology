@@ -294,29 +294,23 @@ impl FromJson for ReleaseAuthority {
     }
 }
 
-fn manifest_error(message: impl Into<String>) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Parse {
-        message: message.into(),
-    })
-}
-
 fn validate_release_authority(authority: &ReleaseAuthority) -> Result<(), gmeow_errors::Diag> {
     if authority.schema != TERM_RELEASE_AUTHORITY_SCHEMA {
-        return Err(manifest_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "{} declares schema {:?}, but this build reads only {:?}",
             TERM_RELEASE_AUTHORITY_PATH, authority.schema, TERM_RELEASE_AUTHORITY_SCHEMA
         )));
     }
     ordered_release(&authority.release, "release authority")?;
     if authority.terms.is_empty() {
-        return Err(manifest_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "{} carries no term records; an empty previous-release authority is not a release",
             TERM_RELEASE_AUTHORITY_PATH
         )));
     }
     for (term, record) in &authority.terms {
         if gmeow_ns::registered_term_namespace(term).is_none() {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "{} carries out-of-scope term IRI {term:?}",
                 TERM_RELEASE_AUTHORITY_PATH
             )));
@@ -327,13 +321,13 @@ fn validate_release_authority(authority: &ReleaseAuthority) -> Result<(), gmeow_
                 .bytes()
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
         {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "{} term {term} carries non-canonical definition digest {:?}",
                 TERM_RELEASE_AUTHORITY_PATH, record.digest
             )));
         }
         if record.first_seen.trim().is_empty() {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "{} term {term} carries no first-seen release",
                 TERM_RELEASE_AUTHORITY_PATH
             )));
@@ -347,7 +341,7 @@ fn validate_release_authority(authority: &ReleaseAuthority) -> Result<(), gmeow_
                 .windows(2)
                 .all(|pair| pair[0] < pair[1])
         {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "{} term {term} carries empty, duplicate, or unsorted changed releases {:?}",
                 TERM_RELEASE_AUTHORITY_PATH, record.changed_versions
             )));
@@ -358,7 +352,7 @@ fn validate_release_authority(authority: &ReleaseAuthority) -> Result<(), gmeow_
 
 fn ordered_release(value: &str, source: &str) -> Result<semver::Version, gmeow_errors::Diag> {
     semver::Version::parse(value).map_err(|error| {
-        manifest_error(format!(
+        crate::error::parse_diag(format!(
             "{source} release identity {value:?} is not semantic-version authority: {error}"
         ))
     })
@@ -377,7 +371,7 @@ fn release_boundary_order(
     let accepted = ordered_release(&authority.release, "release authority")?;
     let order = current.cmp(&accepted);
     if order == Ordering::Less {
-        return Err(manifest_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "authored ontology release {current} precedes tracked release authority {}; refusing \
              to compare current terms with future evidence",
             authority.release
@@ -392,14 +386,14 @@ fn release_boundary_order(
 fn read_release_authority(root: &Path) -> Result<ReleaseAuthority, gmeow_errors::Diag> {
     let path = root.join(TERM_RELEASE_AUTHORITY_PATH);
     let bytes = std::fs::read(&path).map_err(|error| {
-        manifest_error(format!(
+        crate::error::parse_diag(format!(
             "cannot read required previous-release authority {}: {error}; run the explicit \
              maintainer release-authority producer at an accepted release boundary",
             path.display()
         ))
     })?;
     let authority: ReleaseAuthority = json::record::from_slice(&bytes).map_err(|error| {
-        manifest_error(format!(
+        crate::error::parse_diag(format!(
             "cannot parse previous-release authority {}: {error}",
             path.display()
         ))
@@ -556,10 +550,11 @@ fn manifest_nquads(records: &BTreeMap<String, PriorTerm>) -> String {
 }
 
 fn canonical_manifest_bytes(nq: &str) -> Result<Vec<u8>, gmeow_errors::Diag> {
-    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None)
-        .map_err(|e| manifest_error(format!("parse term-content-manifest N-Quads: {e}")))?;
+    let ds = purrdf::parse_dataset(nq.as_bytes(), "application/n-quads", None).map_err(|e| {
+        crate::error::parse_diag(format!("parse term-content-manifest N-Quads: {e}"))
+    })?;
     crate::stages::superset::canonical_ntriples(&ds)
-        .map_err(|e| manifest_error(format!("canonicalize term-content-manifest: {e}")))
+        .map_err(|e| crate::error::parse_diag(format!("canonicalize term-content-manifest: {e}")))
 }
 
 fn render_with_authority(
@@ -605,7 +600,7 @@ fn publish_release_authority(
 ) -> Result<(String, usize, bool), gmeow_errors::Diag> {
     let path = root.join(TERM_RELEASE_AUTHORITY_PATH);
     if bootstrap && path.exists() {
-        return Err(manifest_error(format!(
+        return Err(crate::error::parse_diag(format!(
             "refusing to bootstrap over existing release authority {}",
             path.display()
         )));
@@ -628,7 +623,7 @@ fn publish_release_authority(
     let candidate = canonical_manifest_bytes(&manifest_nquads(&records))?;
     let fixed_point = render_with_authority(&dataset, &records)?;
     if fixed_point != candidate {
-        return Err(manifest_error(
+        return Err(crate::error::parse_diag(
             "term release-authority refresh is not a fixed point; refusing to write evidence",
         ));
     }
@@ -637,7 +632,7 @@ fn publish_release_authority(
     if boundary_order == Some(Ordering::Equal) {
         let authority = existing.expect("equal boundary has an existing authority");
         if records != authority.terms {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "refusing to overwrite release authority {} at unchanged ontology release \
                  {release}: term records moved without a new accepted release identity",
                 path.display()
@@ -657,7 +652,7 @@ fn publish_release_authority(
     let mut bytes = json::record::to_vec(&authority);
     bytes.push(b'\n');
     let parent = path.parent().ok_or_else(|| {
-        manifest_error(format!(
+        crate::error::parse_diag(format!(
             "release authority path {} has no parent",
             path.display()
         ))
@@ -667,7 +662,7 @@ fn publish_release_authority(
     pending.write_all(&bytes)?;
     pending.as_file_mut().sync_all()?;
     pending.persist(&path).map_err(|error| {
-        manifest_error(format!(
+        crate::error::parse_diag(format!(
             "atomically publish release authority {}: {}",
             path.display(),
             error.error
@@ -719,7 +714,7 @@ impl Stage for TermManifestStage {
         files.extend(module_files(root)?);
         let authority = root.join(TERM_RELEASE_AUTHORITY_PATH);
         if !authority.is_file() {
-            return Err(manifest_error(format!(
+            return Err(crate::error::parse_diag(format!(
                 "required previous-release authority {} is absent",
                 authority.display()
             )));
@@ -734,7 +729,7 @@ impl Stage for TermManifestStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

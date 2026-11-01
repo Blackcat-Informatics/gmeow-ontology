@@ -1,0 +1,738 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: messaging, language: zh).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message"
+msgstr "消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A communicative information artifact addressed or intended for other agents. Its existence does not assert dispatch, delivery, receipt or a reply; email and chat messages specialize this shared kind."
+msgstr "发给或拟发给其他行动者的通信信息制品。其存在不表示已发送、送达、接收或回复；电子邮件及聊天消息专门化此共享种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for authored or received communication, including an intended message refused before dispatch."
+msgstr "用于已创作或接收的通信，包括发送前被拒绝的拟发消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring successful communication from message typing alone."
+msgstr "避免仅从消息类型推断通信成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain source participants, parts, thread and outcome claims using the transport-specific specialization where known."
+msgstr "保留来源的参与者、部分、线程及结果断言；已知时使用传输专门类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Message|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message a gmeow:Message ."
+msgstr "ex:message a gmeow:Message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Body Part"
+msgstr "消息体部分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object representing one constituent of a message body. It is transport-neutral; a MIME part is one specialization of this content-part role."
+msgstr "表示消息体一个组成部分的信息对象。它不依赖传输机制；MIME 部分是此内容部分角色的一种专门形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a distinct body constituent with its own content identity and metadata."
+msgstr "用于保留具有自身内容身份及元数据的独立消息体组成部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every body part has MIME headers or is itself the media file it carries."
+msgstr "避免假定所有消息体部分都有 MIME 头部，或其本身就是所携带的媒体文件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach it with hasBodyPart; use partMedia for a separate carried media artifact and entryOrdinal for supplied source order."
+msgstr "用 hasBodyPart 关联；独立携带的媒体制品使用 partMedia，来源提供的顺序使用 entryOrdinal。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BodyPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part ."
+msgstr "ex:message gmeow:hasBodyPart ex:part ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Thread"
+msgstr "会话线程"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A conversation grouping messages related by reply or reference chains. Membership does not imply that every message was delivered or answered."
+msgstr "按回复或引用链分组消息的会话。成员资格不表示每条消息均已送达或获回复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared conversation identity of related messages."
+msgstr "用于相关消息的共享会话身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a thread with one response turn or one network room."
+msgstr "避免将线程等同于一次响应轮次或一个网络房间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link messages through partOfThread and retain direct reply edges separately."
+msgstr "通过 partOfThread 关联消息，并独立保留直接回复边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Thread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has body part"
+msgstr "具有消息体部分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to a constituent of its body, specializing hasPart without requiring a MIME representation. Several parts coexist."
+msgstr "将消息关联到其消息体组成部分，专门化 hasPart 而不要求 MIME 表示。多个部分可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a message’s retained body structure."
+msgstr "用于消息保留的消息体结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading RDF statement order as body-part order."
+msgstr "避免将 RDF 语句顺序解读为消息体部分顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link each part and keep any known zero-based source position on its occurrence with entryOrdinal."
+msgstr "关联每个部分，并用 entryOrdinal 在其出现节点上保留已知的零起始来源位置。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasBodyPart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:hasBodyPart ex:part0 , ex:part1 ."
+msgstr "ex:message gmeow:hasBodyPart ex:part0 , ex:part1 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "in reply to"
+msgstr "回复消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the message it directly answers. Both ends are messages; a digest-only reference to words instead uses repliesToContent."
+msgstr "将消息关联到它直接回应的消息。两端都是消息；仅以摘要标识话语的引用改用 repliesToContent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the replied-to message is known as a message resource."
+msgstr "被回复消息作为消息资源已知时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a transmitted message solely to hold a content digest."
+msgstr "避免仅为保存内容摘要而创建已传送消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the direct source reply relation; record unknown content-only targets separately."
+msgstr "保留来源的直接回复关系；仅以内容已知的未知目标另行记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inReplyTo|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:inReplyTo ex:message ."
+msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part of thread"
+msgstr "属于线程"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the conversation thread it belongs to, specializing the universal partOf relation. It does not determine delivery state or response-turn boundaries."
+msgstr "将消息关联到其所属会话线程，专门化通用 partOf 关系。它不决定送达状态或响应轮次边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to group messages under a conversation identity."
+msgstr "用于将消息分组到会话身份下。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that every thread member was visible to every participant."
+msgstr "避免推断每条线程成员消息都对每位参与者可见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the message to each source-supported Thread, preserving attributed alternative groupings."
+msgstr "将消息关联到每个有来源支持的 Thread，保留归属明确的其他分组。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partOfThread|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "sent at"
+msgstr "发送于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-reported dateTime of a message’s sending. In email it can preserve the RFC 5322 Date claim; it is not independent proof of dispatch or arrival."
+msgstr "来源报告的消息发送 dateTime。在电子邮件中可保留 RFC 5322 Date 断言；它不是发送或到达的独立证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a source sending-time claim."
+msgstr "用于保留来源的发送时间断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid bridging sending time to record creation or delivery success."
+msgstr "避免将发送时间关联为记录建立时间或送达成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied dateTime and actual timezone information; preserve its provenance when the source is an authored header."
+msgstr "保留提供的 dateTime 及实际时区信息；来源为创作的头部时保留其来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sentAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:sentAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:message gmeow:sentAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "received at"
+msgstr "接收于"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "When the message was received by the storing system, as reported by the source. This retains provider receive time and does not prove that a human or another intended recipient saw the message."
+msgstr "来源报告的存储系统接收消息时间。它保留提供方接收时间，不证明人类或其他预定收件人看到了消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the retaining system’s receive-time observation."
+msgstr "用于保留系统的接收时间观测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading storage receipt as readership or a successful reply."
+msgstr "避免将存储接收解读为已读或成功回复。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied dateTime, including provider internal receive dates; retain occurrence and record time independently."
+msgstr "保留提供的 dateTime，包括提供方内部接收日期；独立保留发生及记录建立时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:receivedAt \"2026-10-29T10:00:01Z\"^^xsd:dateTime ."
+msgstr "ex:message gmeow:receivedAt \"2026-10-29T10:00:01Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Delivery Outcome"
+msgstr "送达结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for an explicitly reported message-delivery outcome. Its failure values retain refusal by a sender guard and rejection by a provider; absence proves no success."
+msgstr "用于明确报告消息送达结果的开放值词汇。失败值保留发送方保护机制拒绝及提供方拒绝；缺失不证明成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify reported delivery failures without losing the intended message."
+msgstr "用于分类所报告送达失败，同时保留拟发消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating missing failure data as a delivered state."
+msgstr "避免将失败数据缺失视为已送达状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference these values through deliveryOutcome; preserve attempt, recipient, time and standpoint on the attribution when needed."
+msgstr "通过 deliveryOutcome 引用这些值；需要时在归属断言上保留尝试、收件人、时间及立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DeliveryOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome ex:outcome ."
+msgstr "ex:message gmeow:deliveryOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "delivery outcome"
+msgstr "送达结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed DeliveryOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."
+msgstr "来源归属的此消息 DeliveryOutcome，保留明确结果，而非从图边缺失推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s deliveryOutcome assertion."
+msgstr "用于保留来源的 deliveryOutcome 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting absence of deliveryOutcome as success."
+msgstr "避免把 deliveryOutcome 缺失解释为成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link supported DeliveryOutcome values; several reports may coexist with their own statement provenance."
+msgstr "关联有依据的 DeliveryOutcome 值；多个报告可以与各自的语句来源共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome ex:outcome ."
+msgstr "ex:message gmeow:deliveryOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reply Outcome"
+msgstr "回复结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for an explicit outcome of answering a message. It distinguishes a reported cognition failure from merely having no known reply."
+msgstr "表示回应消息的明确结果的开放值词汇。它将所报告的认知失败与仅仅没有已知回复区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an explanation of a failed answering attempt."
+msgstr "用于保留回复尝试失败的解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving failure from the absence of an inReplyTo edge."
+msgstr "避免从 inReplyTo 边缺失推断失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the reported value with replyOutcome and keep later successful replies without deleting the earlier failure."
+msgstr "用 replyOutcome 引用所报告值，并保留后续成功回复而不删除先前失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome ex:outcome ."
+msgstr "ex:message gmeow:replyOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply outcome"
+msgstr "回复结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-attributed ReplyOutcome of this message, retaining an explicit outcome rather than inferring it from missing graph edges."
+msgstr "来源归属的此消息 ReplyOutcome，保留明确结果，而非从图边缺失推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the source’s replyOutcome assertion."
+msgstr "用于保留来源的 replyOutcome 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting absence of replyOutcome as success."
+msgstr "避免把 replyOutcome 缺失解释为成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link supported ReplyOutcome values; several reports may coexist with their own statement provenance."
+msgstr "关联有依据的 ReplyOutcome 值；多个报告可以与各自的语句来源共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyOutcome|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome ex:outcome ."
+msgstr "ex:message gmeow:replyOutcome ex:outcome ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refused by sender guard"
+msgstr "被发送方保护机制拒绝"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The sender’s own guard refused this message’s delivery attempt. The intended message is retained even though it did not reach the recipient in that attempt."
+msgstr "发送方自身保护机制拒绝了此次消息送达尝试。即便该次尝试未到达收件人，仍保留拟发消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported sender-guard refusal."
+msgstr "用于明确报告的发送方保护机制拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid conflating sender refusal with provider rejection."
+msgstr "避免混淆发送方拒绝与提供方拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute deliveryRefusedByGuard through deliveryOutcome with its source context."
+msgstr "通过 deliveryOutcome 归属 deliveryRefusedByGuard 并保留来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRefusedByGuard|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ."
+msgstr "ex:message gmeow:deliveryOutcome gmeow:deliveryRefusedByGuard ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "rejected by provider"
+msgstr "被提供方拒绝"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A provider rejected this message’s delivery attempt. It records that refusal without asserting that every later attempt also failed."
+msgstr "提供方拒绝了此次消息送达尝试。它记录该次拒绝，不断言所有后续尝试也失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a reported provider-side rejection."
+msgstr "用于所报告的提供方拒绝。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading provider rejection as a judgment about content truth."
+msgstr "避免将提供方拒绝解读为内容真伪判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute deliveryRejectedByProvider through deliveryOutcome with its source context."
+msgstr "通过 deliveryOutcome 归属 deliveryRejectedByProvider 并保留来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/deliveryRejectedByProvider|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider ."
+msgstr "ex:message gmeow:deliveryOutcome gmeow:deliveryRejectedByProvider ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reply failed through cognition"
+msgstr "回复因认知失败"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The recipient’s answering attempt failed because its cognition failed. This is an explicit source report, not a deduction from unanswered conversation history."
+msgstr "收件人的回应尝试因其认知失败而失败。这是明确的来源报告，而非从未获回复的会话历史推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports cognition failure as the reason no answer was produced in an attempt."
+msgstr "来源报告某次尝试因认知失败而未产生回答时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing cognition from silence or elapsed time."
+msgstr "避免从沉默或经过时间诊断认知状况。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute replyFailedCognition through replyOutcome with its source context."
+msgstr "通过 replyOutcome 归属 replyFailedCognition 并保留来源上下文。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/replyFailedCognition|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:replyOutcome gmeow:replyFailedCognition ."
+msgstr "ex:message gmeow:replyOutcome gmeow:replyFailedCognition ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "part media"
+msgstr "部分携带媒体"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a body-part occurrence to the separate MediaObject it carries, specializing hasPart. The wrapper and file can have different identities and metadata."
+msgstr "将消息体部分出现关联到其携带的独立 MediaObject，专门化 hasPart。包装与文件可以具有不同身份及元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a message part carries a distinct image, audio or video artifact."
+msgstr "消息部分携带独立图像、音频或视频制品时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating transport-wrapper bytes with the carried media bytes."
+msgstr "避免将传输包装字节等同于所携带媒体字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the BodyPart to its MediaObject and retain each artifact’s own digest where known."
+msgstr "将 BodyPart 关联到其 MediaObject，并在已知时保留各制品自身摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/partMedia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:part gmeow:partMedia ex:deliveredImage ."
+msgstr "ex:part gmeow:partMedia ex:deliveredImage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source media artifact"
+msgstr "媒体来源制品"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a delivered MediaObject to the InformationObject whose bytes it was produced from before delivery encoding. The source carries its own contentDigest and need not be stored or published. This relation asserts actual byte-source derivation."
+msgstr "将送达的 MediaObject 关联到其在送达编码前据以产生的字节所属 InformationObject。来源携带自身 contentDigest，无需已存储或发布。该关系断言实际的字节来源派生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish generated source bytes from delivery-encoded bytes."
+msgstr "用于区分生成的来源字节与送达编码字节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting a source digest for the delivered artifact’s own digest or claiming derivation from mere context presence."
+msgstr "避免用来源摘要替代送达制品自身摘要，或仅因上下文中存在就声称派生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference a digest-identified source artifact and keep the delivered MediaObject’s contentDigest separate."
+msgstr "引用摘要标识的来源制品，并独立保留送达 MediaObject 的 contentDigest。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/sourceMedia|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:sourceMedia ex:generatedBytes ."
+msgstr "ex:deliveredImage gmeow:sourceMedia ex:generatedBytes ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "replies to content"
+msgstr "回复内容"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to the words or other content it answers when only that content’s digest identity is known. The target is an InformationObject, without asserting that a message was transmitted or exists in the retaining store."
+msgstr "当仅知摘要身份时，将消息关联到它所回应的话语或其他内容。目标为 InformationObject，不断言某条消息已传送或存在于保留存储中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a digest-only reply target without fabricating a sent-message resource."
+msgstr "用于仅以摘要标识的回复目标，而不虚构已发送消息资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making this content reference a subproperty of inReplyTo."
+msgstr "避免将此内容引用设为 inReplyTo 的子属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Create a reusable content node with its own contentDigest; record inReplyTo separately only when the source message is known."
+msgstr "创建具有自身 contentDigest 的可复用内容节点；仅在来源消息已知时独立记录 inReplyTo。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/repliesToContent|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:repliesToContent ex:externalWords ."
+msgstr "ex:reply gmeow:repliesToContent ex:externalWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composed"
+msgstr "有意创作"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Content deliberately authored by an agent to communicate or commit, including speech, a written message or a stated intention. This source attribution can coexist with generated process origin and says neither that the content is true nor that its commitment was fulfilled."
+msgstr "行动者为沟通或承诺而有意创作的内容，包括言语、书面消息或陈述的意图。此来源归属可与生成过程来源共存，既不表示内容真实，也不表示承诺已实现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when deliberate communicative or committing composition is supported by the source."
+msgstr "来源支持有意沟通或承诺创作时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring deliberate authorship solely from generative production, perception or recall."
+msgstr "避免仅从生成生产、感知或回忆推断有意创作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attribute through contentOrigin; retain generated, imagined, remembered or perceived origins when they also apply."
+msgstr "通过 contentOrigin 归属；生成、想象、记忆或感知来源也适用时予以保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originComposed|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:contentOrigin gmeow:originComposed ."
+msgstr "ex:message gmeow:contentOrigin gmeow:originComposed ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "contains illustrative text"
+msgstr "包含图内文字"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A positive tag for an image whose pixels contain text belonging to the picture, such as a drawn label or sign. A missing tag does not assert absence of such text and the tag supplies no transcription."
+msgstr "标记像素中包含属于图片本身文字的图像的正向标签，例如绘制的标签或标志。缺少此标签不表示无此文字，且标签不提供转录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when only the presence of text within an image is known."
+msgstr "仅知图像内存在文字时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using the tag as searchable transcription or as a negative result when absent."
+msgstr "避免将标签当作可搜索转录，或在其缺失时视作否定结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach with hasTag to the image artifact; retain any transcription or region description separately when available."
+msgstr "通过 hasTag 附到图像制品；可用时独立保留转录或区域描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tagContainsIllustrativeText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:hasTag gmeow:tagContainsIllustrativeText ."
+msgstr "ex:deliveredImage gmeow:hasTag gmeow:tagContainsIllustrativeText ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "messaging"
+msgstr "消息通信"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Shared communicative artifacts, body parts, conversation links, explicit failure outcomes and digest-identified content references for email and chat."
+msgstr "电子邮件及聊天共享的通信制品、消息体部分、会话关联、明确失败结果及摘要标识内容引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|http://purl.org/dc/terms/title"
+msgid "GMEOW Messaging Module"
+msgstr "GMEOW 消息通信模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/messaging|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Message archives and governed conversation stores retaining intended communication, source content identity and explicit outcomes independently of transport success."
+msgstr "独立于传输成功，保留拟通信内容、来源内容身份及明确结果的消息归档与治理会话存储。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Source media digest constraint"
+msgstr "媒体来源摘要约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every sourceMedia target carries contentDigest for the original source bytes, independently of the delivered artifact’s digest."
+msgstr "每个 sourceMedia 目标都携带原始来源字节的 contentDigest，独立于送达制品摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain source-byte identity across delivery encodings."
+msgstr "用于跨送达编码保留来源字节身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying source identity with only a digest on the delivered object."
+msgstr "避免仅以送达对象上的摘要满足来源身份要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put the known algorithm-labelled digest on the referenced source artifact."
+msgstr "将已知的带算法标识摘要放在引用的来源制品上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceMediaDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:deliveredImage gmeow:sourceMedia ex:content ."
+msgstr "ex:deliveredImage gmeow:sourceMedia ex:content ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reply content digest constraint"
+msgstr "回复内容摘要约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every repliesToContent target carries its own contentDigest, identifying the answered content without a fictitious transmitted-message assertion."
+msgstr "每个 repliesToContent 目标携带自身 contentDigest，标识回应的内容而不虚构已传送消息断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for durable digest-only reply references."
+msgstr "用于持久的仅摘要回复引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the target digest with the replying message’s digest."
+msgstr "避免以回复消息摘要替换目标摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the digest-identified content artifact across replies without typing it as Message merely for the reference."
+msgstr "在回复间复用摘要标识内容制品，不仅为该引用就将其标为 Message。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReplyContentDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:repliesToContent ex:content ."
+msgstr "ex:message gmeow:repliesToContent ex:content ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Messaging mappings"
+msgstr "消息通信映射"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Close-match alignments for shared messages, threads and source time. Confidence and manual-curation justification stay attached to each alignment."
+msgstr "共享消息、线程及来源时间的近似匹配对齐。每个对齐均保留置信度及人工整理依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to export the shared messaging alignment set."
+msgstr "用于导出共享消息通信对齐集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a close match as exact identity of all message semantics."
+msgstr "避免将近似匹配解读为所有消息语义的精确同一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep linkage annotations with their mapping cell; transport-specific correspondences remain with their owner."
+msgstr "保持关联注释与映射单元一同保留；传输专用对应仍归其所属方所有。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapsetMessaging|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:Message skos:closeMatch schema:Message ."
+msgstr "gmeow:Message skos:closeMatch schema:Message ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC conversation container projection"
+msgstr "SIOC 会话容器投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects a shared Thread as both SIOC Thread and Container using its declared profile binding. The projection keeps its source pattern and preservation declaration."
+msgstr "按所声明配置绑定，将共享 Thread 投影为 SIOC Thread 及 Container。投影保留其来源模式及保持性声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the shared conversation-container projection."
+msgstr "用于共享会话容器投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this recipe to assert that a conversation is an email message."
+msgstr "避免用此规则断言会话是电子邮件消息。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the declared sioc binding to Thread resources, independently of message transport."
+msgstr "将所声明 sioc 绑定应用到 Thread 资源，而不依赖消息传输。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocContainer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:conversation a gmeow:Thread ."
+msgstr "ex:conversation a gmeow:Thread ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC conversation membership projection"
+msgstr "SIOC 会话成员关系投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects shared message-thread membership to the declared SIOC has_container and container_of edges."
+msgstr "将共享消息线程成员资格投影为所声明 SIOC has_container 及 container_of 边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the shared thread-membership projection."
+msgstr "用于保留共享线程成员资格投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading membership projection as delivery or readership evidence."
+msgstr "避免将成员资格投影解读为送达或阅读证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply its unchanged source membership pattern and explicit paired target edges."
+msgstr "应用其来源成员模式及明确的成对目标边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocHasContainer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:message gmeow:partOfThread ex:conversation ."
+msgstr "ex:message gmeow:partOfThread ex:conversation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "SIOC direct reply projection"
+msgstr "SIOC 直接回复投影"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Projects the shared message-to-message reply relation to the declared SIOC reply_of and has_reply edges. Digest-only content targets are outside this source pattern."
+msgstr "将共享消息间回复关系投影为所声明 SIOC reply_of 及 has_reply 边。仅以摘要标识的内容目标不在此来源模式内。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the direct-message reply projection."
+msgstr "用于保留消息间直接回复投影。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid passing repliesToContent targets through this message-only mapping."
+msgstr "避免将 repliesToContent 目标送入此仅适用消息的映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Match inReplyTo and emit the two explicit SIOC reply edges."
+msgstr "匹配 inReplyTo 并输出两条明确 SIOC 回复边。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/mapSiocReplyOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:reply gmeow:inReplyTo ex:message ."
+msgstr "ex:reply gmeow:inReplyTo ex:message ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "utterance text"
+msgstr "整条消息话语文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The whole source text of a message recorded as one utterance, preserving supplied language and direction. Multipart text remains on its own parts; this property does not concatenate them or imply delivery."
+msgstr "作为单一话语记录的完整消息来源文本，保留所提供的语言和方向。多部分文本仍保留在各部分上；此属性不拼接它们，也不推断交付。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/utteranceText|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:utteranceText."
+msgstr "保留 gmeow:utteranceText 的来源值。"
+
+# Source-faithful environment interactions and catalog records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Message Kind"
+msgstr "消息种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The behavioral or report kind of a message — a VALUE vocabulary (individuals, never subclasses). Categories can overlap (a bounce is also auto-generated; a read receipt is also auto-generated). Principle 9: no single category wins."
+msgstr "消息的行为或报告种类——值词汇表（个体，而非子类）。类别可以重叠（退信也可为自动生成，已读回执亦然）。原则 9：没有单一类别胜出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for overlapping source classifications of any Message transport."
+msgstr "用于任意 Message 传输方式中重叠的来源分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid making kinds Message subclasses or forcing a single winning category."
+msgstr "避免把种类作为 Message 子类或强制单一获胜类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach an actual kind individual through hasMessageKind; email and environment owners supply their own values."
+msgstr "通过 hasMessageKind 附加实际种类个体；电子邮件和环境所有者提供各自值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This core vocabulary adds no email-address, delivery or recipient requirements."
+msgstr "此核心词汇表不增加电子邮件地址、投递或接收者要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localKind a gmeow:MessageKind ."
+msgstr "例如：ex:localKind a gmeow:MessageKind ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has message kind"
+msgstr "具有消息种类"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a message to one of its behavioral or report kinds. Non-functional: a message may carry multiple overlapping kinds."
+msgstr "将消息关联到其行为或报告种类之一。非函数性：消息可具有多个重叠种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source classifies the behavior or report purpose of a Message."
+msgstr "用于来源分类 Message 行为或报告用途时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a kind as successful delivery or coercing a notice into EmailMessage."
+msgstr "避免把种类解读为成功投递或将通知强制归为 EmailMessage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual Message to each supplied MessageKind without removing other attributed kinds."
+msgstr "将实际 Message 关联到每个已提供 MessageKind，不删除其他带归属种类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation stays nonfunctional and transport-neutral; email-specific individuals remain email-owned."
+msgstr "该关系保持非函数性和传输中立；电子邮件特有个体仍由电子邮件拥有。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasMessageKind|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."
+msgstr "例如：ex:notice a gmeow:Message ; gmeow:hasMessageKind gmeow:messageKindWorldNotice ."

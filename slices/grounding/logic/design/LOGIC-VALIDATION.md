@@ -323,3 +323,48 @@ loss ledger, not a slogan, decides whether "GMEOW subsumes V" holds.
 The vocabulary the shapes are authored in is in [`../module.ttl`](../module.ttl); the
 generated SHACL and ShEx surfaces are projections of those validation shapes, written by the
 pipeline and proven drift-free by the generated-artifact gate.
+
+## Bound RDF component identity
+
+`logic:termSameComponent` is a bound integrity filter with four ordered
+arguments: left RDF term, left selector IRI, right RDF term, right selector IRI.
+The closed `logic:TermComponent` vocabulary supplies `componentWhole`,
+`componentDatatype`, `componentTripleSubject`, `componentTriplePredicate` and
+`componentTripleObject`.
+Selectors are exact constant IRIs; every variable operand must already be bound
+by a positive stored relation. The predicate produces no new RDF value or
+binding. Bad arity, unknown or variable selectors, sequence markers and compound
+function operands refuse lowering. Before rendering an identity-containing
+constraint, the projection runs the same branch and scope binding admission as
+the native violation-body lowering, without requiring or inventing a failure
+class. Consequently COALESCE totalizes unavailable components of bound RDF
+values; it cannot hide an unsafe variable binding. Unsupported native formula lanes refuse or
+record loss; the intrinsic never becomes an asserted relation or n-ary reifier.
+
+Whole-term comparison uses RDF term identity, preserving blank-node scope,
+literal lexical form, datatype, language and direction, and recursive quoted
+triple structure. Datatype selection reads the original literal's datatype IRI;
+quoted selectors read the native triple tuple rather than a statement reifier.
+An unavailable component makes the predicate false. An unbound operand is a
+program-refusing gap, including under negation. These are distinct outcomes.
+`termEqual` remains SPARQL value equality and `distinctBody` retains its existing
+RDF-term inequality semantics.
+
+The SPARQL projection composes `sameTerm` with `DATATYPE`, `SUBJECT`,
+`PREDICATE` or `OBJECT`, using the whole term unchanged for `componentWhole`. It first
+forms `COALESCE(sameTerm(componentLeft, componentRight), false)` and applies
+negation outside that complete boolean. The negated form is therefore
+`!COALESCE(sameTerm(componentLeft, componentRight), false)`; moving negation
+inside COALESCE would give the wrong result for an unavailable component.
+RDF 1.2 Concepts supplies the RDF term and quoted-triple identity authority;
+SPARQL supplies the target function behavior. This composes one bound predicate
+without asserting equivalence between an ontology relation and a SPARQL function
+or claiming arbitrary expression execution (Principles 17 and 19). The precise
+source references are in [LOGIC-REFERENCES.md](LOGIC-REFERENCES.md).
+
+The native evaluator borrows both original `TermValue` operands and compares
+components without rendering or reparsing them. Positive and negated guard
+literals and supported consequent patterns share one typed test. Its recorded
+truth is the violation body's required truth, so it bypasses the older
+dimension-consequent inversion. Plan identity includes both complete operands,
+both selectors and polarity. Regex syntax and execution are unchanged.

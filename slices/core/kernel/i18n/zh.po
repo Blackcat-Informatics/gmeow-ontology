@@ -356,3 +356,51 @@ msgstr "avoidForConsumer 值域约束"
 msgctxt "https://blackcatinformatics.ca/gmeow/AvoidForConsumerTargetConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A closed-world integrity constraint: every gmeow:avoidForConsumer value is a declared gmeow:ProjectionContext individual."
 msgstr "闭世界完整性约束：gmeow:avoidForConsumer 的每个取值都是一个已声明的 gmeow:ProjectionContext 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slot bearer"
+msgstr "槽位承担者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The Agent whose state a source-scoped slot tracks. Each slot record has one bearer; this relation does not classify the slot as a particular kind of record."
+msgstr "来源限定的槽位所跟踪其状态的 Agent。每个槽位记录只有一个承担者；此关系不将槽位归类为某种特定记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the agent whose state a slot records."
+msgstr "用于标识槽位所记录其状态的代理。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using an arbitrary entity as the bearer or inferring a slot class from this relation alone."
+msgstr "避免将任意实体用作承担者，也不要仅凭此关系推断槽位类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference the source’s Agent and type the slot explicitly; the owning slot class supplies its required fields and consistency obligations."
+msgstr "引用来源的 Agent 并显式声明槽位类型；槽位所属类别提供必填字段及一致性义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearer|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sourceSlot gmeow:slotBearer ex:agent ."
+msgstr "ex:sourceSlot gmeow:slotBearer ex:agent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "slotBearer is functional"
+msgstr "slotBearer 为函数属性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The intrinsic at-most-one Agent bearer of a source-scoped slot record. Independently sourced slots retain distinct identities; this obligation does not choose a preferred state."
+msgstr "来源限定的槽位记录至多具有一个 Agent 承担者这一内在义务。独立来源的槽位保留不同身份；此义务不选择优先状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to keep each slot record’s Agent bearer singular."
+msgstr "用于保持每个槽位记录的 Agent 承担者唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using bearer functionality to merge independently sourced slot identities."
+msgstr "避免利用承担者的函数性合并独立来源的槽位身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read this as an at-most-one obligation on slotBearer; the owning slot class specifies whether the bearer is required."
+msgstr "将其理解为 slotBearer 至多一个值的义务；槽位所属类别规定是否必须提供承担者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slotBearerFunctionality|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."
+msgstr "gmeow:slotBearerFunctionality logic:characterizes gmeow:slotBearer ."

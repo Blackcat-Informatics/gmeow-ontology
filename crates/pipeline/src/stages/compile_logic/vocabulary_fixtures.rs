@@ -4,12 +4,13 @@
 //! Native vocabulary observations from the retained grounding document. The
 //! producer records declarations; authenticated consumers compare them to Rust.
 
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_logic_compile::graphutil::default_graph_pattern;
 use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 use purrdf::{RdfDataset, TermId, TermRef};
-use serde::{Deserialize, Serialize};
 
 const CHANNEL: &str = "pipeline/logic-vocabulary-fixtures.json";
 const CLASSES: [&str; 12] = [
@@ -27,7 +28,7 @@ const CLASSES: [&str; 12] = [
     "DischargeCondition",
 ];
 
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq)]
 struct Observation {
     source: String,
     members: BTreeMap<String, Result<BTreeSet<String>, gmeow_errors::RecordedDiag>>,
@@ -40,8 +41,7 @@ pub(super) fn record(
 ) -> gmeow_errors::Result<()> {
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observe(dataset))
-            .map_err(|error| super::stage_err(format!("encode vocabulary observation: {error}")))?,
+        purrdf_lex::json::record::to_vec(&observe(dataset)),
     );
     Ok(())
 }

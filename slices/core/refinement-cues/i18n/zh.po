@@ -1,0 +1,2196 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event-type cue grounding"
+msgstr "按事件类型扎根线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opt-in cue-grounding policy that seeds machinery from six exact event kinds and propagates it through event containment, generation, facets, known-unknown subjects and evaluation contexts without individual admission."
+msgstr "显式选择的线索扎根策略，从六种确切事件类型建立机制分类，并沿事件包含、生成、分面、已知未知主题及评估上下文传播，无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the reader explicitly selects event-kind classification and the declared forward links without individual machinery admission."
+msgstr "当读者明确选择按事件类型分类及声明的正向关系，且不要求逐条机制准入时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid combining this policy with another machinery interpretation for the same reader and world, or treating classification as automation or authorship evidence."
+msgstr "避免将本策略与同一读者及世界的其他机制解释混合，也不要将分类视为自动化或作者身份的证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select all twelve rule members for the actual reader and world, finish positive machinery closure, then apply the shared negative cue-eligibility rule. Preserve source provenance independently."
+msgstr "为实际读者及世界选择全部十二个规则成员，完成正向机制闭包，再应用共享的否定线索资格规则。独立保留来源溯源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This policy does not publish MachineryRecord type or invent machineryAdmittedBy facts. Its shared binary state requires one policy interpretation per reader and world. The boundary is an operation-input contract, not authenticated runtime isolation."
+msgstr "本策略不发布 MachineryRecord 类型，也不臆造 machineryAdmittedBy 事实。共享的二元状态要求每个读者与世界仅有一种策略解释。该边界是操作输入契约，不是经认证的运行时隔离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/eventTypeCueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue can select this policy while another release retains operationalCueGrounding; their same-reader interpretations remain in separate operation worlds."
+msgstr "线索可以选择本策略，而另一个版本保留 operationalCueGrounding；两者对同一读者的解释保持在独立操作世界中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "attempt event-kind machinery root"
+msgstr "尝试事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeAttempt under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeAttempt 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual attempt Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的尝试 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeAttempt value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeAttempt 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeAttempt can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeAttempt 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "active intention transition event-kind machinery root"
+msgstr "意图激活转换事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionActive under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeIntentionActive 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual active intention transition Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的意图激活转换 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionActive value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeIntentionActive 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionActive can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeIntentionActive 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "paused intention transition event-kind machinery root"
+msgstr "意图暂停转换事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionPaused under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeIntentionPaused 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual paused intention transition Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的意图暂停转换 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionPaused value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeIntentionPaused 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionPaused can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeIntentionPaused 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfied intention transition event-kind machinery root"
+msgstr "意图满足转换事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionSatisfied under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeIntentionSatisfied 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual satisfied intention transition Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的意图满足转换 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionSatisfied value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeIntentionSatisfied 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionSatisfied can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeIntentionSatisfied 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abandoned intention transition event-kind machinery root"
+msgstr "意图放弃转换事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionAbandoned under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeIntentionAbandoned 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual abandoned intention transition Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的意图放弃转换 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionAbandoned value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeIntentionAbandoned 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionAbandoned can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeIntentionAbandoned 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded intention transition event-kind machinery root"
+msgstr "意图取代转换事件类型机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive machineryForReader for an Event carrying eventTypeIntentionSuperseded under the selected event-type policy, without individual admission or an intention-target prerequisite."
+msgstr "在选定事件类型策略下，为具有 eventTypeIntentionSuperseded 的 Event 派生 machineryForReader，不要求逐条准入或意图目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy classifies an actual superseded intention transition Event by its exact event type."
+msgstr "当选定策略按确切事件类型分类实际的意图取代转换 Event 时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring automation, goal satisfaction or lifecycle execution. Other event kinds do not match this root."
+msgstr "避免推断自动化、目标满足或生命周期执行。其他事件类型不匹配此根。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join the original Event and its eventTypeIntentionSuperseded value to the same reader’s explicit selection of this rule’s set."
+msgstr "将原始 Event 及其 eventTypeIntentionSuperseded 值与同一读者对本规则集合的明确选择连接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "An Event with eventTypeIntentionSuperseded can be classified without minting a machineryAdmittedBy assertion."
+msgstr "具有 eventTypeIntentionSuperseded 的 Event 可以被分类，而不生成 machineryAdmittedBy 断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "event descendant machinery propagation"
+msgstr "后代事件机制传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified containing Event to its subEventOf Event descendants for the same reader, without individual admission."
+msgstr "对同一读者，将已分类包含 Event 的机制状态沿 subEventOf 传播至其后代 Event，无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain event decomposition in the selected event-type policy."
+msgstr "用于在选定事件类型策略中保留事件分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing containment or treating temporal overlap as event decomposition."
+msgstr "避免反转包含关系，或将时间重叠视为事件分解。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join child subEventOf parent with both Event types and the parent’s same-reader machinery state. Transitive closure may supply nested descendants."
+msgstr "连接子事件 subEventOf 父事件、两端的 Event 类型及父事件对同一读者的机制状态。传递闭包可提供嵌套后代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryDescendantRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified containing event can classify its actual child without creating either endpoint’s admission."
+msgstr "已分类包含事件可分类其实际子事件，而不创建任一端点的准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "generated information machinery propagation"
+msgstr "生成信息机制传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified Activity to an InformationObject it generated through wasGeneratedBy, retaining the same reader without individual admission."
+msgstr "将已分类 Activity 的机制状态沿 wasGeneratedBy 传播到其生成的 InformationObject，保持同一读者且无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify actual information outputs of machinery activities in the selected policy."
+msgstr "用于在选定策略中分类机制活动的实际信息输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid propagation through input use, reading, receipts or arbitrary derivation. Classification does not erase human authorship."
+msgstr "避免通过输入使用、读取、回执或任意派生传播。分类不抹去人类作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join output wasGeneratedBy activity with the original InformationObject and Activity types and the activity’s same-reader machinery state."
+msgstr "连接输出 wasGeneratedBy 活动、原始 InformationObject 和 Activity 类型，以及活动对同一读者的机制状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A generated output can be excluded by the selected policy while its source authorship remains recorded independently."
+msgstr "选定策略可排除生成的输出，同时独立保留其来源作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward facet machinery propagation"
+msgstr "正向分面机制传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified subject to its hasFacet LabelledFacet object for the same reader, without individual admission."
+msgstr "对同一读者，将已分类主语的机制状态沿 hasFacet 传播到其 LabelledFacet 宾语，无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify labelled content facets of an already classified record or record part."
+msgstr "用于分类已被分类的记录或记录部分的带标签内容分面。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing hasFacet, inferring vocabulary identity from labels or retyping the containing subject as an InformationObject."
+msgstr "避免反转 hasFacet、从标签推断词汇身份，或将包含主语重新归类为 InformationObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join classified subject hasFacet facet in the forward direction and retain the facet’s LabelledFacet type. The subject has no added class requirement."
+msgstr "沿正向连接已分类主语 hasFacet 分面，并保留分面的 LabelledFacet 类型。不对主语增加类别要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryFacetRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "The facet inherits the containing record’s same-reader machinery classification, without a claim about the truth of its content."
+msgstr "分面继承所属记录对同一读者的机制分类，不声明其内容的真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward known-unknown machinery propagation"
+msgstr "正向已知未知机制传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified Agent to the object of its awareOfNotKnowing assertion for the same reader, without individual admission."
+msgstr "对同一读者，将已分类 Agent 的机制状态沿其 awareOfNotKnowing 断言传播到宾语，无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected policy carries classification from an actual Agent to its explicitly recorded not-known subject."
+msgstr "当选定策略将实际 Agent 的分类传播到其明确记录的未知主题时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an Event as an Agent to make this link fit, reversing awareness or inferring a missing knowledge gap."
+msgstr "避免为适配此关系而将 Event 当作 Agent、反转认知关系，或推断未提供的知识缺口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join Agent awareOfNotKnowing subject with the Agent’s same-reader machinery state. Preserve the owner’s open object range without adding a target class."
+msgstr "连接 Agent awareOfNotKnowing 主题及 Agent 对同一读者的机制状态。保留所属词汇开放的宾语值域，不增加目标类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryKnownUnknownRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified Agent carries classification forward to its supplied not-known subject; this rule does not classify the Agent from that subject."
+msgstr "已分类 Agent 将分类正向传播到来源提供的未知主题；本规则不根据该主题分类 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "forward evaluation-context machinery propagation"
+msgstr "正向评估上下文机制传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machinery from a classified logic:GoalEvaluation to the object of its logic:evaluatedAgainst assertion for the same reader, without individual admission."
+msgstr "对同一读者，将已分类 logic:GoalEvaluation 的机制状态沿其 logic:evaluatedAgainst 断言传播到宾语，无需逐条准入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify the situation or world named by an already classified goal evaluation in the selected policy."
+msgstr "用于在选定策略中分类已分类目标评估所命名的情境或世界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reversing evaluatedAgainst, inventing a gmeow-owned alias or inferring goal satisfaction or context truth."
+msgstr "避免反转 evaluatedAgainst、臆造 gmeow 所有的别名，或推断目标满足或上下文真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join evaluation logic:evaluatedAgainst context with the original logic:GoalEvaluation type and its same-reader machinery state. Do not assert a new class for the context."
+msgstr "连接评估 logic:evaluatedAgainst 上下文、原始 logic:GoalEvaluation 类型及其对同一读者的机制状态。不为上下文断言新类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Every clause requires positive selection of its containing set and its own membership, retaining the same reader. Select one policy interpretation per reader and world; no execution or authorship is certified."
+msgstr "每个子句要求明确选择其所属集合及其自身成员关系，并保持同一读者。每个读者与世界只选择一种策略解释；不认证执行或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EventTypeMachineryEvaluationContextRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "A classified evaluation classifies its supplied situation or world without asserting that its judgement was completed or correct."
+msgstr "已分类评估分类来源提供的情境或世界，而不声明其判断已完成或正确。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echoes premise of"
+msgstr "复述其前提"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an answer to the concrete Prompt whose premise a refiner reads that answer as merely restating. This attributed dependence reading neither asserts falsity or contradiction nor counts the answer as independent support."
+msgstr "将回答关联到细化器认为该回答仅在复述其前提的具体 Prompt。这种有归属的依赖解读既不声明虚假或矛盾，也不将回答算作独立支持。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a refiner identifies an answer as restating its prompt’s premise rather than adding independent evidence."
+msgstr "用于细化器将回答识别为复述提示前提而非增加独立证据时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that the premise is false, that the answer contradicts it or that an echo reading is the answer author’s own assertion."
+msgstr "避免推断前提为假、回答与前提矛盾，或复述解读是回答作者自身的断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Preserve accordingTo on the RDF 1.2 statement or its reifier and link a Refinement’s selected observationResult to that attributed reading. Keep the original answer and Prompt separate."
+msgstr "在 RDF 1.2 语句或其重述节点上保留 accordingTo，并将 Refinement 选定的 observationResult 关联到该有归属解读。分别保留原始回答与 Prompt。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoesPremiseOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "Attribute the dependence reading: ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+msgstr "记录依赖解读的归属：ex:answer gmeow:echoesPremiseOf ex:prompt {| gmeow:accordingTo ex:refinerV2 |} ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Lexicon"
+msgstr "线索词表"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed release of named Cue declarations used as evidence by a reading rule. It retains version identity, content digest, source derivation and accountable review provenance; an empty release is legal and its cues never define a text's meaning."
+msgstr "供解读规则作为证据使用的具名 Cue 声明的不可变且经审阅发布版本。它保留版本身份、内容摘要、来源派生及可追责审阅来源；空发布版本合法，其线索绝不定义文本意义。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose the exact reviewed cue inventory a consumer-owned reading rule used."
+msgstr "用于公开由消费者拥有的解读规则所使用的确切已审阅线索集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid mutating a released version, treating cue matches as meanings or diagnoses, or hand-authoring generated translation glossaries as cue lists."
+msgstr "避免修改已发布版本、将线索匹配当作含义或诊断，或将生成的翻译术语表手工编写为线索列表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name a distinct versionOf lineage, retain versionLabel and contentDigest, cite source records through wasDerivedFrom, attribute authorship with wasAttributedTo and cite the completed review through cueReview. Changes create a new version."
+msgstr "指定不同的 versionOf 谱系，保留 versionLabel 与 contentDigest，通过 wasDerivedFrom 引用来源记录，以 wasAttributedTo 记录作者归属，并通过 cueReview 引用已完成审阅。变更须创建新版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexicon|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify a reviewed release: ex:cuesV1 a gmeow:CueLexicon ."
+msgstr "标识已审阅版本：ex:cuesV1 a gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review"
+msgstr "线索审阅"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The completed review sign-off activity for this exact CueLexicon version, retaining the responsible reviewer through wasAssociatedWith and its sign-off instant through eventTime. Review is accountable provenance, not universal endorsement or safety certification."
+msgstr "此确切 CueLexicon 版本已完成审阅的签核活动，通过 wasAssociatedWith 保留负责审阅者，通过 eventTime 保留签核时刻。审阅是可追责溯源，而非普遍认可或安全认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain who signed off the exact cue version and when."
+msgstr "用于保留谁在何时签核了确切线索版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a reviewer name string without its activity, reusing a review for changed bytes or interpreting review as a guarantee about every later reading."
+msgstr "避免只记录审阅者名称字符串而无活动、将审阅复用于已变更字节，或将审阅解释为对所有后续解读的保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the immutable version to its completed sign-off Activity; record the reviewer Agent with wasAssociatedWith and the actual date-time with eventTime."
+msgstr "将不可变版本关联到其已完成签核 Activity；通过 wasAssociatedWith 记录审阅 Agent，通过 eventTime 记录实际日期时间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReview|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the accountable review: ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+msgstr "保留可追责审阅：ex:cuesV1 gmeow:cueReview ex:reviewSignoff ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue review evidence constraint"
+msgstr "线索审阅证据约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueReview points to a completed sign-off activity with a responsible reviewer association and a recorded sign-off instant."
+msgstr "每个所提供的 cueReview 须指向具有负责审阅者关联和已记录签核时刻的已完成签核活动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueReviewEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+msgstr "保留适用定律：gmeow:CueReviewEvidenceConstraint logic:formalizes gmeow:cueReview ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue lexicon version identity constraint"
+msgstr "线索词表版本身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A released CueLexicon version is distinct from the lineage entity it versions."
+msgstr "已发布的 CueLexicon 版本须区别于其所属谱系实体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the intrinsic provenance or language contract of the supplied cue version."
+msgstr "用于检查所提供线索版本的内在溯源或语言契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this consistency law as an executed review, a digest verification or an interpretation guarantee."
+msgstr "避免将此一致性定律当作已执行审阅、摘要验证或解释保证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the realized formula against the actual supplied record and retain the original values when diagnosing a violation."
+msgstr "对实际提供的记录解读已实现公式，并在诊断违反时保留原始值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the governing law: gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "保留适用定律：gmeow:CueLexiconVersionIdentityConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "refinement cues"
+msgstr "细化线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Attributed premise-dependence readings and immutable reviewed cue versions grounded in existing prompts, refinements, version lineages and provenance."
+msgstr "有归属的前提依赖解读与不可变已审阅线索版本，以现有提示、细化、版本谱系和溯源为基础。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|http://purl.org/dc/terms/title"
+msgid "GMEOW Refinement Cues Module"
+msgstr "GMEOW 细化线索模块"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/refinement-cues|https://blackcatinformatics.ca/gmeow/sliceConsumer"
+msgid "Consumer-owned record refiners retaining premise-echo findings and the exact reviewed word or phrase inventory used as evidence."
+msgstr "由消费者拥有的记录细化器，保留前提复述发现及用作证据的确切已审阅词语或短语集合。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue"
+msgstr "文本线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared textual signal used as evidence for or against one named reading. A cue retains its phrases or patterns, judge guidance, reading scope and evidence polarity; its presence is never the meaning of a text or a verdict about its author."
+msgstr "声明的文本信号，用作支持或反对某个具名解读的证据。线索保留短语或模式、评判指引、读取范围和证据极性；其出现绝非文本的意义，也不是对作者的裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Phrase and pattern alternatives may coexist. Their detected matches form a union, retaining one occurrence for each identical cue, source literal and original half-open code-point span. Empty reviewed lexicons remain legal."
+msgstr "短语和模式可以共存。检测结果取并集，每个相同线索、源字面量及原始半开码点区间只保留一次出现。经审阅的空词表仍然合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Cue|http://www.w3.org/2004/02/skos/core#example"
+msgid "A declared signal: ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "声明的线索：ex:blocked a gmeow:Cue ; gmeow:cuePhrase \"cannot continue\"@en ; gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has cue"
+msgstr "包含线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an immutable reviewed CueLexicon release to a declared Cue resource in its payload. Membership carries no ordering, priority or independent endorsement."
+msgstr "将不可变且经审阅的 CueLexicon 发布版本关联到其载荷中声明的 Cue 资源。成员关系不赋予顺序、优先级或独立认可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and not required: an empty reviewed release has no cues. Distinct releases can cite the same unchanged cue resource without sharing release identity."
+msgstr "多值且非必需：经审阅的空发布版本没有线索。不同发布版本可引用同一未变的线索资源，但不共享发布身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cuesV1 gmeow:hasCue ex:blocked ."
+msgstr "ex:cuesV1 gmeow:hasCue ex:blocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "detection guidance"
+msgstr "检测评判指引"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Language-bearing instructions a person or model follows to judge reported and missed matches of this cue. These instructions are an evaluation rubric; the detector does not execute them."
+msgstr "供人或模型判断此线索已报告及漏报匹配的带语言指令。这些指令是评估准则，检测器不执行它们。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Required for a Cue. Multiple language realizations may coexist without a preferred language."
+msgstr "Cue 必须具备此项。多种语言表述可以并存，不指定首选语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/detectionGuidance|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:detectionGuidance \"Count inability to proceed, not quoted sample instructions.\"@en ."
+msgstr "ex:blocked gmeow:detectionGuidance \"计入无法继续的表述，不计引用的示例指令。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue phrase"
+msgstr "线索短语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A whole contiguous sequence of source word tokens matched without case distinctions. Tokens are maximal runs of Unicode 16.0.0 Letter or Decimal_Number characters and U+0027 apostrophe, reading U+2019 as U+0027 for comparison only. Compare tokens under Unicode 16.0.0 simple C/S case-fold equivalence, without other normalization."
+msgstr "按忽略大小写方式匹配的完整连续源词序列。词是 Unicode 16.0.0 的 Letter、Decimal_Number 字符及 U+0027 撇号的最大连续串；仅在比较时把 U+2019 视为 U+0027。使用 Unicode 16.0.0 简单 C/S 大小写折叠等价关系，不作其他规范化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Separators may differ because comparison is over tokens. Keep the source interval from the first token's start to the last token's end, including intervening separators. This declared matching contract is not executed by ontology validation."
+msgstr "比较针对词，因此分隔符可以不同。保留从首词起点到末词终点的源区间，包括中间分隔符。此声明的匹配契约不由本体校验执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePhrase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePhrase \"cannot continue\"@en ."
+msgstr "ex:blocked gmeow:cuePhrase \"无法继续\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue pattern"
+msgstr "线索模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A regex alternative for this cue, carried in the lang-owned gmeow:linearRegex datatype. It searches the original literal under that dialect's explicit flags and returns leftmost-first, non-overlapping, nonempty spans."
+msgstr "此线索的正则表达式备选项，使用归 lang 所有的 gmeow:linearRegex 数据类型。它按该方言的显式标志搜索原始字面量，返回最左优先、不重叠且非空的区间。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Patterns and phrases are alternatives, not mutual guards. Pattern syntax, zero-width rejection and execution require a conforming matcher; a typed literal alone is not proof that those checks ran."
+msgstr "模式与短语是备选项，不是相互限定条件。语法、零宽匹配拒绝及执行都需要合规匹配器；仅有带类型字面量不能证明这些检查已执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cuePattern|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+msgstr "ex:blocked gmeow:cuePattern \"(?i)cannot +continue\"^^gmeow:linearRegex ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads words of"
+msgstr "线索读取其话语者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An Agent whose attributed words this cue is permitted to read. Multiple named agents form an allowed set; absence of this property imposes no speaker restriction."
+msgstr "此线索获准读取其归属话语的 Agent。多个具名主体构成允许集合；缺少此属性不施加说话者限制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Selection controls which source words are read, not who authored the cue or whether the named agent holds the proposed reading."
+msgstr "选择限定读取哪些源话语，不决定线索作者，也不表示具名主体持有所提解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsWordsOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+msgstr "ex:blocked gmeow:cueReadsWordsOf ex:speaker ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue reads field"
+msgstr "线索读取字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A property IRI identifying a source literal field this cue reads. Multiple fields form an allowed set; absence imposes no field restriction. The object names the property rather than its value."
+msgstr "标识此线索所读取源字面量字段的属性 IRI。多个字段构成允许集合；缺少时不限制字段。对象命名属性而非其值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No single global domain or range is asserted on the named source property by this selection. Schema metadata and speaker attribution remain separate."
+msgstr "此选择不向被命名源属性施加全局定义域或值域。模式元数据与说话者归属仍然独立。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueReadsField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueReadsField gmeow:description ."
+msgstr "ex:blocked gmeow:cueReadsField gmeow:description ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence for"
+msgstr "线索支持"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading for which a counted match of this cue is evidence. This is an evidence direction, never assertion of that reading or a verdict about the speaker."
+msgstr "命名某个解读的资源，此线索被计入的匹配为该解读提供支持证据。这是证据方向，绝非断言该解读或裁定说话者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One cue selects exactly one of the two evidence relations. Distinct cues may give opposing evidence without one deleting the other."
+msgstr "一个线索恰选两种证据关系之一。不同线索可提供相反证据，互不删除。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceFor|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+msgstr "ex:blocked gmeow:cueEvidenceFor ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence against"
+msgstr "线索反对"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The resource naming the reading against which a counted match of this cue is evidence. Counterevidence neither asserts the reading's negation nor erases supporting evidence."
+msgstr "命名某个解读的资源，此线索被计入的匹配为该解读提供反对证据。反证既不直接断言该解读的否定，也不抹去支持证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Evidence polarity and detection negation are independent: suppressing a match does not reverse its declared evidence direction."
+msgstr "证据极性与检测否定相互独立：抑制匹配不会反转其声明的证据方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueEvidenceAgainst|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+msgstr "ex:alternative gmeow:cueEvidenceAgainst ex:blockedReading ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue example"
+msgstr "线索正例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is present, supplied for a judge's understanding rather than as a reported detector result."
+msgstr "包含此线索的带语言合成文本，用于帮助评判者理解，而非报告检测器结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An example is source documentation, not an executed evaluation or a claim about a real speaker."
+msgstr "正例是源文档，不是已执行评估，也不是关于真实说话者的主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueExample \"I cannot continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueExample \"无法继续。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue counterexample"
+msgstr "线索反例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A synthetic language-bearing text in which this cue is absent, documenting a boundary a judge must retain."
+msgstr "不包含此线索的带语言合成文本，用于记录评判者必须保留的边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A counterexample is not evidence against the named reading; it illustrates cue absence only."
+msgstr "反例不是反对具名解读的证据，仅说明线索缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueCounterExample|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:cueCounterExample \"I can continue with this approach.\"@en ."
+msgstr "ex:blocked gmeow:cueCounterExample \"可以继续。\"@zh ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Negation"
+msgstr "线索否定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A declared suppression rule connecting a cue to exactly one negating Cue and one scope. A detected negating match in that scope suppresses a target match without deleting it or asserting a negative fact about a speaker."
+msgstr "声明的抑制规则，将线索关联到恰好一个否定 Cue 和一个范围。范围内检测到的否定匹配会抑制目标匹配，但不删除它，也不对说话者断言否定事实。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Suppression uses detected matches before suppression. It does not recursively withdraw a suppressor because that suppressor is itself suppressed. Multiple applicable rules retain every suppression reason; no priority is inferred."
+msgstr "抑制以抑制前的检测匹配为依据。不会因抑制者自身被抑制而递归撤销它。多条适用规则保留每项抑制理由，不推断优先级。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked a gmeow:CueNegation ; gmeow:negatingCue ex:not ; gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negated by"
+msgstr "由规则抑制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a target Cue to one of its declared suppression rules. Multiple rules are independent alternatives; any applicable detected negator suppresses the target occurrence."
+msgstr "将目标 Cue 关联到其声明的抑制规则之一。多条规则是独立备选项；任何适用且已检测的否定者都会抑制目标出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is cue-to-rule membership, not a link to a suppressing match and not an assertion that any suppression happened."
+msgstr "这是线索到规则的成员关联，不是到抑制匹配的链接，也不表示抑制已经发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:blocked gmeow:negatedBy ex:notBlocked ."
+msgstr "ex:blocked gmeow:negatedBy ex:notBlocked ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negating cue"
+msgstr "否定线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one Cue whose detected occurrence can suppress a target under this negation rule. Detection alone supplies the suppressor; its evidence polarity and own suppression status do not reverse this role."
+msgstr "此否定规则中，其检测出现可抑制目标的唯一 Cue。抑制者由检测本身提供；其证据极性及自身抑制状态不反转此角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one per rule. The rule's target cue remains linked through negatedBy and is not inferred from evidence polarity."
+msgstr "每条规则恰好一个。目标线索仍通过 negatedBy 关联，不从证据极性推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negatingCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negatingCue ex:not ."
+msgstr "ex:notBlocked gmeow:negatingCue ex:not ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Negation Scope"
+msgstr "否定范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed six-value scope vocabulary for cue suppression: complete containment in one sentence, overlap with a shared sentence, same message part, same message, same source turn, or a symmetric word window."
+msgstr "用于线索抑制的封闭六值范围词汇：完整包含于同一句、与共享句段重叠、同消息部分、同消息、同源轮次或对称词窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing source grouping or segmentation capability is unsupported evaluation, never proof that no negator applies. Scope selection does not create message, part or turn identities."
+msgstr "缺少源分组或分段能力意味着评估不受支持，绝不能证明不存在适用否定者。范围选择不会创建消息、部分或轮次身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NegationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation scope"
+msgstr "否定范围"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exactly-one member of NegationScope controlling where a detected negating match suppresses a target match."
+msgstr "NegationScope 中唯一的成员，用于决定检测到的否定匹配在何处抑制目标匹配。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Sentence and word scopes compare original spans in one exact source literal. Sentence scopes distinguish complete containment from overlap with a shared segment. Part, message and turn scopes compare explicit source grouping identities and may span fields."
+msgstr "句子和词范围比较同一完整源字面量中的原始区间。句子范围区分完整包含与共享句段重叠。部分、消息和轮次范围比较显式源分组身份，可跨越字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:notBlocked gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "negation word window"
+msgstr "否定词窗口"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The positive maximum number of intervening word tokens between a target span and a detected negating span in one source literal. The comparison is symmetric and inclusive: distance less than or equal to this value qualifies; overlapping or adjacent spans have distance zero."
+msgstr "同一源字面量中目标区间与检测到的否定区间之间允许的最大间隔词数，为正整数。比较对称且包含边界：距离小于等于该值即符合；重叠或相邻区间的距离为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The same Unicode 16.0.0 word definition used by cuePhrase supplies the count. Punctuation creates no extra word, and a gap containing no whole word has distance zero."
+msgstr "计数沿用 cuePhrase 的 Unicode 16.0.0 词定义。标点不增加词数，不包含完整词的间隔距离为零。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWindow|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+msgstr "ex:nearbyNot gmeow:negationScope gmeow:negationWithinWords ; gmeow:negationWindow \"3\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same sentence"
+msgstr "同句"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both complete original match spans lie inside one default UAX 29 sentence segment of the same source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "两个完整原始匹配区间位于同一源字面量的同一默认 UAX 29 句段内，使用 Unicode 17.0.0 句子边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A span crossing a sentence boundary does not satisfy same-sentence scope. Sentence segmentation is a declared execution requirement, not an inference from punctuation alone."
+msgstr "跨越句子边界的区间不符合此范围。分句是声明的执行要求，不能仅凭标点推断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameSentence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message part"
+msgstr "同消息部分"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:BodyPart. Literal or field equality alone does not establish part membership."
+msgstr "两个匹配属于同一个显式标识的源 gmeow:BodyPart。仅有字面量或字段相同不足以确立部分成员关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Retain actual part identities and message hasBodyPart membership. Do not infer parts by splitting on line breaks."
+msgstr "保留实际部分身份及消息的 hasBodyPart 成员关系，不根据换行推断部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessagePart|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessagePart ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same message"
+msgstr "同消息"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches belong to the same explicitly identified source gmeow:Message, whether in one or several of its retained parts or fields."
+msgstr "两个匹配属于同一个显式标识的源 gmeow:Message，可位于其一个或多个保留的部分或字段中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A shared thread, sender, timestamp or reply chain does not establish message identity."
+msgstr "共享会话串、发送者、时间戳或回复链不能确立消息身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameMessage|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameMessage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "same source turn"
+msgstr "同源轮次"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The two matches share one explicitly supplied source turn identity. Turn membership is a source claim; this scope does not derive a turn from a conversation thread or message order."
+msgstr "两个匹配共享源显式提供的同一轮次身份。轮次成员关系是源主张，此范围不从会话串或消息顺序推导轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reader must retain the exact source turn identity and membership evidence. Missing turn identity is unsupported evaluation, not a default message-sized turn."
+msgstr "读取者必须保留确切源轮次身份及成员关系证据。缺少轮次身份时评估不受支持，不能默认一条消息就是一个轮次。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSameTurn|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSameTurn ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "within word window"
+msgstr "词窗口内"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both matches lie in one exact source literal and their symmetric intervening-word distance is at most the rule's positive negationWindow."
+msgstr "两个匹配位于同一确切源字面量中，其对称间隔词距离不超过规则的正数 negationWindow。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The window is inclusive and has no implicit left-only or right-only direction. Its unit is the cuePhrase word definition, not UAX 29 word segmentation."
+msgstr "窗口包含边界，不隐含仅向左或仅向右的方向。单位是 cuePhrase 定义的词，而非 UAX 29 分词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationWithinWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationWithinWords ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text alternatives"
+msgstr "线索文本备选约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue declares at least one cuePhrase or cuePattern; both may coexist."
+msgstr "每个 Cue 至少声明 cuePhrase 或 cuePattern 之一，二者可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueTextChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue evidence choice"
+msgstr "线索证据选择约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every Cue selects exactly one of cueEvidenceFor and cueEvidenceAgainst. A class-local maximum separately bounds its chosen target."
+msgstr "每个 Cue 恰选 cueEvidenceFor 和 cueEvidenceAgainst 之一，类局部最大基数另行限制所选目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvidenceChoiceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+msgstr "gmeow:CueEvidenceChoiceConstraint logic:onClass gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "word-window value required"
+msgstr "词窗口值必需约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation selecting negationWithinWords must supply a negationWindow. The datatype and at-most-one bound apply separately."
+msgstr "选择 negationWithinWords 的 CueNegation 必须提供 negationWindow，数据类型及至多一个上限另行适用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This declaration condition does not execute phrase matching, regex matching or sentence segmentation."
+msgstr "此声明条件不执行短语匹配、正则匹配或分句。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowRequiredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+msgstr "gmeow:CueNegationWindowRequiredConstraint logic:onClass gmeow:CueNegation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue text language constraint"
+msgstr "线索文本语言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied phrase, guidance, example and counterexample retains a nonempty language tag, including the base direction of a directional language string."
+msgstr "每个提供的短语、指引、正例和反例都保留非空语言标签，包括方向性语言字符串的基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The constraint preserves tagged source values; it does not normalize text or infer a language resource from a tag."
+msgstr "约束保留带标签源值，不规范化文本，也不从标签推断语言资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueTextLanguageConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueTextLanguageConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue field property constraint"
+msgstr "线索字段属性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every cueReadsField value is an IRI naming a declared object, datatype or annotation property, or an RDF property. This names the field without applying it as a predicate in the declaration."
+msgstr "每个 cueReadsField 值都是命名已声明对象属性、数据类型属性、注解属性或 RDF 属性的 IRI。它命名字段，不在声明中将其作为谓词应用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Field declarations must be supplied for validation; their absence is not repaired by guessing a property kind."
+msgstr "校验必须获得字段声明，不能通过猜测属性种类补齐缺失声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueFieldPropertyConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+msgstr "gmeow:CueFieldPropertyConstraint logic:formalizes gmeow:cueReadsField ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "window scope constraint"
+msgstr "窗口范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied negationWindow belongs to a CueNegation whose scope is negationWithinWords; other scopes must not carry a window."
+msgstr "每个提供的 negationWindow 都属于范围为 negationWithinWords 的 CueNegation；其他范围不得携带窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Together with conditional requiredness and positive-integer typing, this gives exactly one window only when word-window scope is selected."
+msgstr "结合条件必需性和正整数类型，仅在选择词窗口范围时恰有一个窗口。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationWindowScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+msgstr "gmeow:CueNegationWindowScopeConstraint logic:formalizes gmeow:negationWindow ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueLexicon closed record"
+msgstr "CueLexicon 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueLexicon record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "CueLexicon 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueLexiconClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+msgstr "gmeow:CueLexiconClosedRecordConstraint logic:formalizes gmeow:CueLexicon ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue closed record"
+msgstr "Cue 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Cue record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "Cue 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+msgstr "gmeow:CueClosedRecordConstraint logic:formalizes gmeow:Cue ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueNegation closed record"
+msgstr "CueNegation 封闭记录约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueNegation record carries only its declared fields and the explicitly admitted type, labels, description, attribution and provenance predicates. Unknown predicates are declaration violations."
+msgstr "CueNegation 记录仅携带其声明字段及显式允许的类型、标签、描述、归属和来源谓词。未知谓词构成声明违规。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure checks supplied record fields, separately from required-path closure and finite value constraints. It does not forbid additional metadata on a distinct RDF 1.2 statement reifier."
+msgstr "谓词封闭单独检查提供的记录字段，不替代必需路径封闭或有限值约束；它不禁止在独立 RDF 1.2 重述资源上添加元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNegationClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
+msgstr "gmeow:CueNegationClosedRecordConstraint logic:formalizes gmeow:CueNegation ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Match"
+msgstr "线索匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained report of one detected cue occurrence in one complete source literal, with its original record, field and half-open Unicode code-point span. Suppression and grounding are independent reported dimensions; neither makes the occurrence a verdict about its source author."
+msgstr "保留的一次检测到的线索出现报告，定位于一个完整来源字面量，并携带原记录、字段及原始 Unicode 码点半开区间。抑制与落地是独立的报告维度；二者均不使该出现成为对来源作者的裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One record and field may contain several literal values; the selected complete literal disambiguates the occurrence. A structurally valid report does not authenticate a match or its offsets."
+msgstr "同一记录和字段可包含多个字面量值；所选完整字面量消除出现位置的歧义。结构有效的报告不认证匹配或其偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit a gmeow:CueMatch ; gmeow:matchedCue ex:cue . starts an occurrence report; its source, span and grounding fields are also required."
+msgstr "ex:hit a gmeow:CueMatch ; gmeow:matchedCue ex:cue . 开始一份出现报告；来源、区间和落地字段也必须提供。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "matched cue"
+msgstr "匹配的线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact Cue declaration whose occurrence this match reports."
+msgstr "该匹配报告其出现的确切 Cue 声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one cue per match, with the owning match's local required path and maximum. This relation does not establish cue release membership."
+msgstr "每个匹配恰有一个线索，由匹配自身的局部必需路径和上限约束。此关系不确立线索的发布版本成员资格。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchedCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchedCue ex:cue . identifies a declaration, not an asserted reading."
+msgstr "ex:hit gmeow:matchedCue ex:cue . 标识声明，而非被断言的解读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match record"
+msgstr "匹配记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original source record carrying the selected literal under matchField. Its actual RDF identity is retained without requiring a Document type or an invented anchor."
+msgstr "通过 matchField 承载所选字面量的原始来源记录。保留其实际 RDF 身份，不要求 Document 类型或虚构锚点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "One record is selected per match. Source authorship and version identity remain separate provenance; the match report's digest cannot substitute for source identity."
+msgstr "每个匹配选定一条记录。来源作者及版本身份仍属独立溯源；匹配报告的摘要不能替代来源身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchRecord ex:source . preserves the source rather than renaming it as a case."
+msgstr "ex:hit gmeow:matchRecord ex:source . 保留来源，而非将其重命名为案例。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match field"
+msgstr "匹配字段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual property IRI under which matchRecord supplies matchSourceLiteral. The field names a predicate; it is not a prose field label."
+msgstr "matchRecord 提供 matchSourceLiteral 所用的实际属性 IRI。字段指定谓词，而非文字字段标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Field identity is required and bounded locally on CueMatch. The source-membership law reads the property dynamically without imposing a new global domain on it."
+msgstr "字段身份在 CueMatch 上局部必需且受限。来源成员关系定律动态读取该属性，不为其施加新全局定义域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchField|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchField gmeow:description . selects the original description predicate."
+msgstr "ex:hit gmeow:matchField gmeow:description . 选择原始描述谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match source literal"
+msgstr "匹配来源字面量"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete original RDF literal selected from matchRecord and matchField, retaining lexical form, datatype, language and base direction. Offsets refer to its unmodified lexical form."
+msgstr "由 matchRecord 和 matchField 选定的完整原始 RDF 字面量，保留词法形式、数据类型、语言及基础方向。偏移指向其未修改的词法形式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The whole literal is selected, not just the occurrence text. Shared-term source and case joins preserve RDF literal identity rather than numeric value equality."
+msgstr "选择整个字面量，而非仅出现文本。来源和案例的共享项连接保留 RDF 字面量身份，而非数字值相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSourceLiteral|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchSourceLiteral \"cannot continue\"@en . retains the language-bearing source term."
+msgstr "ex:hit gmeow:matchSourceLiteral \"cannot continue\"@en . 保留带语言标记的来源项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match suppressed by"
+msgstr "匹配被何者抑制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An applicable CueNegation declaration reported to suppress this detected match. It identifies the rule, while actual negating occurrence evidence may be retained on the RDF 1.2 assertion or its reifier through wasDerivedFrom."
+msgstr "报告为抑制此检测匹配的适用 CueNegation 声明。它标识规则；实际否定出现证据可通过 wasDerivedFrom 保留于 RDF 1.2 断言或其重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and independent of matchGrounding. Structural applicability checks the declared cue-to-rule link, not whether a real negator satisfies the rule's sentence or window scope."
+msgstr "可多值且独立于 matchGrounding。结构适用性检查声明的线索到规则链接，不验证实际否定项是否满足句子或窗口作用域。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchSuppressedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchSuppressedBy ex:negation . retains a rule reference without deleting ex:hit."
+msgstr "ex:hit gmeow:matchSuppressedBy ex:negation . 保留规则引用，而不删除 ex:hit。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match grounding"
+msgstr "匹配落地结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reported grounding outcome of this detected match, restricted locally to verdictHeld or verdictNotHeld. It is independent of suppression and is not an evaluation of the source person."
+msgstr "该检测匹配所报告的落地结果，局部限定为 verdictHeld 或 verdictNotHeld。它独立于抑制，不是对来源人物的评价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exactly one of the two admitted outcomes is required per match. Undetermined belongs to cue judgements, not this local grounding outcome contract."
+msgstr "每个匹配必须具有两个允许结果之一。未确定属于线索判断，不属于此局部落地结果契约。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/matchGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:matchGrounding gmeow:verdictNotHeld . reports non-grounding without retracting the occurrence."
+msgstr "ex:hit gmeow:matchGrounding gmeow:verdictNotHeld . 报告未落地，而不撤回该出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Evaluation Case"
+msgstr "线索评估案例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained evaluation input for one cue and one complete language-bearing text literal, with every match reported for that input, including suppressed and ungrounded matches. An empty reported-match set is legal."
+msgstr "为一个线索及一个完整带语言标记文本字面量保留的评估输入，包含该输入报告的所有匹配，包括被抑制和未落地的匹配。允许报告匹配集合为空。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Case links constrain associated reports to the same cue and complete literal. They neither require matchRecord to equal the case nor certify that an external detector supplied every occurrence."
+msgstr "案例链接约束关联报告使用相同线索及完整字面量。它们既不要求 matchRecord 等于案例，也不认证外部检测器提供了每次出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case a gmeow:CueEvalCase ; gmeow:evalCue ex:cue ; gmeow:evalText \"cannot continue\"@en . is an input declaration even without evalMatch."
+msgstr "ex:case a gmeow:CueEvalCase ; gmeow:evalCue ex:cue ; gmeow:evalText \"cannot continue\"@en . 即使无 evalMatch 也是输入声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluated cue"
+msgstr "被评估线索"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The one Cue declaration selected for this evaluation case."
+msgstr "此评估案例选定的唯一 Cue 声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associated evalMatch values must name this same cue through matchedCue. This does not select a preferred judgement."
+msgstr "关联 evalMatch 值必须通过 matchedCue 指定此相同线索。这不选择优先判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalCue|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalCue ex:cue . selects the evaluation's declaration."
+msgstr "ex:case gmeow:evalCue ex:cue . 选择评估所用声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "evaluation text"
+msgstr "评估文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The complete text literal offered for this cue evaluation, retaining its language and any RDF 1.2 base direction without normalization."
+msgstr "提供给此线索评估的完整文本字面量，不经规范化地保留其语言及任何 RDF 1.2 基础方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Associated matchSourceLiteral terms must equal this complete RDF term by shared-term membership. A lexical copy with another language or direction is a different input."
+msgstr "关联的 matchSourceLiteral 项必须通过共享项成员关系指向此完整 RDF 项。词法相同但语言或方向不同的副本是不同输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalText|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalText \"cannot continue\"@en . retains the input independently of its source record."
+msgstr "ex:case gmeow:evalText \"cannot continue\"@en . 独立于来源记录保留输入。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "reported evaluation match"
+msgstr "报告的评估匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A detected match reported for this case's cue and complete text, whether counted, suppressed or ungrounded."
+msgstr "为此案例的线索及完整文本报告的检测匹配，无论已计入、被抑制还是未落地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No match membership is required and there is no single-value bound. Completeness of an external reported inventory is a consumer obligation, not entailed by these links."
+msgstr "不要求存在匹配成员，也不施加单值上限。外部报告清单的完整性是消费者义务，不由这些链接蕴涵。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evalMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:case gmeow:evalMatch ex:hit . retains the occurrence even when ex:hit has matchSuppressedBy."
+msgstr "ex:case gmeow:evalMatch ex:hit . 即使 ex:hit 带有 matchSuppressedBy 也保留该出现。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Cue Judgement"
+msgstr "线索判断"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An attributed Observation judging either one reported CueMatch or one missed nonempty span in a CueEvalCase. It measures the detector against cue guidance, never the person whose words supplied the input."
+msgstr "一种有归属的 Observation，判断一个报告的 CueMatch 或一个 CueEvalCase 中被漏检的非空区间。它依据线索指南衡量检测器，而非提供输入话语的人。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The reported-match branch carries no judgement offsets; its target already has a span. The missed-case branch carries its own span in evalText. Separate judgements may disagree without replacing each other."
+msgstr "报告匹配分支不携带判断偏移，其目标已有区间。漏检案例分支在 evalText 中携带自身区间。不同判断可并存分歧而不互相替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgement|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement a gmeow:CueJudgement ; gmeow:judgedMatch ex:hit ; gmeow:vantage ex:judge ; gmeow:cueVerdict gmeow:verdictUndetermined . retains an unresolved detector judgement."
+msgstr "ex:judgement a gmeow:CueJudgement ; gmeow:judgedMatch ex:hit ; gmeow:vantage ex:judge ; gmeow:cueVerdict gmeow:verdictUndetermined . 保留未确定的检测器判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue judgement verdict"
+msgstr "线索判断裁决"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The judge's held, not-held or undetermined outcome for the selected detector report or missed-span claim, using the existing EvaluationVerdict values."
+msgstr "判断者对所选检测报告或漏检区间声明给出的成立、不成立或未确定结果，使用现有 EvaluationVerdict 值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "All three existing verdict values are admitted locally. This property does not specialize evaluationVerdict, whose domain belongs to ConditionEvaluation."
+msgstr "局部允许现有三种裁决值。此属性不特化 evaluationVerdict，其定义域属于 ConditionEvaluation。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueVerdict|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:cueVerdict gmeow:verdictHeld . records the judge's outcome, not speaker truth."
+msgstr "ex:judgement gmeow:cueVerdict gmeow:verdictHeld . 记录判断结果，而非说话者的真值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judged match"
+msgstr "被判断匹配"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual reported CueMatch observed by a CueJudgement in its reported-match branch. It specializes observedFeature."
+msgstr "CueJudgement 在报告匹配分支中观察的实际报告 CueMatch。此属性特化 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The observed target is the detector report, not its source person. The generic vantage relation remains multi-valued."
+msgstr "观察目标是检测器报告，而非来源人物。通用 vantage 关系仍可多值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedMatch|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:judgedMatch ex:hit . observes the retained report."
+msgstr "ex:judgement gmeow:judgedMatch ex:hit . 观察保留的报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judged missed-match case"
+msgstr "被判断的漏检案例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual CueEvalCase observed by a CueJudgement reporting a missed occurrence through its own spanStart and spanEnd in the case's evalText. It specializes observedFeature."
+msgstr "CueJudgement 报告漏检出现时观察的实际 CueEvalCase，使用判断自身的 spanStart 和 spanEnd 定位于案例 evalText。此属性特化 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This branch excludes judgedMatch and requires both judgement offsets. It does not assert that a detector reported the missed occurrence or that ontology validation searched the text."
+msgstr "此分支排除 judgedMatch 并要求判断的两个偏移。它不断言检测器报告了该漏检出现，也不断言本体校验搜索了文本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/judgedCase|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:judgement gmeow:judgedCase ex:case . selects the case; both typed nonnegative offsets must also be supplied."
+msgstr "ex:judgement gmeow:judgedCase ex:case . 选择案例；还必须提供两个类型为非负整数的偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match source membership"
+msgstr "匹配来源成员关系"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every CueMatch field is a declared property IRI, and its original record carries the selected complete literal under that actual field."
+msgstr "每个 CueMatch 字段均为已声明属性 IRI，且其原记录通过该实际字段承载所选完整字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The shared literal term preserves datatype, language and direction. This checks supplied source membership, not whether the cue actually occurs in that literal."
+msgstr "共享字面量项保留数据类型、语言和方向。此检查验证所提供的来源成员关系，不验证线索实际出现在字面量中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSourceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSourceConstraint logic:formalizes gmeow:matchSourceLiteral . names the supplied-record law."
+msgstr "gmeow:CueMatchSourceConstraint logic:formalizes gmeow:matchSourceLiteral . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "match span order"
+msgstr "匹配区间顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied match interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."
+msgstr "每个所提供的匹配区间的起点严格小于终点；局部数据类型约束要求非负整数偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."
+msgstr "此检查验证顺序，不验证相对于字面量长度的上限、子串真实性、分段或检测成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."
+msgstr "gmeow:CueMatchSpanOrderConstraint logic:formalizes gmeow:spanEnd . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "judgement span order"
+msgstr "判断区间顺序"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied judgement interval has start strictly below end; local datatype restrictions require nonnegative integer offsets."
+msgstr "每个所提供的判断区间的起点严格小于终点；局部数据类型约束要求非负整数偏移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks order, not the upper bound against literal length, substring authenticity, segmentation or successful detection."
+msgstr "此检查验证顺序，不验证相对于字面量长度的上限、子串真实性、分段或检测成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementSpanOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementSpanOrderConstraint logic:formalizes gmeow:spanEnd . names the supplied-record law."
+msgstr "gmeow:CueJudgementSpanOrderConstraint logic:formalizes gmeow:spanEnd . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "applicable suppression declaration"
+msgstr "适用抑制声明"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied matchSuppressedBy rule is declared in the matched cue's negatedBy set."
+msgstr "每个所提供的 matchSuppressedBy 规则均在匹配线索的 negatedBy 集合中声明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Declared applicability does not prove the existence, span or scope of a negating occurrence. Retain that evidence on the suppression assertion or its reifier."
+msgstr "声明适用性不证明否定出现的存在、区间或作用域。应在抑制断言或其重化记录上保留该证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchSuppressionConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchSuppressionConstraint logic:formalizes gmeow:matchSuppressedBy . names the supplied-record law."
+msgstr "gmeow:CueMatchSuppressionConstraint logic:formalizes gmeow:matchSuppressedBy . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "case and match agreement"
+msgstr "案例与匹配一致性"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every match associated with a case names the case's cue and carries the same complete RDF literal as its evalText."
+msgstr "每个与案例关联的匹配均指定该案例的线索，并承载与其 evalText 相同的完整 RDF 字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Shared-variable graph joins preserve literal identity without stripping datatype, language or direction. No equality between matchRecord and the case is required."
+msgstr "共享变量图连接保留字面量身份，不剥离数据类型、语言或方向。不要求 matchRecord 与案例相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalMatchAgreementConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvalMatchAgreementConstraint logic:formalizes gmeow:evalMatch . names the supplied-record law."
+msgstr "gmeow:CueEvalMatchAgreementConstraint logic:formalizes gmeow:evalMatch . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exclusive judgement target branch"
+msgstr "互斥判断目标分支"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueJudgement selects either a reported match with no judgement offsets, or a case with both missed-span offsets and no judgedMatch. Every supplied observedFeature target must be that same selected judgedMatch or judgedCase target."
+msgstr "CueJudgement 选择报告匹配且不携带判断偏移，或选择案例并携带两个漏检区间偏移且没有 judgedMatch。 每个所提供的 observedFeature 目标必须是同一个已选 judgedMatch 或 judgedCase 目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The branch is a supplied-record contract. It does not certify that a reported occurrence is correct or that a claimed missed occurrence was absent from an external inventory. Shared-variable target membership excludes unrelated observed subjects without requiring a duplicate observedFeature assertion."
+msgstr "此分支是所提供记录的契约。不认证报告出现的正确性，也不认证声称漏检的出现在外部清单中缺失。 共享变量目标成员关系排除无关的观察对象，而不要求重复断言 observedFeature。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementBranchConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementBranchConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."
+msgstr "gmeow:CueJudgementBranchConstraint logic:formalizes gmeow:CueJudgement . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueMatch closed record"
+msgstr "CueMatch封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueMatch record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueMatch 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueMatchClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . names the supplied-record law."
+msgstr "gmeow:CueMatchClosedRecordConstraint logic:formalizes gmeow:CueMatch . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueEvalCase closed record"
+msgstr "CueEvalCase封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueEvalCase record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueEvalCase 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueEvalCaseClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . names the supplied-record law."
+msgstr "gmeow:CueEvalCaseClosedRecordConstraint logic:formalizes gmeow:CueEvalCase . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "CueJudgement closed record"
+msgstr "CueJudgement封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueJudgement record uses only its declared fields and the admitted type, attribution, provenance and descriptive metadata predicates."
+msgstr "CueJudgement 记录仅使用其声明字段以及允许的类型、归属、溯源和描述元数据谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure is distinct from required-path and value constraints. Independent RDF 1.2 statement reifiers can carry richer evidence without putting unknown fields on the closed record."
+msgstr "谓词封闭性不同于必需路径和值约束。独立的 RDF 1.2 语句重化记录可携带更丰富证据，而不向封闭记录添加未知字段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueJudgementClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . names the supplied-record law."
+msgstr "gmeow:CueJudgementClosedRecordConstraint logic:formalizes gmeow:CueJudgement . 指定所提供记录的定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Grounding Rule Set"
+msgstr "落地规则集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named nonempty collection of actual logic:Rule declarations selected to derive cue grounding over a reader's supplied facts in one declared interpretation. Membership names executable rule structure, not prose guidance or a ReasoningProgram."
+msgstr "一种具名非空的实际 logic:Rule 声明集合，用于在一个声明的解释中，基于读者所提供事实导出线索落地。成员关系指定可执行规则结构，而非文字指南或 ReasoningProgram。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Rule selection and input/world selection are separate mandatory operation inputs. The set does not import other worlds, close an external store or turn all rules in a vocabulary into an active program."
+msgstr "规则选择与输入、世界选择是操作的不同必需输入。此集合不导入其他世界，不封闭外部存储，也不将词汇中的所有规则变为活动程序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:policy a gmeow:GroundingRuleSet ; gmeow:groundingRule ex:rule . names a collection whose member must carry an actual logic:Rule AST."
+msgstr "ex:policy a gmeow:GroundingRuleSet ; gmeow:groundingRule ex:rule . 指定集合，其成员必须携带实际 logic:Rule AST。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounding rules"
+msgstr "线索落地规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared GroundingRuleSet selected for this Cue. At most one set is allowed locally; absence does not license inventing a grounding result or substituting detection guidance for rules."
+msgstr "为此 Cue 选定的声明 GroundingRuleSet。局部至多允许一个集合；缺失不授权虚构落地结果，或以检测指南替代规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The local maximum bounds sets per cue without requiring a set or identifying different cues that share one. A released cue's changed grounding declaration requires a new release."
+msgstr "局部上限约束每个线索的集合数，不要求集合存在，也不将共享集合的不同线索判为相同。已发布线索的落地声明发生改变时需新发布版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cue gmeow:cueGrounding gmeow:operationalCueGrounding . selects the named policy without claiming it ran."
+msgstr "ex:cue gmeow:cueGrounding gmeow:operationalCueGrounding . 选择具名策略，而不声称它已运行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule"
+msgstr "落地规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual logic:Rule member of a GroundingRuleSet, retaining its native RDF 1.2 head, positive or negative body atoms and any supported guards. Every set contains at least one such rule."
+msgstr "GroundingRuleSet 的实际 logic:Rule 成员，保留原生 RDF 1.2 规则头、正向或否定规则体原子，以及受支持的守卫。每个集合至少包含一条此类规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Membership is unordered and may be shared across sets. Structural evidence checks do not replace the canonical Rule parser or certify stratification, termination or successful evaluation."
+msgstr "成员关系无序，且可在集合之间共享。结构证据检查不替代规范 Rule 解析器，也不认证分层、终止或求值成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . retains a real rule member."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . 保留实际规则成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounded"
+msgstr "线索已落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A derived match-to-cue fact produced by the cue's selected grounding rules over the selected input interpretation. Its cue is the match's actual matchedCue. It is never a source assertion or a verdict about a person's words."
+msgstr "由线索选定的落地规则在所选输入解释上生成的匹配到线索派生事实。其线索是匹配的实际 matchedCue。它绝非来源断言，也不是对人物话语的裁决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks the same matched cue and a declared nonempty rule set. A union-graph integrity check cannot authenticate asserted-versus-derived origin or prove that evaluation completed."
+msgstr "绑定定律检查相同匹配线索及声明的非空规则集。联合图完整性检查无法认证断言与派生的来源区别，也无法证明求值完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGrounded|http://www.w3.org/2004/02/skos/core#example"
+msgid "The potential output ex:hit gmeow:cueGrounded ex:cue . belongs only to derived results; this annotation does not assert it in source data."
+msgstr "潜在输出 ex:hit gmeow:cueGrounded ex:cue . 仅属于派生结果；此注释不在来源数据中断言它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Machinery Record"
+msgstr "运行机制记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A derived cross-kind role for a resource explicitly admitted as operational machinery by the selected reader. Actual admitted attempt or intention-transition Events seed the role; only admitted descendant events and admitted generated information records propagate it. Neither an event kind nor automation alone assigns this role."
+msgstr "一种跨类别的派生角色，适用于被所选读者显式准入为运行机制的资源。实际获准的尝试或意向转移 Event 构成角色根；仅获准的后代事件和获准的生成信息记录传播它。事件种类或自动化本身均不赋予此角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This Mixin spans Event, Activity and InformationObject sorts. Unary type publication is descriptive; reader-specific machineryForReader state controls propagation and exclusion, so one reader's classification cannot decide another reader's result."
+msgstr "此 Mixin 跨越 Event、Activity 和 InformationObject。一元类型发布仅作描述；读者特定的 machineryForReader 状态控制传播和排除，故某读者的分类不决定另一读者的结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecord|http://www.w3.org/2004/02/skos/core#example"
+msgid "An admitted ToolCall below an admitted attempt can acquire MachineryRecord without being retyped as an InformationObject."
+msgstr "获准尝试之下的获准 ToolCall 可获得 MachineryRecord，而不被重新定为 InformationObject。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "machinery admitted by"
+msgstr "运行机制准入者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An explicit reader-supplied admission of this resource as an operational machinery record for the named reader or standpoint in the selected input world. It does not identify the resource's author or assert that software created it."
+msgstr "读者提供的显式准入，将此资源视为所选输入世界中供具名读者或立场使用的运行机制记录。它不标识资源作者，也不断言软件创建了它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued and without a global subject domain: events and information records can both be admitted. Admission alone does not derive MachineryRecord without a permitted root or exact link."
+msgstr "可多值且无全局主体定义域：事件和信息记录均可获准。若无允许的根或精确链接，仅准入本身不导出 MachineryRecord。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryAdmittedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:operation gmeow:machineryAdmittedBy ex:reader . records the reader's operational classification input separately from source authorship."
+msgstr "ex:operation gmeow:machineryAdmittedBy ex:reader . 将读者的运行分类输入与来源作者归属分别记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operational-record cue grounding"
+msgstr "排除运行记录的线索落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared policy set containing explicitly activated reader-specific machinery rules and a stratified rule deriving cueGrounded for selected matches whose record lacks machineryForReader for that same reader in the completed selected interpretation."
+msgstr "声明的策略集合，包含显式激活的读者特定运行机制规则及一条分层规则，在完成的所选解释中，为记录对同一读者不具有 machineryForReader 的所选匹配导出 cueGrounded。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only subEventOf descendants and wasGeneratedBy information outputs propagate admitted machinery, with same-reader admission at both ends. Input artifacts and arbitrary provenance links do not propagate the role."
+msgstr "仅 subEventOf 后代和 wasGeneratedBy 信息输出传播获准的运行机制，且两端须由同一读者准入。输入制品和任意溯源链接不传播该角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/operationalCueGrounding|http://www.w3.org/2004/02/skos/core#example"
+msgid "A cue selecting this set can have a derived eligible match on an unclassified source while an admitted operational output remains excluded; neither outcome establishes the speaker's state."
+msgstr "选择此集合的线索可在未分类来源上获得派生合格匹配，而已准入的运行输出仍被排除；两种结果均不确立说话者状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding selected by"
+msgstr "落地选择者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader or standpoint explicitly selecting this rule set for the current supplied interpretation. This operation input activates only rules that also check their own membership in the selected set."
+msgstr "为当前所提供解释显式选择此规则集的读者或立场。此操作输入仅激活同时检查自身属于所选集合的规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Multi-valued for independent readers. Selection is not an authorization grant or an evaluation receipt; every declared policy rule binds the same reader through its positive activation guard."
+msgstr "可为独立读者保留多值。选择不是授权或求值回执；每条声明策略规则均通过正向激活守卫绑定同一读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/groundingSelectedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader . supplies selection, not derived grounding."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingSelectedBy ex:reader . 提供选择，而非派生落地。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "cue grounding reader"
+msgstr "线索落地读者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual reader or standpoint whose selected rule-set interpretation grounds this match report. Required when its cue declares grounding rules, and bounded to at most one reader locally without changing generic vantage."
+msgstr "其所选规则集解释对此匹配报告进行落地的实际读者或立场。当线索声明落地规则时必需，局部至多一个读者，不改变通用 vantage。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The grounding rule joins this reader to groundingSelectedBy and the same reader-specific machinery state. A class-local maximum does not make the generic observation vantage functional."
+msgstr "落地规则将此读者与 groundingSelectedBy 及同一读者的运行机制状态连接。类局部上限不使通用观察 vantage 成为函数性关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/cueGroundingReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:hit gmeow:cueGroundingReader ex:reader . identifies the selected interpreter independently of the source writer."
+msgstr "ex:hit gmeow:cueGroundingReader ex:reader . 独立于来源作者标识所选解读者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "machinery for reader"
+msgstr "供读者使用的运行机制"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derived reader-specific operational-record state. Its resource and reader remain paired through the finite machinery rules and the negative grounding guard, preventing another reader's classification from controlling this interpretation."
+msgstr "派生的读者特定运行记录状态。资源与读者在有限运行机制规则及否定落地守卫中保持配对，防止其他读者的分类控制此解释。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No subject domain coerces every resource into an information object. Select one policy interpretation per reader and world; do not combine same-reader state from separate policy evaluations. Derived-only origin and operation isolation are input ownership contracts, not authenticated execution."
+msgstr "不以主语定义域将所有资源强制归为信息对象。每个读者与世界只选择一种策略解释；不要合并独立策略评估对同一读者产生的状态。仅派生的来源及操作隔离属于输入所有权契约，不是经认证的执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Follow the selected policy’s exact roots, links and admission requirements. Keep the same reader and world, and publish unary types only through that policy’s declared publication rule."
+msgstr "遵循选定策略的确切根、关系及准入要求。保持同一读者及世界，并仅通过该策略声明的发布规则发布一元类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/machineryForReader|http://www.w3.org/2004/02/skos/core#example"
+msgid "The queried conclusion ex:operation gmeow:machineryForReader ex:reader . keeps the selected reader visible rather than claiming universal automation."
+msgstr "被查询的结论 ex:operation gmeow:machineryForReader ex:reader . 保留可见的所选读者，而非声称普遍自动化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted attempt machinery root"
+msgstr "获准尝试运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an actual attempt Event only with explicit admission and positive selection of this rule's containing set."
+msgstr "仅在显式准入并正向选择包含此规则的集合时，为实际尝试 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An eventTypeAttempt value alone does not classify a human or software attempt as machinery. No automation or author identity is inferred."
+msgstr "单凭 eventTypeAttempt 值不将人类或软件尝试定为运行机制。不推断自动化或作者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryAttemptRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryAttemptRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryAttemptRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "active intention transition machinery root"
+msgstr "激活意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionActive and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionActive 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionActiveRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionActiveRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "paused intention transition machinery root"
+msgstr "暂停意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionPaused and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionPaused 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionPausedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionPausedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "satisfied intention transition machinery root"
+msgstr "满足意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSatisfied and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionSatisfied 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSatisfiedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSatisfiedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "abandoned intention transition machinery root"
+msgstr "放弃意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionAbandoned and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionAbandoned 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionAbandonedRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionAbandonedRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "superseded intention transition machinery root"
+msgstr "取代意向转移运行机制根"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive reader-specific machinery for an admitted Event with eventTypeIntentionSuperseded and an actual intentionTransitionOf target, under explicit selection of this rule."
+msgstr "在显式选择此规则时，为带有 eventTypeIntentionSuperseded 且具有实际 intentionTransitionOf 目标的获准 Event 导出读者特定运行机制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The transition remains an event about an Intention, not the intention itself. Admission does not infer a goal verdict, closure of tenure or automatic lifecycle execution."
+msgstr "转移仍是关于 Intention 的事件，而非意向本身。准入不推断目标裁决、持有期间闭合或自动生命周期执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryIntentionSupersededRootRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryIntentionSupersededRootRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted event descendant propagation"
+msgstr "获准后代事件传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machineryForReader from a machinery Event to an Event related by subEventOf, requiring the same reader's explicit admission at both endpoints and explicit rule selection."
+msgstr "从运行机制 Event 向通过 subEventOf 关联的 Event 传播 machineryForReader，要求两端由同一读者显式准入并显式选择规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "subEventOf is transitive, so admitted descendants may be nested at any supplied or entailed depth. This is one permitted relation, not a promise of one physical edge or a walk over arbitrary links."
+msgstr "subEventOf 具有传递性，故获准后代可位于任何所提供或蕴涵的嵌套深度。这是一种允许关系，不承诺仅一条物理边，也不遍历任意链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryDescendantRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryDescendantRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryDescendantRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "admitted generated record propagation"
+msgstr "获准生成记录传播"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Propagate machineryForReader to an admitted InformationObject generated by a machinery Activity, with same-reader admission on output and activity and explicit rule selection."
+msgstr "向由运行机制 Activity 生成的获准 InformationObject 传播 machineryForReader，要求输出与活动由同一读者准入并显式选择规则。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Only wasGeneratedBy carries this output edge. Human-authored outputs are not excluded without explicit admission; used, readArtifact, receiptArtifact, wasDerivedFrom and derivedBy do not propagate the role."
+msgstr "仅 wasGeneratedBy 承载此输出边。没有显式准入时不排除人类撰写的输出；used、readArtifact、receiptArtifact、wasDerivedFrom 和 derivedBy 不传播该角色。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryGeneratedRecordRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryGeneratedRecordRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryGeneratedRecordRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "descriptive machinery type publication"
+msgstr "描述性运行机制类型发布"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Publish MachineryRecord type from actual reader-specific machineryForReader state under an explicitly selected containing rule set."
+msgstr "在显式选择包含该规则的集合时，从实际读者特定 machineryForReader 状态发布 MachineryRecord 类型。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This unary type is descriptive and never drives recursive propagation or a negative grounding decision. Reader identity remains in the binary derived state."
+msgstr "此一元类型仅作描述，绝不驱动递归传播或否定落地决定。读者身份保留在二元派生状态中。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MachineryRecordPublicationRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryRecordPublicationRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:MachineryRecordPublicationRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected non-machinery cue grounding"
+msgstr "所选非运行记录线索落地"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Derive cueGrounded for a selected CueMatch only when its matched cue selects the active set, its source record and field are supplied, and no machineryForReader fact holds for that same grounding reader in the completed selected interpretation."
+msgstr "仅当所选 CueMatch 的匹配线索选择活动集合、提供来源记录及字段，并且在完成的所选解释中对同一落地读者不存在 machineryForReader 事实时，导出 cueGrounded。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Negation is scoped to the supplied reader/world model after positive machinery closure. It asserts neither universal absence of machinery nor source authorship, and it never changes suppression or evidence polarity."
+msgstr "否定限于运行机制正向闭包后的所提供读者、世界模型。它不断言运行机制普遍不存在或来源作者归属，也不改变抑制或证据极性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueNonMachineryGroundingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . names this actual rule without executing it."
+msgstr "gmeow:operationalCueGrounding gmeow:groundingRule gmeow:CueNonMachineryGroundingRule . 指定此实际规则，而不执行它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule head evidence"
+msgstr "落地规则头证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every rule member of a GroundingRuleSet supplies a head reifier with an rdf:reifies target; prose membership alone is insufficient."
+msgstr "GroundingRuleSet 的每个规则成员均须提供带 rdf:reifies 目标的规则头重化记录；仅有文字成员关系不足。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."
+msgstr "结构证据不替代规范 Rule 解析、所选执行或来源与派生来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleHeadEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleHeadEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."
+msgstr "gmeow:GroundingRuleHeadEvidenceConstraint logic:formalizes gmeow:groundingRule . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule body evidence"
+msgstr "落地规则体证据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied positive or negative body atom on a grounding-rule member carries an rdf:reifies target. A ground empty-body rule remains legal."
+msgstr "落地规则成员中每个所提供的正向或否定规则体原子均携带 rdf:reifies 目标。无规则体的基规则仍合法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Structural evidence does not replace canonical Rule parsing, selected execution or source/derived-origin authentication."
+msgstr "结构证据不替代规范 Rule 解析、所选执行或来源与派生来源认证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleBodyEvidenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleBodyEvidenceConstraint logic:formalizes gmeow:groundingRule . identifies this declaration law."
+msgstr "gmeow:GroundingRuleBodyEvidenceConstraint logic:formalizes gmeow:groundingRule . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected grounding reader required"
+msgstr "所选落地读者必需"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A CueMatch whose matched cue declares a cueGrounding set supplies its actual cueGroundingReader. Other cue matches acquire no unconditional reader requirement."
+msgstr "若 CueMatch 的匹配线索声明 cueGrounding 集合，则须提供其实际 cueGroundingReader。其他线索匹配不获得无条件读者要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is conditional presence, separate from local reader maximum and explicit rule-set activation. It does not turn source authorship into reader identity."
+msgstr "这是条件性存在要求，与读者局部上限及显式规则集激活分离。不将来源作者归属变为读者身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundingReaderRequiredConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueGroundingReaderRequiredConstraint logic:formalizes gmeow:cueGroundingReader . identifies this declaration law."
+msgstr "gmeow:CueGroundingReaderRequiredConstraint logic:formalizes gmeow:cueGroundingReader . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "derived cue grounding binding"
+msgstr "派生线索落地绑定"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied cueGrounded fact names the match's actual cue, retains a grounding reader and a selected nonempty rule set, and agrees with its reported held grounding outcome."
+msgstr "每个所提供的 cueGrounded 事实指定匹配的实际线索，保留落地读者及所选非空规则集，并与其报告的成立落地结果一致。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This checks retained binding evidence only. It cannot distinguish a forged source assertion from a genuine derived fact in a union graph or prove evaluation completion."
+msgstr "此检查仅验证保留的绑定证据。无法在联合图中区分伪造来源断言与真实派生事实，也无法证明求值完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CueGroundedBindingConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:CueGroundedBindingConstraint logic:formalizes gmeow:cueGrounded . identifies this declaration law."
+msgstr "gmeow:CueGroundedBindingConstraint logic:formalizes gmeow:cueGrounded . 标识此声明定律。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "grounding rule set closed record"
+msgstr "落地规则集封闭记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A GroundingRuleSet carries only its declared membership and selection fields, complete annotation coat and admitted provenance or operational-record metadata."
+msgstr "GroundingRuleSet 仅携带所声明成员及选择字段、完整注释，以及允许的溯源或运行记录元数据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Predicate closure does not close the external fact world or assert that named rules ran. Richer provenance can remain on independent RDF 1.2 assertion reifiers."
+msgstr "谓词封闭性不封闭外部事实世界，也不断言具名规则已运行。更丰富溯源可保留于独立 RDF 1.2 断言重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/GroundingRuleSetClosedRecordConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . identifies this declaration law."
+msgstr "gmeow:GroundingRuleSetClosedRecordConstraint logic:formalizes gmeow:GroundingRuleSet . 标识此声明定律。"
+
+# Reading parameters and scoped reported measurements.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement run"
+msgstr "重述连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest consecutive word run a text repeats from the outside text it is read as restating, recorded on that wasDerivedFrom reading's reifier."
+msgstr "某文本被解读为重述外部文本时，重复的最长连续词序列，记录在该 wasDerivedFrom 解读的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:restatement gmeow:restatementRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share"
+msgstr "重述覆盖比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of the outside text's words covered by the repeated consecutive run, strictly greater than zero and at most one, recorded on the possible restatement reifier."
+msgstr "重复连续词序列覆盖外部文本词数的已提供比例，严格大于零且不超过一，记录在可能重述的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementShare 0.5 ."
+msgstr "ex:restatement gmeow:restatementShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement received at"
+msgstr "重述来源接收时间"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied date-time at which the reader orders the author as having received the outside words read as restated, accompanied by the stated receipt basis."
+msgstr "读者据以排序的已提供日期时间，表示被解读为重述者收到外部原话的时间，并附有声明的接收依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The timestamp is an attributed interpretation. These declarations do not select a fallback time, resolve incomparable clocks or prove that receipt preceded authorship."
+msgstr "时间戳是带归属的解释。这些声明不选择回退时间，不消解不可比时钟，也不证明接收早于写作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+msgstr "ex:restatement gmeow:restatementReceivedAt \"2026-10-29T10:00:00Z\"^^xsd:dateTime ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement receipt basis"
+msgstr "重述接收依据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What the reader reports having used to locate receipt of the outside words, retained on the possible restatement reifier separately from the receipt date-time."
+msgstr "读者报告用于定位外部原话接收时间的依据，与接收日期时间分别保留在可能重述的重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The open basis vocabulary describes a selected interpretation; it neither orders evidence globally nor executes a fallback procedure."
+msgstr "开放依据词汇描述选定的解释；它不对证据作全局排序，也不执行回退过程。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Receipt Basis"
+msgstr "接收依据"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open quality-value vocabulary describing the source a reader used to locate receipt of outside words. Preference and availability belong to the selected reader and rule version."
+msgstr "描述读者用于定位外部原话接收时间之来源的开放质量值词汇。偏好和可用性属于选定读者及规则版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Values are semantic QualityValues, not source documents, observation results or automatically selected fallbacks."
+msgstr "这些值是语义 QualityValue，不是来源文档、观测结果或自动选择的回退项。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReceiptBasis|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+msgstr "gmeow:receiptFromAssertion a gmeow:ReceiptBasis ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from receivedAt"
+msgstr "依据 receivedAt 接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports using the source message's receivedAt value to locate receipt of the outside words. Storage receipt does not prove that their author read them."
+msgstr "读者报告使用来源消息的 receivedAt 值定位外部原话的接收。存储接收不证明作者已阅读。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromReceivedAt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromReceivedAt ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from evidence act"
+msgstr "依据证据行为接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no receipt was recorded and uses the latest supplied assertion time of the acts named by the outside claim's evidence. Latest is a reported reader ordering, not a computed ontology result."
+msgstr "读者报告未记录接收，并使用外部主张证据所指行为中最新的已提供断言时间。“最新”是报告的读者排序，而非本体计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromEvidenceAct|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromEvidenceAct ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "receipt from assertion"
+msgstr "依据断言接收"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The reader reports that no other source records receipt and uses the outside claim's own assertion time as its receipt-time basis. It remains an interpretation rather than a receipt observation."
+msgstr "读者报告没有其他来源记录接收，并使用外部主张自身的断言时间作为接收依据。这仍是解释，而非接收观测。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Basis values do not execute source selection or choose a universally preferred chronology."
+msgstr "依据值不执行来源选择，也不选择普遍优先的时间顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptFromAssertion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+msgstr "ex:restatement gmeow:restatementReceiptBasis gmeow:receiptFromAssertion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement rule version"
+msgstr "重述规则版本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact digest literal of the immutable RestatementRule parameter release used for this reading, copied from that release's contentDigest without changing its datatype or lexical identity."
+msgstr "此解读所用不可变 RestatementRule 参数版本的确切摘要字面量，从该版本的 contentDigest 复制，不改变数据类型或词汇身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binding law checks term identity and retained release metadata. It does not compute a parameter hash or supply missing native digest admission."
+msgstr "规则检查项身份及所保留的版本元数据。它不计算参数哈希，也不补充缺失的原生摘要接纳能力。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementRuleVersion|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+msgstr "ex:restatement gmeow:restatementRuleVersion \"sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading Rule"
+msgstr "解读规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable, reviewed information artifact declaring a reader's matching parameters. Its version identity is separate from its lineage, the reading process and any logic:Rule execution structure."
+msgstr "声明读者匹配参数的不可变、经审阅的信息制品。其版本身份区别于版本谱系、解读过程及任何 logic:Rule 执行结构。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Generic thresholds are explicit, not defaults. A changed parameter or declared word inventory requires a new version; digest verification remains its existing owner's contract."
+msgstr "通用阈值是显式声明，不是默认值。参数或声明词表改变要求新版本；摘要验证仍由现有所有者负责。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+msgstr "ex:ruleV1 a gmeow:ReadingRule ; gmeow:versionOf ex:ruleLineage ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement Rule"
+msgstr "重述规则"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A ReadingRule parameter release for reading a text as restating outside words received earlier according to the selected reader. It declares its minimum run, short-source uncommon-word threshold and common-word inventory."
+msgstr "用于将文本解读为重述选定读者认为先前已接收之外部原话的 ReadingRule 参数版本。它声明最短连续词数、短来源的非常见词阈值及常见词表。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The common-word inventory may be empty. No implicit minimumShare is invented for this profile, and no lexical matcher or receipt selector is executed."
+msgstr "常见词表可为空。不虚构隐式 minimumShare，也不执行词汇匹配器或接收选择器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementRule|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:restatementV1 a gmeow:RestatementRule ; gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ; gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum run"
+msgstr "重述最短连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The fewest consecutive source words a text must repeat under this RestatementRule."
+msgstr "在此 RestatementRule 下，文本必须重复的最少连续来源词数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement minimum uncommon words"
+msgstr "重述最少非常见词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The least number of uncommon words required in a source shorter than the minimum run for a whole-source repetition to qualify under this RestatementRule."
+msgstr "当来源短于最短连续词数时，为使完整重复在此 RestatementRule 下成立，来源中要求的最少非常见词数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementMinimumUncommonWords|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+msgstr "ex:ruleV1 gmeow:restatementMinimumUncommonWords \"2\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum run"
+msgstr "最短连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least consecutive-word span of a match under this ReadingRule."
+msgstr "此 ReadingRule 下匹配项显式声明的最小连续词跨度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+msgstr "ex:ruleV1 gmeow:minimumRun \"5\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share"
+msgstr "最低比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly declared least share a match must reach under this ReadingRule, strictly greater than zero and at most one."
+msgstr "此 ReadingRule 下匹配项必须达到的显式最低比例，严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Thresholds are supplied parameter values, not confidence or executed match evidence. A zero uncommon-word threshold is an explicit setting, not a missing capability."
+msgstr "阈值是提供的参数值，不是置信度或已执行匹配的证据。零非常见词阈值是显式设置，不是能力缺失。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/minimumShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ruleV1 gmeow:minimumShare 0.5 ."
+msgstr "ex:ruleV1 gmeow:minimumShare 0.5 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement common word"
+msgstr "重述常见词"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A common-word token spelling exactly as the selected RestatementRule reads words. It is part of that immutable parameter inventory, not a claim that the word is universally common."
+msgstr "严格按选定 RestatementRule 读取词语方式表示的常见词标记。它属于不可变参数词表，不宣称该词普遍常见。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The inventory is unordered and may be empty. These declarations do not test tokenization, normalization or uncommon-word counts."
+msgstr "词表无序且可为空。这些声明不检验分词、归一化或非常见词计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/restatementCommonWord|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+msgstr "ex:restatementV1 gmeow:restatementCommonWord \"the\" , \"and\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo run"
+msgstr "回声连续词数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The longest run of a prompt's words that one sentence of an answer repeats in order, recorded on the echoesPremiseOf reading's reifier for ranking."
+msgstr "回答中某一句按顺序重复提示词语的最长序列，记录在 echoesPremiseOf 解读的重化记录上以供排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoRun|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+msgstr "ex:echo gmeow:echoRun \"4\"^^xsd:positiveInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share"
+msgstr "回声比例"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied share of an answer's words that are words of its prompt, strictly greater than zero and at most one, recorded on the attributed echo reifier."
+msgstr "回答词语中属于其提示词语的已提供比例，严格大于零且不超过一，记录在带归属的回声重化记录上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is a supplied ranking measurement, never confidence, credence or independently verified lexical overlap."
+msgstr "此值是提供的排序度量，绝非置信度、信念程度或独立验证的词汇重叠。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/echoShare|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:echo gmeow:echoShare 0.75 ."
+msgstr "ex:echo gmeow:echoShare 0.75 ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Reading rule version identity constraint"
+msgstr "解读规则版本身份约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An immutable ReadingRule version is distinct from the lineage resource it versions."
+msgstr "不可变 ReadingRule 版本区别于其所属的版本谱系资源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Version identity and retained digest evidence do not authenticate review, bytes or an executed rule."
+msgstr "版本身份及保留的摘要证据不认证审阅、字节或规则执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ReadingRuleVersionIdentityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+msgstr "gmeow:ReadingRuleVersionIdentityConstraint logic:formalizes gmeow:ReadingRule ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement annotation contract constraint"
+msgstr "重述注释契约约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatement measurement or receipt/version annotation binds to its own possible wasDerivedFrom reifier, retained source texts, reader, complete measurement fields and the actual immutable parameter release carrying the identical digest term; it carries no confidence or numeric credence."
+msgstr "每项已提供的重述度量或接收及版本注释均绑定其自身可能的 wasDerivedFrom 重化记录、来源文本、读者、完整度量字段，以及携带相同摘要项的实际不可变参数版本；不携带置信度或数值信念程度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The graph-term digest join preserves original literal identity. Statement-component lowering must be complete; no lexical matcher, chronology selector or native digest validator is supplied."
+msgstr "摘要图项连接保留原始字面量身份。语句组成部分降级必须完成；不提供词汇匹配器、时间选择器或原生摘要验证器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+msgstr "gmeow:RestatementAnnotationContractConstraint logic:formalizes gmeow:restatementRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Echo annotation contract constraint"
+msgstr "回声注释契约约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echo measure binds to its own echoesPremiseOf reifier, original answer, concrete Prompt, reader and complete run/share pair."
+msgstr "每项已提供回声度量均绑定其自身 echoesPremiseOf 重化记录、原始回答、具体 Prompt、读者及完整连续词数和比例对。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ranking measures remain independent of confidence and source truth. Completed statement-component lowering supplies the retained binding evidence."
+msgstr "排序度量独立于置信度及来源真伪。已完成的语句组成部分降级提供保留的绑定证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoAnnotationContractConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+msgstr "gmeow:EchoAnnotationContractConstraint logic:formalizes gmeow:echoRun ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restatement share range constraint"
+msgstr "重述覆盖比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied restatementShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 restatementShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+msgstr "gmeow:RestatementShareRangeConstraint logic:formalizes gmeow:restatementShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "echo share range constraint"
+msgstr "回声比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied echoShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 echoShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EchoShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+msgstr "gmeow:EchoShareRangeConstraint logic:formalizes gmeow:echoShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "minimum share range constraint"
+msgstr "最低比例范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied minimumShare is strictly greater than zero and at most one."
+msgstr "每个已提供的 minimumShare 均严格大于零且不超过一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The separate decimal restriction supplies datatype admission; this law checks numeric bounds without calculating a measurement."
+msgstr "独立十进制限制提供数据类型接纳；此规则检查数值边界，不计算度量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MinimumShareRangeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+msgstr "gmeow:MinimumShareRangeConstraint logic:formalizes gmeow:minimumShare ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Restatement version term count constraint"
+msgstr "重述版本项数量约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A restatement reifier carries at most one distinct restatementRuleVersion RDF term; independent readings retain separate reifiers."
+msgstr "一个重述重化记录至多携带一个不同的 restatementRuleVersion RDF 项；独立解读保留独立重化记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This counts source RDF terms without interpreting or weakening their digest datatypes. The annotation contract separately requires a matching parameter release."
+msgstr "此规则统计来源 RDF 项，不解释或弱化其摘要类型。注释契约独立要求对应参数版本。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RestatementVersionCountConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+msgstr "gmeow:RestatementVersionCountConstraint logic:formalizes gmeow:restatementRuleVersion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "shared sentence"
+msgstr "共享句段"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Both original match spans have a nonempty intersection with at least one common default UAX 29 sentence segment of the same exact source literal, using Unicode 17.0.0 sentence boundaries."
+msgstr "两个原始匹配区间与同一完整源字面量中至少一个共同的默认 UAX 29 句段具有非空交集，使用 Unicode 17.0.0 句子边界。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a crossing occurrence participates in every sentence segment it overlaps."
+msgstr "当跨句出现项参与其所重叠的每个句段时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating endpoint contact alone as overlap or substituting this scope for complete containment in negationSameSentence."
+msgstr "避免将仅有端点接触视为重叠，也不要用此范围替代 negationSameSentence 的完整包含要求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference it through negationScope. For match interval [a,b) and sentence interval [s,e), require a < e and s < b for both matches against the same segment."
+msgstr "通过 negationScope 引用此值。对于匹配区间 [a,b) 和句段区间 [s,e)，两个匹配均须针对同一句段满足 a < e 且 s < b。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Keep each original occurrence and its half-open code-point interval intact; sentence participation does not split or duplicate CueMatch reports. Missing sentence segmentation is unsupported evaluation, never proof that no negator applies. This scope does not execute segmentation or suppression."
+msgstr "保留每个原始出现项及其半开码点区间；句段参与关系不会拆分或复制 CueMatch 报告。缺少分句能力意味着不支持评估，绝不证明没有适用的否定项。此范围不执行分句或抑制。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/negationSharedSentence|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."
+msgstr "ex:rule gmeow:negationScope gmeow:negationSharedSentence ."

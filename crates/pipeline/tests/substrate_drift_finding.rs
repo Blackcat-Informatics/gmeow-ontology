@@ -131,7 +131,8 @@ fn run_and_capture_shacl_nq() -> String {
     let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
     upstream.insert(
         "stage-source-load".to_string(),
-        StageProduct::from_bundle("stage-source-load", Arc::new(bundle)),
+        StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+            .expect("the stage carrier digests"),
     );
 
     // The producer-selected procedural-constraints.ttl carries the derived pin shapes; the
@@ -171,7 +172,7 @@ fn run_and_capture_shacl_nq() -> String {
             .collect();
         upstream.insert(
             producer.to_string(),
-            StageProduct::from_artifacts(producer, members),
+            StageProduct::from_artifacts(producer, members).expect("the stage carrier digests"),
         );
     }
 

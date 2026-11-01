@@ -1,0 +1,1056 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:prescriptionKindContextPlan
+    a logic:PrescriptionKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "context plan"@x-gmeow-english ;
+    skos:definition "A prescription kind whose precomposed recall operations assemble context when a condition on the agent’s situation holds. The agent does not choose these steps at run time."@x-gmeow-english ;
+    gmeow:useWhen "Use to record context plan within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from prescriptionKindContextPlan alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit prescriptionKindContextPlan value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:prescriptionKindContextPlan explicitly."@x-gmeow-english .
+
+gmeow:RecallScope
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Recall Scope"@x-gmeow-english ;
+    skos:definition "A recall scope specification anchored to an identified attention slot, describing which related records an operation requests."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Scope within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallScope alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallScope value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallScope explicitly."@x-gmeow-english .
+
+gmeow:RecallDepth
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Recall Depth"@x-gmeow-english ;
+    skos:definition "An open vocabulary of explicitly selected retrieval capability profiles. Selecting a depth requires its declared capabilities; absence never selects a weaker profile."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallDepth alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallDepth value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallDepth explicitly."@x-gmeow-english .
+
+gmeow:recallDepthQuick
+    a gmeow:RecallDepth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "quick recall depth"@x-gmeow-english ;
+    skos:definition "The selected profile recalls attended and recent records through lexical retrieval only."@x-gmeow-english ;
+    gmeow:useWhen "Use to record quick recall depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallDepthQuick alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallDepthQuick value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallDepthQuick explicitly."@x-gmeow-english .
+
+gmeow:recallDepthOrdinary
+    a gmeow:RecallDepth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "ordinary recall depth"@x-gmeow-english ;
+    skos:definition "The selected profile searches every declared surface with lexical and nearest-neighbour retrieval and reranking."@x-gmeow-english ;
+    gmeow:useWhen "Use to record ordinary recall depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallDepthOrdinary alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallDepthOrdinary value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallDepthOrdinary explicitly."@x-gmeow-english .
+
+gmeow:recallDepthDeep
+    a gmeow:RecallDepth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "deep recall depth"@x-gmeow-english ;
+    skos:definition "The selected profile includes ordinary recall followed by link expansion and distant-band retrieval; it promises no particular answer."@x-gmeow-english ;
+    gmeow:useWhen "Use to record deep recall depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallDepthDeep alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallDepthDeep value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallDepthDeep explicitly."@x-gmeow-english .
+
+gmeow:RecollectionForm
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Recollection Form"@x-gmeow-english ;
+    skos:definition "An open vocabulary describing how recalled material is presented, independently of retrieval depth and confidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recollection Form within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecollectionForm alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecollectionForm value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecollectionForm explicitly."@x-gmeow-english .
+
+gmeow:recollectionFormVerbatim
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "verbatim recollection form"@x-gmeow-english ;
+    skos:definition "Present the retained source wording verbatim with its provenance; verbatim does not assert truth."@x-gmeow-english ;
+    gmeow:useWhen "Use to record verbatim recollection form within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormVerbatim alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recollectionFormVerbatim value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recollectionFormVerbatim explicitly."@x-gmeow-english .
+
+gmeow:recollectionFormSummaryHandle
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "summary and handle recollection form"@x-gmeow-english ;
+    skos:definition "Present a short attributed summary and a resolvable handle to the original record, retaining the original rather than replacing it."@x-gmeow-english ;
+    gmeow:useWhen "Use to record summary and handle recollection form within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recollectionFormSummaryHandle alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recollectionFormSummaryHandle value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recollectionFormSummaryHandle explicitly."@x-gmeow-english .
+
+gmeow:RecallOperation
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:ActionSchema , gmeow:InformationObject ;
+    rdfs:label "Recall Operation"@x-gmeow-english ;
+    skos:definition "One plan-local recall operation schema with its own allocation identity and parameters. Reusing a template twice requires two operation records, each carrying its own share."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Operation within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallOperation alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallOperation value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallOperation explicitly."@x-gmeow-english .
+
+gmeow:RecallBudget
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Recall Budget"@x-gmeow-english ;
+    skos:definition "A finite plan-local allocation roster whose operation records share one enactment’s token budget. It is not the enactment or a second plan."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Budget within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallBudget alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallBudget value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallBudget explicitly."@x-gmeow-english .
+
+gmeow:AttentionSlot
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Attention Slot"@x-gmeow-english ;
+    skos:definition "The continuing identity of one agent’s named attention slot. A slot is not a history position and is not itself the record it points to."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Attention Slot within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from AttentionSlot alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit AttentionSlot value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:AttentionSlot explicitly."@x-gmeow-english .
+
+gmeow:SlotPosition
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:State ;
+    rdfs:label "Slot Position"@x-gmeow-english ;
+    skos:definition "An immutable position in one attention slot’s history, holding a pointer to an existing record. It specializes State as a path position rather than a mutable slot."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Slot Position within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from SlotPosition alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit SlotPosition value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:SlotPosition explicitly."@x-gmeow-english .
+
+gmeow:SlotAssignmentClaim
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Slot Assignment Claim"@x-gmeow-english ;
+    skos:definition "An attributed RDF 1.2 reifier of one slotState assertion. Successor claims name the claims they supersede; records and historical claims are retained."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Slot Assignment Claim within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from SlotAssignmentClaim alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit SlotAssignmentClaim value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:SlotAssignmentClaim explicitly."@x-gmeow-english .
+
+gmeow:RecallAnswer
+    a logic:Event , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:Activity ;
+    rdfs:label "Recall Answer"@x-gmeow-english ;
+    skos:definition "The recall activity answering a cue, parenting its retrieval activities and retaining selected records, outcome and completeness. It is not the question or a claim that the returned material is true."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Answer within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallAnswer alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallAnswer value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallAnswer explicitly."@x-gmeow-english .
+
+gmeow:RecallOutcome
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Recall Outcome"@x-gmeow-english ;
+    skos:definition "An open vocabulary of reported recall outcomes, separate from the asker’s judgement and the truth of recalled content."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Outcome within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallOutcome alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallOutcome value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallOutcome explicitly."@x-gmeow-english .
+
+gmeow:recallOutcomeRecollections
+    a gmeow:RecallOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "recollections returned"@x-gmeow-english ;
+    skos:definition "The recall returned one or more records. This outcome alone does not assert complete search."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recollections returned within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeRecollections alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallOutcomeRecollections value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallOutcomeRecollections explicitly."@x-gmeow-english .
+
+gmeow:recallOutcomeEmptyComplete
+    a gmeow:RecallOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "complete empty recall"@x-gmeow-english ;
+    skos:definition "The declared scope was completely searched and no records were returned. This does not prove absence outside that scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to record complete empty recall within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeEmptyComplete alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallOutcomeEmptyComplete value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallOutcomeEmptyComplete explicitly."@x-gmeow-english .
+
+gmeow:recallOutcomeDeadline
+    a gmeow:RecallOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "recall deadline reached"@x-gmeow-english ;
+    skos:definition "The recall reached its deadline before completing the declared search; already selected records remain retained."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall deadline reached within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomeDeadline alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallOutcomeDeadline value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallOutcomeDeadline explicitly."@x-gmeow-english .
+
+gmeow:recallOutcomePartial
+    a gmeow:RecallOutcome ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "incomplete search"@x-gmeow-english ;
+    skos:definition "Some declared search scope was not searched. This is distinct from a complete empty result."@x-gmeow-english ;
+    gmeow:useWhen "Use to record incomplete search within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallOutcomePartial alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallOutcomePartial value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallOutcomePartial explicitly."@x-gmeow-english .
+
+gmeow:RecallVerdict
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Recall Verdict"@x-gmeow-english ;
+    skos:definition "The asker’s attributed judgement of one recall answer, preserving its exact words independently of search completeness."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdict alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallVerdict value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallVerdict explicitly."@x-gmeow-english .
+
+gmeow:RecallVerdictValue
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Recall Verdict Value"@x-gmeow-english ;
+    skos:definition "An open vocabulary for the asker’s found, partly, not-found or wrong judgement. These values neither rank people nor determine objective truth."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recall Verdict Value within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecallVerdictValue alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecallVerdictValue value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecallVerdictValue explicitly."@x-gmeow-english .
+
+gmeow:recallVerdictFound
+    a gmeow:RecallVerdictValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "found recall verdict"@x-gmeow-english ;
+    skos:definition "The asker reports that the recall answer found what they sought."@x-gmeow-english ;
+    gmeow:useWhen "Use to record found recall verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictFound alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallVerdictFound value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallVerdictFound explicitly."@x-gmeow-english .
+
+gmeow:recallVerdictPartly
+    a gmeow:RecallVerdictValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "partly found recall verdict"@x-gmeow-english ;
+    skos:definition "The asker reports that the recall answer found only part of what they sought."@x-gmeow-english ;
+    gmeow:useWhen "Use to record partly found recall verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictPartly alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallVerdictPartly value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallVerdictPartly explicitly."@x-gmeow-english .
+
+gmeow:recallVerdictNotFound
+    a gmeow:RecallVerdictValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "not-found recall verdict"@x-gmeow-english ;
+    skos:definition "The asker reports that the recall answer did not find what they sought, without asserting complete search."@x-gmeow-english ;
+    gmeow:useWhen "Use to record not-found recall verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictNotFound alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallVerdictNotFound value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallVerdictNotFound explicitly."@x-gmeow-english .
+
+gmeow:recallVerdictWrong
+    a gmeow:RecallVerdictValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "wrong recall verdict"@x-gmeow-english ;
+    skos:definition "The asker judges the recall answer to be wrong; this remains that asker’s attributed judgement."@x-gmeow-english ;
+    gmeow:useWhen "Use to record wrong recall verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallVerdictWrong alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallVerdictWrong value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallVerdictWrong explicitly."@x-gmeow-english .
+
+gmeow:contextPlanCondition
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:Plan ;
+    logic:range logic:Situation ;
+    rdfs:label "context plan condition"@x-gmeow-english ;
+    skos:definition "The situation condition under which a precomposed context plan is selected, without asserting that it currently obtains."@x-gmeow-english ;
+    gmeow:useWhen "Use to record context plan condition within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from contextPlanCondition alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit contextPlanCondition value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:contextPlanCondition explicitly."@x-gmeow-english .
+
+gmeow:recallScope
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ActionSchema ;
+    logic:range gmeow:RecallScope ;
+    rdfs:label "recall scope"@x-gmeow-english ;
+    skos:definition "The explicit record scope requested by this recall schema, anchored through its scope slot."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall scope within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallScope alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallScope value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallScope explicitly."@x-gmeow-english .
+
+gmeow:recallDepth
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ActionSchema ;
+    logic:range gmeow:RecallDepth ;
+    rdfs:label "recall depth"@x-gmeow-english ;
+    skos:definition "The selected capability profile required by this recall operation, not evidence that those capabilities ran."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallDepth alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallDepth value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallDepth explicitly."@x-gmeow-english .
+
+gmeow:recollectionForm
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ActionSchema ;
+    logic:range gmeow:RecollectionForm ;
+    rdfs:label "recollection form"@x-gmeow-english ;
+    skos:definition "The presentation form requested for records found by this operation."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recollection form within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recollectionForm alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recollectionForm value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recollectionForm explicitly."@x-gmeow-english .
+
+gmeow:recallLatest
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ActionSchema ;
+    logic:range xsd:positiveInteger ;
+    rdfs:label "latest recall count"@x-gmeow-english ;
+    skos:definition "The positive count of newest records requested within scope, not an age window or a claim that this many records exist."@x-gmeow-english ;
+    gmeow:useWhen "Use to record latest recall count within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallLatest alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallLatest value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallLatest explicitly."@x-gmeow-english .
+
+gmeow:budgetShare
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:ActionSchema ;
+    logic:range xsd:decimal ;
+    rdfs:label "budget share"@x-gmeow-english ;
+    skos:definition "This operation’s exact decimal share of the enactment token budget, strictly positive and at most one. Its plan-local operation identity determines its contribution to the total."@x-gmeow-english ;
+    gmeow:useWhen "Use to record budget share within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from budgetShare alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit budgetShare value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:budgetShare explicitly."@x-gmeow-english .
+
+gmeow:recallSchema
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallOperation ;
+    logic:range logic:ActionSchema ;
+    rdfs:label "reused recall schema"@x-gmeow-english ;
+    skos:definition "The reusable action schema specialized by this plan-local operation; repeated use retains distinct allocation records."@x-gmeow-english ;
+    gmeow:useWhen "Use to record reused recall schema within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallSchema alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallSchema value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallSchema explicitly."@x-gmeow-english .
+
+gmeow:budgetForPlan
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallBudget ;
+    logic:range logic:Plan ;
+    rdfs:label "budget for plan"@x-gmeow-english ;
+    skos:definition "The existing plan whose finite recall allocations this budget describes; it does not define another program body."@x-gmeow-english ;
+    gmeow:useWhen "Use to record budget for plan within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from budgetForPlan alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit budgetForPlan value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:budgetForPlan explicitly."@x-gmeow-english .
+
+gmeow:budgetOperation
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallBudget ;
+    logic:range gmeow:RecallOperation ;
+    rdfs:label "budget operation"@x-gmeow-english ;
+    skos:definition "An individually identified operation allocation in this finite budget roster, counted once by record identity even when another operation has the same share or schema."@x-gmeow-english ;
+    gmeow:useWhen "Use to record budget operation within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from budgetOperation alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit budgetOperation value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:budgetOperation explicitly."@x-gmeow-english .
+
+gmeow:recallBudgetTotal
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallBudget ;
+    logic:range xsd:decimal ;
+    rdfs:label "recall budget total"@x-gmeow-english ;
+    skos:definition "The derived sum of budgetShare over operation records in a recall budget. It is a derived view, never an independently authored second share source."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall budget total within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallBudgetTotal alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallBudgetTotal value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallBudgetTotal explicitly."@x-gmeow-english .
+
+gmeow:scopeSlot
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallScope ;
+    logic:range gmeow:AttentionSlot ;
+    rdfs:label "scope slot"@x-gmeow-english ;
+    skos:definition "The agent attention slot anchoring this scope’s record selection, resolved by the consumer rather than copied into the scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to record scope slot within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from scopeSlot alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit scopeSlot value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:scopeSlot explicitly."@x-gmeow-english .
+
+gmeow:slotRole
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AttentionSlot ;
+    logic:range gmeow:InformationObject ;
+    rdfs:label "slot role"@x-gmeow-english ;
+    skos:definition "The consumer-defined named role of an attention slot, such as current conversation. Roles are resources, not a fixed built-in list."@x-gmeow-english ;
+    gmeow:useWhen "Use to record slot role within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from slotRole alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit slotRole value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:slotRole explicitly."@x-gmeow-english .
+
+gmeow:slotHistory
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AttentionSlot ;
+    logic:range logic:Path ;
+    rdfs:label "slot history"@x-gmeow-english ;
+    skos:definition "The history path whose positions record this slot’s changes. It grants no cross-slot causal ordering."@x-gmeow-english ;
+    gmeow:useWhen "Use to record slot history within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from slotHistory alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit slotHistory value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:slotHistory explicitly."@x-gmeow-english .
+
+gmeow:positionInSlot
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:SlotPosition ;
+    logic:range gmeow:AttentionSlot ;
+    rdfs:label "position in slot"@x-gmeow-english ;
+    skos:definition "The one continuing slot whose history contains this immutable position."@x-gmeow-english ;
+    gmeow:useWhen "Use to record position in slot within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from positionInSlot alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit positionInSlot value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:positionInSlot explicitly."@x-gmeow-english .
+
+gmeow:slotState
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:AttentionSlot ;
+    logic:range gmeow:SlotPosition ;
+    rdfs:label "slot state"@x-gmeow-english ;
+    skos:definition "The slot’s selected current history position in a consumer’s view. Each assertion has its own claim identity; competing claims are retained rather than globally overwritten."@x-gmeow-english ;
+    gmeow:useWhen "Use to record slot state within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from slotState alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit slotState value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:slotState explicitly."@x-gmeow-english .
+
+gmeow:slotPointer
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:SlotPosition ;
+    logic:range logic:Thing ;
+    rdfs:label "slot pointer"@x-gmeow-english ;
+    skos:definition "The existing record IRI referenced at a slot history position, never a copy of that record. Assert only while the consumer can resolve the target."@x-gmeow-english ;
+    gmeow:useWhen "Use to record slot pointer within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from slotPointer alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit slotPointer value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:slotPointer explicitly."@x-gmeow-english .
+
+gmeow:exclusionReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain logic:AssemblyExclusion ;
+    logic:range rdfs:Literal ;
+    rdfs:label "exclusion reason"@x-gmeow-english ;
+    skos:definition "Language-bearing words explaining why this particular reified assemblyExcluded assertion withheld its record. The reason belongs to the record-specific exclusion, not to all exclusions at once."@x-gmeow-english ;
+    gmeow:useWhen "Use to record exclusion reason within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from exclusionReason alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit exclusionReason value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:exclusionReason explicitly."@x-gmeow-english .
+
+gmeow:answerDepth
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallAnswer ;
+    logic:range gmeow:RecallDepth ;
+    rdfs:label "answer depth"@x-gmeow-english ;
+    skos:definition "The recall capability profile actually reported for this answer, distinct from the schema’s requested profile."@x-gmeow-english ;
+    gmeow:useWhen "Use to record answer depth within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from answerDepth alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit answerDepth value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:answerDepth explicitly."@x-gmeow-english .
+
+gmeow:recallOutcome
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallAnswer ;
+    logic:range gmeow:RecallOutcome ;
+    rdfs:label "recall outcome"@x-gmeow-english ;
+    skos:definition "The source-reported outcome of this recall activity; complete-empty and interrupted search remain distinct."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall outcome within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallOutcome alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallOutcome value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallOutcome explicitly."@x-gmeow-english .
+
+gmeow:recallComplete
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallAnswer ;
+    logic:range xsd:boolean ;
+    rdfs:label "recall complete"@x-gmeow-english ;
+    skos:definition "Whether the declared recall scope was completely searched, independent of whether records were returned or the asker liked them."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall complete within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallComplete alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallComplete value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallComplete explicitly."@x-gmeow-english .
+
+gmeow:recalledRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallAnswer ;
+    logic:range logic:Thing ;
+    rdfs:label "recalled record"@x-gmeow-english ;
+    skos:definition "An actual record selected by this recall answer. Rank and attribution ride this assertion’s RDF 1.2 reifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recalled record within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recalledRecord alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recalledRecord value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recalledRecord explicitly."@x-gmeow-english .
+
+gmeow:recallRank
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecalledRecordClaim ;
+    logic:range xsd:positiveInteger ;
+    rdfs:label "recall rank"@x-gmeow-english ;
+    skos:definition "The one-based ordering position of this particular recalledRecord assertion in its answer, never a confidence or truth score."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall rank within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallRank alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallRank value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallRank explicitly."@x-gmeow-english .
+
+gmeow:RecalledRecordClaim
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Recalled Record Claim"@x-gmeow-english ;
+    skos:definition "An RDF 1.2 reifier of one recalledRecord assertion, retaining its answer-specific rank and attribution."@x-gmeow-english ;
+    gmeow:useWhen "Use to record Recalled Record Claim within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from RecalledRecordClaim alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit RecalledRecordClaim value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:RecalledRecordClaim explicitly."@x-gmeow-english .
+
+gmeow:recallAsker
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallAnswer ;
+    logic:range gmeow:Agent ;
+    rdfs:label "recall asker"@x-gmeow-english ;
+    skos:definition "The agent whose cue this recall activity answers. It does not select a global owner for the Question."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall asker within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallAsker alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallAsker value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallAsker explicitly."@x-gmeow-english .
+
+gmeow:verdictOn
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallVerdict ;
+    logic:range gmeow:RecallAnswer ;
+    rdfs:label "verdict on answer"@x-gmeow-english ;
+    skos:definition "The particular recall answer judged by this verdict, not merely the shared cue text."@x-gmeow-english ;
+    gmeow:useWhen "Use to record verdict on answer within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from verdictOn alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit verdictOn value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:verdictOn explicitly."@x-gmeow-english .
+
+gmeow:recallVerdict
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallVerdict ;
+    logic:range gmeow:RecallVerdictValue ;
+    rdfs:label "recall verdict"@x-gmeow-english ;
+    skos:definition "The asker’s reported verdict value for this answer, separate from retrieval completeness and objective truth."@x-gmeow-english ;
+    gmeow:useWhen "Use to record recall verdict within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from recallVerdict alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit recallVerdict value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:recallVerdict explicitly."@x-gmeow-english .
+
+gmeow:verdictWords
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    logic:domain gmeow:RecallVerdict ;
+    logic:range rdfs:Literal ;
+    rdfs:label "verdict words"@x-gmeow-english ;
+    skos:definition "The asker’s exact language-bearing words, preserving language, base direction and source wording without paraphrase."@x-gmeow-english ;
+    gmeow:useWhen "Use to record verdict words within an attributed recall context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring successful execution, access permission or a preferred claim from verdictWords alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the explicit verdictWords value with its source, scope and record identity."@x-gmeow-english ;
+    skos:example "The record names gmeow:verdictWords explicitly."@x-gmeow-english .
+
+
+# Supplied-value constraints and local record contracts.
+gmeow:RecallScope logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:scopeSlot ; logic:allValuesFrom gmeow:AttentionSlot ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallScope ; logic:closureKey "https://blackcatinformatics.ca/gmeow/scopeSlot" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallSchema ; logic:allValuesFrom logic:ActionSchema ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallSchema" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallSchema ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:ActionSchema ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallScope ; logic:allValuesFrom gmeow:RecallScope ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallScope ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallScope ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallDepth ; logic:allValuesFrom gmeow:RecallDepth ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallDepth" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallDepth ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallDepth ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recollectionForm ; logic:allValuesFrom gmeow:RecollectionForm ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recollectionForm" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recollectionForm ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecollectionForm ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallLatest ; logic:allValuesFrom xsd:positiveInteger ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallLatest ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:positiveInteger ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetShare ; logic:allValuesFrom xsd:decimal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallOperation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetShare" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetShare ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:decimal ] .
+gmeow:RecallBudget logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetForPlan ; logic:allValuesFrom logic:Plan ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallBudget ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetForPlan" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallBudget logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetForPlan ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Plan ] .
+gmeow:RecallBudget logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetOperation ; logic:allValuesFrom gmeow:RecallOperation ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallBudget ; logic:closureKey "https://blackcatinformatics.ca/gmeow/budgetOperation" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallBudget logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallBudgetTotal ; logic:allValuesFrom xsd:decimal ] .
+gmeow:RecallBudget logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallBudgetTotal ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:decimal ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotBearer ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AttentionSlot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/slotBearer" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotBearer ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Agent ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotRole ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AttentionSlot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/slotRole" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotRole ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:InformationObject ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotHistory ; logic:allValuesFrom logic:Path ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:AttentionSlot ; logic:closureKey "https://blackcatinformatics.ca/gmeow/slotHistory" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotHistory ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Path ] .
+gmeow:AttentionSlot logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotState ; logic:allValuesFrom gmeow:SlotPosition ] .
+gmeow:SlotPosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:positionInSlot ; logic:allValuesFrom gmeow:AttentionSlot ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SlotPosition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/positionInSlot" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SlotPosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:positionInSlot ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:AttentionSlot ] .
+gmeow:SlotPosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotPointer ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SlotPosition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/slotPointer" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SlotPosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:slotPointer ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+gmeow:SlotAssignmentClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+gmeow:SlotAssignmentClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Agent ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:answers ; logic:allValuesFrom gmeow:Question ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/answers" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:answers ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Question ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallAsker ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallAsker" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallAsker ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Agent ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:answerDepth ; logic:allValuesFrom gmeow:RecallDepth ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/answerDepth" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:answerDepth ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallDepth ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallOutcome ; logic:allValuesFrom gmeow:RecallOutcome ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallOutcome ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallOutcome ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallComplete ; logic:allValuesFrom xsd:boolean ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallAnswer ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallComplete" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallComplete ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
+gmeow:RecallAnswer logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recalledRecord ; logic:allValuesFrom logic:Thing ] .
+gmeow:RecalledRecordClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallRank ; logic:allValuesFrom xsd:positiveInteger ] .
+gmeow:RecalledRecordClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallRank ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:positiveInteger ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:verdictOn ; logic:allValuesFrom gmeow:RecallAnswer ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallVerdict ; logic:closureKey "https://blackcatinformatics.ca/gmeow/verdictOn" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:verdictOn ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallAnswer ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallVerdict ; logic:allValuesFrom gmeow:RecallVerdictValue ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallVerdict ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallVerdict" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recallVerdict ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:RecallVerdictValue ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:verdictWords ; logic:allValuesFrom rdfs:Literal ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallVerdict ; logic:closureKey "https://blackcatinformatics.ca/gmeow/verdictWords" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecallVerdict ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallVerdict logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass gmeow:Agent ] .
+
+gmeow:exclusionReason logic:subPropertyOf logic:assemblyExclusionReason .
+
+# Required paths are intrinsic to the class shapes referenced by reifier obligations.
+# The schema-level obligation declarations are metadata, not instance evidence.
+[ a logic:ClosureEntry ; logic:onClass gmeow:SlotAssignmentClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecalledRecordClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recallRank" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecallOperation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:budgetShare ; logic:allValuesFrom [ a logic:Datarange ; logic:onDatatype xsd:decimal ; logic:withRestrictions ( [ xsd:minExclusive 0.0 ] [ xsd:maxInclusive 1.0 ] ) ] ] .
+
+
+gmeow:ContextPlanHasConditionAndBudgetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "context plan condition and budget constraint"@x-gmeow-english ;
+    skos:definition "A selected context-plan kind names a situation condition and one finite recall budget for the same plan."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve context plan condition and budget constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ContextPlanHasConditionAndBudgetConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply ContextPlanHasConditionAndBudgetConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:ContextPlanHasConditionAndBudgetConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:prescriptionKindContextPlan ;
+    logic:message "A selected context-plan kind names a situation condition and one finite recall budget for the same plan." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:prescriptionKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:prescriptionKindContextPlan ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "condition" ] , [ logic:termIndex 1 ; logic:termVariable "budget" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:contextPlanCondition ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "condition" ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "condition" ] , [ logic:termIndex 1 ; logic:termIri logic:Situation ] ] , [ a logic:Formula ; logic:relation gmeow:budgetForPlan ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budget" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "budget" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RecallBudget ] ] ] ] ] ] .
+
+gmeow:RecallBudgetOnePerPlanConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "one recall budget per plan constraint"@x-gmeow-english ;
+    skos:definition "One plan-local budget roster owns the allocation total, so independent rosters cannot each spend the whole plan budget."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve one recall budget per plan constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallBudgetOnePerPlanConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallBudgetOnePerPlanConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallBudgetOnePerPlanConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:budgetForPlan ;
+    logic:message "One plan-local budget roster owns the allocation total, so independent rosters cannot each spend the whole plan budget." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "plan" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetForPlan ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "plan" ] ] , [ a logic:Formula ; logic:relation gmeow:budgetForPlan ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "plan" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+gmeow:RecallOperationOneBudgetConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "operation allocation ownership constraint"@x-gmeow-english ;
+    skos:definition "An operation allocation belongs to one budget roster; reuse in another plan requires another operation identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve operation allocation ownership constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallOperationOneBudgetConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallOperationOneBudgetConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallOperationOneBudgetConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:budgetOperation ;
+    logic:message "An operation allocation belongs to one budget roster; reuse in another plan requires another operation identity." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "operation" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:budgetOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "operation" ] ] , [ a logic:Formula ; logic:relation gmeow:budgetOperation ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "operation" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+gmeow:RecallBudgetTotalBoundConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recall budget total bound law"@x-gmeow-english ;
+    skos:definition "The derived finite sum of operation shares must be at most one. Equal numeric shares from distinct operations contribute separately."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve recall budget total bound law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallBudgetTotalBoundConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallBudgetTotalBoundConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallBudgetTotalBoundConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallBudgetTotal ;
+    logic:message "The derived finite sum of operation shares must be at most one. Equal numeric shares from distinct operations contribute separately." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "total" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:recallBudgetTotal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "total" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "total" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] ] ] ] .
+
+gmeow:SlotPositionBelongsToItsSlotConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "slot position owner constraint"@x-gmeow-english ;
+    skos:definition "A selected slotState position belongs to that same continuing slot."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve slot position owner constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying SlotPositionBelongsToItsSlotConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply SlotPositionBelongsToItsSlotConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:SlotPositionBelongsToItsSlotConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:slotState ;
+    logic:message "A selected slotState position belongs to that same continuing slot." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "position" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:slotState ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "position" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:positionInSlot ; logic:argument [ logic:termIndex 0 ; logic:termVariable "position" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] .
+
+gmeow:SlotPointerIsIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "slot pointer IRI constraint"@x-gmeow-english ;
+    skos:definition "A slot pointer names an existing record by IRI. Runtime resolution remains a consumer obligation; an IRI-shape check does not prove availability."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve slot pointer IRI constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying SlotPointerIsIriConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply SlotPointerIsIriConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:SlotPointerIsIriConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:slotPointer ;
+    logic:message "A slot pointer names an existing record by IRI. Runtime resolution remains a consumer obligation; an IRI-shape check does not prove availability." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:slotPointer ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:RecallEmptyCompleteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "complete empty recall constraint"@x-gmeow-english ;
+    skos:definition "A complete-empty outcome requires recallComplete true and no recalledRecord membership."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve complete empty recall constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallEmptyCompleteConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallEmptyCompleteConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallEmptyCompleteConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallOutcomeEmptyComplete ;
+    logic:message "A complete-empty outcome requires recallComplete true and no recalledRecord membership." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:recallOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:recallOutcomeEmptyComplete ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:recallComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "true" ; logic:termLiteralDatatype xsd:boolean ] ] , [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:recalledRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] ] ] ] .
+
+gmeow:RecallRecollectionsHaveRecordsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "returned recollections membership constraint"@x-gmeow-english ;
+    skos:definition "A recollections outcome retains at least one selected record without claiming completeness."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve returned recollections membership constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallRecollectionsHaveRecordsConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallRecollectionsHaveRecordsConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallRecollectionsHaveRecordsConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallOutcomeRecollections ;
+    logic:message "A recollections outcome retains at least one selected record without claiming completeness." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:recallOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:recallOutcomeRecollections ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:recalledRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] ] .
+
+gmeow:RecallVerdictIsAskersOwnConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "asker verdict attribution constraint"@x-gmeow-english ;
+    skos:definition "A recall verdict is attributed to the same agent who asked the judged answer’s cue. Other agents’ judgements are separate records and do not resolve this asker’s question."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve asker verdict attribution constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallVerdictIsAskersOwnConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallVerdictIsAskersOwnConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallVerdictIsAskersOwnConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:RecallVerdict ;
+    logic:message "A recall verdict is attributed to the same agent who asked the judged answer’s cue. Other agents’ judgements are separate records and do not resolve this asker’s question." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "answer" ] , [ logic:termIndex 2 ; logic:termVariable "asker" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RecallVerdict ] ] , [ a logic:Formula ; logic:relation gmeow:verdictOn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "answer" ] ] , [ a logic:Formula ; logic:relation gmeow:recallAsker ; logic:argument [ logic:termIndex 0 ; logic:termVariable "answer" ] , [ logic:termIndex 1 ; logic:termVariable "asker" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "asker" ] ] ] ] .
+
+gmeow:RecallAskerAskedQuestionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recall asker question constraint"@x-gmeow-english ;
+    skos:definition "The answer’s identified asker holds open the actual Question answered, not merely an equal cue string."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve recall asker question constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallAskerAskedQuestionConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallAskerAskedQuestionConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallAskerAskedQuestionConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallAsker ;
+    logic:message "The answer’s identified asker holds open the actual Question answered, not merely an equal cue string." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "question" ] , [ logic:termIndex 2 ; logic:termVariable "asker" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RecallAnswer ] ] , [ a logic:Formula ; logic:relation gmeow:answers ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "question" ] ] , [ a logic:Formula ; logic:relation gmeow:recallAsker ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "asker" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:asks ; logic:argument [ logic:termIndex 0 ; logic:termVariable "asker" ] , [ logic:termIndex 1 ; logic:termVariable "question" ] ] ] ] .
+
+gmeow:ExclusionReasonLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "exclusion reason language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve exclusion reason language constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying ExclusionReasonLanguageConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply ExclusionReasonLanguageConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:ExclusionReasonLanguageConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:exclusionReason ;
+    logic:message "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:exclusionReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:RecallVerdictWordsLanguageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "verdict wording language constraint"@x-gmeow-english ;
+    skos:definition "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve verdict wording language constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying RecallVerdictWordsLanguageConstraint by inventing records or selecting a weaker operation."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallVerdictWordsLanguageConstraint to the explicit scoped records and retain the original evidence."@x-gmeow-english ;
+    skos:example "The declared records are checked against gmeow:RecallVerdictWordsLanguageConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:verdictWords ;
+    logic:message "Every supplied wording preserves its language tag, including RDF 1.2 base direction when present." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:verdictWords ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termHasLang ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:RecallBudgetSumRule a logic:Rule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    rdfs:label "recall budget finite sum rule"@x-gmeow-english ;
+    skos:definition "Derive the per-budget finite sum over full operation substitutions, retaining repeated equal shares and schema reuse as distinct operation contributions."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:aggregateFunction "SUM" ; logic:aggregateVariable "?share" ;
+    logic:aggregateResult "?total" ; logic:groupKey "?budget" ;
+    logic:head [ rdf:reifies <<( _:recallContextBudget gmeow:recallBudgetTotal _:recallContextTotal )>> ] ;
+    logic:body [ rdf:reifies <<( _:recallContextBudget gmeow:budgetOperation _:recallContextOperation )>> ],
+               [ rdf:reifies <<( _:recallContextOperation gmeow:budgetShare _:recallContextShare )>> ] .
+_:recallContextBudget logic:termVariable "budget" .
+_:recallContextOperation logic:termVariable "operation" .
+_:recallContextShare logic:termVariable "share" .
+_:recallContextTotal logic:termVariable "total" .
+
+logic:ActionSchema logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:recallScope ; logic:allValuesFrom gmeow:RecallScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:recallDepth ; logic:allValuesFrom gmeow:RecallDepth ],
+    [ a logic:Restriction ; logic:onProperty gmeow:recollectionForm ; logic:allValuesFrom gmeow:RecollectionForm ],
+    [ a logic:Restriction ; logic:onProperty gmeow:recallLatest ; logic:allValuesFrom xsd:positiveInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:budgetShare ; logic:allValuesFrom xsd:decimal ] .
+
+gmeow:BudgetShareBoundsConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "budget share bounds law"@x-gmeow-english ;
+    skos:definition "Every supplied share is greater than zero and at most one; the separate plan-total law still applies."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve budget share bounds law."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating BudgetShareBoundsConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply BudgetShareBoundsConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by gmeow:BudgetShareBoundsConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:budgetShare ;
+    logic:message "Every supplied share is greater than zero and at most one; the separate plan-total law still applies." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "share" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:budgetShare ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "share" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "share" ] , [ logic:termIndex 1 ; logic:termLiteral "0.0" ; logic:termLiteralDatatype xsd:decimal ] ] , [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "share" ] , [ logic:termIndex 1 ; logic:termLiteral "1.0" ; logic:termLiteralDatatype xsd:decimal ] ] ] ] ] .
+
+gmeow:RecallRankReifierCompletenessConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recall rank reifier completeness constraint"@x-gmeow-english ;
+    skos:definition "Every actual recalled-record reifier has a rank. Schema-level reification obligations are not returned-record occurrences."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve recall rank reifier completeness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating RecallRankReifierCompletenessConstraint as a runtime certificate."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallRankReifierCompletenessConstraint to actual records while retaining independent obligations."@x-gmeow-english ;
+    skos:example "The record is governed by gmeow:RecallRankReifierCompletenessConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallRank ;
+    logic:message "Every actual recalled-record reifier has a rank. Schema-level reification obligations are not returned-record occurrences." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RecalledRecordClaim ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "rank" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:recallRank ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "rank" ] ] ] ] ] .
+
+gmeow:SlotStateReificationObligation a rdf:Statement , gmeow:SlotAssignmentClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "slot-state reification obligation"@x-gmeow-english ;
+    skos:definition "Every slotState assertion carries its own SlotAssignmentClaim reifier. This schema-level obligation is not an assignment occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the typed reifier for gmeow:slotState assertions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting schema metadata as an actual returned record or slot change."@x-gmeow-english ;
+    gmeow:howToUse "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."@x-gmeow-english ;
+    skos:example "The obligation governs gmeow:slotState reifiers."@x-gmeow-english ;
+    rdf:subject gmeow:AttentionSlot ; rdf:predicate gmeow:slotState ; rdf:object logic:Thing .
+
+gmeow:RecalledRecordReificationObligation a rdf:Statement , gmeow:RecalledRecordClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recalled-record reification obligation"@x-gmeow-english ;
+    skos:definition "Every recalledRecord assertion carries its own RecalledRecordClaim reifier, whose actual occurrence must retain its rank."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the typed reifier for gmeow:recalledRecord assertions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid presenting schema metadata as an actual returned record or slot change."@x-gmeow-english ;
+    gmeow:howToUse "Declare the subject class, predicate and reifier class in the canonical reification-obligation form."@x-gmeow-english ;
+    skos:example "The obligation governs gmeow:recalledRecord reifiers."@x-gmeow-english ;
+    rdf:subject gmeow:RecallAnswer ; rdf:predicate gmeow:recalledRecord ; rdf:object logic:Thing .
+
+gmeow:RecallBudgetSumRule
+    gmeow:useWhen "Use to derive the total from the complete finite operation roster."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid independently authoring a total or collapsing equal shares from distinct operations."@x-gmeow-english ;
+    gmeow:howToUse "Retain operation identity in full body substitutions and group SUM by budget identity."@x-gmeow-english ;
+    skos:example "Two identified operations with share 0.4 derive a budget total of 0.8."@x-gmeow-english .
+
+gmeow:RecallDeadlineIsIncompleteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "deadline recall completeness constraint"@x-gmeow-english ;
+    skos:definition "A deadline outcome requires recallComplete false, even when some records were returned."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve deadline recall completeness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating RecallDeadlineIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallDeadlineIsIncompleteConstraint to the actual source records without inventing missing facts."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:RecallDeadlineIsIncompleteConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallOutcomeDeadline ;
+    logic:message "A deadline outcome requires recallComplete false, even when some records were returned." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:recallOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:recallOutcomeDeadline ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:recallComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] .
+
+gmeow:RecallPartialIsIncompleteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "partial recall completeness constraint"@x-gmeow-english ;
+    skos:definition "A partial-search outcome requires recallComplete false, even when some records were returned."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve partial recall completeness constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating RecallPartialIsIncompleteConstraint as evidence of unrecorded execution or tuple comparisons."@x-gmeow-english ;
+    gmeow:howToUse "Apply RecallPartialIsIncompleteConstraint to the actual source records without inventing missing facts."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:RecallPartialIsIncompleteConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:recallOutcomePartial ;
+    logic:message "A partial-search outcome requires recallComplete false, even when some records were returned." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:recallOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:recallOutcomePartial ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:recallComplete ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "false" ; logic:termLiteralDatatype xsd:boolean ] ] ] ] .
+
+gmeow:SlotClaimPredecessorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "slot claim predecessor constraint"@x-gmeow-english ;
+    skos:definition "A slot-assignment successor names another actual RDF 1.2 assignment claim as predecessor. The consumer verifies same-slot history from the authoritative reified tuples; recorder attribution need not remain equal."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve slot claim predecessor constraint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating SlotClaimPredecessorConstraint as evidence of unrecorded execution or tuple comparisons."@x-gmeow-english ;
+    gmeow:howToUse "Apply SlotClaimPredecessorConstraint to the actual source records without inventing missing facts."@x-gmeow-english ;
+    skos:example "The source record is governed by gmeow:SlotClaimPredecessorConstraint."@x-gmeow-english ;
+    logic:formalizes gmeow:SlotAssignmentClaim ;
+    logic:message "A slot-assignment successor names another actual RDF 1.2 assignment claim as predecessor. The consumer verifies same-slot history from the authoritative reified tuples; recorder attribution need not remain equal." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "prior" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SlotAssignmentClaim ] ] , [ a logic:Formula ; logic:relation gmeow:supersedes ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "prior" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "triple" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SlotAssignmentClaim ] ] , [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "prior" ] , [ logic:termIndex 1 ; logic:termVariable "triple" ] ] ] ] ] ] .
+
+# Runtime trace observation and requested recollection strategies.
+
+gmeow:recollectionFading
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "recency-graded recollection strategy"@x-gmeow-english ;
+    skos:definition "A requested presentation strategy that grades recalled records by source recency: newest records verbatim, older records as summaries, and oldest records as a line with a handle. It is selected on an ActionSchema rather than asserted as a delivered record's form."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source plan explicitly requests recency-dependent presentation rather than one uniform verbatim, gist or summary-with-handle mode."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring age bands, a reference clock, summary content, available handles or completed rendering from selection of this strategy."@x-gmeow-english ;
+    gmeow:howToUse "Select this value with recollectionForm on the actual recall ActionSchema and retain any source-specified recency rules separately. Preserve the original records and actual output evidence independently."@x-gmeow-english ;
+    skos:scopeNote "Grading direction does not define numeric cutoffs or implement a summarizer. The strategy is independent of recall depth and does not substitute for the standalone one-line gist form."@x-gmeow-english ;
+    skos:example "Request graded presentation: ex:gradedRecall gmeow:recollectionForm gmeow:recollectionFading ."@x-gmeow-english .
+
+gmeow:recollectionFormOneLineGist
+    a gmeow:RecollectionForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/recall-context> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "one-line gist recollection form"@x-gmeow-english ;
+    skos:definition "A requested concise one-line gist of a recalled record, without requiring a handle and without claiming verbatim wording. It is a uniform presentation choice, distinct from a recency-grading strategy."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source asks for a one-line gist and neither verbatim presentation nor a summary with a mandatory handle describes that request."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating the gist with original words, silently adding a handle requirement or treating one line as a numeric recency band."@x-gmeow-english ;
+    gmeow:howToUse "Select this value through recollectionForm on the actual ActionSchema; retain original-record provenance and any independently supplied handle without making that handle mandatory."@x-gmeow-english ;
+    skos:scopeNote "The value requests a presentation; it does not assert that a gist was generated, that a retrieval completed or that the gist is true."@x-gmeow-english ;
+    skos:example "Request a gist without requiring a handle: ex:gistRecall gmeow:recollectionForm gmeow:recollectionFormOneLineGist ."@x-gmeow-english .

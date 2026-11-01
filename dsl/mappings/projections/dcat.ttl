@@ -5,8 +5,9 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix prov:    <http://www.w3.org/ns/prov#> .
 @prefix spdx:    <http://spdx.org/rdf/terms#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 
-# Projection mappings: GMEOW instance datasets → W3C DCAT 3 (#58). Compiled to
+# Projection mappings: GMEOW instance datasets → W3C DCAT 3. Compiled to
 # projections/dcat.edoal.ttl + queries/projections/dcat.rq by
 # `gmeow compile-mappings`. The catalog-facing view of a GMEOW-described
 # dataset: gmeow:Dataset / gmeow:Corpus become dcat:Dataset, their members
@@ -66,10 +67,10 @@ gmeow:mapDcatPartDistribution a gmeow:ProjectionMapping ;
             [ gmeow:tSubj "doc" ; gmeow:tPred rdf:type ; gmeow:tObjValue dcat:Distribution ]
             [ gmeow:tSubj "doc" ; gmeow:tPred dcat:downloadURL ; gmeow:tObj "url" ] ) ] .
 
-# Checksums ride the DCAT 3 / SPDX idiom: a fresh spdx:Checksum node per
-# digest-bearing distribution member. The digest string stays VERBATIM
-# (e.g. "blake3:<hex>") in spdx:checksumValue — the algorithm prefix is not
-# split out (declared loss; consumers that need the split parse the prefix).
+# SPDX requires a named algorithm and lowercase xsd:hexBinary value. Native
+# execution admits every selected source digest before these datatype guards.
+# The algorithm and digest both participate in checksum-node identity.
+# Authority: SPDX 2.3 RDF terms, checksumValue and ChecksumAlgorithm.
 gmeow:mapDcatChecksum a gmeow:ProjectionMapping ;
     rdfs:label "corpusMember contentDigest → spdx:checksum node"@x-gmeow-english ;
     gmeow:hasMappingPattern [
@@ -77,19 +78,42 @@ gmeow:mapDcatChecksum a gmeow:ProjectionMapping ;
         gmeow:atom (
             [ gmeow:subjectVar "corpus" ; gmeow:predicate gmeow:corpusMember ; gmeow:objectVar "doc" ]
             [ gmeow:subjectVar "doc" ; gmeow:predicate gmeow:contentDigest ; gmeow:objectVar "digest" ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs (
+            [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ]
+            gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
+        gmeow:bind [ gmeow:bindVar "algorithm" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ]
+                    gmeow:blake3_256Digest ) ]
+                spdx:checksumAlgorithm_blake3
+                [ gmeow:exprOp gmeow:opIf ; gmeow:exprArgs (
+                    [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ]
+                        gmeow:sha256Digest ) ]
+                    spdx:checksumAlgorithm_sha256 spdx:checksumAlgorithm_md5 ) ] ) ] ] ;
+        gmeow:bind [ gmeow:bindVar "checksumValue" ; gmeow:bindExpr
+            [ gmeow:exprOp gmeow:opStrDatatype ; gmeow:exprArgs (
+                [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ]
+                xsd:hexBinary ) ] ] ;
         gmeow:mint [ gmeow:bindVar "chk" ; gmeow:bindExpr
             [ gmeow:exprOp gmeow:opIri ; gmeow:exprArgs (
                 [ gmeow:exprOp gmeow:opConcat ; gmeow:exprArgs (
                     [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "doc" ] ) ]
-                    "-checksum" ) ] ) ] ] ;
+                    "-checksum-"
+                    [ gmeow:exprOp gmeow:opEncodeForUri ; gmeow:exprArgs (
+                        [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs (
+                            [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ] ) ] ) ]
+                    "-" [ gmeow:exprOp gmeow:opStr ; gmeow:exprArgs ( [ gmeow:exprVar "digest" ] ) ] ) ] ) ] ] ;
         gmeow:edoalSource gmeow:contentDigest ] ;
     gmeow:hasBinding [
         gmeow:profile "dcat" ; gmeow:toPredicate spdx:checksumValue ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the algorithm prefix stays inline in spdx:checksumValue (no spdx:algorithm split)" ;
+        gmeow:lossyDrop "the native digest datatype becomes a named SPDX algorithm and xsd:hexBinary pair; source literal term identity is not retained" ;
         gmeow:templateAtoms (
             [ gmeow:tSubj "doc" ; gmeow:tPred spdx:checksum ; gmeow:tObj "chk" ]
             [ gmeow:tSubj "chk" ; gmeow:tPred rdf:type ; gmeow:tObjValue spdx:Checksum ]
-            [ gmeow:tSubj "chk" ; gmeow:tPred spdx:checksumValue ; gmeow:tObj "digest" ] ) ] .
+            [ gmeow:tSubj "chk" ; gmeow:tPred spdx:algorithm ; gmeow:tObj "algorithm" ]
+            [ gmeow:tSubj "chk" ; gmeow:tPred spdx:checksumValue ; gmeow:tObj "checksumValue" ] ) ] .
 
 # --- Dataset-level catalog metadata (the dcterms cluster, dcat-anchored) --- #
 

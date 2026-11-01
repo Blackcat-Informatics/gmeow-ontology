@@ -45,8 +45,8 @@ pub type DerivationRecord = (DerivationId, String, Vec<String>);
 
 /// Execution-budget status for a derivation step.
 ///
-/// Serializes to the canonical lowercase strings required by the conformance corpus:
-/// `ok`, `partial`, or `exhausted`.
+/// Display and `as_str` use lowercase `ok`, `partial`, or `exhausted`.
+/// The typed JSON transport uses the Rust tags `Ok`, `Partial`, and `Exhausted`.
 ///
 /// - `Ok`        — derivation completed within budget.
 /// - `Partial`   — derivation was cut short; result may be incomplete.
@@ -64,8 +64,8 @@ pub enum BudgetStatus {
 impl BudgetStatus {
     /// Return the canonical lowercase string for this status.
     ///
-    /// These strings are the normative serialization used in the conformance corpus
-    /// and in any JSON/text projection of [`DerivedQuad`].
+    /// These strings belong to display projections. The typed JSON transport retains
+    /// the Rust variant names independently.
     pub fn as_str(self) -> &'static str {
         match self {
             BudgetStatus::Ok => "ok",
@@ -99,7 +99,7 @@ impl std::fmt::Display for BudgetStatus {
 ///   rule_iri:       IRI            # the rule that fired
 ///   source_quad_ids: [IRI]         # the antecedent quads consumed
 ///   profile:        IRI            # the semantic/decidability profile in force
-///   budget_status:  enum           # ok | partial | exhausted
+///   budget_status:  enum           # Ok | Partial | Exhausted
 /// ```
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct DerivedQuad {

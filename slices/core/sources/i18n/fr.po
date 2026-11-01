@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+# GMEOW translation catalog (slice: sources, language: fr).
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "encoded byte length"
+msgstr "longueur encodée en octets"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The explicitly supplied size in bytes of this information object's particular encoded representation. It describes the same encoded artifact as its content digest, not a creative work's human-readable extent or a Unicode character count."
+msgstr "Taille explicitement fournie en octets de la représentation encodée particulière de cet objet informationnel. Elle décrit le même artefact encodé que son condensat, non l’étendue lisible d’une œuvre ni un nombre de caractères Unicode."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A size is metadata, not proof that bytes were read or a digest was verified. Attributed size claims may coexist."
+msgstr "Une taille est une métadonnée, non la preuve d’une lecture des octets ou d’une vérification du condensat. Les affirmations attribuées peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
+msgstr "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."

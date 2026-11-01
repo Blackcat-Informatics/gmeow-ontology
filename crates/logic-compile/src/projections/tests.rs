@@ -664,7 +664,12 @@ fn full_surface_validation_program() -> crate::ir::LogicProgram {
                 ],
             )
             .unwrap()
-            .with_message("p-logical must satisfy the qualified value shape")
+            .with_messages(vec![purrdf::RdfLiteral {
+                lexical_form: "p-logical must satisfy the qualified value shape".into(),
+                datatype: None,
+                language: None,
+                direction: None,
+            }])
             .unwrap(),
             // An inverse path with a node-kind constraint (owl:InverseFunctionalProperty reading).
             P::new(

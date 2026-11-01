@@ -1,0 +1,1033 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# Goals, attempts and source-faithful satisfaction evidence.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "requested by dream"
+msgstr "由梦境回忆请求"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual DreamReport recollection episode from which an AttentionRequest was derived. This extension-owned provenance link does not turn the episode into an enduring document or assert that dream content occurred externally."
+msgstr "AttentionRequest 实际派生来源的 DreamReport 回忆事件。此由扩展拥有的来源链接不将事件变成持久文档，也不表示梦境内容在外部发生。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this relation and its context."
+msgstr "用于来源明确提供此关系及其情境时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing missing source bindings or inferring execution and success from this record alone."
+msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
+msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
+msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/requestedByDream|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:requestedByDream ex:target ."
+msgstr "ex:record gmeow:requestedByDream ex:target ."
+
+# Source-faithful conversation records.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inspired by dream"
+msgstr "源自梦境回忆"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual DreamReport recollection episode from which a message was composed, specializing source derivation. The episode remains an occurrent; dream content is not asserted as external fact and no message delivery is inferred."
+msgstr "消息创作实际派生来源的 DreamReport 回忆事件，是来源派生关系的专门化。该事件仍是发生体；不将梦境内容断言为外部事实，也不推断消息交付。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source explicitly supplies this record or field."
+msgstr "用于来源明确提供此记录或字段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring identity, delivery, verification or execution from missing source evidence."
+msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
+msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
+msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inspiredByDream|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain the supplied value for gmeow:inspiredByDream."
+msgstr "保留 gmeow:inspiredByDream 的来源值。"
+
+# Source-faithful selection, waking appraisal and phase retention.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dream Selection"
+msgstr "梦境选择"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained information record of how a dream was chosen, including the selected awareness mode, actual self-inquiry question, consumer category and draw digest when supplied. It is distinct from the selecting act and the dream itself."
+msgstr "关于梦境如何被选中的保留信息记录，包含已提供的所选意识模式、实际自我探询问题、使用方类别和抽签摘要。它区别于选择行为及梦境本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the retained choice record accompanying a dream."
+msgstr "用于随梦境保留的选择记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the selecting act or dream episode as this record."
+msgstr "避免将选择行为或梦境事件归为此记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the dream through selectedBy; attach only the supplied question, chosen mode, category and draw digest."
+msgstr "通过 selectedBy 关联梦境，仅附加已提供的问题、所选模式、类别和抽签摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A partial record remains partial; missing selection details are never reconstructed."
+msgstr "部分记录保持部分状态，不重构缺失的选择细节。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSelection|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:choice a gmeow:DreamSelection ; gmeow:selectionQuestion ex:question ."
+msgstr "例如：ex:choice a gmeow:DreamSelection ; gmeow:selectionQuestion ex:question ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected by"
+msgstr "选择记录"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a dream experience to its actual retained selection record; no random draw or inquiry is inferred from an absent field."
+msgstr "将梦境体验关联到实际保留的选择记录；不从缺失字段推断随机抽签或探询。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies a dream's selection record."
+msgstr "用于来源标识梦境选择记录时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing at the draw's digest string or the selector Agent."
+msgstr "避免指向抽签摘要字符串或执行选择的 Agent。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Connect the Experience to the actual DreamSelection InformationObject."
+msgstr "将 Experience 关联到实际 DreamSelection 信息对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Several source-attributed selections may coexist; this edge executes no selection."
+msgstr "多个带来源归属的选择可以并存；此关系不执行选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedBy|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:dream gmeow:selectedBy ex:choice ."
+msgstr "例如：ex:dream gmeow:selectedBy ex:choice ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Inquiry Category"
+msgstr "探询类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open consumer-owned category vocabulary for the self-inquiry question used in dream selection. It supplies no members and does not replace the question's answerhood type or operational InquiryKind."
+msgstr "用于梦境选择中自我探询问题的开放使用方类别词汇表。不预置成员，也不替代问题的回答条件类型或操作性 InquiryKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a consumer's own classification of a selected self-inquiry question."
+msgstr "用于使用方对所选自我探询问题的自身分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing QuestionType or InquiryKind with this thematic category."
+msgstr "避免用此主题类别替代 QuestionType 或 InquiryKind。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Mint category individuals in the consumer namespace and reference them through inquiryCategory."
+msgstr "在使用方命名空间创建类别个体，并通过 inquiryCategory 引用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open and intentionally seeds no member."
+msgstr "该词汇表开放，明确不预置成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/InquiryCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localCategory a gmeow:InquiryCategory ."
+msgstr "例如：ex:localCategory a gmeow:InquiryCategory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inquiry category"
+msgstr "探询类别"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The consumer-supplied category of the selection's self-inquiry question. Categories may coexist without a preferred member."
+msgstr "使用方提供的选择记录中自我探询问题的类别。多个类别可以并存，不设首选成员。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the source category chosen for a selection's question."
+msgstr "用于保留来源为选择问题指定的类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a category from the question's wording or answer."
+msgstr "避免从问题措辞或回答推断类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point the DreamSelection at actual InquiryCategory individuals."
+msgstr "将 DreamSelection 指向实际 InquiryCategory 个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Categories may overlap; no single category is preferred or required."
+msgstr "类别可以重叠，不要求或优先选择单一类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inquiryCategory|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:choice gmeow:inquiryCategory ex:localCategory ."
+msgstr "例如：ex:choice gmeow:inquiryCategory ex:localCategory ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lottery digest"
+msgstr "抽签摘要"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-supplied algorithm-tagged digest of the draw that selected the dream. It names draw evidence, not the selection record's own content bytes or proof of fairness."
+msgstr "来源提供的带算法标记的梦境选择抽签摘要。它标识抽签证据，而非选择记录自身字节，也不是公平性证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source supplies the digest naming its selection draw."
+msgstr "用于来源提供标识选择抽签的摘要时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting the selection artifact's contentDigest or inventing an algorithm tag."
+msgstr "避免替换为选择制品的 contentDigest 或虚构算法标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact tagged xsd:string; require its algorithm name and nonempty payload."
+msgstr "保留精确带标记 xsd:string；要求算法名和非空载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Lexical validation neither verifies bytes nor proves draw fairness or randomness."
+msgstr "词法验证不验证字节，也不证明抽签公平性或随机性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:choice gmeow:lotteryDigest \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."
+msgstr "例如：ex:choice gmeow:lotteryDigest \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "dream sequence"
+msgstr "梦境序号"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-recorded nonnegative number of a dream in its dreamer's own source-scoped sequence. Numbers may tie, have gaps or restart in another source context; they are not global identities or timestamps."
+msgstr "来源记录的梦境在其梦者来源限定序列中的非负序号。序号可以并列、留有间隔或在另一来源情境重启；它不是全局身份或时间戳。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the dreamer's source-recorded nonnegative dream counter."
+msgstr "用于来源记录的梦者非负梦境计数。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating equal numbers as one dream or sorting dreams globally by this field."
+msgstr "避免因序号相等就合并梦境，或据此全局排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual experiencer and attribute the exact native number statement to its source context."
+msgstr "保留实际体验者，并将精确原生序号陈述归属于其来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Ties, gaps and independently scoped restarts are permitted; no global uniqueness follows."
+msgstr "允许并列、间隔和独立情境中的重启；不产生全局唯一性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/dreamSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:dream gmeow:dreamSequence \"12\"^^xsd:nonNegativeInteger ."
+msgstr "例如：ex:dream gmeow:dreamSequence \"12\"^^xsd:nonNegativeInteger ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Waking Appraisal"
+msgstr "醒后评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A retained information record of what a dreamer made of a dream on waking: source wording, proposed waking connections, carry-forward material and self-inquiry response. It is not the appraisal act or a truth verdict."
+msgstr "关于梦者醒来后如何理解梦境的保留信息记录：来源措辞、拟议的清醒生活联系、待延续材料及自我探询回应。它不是评估行为或真值裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a retained account of the dreamer's waking interpretation."
+msgstr "用于保留梦者醒后解释的叙述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the recollection episode or appraisal act as an information record."
+msgstr "避免将回忆事件或评估行为归为信息记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach through hasWakingAppraisal; preserve wording and actual descriptor or analogy parts."
+msgstr "通过 hasWakingAppraisal 关联，并保留措辞及实际描述或类比组成部分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Competing appraisals coexist; an appraisal supplies no accepted answer or truth verdict."
+msgstr "竞争评估可以并存；评估不提供已接受答案或真值裁定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingAppraisal|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal a gmeow:WakingAppraisal ; gmeow:appraisalText \"The pier recalled a walk.\"@en ."
+msgstr "例如：ex:appraisal a gmeow:WakingAppraisal ; gmeow:appraisalText \"The pier recalled a walk.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has waking appraisal"
+msgstr "具有醒后评估"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a DreamReport recollection episode to an actual waking-appraisal record. Several attributed appraisals may coexist without turning the report event into a document."
+msgstr "将 DreamReport 回忆事件关联到实际醒后评估记录。多个带归属的评估可以并存，不将报告事件变成文档。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recollection has an actual retained waking-appraisal record."
+msgstr "用于回忆具有实际保留的醒后评估记录时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching appraisal text directly as this object's value."
+msgstr "避免直接把评估文本用作对象值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the DreamReport event to the distinct WakingAppraisal artifact."
+msgstr "将 DreamReport 事件关联到独立 WakingAppraisal 制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The relation is nonfunctional and does not turn its report subject into an endurant."
+msgstr "该关系非函数性，不把报告主体转为持存对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/hasWakingAppraisal|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:recollection gmeow:hasWakingAppraisal ex:appraisal ."
+msgstr "例如：ex:recollection gmeow:hasWakingAppraisal ex:appraisal ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "appraisal text"
+msgstr "评估文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The waking appraisal's retained wording exactly as supplied, with its original language and base direction when present."
+msgstr "按提供原样保留的醒后评估措辞，包括已有的原始语言和基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the appraisal's own retained wording."
+msgstr "用于评估自身保留的措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the wording with a naming label or a guessed translation."
+msgstr "避免用名称标签或猜测译文替代措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put the original literal on WakingAppraisal and retain supplied language and base direction."
+msgstr "将原始字面量置于 WakingAppraisal，并保留已有语言及基本方向。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Untagged, language-tagged and directional strings are admitted without automatic concatenation."
+msgstr "接受无语言标记、带语言标记及带方向字符串，不自动拼接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/appraisalText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal gmeow:appraisalText \"The pause mattered.\"@en ."
+msgstr "例如：ex:appraisal gmeow:appraisalText \"The pause mattered.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "raw appraisal text"
+msgstr "原始评估文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The original appraisal output retained only when it carries source content beyond a mere serialization of the parsed appraisal. Lexical difference alone does not establish that additional content."
+msgstr "仅当原始评估输出包含超出已解析评估简单序列化的来源内容时才保留。仅有词法差异不足以证明额外内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when original output preserves content beyond the parsed appraisal's serialization."
+msgstr "仅用于原始输出保留超出已解析评估序列化的内容时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid retaining a redundant serialization merely because its spacing differs."
+msgstr "避免仅因空白不同而保留冗余序列化。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the actual original output and its source attribution alongside the parsed appraisal."
+msgstr "在已解析评估旁保留实际原始输出及其来源归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Additional content is a source judgment; lexical difference alone cannot prove it."
+msgstr "额外内容属于来源判断；仅词法差异不能证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/rawAppraisalText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal gmeow:rawAppraisalText \"Warning: output stopped. Appraisal: The pause mattered.\"@en ."
+msgstr "例如：ex:appraisal gmeow:rawAppraisalText \"Warning: output stopped. Appraisal: The pause mattered.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "carry forward"
+msgstr "待延续内容"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|http://www.w3.org/2004/02/skos/core#definition"
+msgid "What the waking appraisal asked to carry forward, verbatim. It neither adopts a goal nor executes a request."
+msgstr "醒后评估要求继续保留的原话。它不采纳目标，也不执行请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for material the waking appraisal asked to retain beyond the dream."
+msgstr "用于醒后评估要求在梦境之后保留的材料。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the words as adoption of an Intention or execution of a request."
+msgstr "避免将措辞解读为采纳 Intention 或执行请求。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the appraisal's exact carry-forward wording on its information record."
+msgstr "在评估信息记录上保留待延续内容的精确措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The wording is source content, not a persistence policy or task scheduler."
+msgstr "措辞是来源内容，不是持久化策略或任务调度器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/carryForward|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal gmeow:carryForward \"Keep the contrast between quiet and urgency.\"@en ."
+msgstr "例如：ex:appraisal gmeow:carryForward \"Keep the contrast between quiet and urgency.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "self-inquiry address"
+msgstr "自我探询处理方式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source wording of how the appraisal addressed the self-inquiry question, distinct from the question's identity and from its proposed response."
+msgstr "评估如何处理自我探询问题的来源措辞，区别于问题身份及其拟议回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for how the appraisal says it approached its self-inquiry question."
+msgstr "用于评估所述如何处理自我探询问题。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this text as the Question node or its proposed answer."
+msgstr "避免把此文本当作 Question 节点或拟议答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the approach wording separate from selectionQuestion and selfInquiryResponse."
+msgstr "将处理方式措辞与 selectionQuestion 及 selfInquiryResponse 区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No inquiry resolution follows from recording that a question was addressed."
+msgstr "记录问题已被处理不意味着探询已解决。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryAddress|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal gmeow:selfInquiryAddress \"I considered why the scene persisted.\"@en ."
+msgstr "例如：ex:appraisal gmeow:selfInquiryAddress \"I considered why the scene persisted.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "self-inquiry response"
+msgstr "自我探询回应"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The appraisal's response to its self-inquiry question, verbatim. Recording a response does not resolve the Question or assert that an agent accepts it."
+msgstr "评估对自我探询问题的原样回应。记录回应不解决 Question，也不声称智能体接受该回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the appraisal's literal response to the selected self-inquiry question."
+msgstr "用于评估对所选自我探询问题的字面回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a recorded response as an accepted or known answer."
+msgstr "避免将记录的回应视为已接受或已知答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the response text; use the existing inquiry and epistemic relations for separately supplied answer claims."
+msgstr "保留回应文本；对另行提供的答案主张使用已有探询和认识关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Different attributed responses may coexist without choosing a winning answer."
+msgstr "不同带归属回应可以并存，不选出获胜答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selfInquiryResponse|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:appraisal gmeow:selfInquiryResponse \"Perhaps the pause mattered more.\"@en ."
+msgstr "例如：ex:appraisal gmeow:selfInquiryResponse \"Perhaps the pause mattered more.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "waking override text"
+msgstr "清醒干预文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source text of a waking override reported to end or redirect a dream. The wording alone does not enact an override or identify a phase."
+msgstr "来源报告的终止或重定向梦境的清醒干预原文。措辞本身不实施干预，也不标识阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the reported words of an override that ended or redirected dreaming."
+msgstr "用于来源报告的终止或重定向梦境的干预措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving a performed override, phase identity or cancellation from words alone."
+msgstr "避免仅凭措辞推断已执行干预、阶段身份或取消。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the original wording on its actual source record or identified override occurrence."
+msgstr "在实际来源记录或已识别干预事件上保留原始措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The open domain accommodates source records and actual occurrences without conflating them."
+msgstr "开放定义域容纳来源记录和实际事件，并保持二者区别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingOverrideText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:overrideRecord gmeow:wakingOverrideText \"Return attention to the waiting conversation.\"@en ."
+msgstr "例如：ex:overrideRecord gmeow:wakingOverrideText \"Return attention to the waiting conversation.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connection text"
+msgstr "联系文本"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A source-proposed connection expressed in plain text. It may annotate an actual Analogy or a retained unstructured information record without fabricating structured mapping endpoints."
+msgstr "来源以纯文本提出的联系。它可以标注实际 Analogy 或保留的非结构化信息记录，不虚构结构映射端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the full wording of a source-proposed waking connection."
+msgstr "用于来源提出的醒后联系的完整措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring structured Analogy endpoints from a plain-text connection."
+msgstr "避免从纯文本联系推断结构化 Analogy 端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Put wording on an InformationObject descriptor or an already grounded actual Analogy."
+msgstr "将措辞置于 InformationObject 描述记录或已具备实际结构的 Analogy。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An unresolved descriptor remains an information record; actual analogies retain their existing structural obligations."
+msgstr "未解析描述仍为信息记录；实际类比保留原有结构义务。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionText|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection gmeow:connectionText \"The still pier may recall an earlier pause.\"@en ."
+msgstr "例如：ex:connection gmeow:connectionText \"The still pier may recall an earlier pause.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "connection relation wording"
+msgstr "联系关系措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact wording of the relation a waking connection proposes. A relation name in text is not an executable predicate or an established analogy."
+msgstr "醒后联系所提出关系的精确措辞。文本关系名不是可执行谓词或已确立的类比。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the relation wording proposed by a waking connection."
+msgstr "用于醒后联系提出的关系措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a textual relation name as an executable predicate."
+msgstr "避免把文本关系名解读为可执行谓词。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the phrase on a connection descriptor or actual Analogy, with its supplied language."
+msgstr "在联系描述或实际 Analogy 上保留短语及其已有语言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The union domain admits InformationObject descriptors and actual Analogy records; the phrase establishes no inference warrant."
+msgstr "联合定义域接受 InformationObject 描述及实际 Analogy 记录；短语不建立推理依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/connectionRelation|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection gmeow:connectionRelation \"may recall\"@en ."
+msgstr "例如：ex:connection gmeow:connectionRelation \"may recall\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "waking candidate"
+msgstr "清醒生活候选项"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's wording for a waking-life candidate when no actual target node is supplied. The string neither resolves an entity nor supplies an Analogy endpoint."
+msgstr "未提供实际目标节点时，来源对清醒生活候选项的措辞。字符串既不解析实体，也不提供 Analogy 端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source names a possible waking target only in words."
+msgstr "用于来源仅以措辞指称可能的清醒目标时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a target identity from the string or supplying it as an Analogy endpoint."
+msgstr "避免从字符串创建目标身份或将其当作 Analogy 端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original candidate phrase on an InformationObject descriptor or existing Analogy."
+msgstr "在 InformationObject 描述或已有 Analogy 上保留原始候选短语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An actual target, if later identified, is recorded through the existing structured mapping independently."
+msgstr "后续识别的实际目标通过已有结构映射独立记录。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingCandidate|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection gmeow:wakingCandidate \"an earlier walk whose record I have not located\"@en ."
+msgstr "例如：ex:connection gmeow:wakingCandidate \"an earlier walk whose record I have not located\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "waking evidence wording"
+msgstr "清醒证据措辞"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The evidence a waking connection cites as source wording. Textual citation is not verified evidence or genealogical derivation."
+msgstr "醒后联系所引用证据的来源措辞。文本引述不是已验证证据或谱系派生关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the evidence wording cited by a proposed waking connection."
+msgstr "用于拟议醒后联系引用的证据措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating citation text as verified evidence or wasDerivedFrom lineage."
+msgstr "避免将引用文本当作已验证证据或 wasDerivedFrom 谱系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact citation wording on its descriptor or actual Analogy."
+msgstr "在描述记录或实际 Analogy 上保留精确引用措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Textual evidence can remain unresolved without fabricated source objects or verification receipts."
+msgstr "文本证据可保持未解析，不虚构来源对象或验证凭据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/wakingEvidence|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+msgstr "例如：ex:connection gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Phase Completion"
+msgstr "阶段完成状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open value vocabulary for explicitly reported ways a dream phase ended other than as written. Absence supplies no success, terminal claim or failure default."
+msgstr "梦境阶段未按原定内容结束方式的显式报告开放值词汇表。缺失值不默认成功、终结主张或失败。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicit nonstandard endings of recorded dream-phase occurrences."
+msgstr "用于已记录梦境阶段事件的显式非标准结束状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid creating a new phase class or treating absence as normal completion."
+msgstr "避免创建新阶段类或把缺失值视为正常完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reference completion individuals through phaseCompletion on the actual Event."
+msgstr "在实际 Event 上通过 phaseCompletion 引用完成状态个体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The vocabulary is open; a value describes source disposition without executing a lifecycle transition."
+msgstr "词汇表开放；值描述来源状态，不执行生命周期转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/PhaseCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:localEnding a gmeow:PhaseCompletion ."
+msgstr "例如：ex:localEnding a gmeow:PhaseCompletion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "phase completion"
+msgstr "阶段完成状态"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an actual dream-phase Event occurrence to its reported completion disposition. The retained phase output is only what it reached; the value asserts no terminal record or complete output."
+msgstr "将实际梦境阶段 Event 关联到报告的完成状态。保留的阶段输出仅为已达到的部分；该值不声称存在终结记录或完整输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a recorded phase has an explicit completion disposition."
+msgstr "用于已记录阶段具有显式完成状态时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid attaching it to a phase name or substituting it for retained partial output."
+msgstr "避免附加到阶段名，或用其替代保留的部分输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use an Event with eventType and subEventOf the actual dreaming Experience."
+msgstr "使用具备 eventType 并以 subEventOf 归属实际梦境 Experience 的 Event。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "No terminal record, complete output or success is inferred; values are nonfunctional source reports."
+msgstr "不推断终结记录、完整输出或成功；值为非函数性来源报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletion|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."
+msgstr "例如：ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "phase completed without terminal claim"
+msgstr "阶段已运行但无终结主张"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source reports that the phase ran but never wrote its terminal record; whatever output it produced is retained. This is not proof of successful completion or absence of unrecorded work."
+msgstr "来源报告该阶段已运行但未写入终结记录；保留其已产生的任何输出。这不是成功完成或不存在未记录工作的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source reports a phase ran without writing its terminal record."
+msgstr "用于来源报告阶段运行但未写入终结记录时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading the value as successful completion or as proof that nothing else happened."
+msgstr "避免将该值视为成功完成或未发生其他事情的证明。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach to the actual phase and retain its produced text on a separate derived InformationObject."
+msgstr "附加到实际阶段，并将已产生文本保留在独立派生 InformationObject 上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing terminal evidence is preserved rather than replaced with invented terminal output."
+msgstr "保留终结证据缺失状态，不用虚构终结输出替代。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/phaseCompletionCompletedWithoutTerminalClaim|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."
+msgstr "例如：ex:phase gmeow:phaseCompletion gmeow:phaseCompletionCompletedWithoutTerminalClaim ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preempted after"
+msgstr "于阶段之后被抢占"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a dream to the actual constituent phase after which cooperative preemption was reported. It does not infer an unrecorded phase, total order, cancellation or rollback."
+msgstr "将梦境关联到来源报告在其后发生协作抢占的实际组成阶段。不推断未记录阶段、全序、取消或回滚。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a source identifies the actual phase after which a dream was cooperatively preempted."
+msgstr "用于来源标识梦境被协作抢占之前的实际阶段时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing to an unrelated dream's phase or inferring rollback and cancellation."
+msgstr "避免指向无关梦境的阶段或推断回滚与取消。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the Experience to its own typed phase Event and preserve the phase's subEventOf membership."
+msgstr "将 Experience 关联到自身已分类阶段 Event，并保留阶段 subEventOf 归属。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge records this boundary only; it creates no total phase chronology."
+msgstr "该关系仅记录此边界，不建立阶段全序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preemptedAfter|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:dream gmeow:preemptedAfter ex:phase ."
+msgstr "例如：ex:dream gmeow:preemptedAfter ex:phase ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "continuation reason"
+msgstr "继续原因"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source's verbatim reason why a dream continued, retained on an information record as a specialization of description. It does not itself continue a dream or retype its Event as an enduring Entity."
+msgstr "来源关于梦境为何继续的原样理由，保留在信息记录上，作为 description 的特化。它本身不继续梦境，也不将其 Event 重新归类为持存 Entity。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source wording explaining why a dream continued."
+msgstr "用于来源解释梦境为何继续的措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing this description subproperty on the dream Event itself."
+msgstr "避免将此 description 子属性置于梦境 Event 本身。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the reason on an InformationObject account, keeping its actual dream lineage separately."
+msgstr "在 InformationObject 叙述上保留理由，并单独保留实际梦境谱系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The record remains an endurant; its reason does not execute continuation or promise completion."
+msgstr "记录仍为持存对象；理由不执行继续，也不承诺完成。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/continuationReason|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:account gmeow:continuationReason \"Another integration pass was needed.\"@en ."
+msgstr "例如：ex:account gmeow:continuationReason \"Another integration pass was needed.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selection question"
+msgstr "选择问题"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual self-inquiry Question through which the source says this dream selection was made. It is not erotetic implication, a wording identity or an accepted answer."
+msgstr "来源所述用于该梦境选择的实际自我探询 Question。它不是问题蕴涵、措辞身份或已接受答案。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source identifies the actual question used to choose a dream."
+msgstr "用于来源标识用于选择梦境的实际问题时。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using evokes, which states erotetic implication, for this selection relationship."
+msgstr "避免用表达问题蕴涵的 evokes 替代此选择关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link DreamSelection to Question; retain its wording through questionText and context through questionContext."
+msgstr "将 DreamSelection 关联到 Question；通过 questionText 保留措辞，通过 questionContext 保留情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Selecting a question neither resolves it nor asserts an accepted response."
+msgstr "选择问题既不解决该问题，也不声称回应已被接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectionQuestion|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:choice gmeow:selectionQuestion ex:question ."
+msgstr "例如：ex:choice gmeow:selectionQuestion ex:question ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "selected awareness mode"
+msgstr "所选意识模式"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The awareness mode explicitly chosen in the dream selection record. It records the choice rather than asserting that the selection artifact or the dream actually occupied that mode."
+msgstr "梦境选择记录中明确选定的意识模式。它记录选择，不声称选择制品或梦境实际处于该模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-recorded choice of dream awareness mode."
+msgstr "用于来源记录的梦境意识模式选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting awarenessMode on the selection artifact to express the choice."
+msgstr "避免在选择制品上断言 awarenessMode 来表达所选模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point DreamSelection to the chosen AwarenessMode; record actual experienced mode separately."
+msgstr "将 DreamSelection 指向选定 AwarenessMode；另行记录实际体验模式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Choice and experienced state may differ; this relation supplies no enactment bridge."
+msgstr "选择和实际体验状态可能不同；此关系不建立执行桥梁。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/selectedAwarenessMode|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:choice gmeow:selectedAwarenessMode gmeow:modeImmersiveDreaming ."
+msgstr "例如：ex:choice gmeow:selectedAwarenessMode gmeow:modeImmersiveDreaming ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lottery digest tag constraint"
+msgstr "抽签摘要算法标记约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied lotteryDigest has an explicit algorithm tag and a nonempty payload. The law neither replays the draw nor verifies bytes, randomness, algorithm support or fairness."
+msgstr "每个已提供 lotteryDigest 具有显式算法标记和非空载荷。规则不重放抽签，也不验证字节、随机性、算法支持或公平性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to check the algorithm tag of each supplied draw digest."
+msgstr "用于检查每个已提供抽签摘要的算法标记。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid claiming this syntax check verifies bytes or fairness."
+msgstr "避免声称此语法检查验证字节或公平性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Read the binary lotteryDigest guard and the tagged-string regular expression."
+msgstr "读取二元 lotteryDigest 守卫及带标记字符串正则表达式。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Missing digests remain missing; untagged digests fail without a guessed algorithm."
+msgstr "缺失摘要保持缺失；未标记摘要失败，不猜测算法。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: gmeow:LotteryDigestTagConstraint logic:formalizes gmeow:lotteryDigest ."
+msgstr "例如：gmeow:LotteryDigestTagConstraint logic:formalizes gmeow:lotteryDigest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/LotteryDigestTagConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every supplied lotteryDigest has an explicit algorithm tag and a nonempty payload. The law neither replays the draw nor verifies bytes, randomness, algorithm support or fairness."
+msgstr "每个已提供 lotteryDigest 具有显式算法标记和非空载荷。规则不重放抽签，也不验证字节、随机性、算法支持或公平性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dream sequence source scope constraint"
+msgstr "梦境序号来源范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied dreamSequence retains the actual experiencer and an exact native sequence-statement reifier with its source context. The number establishes neither global uniqueness nor clock order."
+msgstr "已提供 dreamSequence 保留实际体验者及其精确原生序号陈述重述节点和来源情境。序号不确立全局唯一性或时钟顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the dreamer and source scope of dream counters."
+msgstr "用于保留梦境计数的梦者及来源范围。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting global uniqueness for missing source context."
+msgstr "避免用全局唯一性替代缺失来源情境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Join all three native reifier facets and accordingTo for the exact sequence statement."
+msgstr "联合全部三个原生重述要素和 accordingTo，匹配精确序号陈述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary dreamSequence target requires no arithmetic progression or cross-context ordering."
+msgstr "二元 dreamSequence 目标不要求等差递增或跨情境排序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: gmeow:DreamSequenceScopeConstraint logic:formalizes gmeow:dreamSequence ."
+msgstr "例如：gmeow:DreamSequenceScopeConstraint logic:formalizes gmeow:dreamSequence ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamSequenceScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A supplied dreamSequence retains the actual experiencer and an exact native sequence-statement reifier with its source context. The number establishes neither global uniqueness nor clock order."
+msgstr "已提供 dreamSequence 保留实际体验者及其精确原生序号陈述重述节点和来源情境。序号不确立全局唯一性或时钟顺序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dream phase completion occurrence constraint"
+msgstr "梦境阶段完成发生约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A phaseCompletion assertion belongs to an actual Event occurrence with an EventType and a containing dream Experience. A bare phase name or output string cannot stand in for that occurrence."
+msgstr "phaseCompletion 断言属于具有 EventType 且包含于梦境 Experience 的实际 Event。单独阶段名或输出字符串不能替代该事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish an actual phase occurrence from its label."
+msgstr "用于区分实际阶段事件及其标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a containing dream to satisfy this law."
+msgstr "避免为满足规则而虚构所属梦境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the phaseCompletion subject's eventType and subEventOf dreaming Experience."
+msgstr "检查 phaseCompletion 主体的 eventType 及其通过 subEventOf 所属的梦境 Experience。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary subject guard checks occurrence structure, not successful runtime completion."
+msgstr "二元主体守卫检查事件结构，不检查运行成功。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: gmeow:DreamPhaseCompletionOccurrenceConstraint logic:formalizes gmeow:phaseCompletion ."
+msgstr "例如：gmeow:DreamPhaseCompletionOccurrenceConstraint logic:formalizes gmeow:phaseCompletion ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPhaseCompletionOccurrenceConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A phaseCompletion assertion belongs to an actual Event occurrence with an EventType and a containing dream Experience. A bare phase name or output string cannot stand in for that occurrence."
+msgstr "phaseCompletion 断言属于具有 EventType 且包含于梦境 Experience 的实际 Event。单独阶段名或输出字符串不能替代该事件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Dream preempted phase scope constraint"
+msgstr "梦境抢占阶段范围约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."
+msgstr "preemptedAfter 目标为属于同一梦境的实际已分类阶段 Event。此来源关系不推断全序、终结输出或已执行取消。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to bind preemption to a phase of that exact dream."
+msgstr "用于将抢占限定于该实际梦境的阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid accepting a same-named phase from another dream."
+msgstr "避免接受其他梦境中同名的阶段。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require the preemptedAfter target's typed membership in its subject dream."
+msgstr "要求 preemptedAfter 目标已分类且归属主体梦境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary guard preserves scope without executing preemption or establishing total order."
+msgstr "二元守卫保持范围，不执行抢占或建立全序。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: gmeow:DreamPreemptedPhaseScopeConstraint logic:formalizes gmeow:preemptedAfter ."
+msgstr "例如：gmeow:DreamPreemptedPhaseScopeConstraint logic:formalizes gmeow:preemptedAfter ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DreamPreemptedPhaseScopeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A preemptedAfter target is an actual typed phase Event belonging to that same dream. This source relationship does not infer total ordering, terminal output or an executed cancellation."
+msgstr "preemptedAfter 目标为属于同一梦境的实际已分类阶段 Event。此来源关系不推断全序、终结输出或已执行取消。"
+
+# Explicit admission checks for waking-connection carriers.
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connection text subject constraint"
+msgstr "联系文本主体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."
+msgstr "每个 connectionText 主体均为 InformationObject 描述记录或实际 Analogy。保留联系措辞不构造映射及其端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of a plain-text waking connection."
+msgstr "用于验证纯文本醒后联系的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an Analogy when only a textual descriptor was supplied."
+msgstr "避免在仅提供文本描述时要求 Analogy。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the connectionText subject against either named carrier class; preserve the source's original wording."
+msgstr "按任一命名载体类检查 connectionText 主体，并保留原始来源措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary property target includes malformed subjects; the disjunction admits a descriptor without inventing structured analogy evidence."
+msgstr "二元属性目标包含不合要求的主体；析取接受描述记录，不虚构结构化类比证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."
+msgstr "例如：ex:connection a gmeow:InformationObject ; gmeow:connectionText \"The pier recalls an earlier pause.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionTextSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every connectionText subject is an InformationObject descriptor or an actual Analogy. Retaining connection wording does not construct a mapping or its endpoints."
+msgstr "每个 connectionText 主体均为 InformationObject 描述记录或实际 Analogy。保留联系措辞不构造映射及其端点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Connection relation subject constraint"
+msgstr "联系关系主体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."
+msgstr "每个 connectionRelation 主体均为 InformationObject 描述记录或实际 Analogy。文本关系短语不是可执行谓词或推理依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of proposed waking-relation wording."
+msgstr "用于验证拟议醒后关系措辞的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the relation phrase itself as a structured relation or analogy."
+msgstr "避免将关系短语本身归为结构关系或类比。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Apply the InformationObject-or-Analogy type condition to each subject carrying connectionRelation."
+msgstr "对每个具有 connectionRelation 的主体应用 InformationObject 或 Analogy 类型条件。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Validation admits either carrier class and does not execute or establish the proposed relation."
+msgstr "验证接受任一载体类，不执行或确立拟议关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."
+msgstr "例如：ex:connection a gmeow:InformationObject ; gmeow:connectionRelation \"may recall\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ConnectionRelationSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every connectionRelation subject is an InformationObject descriptor or an actual Analogy. A textual relation phrase is not an executable predicate or an inference warrant."
+msgstr "每个 connectionRelation 主体均为 InformationObject 描述记录或实际 Analogy。文本关系短语不是可执行谓词或推理依据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Waking candidate subject constraint"
+msgstr "清醒候选项主体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."
+msgstr "每个 wakingCandidate 主体均为 InformationObject 描述记录或实际 Analogy。未提供实际目标节点时，候选项仍为来源措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of an unresolved waking-life candidate."
+msgstr "用于验证未解析清醒生活候选项的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving the candidate string into a fabricated target to satisfy the law."
+msgstr "避免为满足规则而将候选字符串解析成虚构目标。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Check the wakingCandidate subject's InformationObject or Analogy type, keeping its literal candidate unchanged."
+msgstr "检查 wakingCandidate 主体的 InformationObject 或 Analogy 类型，保持候选字面量不变。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property target checks the source carrier, not the existence or identity of the proposed waking object."
+msgstr "属性目标检查来源载体，不检查拟议清醒对象的存在或身份。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."
+msgstr "例如：ex:connection a gmeow:InformationObject ; gmeow:wakingCandidate \"an earlier walk whose record is not located\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingCandidateSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every wakingCandidate subject is an InformationObject descriptor or an actual Analogy. The candidate remains source wording when no actual target node is supplied."
+msgstr "每个 wakingCandidate 主体均为 InformationObject 描述记录或实际 Analogy。未提供实际目标节点时，候选项仍为来源措辞。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Waking evidence subject constraint"
+msgstr "清醒证据主体约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."
+msgstr "每个 wakingEvidence 主体均为 InformationObject 描述记录或实际 Analogy。接受文本引述载体不验证被引证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the carrier of evidence wording cited by a waking connection."
+msgstr "用于验证醒后联系所引证据措辞的载体。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting this carrier check for evidence verification or source derivation."
+msgstr "避免用此载体检查替代证据验证或来源派生关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Require either InformationObject or Analogy for each wakingEvidence subject and retain its citation literal."
+msgstr "要求每个 wakingEvidence 主体为 InformationObject 或 Analogy，并保留其引述字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The binary guard covers every supplied citation assertion; the law certifies neither cited content nor analogy quality."
+msgstr "二元守卫覆盖每个已提供引述断言；规则既不认证被引内容，也不认证类比质量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For example: ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+msgstr "例如：ex:connection a gmeow:InformationObject ; gmeow:wakingEvidence \"I recall a similar sense of waiting.\"@en ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/WakingEvidenceSubjectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "Every wakingEvidence subject is an InformationObject descriptor or an actual Analogy. Admitting a textual citation carrier does not verify the cited evidence."
+msgstr "每个 wakingEvidence 主体均为 InformationObject 描述记录或实际 Analogy。接受文本引述载体不验证被引证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/dreaming|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "The dreaming slice is a pure composition over core GMEOW occurrent and awareness machinery. No new primitives are minted.\n\nDREAM COMPOSITION.\n  * A dream is an instance of gmeow:Experience with:\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode value gmeow:modeDreaming or gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * Lucid dreaming = the same composition but with gmeow:awarenessMode gmeow:modeLucidDreaming.\n  * Memory-consolidation dreaming = an offline gmeow:LearningEvent with gmeow:learningType gmeow:learningConsolidation, recombining stored claims via gmeow:Analogy and gmeow:learningConceptFormation.\n\nDOCTRINE.\n  * Core composition (Principle 4 / Principle 6): dream and recollection episodes, selection and waking-appraisal information records, source provenance and recorded phase dispositions compose existing core classes and value vocabularies. Dream kinds remain compositions of gmeow:Experience; retained source records do not become new kinds of experience.\n  * Composition, not taxonomy: no subclassing of gmeow:Experience beyond what the mentation slice already allows. Finer dream kinds (lucid, REM, consolidation, recurring) are value-tagged or restriction-typed compositions, never subclasses of gmeow:Experience.\n  * Co-equal vantage-indexed claims (Principle 9 / Principle 10): a dream report is a low-reliability recollection; competing reports, analyst interpretations, elementations, and lucidity attributions coexist as standpoint-indexed claims, with superseded claims suppressed by gmeow:displayable false rather than deleted."
+msgstr "dreaming 切片完全组合 GMEOW 核心事件与意识机制，不创建新的原语。\n\n梦境组合。\n  * 梦境是具有以下属性的 gmeow:Experience 实例：\n      - gmeow:mentalProcessType gmeow:processDreaming\n      - gmeow:awarenessMode 的值为 gmeow:modeDreaming 或 gmeow:modeREM\n      - gmeow:contentOrigin gmeow:originImagined\n  * 清醒梦采用相同组合，但使用 gmeow:awarenessMode gmeow:modeLucidDreaming。\n  * 记忆巩固梦是具有 gmeow:learningType gmeow:learningConsolidation 的离线 gmeow:LearningEvent，通过 gmeow:Analogy 和 gmeow:learningConceptFormation 重组已保存的主张。\n\n原则。\n  * 核心组合（原则 4 / 原则 6）：梦境与回忆事件、选择与醒后评估信息记录、来源溯源及记录的阶段结束状态，均组合已有核心类和值词汇表。梦境类型仍为 gmeow:Experience 的组合；保留的来源记录不成为新的体验类型。\n  * 组合而非分类体系：不增加超出 mentation 切片既有许可的 gmeow:Experience 子类。更细的梦境类型（清醒梦、REM、巩固梦、重复梦）采用值标记或限制类型组合，绝不成为 gmeow:Experience 子类。\n  * 按观点索引的平等主张（原则 9 / 原则 10）：梦境报告是可靠性较低的回忆；竞争报告、分析者解释、元素划分及清醒度归属作为按观点索引的主张并存。被替代主张通过 gmeow:displayable false 抑制显示，而不删除。"

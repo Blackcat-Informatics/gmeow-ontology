@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/reference-apparatus/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix lang: <https://blackcatinformatics.ca/lang/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Ordinary source structure. It describes a reference work, not a parser run.
+ex:work a gmeow:CreativeWork .
+ex:volume a gmeow:ContentSegment ; gmeow:segmentType gmeow:segmentTypeVolume ;
+    gmeow:segmentIndex 1 ; gmeow:segmentOf ex:work .
+ex:division a gmeow:ContentSegment ; gmeow:segmentType gmeow:segmentTypeSection ;
+    gmeow:segmentIndex 1 ; gmeow:segmentOf ex:volume .
+ex:source a gmeow:InformationObject ;
+    dcterms:description "Original structural inventory for this illustrated source division."@en .
+
+ex:paragraph a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 1 ;
+    gmeow:segmentType gmeow:segmentTypeParagraph ;
+    gmeow:wasDerivedFrom ex:source .
+ex:heading a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 2 ;
+    gmeow:segmentType gmeow:segmentTypeHeading ;
+    gmeow:wasDerivedFrom ex:source .
+ex:verse a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 3 ;
+    gmeow:segmentType gmeow:segmentTypeVerse ;
+    gmeow:wasDerivedFrom ex:source .
+ex:dialogue a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 4 ;
+    gmeow:segmentType gmeow:segmentTypeDialogue ;
+    gmeow:wasDerivedFrom ex:source .
+ex:direction a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 5 ;
+    gmeow:segmentType gmeow:segmentTypeStageDirection ;
+    gmeow:wasDerivedFrom ex:source .
+ex:code a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 6 ;
+    gmeow:segmentType gmeow:segmentTypeCodeListing ;
+    gmeow:wasDerivedFrom ex:source .
+ex:equation a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 7 ;
+    gmeow:segmentType gmeow:segmentTypeEquation ;
+    gmeow:wasDerivedFrom ex:source .
+ex:table a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 8 ;
+    gmeow:segmentType gmeow:segmentTypeTable ;
+    gmeow:wasDerivedFrom ex:source .
+ex:figure a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 9 ;
+    gmeow:segmentType gmeow:segmentTypeFigure ;
+    gmeow:wasDerivedFrom ex:source .
+ex:formal a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 10 ;
+    gmeow:segmentType gmeow:segmentTypeFormalBlock ;
+    gmeow:wasDerivedFrom ex:source .
+ex:epigraph a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 11 ;
+    gmeow:segmentType gmeow:segmentTypeEpigraph ;
+    gmeow:wasDerivedFrom ex:source .
+ex:quotation a gmeow:ContentBlock ;
+    gmeow:blockOf ex:division ; gmeow:segmentIndex 12 ;
+    gmeow:segmentType gmeow:segmentTypeQuotation ;
+    gmeow:wasDerivedFrom ex:source .
+
+# Visible caption belongs to the source figure unit, not necessarily a media file.
+ex:figure gmeow:caption "Plan of the footbridge."@en .
+# The class is an atomic retrieval boundary; a table may still contain cells,
+# and a figure may still contain an actual media artifact.
+ex:illustration a gmeow:MediaObject ; gmeow:mediaType <https://www.iana.org/assignments/media-types/image/svg+xml> .
+ex:figure gmeow:hasPart ex:illustration .

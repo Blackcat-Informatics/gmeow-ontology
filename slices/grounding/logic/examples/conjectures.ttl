@@ -39,8 +39,8 @@ ex:conjNearnessTransitive
     a logic:Conjecture ;
     rdfs:label "nearness is transitive (open)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:9f21…nearness-transitive"^^xsd:string ;
-    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
-    logic:candidateScope "transitivity of an example logic:near relation over the endurant spine"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
+    logic:candidateScope "transitivity of an example logic:near relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -66,8 +66,8 @@ ex:conjAdjacencySymmetric
     a logic:Conjecture ;
     rdfs:label "adjacency is symmetric (corroborated)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
-    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
-    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
+    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -91,8 +91,8 @@ ex:candidatePromoteAdjacencySymmetry
     a logic:FormalizationCandidate ;
     rdfs:label "promote: adjacency is symmetric"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
-    logic:candidateExtractionProvenance "positive promotion leg of ex:conjAdjacencySymmetric (corroborated)"^^xsd:string ;
-    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"^^xsd:string ;
+    logic:candidateExtractionProvenance "positive promotion leg of ex:conjAdjacencySymmetric (corroborated)"@x-gmeow-english ;
+    logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -109,8 +109,8 @@ ex:conjParthoodTotallyComparable
     a logic:Conjecture ;
     rdfs:label "parthood is a total order (refuted-in-standpoint)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:c0de…parthood-total"^^xsd:string ;
-    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
-    logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
+    logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -163,8 +163,8 @@ ex:conjParthoodPartiallyOrdered
     a logic:Conjecture ;
     rdfs:label "parthood is a partial order (refined successor)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:d1ff…parthood-partial"^^xsd:string ;
-    logic:candidateExtractionProvenance "Lakatos refinement of ex:conjParthoodTotallyComparable after refutation"^^xsd:string ;
-    logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"^^xsd:string ;
+    logic:candidateExtractionProvenance "Lakatos refinement of ex:conjParthoodTotallyComparable after refutation"@x-gmeow-english ;
+    logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -187,8 +187,8 @@ ex:conjGeneralAdjacency
     a logic:Conjecture ;
     rdfs:label "every adjacent pair shares a boundary (general, on the frontier)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:aa11…general-adjacency"^^xsd:string ;
-    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
-    logic:candidateScope "boundary-sharing of an example logic:adjacent relation"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
+    logic:candidateScope "boundary-sharing of an example logic:adjacent relation"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;
@@ -205,8 +205,8 @@ ex:conjSpecialAdjacency
     a logic:Conjecture ;
     rdfs:label "every adjacent pair shares a UNIQUE boundary (special, refuted)"@x-gmeow-english ;
     logic:candidateSourceHash "sha256:bb22…special-adjacency"^^xsd:string ;
-    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
-    logic:candidateScope "unique-boundary-sharing of an example logic:adjacent relation"^^xsd:string ;
+    logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
+    logic:candidateScope "unique-boundary-sharing of an example logic:adjacent relation"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
     logic:candidateCategory logic:CategoryDerivationRule ;
     logic:candidateLifecycle logic:CandidateProposed ;

@@ -6,6 +6,8 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -28,8 +30,8 @@
 # authored) — the diagram commutes and a drift gate proves it (Task in slice
 # projection; INHABITED-COMPETENCY.md §Performance).
 #
-# Placement (Principle 16): depends ONLY on core (kernel, entities, ai, events,
-# provenance, awareness). gmeow:ModelArtifact is aligned to the software slice's
+# Placement (Principle 16): depends on core (kernel, entities, ai, events,
+# provenance, observations) and canonical mathematics. gmeow:ModelArtifact is aligned to the software slice's
 # gmeow:Distribution BY REFERENCE (a sibling Kind under gmeow:InformationObject,
 # NOT rdfs:subClassOf gmeow:Distribution) — a range/subclass axiom is a real
 # dependency regardless of OWL imports, and an extension may not depend on another
@@ -45,7 +47,7 @@
 <https://blackcatinformatics.ca/gmeow/slices/model-serving>
     a logic:Ontology ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "The model-serving topology: the served model artifact, its deployment (a relator binding artifact·service·host·endpoint·configuration·interval), the runtime execution (an occurrent), and the agent session (an event aggregate) — each with an explicit identity criterion rather than collapsed onto a gmeow:AwarenessTenure. Reusable beyond inhabitation; depends only on core. The multi-hop de-conflation path is projected flat for the hot path by computed, drift-gated upper-projections (Principle 12)."@x-gmeow-english ;
+    rdfs:comment "The model-serving topology: the served model artifact, its deployment (a relator binding artifact·service·host·endpoint·configuration·interval), the runtime execution (an occurrent), and the agent session (an event aggregate) — each with an explicit identity criterion rather than collapsed onto a gmeow:AwarenessTenure. Reusable beyond inhabitation; its mathematical profiles reuse core observations and canonical mathematics. The multi-hop de-conflation path is projected flat for the hot path by computed, drift-gated upper-projections (Principle 12)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
     rdfs:label "GMEOW Model-Serving Module"@x-gmeow-english ;
     skos:definition "The GMEOW Model-Serving Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
@@ -341,6 +343,7 @@ gmeow:deploymentArtifactFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:deploymentArtifact and nothing else. It is not a definition of gmeow:deploymentArtifact (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:deploymentArtifactFunctionality logic:characterizes gmeow:deploymentArtifact ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
 gmeow:deploymentHostFunctionality
     a logic:NamedIndividual ,
         logic:PropertyCharacteristicAssertion ;
@@ -401,3 +404,192 @@ gmeow:sessionSubjectStageFunctionality
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:sessionSubjectStage and nothing else. It is not a definition of gmeow:sessionSubjectStage (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
     skos:example "gmeow:sessionSubjectStageFunctionality logic:characterizes gmeow:sessionSubjectStage ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+# Selected mathematical artifact profiles and held metric observations.
+gmeow:LearnedModelArtifact
+    a logic:SubKind, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Learned Model Artifact"@x-gmeow-english ;
+    skos:definition "A served information artifact embodying a separately identified math:LearnedModel. Selecting this profile requires that mathematical model link; the artifact is not the mathematical object."@x-gmeow-english ;
+    gmeow:useWhen "Use for a served artifact whose fitted mathematical model is explicitly known."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying this profile to a tokenizer or other artifact with no declared learned model."@x-gmeow-english ;
+    gmeow:howToUse "Link artifactLearnedModel to a separately identified math:LearnedModel; select TensorModelArtifact only when its forward tensor structure is declared."@x-gmeow-english ;
+    skos:scopeNote "Only the selected learned profile requires the model role; generic ModelArtifact instances remain legal without mathematical disclosure."@x-gmeow-english ;
+    skos:example "ex:artifact a gmeow:LearnedModelArtifact ; gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ModelArtifact .
+
+gmeow:TensorModelArtifact
+    a logic:SubKind, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Tensor Model Artifact"@x-gmeow-english ;
+    skos:definition "A learned artifact declaring a mathematical forward TensorComputationGraph and WeightTensor parameters. This selected profile does not apply to every tokenizer, adapter or non-neural artifact."@x-gmeow-english ;
+    gmeow:useWhen "Use when the artifact declares its forward tensor architecture and learned weight tensors."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring tensor architecture from every learned artifact or confusing an unknown shape with a rank-zero tensor."@x-gmeow-english ;
+    gmeow:howToUse "Name artifactLearnedModel, artifactComputationGraph and artifactWeightTensor; complete each imported math profile and keep graph and parameter ownership coherent."@x-gmeow-english ;
+    skos:scopeNote "Tensor extents and element types reuse the canonical math owner; the profile carries references rather than payload bytes."@x-gmeow-english ;
+    skos:example "ex:artifact a gmeow:TensorModelArtifact ; gmeow:artifactLearnedModel ex:model ; gmeow:artifactComputationGraph ex:graph ; gmeow:artifactWeightTensor ex:weight ."@x-gmeow-english ;
+    logic:subClassOf gmeow:LearnedModelArtifact .
+
+gmeow:ModelMetricObservation
+    a logic:SubKind, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model Metric Observation"@x-gmeow-english ;
+    skos:definition "An explicitly selected finite numeric-literal metric observation about a model artifact: a vantage applies an ObservationMethod and a ModelMetric to obtain Quantity results with quantityValue and the declared metric dimension. Protocol, mathematical model, artifact, invocation and result retain distinct identities."@x-gmeow-english ;
+    gmeow:useWhen "Use for a quantitative benchmark result held by a named evaluator about an artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing a bare scalar on the artifact or confusing a benchmark protocol with its result or execution."@x-gmeow-english ;
+    gmeow:howToUse "Name vantage, observedFeature, observationMethod, evaluatedMetric and observationResult; give every Quantity result one finite numeric quantityValue and the metric dimension."@x-gmeow-english ;
+    skos:scopeNote "This selected profile requires finite numeric-literal quantityValue results. Rational-only carriers, vector, interval, unbounded and categorical results remain legal as ordinary Observations under their appropriate contracts; do not force them into this subtype or manufacture approximations."@x-gmeow-english ;
+    skos:example "ex:reading a gmeow:ModelMetricObservation ; gmeow:vantage ex:evaluator ; gmeow:observedFeature ex:artifact ; gmeow:observationMethod ex:protocol ; gmeow:evaluatedMetric ex:accuracy ; gmeow:observationResult ex:score ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:ModelMetric
+    a logic:AbstractIndividualType, logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model Metric"@x-gmeow-english ;
+    skos:definition "An open value vocabulary naming an evaluation metric and its expected mathematical Dimension. Individuals may declare different dimensions; a metric is neither a physical metric tensor nor a measured result."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare an evaluation metric independently of any measured result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every metric as dimensionless or using math:MetricSignature for a benchmark metric."@x-gmeow-english ;
+    gmeow:howToUse "Mint a metric individual with exactly one typed metricDimension; reuse that individual across observations using the same metric."@x-gmeow-english ;
+    skos:scopeNote "Metric identity is open and shared; a declared dimension is not a measured magnitude, tensor shape or preferred assessment."@x-gmeow-english ;
+    skos:example "ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."@x-gmeow-english .
+
+gmeow:artifactLearnedModel
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "artifact learned model"@x-gmeow-english ;
+    skos:definition "Links a LearnedModelArtifact to the separately identified math:LearnedModel embodied by its content."@x-gmeow-english ;
+    gmeow:useWhen "Use when the mathematical model embodied by an artifact is declared."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing this role at the artifact itself, a SoftwareAgent, an inference invocation or an evaluation result."@x-gmeow-english ;
+    gmeow:howToUse "Link one LearnedModelArtifact to one distinct math:LearnedModel; the artifact remains an information object."@x-gmeow-english ;
+    skos:scopeNote "Single-valued on LearnedModelArtifact; artifact content identity remains distinct from mathematical model identity."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:artifactLearnedModel ex:model . ex:model a math:LearnedModel ."@x-gmeow-english ;
+    logic:domain gmeow:LearnedModelArtifact ; logic:range math:LearnedModel .
+
+gmeow:artifactComputationGraph
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "artifact computation graph"@x-gmeow-english ;
+    skos:definition "Links a TensorModelArtifact to its forward TensorComputationGraph, whose architectureOf names the same learned model declared by the artifact."@x-gmeow-english ;
+    gmeow:useWhen "Use for the forward expression graph declared by a tensor artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the runtime execution, a display diagram or tensor bytes for the mathematical graph."@x-gmeow-english ;
+    gmeow:howToUse "Point to one TensorComputationGraph with computationNode applications and architectureOf the artifact learned model."@x-gmeow-english ;
+    skos:scopeNote "Single-valued on TensorModelArtifact; architecture ownership is checked against the separately declared learned model."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:artifactComputationGraph ex:graph . ex:graph a math:TensorComputationGraph ; math:architectureOf ex:model ."@x-gmeow-english ;
+    logic:domain gmeow:TensorModelArtifact ; logic:range math:TensorComputationGraph .
+
+gmeow:artifactWeightTensor
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "artifact weight tensor"@x-gmeow-english ;
+    skos:definition "Links a TensorModelArtifact to a WeightTensor in a ParameterSpace declared for the same learned model or its forward graph. This relation carries no tensor payload."@x-gmeow-english ;
+    gmeow:useWhen "Use for each learned weight tensor declared by a tensor artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing tensor payload bytes or a scalar weight literal in this role."@x-gmeow-english ;
+    gmeow:howToUse "Point to a WeightTensor with a typed inParameterSpace; its parameterSpaceOf must name the artifact learned model or forward graph."@x-gmeow-english ;
+    skos:scopeNote "Multiple declared weights are permitted. Each parameter-space reference retains the inherited AlgebraicStructure requirements."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:artifactWeightTensor ex:weight . ex:weight a math:WeightTensor ; math:inParameterSpace ex:parameters ."@x-gmeow-english ;
+    logic:domain gmeow:TensorModelArtifact ; logic:range math:WeightTensor .
+
+gmeow:artifactTrainingProblem
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "artifact training problem"@x-gmeow-english ;
+    skos:definition "Optionally records an OptimizationProblem for a learned artifact. When declared its objectiveFunction is a LossFunction; inference-only or undocumented training does not imply a training objective."@x-gmeow-english ;
+    gmeow:useWhen "Use when the artifact training objective is known and explicitly documented."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an objective for an inference-only artifact or treating a training specification as a training run."@x-gmeow-english ;
+    gmeow:howToUse "Point to an OptimizationProblem with a typed LossFunction objectiveFunction; complete the loss Function domain and codomain."@x-gmeow-english ;
+    skos:scopeNote "Absence means no training specification is declared; it does not infer that no training occurred."@x-gmeow-english ;
+    skos:example "ex:artifact gmeow:artifactTrainingProblem ex:problem . ex:problem a math:OptimizationProblem ; math:objectiveFunction ex:loss . ex:loss a math:LossFunction ."@x-gmeow-english ;
+    logic:domain gmeow:LearnedModelArtifact ; logic:range math:OptimizationProblem .
+
+gmeow:evaluatedMetric
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "evaluated metric"@x-gmeow-english ;
+    skos:definition "Names the ModelMetric applied by a ModelMetricObservation. Its declared dimension agrees with every observation result."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify which declared metric a held model evaluation reports."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid linking to a numeric result, distance function or free-text metric label."@x-gmeow-english ;
+    gmeow:howToUse "Point the ModelMetricObservation to exactly one ModelMetric with a typed metricDimension; every result must have that dimension."@x-gmeow-english ;
+    skos:scopeNote "The metric is exactly one per observation; independent observations and held results may coexist."@x-gmeow-english ;
+    skos:example "ex:reading gmeow:evaluatedMetric ex:accuracy . ex:accuracy a gmeow:ModelMetric ; gmeow:metricDimension math:dimensionless ."@x-gmeow-english ;
+    logic:domain gmeow:ModelMetricObservation ; logic:range gmeow:ModelMetric .
+
+gmeow:metricDimension
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "metric dimension"@x-gmeow-english ;
+    skos:definition "Names the single mathematical Dimension expected for a ModelMetric result. Dimensionless accuracy and time-valued latency remain different metric declarations."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the mathematical dimension expected for an evaluation metric result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing tensor shape or parameter-space linear dimension with a Quantity dimension."@x-gmeow-english ;
+    gmeow:howToUse "Give the ModelMetric exactly one math:Dimension; declare different metric individuals for incompatible dimensions."@x-gmeow-english ;
+    skos:scopeNote "The declaration applies to every result of observations naming this metric; incompatible declarations require distinct metric individuals."@x-gmeow-english ;
+    skos:example "ex:latency gmeow:metricDimension math:timeDimension ."@x-gmeow-english ;
+    logic:domain gmeow:ModelMetric ; logic:range math:Dimension .
+
+gmeow:LearnedModelArtifact logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:artifactLearnedModel ; logic:allValuesFrom math:LearnedModel ], [ a logic:Restriction ; logic:onProperty gmeow:artifactLearnedModel ; logic:maxQualifiedCardinality 1 ; logic:onClass math:LearnedModel ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:LearnedModelArtifact ; logic:closureKey "https://blackcatinformatics.ca/gmeow/artifactLearnedModel" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TensorModelArtifact logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:artifactComputationGraph ; logic:allValuesFrom math:TensorComputationGraph ], [ a logic:Restriction ; logic:onProperty gmeow:artifactComputationGraph ; logic:maxQualifiedCardinality 1 ; logic:onClass math:TensorComputationGraph ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TensorModelArtifact ; logic:closureKey "https://blackcatinformatics.ca/gmeow/artifactComputationGraph" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:TensorModelArtifact logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:artifactWeightTensor ; logic:allValuesFrom math:WeightTensor ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:TensorModelArtifact ; logic:closureKey "https://blackcatinformatics.ca/gmeow/artifactWeightTensor" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:LearnedModelArtifact logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:artifactTrainingProblem ; logic:allValuesFrom math:OptimizationProblem ] .
+gmeow:ModelMetric logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:metricDimension ; logic:allValuesFrom math:Dimension ], [ a logic:Restriction ; logic:onProperty gmeow:metricDimension ; logic:maxQualifiedCardinality 1 ; logic:onClass math:Dimension ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetric ; logic:closureKey "https://blackcatinformatics.ca/gmeow/metricDimension" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ModelMetricObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMetric ; logic:allValuesFrom gmeow:ModelMetric ], [ a logic:Restriction ; logic:onProperty gmeow:evaluatedMetric ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ModelMetric ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetricObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/evaluatedMetric" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ModelMetricObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetricObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ModelMetricObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:ModelArtifact ], [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ModelArtifact ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetricObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ModelMetricObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ], [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ObservationMethod ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetricObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:ModelMetricObservation logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom math:Quantity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ModelMetricObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:TensorArtifactCoherenceConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Tensor artifact coherence constraint"@x-gmeow-english ;
+    skos:definition "Every artifact graph describes its learned model, every computation node is an ApplicationExpression, and every weight parameter space names only that model or graph."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject tensor artifacts whose graph or parameter spaces belong to another model."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming this law executes a graph or verifies a tensor payload."@x-gmeow-english ;
+    gmeow:howToUse "Retain this Formula when projecting validation; test wrong and extra owners and a neighboring valid artifact."@x-gmeow-english ;
+    skos:scopeNote "The law checks all supplied graph and parameter-space owners; an expected owner cannot hide a malformed additional owner."@x-gmeow-english ;
+    skos:example "ex:graph math:architectureOf ex:model . ex:parameters math:parameterSpaceOf ex:model ."@x-gmeow-english ;
+    logic:formalizes gmeow:TensorModelArtifact ; logic:message "Every artifact graph describes its learned model, every computation node is an ApplicationExpression, and every weight parameter space names only that model or graph." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation gmeow:artifactComputationGraph ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation math:architectureOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ], [ logic:termIndex 1 ; logic:termVariable "g" ], [ logic:termIndex 2 ; logic:termVariable "owner" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation gmeow:artifactComputationGraph ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ], [ a logic:Formula ; logic:relation math:architectureOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "owner" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ], [ logic:termIndex 1 ; logic:termVariable "g" ], [ logic:termIndex 2 ; logic:termVariable "node" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation gmeow:artifactComputationGraph ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ], [ a logic:Formula ; logic:relation math:computationNode ; logic:argument [ logic:termIndex 0 ; logic:termVariable "g" ], [ logic:termIndex 1 ; logic:termVariable "node" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "node" ], [ logic:termIndex 1 ; logic:termIri math:ApplicationExpression ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ], [ logic:termIndex 1 ; logic:termVariable "g" ], [ logic:termIndex 2 ; logic:termVariable "w" ], [ logic:termIndex 3 ; logic:termVariable "p" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation gmeow:artifactComputationGraph ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ], [ a logic:Formula ; logic:relation gmeow:artifactWeightTensor ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "w" ] ], [ a logic:Formula ; logic:relation math:inParameterSpace ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ], [ logic:termIndex 1 ; logic:termVariable "p" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation math:parameterSpaceOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation math:parameterSpaceOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ], [ logic:termIndex 1 ; logic:termVariable "g" ], [ logic:termIndex 2 ; logic:termVariable "w" ], [ logic:termIndex 3 ; logic:termVariable "p" ], [ logic:termIndex 4 ; logic:termVariable "owner" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:TensorModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation gmeow:artifactComputationGraph ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ], [ a logic:Formula ; logic:relation gmeow:artifactWeightTensor ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "w" ] ], [ a logic:Formula ; logic:relation math:inParameterSpace ; logic:argument [ logic:termIndex 0 ; logic:termVariable "w" ], [ logic:termIndex 1 ; logic:termVariable "p" ] ] ], [ a logic:Formula ; logic:relation math:parameterSpaceOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "owner" ] ] ] ; logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ], [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "owner" ], [ logic:termIndex 1 ; logic:termVariable "g" ] ] ] ] ] ] ] ] .
+
+gmeow:ArtifactTrainingObjectiveConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Artifact mathematical identity and objective constraint"@x-gmeow-english ;
+    skos:definition "The learned model has a distinct identity from its served artifact; every declared training problem names a typed LossFunction objective."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve artifact/model identity and validate explicitly declared training objectives."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring training metadata when no training problem is declared."@x-gmeow-english ;
+    gmeow:howToUse "Validate distinct model identity and every declared loss objective together with the inherited Function profile."@x-gmeow-english ;
+    skos:scopeNote "Optional training problems are checked only when declared; the mathematical Function owner supplies loss domain and codomain requirements."@x-gmeow-english ;
+    skos:example "ex:problem math:objectiveFunction ex:loss . ex:loss a math:LossFunction ; math:domain ex:pairs ; math:codomain ex:values ."@x-gmeow-english ;
+    logic:formalizes gmeow:LearnedModelArtifact ; logic:message "The learned model has a distinct identity from its served artifact; every declared training problem names a typed LossFunction objective." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "a" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:LearnedModelArtifact ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "m" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:LearnedModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactLearnedModel ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "m" ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:LearnedModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactTrainingProblem ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "p" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "loss" ] ; logic:exists [ a logic:Formula ; logic:relation math:objectiveFunction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "objective" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termIri gmeow:LearnedModelArtifact ] ], [ a logic:Formula ; logic:relation gmeow:artifactTrainingProblem ; logic:argument [ logic:termIndex 0 ; logic:termVariable "a" ], [ logic:termIndex 1 ; logic:termVariable "p" ] ] ], [ a logic:Formula ; logic:relation math:objectiveFunction ; logic:argument [ logic:termIndex 0 ; logic:termVariable "p" ], [ logic:termIndex 1 ; logic:termVariable "objective" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "objective" ], [ logic:termIndex 1 ; logic:termIri math:LossFunction ] ] ] ] ] ] ] .
+
+gmeow:ModelMetricResultConstraint a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/model-serving> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Model metric result constraint"@x-gmeow-english ;
+    skos:definition "Every metric result carries exactly one finite numeric magnitude and the dimension declared by its metric."@x-gmeow-english ;
+    gmeow:useWhen "Use to reject missing, nonnumeric, nonfinite or dimensionally incompatible metric result magnitudes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid borrowing a result or dimension from another observation or declaring all metrics dimensionless."@x-gmeow-english ;
+    gmeow:howToUse "Validate each observation and its own result against its own metric dimension; retain the canonical Quantity profile."@x-gmeow-english ;
+    skos:scopeNote "Each guard follows one observation to its own metric and result; neighboring observations cannot supply missing dimensions or values."@x-gmeow-english ;
+    skos:example "ex:accuracy gmeow:metricDimension math:dimensionless . ex:score a math:Quantity ; math:hasDimension math:dimensionless ; math:quantityValue 0.91 ."@x-gmeow-english ;
+    logic:formalizes gmeow:ModelMetricObservation ; logic:message "Every metric result carries exactly one finite numeric magnitude and the dimension declared by its metric." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "o" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelMetricObservation ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ], [ logic:termIndex 2 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelMetricObservation ] ], [ a logic:Formula ; logic:relation gmeow:evaluatedMetric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "metric" ] ], [ a logic:Formula ; logic:relation gmeow:metricDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation math:hasDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ], [ logic:termIndex 2 ; logic:termVariable "result" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelMetricObservation ] ], [ a logic:Formula ; logic:relation gmeow:evaluatedMetric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "metric" ] ], [ a logic:Formula ; logic:relation gmeow:metricDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "value" ] ; logic:exists [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ], [ logic:termIndex 2 ; logic:termVariable "result" ], [ logic:termIndex 3 ; logic:termVariable "magnitude" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelMetricObservation ] ], [ a logic:Formula ; logic:relation gmeow:evaluatedMetric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "metric" ] ], [ a logic:Formula ; logic:relation gmeow:metricDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ], [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termIsFiniteNumeric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitude" ] ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ], [ logic:termIndex 2 ; logic:termVariable "result" ], [ logic:termIndex 3 ; logic:termVariable "magnitude" ], [ logic:termIndex 4 ; logic:termVariable "otherMagnitude" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termIri gmeow:ModelMetricObservation ] ], [ a logic:Formula ; logic:relation gmeow:evaluatedMetric ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "metric" ] ], [ a logic:Formula ; logic:relation gmeow:metricDimension ; logic:argument [ logic:termIndex 0 ; logic:termVariable "metric" ], [ logic:termIndex 1 ; logic:termVariable "expected" ] ], [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "o" ], [ logic:termIndex 1 ; logic:termVariable "result" ] ] ], [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "magnitude" ] ] ], [ a logic:Formula ; logic:relation math:quantityValue ; logic:argument [ logic:termIndex 0 ; logic:termVariable "result" ], [ logic:termIndex 1 ; logic:termVariable "otherMagnitude" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "magnitude" ], [ logic:termIndex 1 ; logic:termVariable "otherMagnitude" ] ] ] ] ] ] ] .

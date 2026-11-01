@@ -36,6 +36,8 @@
 //! repeated `(graph, reifier)` in the visited set is a hard error
 //! ([`ExplainError::Cycle`]). There is no silent skip and no degraded fallback.
 
+mod execution_cbor;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::hash::{BuildHasher, Hash, Hasher};
 

@@ -13618,3 +13618,262 @@ repo:README.md a gmeow:CreativeWork ;
     gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/trust/docs.md> ;
     gmeow:citedEntity <https://datatracker.ietf.org/doc/html/rfc9580> ;
     gmeow:citationIntent gmeow:intentBridgedByReference .
+
+# Declared textual regex and boundary contracts, grounded by inspected source.
+
+<https://docs.rs/regex/1.13.1/regex/> a gmeow:CreativeWork ;
+    rdfs:label "Rust regex 1.13.1: syntax and search complexity"@en ;
+    gmeow:sourceLocation "regex-1.13.1/src/lib.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-regex-v1> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Rust regex 1.13.1 as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/regex/1.13.1/regex/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-v1> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-v1> a gmeow:Selector ;
+    rdfs:label "Rust regex 1.13.1 contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Rust regex 1.13.1."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://docs.rs/regex-syntax/0.8.11/regex_syntax/> a gmeow:CreativeWork ;
+    rdfs:label "Rust regex-syntax 0.8.11: Unicode 16 property and simple-fold tables"@en ;
+    gmeow:sourceLocation "regex-syntax-0.8.11/src/unicode_tables/general_category.rs", "regex-syntax-0.8.11/src/unicode_tables/case_folding_simple.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-regex-syntax-unicode16> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Rust regex-syntax 0.8.11 Unicode tables as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/regex-syntax/0.8.11/regex_syntax/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-syntax-unicode16> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-regex-syntax-unicode16> a gmeow:Selector ;
+    rdfs:label "Rust regex-syntax 0.8.11 Unicode tables contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Rust regex-syntax 0.8.11 Unicode tables."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt> a gmeow:CreativeWork ;
+    rdfs:label "Unicode 16.0.0 CaseFolding data"@en ;
+    gmeow:sourceLocation "https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/unicode16-case-fold> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Unicode 16.0.0 case folding as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://www.unicode.org/Public/16.0.0/ucd/CaseFolding.txt> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/unicode16-case-fold> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/unicode16-case-fold> a gmeow:Selector ;
+    rdfs:label "Unicode 16.0.0 case folding contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Unicode 16.0.0 case folding."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://www.unicode.org/versions/Unicode17.0.0/> a gmeow:CreativeWork ;
+    rdfs:label "Unicode 17.0.0: default UAX 29 text segmentation"@en ;
+    gmeow:sourceLocation "https://www.unicode.org/versions/Unicode17.0.0/" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/unicode17-segmentation> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to Unicode 17.0.0 text segmentation as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://www.unicode.org/versions/Unicode17.0.0/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/unicode17-segmentation> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/unicode17-segmentation> a gmeow:Selector ;
+    rdfs:label "Unicode 17.0.0 text segmentation contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites Unicode 17.0.0 text segmentation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/> a gmeow:CreativeWork ;
+    rdfs:label "unicode-segmentation 1.13.3: Unicode 17.0.0 boundary tables"@en ;
+    gmeow:sourceLocation "unicode-segmentation-1.13.3/src/tables.rs", "unicode-segmentation-1.13.3/src/lib.rs" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/rust-unicode-segmentation-17> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/lang/design/LANG-REGEX.md"@en ;
+    skos:definition "The citation from the pinned textual regex contract to unicode-segmentation 1.13.3 as an external syntax, Unicode data or boundary-semantics reference."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/lang/design/LANG-REGEX.md> ;
+    gmeow:citedEntity <https://docs.rs/unicode-segmentation/1.13.3/unicode_segmentation/> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/rust-unicode-segmentation-17> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/rust-unicode-segmentation-17> a gmeow:Selector ;
+    rdfs:label "unicode-segmentation 1.13.3 contract source selector"@en ;
+    skos:definition "The repository source locator for the textual regex contract that cites unicode-segmentation 1.13.3."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/lang/design/LANG-REGEX.md" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-actual-usage-prov> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/mappings/provenance-usage.ttl"@en ;
+    skos:definition "The by-reference citation of PROV-O for the general actual-usage bridge, without claiming preservation of qualified usage, usage roles or separate usage-time assertions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/mappings/provenance-usage.ttl> ;
+    gmeow:citedEntity prov: ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-actual-usage-prov> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-actual-usage-prov> a gmeow:Selector ;
+    rdfs:label "Actual usage PROV-O bridge source selector"@en ;
+    skos:definition "The repository source locator of the logic-owned close-match bridge from general actual usage to PROV-O used."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/mappings/provenance-usage.ttl" .
+
+<https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf> a gmeow:CreativeWork ;
+    rdfs:label "BLAKE3: one function, fast everywhere"@en ;
+    skos:definition "The official BLAKE3 specification, analysis and design rationale, pinned to its PDF at repository revision ac784c9f22a48327782f042ec2f4d8126b3b1744; the PDF prints version 20211102173700."@en ;
+    gmeow:bibliographicCitation "O’Connor, Jack; Aumasson, Jean-Philippe; Neves, Samuel; Wilcox-O’Hearn, Zooko. BLAKE3: one function, fast everywhere. PDF version 20211102173700. Sections 2.1, 2.3 and 2.6." ;
+    gmeow:sourceLocation "https://raw.githubusercontent.com/BLAKE3-team/BLAKE3-specs/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf" .
+
+<https://doi.org/10.6028/NIST.FIPS.180-4> a gmeow:CreativeWork ;
+    rdfs:label "Secure Hash Standard (SHS), FIPS PUB 180-4"@en ;
+    skos:definition "The National Institute of Standards and Technology standard specifying the secure hash algorithms, including SHA-256 in section 6.2, in its August 2015 edition."@en ;
+    dcterms:issued "2015-08-04"^^xsd:date ;
+    gmeow:bibliographicCitation "National Institute of Standards and Technology. Secure Hash Standard (SHS). Federal Information Processing Standards Publication 180-4. August 2015. DOI 10.6028/NIST.FIPS.180-4. Section 6.2." ;
+    gmeow:sourceLocation "https://csrc.nist.gov/pubs/fips/180-4/upd1/final" , "https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-blake3-256> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "BLAKE3 sections 2.1, 2.3 and 2.6 ground the plain unkeyed default-length digest meaning."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://github.com/BLAKE3-team/BLAKE3-specs/blob/ac784c9f22a48327782f042ec2f4d8126b3b1744/blake3.pdf> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-blake3-256> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-blake3-256> a gmeow:Selector ;
+    rdfs:label "math-digest-blake3-256 authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:382" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-sha256> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "NIST FIPS 180-4 section 6.2 grounds the SHA-256 digest meaning."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://doi.org/10.6028/NIST.FIPS.180-4> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-sha256> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-sha256> a gmeow:Selector ;
+    rdfs:label "math-digest-sha256 authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:388" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-rdf-term-equality> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "RDF 1.2 Concepts section 3.4 grounds literal term equality with lexical form and datatype IRI both preserved."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-rdf-term-equality> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-rdf-term-equality> a gmeow:Selector ;
+    rdfs:label "math-digest-rdf-term-equality authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the mathematics datatype reference and its cited specification sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:391" .
+
+<https://www.rfc-editor.org/rfc/rfc1321> a gmeow:CreativeWork ;
+    rdfs:label "The MD5 Message-Digest Algorithm, RFC 1321"@en ;
+    skos:definition "Ronald L. Rivest's informational RFC defining MD5, published in April 1992. Section 3 defines the algorithm, section 3.5 defines output order, and appendix A.4 prints the output in hexadecimal; the memo does not specify an Internet standard."@en ;
+    dcterms:issued "1992-04"^^xsd:gYearMonth ;
+    gmeow:bibliographicCitation "Rivest, Ronald L. The MD5 Message-Digest Algorithm. RFC 1321. April 1992. Sections 3 and 3.5; appendix A.4." ;
+    gmeow:sourceLocation "https://www.rfc-editor.org/rfc/rfc1321" , "https://www.rfc-editor.org/rfc/rfc1321.txt" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/math-digest-md5> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/math/design/MATHEMATICS-REFERENCES.md"@en ;
+    skos:definition "RFC 1321 sections 3 and 3.5 and appendix A.4 ground MD5 algorithm identity, ordered output bytes and hexadecimal spelling, without a security guarantee."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/math/design/MATHEMATICS-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.rfc-editor.org/rfc/rfc1321> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/math-digest-md5> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/math-digest-md5> a gmeow:Selector ;
+    rdfs:label "math-digest-md5 authored reference selector"@en ;
+    skos:definition "The exact repository source locator of the MD5 datatype reference and its cited algorithm, output and reference-format sections."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/math/design/MATHEMATICS-REFERENCES.md:417" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/dcat-spdx-checksum-pair> a gmeow:CitationAct ;
+    rdfs:label "dsl/mappings/projections/dcat.ttl"@en ;
+    skos:definition "SPDX 2.3 RDF terms define checksumValue as lowercase xsd:hexBinary and algorithm as a named ChecksumAlgorithm; the BLAKE3, SHA-256 and MD5 individuals identify the three admitted algorithms."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/dsl/mappings/projections/dcat.ttl> ;
+    gmeow:citedEntity <http://spdx.org/rdf/terms#> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/dcat-spdx-checksum-pair> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/dcat-spdx-checksum-pair> a gmeow:Selector ;
+    rdfs:label "DCAT checksum algorithm and value source selector"@en ;
+    skos:definition "The canonical checksum projection citing SPDX checksumValue, algorithm and the named BLAKE3, SHA-256 and MD5 checksum algorithms."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "dsl/mappings/projections/dcat.ttl:70" .
+
+
+<https://www.w3.org/TR/sparql12-query/> a gmeow:CreativeWork ;
+    rdfs:label "SPARQL 1.2 Query Language"@en ;
+    skos:definition "The W3C SPARQL 1.2 query specification, including RDF triple term component functions."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:sourceLocation "https://www.w3.org/TR/sparql12-query/" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-rdf-identity> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "RDF term identity, literal equality, blank-node scope and recursive triple terms ground the bound component identity contract."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-rdf-identity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-rdf-identity> a gmeow:Selector ;
+    rdfs:label "logic component rdf-identity source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-sparql-identity> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "The sameTerm, DATATYPE and COALESCE function definitions ground exact component comparison and false-on-unavailable projection behavior."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/sparql11-query/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-identity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-identity> a gmeow:Selector ;
+    rdfs:label "logic component sparql-identity source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/logic-component-sparql-triple-components> a gmeow:CitationAct ;
+    rdfs:label "slices/grounding/logic/design/LOGIC-REFERENCES.md"@en ;
+    skos:definition "SPARQL 1.2 Query sections 17.4.6.2 through 17.4.6.4 define SUBJECT, PREDICATE and OBJECT, grounding quoted tuple component projection and errors for nontriple inputs without statement-reifier conflation."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/grounding/logic/design/LOGIC-REFERENCES.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/sparql12-query/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-triple-components> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/logic-component-sparql-triple-components> a gmeow:Selector ;
+    rdfs:label "logic component sparql-triple-components source selector"@en ;
+    skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .

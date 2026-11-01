@@ -15,11 +15,14 @@ crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]
+gmeow-errors = { path = "../errors" }
 gmeow-build-inputs = { path = "../build-inputs" }
+purrdf-lex.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 tempfile.workspace = true
 
 [dev-dependencies]
+purrdf-hash.workspace = true
 tempfile.workspace = true

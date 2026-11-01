@@ -18,6 +18,7 @@
 mod snapshot_test_support;
 
 pub mod abox;
+pub mod cbor;
 pub mod code;
 pub mod dag;
 pub mod diag;
@@ -53,6 +54,6 @@ pub use ledger::{
 };
 pub use model::{
     DiagnosticAttribution, Finding, FindingCategory, Location, REPORT_JSON_SCHEMA, RelatedLabel,
-    Report, Rule, Severity,
+    Report, Rule, Severity, SourceAnnotation,
 };
 pub use rdf::severity_from_rdf;

@@ -5,6 +5,11 @@
 //! authenticated repository owner acceptance is a separate producer-bound lane.
 
 use super::*;
+use purrdf::shapes::{
+    expression::NodeExpr,
+    shapes::{ConstraintAnnotation, ModelOwner},
+    term::{Literal as ShapeLiteral, NamedNode, Term as ShapeTerm},
+};
 
 fn list_text(members: Vec<String>, cell: impl FnMut(usize) -> String) -> String {
     let vocab = purrdf_core::ListVocab {
@@ -299,13 +304,90 @@ fn finance_evaluation_owner_import_retains_list_cells_members_and_override_check
 
 #[test]
 fn finance_evaluation_requires_every_selected_procedural_product() {
+    let complete = shapes();
+    require_shapes(&complete).expect("the complete independent owner fixture is admitted");
     for identity in PROCEDURAL_PRODUCTS {
-        let mut incomplete = shapes();
+        let mut incomplete = complete.clone();
         incomplete.node_shapes.retain(|shape| {
             !matches!(&shape.id,
             purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == *identity)
         });
         assert!(require_shapes(&incomplete).is_err(), "missing {identity}");
+    }
+
+    let selected = complete
+        .node_shapes
+        .iter()
+        .position(|shape| {
+            matches!(&shape.id,
+        purrdf::shapes::term::Term::NamedNode(iri) if iri.as_str() == PROCEDURAL_PRODUCTS[0])
+        })
+        .expect("the complete owner contains the first required procedural root");
+    let mut disconnected = complete.clone();
+    disconnected.node_shapes[selected].constraints.clear();
+    assert!(
+        require_shapes(&disconnected).is_err(),
+        "a retained definition cannot substitute for the selected root's missing reference"
+    );
+
+    #[derive(Debug)]
+    enum UnavailableProduct {
+        Body,
+        ShapeGuard,
+        SparqlGuard,
+    }
+    for unavailable in [
+        UnavailableProduct::Body,
+        UnavailableProduct::ShapeGuard,
+        UnavailableProduct::SparqlGuard,
+    ] {
+        let root = &complete.node_shapes[selected];
+        let mut definitions: Vec<_> = root
+            .owner
+            .as_ref()
+            .expect("the selected native root retains its own definition owner")
+            .definitions()
+            .cloned()
+            .collect();
+        let definition = definitions
+            .iter_mut()
+            .find(|definition| definition.id == root.id)
+            .expect("the owner retains the selected root's exact identity");
+        let guard = NodeExpr::Constant(ShapeTerm::Literal(ShapeLiteral::new_typed_literal(
+            "true",
+            NamedNode::from("http://www.w3.org/2001/XMLSchema#boolean"),
+        )));
+        match unavailable {
+            UnavailableProduct::Body => definition
+                .constraints
+                .retain(|constraint| !matches!(constraint, Constraint::Sparql { .. })),
+            UnavailableProduct::ShapeGuard => definition.deactivated_when.push(guard),
+            UnavailableProduct::SparqlGuard => {
+                let index = definition
+                    .constraints
+                    .iter()
+                    .position(|constraint| matches!(constraint, Constraint::Sparql { .. }))
+                    .expect("the original product contains its SPARQL body");
+                definition
+                    .constraint_annotations
+                    .push(ConstraintAnnotation {
+                        constraint: AnnotatedConstraint::Constraint(index),
+                        severity: None,
+                        messages: Vec::new(),
+                        deactivated_when: vec![guard],
+                    });
+            }
+        }
+        let owner = ModelOwner::from_definitions(definitions)
+            .expect("the independently modified bare definitions form a native owner");
+        let mut unavailable_product = complete.clone();
+        unavailable_product.node_shapes[selected] = owner
+            .root(&root.id)
+            .expect("the native owner exports the unchanged selected identity");
+        assert!(
+            require_shapes(&unavailable_product).is_err(),
+            "the selected root must retain an active SPARQL body in its own owner: {unavailable:?}"
+        );
     }
 }
 
@@ -468,34 +550,40 @@ fn finance_evaluation_identity_binds_owner_context_and_exact_input_values() {
     let original = run(&input(false), &owner(), "synthetic-owner-v1").unwrap();
     assert_eq!(
         original.quantity,
+        "urn:gmeow:math-evaluation:quantity:f6fa5a0bcf7a15ad031d453b2b3e8fa5badb7a21860cd619db5ce6e066366978"
+    );
+    assert_eq!(
+        original.quantity,
         run(&input(false), &owner(), "synthetic-owner-v1")
             .unwrap()
             .quantity
     );
-    assert_ne!(
-        original.quantity,
-        run(&input(false), &owner(), "synthetic-owner-v2")
-            .unwrap()
-            .quantity
+    let changed_owner = run(&input(false), &owner(), "synthetic-owner-v2").unwrap();
+    assert_ne!(original.quantity, changed_owner.quantity);
+    assert_eq!(
+        changed_owner.quantity,
+        "urn:gmeow:math-evaluation:quantity:7f4811e2f16666c0e03f9e87d9df4b2ca4dae8398269263da0ed02438cd33569"
     );
-    assert_ne!(
-        original.quantity,
-        run(
-            &input(false).replace("1000.00", "1000.000"),
-            &owner(),
-            "synthetic-owner-v1"
-        )
-        .unwrap()
-        .quantity
+    let changed_precision = run(
+        &input(false).replace("1000.00", "1000.000"),
+        &owner(),
+        "synthetic-owner-v1",
+    )
+    .unwrap();
+    assert_ne!(original.quantity, changed_precision.quantity);
+    assert_eq!(
+        changed_precision.quantity,
+        "urn:gmeow:math-evaluation:quantity:cddb8223a8c451dda86db9fe6dc0aac52b45ac5522022dd381bbc56acb0fff06"
     );
-    assert_ne!(
-        original.quantity,
-        run(
-            &input(false).replace("urn:alice", "urn:other-vantage"),
-            &owner(),
-            "synthetic-owner-v1"
-        )
-        .unwrap()
-        .quantity
+    let changed_vantage = run(
+        &input(false).replace("urn:alice", "urn:other-vantage"),
+        &owner(),
+        "synthetic-owner-v1",
+    )
+    .unwrap();
+    assert_ne!(original.quantity, changed_vantage.quantity);
+    assert_eq!(
+        changed_vantage.quantity,
+        "urn:gmeow:math-evaluation:quantity:753408bcffb1d8ac75c2f9edb49f3bcd742418bebbbdb41a03ac518fc8c099e6"
     );
 }

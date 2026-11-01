@@ -110,10 +110,15 @@ fn class_guarded_constraint_strips_the_type_atom_from_the_violation_where() {
             }),
         )),
     };
-    let c = ConstraintIr::new("https://ex/C1", integrity, ShaclSeverity::Violation, None)
-        .unwrap()
-        .with_formalizes("https://ex/C")
-        .unwrap();
+    let c = ConstraintIr::new(
+        "https://ex/C1",
+        integrity,
+        ShaclSeverity::Violation,
+        Vec::new(),
+    )
+    .unwrap()
+    .with_formalizes("https://ex/C")
+    .unwrap();
     let block = project_procedural_constraint(&c);
     assert!(
         block.contains("sh:targetClass <https://ex/C>"),
@@ -456,7 +461,12 @@ fn multiple_qualified_counts_preserve_each_fillers_obligation() {
                 qualified("R", Some(1), None),
             ],
         )
-        .with_message("each qualified restriction applies")
+        .with_messages(vec![purrdf::RdfLiteral {
+            lexical_form: "each qualified restriction applies".into(),
+            datatype: None,
+            language: None,
+            direction: None,
+        }])
         .unwrap();
         if inverse {
             property = property.inverted();
@@ -544,7 +554,12 @@ fn inverse_path_severity_message_and_label_emit_shacl() {
     .unwrap()
     .inverted()
     .with_severity(ShaclSeverity::Warning)
-    .with_message("each object has at most one subject via p")
+    .with_messages(vec![purrdf::RdfLiteral {
+        lexical_form: "each object has at most one subject via p".into(),
+        datatype: None,
+        language: None,
+        direction: None,
+    }])
     .unwrap();
     let s = shape("https://ex/S", "https://ex/C", vec![p])
         .with_label("inverse-functional shape")

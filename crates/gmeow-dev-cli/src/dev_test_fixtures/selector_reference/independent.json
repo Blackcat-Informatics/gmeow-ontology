@@ -1,0 +1,15 @@
+{
+  "build_fingerprint": "selected producer",
+  "closure_receipts": {
+    "ancestor": "retained ancestor é中😀\n\"\\ receipt"
+  },
+  "schema_version": 2,
+  "source_artifacts": {
+    "stage": {
+      "observation.json": "exact source selection"
+    }
+  },
+  "stages": {
+    "stage": "retained stage receipt"
+  }
+}

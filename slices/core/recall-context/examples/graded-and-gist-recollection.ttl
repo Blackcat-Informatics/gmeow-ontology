@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/recollection-requests/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Generic source requests, not executions or fabricated recalled outputs.
+ex:planner a gmeow:Agent .
+ex:gradedRequest a gmeow:InformationObject ;
+    gmeow:description "The source requests newest records verbatim, older records as summaries, and the oldest as a line with a handle, under its own recency policy."@en ;
+    gmeow:wasAttributedTo ex:planner .
+ex:gistRequest a gmeow:InformationObject ;
+    gmeow:description "The source requests only a one-line gist; no handle was required."@en ;
+    gmeow:wasAttributedTo ex:planner .
+ex:summaryRequest a gmeow:InformationObject ;
+    gmeow:description "The source separately requests a summary together with a resolvable handle."@en ;
+    gmeow:wasAttributedTo ex:planner .
+
+# recollectionForm configures an ActionSchema. No produced record receives the
+# fading strategy as if it were one actual delivered representation.
+# These facets declare what each requested operation requires. They assert
+# neither that a precondition obtains nor that an actor holds the capability.
+ex:gradedInputsReady a logic:Situation ;
+    rdfs:label "Selected records, source recency basis and grading policy are available"@en .
+ex:gistInputReady a logic:Situation ;
+    rdfs:label "The selected source record is available for a one-line gist"@en .
+ex:summaryInputReady a logic:Situation ;
+    rdfs:label "The selected source record and its resolvable handle are available"@en .
+ex:gradedRecallCapability a logic:EngineCapability ;
+    rdfs:label "Retrieve records and present them under the supplied recency policy"@en .
+ex:gistRecallCapability a logic:EngineCapability ;
+    rdfs:label "Retrieve a record and produce its one-line gist"@en .
+ex:summaryRecallCapability a logic:EngineCapability ;
+    rdfs:label "Retrieve a record and supply its summary and resolvable handle"@en .
+
+ex:gradedRecall a logic:ActionSchema ;
+    logic:precondition ex:gradedInputsReady ;
+    logic:capability ex:gradedRecallCapability ;
+    gmeow:recollectionForm gmeow:recollectionFading ;
+    gmeow:recallDepth gmeow:recallDepthOrdinary ;
+    gmeow:wasDerivedFrom ex:gradedRequest .
+ex:gistRecall a logic:ActionSchema ;
+    logic:precondition ex:gistInputReady ;
+    logic:capability ex:gistRecallCapability ;
+    gmeow:recollectionForm gmeow:recollectionFormOneLineGist ;
+    gmeow:recallDepth gmeow:recallDepthQuick ;
+    gmeow:wasDerivedFrom ex:gistRequest .
+ex:summaryRecall a logic:ActionSchema ;
+    logic:precondition ex:summaryInputReady ;
+    logic:capability ex:summaryRecallCapability ;
+    gmeow:recollectionForm gmeow:recollectionFormSummaryHandle ;
+    gmeow:recallDepth gmeow:recallDepthOrdinary ;
+    gmeow:wasDerivedFrom ex:summaryRequest .
+
+# The source configuration, actual numeric age bands, retained originals and
+# any later output evidence remain separate. This scene asserts no retrieval,
+# summarization, handle resolution or result completeness.

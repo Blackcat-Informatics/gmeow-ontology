@@ -5,11 +5,8 @@
 //! tables; consumers validate and hydrate them without RDF parsing or source lowering.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::io::Cursor;
 
-use gmeow_errors::{FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
-use serde::ser::{SerializeSeq, Serializer};
-use serde::{Deserialize, Serialize};
+use gmeow_errors::{DiagKind as _, FindingCategory, Grade, Severity, Standpoint, define_diag_kind};
 use sha2::{Digest as _, Sha256};
 
 use super::{
@@ -30,6 +27,9 @@ const MAGIC: &[u8; 8] = b"GMNCBK01";
 const HEADER_BYTES: usize = MAGIC.len() + 32;
 const PROFILE: &str = "gmn-native-dictionary-v1";
 type Binding = (String, String, Option<String>, Option<u32>, String);
+
+#[path = "native/wire.rs"]
+mod wire;
 
 define_diag_kind! {
     /// A prepared native codebook cannot be admitted with its exact source identity.
@@ -88,111 +88,26 @@ fn fail(detail: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+fn fail_with_source(
+    detail: impl Into<String>,
+    source: impl std::error::Error + Send + Sync + 'static,
+) -> gmeow_errors::Diag {
+    let kind = NativeCodebookInvalid {
+        detail: detail.into(),
+    };
+    let mut diag =
+        gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string()).with_source(source);
+    if let Some(class) = kind.failure_class() {
+        diag = diag.with_failure_class(class);
+    }
+    diag
+}
+
 fn hex_digest(value: &str) -> bool {
     value.len() == 64
         && value
             .bytes()
             .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Acceptance {
-    latest_major: u32,
-    accept_window: u32,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CodebookWire {
-    references: Vec<String>,
-    dictionary_version: String,
-    glyph_version: String,
-    graphemes: Vec<String>,
-    dictionary_entries: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DictionaryWire {
-    version: String,
-    term_to_alias: Vec<(String, String)>,
-    alias_to_term: Vec<(String, String)>,
-    glyph_version: String,
-    term_to_glyph: Vec<Binding>,
-    glyph_to_term: Vec<Binding>,
-    fallback_to_term: Vec<Binding>,
-    acceptance: Acceptance,
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Wire {
-    schema_version: u32,
-    profile: String,
-    source_path: String,
-    source_sha256: String,
-    source_blake3: String,
-    codebook_digest: String,
-    codebook: CodebookWire,
-    dictionary: DictionaryWire,
-}
-
-// Borrow native inventories during serialization. Only the final compact packet is
-// allocated; no second dictionary, registry or RDF representation is materialized.
-struct Pairs<'a>(&'a BTreeMap<String, String>);
-impl Serialize for Pairs<'_> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut sequence = serializer.serialize_seq(Some(self.0.len()))?;
-        for row in self.0 {
-            sequence.serialize_element(&row)?;
-        }
-        sequence.end()
-    }
-}
-
-struct Bindings<'a>(&'a BTreeMap<(String, String, GmnGlyphSignature), String>);
-impl Serialize for Bindings<'_> {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut sequence = serializer.serialize_seq(Some(self.0.len()))?;
-        for ((scope, key, signature), value) in self.0 {
-            sequence.serialize_element(&(scope, key, &signature.fixity, signature.arity, value))?;
-        }
-        sequence.end()
-    }
-}
-
-#[derive(Serialize)]
-struct CodebookRef<'a> {
-    references: &'a BTreeSet<String>,
-    dictionary_version: &'a str,
-    glyph_version: &'a str,
-    graphemes: &'a BTreeSet<String>,
-    dictionary_entries: &'a BTreeSet<String>,
-}
-
-#[derive(Serialize)]
-struct DictionaryRef<'a> {
-    version: &'a str,
-    term_to_alias: Pairs<'a>,
-    alias_to_term: Pairs<'a>,
-    glyph_version: &'a str,
-    term_to_glyph: Bindings<'a>,
-    glyph_to_term: Bindings<'a>,
-    fallback_to_term: Bindings<'a>,
-    acceptance: Acceptance,
-}
-
-#[derive(Serialize)]
-struct WireRef<'a> {
-    schema_version: u32,
-    profile: &'a str,
-    source_path: &'a str,
-    source_sha256: &'a str,
-    source_blake3: &'a str,
-    codebook_digest: String,
-    codebook: CodebookRef<'a>,
-    dictionary: DictionaryRef<'a>,
 }
 
 /// Encode the producer's shared native objects, retaining every reader/writer field.
@@ -212,41 +127,17 @@ pub fn encode(
         return Err(fail("native codebook requires exact source digests"));
     }
     validate_tables(dictionary, codebook)?;
-    let glyphs = &dictionary.glyphs;
-    packet(&WireRef {
-        schema_version: 1,
-        profile: PROFILE,
-        source_path: SOURCE_PATH,
+    let mut bytes = vec![0; HEADER_BYTES];
+    let codebook_digest = crate::gmn1_digest::codebook_digest(codebook, dictionary);
+    wire::write(
+        &mut bytes,
+        dictionary,
+        codebook,
         source_sha256,
         source_blake3,
-        codebook_digest: crate::gmn1_digest::codebook_digest(codebook, dictionary),
-        codebook: CodebookRef {
-            references: &codebook.references,
-            dictionary_version: &codebook.dictionary_version,
-            glyph_version: &codebook.glyph_version,
-            graphemes: &codebook.graphemes,
-            dictionary_entries: &codebook.dictionary_entries,
-        },
-        dictionary: DictionaryRef {
-            version: &dictionary.version,
-            term_to_alias: Pairs(&dictionary.term_to_alias),
-            alias_to_term: Pairs(&dictionary.alias_to_term),
-            glyph_version: &glyphs.version,
-            term_to_glyph: Bindings(&glyphs.term_to_glyph),
-            glyph_to_term: Bindings(&glyphs.glyph_to_term),
-            fallback_to_term: Bindings(&glyphs.fallback_to_term),
-            acceptance: Acceptance {
-                latest_major: dictionary.acceptance.latest_major,
-                accept_window: dictionary.acceptance.accept_window,
-            },
-        },
-    })
-}
-
-fn packet(value: &impl Serialize) -> gmeow_errors::Result<Vec<u8>> {
-    let mut bytes = vec![0; HEADER_BYTES];
-    ciborium::ser::into_writer(value, &mut bytes)
-        .map_err(|error| fail(format!("encode native codebook: {error}")))?;
+        &codebook_digest,
+    )
+    .map_err(|error| fail_with_source(format!("encode native codebook: {error}"), error))?;
     if bytes.len() > MAX_NATIVE_CODEBOOK_BYTES {
         return Err(fail("native codebook exceeds its 8-MiB bound"));
     }
@@ -275,12 +166,12 @@ pub fn decode(bytes: &[u8], expected_source_blake3: &str) -> gmeow_errors::Resul
     if Sha256::digest(&bytes[HEADER_BYTES..])[..] != bytes[MAGIC.len()..HEADER_BYTES] {
         return Err(fail("native codebook payload checksum mismatch"));
     }
-    let mut reader = Cursor::new(&bytes[HEADER_BYTES..]);
-    let wire: Wire = ciborium::de::from_reader_with_recursion_limit(&mut reader, 32)
-        .map_err(|error| fail(format!("decode native codebook: {error}")))?;
-    if reader.position() as usize != bytes.len() - HEADER_BYTES {
-        return Err(fail("native codebook contains trailing data"));
-    }
+    let value = purrdf_lex::cbor::decode(
+        &bytes[HEADER_BYTES..],
+        purrdf_lex::cbor::Limits { max_depth: 32 },
+    )
+    .map_err(|error| fail_with_source(format!("decode native codebook: {error}"), error))?;
+    let wire = wire::Wire::from_value(value)?;
     if wire.schema_version != 1
         || wire.profile != PROFILE
         || wire.source_path != SOURCE_PATH

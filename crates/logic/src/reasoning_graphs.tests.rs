@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 use super::*;
+use crate::physical::{DomainProfile, LogicalGraph};
 
 #[test]
 fn meta_record_exclusion_retains_declared_empty_worlds() {
@@ -102,6 +103,40 @@ fn boundary_is_unique_and_excludes_meta_graphs() {
     assert!(!is_object_level_named_graph(
         "https://blackcatinformatics.ca/gmeow/graph/grounding-seams"
     ));
+
+    let selected = object_level_domains().expect("the complete declared domain roles are admitted");
+    let authority = "gmeow.pipeline.object-level.v1";
+    let roles: Vec<_> = std::iter::once(LogicalGraph::Default)
+        .chain(
+            OBJECT_LEVEL_NAMED_GRAPHS
+                .into_iter()
+                .map(|graph| LogicalGraph::Named(purrdf::TermValue::iri(graph))),
+        )
+        .collect();
+    let bytes = object_level_selection_bytes(authority, &roles)
+        .expect("the actual encoder retains the complete ordered role envelope");
+    let mut reference = include_str!("reasoning_graphs/fixtures/domain-selection-v1.txt").lines();
+    let preimage = reference
+        .next()
+        .expect("the original reference contains its complete preimage")
+        .strip_prefix("OBJECT_LEVEL_DOMAIN_PREIMAGE=")
+        .expect("the original preimage is labeled");
+    let digest = reference
+        .next()
+        .expect("the original reference contains its actual production selection")
+        .strip_prefix("OBJECT_LEVEL_DOMAIN_SELECTION=")
+        .expect("the original production selection is labeled");
+    assert_eq!(reference.next(), None);
+    assert_eq!(bytes, preimage.as_bytes());
+    assert_eq!(selected.worlds().len(), roles.len());
+    for world in selected.worlds() {
+        assert_eq!(
+            purrdf_hash::hex::Digest32::new(*world.selection()).to_hex(),
+            digest
+        );
+        assert_eq!(world.authority(), authority);
+        assert_eq!(world.profile(), DomainProfile::NonemptyObjectDomainV1);
+    }
 }
 
 #[test]

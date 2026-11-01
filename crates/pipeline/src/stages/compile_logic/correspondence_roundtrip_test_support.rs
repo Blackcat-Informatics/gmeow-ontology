@@ -10,7 +10,9 @@ pub(in super::super) fn assert_roundtrip(product: &crate::node::StageProduct) {
     let bytes = product
         .artifact(CHANNEL)
         .expect("authenticated correspondence reconstruction observation");
-    let result: Result<(), gmeow_errors::RecordedDiag> =
-        serde_json::from_slice(bytes).expect("complete typed observation");
-    result.expect("native projection reconstructs the complete authored correspondence program");
+    let result: Outcome =
+        purrdf_lex::json::record::from_slice(bytes).expect("complete typed observation");
+    result
+        .0
+        .expect("native projection reconstructs the complete authored correspondence program");
 }

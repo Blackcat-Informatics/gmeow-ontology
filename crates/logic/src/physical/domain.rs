@@ -4,17 +4,33 @@
 //! Explicit native logical-world selection. Physical graph presence never selects
 //! a domain law. The caller owns the source/role admission that supplies this contract.
 
+mod execution_cbor;
+
 use purrdf::TermValue;
+use purrdf_lex::json::{Object, Value, record::ToJson};
 
 use super::chase::{ExistentialRule, WitnessPolicy};
 use super::store::metadata_identity;
 use crate::rule_ir::{EvalAtom, EvalTerm};
+
+mod json;
 
 /// Original native graph identity, before the executor's resource-term projection.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize)]
 pub enum LogicalGraph {
     Default,
     Named(#[serde(with = "crate::term_serde")] TermValue),
+}
+
+impl ToJson for LogicalGraph {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::Default => "Default".to_json(),
+            Self::Named(value) => Object::new()
+                .with("Named", crate::term_serde::to_json(value))
+                .into(),
+        }
+    }
 }
 
 impl LogicalGraph {
@@ -57,6 +73,14 @@ impl LogicalGraph {
 )]
 pub enum DomainProfile {
     NonemptyObjectDomainV1,
+}
+
+impl ToJson for DomainProfile {
+    fn to_json(&self) -> Value {
+        match self {
+            Self::NonemptyObjectDomainV1 => "NonemptyObjectDomainV1".to_json(),
+        }
+    }
 }
 
 /// A caller-admitted logical world and the exact role/source selection receipt.

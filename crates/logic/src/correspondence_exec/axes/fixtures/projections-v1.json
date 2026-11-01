@@ -1,0 +1,42 @@
+[
+  {
+    "raw chain a": {},
+    "raw chain z\u0000中": {
+      "computed-claimed": {
+        "status": "computed",
+        "value": [
+          "2.50",
+          "http://www.w3.org/2001/XMLSchema#decimal",
+          null,
+          null
+        ],
+        "claimed": true
+      },
+      "computed-unclaimed": {
+        "status": "computed",
+        "value": [
+          "-0.00",
+          "http://www.w3.org/2001/XMLSchema#decimal",
+          null,
+          null
+        ],
+        "claimed": false
+      },
+      "not-evaluated": {
+        "status": "not-evaluated"
+      },
+      "not-selected": {
+        "status": "not-selected"
+      }
+    }
+  },
+  {
+    "completed": 5,
+    "total": 9,
+    "saturated_preds": [
+      "raw predicate a\u0000中",
+      "raw predicate z"
+    ],
+    "consumed_steps": 18446744073709551615
+  }
+]

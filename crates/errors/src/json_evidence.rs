@@ -26,6 +26,21 @@ pub const METADATA_JSON_DEPTH: usize = 128;
 pub struct JsonEvidence(String);
 
 impl JsonEvidence {
+    /// Admit the canonical lexical evidence retained by binary transports.
+    ///
+    /// # Errors
+    /// Refuses malformed, over-depth or noncanonical JSON without normalizing it.
+    pub(crate) fn from_canonical_json(lexical: String) -> Result<Self, DecodeError> {
+        let value = json::read_slice(lexical.as_bytes(), Limits::with_depth(METADATA_JSON_DEPTH))?;
+        let admitted = Self::from_json(&value)?;
+        if admitted.0 != lexical {
+            return Err(DecodeError::custom(
+                "diagnostic metadata requires canonical JSON lexical evidence",
+            ));
+        }
+        Ok(admitted)
+    }
+
     /// Borrow the canonical lexical evidence without allocating or parsing.
     pub fn canonical_json(&self) -> &str {
         &self.0
@@ -118,15 +133,7 @@ impl<'de> Deserialize<'de> for JsonEvidence {
                 "JSON evidence requires native JSON admission",
             ));
         }
-        let lexical = String::deserialize(deserializer)?;
-        let value = json::read_slice(lexical.as_bytes(), Limits::with_depth(METADATA_JSON_DEPTH))
-            .map_err(serde::de::Error::custom)?;
-        let admitted = Self::from_json(&value).map_err(serde::de::Error::custom)?;
-        if admitted.0 != lexical {
-            return Err(serde::de::Error::custom(
-                "diagnostic metadata requires canonical JSON lexical evidence",
-            ));
-        }
-        Ok(admitted)
+        Self::from_canonical_json(String::deserialize(deserializer)?)
+            .map_err(serde::de::Error::custom)
     }
 }

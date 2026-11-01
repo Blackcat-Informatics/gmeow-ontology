@@ -36,7 +36,7 @@ fn integrity_constraint(formula: Formula) -> LogicProgram {
         "urn:KindLaw",
         formula,
         crate::ir::ShaclSeverity::Violation,
-        None,
+        Vec::new(),
     )
     .unwrap()
     .with_failure_class("urn:BadKind")

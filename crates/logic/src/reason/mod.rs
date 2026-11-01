@@ -16,6 +16,7 @@
 pub mod artifacts;
 pub(crate) mod builtin_gap;
 pub(crate) mod dataset;
+mod execution_cbor;
 mod session;
 pub(crate) use session::NativeReasoningSession;
 pub mod dl;
@@ -166,10 +167,11 @@ fn framed_native_component_source() -> String {
 /// alone cannot bind the delegated semantics. All inputs are target independent.
 ///
 /// PurRDF's execution `contract_hash` additionally commits the selected evaluation
-/// limits, whose defaults differ between native and WebAssembly. Those contracts
-/// belong to operation receipts; folding them here makes the same semantic kernel
-/// mint different domain witnesses and verdict identities on different targets.
-/// No execution limit is selected, changed or discarded by this semantic identity.
+/// limits, which gmeow states per target (`crate::purrdf_limits`): the stored-fact
+/// ceiling differs between native and WebAssembly. Those contracts belong to
+/// operation receipts; folding them here makes the same semantic kernel mint
+/// different domain witnesses and verdict identities on different targets. No
+/// execution limit is selected, changed or discarded by this semantic identity.
 fn purrdf_substrate_identity() -> String {
     let owl_rl = purrdf_hash::hex::Digest32::new(purrdf::datalog::cache::canonical_rule_hash(
         &purrdf::entail::calculus_program(purrdf::entail::Regime::OwlRl),

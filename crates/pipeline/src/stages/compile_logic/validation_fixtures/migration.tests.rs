@@ -51,7 +51,7 @@ fn migration_parity_compares_native_compiler_outputs_and_survives_record_roundtr
     )
     .unwrap();
     let restored: Agreement =
-        serde_json::from_slice(&serde_json::to_vec(&record).unwrap()).unwrap();
+        purrdf_lex::json::record::from_slice(&purrdf_lex::json::record::to_vec(&record)).unwrap();
     assert_eq!(restored.checked_focuses.len(), 3);
     assert_eq!(
         restored.expected_violations,

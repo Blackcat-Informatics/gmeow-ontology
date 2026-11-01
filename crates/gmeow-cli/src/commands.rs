@@ -2999,12 +2999,42 @@ fn render_term(term: &TermValue) -> String {
         .map_or_else(|| format!("{term:?}"), str::to_owned)
 }
 
+/// Render certified direct rows, or withhold them. purrdf proves directness only
+/// for a fully decided ontology: an undecided run could be missing an intermediate
+/// class or a more specific type. A withheld answer is `None`, never an empty list
+/// (which would claim there are no direct rows), and its refusal is recorded as an
+/// `owl-directness-unavailable` report diagnostic beside the retained certificate.
+fn certified_direct_rows(
+    rows: Result<&[(TermValue, TermValue)], purrdf::entail::DirectnessRefusal<'_>>,
+    diagnostics: &mut Vec<ReportDiagnostic>,
+) -> Option<Vec<TermPair>> {
+    match rows {
+        Ok(rows) => Some(
+            rows.iter()
+                .map(|(left, right)| TermPair {
+                    left: render_term(left),
+                    right: render_term(right),
+                })
+                .collect(),
+        ),
+        Err(refusal) => {
+            diagnostics.push(ReportDiagnostic::message(
+                "owl-directness-unavailable",
+                refusal.to_string(),
+            ));
+            None
+        }
+    }
+}
+
 /// `gmeow classify` — print the subsumption hierarchy over an ontology's named
 /// classes, natively over the purrdf DL reasoner
 /// ([`gmeow_logic::reasoner_services::DlReasoner::classify`]). Emits the transitively
 /// closed subsumptions (`subsumption C D`), the transitive reduction (`direct C D`),
 /// the equivalences (`equivalence C D`), the classes forced empty (`unsatisfiable C`),
-/// and the run's completeness + measured cost. An ontology with no model has no
+/// and the run's completeness + measured cost. The transitive reduction is emitted
+/// only for a fully decided run; otherwise it is withheld with an
+/// `owl-directness-unavailable` diagnostic. An ontology with no model has no
 /// meaningful hierarchy, so classification returns a typed negative result rather than
 /// emitting an empty answer.
 pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
@@ -3056,30 +3086,33 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
     };
     let hierarchy = certified.answer();
     let exact = certified.certificate().completeness() == purrdf::entail::DlCompleteness::Decided;
+    let mut common = dl_report_core(
+        ReasoningOperation::Classification,
+        FRAGMENT,
+        if exact { "classified" } else { "partial" },
+        if exact {
+            DecisionClass::Positive
+        } else {
+            DecisionClass::Undecided
+        },
+        if exact { "supported" } else { "undetermined" },
+        if exact {
+            EvidenceGrade::Certificate
+        } else {
+            EvidenceGrade::Attestation
+        },
+        if exact {
+            GateAdmission::Certificate
+        } else {
+            GateAdmission::Attestation
+        },
+        input.identity,
+        &certified,
+    );
+    let direct_subsumptions =
+        certified_direct_rows(certified.direct_subsumptions(), &mut common.diagnostics);
     NativeReasoningReport {
-        common: dl_report_core(
-            ReasoningOperation::Classification,
-            FRAGMENT,
-            if exact { "classified" } else { "partial" },
-            if exact {
-                DecisionClass::Positive
-            } else {
-                DecisionClass::Undecided
-            },
-            if exact { "supported" } else { "undetermined" },
-            if exact {
-                EvidenceGrade::Certificate
-            } else {
-                EvidenceGrade::Attestation
-            },
-            if exact {
-                GateAdmission::Certificate
-            } else {
-                GateAdmission::Attestation
-            },
-            input.identity,
-            &certified,
-        ),
+        common,
         result: ReasoningPayload::Classification {
             subsumptions: hierarchy
                 .subsumptions()
@@ -3089,14 +3122,7 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
                     right: render_term(right),
                 })
                 .collect(),
-            direct_subsumptions: hierarchy
-                .direct_subsumptions()
-                .iter()
-                .map(|(left, right)| TermPair {
-                    left: render_term(left),
-                    right: render_term(right),
-                })
-                .collect(),
+            direct_subsumptions,
             equivalences: hierarchy
                 .equivalences()
                 .iter()
@@ -3115,7 +3141,9 @@ pub fn classify(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, 
 /// natively over the purrdf DL reasoner
 /// ([`gmeow_logic::reasoner_services::DlReasoner::realize`]). Emits every established
 /// type (`type a C`), the most-specific ones (`direct-type a C`), and the run's
-/// completeness + measured cost. An ontology with no model has no meaningful
+/// completeness + measured cost. Most-specific types are emitted only for a fully
+/// decided run; otherwise they are withheld with an `owl-directness-unavailable`
+/// diagnostic. An ontology with no model has no meaningful
 /// realization, so it returns a typed negative result rather than emitting an empty
 /// answer.
 pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, gate: bool) -> i32 {
@@ -3167,30 +3195,32 @@ pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, g
     };
     let realization = certified.answer();
     let exact = certified.certificate().completeness() == purrdf::entail::DlCompleteness::Decided;
+    let mut common = dl_report_core(
+        ReasoningOperation::Realization,
+        FRAGMENT,
+        if exact { "realized" } else { "partial" },
+        if exact {
+            DecisionClass::Positive
+        } else {
+            DecisionClass::Undecided
+        },
+        if exact { "supported" } else { "undetermined" },
+        if exact {
+            EvidenceGrade::Certificate
+        } else {
+            EvidenceGrade::Attestation
+        },
+        if exact {
+            GateAdmission::Certificate
+        } else {
+            GateAdmission::Attestation
+        },
+        input.identity,
+        &certified,
+    );
+    let direct_types = certified_direct_rows(certified.direct_types(), &mut common.diagnostics);
     NativeReasoningReport {
-        common: dl_report_core(
-            ReasoningOperation::Realization,
-            FRAGMENT,
-            if exact { "realized" } else { "partial" },
-            if exact {
-                DecisionClass::Positive
-            } else {
-                DecisionClass::Undecided
-            },
-            if exact { "supported" } else { "undetermined" },
-            if exact {
-                EvidenceGrade::Certificate
-            } else {
-                EvidenceGrade::Attestation
-            },
-            if exact {
-                GateAdmission::Certificate
-            } else {
-                GateAdmission::Attestation
-            },
-            input.identity,
-            &certified,
-        ),
+        common,
         result: ReasoningPayload::Realization {
             types: realization
                 .types()
@@ -3200,14 +3230,7 @@ pub fn realize(reporter: &dyn Reporter, ontology: &Path, format: OutputFormat, g
                     right: render_term(right),
                 })
                 .collect(),
-            direct_types: realization
-                .direct_types()
-                .iter()
-                .map(|(left, right)| TermPair {
-                    left: render_term(left),
-                    right: render_term(right),
-                })
-                .collect(),
+            direct_types,
         },
     }
     .publish(format, gate)
@@ -3286,7 +3309,7 @@ struct DecidedFragmentRow {
     id: String,
     pattern: String,
     label: String,
-    bound: String,
+    bound: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// One retained withhold read off the shipped `logic:expressivenessBoundary`
@@ -3295,14 +3318,14 @@ struct DecidedFragmentRow {
 struct RetainedBoundaryRow {
     id: String,
     label: String,
-    reason: String,
+    reason: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// A source grammar contract read from the same shipped native manifest.
 struct SourceAdmissionRow {
     id: String,
     label: String,
-    requirement: String,
+    requirement: Vec<gmeow_errors::SourceAnnotation>,
 }
 
 /// The decidability surface extracted from a graph source.
@@ -3393,21 +3416,28 @@ fn extract_decidability_surface(
     let decided = registry
         .decided_ids
         .iter()
-        .map(|id| DecidedFragmentRow {
-            id: id.clone(),
-            label: labels.get(id).cloned().unwrap_or_default(),
-            pattern: registry
-                .deciding_patterns
-                .get(id)
-                .cloned()
-                .unwrap_or_default(),
-            bound: registry
-                .completeness_bounds
-                .get(id)
-                .cloned()
-                .unwrap_or_default(),
+        .map(|id| {
+            let missing = |property: &str| {
+                Diag::of_kind(crate::error::RdfPipelineFailed {
+                    detail: format!("decided fragment {id} has no {property}"),
+                })
+            };
+            Ok(DecidedFragmentRow {
+                id: id.clone(),
+                label: labels.get(id).cloned().unwrap_or_default(),
+                pattern: registry
+                    .deciding_patterns
+                    .get(id)
+                    .cloned()
+                    .ok_or_else(|| missing("deciding pattern"))?,
+                bound: registry
+                    .completeness_bounds
+                    .get(id)
+                    .cloned()
+                    .ok_or_else(|| missing("completeness bound"))?,
+            })
         })
-        .collect();
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
     let boundaries = registry
         .boundary_reasons
         .into_iter()
@@ -3433,13 +3463,13 @@ fn render_fragments_text(surface: &DecidabilitySurface) -> String {
         let _ = writeln!(out, "fragment {}", f.id);
         let _ = writeln!(out, "  label {}", f.label);
         let _ = writeln!(out, "  pattern {}", f.pattern);
-        let _ = writeln!(out, "  bound {}", f.bound);
+        render_fragment_literals(&mut out, "bound", &f.bound);
     }
     let _ = writeln!(out, "retained-boundaries {}", surface.boundaries.len());
     for b in &surface.boundaries {
         let _ = writeln!(out, "boundary {}", b.id);
         let _ = writeln!(out, "  label {}", b.label);
-        let _ = writeln!(out, "  reason {}", b.reason);
+        render_fragment_literals(&mut out, "reason", &b.reason);
     }
     let _ = writeln!(
         out,
@@ -3449,9 +3479,29 @@ fn render_fragments_text(surface: &DecidabilitySurface) -> String {
     for admission in &surface.source_admissions {
         let _ = writeln!(out, "source-admission {}", admission.id);
         let _ = writeln!(out, "  label {}", admission.label);
-        let _ = writeln!(out, "  requirement {}", admission.requirement);
+        render_fragment_literals(&mut out, "requirement", &admission.requirement);
     }
     out
+}
+
+/// Display every source literal and its RDF metadata without choosing a language.
+fn render_fragment_literals(
+    out: &mut String,
+    role: &str,
+    values: &[gmeow_errors::SourceAnnotation],
+) {
+    use std::fmt::Write as _;
+    for value in values {
+        let literal = value.object();
+        let _ = writeln!(out, "  {role} {}", literal.lexical_form);
+        let _ = writeln!(out, "    datatype {}", literal.datatype_iri());
+        if let Some(language) = &literal.language {
+            let _ = writeln!(out, "    language {language}");
+        }
+        if let Some(direction) = literal.direction {
+            let _ = writeln!(out, "    direction {}", direction.as_str());
+        }
+    }
 }
 
 /// Render the decidability surface as pretty, deterministic JSON.
@@ -3991,7 +4041,13 @@ fn session_open_paged(
     for window in quads.chunks(chunk) {
         let mut builder = RdfDatasetBuilder::new();
         for quad in window {
-            builder.push_owned_quad(quad);
+            builder.push_owned_quad(quad).map_err(|e| {
+                fail(
+                    reporter,
+                    "gmeow-cli.logic-session.paged-page-push",
+                    format!("cannot stage a quad into a paged world page: {e}"),
+                )
+            })?;
         }
         let page = builder.freeze().map_err(|e| {
             fail(

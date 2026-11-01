@@ -69,7 +69,7 @@ fn mk_axis(producer: &str) -> Axis {
         thresholds: vec![],
         weight: 1.0,
         scope: ContextScope::SliceLocal,
-        advice: String::new(),
+        advice: Vec::new(),
     }
 }
 

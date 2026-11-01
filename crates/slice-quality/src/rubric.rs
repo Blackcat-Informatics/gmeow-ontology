@@ -26,6 +26,47 @@ pub(crate) fn rubric_err(detail: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+/// Retain every admitted prose literal without selecting a language or lexical winner.
+fn prose_literals(
+    ds: &RdfDataset,
+    subject: purrdf::TermId,
+    predicate: Option<purrdf::TermId>,
+    owner: &str,
+    path: &str,
+) -> gmeow_errors::Result<Vec<purrdf::RdfLiteral>> {
+    let mut reasons = std::collections::BTreeMap::new();
+    if let Some(predicate) = predicate {
+        for quad in ds.quads_for_pattern(Some(subject), Some(predicate), None, GraphMatch::Any) {
+            let purrdf::RdfTerm::Literal(literal) = ds.to_owned_term(quad.o) else {
+                return Err(rubric_err(format!(
+                    "{owner} gmeow:{path} must be a prose literal"
+                )));
+            };
+            if !matches!(
+                literal.datatype_iri(),
+                "http://www.w3.org/2001/XMLSchema#string"
+                    | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                    | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+            ) {
+                return Err(rubric_err(format!(
+                    "{owner} gmeow:{path} has non-prose datatype <{}>",
+                    literal.datatype_iri()
+                )));
+            }
+            let key = (
+                literal.lexical_form.clone(),
+                literal.datatype_iri().to_owned(),
+                literal.language.clone(),
+                literal
+                    .direction
+                    .map(|direction| direction.as_str().to_owned()),
+            );
+            reasons.insert(key, literal);
+        }
+    }
+    Ok(reasons.into_values().collect())
+}
+
 /// Load the whole rubric from a dataset that contains the rubric module graph.
 ///
 /// # Errors
@@ -126,9 +167,13 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
                 }
             },
         };
-        let advice = advice_p
-            .and_then(|p| one_lit(ds, sid, p))
-            .unwrap_or_default();
+        let advice = prose_literals(
+            ds,
+            sid,
+            advice_p,
+            &format!("axis {iri}"),
+            "axisAdviceTemplate",
+        )?;
 
         let mut thresholds: Vec<Threshold> = Vec::new();
         if let Some(p) = threshold_p {
@@ -182,9 +227,13 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         let axis_iri = exempts_p
             .and_then(|p| one_iri(ds, sid, p))
             .unwrap_or_default();
-        let reason = reason_p
-            .and_then(|p| one_lit(ds, sid, p))
-            .unwrap_or_default();
+        let reasons = prose_literals(
+            ds,
+            sid,
+            reason_p,
+            &format!("exemption {iri}"),
+            "exemptionReason",
+        )?;
         let date = date_p.and_then(|p| one_lit(ds, sid, p)).unwrap_or_default();
         let producer = exproducer_p
             .and_then(|p| one_lit(ds, sid, p))
@@ -211,7 +260,7 @@ pub fn load_rubric(ds: &RdfDataset) -> gmeow_errors::Result<Rubric> {
         exemptions.push(Exemption {
             iri,
             axis_iri,
-            reason,
+            reasons,
             date,
             producer,
         });

@@ -217,7 +217,7 @@ fn structural_fail_witness_requires_the_ban_to_trip() {
         shape: None,
         scope: Scope::Module,
         fail_witness: Some("witness-trips.ttl".to_owned()),
-        rationale: None,
+        rationales: Vec::new(),
     };
     // A tripping witness: normal check passes (module clean) AND the teeth check passes.
     let (mut mo, mut mae) = (None, None);
@@ -384,7 +384,7 @@ fn sole_finding_contract_has_both_pinned_and_unpinned_teeth() {
         expected_source_shape: pin.map(ToOwned::to_owned),
         expected_sole_finding: sole,
         expected_failure_class: None,
-        rationale: None,
+        rationales: Vec::new(),
     };
     std::fs::write(
         directory.path().join("case.ttl"),

@@ -5,7 +5,157 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix math: <https://blackcatinformatics.ca/math/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+# Fictional identities and original source wording.
+
+gmeow:Character
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:Entity ;
+    logic:disjointWith gmeow:Person ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Fictional Character"@x-gmeow-english ;
+    skos:definition "A fictional entity whose identity is local to one narrative reference frame. It is an Entity, never a Person; a representation of a historical person remains a distinct counterpart."@x-gmeow-english ;
+    gmeow:useWhen "Use for a fictional participant whose identity must remain separate from an actual person and from variants in other continuities."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a historical Person as Character or merging fictional counterparts because their names match."@x-gmeow-english ;
+    gmeow:howToUse "Set one narrative hasReferenceFrame; retain source and viewpoint on each prose statement, and use counterpartOf only for an explicitly supported cross-frame correspondence."@x-gmeow-english ;
+    skos:example "ex:character a gmeow:Character ; gmeow:hasReferenceFrame ex:canon ."@x-gmeow-english .
+
+gmeow:arcPositionLabel
+    a logic:DatatypeProperty ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc position label as recorded"@x-gmeow-english ;
+    skos:definition "The source's original arc-phase wording, such as rising, on its actual character or source record. It is not a NarrativePosition name, a BeatFunction classification or a pursuit-progress value unless the source separately supplies that meaning."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an arc-phase field without constructing a complete ArcSample or inventing a phase taxonomy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this field as a position ordinal, a structural beat function, an affect state or proof of progress."@x-gmeow-english ;
+    gmeow:howToUse "Keep the literal's language and direction, supply the narrative hasReferenceFrame on its bearer, and attach original source and interpreting viewpoint to the exact statement."@x-gmeow-english ;
+    skos:example "A source record retains its original arc-phase wording: ex:record gmeow:arcPositionLabel \"rising\"@en ; gmeow:hasReferenceFrame ex:canon ."@x-gmeow-english .
+
+gmeow:motivation
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Character ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "character motivation wording"@x-gmeow-english ;
+    skos:definition "Source prose describing a fictional character's motivation. Several attributed readings may coexist; the wording does not create a Desire, an intention or the character's own endorsement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain what a source or interpreter says motivates a fictional character."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an actual intentional mode, commitment or self-assertion from descriptive prose."@x-gmeow-english ;
+    gmeow:howToUse "Preserve each original literal with its language and direction; retain the source and viewpoint on that statement rather than attaching documentary derivation to the character itself."@x-gmeow-english ;
+    skos:example "An interpreter records motivation wording without creating a Desire: ex:character gmeow:motivation \"She wants to repair the bridge.\"@en ."@x-gmeow-english .
+
+gmeow:relationshipText
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:Character ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "character relationship wording"@x-gmeow-english ;
+    skos:definition "Source prose describing a fictional character's relationship. It preserves the source's wording without resolving a partner, asserting a contact relation or claiming another character agrees."@x-gmeow-english ;
+    gmeow:useWhen "Use when a relationship is supplied in prose rather than as a resolved and attributed relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a related entity, a reciprocal relationship or another character's endorsement from the text."@x-gmeow-english ;
+    gmeow:howToUse "Retain coexisting source literals with language, direction and exact-statement provenance; keep the character's narrative frame explicit."@x-gmeow-english ;
+    skos:example "An interpreter retains relationship prose without resolving a partner: ex:character gmeow:relationshipText \"She describes the ferryman as a rival.\"@en ."@x-gmeow-english .
+
+# Character identity is frame-relative; no new global functional carrier.
+gmeow:Character logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:allValuesFrom gmeow:NarrativeReferenceFrame ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasReferenceFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:NarrativeReferenceFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Character ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasReferenceFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:CharacterArcFrameAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fictional character arc frame agreement"@x-gmeow-english ;
+    skos:definition "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect an arc that silently reuses one fictional identity across distinct narrative frames."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating frame agreement as proof that an interpretation is true or that counterparts are identical."@x-gmeow-english ;
+    gmeow:howToUse "Compare the supplied arcFrame with the Character's hasReferenceFrame; preserve competing readings as attributed records."@x-gmeow-english ;
+    skos:example "gmeow:CharacterArcFrameAgreementConstraint logic:formalizes gmeow:arcSubject ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcSubject ;
+    logic:message "An arc whose subject is a Character uses that character's narrative identity frame. A reading in a different continuity requires a distinct character counterpart." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "character" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:arcSubject ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "character" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Character ] ],
+                [ a logic:Formula ; logic:relation gmeow:arcFrame ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                    [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] .
+
+gmeow:CharacterRoleFrameAgreementConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "fictional character role frame agreement"@x-gmeow-english ;
+    skos:definition "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames."@x-gmeow-english ;
+    gmeow:useWhen "Use to detect a fictional character role explicitly scoped to an incompatible continuity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying this frame comparison to a work or segment merely because it is a narrative role scope."@x-gmeow-english ;
+    gmeow:howToUse "Check only an explicitly typed narrative frame scope against the Character's hasReferenceFrame."@x-gmeow-english ;
+    skos:example "gmeow:CharacterRoleFrameAgreementConstraint logic:formalizes gmeow:narrativeRoleBearer ."@x-gmeow-english ;
+    logic:formalizes gmeow:narrativeRoleBearer ;
+    logic:message "When a Character's role scope is explicitly a NarrativeReferenceFrame, it matches that character's identity frame. Work and segment scopes are not coerced into frames." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "character" ], [ logic:termIndex 2 ; logic:termVariable "frame" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:narrativeRoleBearer ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "character" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:Character ] ],
+                [ a logic:Formula ; logic:relation gmeow:narrativeRoleScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeReferenceFrame ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "character" ],
+                    [ logic:termIndex 1 ; logic:termVariable "frame" ] ] ] ] .
+
+gmeow:ArcPositionLabelFrameConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recorded arc label frame presence"@x-gmeow-english ;
+    skos:definition "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep source arc-phase wording anchored to its declared continuity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a frame from the label's spelling or fabricating an ArcSample to satisfy this obligation."@x-gmeow-english ;
+    gmeow:howToUse "Supply hasReferenceFrame with a NarrativeReferenceFrame on the existing character or source record, retaining the label statement's source and viewpoint."@x-gmeow-english ;
+    skos:example "gmeow:ArcPositionLabelFrameConstraint logic:formalizes gmeow:arcPositionLabel ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcPositionLabel ;
+    logic:message "A supplied arc-position label retains an explicit narrative reference frame on its actual bearer. The bearer need not be an ArcSample, Character or CreativeWork." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "label" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcPositionLabel ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                    [ logic:termIndex 1 ; logic:termVariable "label" ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "frame" ] ;
+                logic:exists [ a logic:Formula ; logic:and
+                    [ a logic:Formula ; logic:relation gmeow:hasReferenceFrame ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "frame" ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "frame" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:NarrativeReferenceFrame ] ] ] ] ] ] .
+
 
 gmeow:ArcSample
     a logic:SubKind ,
@@ -1581,3 +1731,824 @@ gmeow:arcTypeHomecoming
 
 # Natural-language values retain language and direction; plain text declares no language.
 gmeow:NarrativePosition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:positionLabel ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# Teller-attributed progress readings and common-thread assertions.
+
+gmeow:arcTypeBreakthrough
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "breakthrough arc"@x-gmeow-english ;
+    skos:definition "An attributed arc from an impasse where the subject could not continue unchanged to the next step that let it go on. It records sequence rather than cause and differs from recovery after loss; any shared thread is a separate teller assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use for a teller’s reading of an impasse followed by a next step."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming that the next event caused the impasse to end or substituting recovery after loss."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcType gmeow:arcTypeBreakthrough ."@x-gmeow-english .
+
+gmeow:ProgressState
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Progress State"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for a teller’s reading of whether a subject’s pursuit was blocked or moving at a narrative position, independently of affect and never as a diagnosis."@x-gmeow-english ;
+    gmeow:useWhen "Use for progress readings alongside a sample’s affect reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid closing the vocabulary or treating progress as an affect type or clinical finding."@x-gmeow-english ;
+    gmeow:howToUse "Mint additional individuals with labels and definitions for distinct readings; keep this value vocabulary open."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:localProgress a gmeow:ProgressState ."@x-gmeow-english .
+
+gmeow:progressStateImpasse
+    a gmeow:ProgressState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "impasse"@x-gmeow-english ;
+    skos:definition "The teller’s reading that the subject’s pursuit could not continue unchanged at this position. It does not assert incapacity or a diagnosis."@x-gmeow-english ;
+    gmeow:useWhen "Use for an attributed blocked-pursuit reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating an impasse reading with the subject’s own assertion."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:sampleProgress gmeow:progressStateImpasse ."@x-gmeow-english .
+
+gmeow:progressStateMoving
+    a gmeow:ProgressState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "moving"@x-gmeow-english ;
+    skos:definition "The teller’s reading that the subject’s pursuit was moving at this position. It does not assert completion or that a prior impasse was causally resolved."@x-gmeow-english ;
+    gmeow:useWhen "Use for an attributed reading of a next step or continuing pursuit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting motion as success, completion or proof of a causal remedy."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:sampleProgress gmeow:progressStateMoving ."@x-gmeow-english .
+
+gmeow:sampleProgress
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ArcSample ;
+    logic:range gmeow:ProgressState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "sample progress"@x-gmeow-english ;
+    skos:definition "Relates an arc sample to the teller’s progress reading at its position, independently of the functional affect reading carried by sampleState."@x-gmeow-english ;
+    gmeow:useWhen "Use to record impasse or movement beside affect on one sample."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing sampleState or inferring progress from an emotion value."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:sampleProgress gmeow:progressStateImpasse ."@x-gmeow-english .
+
+gmeow:ImpasseSignal
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Impasse Signal"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary identifying what kind of source signal a teller used to read an impasse, without making that reading the subject’s claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish the source signal behind an impasse reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a signal category as the evidence record itself or as diagnostic proof."@x-gmeow-english ;
+    gmeow:howToUse "Mint additional individuals with labels and definitions for distinct readings; keep this value vocabulary open."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:localSignal a gmeow:ImpasseSignal ."@x-gmeow-english .
+
+gmeow:impasseSignalOwnWords
+    a gmeow:ImpasseSignal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "own words signal"@x-gmeow-english ;
+    skos:definition "A signal category for a teller’s impasse reading based on the subject’s own words, interpreted through a reviewed rule. The category does not supply that rule or assert that the subject declared an impasse."@x-gmeow-english ;
+    gmeow:useWhen "Use when a reviewed reading rule matched the subject’s recorded wording."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a rule match without retaining the wording and rule provenance."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:impasseSignal gmeow:impasseSignalOwnWords ."@x-gmeow-english .
+
+gmeow:impasseSignalInquirySuspended
+    a gmeow:ImpasseSignal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "inquiry suspended signal"@x-gmeow-english ;
+    skos:definition "A signal category for a teller’s impasse reading based on the subject parking an inquiry whose recorded status is inquiryStatusSuspended. Suspension alone does not entail an impasse."@x-gmeow-english ;
+    gmeow:useWhen "Use when a suspended inquiry is the recorded source signal."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring blocked progress automatically from inquiry suspension."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:impasseSignal gmeow:impasseSignalInquirySuspended ."@x-gmeow-english .
+
+gmeow:impasseSignal
+    a logic:ObjectProperty ;
+    logic:domain gmeow:ArcSample ;
+    logic:range gmeow:ImpasseSignal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "impasse signal"@x-gmeow-english ;
+    skos:definition "Relates an arc sample to the kind of source signal used by its teller to read an impasse. The evidence and attribution remain separate existing provenance records."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain why a teller read an impasse at this sample."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a source record from a signal category or treating it as a subject assertion."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:sample gmeow:impasseSignal gmeow:impasseSignalOwnWords ."@x-gmeow-english .
+
+gmeow:ThreadKind
+    a logic:AbstractIndividualType, logic:Class ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Thread Kind"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for the common thread asserted by a teller to join an arc’s ends, including an explicit value for no shared thread."@x-gmeow-english ;
+    gmeow:useWhen "Use to describe how the teller joined an arc’s ends."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the initial kinds as exhaustive or missing thread data as explicit absence."@x-gmeow-english ;
+    gmeow:howToUse "Mint additional individuals with labels and definitions for distinct readings; keep this value vocabulary open."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:localThreadKind a gmeow:ThreadKind ."@x-gmeow-english .
+
+gmeow:arcThread
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CharacterArc ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc thread"@x-gmeow-english ;
+    skos:definition "The resource a teller asserts both ends of an arc link to and by which the teller joined them. It may be a working loop, question, intention or record, without implying cause or independently proving the links."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the exact common resource asserted by the teller."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid narrowing every thread to a document or treating a common link as a causal explanation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThread ex:question ."@x-gmeow-english .
+
+gmeow:arcThreadKind
+    a logic:ObjectProperty ;
+    logic:domain gmeow:CharacterArc ;
+    logic:range gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc thread kind"@x-gmeow-english ;
+    skos:definition "Relates an arc to its teller’s classification of the asserted common thread. Explicit threadKindNone records no shared thread; an absent classification remains unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use with arcThread for a known common resource or threadKindNone for explicit absence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring none from silence or supplying arcThread together with threadKindNone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindQuestion ."@x-gmeow-english .
+
+gmeow:threadKindLoop
+    a gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "working loop thread"@x-gmeow-english ;
+    skos:definition "A teller’s classification of a shared working loop as the resource joining an arc’s ends."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teller’s explicit thread classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this classification for evidence or treating it as a causal claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindLoop ."@x-gmeow-english .
+
+gmeow:threadKindQuestion
+    a gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "question thread"@x-gmeow-english ;
+    skos:definition "A teller’s classification of a shared question as the resource joining an arc’s ends."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teller’s explicit thread classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this classification for evidence or treating it as a causal claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindQuestion ."@x-gmeow-english .
+
+gmeow:threadKindIntention
+    a gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "intention thread"@x-gmeow-english ;
+    skos:definition "A teller’s classification of a shared intention as the resource joining an arc’s ends."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teller’s explicit thread classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this classification for evidence or treating it as a causal claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindIntention ."@x-gmeow-english .
+
+gmeow:threadKindRecord
+    a gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "record thread"@x-gmeow-english ;
+    skos:definition "A teller’s classification of a shared record, including the first record itself, as the resource joining an arc’s ends."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teller’s explicit thread classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting this classification for evidence or treating it as a causal claim."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindRecord ."@x-gmeow-english .
+
+gmeow:threadKindNone
+    a gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "no shared thread"@x-gmeow-english ;
+    skos:definition "The teller explicitly reports no shared resource joining the arc’s ends. This is distinct from missing or unknown thread data."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the teller’s explicit thread classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving this value from an absent arcThread or combining it with a supplied thread."@x-gmeow-english ;
+    gmeow:howToUse "Retain the teller’s vantage and original evidence; use this term without turning the reading into the subject’s assertion."@x-gmeow-english ;
+    skos:example "Record this attributed reading: ex:arc gmeow:arcThreadKind gmeow:threadKindNone ."@x-gmeow-english .
+
+gmeow:ArcSample logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:sampleProgress ; logic:allValuesFrom gmeow:ProgressState ],
+    [ a logic:Restriction ; logic:onProperty gmeow:impasseSignal ; logic:allValuesFrom gmeow:ImpasseSignal ] .
+
+gmeow:CharacterArc logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:arcThread ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcThreadKind ; logic:allValuesFrom gmeow:ThreadKind ] .
+
+gmeow:ArcNoSharedThreadConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "no shared thread exclusion"@x-gmeow-english ;
+    skos:definition "An arc explicitly classified threadKindNone has no supplied arcThread resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate explicit thread assertions without inferring missing values."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency check as proof of endpoint links or causation."@x-gmeow-english ;
+    gmeow:howToUse "Check the teller’s supplied arcThreadKind and arcThread relations together."@x-gmeow-english ;
+    skos:example "Retain a consistent thread account: gmeow:ArcNoSharedThreadConstraint logic:formalizes gmeow:arcThreadKind ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcThreadKind ;
+    logic:message "An arc explicitly classified threadKindNone has no supplied arcThread resource." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindNone ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thread" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:arcThread ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "thread" ] ] ] ] ] ] .
+
+gmeow:ArcKnownThreadResourceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "known thread resource requirement"@x-gmeow-english ;
+    skos:definition "An arc classified with a seeded loop, question, intention, record or conversation thread kind supplies an arcThread resource. The vocabulary remains open."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate explicit thread assertions without inferring missing values."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency check as proof of endpoint links or causation."@x-gmeow-english ;
+    gmeow:howToUse "Check the teller’s supplied arcThreadKind and arcThread relations together."@x-gmeow-english ;
+    skos:example "Retain a consistent thread account: gmeow:ArcKnownThreadResourceConstraint logic:formalizes gmeow:arcThreadKind ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcThreadKind ;
+    logic:message "An arc classified with a seeded loop, question, intention, record or conversation thread kind supplies an arcThread resource. The vocabulary remains open." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ],
+            [ logic:termIndex 1 ; logic:termVariable "kind" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation gmeow:arcThreadKind ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "kind" ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindLoop ] ],
+                    [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindQuestion ] ],
+                    [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindIntention ] ],
+                    [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindRecord ] ],
+                    [ a logic:Formula ; logic:relation gmeow:arcThreadKind ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:threadKindConversation ] ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thread" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:arcThread ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "thread" ] ] ] ] ] .
+
+# Qualified next-step readings, reviewed confidence settings and scoped counts.
+
+gmeow:arcTypeInsight
+    a logic:NamedIndividual, gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "insight breakthrough arc"@x-gmeow-english ;
+    skos:definition "A narrower breakthrough whose next-step record is a note attributed to the subject and explicitly tagged as insight, realization or discovery under the selected reading rule. It says the subject came to see something; it does not assert objective discovery or a causal remedy."@x-gmeow-english ;
+    gmeow:useWhen "Use when a retained next-step record supports this specific breakthrough reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid refining an open or ambiguous arc or inferring causation from the narrower type."@x-gmeow-english ;
+    gmeow:howToUse "Use arcNextRecord for the exact next-step source and retain attribution, selected thread and rule version."@x-gmeow-english ;
+    skos:scopeNote "The exact source tag identities and rule version are evidence. A record also tagged as decision, an untagged wording-only step or an open arc keeps arcTypeBreakthrough."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeInsight ."@x-gmeow-english .
+
+gmeow:arcTypeDecision
+    a logic:NamedIndividual, gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "decision breakthrough arc"@x-gmeow-english ;
+    skos:definition "A narrower breakthrough whose next-step record is a note attributed to the subject and explicitly tagged as a decision under the selected reading rule. It records a choice, not its implementation or success."@x-gmeow-english ;
+    gmeow:useWhen "Use when a retained next-step record supports this specific breakthrough reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid refining an open or ambiguous arc or inferring causation from the narrower type."@x-gmeow-english ;
+    gmeow:howToUse "Use arcNextRecord for the exact next-step source and retain attribution, selected thread and rule version."@x-gmeow-english ;
+    skos:scopeNote "A note tagged both as decision and as insight, realization or discovery retains arcTypeBreakthrough. Tag labels alone do not identify source tag meaning."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeDecision ."@x-gmeow-english .
+
+gmeow:arcTypeSettledQuestion
+    a logic:NamedIndividual, gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "settled-question breakthrough arc"@x-gmeow-english ;
+    skos:definition "A narrower breakthrough whose next step records the subject setting the exact inquiry selected as the arc's thread to inquiryStatusResolved. The inquiry is settled as a pursuit; no answer is thereby asserted true."@x-gmeow-english ;
+    gmeow:useWhen "Use when a retained next-step record supports this specific breakthrough reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid refining an open or ambiguous arc or inferring causation from the narrower type."@x-gmeow-english ;
+    gmeow:howToUse "Use arcNextRecord for the exact next-step source and retain attribution, selected thread and rule version."@x-gmeow-english ;
+    skos:scopeNote "Retain the subject's attributed status-setting record and exact question identity. Mere current resolved status or an unrelated resolved inquiry supplies neither the act nor the thread."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcType gmeow:arcTypeSettledQuestion ."@x-gmeow-english .
+
+gmeow:threadKindConversation
+    a logic:NamedIndividual, gmeow:ThreadKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "conversation continuation thread"@x-gmeow-english ;
+    skos:definition "A conversation-rooted thread containing every message of that conversation and every structurally continuing conversation. Message membership is partOfThread with the conversation bound. A conversation continues another when one of its messages inReplyTo or groundedIn a message of the other; take the directed transitive continuation closure."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected common resource is the conversation containing the impasse record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid word matching, unbound whole-corpus scans or requiring reply links between every pair of messages."@x-gmeow-english ;
+    gmeow:howToUse "Bind arcThread to the root conversation; enumerate its messages by partOfThread and follow only the declared cross-conversation message links."@x-gmeow-english ;
+    skos:scopeNote "The root is included by zero continuation steps. Continuing conversations can belong to several root threads; keep exact identities and deduplicate messages by identity, never by text. Cycles terminate by visited conversation identity."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcThreadKind gmeow:threadKindConversation ; gmeow:arcThread ex:conversation ."@x-gmeow-english .
+
+gmeow:ResolutionSignal
+    a logic:Class, logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:label "Resolution Signal"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary naming what source signal a teller used to read a next step from an impasse. It distinguishes an attributed act from a reading of the subject's own words, without asserting that the impasse was causally resolved."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the next-step evidence category explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the category as a source record or as a truth or success verdict."@x-gmeow-english ;
+    gmeow:howToUse "Use resolutionSignal on an ArcSample and retain the original record and teller provenance."@x-gmeow-english ;
+    skos:scopeNote "These values classify the teller's reading, not the subject's truth, and assert sequence without cause."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."@x-gmeow-english .
+
+gmeow:resolutionSignalAct
+    a logic:NamedIndividual, gmeow:ResolutionSignal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "act next-step signal"@x-gmeow-english ;
+    skos:definition "A teller's next-step reading grounded in a retained act of the subject on the selected thread: a decision or insight note, or the subject's setting of the exact inquiry to resolved."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the source evidence behind one next-step reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing retained source evidence with the signal category."@x-gmeow-english ;
+    gmeow:howToUse "Annotate the exact resolutionSignal statement with teller confidence and retain its reason and rule setting."@x-gmeow-english ;
+    skos:scopeNote "An act classification records the stronger kind of source evidence, not a universal numerical confidence, objective truth or successful execution."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."@x-gmeow-english .
+
+gmeow:resolutionSignalOwnWords
+    a logic:NamedIndividual, gmeow:ResolutionSignal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "own-words next-step signal"@x-gmeow-english ;
+    skos:definition "A teller's next-step reading from the subject's own recorded words matched through an exact reviewed cue release and reading rule. Word evidence does not manufacture an act or its type."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the source evidence behind one next-step reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing retained source evidence with the signal category."@x-gmeow-english ;
+    gmeow:howToUse "Annotate the exact resolutionSignal statement with teller confidence and retain its reason and rule setting."@x-gmeow-english ;
+    skos:scopeNote "Retain the matched source literal, source attribution, cue release and rule identity; a label or paraphrase alone is insufficient evidence of a match."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalOwnWords ."@x-gmeow-english .
+
+gmeow:resolutionSignal
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "resolution signal"@x-gmeow-english ;
+    skos:definition "Relates an ArcSample to the source-signal category used by its teller to read a next step. This relation adds evidence classification beside sampleProgress; it does not retype the sample as a Refinement."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the next-step signal on its actual observation sample."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using refinementOutcome on an ArcSample or asserting the teller's reading as the subject's own claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep vantage and original source evidence on the sample; annotate each signal statement independently."@x-gmeow-english ;
+    skos:scopeNote "These values classify the teller's reading, not the subject's truth, and assert sequence without cause."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:sample gmeow:resolutionSignal gmeow:resolutionSignalAct ."@x-gmeow-english ;
+    logic:domain gmeow:ArcSample ; logic:range gmeow:ResolutionSignal .
+
+gmeow:SignalConfidenceRule
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Signal Confidence Rule"@x-gmeow-english ;
+    skos:definition "An immutable reviewed version of the signal-confidence configuration used by a teller's reading rule. Its settings map signal categories to decimal degrees for that exact version; it is source configuration, not an executable logic:Rule or a calibrated probability model."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep a reviewed numeric reading policy as versioned source data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hard-coding values or mutating an existing version when values or reasons change."@x-gmeow-english ;
+    gmeow:howToUse "Retain versionOf, versionLabel, contentDigest, wasDerivedFrom, wasAttributedTo and signalConfidenceReview; link each setting with confidenceRule."@x-gmeow-english ;
+    skos:scopeNote "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:ruleV1 a gmeow:SignalConfidenceRule ; gmeow:versionOf ex:ruleLineage ."@x-gmeow-english .
+
+gmeow:SignalConfidenceSetting
+    a logic:Class, logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:label "Signal Confidence Setting"@x-gmeow-english ;
+    skos:definition "One signal category's decimal confidence setting in one exact reviewed rule version. The category may be a ResolutionSignal or an ImpasseSignal; the setting is not the signal singleton and does not assign a global value to every teller."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain one rule-specific value and its signal binding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid placing signalConfidence directly on resolutionSignalAct or another shared vocabulary individual."@x-gmeow-english ;
+    gmeow:howToUse "Supply confidenceRule, confidenceSignal and exactly one signalConfidence; cite the setting from the qualified signal statement."@x-gmeow-english ;
+    skos:scopeNote "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:actSetting a gmeow:SignalConfidenceSetting ; gmeow:confidenceRule ex:ruleV1 ."@x-gmeow-english .
+
+gmeow:confidenceRule
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "confidence rule version"@x-gmeow-english ;
+    skos:definition "The exactly-one reviewed SignalConfidenceRule version that owns this SignalConfidenceSetting. Several tellers may explicitly use the same version; differing policies retain distinct version identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a confidence setting to exact policy bytes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring policy identity from a version label or numeric equality."@x-gmeow-english ;
+    gmeow:howToUse "Name the immutable rule version and retain its review and source provenance."@x-gmeow-english ;
+    skos:scopeNote "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:actSetting gmeow:confidenceRule ex:ruleV1 ."@x-gmeow-english ;
+    logic:domain gmeow:SignalConfidenceSetting ; logic:range gmeow:SignalConfidenceRule .
+
+gmeow:confidenceSignal
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "confidence signal category"@x-gmeow-english ;
+    skos:definition "The exactly-one ResolutionSignal or ImpasseSignal category covered by a rule-version setting. It names the category, not the source record or an observed match."@x-gmeow-english ;
+    gmeow:useWhen "Use for both next-step and impasse signal confidence without changing either value vocabulary."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning a numeric value directly to this target resource."@x-gmeow-english ;
+    gmeow:howToUse "Bind the signal category on its own setting and keep source evidence on the actual sample or statement."@x-gmeow-english ;
+    skos:scopeNote "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:actSetting gmeow:confidenceSignal gmeow:resolutionSignalAct ."@x-gmeow-english ;
+    logic:domain gmeow:SignalConfidenceSetting ; logic:range [ a logic:Class ; logic:unionOf ( gmeow:ResolutionSignal gmeow:ImpasseSignal ) ] .
+
+gmeow:signalConfidence
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "signal confidence"@x-gmeow-english ;
+    skos:definition "The exactly-one decimal degree in the closed interval [0,1] supplied by a reviewed rule-version setting for its signal category. It is the teller's confidence in its own reading, not the subject's truth or a claim of calibrated frequency."@x-gmeow-english ;
+    gmeow:useWhen "Use as versioned source configuration for a qualified signal statement."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making this property a subtype of statement-level confidence or attaching values to shared signal individuals."@x-gmeow-english ;
+    gmeow:howToUse "Copy the selected setting value to existing confidence on the exact signal statement; retain accordingTo, source evidence, the setting and a language-bearing reason."@x-gmeow-english ;
+    skos:scopeNote "The decimal bound is checked by a canonical ValueRangeConstraint. Existing statement confidence remains the output carrier; no probability distribution, causal probability or statistical confidence interval is asserted."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:actSetting gmeow:signalConfidence \"0.9\"^^xsd:decimal ."@x-gmeow-english ;
+    logic:domain gmeow:SignalConfidenceSetting ; logic:range xsd:decimal ; rdfs:seeAlso gmeow:confidence, math:Interval .
+
+gmeow:signalConfidenceReview
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "signal confidence review"@x-gmeow-english ;
+    skos:definition "The completed review activity for the exact confidence-rule version. Reviewer association and sign-off instant are retained through wasAssociatedWith and atTime, without claiming universal endorsement or executing a review."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain accountable review of the actual numeric policy release."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reusing a review for changed settings or presenting a reviewer name string as its activity."@x-gmeow-english ;
+    gmeow:howToUse "Link the rule version to its review activity and retain reviewer and time evidence."@x-gmeow-english ;
+    skos:scopeNote "Each rule version is independent; numeric settings never live on shared signal vocabulary individuals."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:ruleV1 gmeow:signalConfidenceReview ex:review ."@x-gmeow-english ;
+    logic:domain gmeow:SignalConfidenceRule ; logic:range gmeow:Activity .
+
+gmeow:arcBetweenCount
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc intervening record count"@x-gmeow-english ;
+    skos:definition "The nonnegative count of distinct selected-thread source records strictly between arcFirstRecord and arcNextRecord under arcCountTimeProperty. Exclude both endpoint records and records tied with either endpoint; count each remaining record identity once."@x-gmeow-english ;
+    gmeow:useWhen "Use for a complete, reproducible intervening-record count on a closed arc."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid counting samples, messages twice through multiple continuation paths, or records from a different selected thread."@x-gmeow-english ;
+    gmeow:howToUse "Retain the finite arcCountRecord cohort, arcCountThread, exact endpoint records and selected time-property IRI. Omit an unavailable count rather than substitute zero."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcBetweenCount \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range xsd:nonNegativeInteger .
+
+gmeow:arcUndatedCount
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc undated record count"@x-gmeow-english ;
+    skos:definition "The nonnegative count of distinct arcCountRecord cohort members carrying no value of the selected arcCountTimeProperty. It covers the selected thread cohort, not only records already placed between the ends, and includes undated endpoint records if present."@x-gmeow-english ;
+    gmeow:useWhen "Use to report missing source times without dropping the records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid relabelling a supplied coarse or ambiguous temporal value as absent or converting a missing count to zero."@x-gmeow-english ;
+    gmeow:howToUse "Count distinct identities without the selected field; retain coarse, conflicting or incomparable supplied values separately and disclose when they prevent a complete between count."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcUndatedCount \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range xsd:nonNegativeInteger .
+
+gmeow:arcFirstRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc first record"@x-gmeow-english ;
+    skos:definition "The exact source record selected as this telling's impasse endpoint. It identifies evidence, not the first record in a corpus or an inferred cause."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish the impasse endpoint from other arc evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting an endpoint by list order, earliest available timestamp or shared words alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source identity, teller attribution and the sample derived from it; include it in a supplied count cohort."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcFirstRecord ex:impasseRecord ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range logic:Thing .
+
+gmeow:arcNextRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc next-step record"@x-gmeow-english ;
+    skos:definition "The exact source record selected as this telling's next step after its impasse. Its source evidence supports a narrower breakthrough type where justified; absence leaves an open arc rather than fabricating an end."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the particular next-step evidence used by a teller."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid selecting an unrelated later record or treating the next step as a causal remedy."@x-gmeow-english ;
+    gmeow:howToUse "Keep the record's actual subject attribution, tag or inquiry evidence and narrative position; include it in a supplied between-count cohort."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcNextRecord ex:decisionNote ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range logic:Thing .
+
+gmeow:arcCountRecord
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc count cohort record"@x-gmeow-english ;
+    skos:definition "One source record in the explicitly retained finite cohort used for this arc's counts. The cohort contains every selected-thread record in the retained source snapshot, including endpoints and undated records; membership is not inferred from arcEvidence alone."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the exact counted population recoverable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid prefiltering undated records by a time window or treating evidence citations as a complete cohort."@x-gmeow-english ;
+    gmeow:howToUse "Enumerate the identity-deduplicated thread cohort and retain snapshot provenance through wasDerivedFrom and contentDigest."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcCountRecord ex:impasseRecord, ex:interveningRecord, ex:decisionNote, ex:undatedRecord ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range logic:Thing .
+
+gmeow:arcCountThread
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc selected count thread"@x-gmeow-english ;
+    skos:definition "The exactly-one supplied arcThread resource selected for an arc's reported counts. Selection does not replace other coexisting thread assertions or claim a globally preferred thread."@x-gmeow-english ;
+    gmeow:useWhen "Use when a numeric report must name its particular common-thread scope."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pooling records from all arcThread values or inferring a thread from a missing value."@x-gmeow-english ;
+    gmeow:howToUse "Name one of this arc's actual arcThread resources and retain the corresponding selected source cohort."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcCountThread ex:conversation ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc ; logic:range logic:Thing .
+
+gmeow:arcCountTimeProperty
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "arc count time property"@x-gmeow-english ;
+    skos:definition "The exactly-one source time-property IRI selected for an arc's counts. It fixes which clock is read; record creation, event occurrence and statement assertion clocks are not interchangeable."@x-gmeow-english ;
+    gmeow:useWhen "Use to make the selected source clock explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring chronology from positionOrdinal, substituting updatedAt for recordedAt or manufacturing timezone and precision."@x-gmeow-english ;
+    gmeow:howToUse "Retain the property IRI and original values. A complete between count requires endpoint and dated-cohort comparisons to be decidable without inventing missing temporal precision."@x-gmeow-english ;
+    skos:scopeNote "Counts are supplied observations of a selected finite source cohort, not values computed by these ontology declarations. Missing or incomparable time data must remain visible; no zero or timestamp is invented."@x-gmeow-english ;
+    skos:example "Record the supplied reading: ex:arc gmeow:arcCountTimeProperty gmeow:recordedAt ."@x-gmeow-english ;
+    logic:domain gmeow:CharacterArc .
+
+gmeow:SignalConfidenceRangeConstraint
+    a logic:ValueRangeConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "signal confidence unit-range constraint"@x-gmeow-english ;
+    skos:definition "Every supplied signalConfidence value on a SignalConfidenceSetting lies in the closed decimal interval [0,1]. This validates the degree without asserting calibration or a probability distribution."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the actual configured degree."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid clipping an invalid value or treating a missing setting as zero."@x-gmeow-english ;
+    gmeow:howToUse "Retain the supplied decimal and fail the setting when it falls outside the closed bounds."@x-gmeow-english ;
+    skos:scopeNote "The bounds are ordinary numeric comparisons in the canonical validation vocabulary; statement confidence remains a separate provenance carrier."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:SignalConfidenceRangeConstraint logic:valuePath gmeow:signalConfidence ."@x-gmeow-english ;
+    logic:onClass gmeow:SignalConfidenceSetting ; logic:valuePath gmeow:signalConfidence ; logic:minInclusiveBound "0"^^xsd:decimal ; logic:maxInclusiveBound "1"^^xsd:decimal ; logic:formalizes gmeow:signalConfidence .
+
+gmeow:SignalConfidenceReviewEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "confidence review evidence constraint"@x-gmeow-english ;
+    skos:definition "Every supplied signalConfidenceReview retains a responsible reviewer association and a sign-off instant on the actual review activity."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:SignalConfidenceReviewEvidenceConstraint logic:formalizes gmeow:signalConfidenceReview ."@x-gmeow-english ;
+    logic:formalizes gmeow:signalConfidenceReview ; logic:message "Every supplied signalConfidenceReview retains a responsible reviewer association and a sign-off instant on the actual review activity." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:SignalConfidenceRule ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "review" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:signalConfidenceReview ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "review" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "reviewer" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "reviewer" ] ], [ a logic:Formula ; logic:relation gmeow:atTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "review" ], [ logic:termIndex 1 ; logic:termVariable "instant" ] ] ] ] ] ] ] ] .
+
+gmeow:SignalConfidenceRuleIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "confidence rule version identity"@x-gmeow-english ;
+    skos:definition "A SignalConfidenceRule version differs from every lineage resource named by its versionOf relation."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:SignalConfidenceRuleIdentityConstraint logic:formalizes gmeow:SignalConfidenceRule ."@x-gmeow-english ;
+    logic:formalizes gmeow:SignalConfidenceRule ; logic:message "A SignalConfidenceRule version differs from every lineage resource named by its versionOf relation." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:SignalConfidenceRule ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "lineage" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:versionOf ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termDistinct ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "lineage" ] ] ] ] ] ] .
+
+gmeow:SignalConfidenceSettingUniqueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "confidence setting per-version uniqueness"@x-gmeow-english ;
+    skos:definition "One confidence-rule version has at most one setting identity for a given signal category. Different versions may configure that same signal independently."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:SignalConfidenceSettingUniqueConstraint logic:formalizes gmeow:SignalConfidenceSetting ."@x-gmeow-english ;
+    logic:formalizes gmeow:SignalConfidenceSetting ; logic:message "One confidence-rule version has at most one setting identity for a given signal category. Different versions may configure that same signal independently." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:SignalConfidenceRule ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ], [ logic:termIndex 2 ; logic:termVariable "signal" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:confidenceRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation gmeow:confidenceRule ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation gmeow:confidenceSignal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "signal" ] ], [ a logic:Formula ; logic:relation gmeow:confidenceSignal ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ], [ logic:termIndex 1 ; logic:termVariable "signal" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] ] ] .
+
+gmeow:ArcCountScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "arc count scope constraint"@x-gmeow-english ;
+    skos:definition "An arc supplying either count retains a selected thread, a time-property IRI and its first record in the explicit count cohort."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:ArcCountScopeConstraint logic:formalizes gmeow:arcBetweenCount ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcBetweenCount ; logic:message "An arc supplying either count retains a selected thread, a time-property IRI and its first record in the explicit count cohort." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CharacterArc ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "count" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation gmeow:arcBetweenCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ], [ a logic:Formula ; logic:relation gmeow:arcUndatedCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thread" ], [ logic:termIndex 1 ; logic:termVariable "clock" ], [ logic:termIndex 2 ; logic:termVariable "first" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:arcCountThread ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "thread" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountTimeProperty ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "clock" ] ], [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "clock" ] ], [ a logic:Formula ; logic:relation gmeow:arcFirstRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "first" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "first" ] ] ] ] ] ] ] ] .
+
+gmeow:ArcCountThreadConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "arc count selected thread membership"@x-gmeow-english ;
+    skos:definition "A supplied arcCountThread is one of the same arc's actual arcThread resources, rather than a silently substituted thread."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:ArcCountThreadConstraint logic:formalizes gmeow:arcCountThread ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcCountThread ; logic:message "A supplied arcCountThread is one of the same arc's actual arcThread resources, rather than a silently substituted thread." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CharacterArc ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "thread" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcCountThread ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "thread" ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:arcThread ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "thread" ] ] ] ] ] ] .
+
+gmeow:ArcBetweenEndpointsConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "arc count endpoint bindings"@x-gmeow-english ;
+    skos:definition "A supplied between count retains both exact endpoint records in its cohort and comparable selected-clock endpoint values in nondecreasing order. Unknown time does not manufacture an interval."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:ArcBetweenEndpointsConstraint logic:formalizes gmeow:arcBetweenCount ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcBetweenCount ; logic:message "A supplied between count retains both exact endpoint records in its cohort and comparable selected-clock endpoint values in nondecreasing order. Unknown time does not manufacture an interval." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CharacterArc ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "count" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcBetweenCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "first" ], [ logic:termIndex 1 ; logic:termVariable "next" ], [ logic:termIndex 2 ; logic:termVariable "clock" ], [ logic:termIndex 3 ; logic:termVariable "start" ], [ logic:termIndex 4 ; logic:termVariable "end" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:arcFirstRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "first" ] ], [ a logic:Formula ; logic:relation gmeow:arcNextRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "next" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "first" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "next" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountTimeProperty ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "clock" ] ], [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ], [ logic:termIndex 1 ; logic:termVariable "clock" ], [ logic:termIndex 2 ; logic:termVariable "start" ] ], [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "next" ], [ logic:termIndex 1 ; logic:termVariable "clock" ], [ logic:termIndex 2 ; logic:termVariable "end" ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "start" ], [ logic:termIndex 1 ; logic:termVariable "end" ] ] ] ] ] ] ] ] .
+
+gmeow:ArcCountClockConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "arc count clock identity"@x-gmeow-english ;
+    skos:definition "A supplied arcCountTimeProperty is an IRI. On an arc reporting a between count, selected-clock values of each cohort record agree under value comparison. Distinct original literal terms denoting the same temporal value remain retained."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:ArcCountClockConstraint logic:formalizes gmeow:arcCountTimeProperty ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcCountTimeProperty ; logic:message "A supplied arcCountTimeProperty is an IRI. On an arc reporting a between count, selected-clock values of each cohort record agree under value comparison. Distinct original literal terms denoting the same temporal value remain retained." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CharacterArc ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "clock" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:arcCountTimeProperty ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "clock" ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "clock" ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "count" ], [ logic:termIndex 1 ; logic:termVariable "record" ], [ logic:termIndex 2 ; logic:termVariable "left" ], [ logic:termIndex 3 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:arcBetweenCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ], [ a logic:Formula ; logic:relation gmeow:arcCountRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ], [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "clock" ], [ logic:termIndex 2 ; logic:termVariable "left" ] ], [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "record" ], [ logic:termIndex 1 ; logic:termVariable "clock" ], [ logic:termIndex 2 ; logic:termVariable "right" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ], [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] ] ] ] ] ] .
+
+gmeow:ArcSpecificNextRecordConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "specific breakthrough next record"@x-gmeow-english ;
+    skos:definition "An arc classified as insight, decision or settled-question breakthrough retains its exact arcNextRecord. A narrower label alone is not next-step evidence."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the supplied reading's intrinsic source bindings."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a valid record as proof that the reading, confidence calibration or counted result is true."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized formula against the retained source and report unavailable or inconsistent bindings."@x-gmeow-english ;
+    skos:scopeNote "This consistency law does not execute a teller, matcher, review or aggregate count."@x-gmeow-english ;
+    skos:example "Record the supplied reading: gmeow:ArcSpecificNextRecordConstraint logic:formalizes gmeow:arcNextRecord ."@x-gmeow-english ;
+    logic:formalizes gmeow:arcNextRecord ; logic:message "An arc classified as insight, decision or settled-question breakthrough retains its exact arcNextRecord. A narrower label alone is not next-step evidence." ; logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:CharacterArc ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "type" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:arcType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "type" ] ], [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "type" ], [ logic:termIndex 1 ; logic:termIri gmeow:arcTypeInsight ], [ logic:termIndex 2 ; logic:termIri gmeow:arcTypeDecision ], [ logic:termIndex 3 ; logic:termIri gmeow:arcTypeSettledQuestion ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "next" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:arcNextRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "next" ] ] ] ] ] ] ] .
+
+# Intrinsic declaration contracts; reported results are not recomputed here.
+gmeow:ArcSample logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:resolutionSignal ; logic:allValuesFrom gmeow:ResolutionSignal ] .
+gmeow:SignalConfidenceSetting logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:confidenceRule ; logic:allValuesFrom gmeow:SignalConfidenceRule ],
+    [ a logic:Restriction ; logic:onProperty gmeow:confidenceSignal ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:ResolutionSignal gmeow:ImpasseSignal ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:signalConfidence ; logic:allValuesFrom xsd:decimal ] .
+gmeow:SignalConfidenceRule logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:signalConfidenceReview ; logic:allValuesFrom gmeow:Activity ] .
+gmeow:CharacterArc logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:arcFirstRecord ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcNextRecord ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcCountRecord ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcCountThread ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcCountTimeProperty ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcBetweenCount ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcUndatedCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceSetting ; logic:closureKey "https://blackcatinformatics.ca/gmeow/confidenceRule" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceSetting ; logic:closureKey "https://blackcatinformatics.ca/gmeow/confidenceSignal" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceSetting ; logic:closureKey "https://blackcatinformatics.ca/gmeow/signalConfidence" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:SignalConfidenceRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/signalConfidenceReview" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:SignalConfidenceSetting logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:confidenceRule ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:confidenceSignal ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:CharacterArc logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:arcFirstRecord ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcNextRecord ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcCountThread ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcCountTimeProperty ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:SignalConfidenceSetting logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:signalConfidence ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:decimal ] .
+gmeow:CharacterArc logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:arcBetweenCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:arcUndatedCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+
+# Story building and intention-directed witnessing.
+
+gmeow:acceptedAsStory
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "accepted as story"@x-gmeow-english ;
+    skos:definition "Relates a proposed story candidate to the story a person accepted it as. The acceptance is that person's attributed claim, not the storyteller's authority or a preferred story shared by every reader."@x-gmeow-english ;
+    gmeow:useWhen "Use when a person explicitly accepts a candidate as a story."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring acceptance from a generated candidate, focus wording or a completed gathering activity."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact candidate and story identities and an explicit rdf:reifies statement attributed to the accepting Person; independent acceptances coexist."@x-gmeow-english ;
+    skos:scopeNote "The attribution laws inspect completed statement-metadata lowering. They neither authenticate the acceptor nor turn quotation into an asserted fact."@x-gmeow-english ;
+    skos:example "ex:candidate gmeow:acceptedAsStory ex:story ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:InformationObject .
+
+gmeow:storyFocus
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story focus"@x-gmeow-english ;
+    skos:definition "A person's original name or phrase for what a story is to gather around. It can initiate gathering without a proposed candidate and does not itself assert acceptance or a completed story."@x-gmeow-english ;
+    gmeow:useWhen "Use when a person supplies the focus that starts story gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid normalizing the wording into a preferred title, inventing a candidate or treating focus as completion."@x-gmeow-english ;
+    gmeow:howToUse "Keep every supplied literal with its language and direction, leaving unstated language as a plain string; retain the person's attribution separately."@x-gmeow-english ;
+    skos:scopeNote "Several attributed focuses and wordings may coexist. Neither a candidate nor an acceptance link is required by this property."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyFocus \"The crossing\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:storyGathered
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story gathered"@x-gmeow-english ;
+    skos:definition "Relates a story to the activity reported to have completed its gathering, recorded after the selected members have been written. The members themselves remain explicit parts of the curated collection."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported completion of story gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving completion from absent records or treating every record offered to a refiner as a selected story member."@x-gmeow-english ;
+    gmeow:howToUse "Write the selected member resources through hasPart, retain the actual source scope and activity provenance, and write this completion claim last with the activity's Closed boundary."@x-gmeow-english ;
+    skos:scopeNote "The law checks the supplied completed-activity boundary. It cannot certify transaction order, enumerate unknown members or prove global completeness; no minimum member count is imposed."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyGathered ex:gathering ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:Activity .
+
+gmeow:storyStructured
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "story structured"@x-gmeow-english ;
+    skos:definition "Relates a gathered story to the activity reported to have completed its structuring, recorded after its supplied events, narrative seams and citations have been written."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an explicitly reported completion of structuring after gathering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a structure from a marker alone or asserting that completion authenticates the narrative's events."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual segments, frame-bound positions, narration links and citations; name the story's gathered stage and write the structuring completion claim last with its Closed activity boundary."@x-gmeow-english ;
+    skos:scopeNote "The prerequisite law checks the same story's gathered marker and the structuring activity's boundary. It does not certify write order, generate missing structure or impose a universal beat pattern."@x-gmeow-english ;
+    skos:example "ex:story gmeow:storyStructured ex:structuring ."@x-gmeow-english ;
+    logic:domain gmeow:InformationObject ; logic:range gmeow:Activity .
+
+gmeow:recollectionCue
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recollection cue"@x-gmeow-english ;
+    skos:definition "A source word or short phrase by which a later remembrance may recall an event of a story, including the event's short name. It retains a possible recall handle rather than a successful retrieval or a preferred event name."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the supplied short wording that may recall a story event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid turning a cue into a unique identifier, a preferred name or evidence that recall succeeded."@x-gmeow-english ;
+    gmeow:howToUse "Keep all original cue literals on the event with their supplied language and direction; retain attribution on each statement when it matters."@x-gmeow-english ;
+    skos:scopeNote "Several cues, names and standpoints coexist. This property does not execute the refinement-cue matcher or assert that any cue matched."@x-gmeow-english ;
+    skos:example "ex:event gmeow:recollectionCue \"Bridge crossing\"@en ."@x-gmeow-english ;
+    logic:domain gmeow:Event ; logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+gmeow:StoryAcceptanceAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story acceptance attribution constraint"@x-gmeow-english ;
+    skos:definition "Every asserted acceptedAsStory link retains an exact matching statement reifier attributed to an accepting Person."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied acceptedAsStory evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Completed statement-metadata lowering supplies the statement components; this checks attribution binding, not authenticity or a preferred acceptance."@x-gmeow-english ;
+    skos:example "gmeow:StoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedAsStory ;
+    logic:message "Every asserted acceptedAsStory link retains an exact matching statement reifier attributed to an accepting Person."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:acceptedAsStory ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termIri gmeow:acceptedAsStory ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "target" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "statement" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Person ] ] ] ] ] ] .
+
+gmeow:QuotedStoryAcceptanceAttributionConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Quoted story acceptance attribution constraint"@x-gmeow-english ;
+    skos:definition "An explicit statement reifier describing acceptedAsStory retains its candidate and story components and an attribution to the accepting Person, even when the quoted acceptance is not asserted."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied acceptedAsStory evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "The guard reads the lowered acceptance predicate on that reifier; quotation alone never asserts the described acceptance."@x-gmeow-english ;
+    skos:example "gmeow:QuotedStoryAcceptanceAttributionConstraint logic:formalizes gmeow:acceptedAsStory ."@x-gmeow-english ;
+    logic:formalizes gmeow:acceptedAsStory ;
+    logic:message "An explicit statement reifier describing acceptedAsStory retains its candidate and story components and an attribution to the accepting Person, even when the quoted acceptance is not asserted."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:reifiedStatementPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:acceptedAsStory ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "candidate" ], [ logic:termIndex 1 ; logic:termVariable "story" ], [ logic:termIndex 2 ; logic:termVariable "actor" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:reifiedStatementSubject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "candidate" ] ], [ a logic:Formula ; logic:relation logic:reifiedStatementObject ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "story" ] ], [ a logic:Formula ; logic:relation gmeow:wasAttributedTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "actor" ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "actor" ], [ logic:termIndex 1 ; logic:termIri gmeow:Person ] ] ] ] ] ] .
+
+gmeow:StoryGatheringBoundaryConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story gathering boundary constraint"@x-gmeow-english ;
+    skos:definition "A storyGathered marker names an activity with an explicitly supplied Closed occurrent boundary."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied storyGathered evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "A missing marker does not imply failure or completion. This law checks the stated activity boundary, not member enumeration or transaction order."@x-gmeow-english ;
+    skos:example "gmeow:StoryGatheringBoundaryConstraint logic:formalizes gmeow:storyGathered ."@x-gmeow-english ;
+    logic:formalizes gmeow:storyGathered ;
+    logic:message "A storyGathered marker names an activity with an explicitly supplied Closed occurrent boundary."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:storyGathered ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:occurrentBoundary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ], [ logic:termIndex 1 ; logic:termIri logic:Closed ] ] ] ] .
+
+gmeow:StoryStructuringPrerequisiteConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Story structuring prerequisite constraint"@x-gmeow-english ;
+    skos:definition "A storyStructured marker retains the same story's gathered stage and a Closed boundary on the structuring activity."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the explicitly supplied storyStructured evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating source integrity as proof of successful execution or an authenticated writer."@x-gmeow-english ;
+    gmeow:howToUse "Validate the actual source identities and evidence in the selected interpretation; preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "The existing gathering law checks its own activity boundary. These source prerequisites do not certify chronological or transaction order and do not invent missing narrative structure."@x-gmeow-english ;
+    skos:example "gmeow:StoryStructuringPrerequisiteConstraint logic:formalizes gmeow:storyStructured ."@x-gmeow-english ;
+    logic:formalizes gmeow:storyStructured ;
+    logic:message "A storyStructured marker retains the same story's gathered stage and a Closed boundary on the structuring activity."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:storyStructured ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "activity" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "gathering" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:storyGathered ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "gathering" ] ], [ a logic:Formula ; logic:relation logic:occurrentBoundary ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ], [ logic:termIndex 1 ; logic:termIri logic:Closed ] ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptedAsStory" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyFocus" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyGathered" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/storyStructured" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/recollectionCue" ; logic:closureValue logic:ClosedWorldClosure ] .

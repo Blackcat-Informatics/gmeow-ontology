@@ -8,9 +8,20 @@ use super::*;
 fn existential() -> ReasonArtifacts {
     reason_artifacts(
         br#"
-<urn:R> <http://www.w3.org/2002/07/owl#onProperty> <urn:p> <urn:w> .
-<urn:R> <http://www.w3.org/2002/07/owl#someValuesFrom> <urn:D> <urn:w> .
 <urn:x> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:R> <urn:w> .
+<urn:rule> <https://blackcatinformatics.ca/logic/instanceOf> <https://blackcatinformatics.ca/gmeow/logic/existential#ExistentialRule> <urn:w> .
+<urn:rule> <https://blackcatinformatics.ca/gmeow/logic/existential#body> <urn:body> <urn:w> .
+<urn:body> <https://blackcatinformatics.ca/gmeow/logic/existential#s> "?x" <urn:w> .
+<urn:body> <https://blackcatinformatics.ca/gmeow/logic/existential#p> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:w> .
+<urn:body> <https://blackcatinformatics.ca/gmeow/logic/existential#o> <urn:R> <urn:w> .
+<urn:rule> <https://blackcatinformatics.ca/gmeow/logic/existential#head> <urn:property> <urn:w> .
+<urn:property> <https://blackcatinformatics.ca/gmeow/logic/existential#s> "?x" <urn:w> .
+<urn:property> <https://blackcatinformatics.ca/gmeow/logic/existential#p> <urn:p> <urn:w> .
+<urn:property> <https://blackcatinformatics.ca/gmeow/logic/existential#o> "?new" <urn:w> .
+<urn:rule> <https://blackcatinformatics.ca/gmeow/logic/existential#head> <urn:filler> <urn:w> .
+<urn:filler> <https://blackcatinformatics.ca/gmeow/logic/existential#s> "?new" <urn:w> .
+<urn:filler> <https://blackcatinformatics.ca/gmeow/logic/existential#p> <https://blackcatinformatics.ca/logic/instanceOf> <urn:w> .
+<urn:filler> <https://blackcatinformatics.ca/gmeow/logic/existential#o> <urn:D> <urn:w> .
 "#,
     )
     .unwrap()
@@ -62,6 +73,16 @@ fn subject_only_witness_projects_its_actual_type_head_without_an_incoming_edge()
 
 #[test]
 fn witness_diagnostics_preserve_the_complete_native_scope_head_and_premise_receipt() {
+    let mut historical_receipts = 0;
+    for row in include_str!("fixtures/scoped-witness-v2.jsonl").lines() {
+        let value = purrdf_lex::json::read(row).unwrap();
+        let [wire, witness_id] = gmeow_errors::json::read_string_row::<2>(&value).unwrap();
+        let historical = gmeow_logic::reason::WitnessDerivation::from_wire(&wire).unwrap();
+        assert_eq!(historical.witness, witness_id);
+        assert_eq!(historical.to_wire().unwrap(), wire);
+        historical_receipts += 1;
+    }
+    assert_eq!(historical_receipts, 2);
     let result = existential();
     let diagnostics = result
         .dataset
@@ -78,7 +99,7 @@ fn witness_diagnostics_preserve_the_complete_native_scope_head_and_premise_recei
             let RdfTerm::Literal(literal) = row.object else {
                 return None;
             };
-            if !literal.lexical_form.starts_with("gmeow-witness-v1:") {
+            if !literal.lexical_form.starts_with("gmeow-witness-v2:") {
                 return None;
             }
             Some(gmeow_logic::reason::WitnessDerivation::from_wire(&literal.lexical_form).unwrap())
@@ -146,11 +167,7 @@ fn witness_diagnostics_preserve_the_complete_native_scope_head_and_premise_recei
                     row.subject == RdfTerm::iri(&head.r_head)
                         && row.predicate
                             == "https://blackcatinformatics.ca/logic/derivationIdentifier"
-                        && row.object
-                            == RdfTerm::Literal(RdfLiteral::typed(
-                                &head.derivation_id,
-                                "http://www.w3.org/2001/XMLSchema#string",
-                            ))
+                        && row.object == RdfTerm::Literal(RdfLiteral::simple(&head.derivation_id))
                 }),
                 "each witness head publishes its exact native derivation under logic:derivationIdentifier"
             );

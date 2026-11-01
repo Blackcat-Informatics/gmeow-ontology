@@ -4,7 +4,7 @@
 # Model-serving — artifact, deployment, execution, and session as distinct identities
 
 > **Slice:** `https://blackcatinformatics.ca/gmeow/slices/model-serving` · **tier: extension**
-> A thin, standalone LLM-operations vocabulary. Depends only on core (extension → core, DAG-legal).
+> A thin, standalone LLM-operations vocabulary. Depends on core and canonical mathematics, without extension-to-extension dependencies.
 
 The tempting collapse is to map deployment, runtime execution, and a single call all onto one
 `gmeow:AwarenessTenure`, differing only by granularity. That erases distinct identity criteria: a
@@ -83,3 +83,66 @@ a competency query naming them would BE that dependency, whichever lane it runs 
 therefore lives in the profile that selects both extensions and mints nothing:
 `slices/profile/agent-runtime/queries/competency/tool-usage.rq` over its `examples/tool-usage.ttl`,
 alongside the end-to-end query that is there for the same reason.
+
+## Mathematical artifact profiles and evaluation
+
+The serving topology remains independent of mathematical disclosure. A tokenizer
+can remain a `ModelArtifact`; selecting `LearnedModelArtifact` declares a distinct
+`math:LearnedModel`, and selecting `TensorModelArtifact` additionally declares its
+forward `math:TensorComputationGraph` and `math:WeightTensor` parameters. The
+artifact is an information object, the learned model is a mathematical object,
+and neither is a deployment, runtime execution or invocation (Principles 4 and 5).
+
+Use `artifactLearnedModel`, `artifactComputationGraph` and `artifactWeightTensor`
+for those roles. Every graph's `math:architectureOf` identifies the declared
+learned model. A weight's `math:inParameterSpace` points to a `math:ParameterSpace`
+whose `math:parameterSpaceOf` names that model or graph. Extra incompatible owners
+are rejected. Computation nodes are `math:ApplicationExpression` nodes using the
+existing operator and indexed argument-slot AST. Tensor shape and element format
+reuse `math:TensorShape`, `math:TensorAxis` and `math:TensorElementType`; unknown
+shape remains absent, and is not asserted as a rank-zero tensor.
+
+Imported classes carry their owners' complete contracts. ParameterSpace inherits
+AlgebraicStructure through VectorSpace and Module, requiring `math:underlyingSet`,
+`math:structureOperation` and `math:satisfiesAxiom`. A declared
+`artifactTrainingProblem` names an OptimizationProblem with a LossFunction
+`math:objectiveFunction`; the loss inherits Function's typed Set domain and
+codomain. This optional declaration records a training specification, not a
+training run, and is not required for every learned artifact. The worked example
+records a real commutativity law for its parameter addition, without claiming a
+complete vector-space proof.
+
+Quantitative evaluations are held `ModelMetricObservation` nodes. Each names its
+`vantage`, `observedFeature` artifact, `observationMethod` protocol,
+`evaluatedMetric`, and Quantity `observationResult`. The open `ModelMetric`
+individual declares exactly one typed `metricDimension`; every result must carry
+that same dimension and exactly one finite numeric `math:quantityValue`.
+Dimensionless accuracy and time-valued latency use different metric declarations.
+The concrete latency witness carries QUDT seconds through `gmeow:unit` and a
+complete scalar temporal ReferenceFrame. The generic metric profile imposes no
+universal frame requirement on abstract dimensionless metrics. Unit-bearing
+values use the existing foundation frame discipline and the existing places
+frame profile; unit functionality remains with core observations and native DL
+consistency. Two object-valued units do not alone establish a contradiction under
+open-world identity: functionality may identify them unless distinctness is known.
+Rational-only carriers, vector, interval, unbounded and categorical results remain
+ordinary Observations under their appropriate contracts; do not force them into
+this finite numeric-literal subtype or manufacture approximations. This selected
+scalar metric profile does not make every artifact numeric or
+reinterpret categorical assessments, tensor extents or parameter counts as
+physical quantities. An observation method is a protocol value, not an evaluator
+implementation, invocation or result. Multiple observers and multiple results
+coexist without selecting a preferred observation (Principle 9).
+
+See [the complete mathematical example](examples/mathematical-model.ttl). All
+integrity rules are authored in canonical logic and projected into validation;
+the vocabulary neither runs a model nor computes a benchmark (Principles 12 and
+17). Tensor and metric magnitudes follow their canonical mathematical owners;
+these profiles introduce no competing scalar-property path.
+
+These profiles check declared artifact, graph and parameter ownership and
+reported metric dimensions and finite magnitudes. They neither compute a
+benchmark nor certify tensor payloads, numerical operator compatibility or
+arbitrary tensor-shape consistency. Shape-rank, axis-count and extent validation
+remain the math owner's separate contract; the displayed tensor shape is an
+ordinary declaration, not an executed conformance result.

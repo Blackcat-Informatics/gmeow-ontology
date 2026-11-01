@@ -4,7 +4,9 @@
 //! Native named-record transport for findings and complete diagnostics reports.
 //! Positional struct arrays are not admitted.
 
-use super::{Finding, RelatedLabel, Report, Rule};
+use super::{
+    Finding, RelatedLabel, Report, Rule, SourceAnnotation, SourceAnnotationWire, SourceLiteralWire,
+};
 use purrdf_lex::json::{
     Object, Value,
     record::{DecodeError, FromJson, Record, ToJson, Within as _},
@@ -139,6 +141,55 @@ impl FromJson for Report {
     }
 }
 
+impl ToJson for SourceLiteralWire {
+    fn to_json(&self) -> Value {
+        let mut object = Object::new();
+        object.insert("lexical_form", self.lexical_form.to_json());
+        object.insert("datatype", self.datatype.to_json());
+        object.insert("language", self.language.to_json());
+        object.insert("direction", self.direction.to_json());
+        Value::Object(object)
+    }
+}
+
+impl FromJson for SourceLiteralWire {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let mut record = Record::new(value, "source literal")?;
+        Ok(Self {
+            lexical_form: record.required("lexical_form")?,
+            datatype: record.required("datatype")?,
+            language: record.required("language")?,
+            direction: record.required("direction")?,
+        })
+    }
+}
+
+impl ToJson for SourceAnnotation {
+    fn to_json(&self) -> Value {
+        let object = SourceLiteralWire::from(self.object.clone());
+        let mut record = Object::new();
+        record.insert("subject", self.subject.as_str().to_json());
+        record.insert("predicate", self.predicate.as_str().to_json());
+        record.insert("object", object.to_json());
+        Value::Object(record)
+    }
+}
+
+impl FromJson for SourceAnnotation {
+    fn from_json(value: &Value) -> Result<Self, DecodeError> {
+        let (subject, predicate, object) = crate::json::read_statement_fields::<
+            String,
+            SourceLiteralWire,
+        >(value, "source annotation")?;
+        Self::try_from(SourceAnnotationWire {
+            subject,
+            predicate,
+            object,
+        })
+        .map_err(DecodeError::custom)
+    }
+}
+
 impl ToJson for RelatedLabel {
     fn to_json(&self) -> Value {
         let mut object = Object::new();
@@ -164,6 +215,9 @@ impl ToJson for Finding {
         object.insert("severity", self.severity.to_json());
         object.insert("code", self.code.to_json());
         object.insert("message", self.message.to_json());
+        if !self.source_annotations.is_empty() {
+            object.insert("source_annotations", self.source_annotations.to_json());
+        }
         if self.source_graph.is_some() {
             object.insert(
                 "source_graph",
@@ -256,6 +310,7 @@ impl FromJson for Finding {
             severity: record.required("severity")?,
             code: record.required("code")?,
             message: record.required("message")?,
+            source_annotations: record.defaulted("source_annotations")?,
             source_graph: record.optional_with("source_graph", |item| {
                 let iri = String::from_json(item)?;
                 purrdf_core::BaseIri::parse(&iri).map_err(DecodeError::custom)

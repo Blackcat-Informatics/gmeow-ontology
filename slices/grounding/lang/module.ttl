@@ -12787,3 +12787,16 @@ lang:literalValueSchemaBridge
     gmeow:avoidWhen "Avoid selecting this bridge for optional source values, IRI objects or numeric conversions."@x-gmeow-english ;
     gmeow:howToUse "Resolve the named reifier through the owned catalog and reject any matched nonliteral before executing the projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:linearRegex
+    a rdfs:Datatype ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
+    gmeow:groundingConceptDomain gmeow:groundingDomainLinguistic ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "linear regex version one"@x-gmeow-english ;
+    skos:definition "The version-one Rust regex string-pattern datatype: regex 1.13.1 syntax through regex-syntax 0.8.11, Unicode 16.0.0 properties and simple case folding, default string-regex flags unless explicitly changed inline, and leftmost-first non-overlapping matches over the original Unicode text. A pattern admitting any zero-width match on any input is malformed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a textual pattern's exact declared dialect independently of a cue application."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating this datatype with SPARQL REGEX, SHACL pattern syntax or a guarantee that enumeration of all matches is linear."@x-gmeow-english ;
+    gmeow:howToUse "Retain the typed lexical form and explicit inline flags. A conforming matcher must validate syntax, reject every possible zero-width match and preserve original text positions; a check against only the empty input is insufficient."@x-gmeow-english ;
+    skos:scopeNote "Each individual search has the Rust O(m*n) worst-case bound, linear in text length n for a fixed pattern of size m. Leftmost-first enumeration can cost O(m*n*n). Declaring this datatype does not add a parser or matcher: ontology validation checks the declared datatype, not lexical membership, zero-width freedom, complexity or execution. A selected operation lacking those capabilities must fail explicitly."@x-gmeow-english ;
+    skos:example "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."@x-gmeow-english .

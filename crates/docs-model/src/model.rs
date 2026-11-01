@@ -426,11 +426,30 @@ pub enum DocsError {
         /// The second document's `slice-iri :: source-path` identity.
         second: String,
     },
+    /// An authored rationale path carries a nonliteral value, which the
+    /// documentation would otherwise silently lose. Carries the subject and predicate.
+    NonliteralRationale {
+        /// The rationale subject IRI.
+        subject: String,
+        /// The rationale predicate IRI.
+        predicate: String,
+    },
+    /// A manifest creator statement is missing or cannot retain its complete
+    /// source literal identity.
+    ManifestCreator {
+        /// The slice whose manifest cannot be documented.
+        slice_iri: String,
+        /// The failed admission requirement.
+        detail: String,
+    },
 }
 
 impl std::fmt::Display for DocsError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            DocsError::ManifestCreator { slice_iri, detail } => {
+                write!(f, "manifest creator in slice {slice_iri}: {detail}")
+            }
             DocsError::TranslationCatalog(error) => write!(f, "translation catalog: {error}"),
             DocsError::FixtureUnavailable(msg) => {
                 write!(f, "documentation corpus fixture unavailable: {msg}")
@@ -472,6 +491,9 @@ impl std::fmt::Display for DocsError {
                 f,
                 "two documents map to the same generated page path `{page}`: {first} and {second}"
             ),
+            DocsError::NonliteralRationale { subject, predicate } => {
+                write!(f, "<{subject}> <{predicate}> requires a literal rationale")
+            }
         }
     }
 }
@@ -689,8 +711,9 @@ pub struct DocSlice {
     pub tier: Option<SliceTier>,
     /// `dcterms:identifier` (e.g. DOI).
     pub identifier: Option<String>,
-    /// `dcterms:creator` values.
-    pub creators: Vec<String>,
+    /// Every original `dcterms:creator` statement, preserving its complete
+    /// source literal, without language preference or lexical deduplication.
+    pub creators: Vec<gmeow_errors::SourceAnnotation>,
     /// `gmeow:sliceConsumer` values.
     pub consumers: Vec<String>,
     /// `gmeow:sliceProfile` values — named profiles this slice declares
@@ -814,7 +837,7 @@ impl DocSlice {
             slice_iri,
             label,
             title,
-            creators,
+            creators: _,
             identifier,
             tier,
             consumers,
@@ -848,8 +871,7 @@ impl DocSlice {
             .as_deref()
             .is_some_and(detect_realized_state_complete);
 
-        let mut creators = creators.clone();
-        creators.sort();
+        let creators = manifest_creators(record)?;
         let mut consumers = consumers.clone();
         consumers.sort();
         // `extract_manifest_view` already sorts + dedups both vectors before
@@ -881,6 +903,64 @@ impl DocSlice {
             documents,
         })
     }
+}
+
+/// Select creator statements from the catalog's already-parsed native manifest,
+/// rather than its lexical display view. The canonical range admits string,
+/// language-string and directional-language-string proper names.
+fn manifest_creators(
+    record: &SliceRecord,
+) -> Result<Vec<gmeow_errors::SourceAnnotation>, DocsError> {
+    const CREATOR: &str = "http://purl.org/dc/terms/creator";
+    let slice_iri = &record.manifest.slice_iri;
+    let refused = |detail: String| DocsError::ManifestCreator {
+        slice_iri: slice_iri.clone(),
+        detail,
+    };
+    let subject =
+        purrdf_core::BaseIri::parse(slice_iri).map_err(|error| refused(error.to_string()))?;
+    let predicate =
+        purrdf_core::BaseIri::parse(CREATOR).map_err(|error| refused(error.to_string()))?;
+    let mut creators = Vec::new();
+    for quad in record.manifest_graph.owned_quads().filter(|quad| {
+        quad.subject == purrdf::RdfTerm::Iri(slice_iri.clone()) && quad.predicate == CREATOR
+    }) {
+        let purrdf::RdfTerm::Literal(literal) = quad.object else {
+            return Err(refused(
+                "dcterms:creator must be a prose literal".to_owned(),
+            ));
+        };
+        if !matches!(
+            literal.datatype_iri(),
+            "http://www.w3.org/2001/XMLSchema#string"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        ) {
+            return Err(refused(
+                "dcterms:creator must be a prose literal".to_owned(),
+            ));
+        }
+        creators.push(
+            gmeow_errors::SourceAnnotation::new(subject.clone(), predicate.clone(), literal)
+                .map_err(refused)?,
+        );
+    }
+    if creators.is_empty() {
+        return Err(refused("requires at least one dcterms:creator".to_owned()));
+    }
+    let key = |annotation: &gmeow_errors::SourceAnnotation| {
+        let literal = annotation.object();
+        (
+            literal.lexical_form.clone(),
+            literal.datatype_iri().to_owned(),
+            literal.language.clone(),
+            literal.direction.map(|direction| direction.as_str()),
+            literal.datatype.clone(),
+        )
+    };
+    creators.sort_by_key(key);
+    creators.dedup();
+    Ok(creators)
 }
 
 /// The maturity status of a vocabulary term. Serializes as a lowercase
@@ -1204,8 +1284,9 @@ pub struct DocFixture {
     /// `None` for a well-formed fixture or an unbound counter-example.
     pub violation_code: Option<String>,
     /// `gmeow:conformanceRationale` — the human-readable "why" the fixture
-    /// conforms or violates. `None` when unbound.
-    pub rationale: Option<String>,
+    /// conforms or violates, retaining every complete literal. Empty when unbound.
+    #[serde(with = "literal_values")]
+    pub rationales: Vec<purrdf::RdfLiteral>,
     /// The constraint-catalog rule slug [`violation_code`](Self::violation_code)
     /// resolves to, when a genuine [`ConstraintRule::code`] match exists in
     /// [`DocsModel::constraint_rules`]. `None` when the fixture is unbound,
@@ -2106,7 +2187,9 @@ impl DocsModel {
     /// v19: terms with validated ownership are documented from their owning
     /// slice, rather than also publishing foreign type redeclarations as owners.
     /// v20: competency rationales retain all complete native RDF literal records.
-    pub const VERSION: &'static str = "20";
+    /// v21: fixture rationales retain every native literal and its source language/direction.
+    /// v22: slice creators retain their original complete source statements.
+    pub const VERSION: &'static str = "22";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report. `central_mapping_sets` carries the cross-slice SSSOM
@@ -2388,7 +2471,7 @@ impl DocsModel {
                 let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
                     panic!("example-conformance.ttl for slice {owner} failed to parse: {e}")
                 });
-                bindings.extend(extract_fixture_bindings(&store));
+                bindings.extend(extract_fixture_bindings(&store)?);
             }
             for artifact in &record.artifacts {
                 let kind = match artifact.role {
@@ -3722,7 +3805,7 @@ fn shape_messages(store: &Store, start: &Node) -> Vec<String> {
 /// `gmeow:cqQueryFile` reference needs the repo root to resolve (this function
 /// only sees one slice's parsed store), so that half is completed afterwards by
 /// `apply_competency_query_text` in [`DocsModel::discover`].
-fn extract_competency(store: &Store, owner_slice: &str) -> Result<Vec<DocCompetency>, SliceError> {
+fn extract_competency(store: &Store, owner_slice: &str) -> Result<Vec<DocCompetency>, DocsError> {
     let mut out = Vec::new();
     for cq in subjects_of_type(store, GMEOW_COMPETENCY_QUESTION) {
         let rationales = store.rdf_literals(&cq, GMEOW_CQ_RATIONALE)?;
@@ -4251,23 +4334,23 @@ fn render_worked_instance_turtle(
     out
 }
 
-/// One `gmeow:ExampleConformance` binding read from a slice's
-/// `tests/example-conformance.ttl`: the expected outcome / violation code /
-/// rationale it asserts for the fixture path its `gmeow:exampleFile` pins.
+type RationaleKey = (String, String, Option<String>, Option<String>);
+
+/// Conformance bindings for one fixture path, retaining every rationale term.
 struct FixtureBinding {
     /// `gmeow:expectedOutcome`'s local name (`"conforms"` | `"violates"`).
     expected_outcome: Option<String>,
     /// `gmeow:expectedViolationCode`.
     violation_code: Option<String>,
     /// `gmeow:conformanceRationale`.
-    rationale: Option<String>,
+    rationales: BTreeMap<RationaleKey, purrdf::RdfLiteral>,
 }
 
 /// Extract the per-fixture-path conformance bindings from a slice's
 /// `tests/example-conformance.ttl` store, keyed by the slice-relative
 /// `gmeow:exampleFile` path each `gmeow:ExampleConformance` cell pins.
-fn extract_fixture_bindings(store: &Store) -> BTreeMap<String, FixtureBinding> {
-    let mut out = BTreeMap::new();
+fn extract_fixture_bindings(store: &Store) -> Result<BTreeMap<String, FixtureBinding>, DocsError> {
+    let mut out: BTreeMap<String, FixtureBinding> = BTreeMap::new();
     for cell in subjects_of_type(store, GMEOW_EXAMPLE_CONFORMANCE) {
         let Some(file) = first_literal(store, &cell, GMEOW_EXAMPLE_FILE) else {
             continue;
@@ -4279,17 +4362,29 @@ fn extract_fixture_bindings(store: &Store) -> BTreeMap<String, FixtureBinding> {
             .min()
             .map(|iri| local_name(&iri).to_string());
         let violation_code = first_literal(store, &cell, GMEOW_EXPECTED_VIOLATION_CODE);
-        let rationale = first_literal(store, &cell, GMEOW_CONFORMANCE_RATIONALE);
-        out.insert(
-            file,
-            FixtureBinding {
-                expected_outcome,
-                violation_code,
-                rationale,
-            },
-        );
+        let rationales = store.rdf_literals(&cell, GMEOW_CONFORMANCE_RATIONALE)?;
+        // Several conformance cells can cite one specimen. Keep every rationale;
+        // the existing deterministic scalar projection remains per fixture path.
+        let binding = out.entry(file).or_insert_with(|| FixtureBinding {
+            expected_outcome: None,
+            violation_code: None,
+            rationales: BTreeMap::new(),
+        });
+        binding.expected_outcome = expected_outcome;
+        binding.violation_code = violation_code;
+        for literal in rationales {
+            let key = (
+                literal.lexical_form.clone(),
+                literal.datatype_iri().to_owned(),
+                literal.language.clone(),
+                literal
+                    .direction
+                    .map(|direction| direction.as_str().to_owned()),
+            );
+            binding.rationales.insert(key, literal);
+        }
     }
-    out
+    Ok(out)
 }
 
 /// Extract a single conformance fixture, reusing [`extract_example`]'s title /
@@ -4305,13 +4400,13 @@ fn extract_fixture(
     binding: Option<&FixtureBinding>,
 ) -> DocFixture {
     let example = extract_example(artifact, owner_slice);
-    let (expected_outcome, violation_code, rationale) = match binding {
+    let (expected_outcome, violation_code, rationales) = match binding {
         Some(b) => (
             b.expected_outcome.clone(),
             b.violation_code.clone(),
-            b.rationale.clone(),
+            b.rationales.values().cloned().collect(),
         ),
-        None => (None, None, None),
+        None => (None, None, Vec::new()),
     };
     DocFixture {
         slice: example.slice,
@@ -4322,7 +4417,7 @@ fn extract_fixture(
         terms_referenced: example.terms_referenced,
         expected_outcome,
         violation_code,
-        rationale,
+        rationales,
         catalog_slug: None,
     }
 }

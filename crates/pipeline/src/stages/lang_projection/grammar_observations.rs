@@ -9,16 +9,16 @@ use std::collections::BTreeMap;
 use gmeow_lang_bridge::registry::{GrammarSource, LangEmission};
 use gmeow_lang_bridge::{Formalism, Grammar, IngestDiagnostic, parse_grammar, serialize_grammar};
 use gmeow_logic_compile::ir::{Correspondence, LegPath, PreservationKind};
-use serde::{Deserialize, Serialize};
+mod json;
 
 pub(super) const CHANNEL: &str = "pipeline/lang-grammar-observations.json";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub grammars: BTreeMap<String, GrammarObservation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct GrammarObservation {
     pub source_iri: String,
     pub source_rule_count: usize,
@@ -27,7 +27,7 @@ pub(super) struct GrammarObservation {
     pub emissions: BTreeMap<String, Vec<Emission>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Emission {
     pub correspondence: Correspondence,
     pub leg_pair: Option<(LegPath, LegPath)>,
@@ -39,6 +39,11 @@ pub(super) struct Emission {
 }
 
 impl Observations {
+    /// Publish the exact compact grammar channel without a terminal newline.
+    pub(super) fn to_bytes(&self) -> Vec<u8> {
+        purrdf_lex::json::record::to_vec(self)
+    }
+
     pub(super) fn new(sources: &[GrammarSource]) -> Self {
         Self {
             grammars: sources

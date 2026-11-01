@@ -65,7 +65,9 @@ pub fn transcode_from_gmn1(gmn1_text: &str) -> Result<String, JsError> {
     let doc = Gmn1Document::from_text(gmn1_text);
     let model =
         gmn1_read(&doc, codebook().dictionary()).map_err(|e| JsError::new(&e.to_string()))?;
-    Ok(model.canonical_nquads())
+    model
+        .canonical_nquads()
+        .map_err(|e| JsError::new(&e.to_string()))
 }
 
 /// The GMN-1 glyph legend for the codebook, as a deterministic JSON array of

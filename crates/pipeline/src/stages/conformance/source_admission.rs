@@ -4,6 +4,7 @@
 //! Source-admission observations are shipped separately from semantic comparisons.
 
 use gmeow_conformance::native_observation::SourceAdmissionObservation;
+use gmeow_errors::DiagKind as _;
 use gmeow_logic::reason::refute::ClassAdmissionObservation;
 use purrdf::TermValue;
 use std::fmt::Write as _;
@@ -34,7 +35,7 @@ pub(super) fn grade(
             "source-admission producer observed different input bytes",
         ));
     }
-    let expected: ClassAdmissionObservation = serde_json::from_slice(
+    let expected: ClassAdmissionObservation = purrdf_lex::json::record::from_slice(
         &std::fs::read(directory.join("expected/verdicts.json"))
             .map_err(|error| super::stage_err(&error.to_string()))?,
     )
@@ -51,6 +52,20 @@ pub(super) fn grade(
         published,
         observation: observation.clone(),
     })
+}
+
+impl GradedAdmission {
+    /// Encode the selected receipt envelope before it is hashed or projected.
+    fn write_cbor<W: std::io::Write + ?Sized>(&self, out: &mut W) -> std::io::Result<()> {
+        use purrdf_lex::cbor::head;
+
+        head::write_head(out, head::ARRAY, 5)?;
+        head::write_text(out, RECEIPT_SCHEMA)?;
+        head::write_text(out, &self.corpus)?;
+        head::write_text(out, &self.case)?;
+        head::write_text(out, &self.published)?;
+        self.observation.write_cbor(out)
+    }
 }
 
 const RECEIPT_SCHEMA: &str = "gmeow-source-admission-observation-v1";
@@ -89,17 +104,19 @@ pub(super) fn emit(observations: &[GradedAdmission]) -> gmeow_errors::Result<Str
     for record in observations {
         record.observation.admission.validate()?;
         let mut receipt = Receipt(Vec::new());
-        ciborium::into_writer(
-            &(
-                RECEIPT_SCHEMA,
-                &record.corpus,
-                &record.case,
-                &record.published,
-                &record.observation,
-            ),
-            &mut receipt,
-        )
-        .map_err(|error| super::stage_err(&error.to_string()))?;
+        record.write_cbor(&mut receipt).map_err(|error| {
+            let kind = crate::error::StageFailed {
+                stage: "stage-conformance".to_owned(),
+                message: format!("encode source-admission receipt: {error}"),
+            };
+            let mut diagnostic =
+                gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                    .with_source(error);
+            if let Some(class) = kind.failure_class() {
+                diagnostic = diagnostic.with_failure_class(class);
+            }
+            diagnostic
+        })?;
         let subject = format!(
             "urn:gmeow:source-admission:{}",
             purrdf_hash::hex::encode(purrdf_hash::blake3::hash(&receipt.0).as_bytes())

@@ -269,3 +269,28 @@ ledger and morphism policy are in
 
 - Quijada, J. (2011). *A Grammar of the Ithkuil Language.* <https://ithkuil.net/> (Orthogonal
   factorization; obligatory evidentiality; precision without a usable surface.)
+
+## Bound component identity authorities
+
+- W3C. *RDF 1.2 Concepts and Abstract Syntax.*
+  <https://www.w3.org/TR/rdf12-concepts/>. The definitions of RDF terms,
+  literal term equality, blank-node identity and triple terms ground native
+  structural identity. Blank-node scope remains part of the retained source
+  identity; a quoted tuple is distinct from its statement reifier.
+- W3C. *SPARQL 1.1 Query Language* (2013),
+  [sameTerm](https://www.w3.org/TR/sparql11-query/#func-sameTerm),
+  [DATATYPE](https://www.w3.org/TR/sparql11-query/#func-datatype), and
+  [COALESCE](https://www.w3.org/TR/sparql11-query/#func-coalesce).
+  These functions ground exact term comparison, datatype IRI inspection and
+  the projection's false result when a requested component is unavailable.
+- W3C. *SPARQL 1.2 Query Language*, sections 17.4.6.2 through 17.4.6.4:
+  [SUBJECT](https://www.w3.org/TR/sparql12-query/#func-subject),
+  [PREDICATE](https://www.w3.org/TR/sparql12-query/#func-predicate), and
+  [OBJECT](https://www.w3.org/TR/sparql12-query/#func-object).
+  These return the corresponding original triple term component and raise an
+  error for a nontriple input. They do not inspect statement-reifier properties
+  or infer asserted triples.
+
+The canonical bound component predicate composes these operations. No external
+vocabulary equivalence, unrestricted native FOL execution, datatype coercion or
+regex capability follows from these references.

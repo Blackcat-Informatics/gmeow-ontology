@@ -308,7 +308,11 @@ fn patch_diff_links_and_digest() {
     let patch = ex_mail("variantPatch");
     assert!(g.has(Some(&variant), Some(&gm("hasPatchDiff")), Some(&patch)));
     assert!(g.has(Some(&patch), Some(RDF_TYPE), Some(&gm("EmailPatchDiff"))));
-    assert!(g.has_literal(&patch, &gm("mediaType"), "text/x-gmeow-patch", XSD_STRING));
+    assert!(g.has(
+        Some(&patch),
+        Some(&gm("mediaType")),
+        Some("https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch"),
+    ));
     assert!(g.has(
         Some(&patch),
         Some(&gm("wasDerivedFrom")),
@@ -478,7 +482,11 @@ fn calendar_invitation_links_to_event() {
         Some(&gm("hasMessageKind")),
         Some(&gm("messageKindCalendarInvitation")),
     ));
-    assert!(g.has_literal(&att, &gm("mediaType"), "text/calendar", XSD_STRING));
+    assert!(g.has(
+        Some(&att),
+        Some(&gm("mediaType")),
+        Some("https://www.iana.org/assignments/media-types/text/calendar"),
+    ));
     assert!(g.has_literal(&att, &gm("filename"), "meeting.ics", XSD_STRING));
     assert!(g.has(Some(&event), Some(RDF_TYPE), Some(&gm("Event"))));
     assert!(g.has_literal(

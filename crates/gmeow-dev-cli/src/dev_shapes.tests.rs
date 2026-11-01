@@ -970,6 +970,7 @@ fn sparql_alpha_canonical_preserves_literal_and_query_contracts() {
     );
 }
 
+/// Clearance must retain report values and refuse unsupported bodies or activation guards.
 #[test]
 fn raw_sparql_target_identity_rejects_changed_reports_and_literals() {
     let legacy = parse_ttl(JOIN_LEGACY_TTL);
@@ -1002,12 +1003,63 @@ fn raw_sparql_target_identity_rejects_changed_reports_and_literals() {
             Verdict::EquivResidue(_)
         ));
     }
+
+    // A root handle must not hide a property body or conditional activation.
+    // Those obligations need their own equivalence proof, even when the raw
+    // SELECTs are identical to an otherwise supported projected record.
+    for record in [
+        JOIN_RECORD_TTL.replace(
+            "a sh:NodeShape ;",
+            "a sh:NodeShape ; sh:property [ sh:path <https://ex/required> ; sh:minCount 1 ] ;",
+        ),
+        JOIN_RECORD_TTL.replace(
+            "a sh:NodeShape ;",
+            "a sh:NodeShape ; sh:deactivated [ sh:path <https://ex/muted> ] ;",
+        ),
+        JOIN_RECORD_TTL.replace(
+            "a sh:SPARQLConstraint ;",
+            "a sh:SPARQLConstraint ; sh:deactivated [ sh:path <https://ex/muted> ] ;",
+        ),
+        JOIN_RECORD_TTL.replace(
+            "\"\"\" ] .",
+            "\"\"\" ] {| sh:deactivated [ sh:path <https://ex/muted> ] |} .",
+        ),
+    ] {
+        assert_ne!(record, JOIN_RECORD_TTL, "fixture must change its contract");
+        let projected = parse_ttl(&record);
+        assert!(
+            raw_sparql_block_key(&projected, "https://ex/OpenValueConstraintShape")
+                .expect("valid native shape")
+                .is_none(),
+            "unsupported body or activation must remain residue"
+        );
+    }
 }
 
+/// Native statement metadata and unconditional deactivation participate in block identity.
 #[test]
 fn raw_sparql_target_identity_preserves_native_statement_metadata() {
+    let deactivated_legacy = parse_ttl(
+        &JOIN_LEGACY_TTL.replace("a sh:NodeShape ;", "a sh:NodeShape ; sh:deactivated true ;"),
+    );
+    let deactivated_record = parse_ttl(
+        &JOIN_RECORD_TTL.replace("a sh:NodeShape ;", "a sh:NodeShape ; sh:deactivated true ;"),
+    );
+    assert_eq!(
+        raw_sparql_block_key(&deactivated_legacy, "https://ex/OpenValueShape")
+            .expect("valid native shape")
+            .expect("supported unconditional deactivation"),
+        raw_sparql_block_key(&deactivated_record, "https://ex/OpenValueConstraintShape")
+            .expect("valid native shape")
+            .expect("supported unconditional deactivation"),
+        "equal unconditional deactivation remains part of the report contract"
+    );
     for legacy_ttl in [
         JOIN_LEGACY_TTL.replace("sh:message \"m\"", "sh:message \"m\"@en--ltr"),
+        JOIN_LEGACY_TTL.replace(
+            "sh:sparql [ a sh:SPARQLConstraint ; sh:message \"m\" ;",
+            "sh:message \"shape default\" ; sh:sparql [ a sh:SPARQLConstraint ;",
+        ),
         JOIN_LEGACY_TTL.replace(
             "\"\"\" ] .",
             "\"\"\" ] {| sh:severity sh:Info |} .",

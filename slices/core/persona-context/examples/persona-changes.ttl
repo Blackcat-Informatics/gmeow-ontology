@@ -1,0 +1,108 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/persona-context/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# One agent uses two co-equal expression policies while recording a conversation.
+ex:agent a gmeow:Agent .
+
+ex:formalPersona a gmeow:Persona ;
+    gmeow:personaBearer ex:agent ;
+    gmeow:personaRegister gmeow:registerFormal .
+
+ex:casualPersona a gmeow:Persona ;
+    gmeow:personaBearer ex:agent ;
+    gmeow:personaRegister gmeow:registerCasual .
+
+# This identity denotes one bearer and one continuing producer counter.
+ex:expressionSlot a gmeow:PersonaSlot ;
+    gmeow:slotBearer ex:agent .
+
+# The audience scheme is the consumer’s convention, not a relationship scale.
+ex:audienceScheme a gmeow:AudienceRingScheme .
+
+ex:trustedAudience a gmeow:AudienceRing ;
+    gmeow:audienceRingScheme ex:audienceScheme ;
+    gmeow:audienceRingRank "0"^^xsd:nonNegativeInteger .
+
+ex:openAudience a gmeow:AudienceRing ;
+    gmeow:audienceRingScheme ex:audienceScheme ;
+    gmeow:audienceRingRank "2"^^xsd:nonNegativeInteger .
+
+ex:conversationActivity a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:modeTransition ex:change8 , ex:change9 , ex:change10 .
+
+# The source reports a deliberate switch to a casual expression policy.
+ex:change8 a gmeow:ModeTransition ;
+    gmeow:transitionSlot ex:expressionSlot ;
+    gmeow:transitionFrom ex:formalPersona ;
+    gmeow:transitionTo ex:casualPersona ;
+    gmeow:transitionLasted "PT15M"^^xsd:duration ;
+    gmeow:transitionAt "2026-10-29T10:00:00Z"^^xsd:dateTime ;
+    gmeow:transitionSequence "8"^^xsd:nonNegativeInteger ;
+    gmeow:transitionCause gmeow:transitionCauseChosen .
+
+# A wider audience then forces a formal policy. The producer clock stepped
+# backward, but its sequence continues and its reported elapsed duration survives.
+ex:change9 a gmeow:ModeTransition ;
+    gmeow:transitionSlot ex:expressionSlot ;
+    gmeow:transitionFrom ex:casualPersona ;
+    gmeow:transitionTo ex:formalPersona ;
+    gmeow:transitionLasted "PT1M"^^xsd:duration ;
+    gmeow:transitionAt "2026-10-29T09:59:00Z"^^xsd:dateTime ;
+    gmeow:transitionSequence "9"^^xsd:nonNegativeInteger ;
+    gmeow:transitionCause gmeow:transitionCauseAudienceForced ;
+    gmeow:transitionRing ex:openAudience .
+
+# Once that audience is gone, the previously held casual policy resumes.
+ex:change10 a gmeow:ModeTransition ;
+    gmeow:transitionSlot ex:expressionSlot ;
+    gmeow:transitionFrom ex:formalPersona ;
+    gmeow:transitionTo ex:casualPersona ;
+    gmeow:transitionLasted "PT3M"^^xsd:duration ;
+    gmeow:transitionAt "2026-10-29T10:02:00Z"^^xsd:dateTime ;
+    gmeow:transitionSequence "10"^^xsd:nonNegativeInteger ;
+    gmeow:transitionCause gmeow:transitionCauseHoldResumed .
+
+# The source states that change9 opened this formal-persona tenure and change10
+# closed it. Both actual state claims retain their writer; the source reports
+# subtracting their unchanged clock readings to obtain the supplied PT3M value.
+ex:formalOpeningClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change9 gmeow:transitionTo ex:formalPersona )>> ;
+    gmeow:wasAttributedTo ex:agent .
+
+ex:formalClosingClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change10 gmeow:transitionFrom ex:formalPersona )>> ;
+    gmeow:wasAttributedTo ex:agent .
+
+ex:formalDurationClaim a gmeow:InformationObject ;
+    rdf:reifies <<( ex:change10 gmeow:transitionLasted "PT3M"^^xsd:duration )>> ;
+    gmeow:wasAttributedTo ex:agent ;
+    gmeow:wasDerivedFrom ex:formalOpeningClaim , ex:formalClosingClaim ;
+    gmeow:statedRationale "formalOpeningClaim opens the formal-persona tenure at change9, whose supplied transitionAt is 2026-10-29T09:59:00Z; formalClosingClaim closes it at change10, whose supplied transitionAt is 2026-10-29T10:02:00Z. I computed PT3M by subtracting the opening clock reading from the closing clock reading."@en .
+
+# A retained note attributes its own making to the casual policy. Its recording
+# date was supplied only to day precision and is independent of the clock above.
+ex:conversationNote a gmeow:InformationObject ;
+    gmeow:wornModality ex:casualPersona ;
+    gmeow:recordedAt "2026-10-29"^^xsd:date ;
+    gmeow:wasGeneratedBy ex:conversationActivity .
+
+# A subsequent activity keeps the same producer stream. The source supplied no
+# tenure duration for this periodic change, so no duration observation is invented.
+ex:periodicActivity a gmeow:Activity ;
+    gmeow:wasAssociatedWith ex:agent ;
+    gmeow:modeTransition ex:change11 .
+
+ex:change11 a gmeow:ModeTransition ;
+    gmeow:transitionSlot ex:expressionSlot ;
+    gmeow:transitionFrom ex:casualPersona ;
+    gmeow:transitionTo ex:formalPersona ;
+    gmeow:transitionAt "2026-10-29T11:00:00Z"^^xsd:dateTime ;
+    gmeow:transitionSequence "11"^^xsd:nonNegativeInteger ;
+    gmeow:transitionCause gmeow:transitionCauseAutomaticBoundary ;
+    gmeow:transitionBoundary gmeow:transitionBoundaryPeriodicWakeup .

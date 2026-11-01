@@ -49,6 +49,41 @@ pub(super) fn serialize<S: Serializer>(
     sequence.end()
 }
 
+/// Stream the existing literal-vector wire, including each explicit datatype.
+/// Unlike the single-literal wire, the collection adapter retains the stored
+/// datatype before consulting the native effective datatype. Ordering is unchanged.
+///
+/// # Errors
+/// Returns the sink's original failure without reporting partial success.
+pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+    literals: &[RdfLiteral],
+    out: &mut W,
+) -> std::io::Result<()> {
+    use purrdf_lex::cbor::{self, Value, head};
+
+    head::write_head(out, head::ARRAY, literals.len() as u64)?;
+    for literal in literals {
+        head::write_head(out, head::ARRAY, 4)?;
+        head::write_text(out, &literal.lexical_form)?;
+        head::write_text(
+            out,
+            literal
+                .datatype
+                .as_deref()
+                .unwrap_or_else(|| literal.datatype_iri()),
+        )?;
+        match literal.language.as_deref() {
+            Some(language) => head::write_text(out, language)?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        match literal.direction {
+            Some(direction) => head::write_text(out, direction.as_str())?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+    }
+    Ok(())
+}
+
 /// Canonical RDF set order, with no lexical rendering or temporary sort strings.
 pub(crate) fn sort_key(
     literal: &RdfLiteral,
@@ -59,6 +94,40 @@ pub(crate) fn sort_key(
         literal.language.as_deref(),
         literal.direction,
     )
+}
+
+/// Admit complete advisory messages as a canonical RDF set without trimming wording.
+pub(crate) fn normalize_messages(literals: &mut Vec<RdfLiteral>) -> Result<(), &'static str> {
+    for literal in literals.iter_mut() {
+        normalize(literal)?;
+        if literal.lexical_form.trim().is_empty() {
+            return Err("a message literal must have nonblank lexical text");
+        }
+    }
+    literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    literals.dedup();
+    Ok(())
+}
+
+/// Message collections may be absent, but every supplied literal must be valid.
+pub(super) mod message_set {
+    use super::*;
+
+    pub(crate) fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Vec<RdfLiteral>, D::Error> {
+        let mut literals = super::deserialize_set(deserializer)?;
+        normalize_messages(&mut literals).map_err(serde::de::Error::custom)?;
+        Ok(literals)
+    }
+
+    pub(crate) fn from_json(
+        value: &purrdf_lex::json::Value,
+    ) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
+        let mut literals = super::from_json_set(value)?;
+        normalize_messages(&mut literals).map_err(purrdf_lex::json::record::DecodeError::custom)?;
+        Ok(literals)
+    }
 }
 
 pub(super) fn deserialize<'de, D: Deserializer<'de>>(
@@ -202,6 +271,32 @@ pub(crate) mod single {
         Ok(literal)
     }
 
+    /// Stream the existing four-component single-literal CBOR wire.
+    /// The effective datatype and lowercase direction names match this owner's
+    /// serialized tuple; writing does not normalize or validate the literal.
+    ///
+    /// # Errors
+    /// Returns the sink's original failure without reporting partial success.
+    pub(crate) fn write_cbor<W: std::io::Write + ?Sized>(
+        literal: &RdfLiteral,
+        out: &mut W,
+    ) -> std::io::Result<()> {
+        use purrdf_lex::cbor::{self, Value, head};
+
+        head::write_head(out, head::ARRAY, 4)?;
+        head::write_text(out, &literal.lexical_form)?;
+        head::write_text(out, literal.datatype_iri())?;
+        match literal.language.as_deref() {
+            Some(language) => head::write_text(out, language)?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        match literal.direction {
+            Some(direction) => head::write_text(out, direction.as_str())?,
+            None => cbor::write(&Value::Null, out)?,
+        }
+        Ok(())
+    }
+
     /// Encode the exact four-component single-literal wire without RDF rendering.
     pub(crate) fn to_json(literal: &RdfLiteral) -> purrdf_lex::json::Value {
         use purrdf_lex::json::{Value, record::ToJson};
@@ -250,4 +345,48 @@ pub(crate) fn structural_cmp(a: &RdfLiteral, b: &RdfLiteral) -> std::cmp::Orderi
         &b.language,
         b.direction,
     ))
+}
+
+/// Encode the literal collection wire, retaining any explicitly stored datatype.
+/// Unlike the single-literal wire, malformed explicit component combinations must
+/// remain visible to the reader rather than being repaired while writing.
+pub(crate) fn to_json(literals: &[RdfLiteral]) -> purrdf_lex::json::Value {
+    use purrdf_lex::json::{Value, record::ToJson};
+    Value::Array(
+        literals
+            .iter()
+            .map(|literal| {
+                Value::Array(vec![
+                    literal.lexical_form.to_json(),
+                    literal
+                        .datatype
+                        .as_deref()
+                        .unwrap_or_else(|| literal.datatype_iri())
+                        .to_json(),
+                    literal.language.to_json(),
+                    literal.direction.map(RdfTextDirection::as_str).to_json(),
+                ])
+            })
+            .collect(),
+    )
+}
+
+/// Admit the existing checked literal set, preserving its canonical set policy.
+pub(crate) fn from_json_set(
+    value: &purrdf_lex::json::Value,
+) -> Result<Vec<RdfLiteral>, purrdf_lex::json::record::DecodeError> {
+    use purrdf_lex::json::record::{DecodeError, Within};
+    let rows = value
+        .as_array()
+        .ok_or_else(|| DecodeError::invalid_type(value, "RDF literal set"))?;
+    let mut literals = rows
+        .iter()
+        .enumerate()
+        .map(|(index, row)| {
+            single::from_json(row).map_err(|error| error.within_index_native(index, None))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    literals.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    literals.dedup();
+    Ok(literals)
 }

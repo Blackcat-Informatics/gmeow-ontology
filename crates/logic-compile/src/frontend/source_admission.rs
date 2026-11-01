@@ -14,6 +14,7 @@ use std::collections::{BTreeMap, BTreeSet};
 mod classes;
 mod contexts;
 mod contracts;
+mod json;
 mod origins;
 
 use purrdf::{DatasetView, GraphMatch, QuadIds, RdfDataset, TermId, TermRef};
@@ -117,7 +118,7 @@ impl SourceSelection {
     pub fn digest(&self) -> String {
         digest_bytes(
             b"gmeow-source-selection-v1\0",
-            &serde_json::to_vec(self).expect("SourceSelection serialization is infallible"),
+            &purrdf_lex::json::record::to_vec(self),
         )
     }
 }
@@ -1190,8 +1191,7 @@ impl<'a> AdmissionBuilder<'a> {
         documents: BTreeSet<String>,
         disposition: SemanticUnitDisposition,
     ) {
-        let encoded = serde_json::to_vec(&(kind, &anchor, &documents, &disposition))
-            .expect("semantic admission row serialization is infallible");
+        let encoded = purrdf_lex::json::record::to_vec(&(kind, &anchor, &documents, &disposition));
         self.units.push(SemanticUnitAdmission {
             id: digest_bytes(b"gmeow-semantic-unit-v1\0", &encoded),
             kind,
@@ -1289,7 +1289,14 @@ fn term_has_sequence_marker(term: &Term) -> bool {
 fn is_known_procedural(predicate: &str) -> bool {
     matches!(
         predicate.strip_prefix(LOGIC),
-        Some("termEqual" | "termDistinct" | "termIn" | "termRegex" | "directType")
+        Some(
+            "termEqual"
+                | "termDistinct"
+                | "termSameComponent"
+                | "termIn"
+                | "termRegex"
+                | "directType"
+        )
     )
 }
 
@@ -1449,10 +1456,7 @@ fn source_digest(theory: &CompiledTheory) -> String {
         .source()
         .origins()
         .iter()
-        .map(|origin| {
-            serde_json::to_vec(&origin.document)
-                .expect("source document receipt serialization is infallible")
-        })
+        .map(|origin| purrdf_lex::json::record::to_vec(&origin.document))
         .collect();
     receipts.sort_unstable();
     for receipt in receipts {

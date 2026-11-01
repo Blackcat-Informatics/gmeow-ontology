@@ -1,14 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod json;
+mod toml_json;
+
 use crate::{CfgContext, InputInventory, Result, SCHEMA, checked_path, digest, fail};
-use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 /// Cargo's actual resolved target, not an inferred lib.rs/main.rs convention.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct UnitSelection {
     pub package: String,
     pub manifest: Option<String>,
@@ -24,8 +25,7 @@ pub struct UnitSelection {
 }
 /// Immutable build inputs selected before code generation. External package IDs
 /// are bound to their exact lock records; local roots are traversed semantically.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ProductionSelection {
     pub schema: u32,
     pub units: Vec<UnitSelection>,
@@ -110,6 +110,7 @@ impl ProductionSelection {
     }
 }
 
+/// Commit the selected Cargo manifests, configuration and exact external lock records.
 pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Result<()> {
     let profiles = production_profiles(workspace)?;
     let manifests: BTreeSet<_> = inventory
@@ -165,9 +166,10 @@ pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Resul
             &profiles,
             inventory.selection.units.iter().any(|unit| unit.controller),
         )?;
-        inventory
-            .manifests
-            .insert(manifest, digest(&serde_json::to_vec(&value).map_err(fail)?));
+        let bytes = toml_json::encode(&value)
+            .map_err(|error| fail(format!("Cargo manifest {manifest}: {error}")))?;
+        let identity = digest(&bytes);
+        inventory.manifests.insert(manifest, identity);
     }
     let lock: toml::Value =
         std::fs::read_to_string(checked_path(workspace, Path::new("Cargo.lock"))?)
@@ -216,10 +218,16 @@ pub(crate) fn collect(workspace: &Path, inventory: &mut InputInventory) -> Resul
         if source.starts_with("registry+") && !selected.contains_key("checksum") {
             return Err(fail("selected registry package has no checksum"));
         }
-        inventory.packages.insert(
-            unit.package.clone(),
-            digest(&serde_json::to_vec(&selected).map_err(fail)?),
+        let selected = toml::Value::Table(
+            selected
+                .into_iter()
+                .map(|(key, value)| (key.to_owned(), value.clone()))
+                .collect(),
         );
+        let bytes = toml_json::encode(&selected)
+            .map_err(|error| fail(format!("Cargo lock entry {}: {error}", unit.package)))?;
+        let identity = digest(&bytes);
+        inventory.packages.insert(unit.package.clone(), identity);
     }
     Ok(())
 }
@@ -587,10 +595,10 @@ pub(crate) fn configuration(
         );
     }
     prune_empty_tables(&mut value);
-    inventory.manifests.insert(
-        path.to_owned(),
-        digest(&serde_json::to_vec(&value).map_err(fail)?),
-    );
+    let bytes = toml_json::encode(&value)
+        .map_err(|error| fail(format!("Cargo configuration {path}: {error}")))?;
+    let identity = digest(&bytes);
+    inventory.manifests.insert(path.to_owned(), identity);
     Ok(())
 }
 

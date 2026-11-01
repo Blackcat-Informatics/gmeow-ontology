@@ -7,6 +7,8 @@
 //! The world binder is admitted structurally, before evaluation, so an ordinary
 //! first-order quantifier cannot silently become a finite-world quantifier.
 
+mod execution_cbor;
+mod instruction_json;
 mod monitor_cache;
 mod temporal_eval;
 mod temporal_lower;
@@ -22,26 +24,21 @@ use crate::physical::StepGovernor;
 use crate::provenance::mint_derivation_id;
 use crate::runtime::IncompleteCause;
 use purrdf::sparql::{StopCause, StopSignal};
+use purrdf_lex::json::record::ToJson;
 
 pub(super) use monitor_cache::JudgmentCache;
 
 /// The physical address of an already-admitted child instruction.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct NodeId(usize);
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) enum Quantifier {
     Every,
     Some,
 }
 
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) enum TemporalOperator {
     Next,
     Eventually,
@@ -51,7 +48,7 @@ pub(super) enum TemporalOperator {
 /// A finite context binder may also occur in an atom's subject or object slot.
 /// It resolves to the selected context IRI before evidence lookup; other free
 /// individual variables remain outside this fragment.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum AtomTerm {
     Ground(Term),
     Context,
@@ -79,9 +76,7 @@ impl AtomTerm {
 }
 
 /// One typed accessibility axis, selected from the compiler's closed vocabulary.
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) struct Accessibility(usize);
 
 impl Accessibility {
@@ -101,7 +96,7 @@ impl Accessibility {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum Instruction {
     AtContext {
         context: String,
@@ -164,6 +159,10 @@ impl Program {
             selected_context: selected_world,
         })
     }
+}
+
+fn instruction_key(instruction: &Instruction) -> String {
+    purrdf_lex::json::write_compact(&instruction.to_json())
 }
 
 fn lower(
@@ -307,8 +306,7 @@ fn lower(
     };
     // Serialize only the admitted leaf terms. Child IDs already represent
     // interned instructions, so this key has no recursively cloned expression.
-    let key = serde_json::to_string(&instruction)
-        .map_err(|error| AdmissionError::Malformed(error.to_string()))?;
+    let key = instruction_key(&instruction);
     if let Some(id) = intern.get(&key) {
         return Ok(*id);
     }

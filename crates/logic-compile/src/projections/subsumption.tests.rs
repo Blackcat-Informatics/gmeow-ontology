@@ -78,7 +78,12 @@ fn presentation_and_provenance_are_projected_out() {
         vec![
             base_prop(ConstraintProvenance::OptNative)
                 .with_severity(ShaclSeverity::Warning)
-                .with_message("distinct message")
+                .with_messages(vec![purrdf::RdfLiteral {
+                    lexical_form: "distinct message".into(),
+                    datatype: None,
+                    language: None,
+                    direction: None,
+                }])
                 .unwrap(),
         ],
         None,

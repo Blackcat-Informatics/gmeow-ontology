@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
+mod exported_macros;
+
 use crate::{InputInventory, InputRole, Result, UnitSelection, checked_path, fail, relative};
+use exported_macros::{Exports, OwnerId};
 use proc_macro2::{Delimiter, TokenStream, TokenTree};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
@@ -81,44 +84,35 @@ fn collect_selected(
 ) -> Result<()> {
     let units = inventory.selection.units.clone();
     let mut excluded = BTreeSet::new();
+    let mut exports = Exports::default();
     for unit in &units {
-        let Some(source) = &unit.source else { continue };
-        let path = checked_path(workspace, Path::new(source))?;
-        let tracing_names = unit
-            .dependency_names
-            .iter()
-            .zip(&unit.dependencies)
-            .filter(|(_, index)| {
-                matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
-                    && crate::cargo::package_parts(&units[**index].package)
-                        .is_ok_and(|(_, name, _)| name == "tracing")
-            })
-            .map(|(name, _)| name.clone())
-            .collect();
-        let mut scanner = Scanner {
-            tracing_names,
-            json_names: crate::json_macros::selected(workspace, unit, &units)?,
+        if unit.source.is_none() {
+            continue;
+        }
+        scan_unit(
             workspace,
             inventory,
             unit,
-            file: path.clone(),
-            directory: path
-                .parent()
-                .ok_or_else(|| fail("crate root has no parent"))?
-                .to_path_buf(),
-            attribute_directory: path.parent().unwrap().to_path_buf(),
-            stack: Vec::new(),
-            scope_depth: 0,
-            seen: BTreeSet::new(),
-            excluded: &mut excluded,
-            macros: BTreeSet::new(),
-            semantic: false,
+            Some(&units),
+            &mut excluded,
+            ScanMode {
+                extraction_planning,
+                ownership_only: false,
+            },
+            &mut exports,
+        )?;
+    }
+    finish_exports(
+        workspace,
+        inventory,
+        Some(&units),
+        &mut excluded,
+        ScanMode {
             extraction_planning,
             ownership_only: false,
-            error: None,
-        };
-        scanner.file(&path, true)?;
-    }
+        },
+        &mut exports,
+    )?;
     for excluded in excluded {
         if inventory
             .files
@@ -193,6 +187,7 @@ fn semantic_inventory(
         environment_owners: BTreeMap::new(),
     };
     let mut excluded = BTreeSet::new();
+    let mut exports = Exports::default();
     for source in roots {
         let path = checked_path(workspace, Path::new(source))?;
         let manifest = path
@@ -222,57 +217,30 @@ fn semantic_inventory(
                 .collect(),
             controller: false,
         };
-        let tracing_names =
-            if ownership_only && matches!(unit.edition.as_str(), "2018" | "2021" | "2024") {
-                crate::cargo::portable_tracing_names(workspace, &declarations, &dependencies)?
-            } else {
-                BTreeSet::new()
-            };
-        let json_names = if !dependencies.is_empty()
-            && matches!(unit.edition.as_str(), "2018" | "2021" | "2024")
-        {
-            let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
-            if !ownership_only && !owners.is_empty() {
-                // Native semantic identity already binds this exact substrate source.
-                // A separately pinned macro implementation must not enter that identity.
-                let substrate = crate::native_substrate_source(workspace)?;
-                let (repository, revision) = substrate
-                    .rsplit_once('#')
-                    .ok_or_else(|| fail("native substrate identity has no revision"))?;
-                let expected = format!("git+{repository}?rev={revision}");
-                if owners.values().any(|source| source != &expected) {
-                    return Err(fail(format!(
-                        "native JSON macro owner must match native substrate {substrate}"
-                    )));
-                }
-            }
-            owners.into_keys().collect()
-        } else {
-            BTreeSet::new()
-        };
-        let mut scanner = Scanner {
-            // Portable policy has declarations, not selected Cargo units. Only
-            // an unambiguous crates.io tracing declaration grants this macro.
-            tracing_names,
-            json_names,
+        scan_unit(
             workspace,
-            inventory: &mut inventory,
-            unit: &unit,
-            file: path.clone(),
-            directory: path.parent().unwrap().to_path_buf(),
-            attribute_directory: path.parent().unwrap().to_path_buf(),
-            stack: Vec::new(),
-            scope_depth: 0,
-            seen: BTreeSet::new(),
-            excluded: &mut excluded,
-            macros: BTreeSet::new(),
-            semantic: true,
+            &mut inventory,
+            &unit,
+            None,
+            &mut excluded,
+            ScanMode {
+                extraction_planning,
+                ownership_only,
+            },
+            &mut exports,
+        )?;
+    }
+    finish_exports(
+        workspace,
+        &mut inventory,
+        None,
+        &mut excluded,
+        ScanMode {
             extraction_planning,
             ownership_only,
-            error: None,
-        };
-        scanner.file(&path, true)?;
-    }
+        },
+        &mut exports,
+    )?;
     for path in &excluded {
         if !ownership_only && inventory.files.contains_key(path) {
             return Err(fail(format!(
@@ -281,6 +249,128 @@ fn semantic_inventory(
         }
     }
     Ok((inventory, excluded))
+}
+
+/// Both capability discovery and validation use the ordinary module/cfg walk.
+/// No preliminary export is an admitted result until finish_exports succeeds.
+#[derive(Clone, Copy)]
+struct ScanMode {
+    extraction_planning: bool,
+    ownership_only: bool,
+}
+
+fn scan_unit(
+    workspace: &Path,
+    inventory: &mut InputInventory,
+    unit: &UnitSelection,
+    selected: Option<&[UnitSelection]>,
+    excluded: &mut BTreeSet<String>,
+    mode: ScanMode,
+    exports: &mut Exports,
+) -> Result<()> {
+    let ScanMode {
+        extraction_planning,
+        ownership_only,
+    } = mode;
+    let Some(export_owner) = exports.begin_scan(unit) else {
+        return Ok(());
+    };
+    let source = unit
+        .source
+        .as_deref()
+        .ok_or_else(|| fail("local macro owner has no crate root"))?;
+    let path = checked_path(workspace, Path::new(source))?;
+    let semantic = selected.is_none();
+    let manifest = unit
+        .manifest
+        .as_deref()
+        .ok_or_else(|| fail("local source has no manifest"))?;
+    let declarations = std::fs::read_to_string(checked_path(workspace, Path::new(manifest))?)
+        .map_err(fail)?
+        .parse::<toml::Value>()
+        .map_err(fail)?;
+    let dependencies = crate::cargo::declared_dependencies(&declarations);
+    let modern = matches!(unit.edition.as_str(), "2018" | "2021" | "2024");
+    let tracing_names = if let Some(units) = selected {
+        unit.dependency_names
+            .iter()
+            .zip(&unit.dependencies)
+            .filter(|(_, index)| {
+                modern
+                    && crate::cargo::package_parts(&units[**index].package)
+                        .is_ok_and(|(_, name, _)| name == "tracing")
+            })
+            .map(|(name, _)| name.clone())
+            .collect()
+    } else if ownership_only && modern {
+        crate::cargo::portable_tracing_names(workspace, &declarations, &dependencies)?
+    } else {
+        BTreeSet::new()
+    };
+    let json_names = if let Some(units) = selected {
+        crate::json_macros::selected(workspace, unit, units)?
+    } else if !dependencies.is_empty() && modern {
+        let owners = crate::json_macros::portable(workspace, &declarations, &dependencies)?;
+        if !ownership_only && !owners.is_empty() {
+            let substrate = crate::native_substrate_source(workspace)?;
+            let (repository, revision) = substrate
+                .rsplit_once('#')
+                .ok_or_else(|| fail("native substrate identity has no revision"))?;
+            let expected = format!("git+{repository}?rev={revision}");
+            if owners.values().any(|source| source != &expected) {
+                return Err(fail(format!(
+                    "native JSON macro owner must match native substrate {substrate}"
+                )));
+            }
+        }
+        owners.into_keys().collect()
+    } else {
+        BTreeSet::new()
+    };
+    let mut scanner = Scanner {
+        tracing_names,
+        json_names,
+        workspace,
+        inventory,
+        unit,
+        file: path.clone(),
+        directory: path.parent().unwrap().to_path_buf(),
+        attribute_directory: path.parent().unwrap().to_path_buf(),
+        stack: Vec::new(),
+        scope_depth: 0,
+        seen: BTreeSet::new(),
+        excluded,
+        macros: BTreeSet::new(),
+        semantic,
+        extraction_planning,
+        ownership_only,
+        exports,
+        export_owner,
+        module: Vec::new(),
+        public_module: true,
+        certain_export: true,
+        error: None,
+    };
+    scanner.file(&path, true)
+}
+
+fn finish_exports(
+    workspace: &Path,
+    inventory: &mut InputInventory,
+    selected: Option<&[UnitSelection]>,
+    excluded: &mut BTreeSet<String>,
+    mode: ScanMode,
+    exports: &mut Exports,
+) -> Result<()> {
+    while let Some(owner) = exports.next_owner(workspace, selected, inventory)? {
+        if !exports.is_scanned(owner) {
+            let unit = exports.unit(owner).clone();
+            scan_unit(
+                workspace, inventory, &unit, selected, excluded, mode, exports,
+            )?;
+        }
+    }
+    exports.finish()
 }
 
 struct Scanner<'a> {
@@ -297,12 +387,50 @@ struct Scanner<'a> {
     seen: BTreeSet<(PathBuf, PathBuf, bool)>,
     excluded: &'a mut BTreeSet<String>,
     macros: BTreeSet<String>,
+    exports: &'a mut Exports,
+    export_owner: OwnerId,
+    module: Vec<String>,
+    public_module: bool,
+    certain_export: bool,
     semantic: bool,
     extraction_planning: bool,
     ownership_only: bool,
     error: Option<crate::InputError>,
 }
 impl Scanner<'_> {
+    fn export_is_certain(&self, attrs: &[Attribute]) -> Result<bool> {
+        for attr in attrs {
+            if !["cfg", "doc", "path", "macro_export"]
+                .iter()
+                .any(|name| attr.path().is_ident(name))
+            {
+                return Ok(false);
+            }
+            if self.semantic && attr.path().is_ident("cfg") {
+                let Meta::List(list) = &attr.meta else {
+                    return Ok(false);
+                };
+                let condition = syn::parse2(list.tokens.clone()).map_err(fail)?;
+                if self.unit.cfg.portable(&condition)?.no {
+                    return Ok(false);
+                }
+            }
+        }
+        Ok(true)
+    }
+
+    fn macro_path(&mut self, path: &syn::Path, tokens: TokenStream) -> Result<()> {
+        if let Some(qualified) = qualified_macro(path, &self.tracing_names, &self.json_names) {
+            return self.macro_input(qualified, tokens, None);
+        }
+        let name = path
+            .segments
+            .last()
+            .map(|part| part.ident.to_string())
+            .unwrap_or_default();
+        self.macro_input(&name, tokens, Some(path))
+    }
+
     fn file(&mut self, path: &Path, root: bool) -> Result<()> {
         self.file_with_directory(path, root, None)
     }
@@ -559,7 +687,7 @@ impl Scanner<'_> {
                         start -= 2;
                         if start > 0
                             && matches!(&tokens[start - 1], TokenTree::Ident(ident)
-                                if syn::parse2::<syn::Ident>(TokenStream::from(
+                                if matches!(ident.to_string().as_str(), "crate" | "self" | "super") || syn::parse2::<syn::Ident>(TokenStream::from(
                                     TokenTree::Ident(ident.clone())
                                 )).is_ok())
                         {
@@ -569,11 +697,8 @@ impl Scanner<'_> {
                         }
                     }
                     let path = tokens[start..=index].iter().cloned().collect();
-                    let owner = syn::parse2::<syn::Path>(path).ok().and_then(|path| {
-                        qualified_macro(&path, &self.tracing_names, &self.json_names)
-                    });
-                    let name = owner.map(str::to_owned).unwrap_or_else(|| name.to_string());
-                    self.macro_input(&name, group.stream())?;
+                    let path = syn::parse2::<syn::Path>(path).map_err(fail)?;
+                    self.macro_path(&path, group.stream())?;
                     index += 3;
                     continue;
                 }
@@ -585,7 +710,12 @@ impl Scanner<'_> {
         }
         Ok(())
     }
-    fn macro_input(&mut self, name: &str, tokens: TokenStream) -> Result<()> {
+    fn macro_input(
+        &mut self,
+        name: &str,
+        tokens: TokenStream,
+        path: Option<&syn::Path>,
+    ) -> Result<()> {
         if contains_opaque_source_syntax(tokens.clone(), MacroSyntaxContext::Argument) {
             return Err(fail(format!(
                 "opaque macro input for {name}! needs an explicit source owner in {}",
@@ -705,7 +835,21 @@ impl Scanner<'_> {
             | "quote"
             | "parse_macro_input"
             | "submit" => self.tokens(tokens),
-            local if self.macros.contains(local) => self.tokens(tokens),
+            local
+                if path.is_some_and(|path| {
+                    path.leading_colon.is_none() && path.segments.len() == 1
+                }) && self.macros.contains(local) =>
+            {
+                self.tokens(tokens)
+            }
+            _ if path.is_some_and(|path| self.exports.defer(self.export_owner, path)) => {
+                if contains_module_declaration(tokens.clone()) {
+                    return Err(fail(
+                        "local exported macro contains a module declaration with no source owner",
+                    ));
+                }
+                self.tokens(tokens)
+            }
             _ => Err(fail(format!(
                 "macro {name}! has no selected source-input capability owner in {}",
                 self.file.display()
@@ -798,6 +942,17 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         }
     }
     fn visit_item_mod(&mut self, module: &'ast syn::ItemMod) {
+        let previous_public = self.public_module;
+        let previous_certain = self.certain_export;
+        self.public_module &= matches!(module.vis, syn::Visibility::Public(_));
+        match self.export_is_certain(&module.attrs) {
+            Ok(certain) => self.certain_export &= certain,
+            Err(error) => {
+                self.error = Some(error);
+                return;
+            }
+        }
+        self.module.push(module.ident.to_string());
         self.scope_depth += 1;
         let result = (|| {
             let Some(attrs) = self.attributes(&module.attrs)? else {
@@ -837,6 +992,9 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             }
         })();
         self.scope_depth -= 1;
+        self.module.pop();
+        self.public_module = previous_public;
+        self.certain_export = previous_certain;
         if let Err(e) = result {
             self.error = Some(e);
         }
@@ -856,6 +1014,9 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
             .map_or(&item.ident, |(_, alias)| alias)
             .unraw()
             .to_string();
+        if self.scope_depth == 0 && source != binding {
+            self.exports.shadow(self.export_owner, binding.clone());
+        }
         if self.scope_depth == 0
             && ((self.tracing_names.contains(&binding) && !self.tracing_names.contains(&source))
                 || (self.json_names.contains(&binding) && !self.json_names.contains(&source)))
@@ -872,6 +1033,16 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         if item.mac.path.is_ident("macro_rules")
             && let Some(name) = &item.ident
         {
+            if self.certain_export && self.scope_depth == self.module.len() {
+                match (self.attributes(&item.attrs), self.export_is_certain(&item.attrs)) {
+                    (Ok(Some(attrs)), Ok(true)) if attrs.iter().any(|attr|
+                        matches!(attr, Meta::Path(path) if path.is_ident("macro_export"))) => {
+                        self.exports.definition(self.export_owner, name.to_string());
+                    }
+                    (Err(error), _) | (_, Err(error)) => { self.error = Some(error); return; }
+                    _ => {}
+                }
+            }
             self.macros.insert(name.to_string());
             for attr in &item.attrs {
                 self.visit_attribute(attr);
@@ -889,18 +1060,38 @@ impl<'ast> Visit<'ast> for Scanner<'_> {
         if self.error.is_some() {
             return;
         }
-        let mut name = mac
-            .path
-            .segments
-            .last()
-            .map(|part| part.ident.to_string())
-            .unwrap_or_default();
-        if let Some(qualified) = qualified_macro(&mac.path, &self.tracing_names, &self.json_names) {
-            name = qualified.into();
-        }
-        if let Err(e) = self.macro_input(&name, mac.tokens.clone()) {
+        if let Err(e) = self.macro_path(&mac.path, mac.tokens.clone()) {
             self.error = Some(e);
         }
+    }
+    fn visit_item_use(&mut self, item: &'ast syn::ItemUse) {
+        if self.public_module
+            && self.certain_export
+            && self.scope_depth == self.module.len()
+            && matches!(item.vis, syn::Visibility::Public(_))
+            && item.leading_colon.is_none()
+        {
+            let result = (|| {
+                if !self.export_is_certain(&item.attrs)? {
+                    return Ok(());
+                }
+                if let syn::UseTree::Path(root) = &item.tree
+                    && root.ident == "crate"
+                    && let syn::UseTree::Name(name) = root.tree.as_ref()
+                {
+                    self.exports.reexport(
+                        self.export_owner,
+                        self.module.clone(),
+                        name.ident.to_string(),
+                    );
+                }
+                Ok(())
+            })();
+            if let Err(error) = result {
+                self.error = Some(error);
+            }
+        }
+        visit::visit_item_use(self, item);
     }
     fn visit_attribute(&mut self, attr: &'ast Attribute) {
         if self.error.is_some() {

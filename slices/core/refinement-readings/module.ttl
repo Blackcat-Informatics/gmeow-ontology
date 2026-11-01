@@ -1,0 +1,1275 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:ReadingScope
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reading Scope"@x-gmeow-english ;
+    skos:definition "An attributed enumeration of the exact source records offered to a selected refiner, with their declared assertion-time chronology frame. It asserts no completeness of the surrounding store."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:scope a gmeow:ReadingScope ."@x-gmeow-english .
+
+gmeow:scopeRecord
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "scope record"@x-gmeow-english ;
+    skos:definition "A source record offered within a reading scope, including a record later reported unreadable. Members retain their actual RDF identities, including blank nodes or triple terms when supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:scope gmeow:scopeRecord ex:record ."@x-gmeow-english .
+
+gmeow:scopeChronology
+    a logic:ObjectProperty ;
+    logic:range gmeow:TemporalFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "scope chronology"@x-gmeow-english ;
+    skos:definition "The temporal frame in which source assertion times are interpreted for this scope’s chronology. The selected reading must respect original precision and unresolved ties; this relation does not manufacture an order."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:scope gmeow:scopeChronology gmeow:temporalFrameUTCGregorian ."@x-gmeow-english .
+
+gmeow:readingScope
+    a logic:ObjectProperty ;
+    logic:range gmeow:ReadingScope ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reading scope"@x-gmeow-english ;
+    skos:definition "The explicit source-record scope of a finding or reading-limit aggregate. This relation does not turn its subject into an Observation or claim global source coverage."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:readingScope ex:scope ."@x-gmeow-english .
+
+gmeow:FirstOccurrence
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "First Occurrence"@x-gmeow-english ;
+    skos:definition "A selected refiner’s reading of an earliest source record for one relation and referent among the records explicitly offered in its reading scope, under the declared source assertion-time chronology. It is not a global first or the subject’s assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:first a gmeow:FirstOccurrence ."@x-gmeow-english .
+
+gmeow:RelationOccasion
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Relation Occasion"@x-gmeow-english ;
+    skos:definition "A selected refiner’s reading of one occasion of a relation to a resource or source-named referent in its declared records-read scope. It records source evidence rather than an independent world event."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:occasion a gmeow:RelationOccasion ."@x-gmeow-english .
+
+gmeow:relationPredicate
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "relation predicate"@x-gmeow-english ;
+    skos:definition "The actual predicate IRI by which the source records relate to the referent. It names the source relation without asserting a new edge or evaluating a query."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relationPredicate gmeow:hasParticipant ."@x-gmeow-english .
+
+gmeow:relationVault
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "relation vault"@x-gmeow-english ;
+    skos:definition "The source store containing the records for this relation reading or reading-limit aggregate. Naming the store supplies neither access authority nor a claim that every store record was read."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relationVault ex:archive ."@x-gmeow-english .
+
+gmeow:relatedThing
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "related thing"@x-gmeow-english ;
+    skos:definition "The referent identified by its actual IRI in the source relation. The IRI is retained without inferring identity from a name or minting a replacement for an unshareable source term."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relatedThing ex:person ."@x-gmeow-english .
+
+gmeow:relatedName
+    a logic:DatatypeProperty ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "related name"@x-gmeow-english ;
+    skos:definition "The exact source-supplied name when a relation names its referent only by a literal. Language and base direction are retained when supplied; the name alone does not establish an IRI identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relatedName \"Visitor\"@en ."@x-gmeow-english .
+
+gmeow:relationAt
+    a logic:DatatypeProperty ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "relation assertion time"@x-gmeow-english ;
+    skos:definition "The original assertion-time value supplied by the source record, retained at its actual precision. It is neither the refiner’s observation clock nor the record’s transaction time; a date, month or year invents no instant or timezone."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relationAt \"2026-10\"^^xsd:gYearMonth ."@x-gmeow-english .
+
+gmeow:relationIn
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "relation source occasion"@x-gmeow-english ;
+    skos:definition "The source occasion or context in which the relation was found, such as a conversation. This is distinct from the refiner’s execution and from its derived RelationOccasion reading."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:relationIn ex:conversation ."@x-gmeow-english .
+
+gmeow:findingSummary
+    a logic:DatatypeProperty ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "finding summary"@x-gmeow-english ;
+    skos:definition "A language-bearing one-line account of what the refiner found under its own vantage. The wording retains its language and any base direction and does not become the source subject’s claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:finding gmeow:findingSummary \"Earliest in the supplied archive excerpt.\"@en ."@x-gmeow-english .
+
+gmeow:Milestone
+    a logic:Class, logic:Kind ;
+    logic:subClassOf gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Milestone"@x-gmeow-english ;
+    skos:definition "An attributed information annotation in which a teller reads a source record as marking a milestone. It is distinct from the underlying life event and never automatically the subject’s own claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:annotation a gmeow:Milestone ."@x-gmeow-english .
+
+gmeow:MilestoneKind
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Milestone Kind"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary of teller-defined milestone classifications. Consumers mint their own individuals; no classification is a diagnosis or an event type inferred from the source."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:localKind a gmeow:MilestoneKind ."@x-gmeow-english .
+
+gmeow:milestoneKind
+    a logic:ObjectProperty ;
+    logic:range gmeow:MilestoneKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "milestone kind"@x-gmeow-english ;
+    skos:definition "The teller’s classification of a milestone annotation, drawn from the open MilestoneKind vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:annotation gmeow:milestoneKind ex:localKind ."@x-gmeow-english .
+
+gmeow:milestoneOf
+    a logic:ObjectProperty ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "milestone source"@x-gmeow-english ;
+    skos:definition "The original record on which the teller’s milestone annotation rests. This link identifies evidence rather than declaring that the record itself is a life event."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:annotation gmeow:milestoneOf ex:record ."@x-gmeow-english .
+
+gmeow:ReadingLimit
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:QueryLossLedger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reading Limit"@x-gmeow-english ;
+    skos:definition "An attributed QueryLossLedger grouping records the selected refiner could not read for one relation, store, source scope and reason. Its reported count may be zero; actual excluded records retain separate QueryLoss identities through ledgerLoss."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:limit a gmeow:ReadingLimit ."@x-gmeow-english .
+
+gmeow:ReadingLimitReason
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf gmeow:QueryLossCause ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reading Limit Reason"@x-gmeow-english ;
+    skos:definition "An open specialization of QueryLossCause for limitations of a selected refiner and input scope. A reason describes that operation’s capability boundary, never an RDF 1.2 prohibition."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:localReason a gmeow:ReadingLimitReason ."@x-gmeow-english .
+
+gmeow:limitReason
+    a logic:ObjectProperty ;
+    logic:range gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "limit reason"@x-gmeow-english ;
+    skos:definition "The selected refiner limitation grouping this aggregate’s excluded records. Each referenced actual loss retains this same reason through lossCause."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:limit gmeow:limitReason gmeow:limitNoAssertionTime ."@x-gmeow-english .
+
+gmeow:limitCount
+    a logic:DatatypeProperty ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "limit count"@x-gmeow-english ;
+    skos:definition "The reported number of distinct source records excluded for this aggregate’s single reason and scope. Zero records no actual loss; the count is a source report whose exact arithmetic is not certified by the ontology."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:limit gmeow:limitCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english .
+
+gmeow:limitNoAssertionTime
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "no usable assertion time"@x-gmeow-english ;
+    skos:definition "The selected refiner could not order this record because the input supplied no usable assertion time. It does not authorize substituting a refiner clock or inventing precision."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitNoAssertionTime ."@x-gmeow-english .
+
+gmeow:limitRecordUnnameable
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "record unnameable to refiner"@x-gmeow-english ;
+    skos:definition "The selected refiner’s addressing contract could not retain a supplied blank-node record as a named record. RDF 1.2 can retain blank nodes; this is a limitation of the selected operation."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitRecordUnnameable ."@x-gmeow-english .
+
+gmeow:limitThingUnshareable
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "referent unshareable to refiner"@x-gmeow-english ;
+    skos:definition "The selected refiner could not correlate a supplied blank-node or triple-term referent across records under its addressing contract. This neither bans those RDF 1.2 terms nor proves that no relation or shared referent exists."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain this part of an explicitly scoped, attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global completeness, source-subject endorsement or a successful computation from this record."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the original source identities, supplied precision and declaring vantage; do not replace missing evidence with defaults."@x-gmeow-english ;
+    skos:example "Retain this scoped report: ex:loss gmeow:lossCause gmeow:limitThingUnshareable ."@x-gmeow-english .
+
+gmeow:limitCueSuppressed
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cue match suppressed"@x-gmeow-english ;
+    skos:definition "The selected reading reports that a cue matched words it read, but a negating cue within the declared negation scope suppressed that match from counting as cue evidence. The match and its source remain retained; suppression does not establish a negative verdict about the source subject."@x-gmeow-english ;
+    gmeow:useWhen "Use when an actual in-scope negating cue suppressed an otherwise detected match under the selected reading's declared negation rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using suppression for words the cue never read, for a failed grounding attempt, or as permission to delete the match or source."@x-gmeow-english ;
+    gmeow:howToUse "Retain the original match and the negating evidence with its declared scope and reading attribution. Use this reason on a QueryLoss through lossCause; an aggregate uses limitReason only for source records actually excluded from that selected reading."@x-gmeow-english ;
+    skos:scopeNote "This reason records a scoped suppression decision, not absence of a match. Several suppressed matches in one record do not become several excluded source records, and a retained contribution elsewhere in that record is not silently erased."@x-gmeow-english ;
+    skos:example "A reading detects an affirmation and its scoped negating cue, retains both, and reports the uncounted match. If the source record is excluded for this reason, ex:loss gmeow:lossCause gmeow:limitCueSuppressed ; gmeow:lossConcerns ex:record . identifies that record's loss rather than a match count."@x-gmeow-english .
+
+gmeow:limitCueUngrounded
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "cue match ungrounded"@x-gmeow-english ;
+    skos:definition "The selected reading reports that a cue matched words it read, but the cue's declared grounding rules did not establish the match as grounded. The detected match remains evidence of detection, not a counted cue contribution or a verdict about the person whose words were read."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected reading evaluated the declared grounding rules for a detected match and did not obtain the required grounding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an ungrounded result to conceal missing rules, an evaluation that never ran, or an execution failure; those do not establish the reported grounding outcome."@x-gmeow-english ;
+    gmeow:howToUse "Keep the detected match, the declared rule set and the supplied facts supporting the reading's reported outcome. Retain attribution independently of source authorship, and use lossCause for any actual source-record loss."@x-gmeow-english ;
+    skos:scopeNote "Non-grounding is distinct from negation suppression and speaker or field exclusion. It reports the selected rule evaluation's outcome without converting an uncounted cue into evidence that the interpreted claim is false."@x-gmeow-english ;
+    skos:example "A detected phrase lacks the record facts required by its evaluated grounding rules. The reading retains the phrase and rule outcome; ex:loss gmeow:lossCause gmeow:limitCueUngrounded ; gmeow:lossConcerns ex:record . can retain an actual excluded-record loss."@x-gmeow-english .
+
+gmeow:limitCueUnread
+    a gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "supplied words unread by cue"@x-gmeow-english ;
+    skos:definition "The selected reading was offered words that a cue it uses does not read because those words belong to another speaker or another property under the cue's declared selection. This reason records excluded reading input, not a failed match search or proof that the words contain no cue."@x-gmeow-english ;
+    gmeow:useWhen "Use when offered source words fall outside the cue's declared speaker or field selection."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating unread words as searched with no matches, as suppressed matches, or as a negative finding about their author."@x-gmeow-english ;
+    gmeow:howToUse "Retain the offered source record and the selected speaker or field restriction. Attribute the exclusion to the reading, preserve the input through scopeRecord, and attach any actual record loss through ledgerLoss with this lossCause."@x-gmeow-english ;
+    skos:scopeNote "The words remain in the offered input scope even though the selected cue does not read them. Another cue or reading may legitimately read them; this reason neither removes access nor changes their authorship."@x-gmeow-english ;
+    skos:example "A cue selected for a speaker's answer field does not read the quoted words of another speaker in a different field. If this excludes the source record from the selected reading, ex:loss gmeow:lossCause gmeow:limitCueUnread ; gmeow:lossConcerns ex:record . preserves the reason."@x-gmeow-english .
+
+gmeow:scopeRecord logic:domain gmeow:ReadingScope .
+gmeow:scopeChronology logic:domain gmeow:ReadingScope .
+gmeow:milestoneKind logic:domain gmeow:Milestone .
+gmeow:milestoneOf logic:domain gmeow:Milestone .
+gmeow:limitReason logic:domain gmeow:ReadingLimit .
+gmeow:limitCount logic:domain gmeow:ReadingLimit .
+gmeow:milestoneOf logic:subPropertyOf gmeow:wasDerivedFrom .
+gmeow:scopeChronology logic:subPropertyOf gmeow:hasReferenceFrame .
+
+
+gmeow:ReadingScope logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:scopeChronology ; logic:allValuesFrom gmeow:TemporalFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingScope ; logic:closureKey "https://blackcatinformatics.ca/gmeow/scopeChronology" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:FirstOccurrence logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationAt ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationPredicate" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationVault" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:FirstOccurrence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RelationOccasion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationAt ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationPredicate" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationVault" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RelationOccasion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:Milestone logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:milestoneKind ; logic:allValuesFrom gmeow:MilestoneKind ],
+    [ a logic:Restriction ; logic:onProperty gmeow:milestoneOf ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Milestone ; logic:closureKey "https://blackcatinformatics.ca/gmeow/milestoneKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Milestone ; logic:closureKey "https://blackcatinformatics.ca/gmeow/milestoneOf" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Milestone ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReadingLimit logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:allValuesFrom logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:limitReason ; logic:allValuesFrom gmeow:ReadingLimitReason ],
+    [ a logic:Restriction ; logic:onProperty gmeow:limitCount ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationPredicate" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relationVault" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/limitReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/limitCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ReadingLimit ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReadingSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "reading source scope constraint"@x-gmeow-english ;
+    skos:definition "Every source observed by a first-occurrence or relation-occasion reading belongs to each explicitly declared reading scope of that reading."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:ReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."@x-gmeow-english ;
+    logic:formalizes gmeow:readingScope ;
+    logic:message "Every source observed by a first-occurrence or relation-occasion reading belongs to each explicitly declared reading scope of that reading." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:or [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FirstOccurrence ] ], [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RelationOccasion ] ] ], [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ] ], [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:LimitMemberScopeCauseConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "limit member scope and cause constraint"@x-gmeow-english ;
+    skos:definition "Each actual loss included in a reading-limit aggregate retains its aggregate reason and concerns a record offered in the declared input scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:LimitMemberScopeCauseConstraint logic:formalizes gmeow:ledgerLoss ."@x-gmeow-english ;
+    logic:formalizes gmeow:ledgerLoss ;
+    logic:message "Each actual loss included in a reading-limit aggregate retains its aggregate reason and concerns a record offered in the declared input scope." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "loss" ], [ logic:termIndex 2 ; logic:termVariable "scope" ], [ logic:termIndex 3 ; logic:termVariable "reason" ], [ logic:termIndex 4 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReadingLimit ] ], [ a logic:Formula ; logic:relation gmeow:ledgerLoss ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ], [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ] ], [ a logic:Formula ; logic:relation gmeow:limitReason ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ], [ a logic:Formula ; logic:relation gmeow:lossConcerns ; logic:argument [ logic:termIndex 0 ; logic:termVariable "loss" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:lossCause ; logic:argument [ logic:termIndex 0 ; logic:termVariable "loss" ], [ logic:termIndex 1 ; logic:termVariable "reason" ] ], [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ], [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] ] .
+
+gmeow:ZeroReadingLimitEmptyConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "zero reading limit empty constraint"@x-gmeow-english ;
+    skos:definition "A reading-limit aggregate reporting zero excluded records contains no actual ledgerLoss member. It remains an aggregate report rather than a fabricated loss."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:ZeroReadingLimitEmptyConstraint logic:formalizes gmeow:limitCount ."@x-gmeow-english ;
+    logic:formalizes gmeow:limitCount ;
+    logic:message "A reading-limit aggregate reporting zero excluded records contains no actual ledgerLoss member. It remains an aggregate report rather than a fabricated loss." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReadingLimit ] ], [ a logic:Formula ; logic:relation gmeow:limitCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ], [ a logic:Formula ; logic:relation logic:termLessEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ], [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "loss" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:ledgerLoss ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ] ] ] ] ] .
+
+gmeow:PositiveReadingLimitEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "positive reading limit evidence constraint"@x-gmeow-english ;
+    skos:definition "A reading-limit aggregate reporting a positive excluded-record count retains actual loss evidence rather than silently omitting all excluded records. Exact count arithmetic remains the reporting refiner’s responsibility."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:PositiveReadingLimitEvidenceConstraint logic:formalizes gmeow:limitCount ."@x-gmeow-english ;
+    logic:formalizes gmeow:limitCount ;
+    logic:message "A reading-limit aggregate reporting a positive excluded-record count retains actual loss evidence rather than silently omitting all excluded records. Exact count arithmetic remains the reporting refiner’s responsibility." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ReadingLimit ] ], [ a logic:Formula ; logic:relation gmeow:limitCount ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "count" ] ], [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ], [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "loss" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:ledgerLoss ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "loss" ] ] ] ] ] .
+
+gmeow:ReadingScope logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:scopeChronology ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ] .
+
+gmeow:FirstOccurrence logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationAt ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+
+gmeow:RelationOccasion logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationAt ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:dateTime xsd:date xsd:gYearMonth xsd:gYear ) ] ] .
+
+gmeow:ReadingLimit logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationPredicate ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:relationVault ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:limitReason ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass logic:Thing ],
+    [ a logic:Restriction ; logic:onProperty gmeow:limitCount ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:nonNegativeInteger ] .
+
+gmeow:FirstOccurrenceReferentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "first-occurrence referent presence constraint"@x-gmeow-english ;
+    skos:definition "Each first-occurrence reading supplies a related resource or an original source name, without inventing identity from the name."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:FirstOccurrenceReferentConstraint logic:formalizes gmeow:FirstOccurrence ."@x-gmeow-english ;
+    logic:formalizes gmeow:FirstOccurrence ;
+    logic:message "Each first-occurrence reading supplies a related resource or an original source name, without inventing identity from the name." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:FirstOccurrence ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "referent" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:relatedThing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "referent" ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "name" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:relatedName ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "name" ] ] ] ] ] ] .
+
+gmeow:RelationOccasionReferentConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "relation-occasion referent presence constraint"@x-gmeow-english ;
+    skos:definition "Each relation-occasion reading supplies a related resource or an original source name, without inventing identity from the name."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:RelationOccasionReferentConstraint logic:formalizes gmeow:RelationOccasion ."@x-gmeow-english ;
+    logic:formalizes gmeow:RelationOccasion ;
+    logic:message "Each relation-occasion reading supplies a related resource or an original source name, without inventing identity from the name." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:RelationOccasion ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "referent" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:relatedThing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "referent" ] ] ], [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "name" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:relatedName ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "name" ] ] ] ] ] ] .
+
+gmeow:RelationPredicateIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "relation predicate IRI constraint"@x-gmeow-english ;
+    skos:definition "Every supplied relationPredicate value is an actual IRI, including on subjects without a reading type."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:RelationPredicateIriConstraint logic:formalizes gmeow:relationPredicate ."@x-gmeow-english ;
+    logic:formalizes gmeow:relationPredicate ;
+    logic:message "Every supplied relationPredicate value is an actual IRI, including on subjects without a reading type." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:relationPredicate ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+gmeow:RelatedThingIriConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "related thing IRI constraint"@x-gmeow-english ;
+    skos:definition "Every supplied relatedThing value is an actual IRI, never a fabricated lexical replacement for an unnameable source term, including on untyped subjects."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the intrinsic consistency of the supplied scoped record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this consistency law as certification of source completeness, firstness or refiner execution."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula against the named report and preserve the original evidence when diagnosing a violation."@x-gmeow-english ;
+    skos:example "Retain the governing law: gmeow:RelatedThingIriConstraint logic:formalizes gmeow:relatedThing ."@x-gmeow-english ;
+    logic:formalizes gmeow:relatedThing ;
+    logic:message "Every supplied relatedThing value is an actual IRI, never a fabricated lexical replacement for an unnameable source term, including on untyped subjects." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:relatedThing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation logic:termIsIri ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ] ] ] ] .
+
+# Scoped process-state readings.
+
+gmeow:OpenItemReading
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Open Item Reading"@x-gmeow-english ;
+    skos:definition "A versioned process’s reading of a request or question awaiting an agent, limited to explicitly offered records. An open reading reports no linked settling act in that scope, never that the matter is unsettled in reality."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading a gmeow:OpenItemReading ."@x-gmeow-english .
+
+gmeow:OpenItemKind
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Open Item Kind"@x-gmeow-english ;
+    skos:definition "An open vocabulary classifying the source item read as awaiting an agent. Request and question are seeded values, not subclasses or assertions that a request lifecycle was executed."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:kind a gmeow:OpenItemKind ."@x-gmeow-english .
+
+gmeow:OpenItemState
+    a logic:Class, logic:AbstractIndividualType ;
+    logic:subClassOf logic:QualityValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Open Item State"@x-gmeow-english ;
+    skos:definition "An open vocabulary for the refiner’s scoped reading of an item’s linked response or settlement. Missing state remains unknown; changing state creates a new reading rather than editing its source."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:state a gmeow:OpenItemState ."@x-gmeow-english .
+
+gmeow:openItemRequest
+    a gmeow:OpenItemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "request item"@x-gmeow-english ;
+    skos:definition "The source is read as a request made of the awaited agent. This reading is distinct from the request act and any AttentionRequest lifecycle."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemKind gmeow:openItemRequest ."@x-gmeow-english .
+
+gmeow:openItemQuestion
+    a gmeow:OpenItemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "question item"@x-gmeow-english ;
+    skos:definition "The source is read as a question posed by an agent and awaiting further action. The reading does not itself assert answerhood or knowledge."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemKind gmeow:openItemQuestion ."@x-gmeow-english .
+
+gmeow:openItemOpen
+    a gmeow:OpenItemState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "open item"@x-gmeow-english ;
+    skos:definition "No settling act or reply is linked in the records read. This scoped absence is neither a global absence nor a claim that no action occurred."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemOpen ."@x-gmeow-english .
+
+gmeow:openItemReplied
+    a gmeow:OpenItemState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "replied item"@x-gmeow-english ;
+    skos:definition "A reply is linked in the records read, without a linked settling act. A reply alone is not interpreted as settlement."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemReplied ."@x-gmeow-english .
+
+gmeow:openItemSettled
+    a gmeow:OpenItemState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "settled item"@x-gmeow-english ;
+    skos:definition "A settling act is linked in the records read and retained through settledBy. The reading does not endorse an answer or certify success beyond that scope."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemSettled ."@x-gmeow-english .
+
+gmeow:openItemLetGo
+    a gmeow:OpenItemState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "item let go"@x-gmeow-english ;
+    skos:definition "The records read support the refiner’s reading that the agent let the item go. Letting go is distinct from answering or settling it."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemState gmeow:openItemLetGo ."@x-gmeow-english .
+
+gmeow:openItemKind
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenItemReading ;
+    logic:range gmeow:OpenItemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "open item kind"@x-gmeow-english ;
+    skos:definition "The attributed classification of the item’s source as a request, question or another explicitly declared kind."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemKind ex:value ."@x-gmeow-english .
+
+gmeow:openItemState
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenItemReading ;
+    logic:range gmeow:OpenItemState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "open item state"@x-gmeow-english ;
+    skos:definition "The explicitly reported state of this scoped reading. No state is inferred from an absent value, a clock or a missing reply."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemState ex:value ."@x-gmeow-english .
+
+gmeow:openItemAgent
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenItemReading ;
+    logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "awaited item agent"@x-gmeow-english ;
+    skos:definition "The Agent whose action the source item is read as awaiting, distinct from the versioned refiner named by vantage."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemAgent ex:value ."@x-gmeow-english .
+
+gmeow:settledBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:OpenItemReading ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "item settling record"@x-gmeow-english ;
+    skos:definition "The original record of an act read as settling this item. It is source evidence for the reading, not an unqualified assertion of real-world settlement."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:settledBy ex:value ."@x-gmeow-english .
+
+gmeow:recurrenceMember
+    a logic:ObjectProperty ;
+    logic:domain gmeow:RecurrenceReading ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recurrence member"@x-gmeow-english ;
+    skos:definition "An exact source record counted in this recurrence reading. Each retained identity contributes once to the membership set; a count says nothing about motive."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:recurrenceMember ex:value ."@x-gmeow-english .
+
+gmeow:recurrenceSettledBy
+    a logic:ObjectProperty ;
+    logic:domain gmeow:RecurrenceReading ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "recurrence settling boundary"@x-gmeow-english ;
+    skos:definition "The source record of the settling act used as the boundary beginning this recurrence segment. An absent boundary means none was supplied, not that settlement never occurred."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:recurrenceSettledBy ex:value ."@x-gmeow-english .
+
+gmeow:habitActivity
+    a logic:ObjectProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range logic:Thing ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "habit activity designation"@x-gmeow-english ;
+    skos:definition "The source-identified activity or activity description being counted. This designation does not turn an activity category into an individual Activity occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitActivity ex:value ."@x-gmeow-english .
+
+gmeow:habitDayPart
+    a logic:ObjectProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range gmeow:DayPart ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "habit day part"@x-gmeow-english ;
+    skos:definition "The DayPart used by the figure’s explicitly bound holder within its temporal frame. The value supplies no universal hour boundaries."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitDayPart ex:value ."@x-gmeow-english .
+
+gmeow:habitMember
+    a logic:ObjectProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "habit counted act"@x-gmeow-english ;
+    skos:definition "An actual Activity occurrence retained as evidence for this figure. Membership does not identify a preferred activity or define how occasions were grouped into counts."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitMember ex:value ."@x-gmeow-english .
+
+gmeow:habitHolder
+    a logic:ObjectProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "day-part reckoning holder"@x-gmeow-english ;
+    skos:definition "The Agent whose reckoning supplies this figure’s day-part boundaries, distinct from the refiner’s vantage and without privileging a universal schedule."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitHolder ex:value ."@x-gmeow-english .
+
+gmeow:habitTemporalFrame
+    a logic:ObjectProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range gmeow:TemporalFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "habit temporal frame"@x-gmeow-english ;
+    skos:definition "The actual TemporalFrame in which the holder’s day-part reckoning is interpreted for this figure. It inherits the reference-frame spine without assigning fixed hours to a DayPart."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitTemporalFrame ex:value ."@x-gmeow-english .
+
+gmeow:openItemAt
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:OpenItemReading ;
+    logic:range xsd:dateTime ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "source opening time"@x-gmeow-english ;
+    skos:definition "The original holder-supplied date-time of the record that opened this item. It is not the refiner’s observation clock and supplies no invented timezone or precision."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:openItemAt \"2026-10-01T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english .
+
+gmeow:RecurrenceReading
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Recurrence Reading"@x-gmeow-english ;
+    skos:definition "A versioned process’s reading of repeated appearances of one related resource within offered records and an optional supplied settling boundary. It asserts no motive, preference or global absence of settlement."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading a gmeow:RecurrenceReading ."@x-gmeow-english .
+
+gmeow:HabitFigure
+    a logic:Class, logic:SubKind ;
+    logic:subClassOf gmeow:Refinement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Habit Figure"@x-gmeow-english ;
+    skos:definition "A versioned process’s reported activity counts over offered acts, under a named holder’s day-part reckoning and temporal frame. The figure is neither a preference judgment nor a diagnosis of habit."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading a gmeow:HabitFigure ."@x-gmeow-english .
+
+gmeow:habitChosenCount
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported chosen count"@x-gmeow-english ;
+    skos:definition "The source-reported nonnegative count of choices for the selected activity in this figure’s scope. Its denominator and grouping belong to the consumer’s declared reporting method, not to an implicit inequality."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitChosenCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english .
+
+gmeow:habitSituationCount
+    a logic:DatatypeProperty ;
+    logic:domain gmeow:HabitFigure ;
+    logic:range xsd:nonNegativeInteger ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reported situation count"@x-gmeow-english ;
+    skos:definition "The source-reported nonnegative count of situations considered for this figure. It does not define a denominator relationship to habitChosenCount or imply which situations were eligible."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicitly scoped process reading with retained source evidence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring global absence, preference, diagnosis or source-subject endorsement from a process reading."@x-gmeow-english ;
+    gmeow:howToUse "Retain the source, readingScope and versioned vantage; report supplied values without defaults and preserve earlier readings."@x-gmeow-english ;
+    skos:example "Retain this attributed record: ex:reading gmeow:habitSituationCount \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english .
+
+# State readings inherit observations and specialize actual evidence/frame spines.
+
+gmeow:settledBy logic:subPropertyOf gmeow:wasDerivedFrom .
+gmeow:recurrenceMember logic:subPropertyOf gmeow:wasDerivedFrom .
+gmeow:recurrenceSettledBy logic:subPropertyOf gmeow:wasDerivedFrom .
+gmeow:habitMember logic:subPropertyOf gmeow:wasDerivedFrom .
+gmeow:habitTemporalFrame logic:subPropertyOf gmeow:hasReferenceFrame .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:allValuesFrom gmeow:RefinementOutcome ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refinementOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReadingScope ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecurrenceReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecurrenceReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecurrenceReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:allValuesFrom gmeow:RefinementOutcome ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecurrenceReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refinementOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReadingScope ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:allValuesFrom gmeow:ReadingScope ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/readingScope" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Entity ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:refinementOutcome ; logic:allValuesFrom gmeow:RefinementOutcome ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/refinementOutcome" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:readingScope ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReadingScope ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemKind ; logic:allValuesFrom gmeow:OpenItemKind ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/openItemKind" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemState ; logic:allValuesFrom gmeow:OpenItemState ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/openItemState" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemAgent ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/openItemAgent" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemAt ; logic:allValuesFrom xsd:dateTime ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:OpenItemReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/openItemAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemKind ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:OpenItemKind ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemState ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:OpenItemState ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemAgent ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:openItemAt ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:dateTime ] .
+gmeow:OpenItemReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:settledBy ; logic:allValuesFrom logic:Thing ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:relatedThing ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RecurrenceReading ; logic:closureKey "https://blackcatinformatics.ca/gmeow/relatedThing" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:relatedThing ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recurrenceSettledBy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recurrenceMember ; logic:allValuesFrom logic:Thing ] .
+gmeow:RecurrenceReading logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:recurrenceSettledBy ; logic:allValuesFrom logic:Thing ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitActivity ; logic:allValuesFrom logic:Thing ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitActivity" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitDayPart ; logic:allValuesFrom gmeow:DayPart ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitDayPart" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitHolder ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitHolder" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitTemporalFrame ; logic:allValuesFrom gmeow:TemporalFrame ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitTemporalFrame" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitChosenCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitChosenCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitSituationCount ; logic:allValuesFrom xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:HabitFigure ; logic:closureKey "https://blackcatinformatics.ca/gmeow/habitSituationCount" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitActivity ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitDayPart ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:DayPart ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitHolder ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Agent ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitTemporalFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:TemporalFrame ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitChosenCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitSituationCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+gmeow:HabitFigure logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:habitMember ; logic:allValuesFrom gmeow:Activity ] .
+
+gmeow:SettledItemEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "settled item evidence constraint"@x-gmeow-english ;
+    skos:definition "A reading explicitly marked openItemSettled retains at least one original settling record. The law certifies supplied evidence presence, not real-world resolution."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:SettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."@x-gmeow-english ;
+    logic:formalizes gmeow:OpenItemReading ;
+    logic:message "A reading explicitly marked openItemSettled retains at least one original settling record. The law certifies supplied evidence presence, not real-world resolution." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:OpenItemReading ] ],
+                [ a logic:Formula ; logic:relation gmeow:openItemState ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:openItemSettled ] ] ] ;
+            logic:consequent [ a logic:Formula ;
+                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ;
+                logic:exists [ a logic:Formula ; logic:relation gmeow:settledBy ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] ] .
+
+gmeow:UnsettledItemEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "unsettled item evidence constraint"@x-gmeow-english ;
+    skos:definition "Readings explicitly marked open, replied or let go contain no settledBy record. Other declared state values remain open to their own semantics."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:UnsettledItemEvidenceConstraint logic:formalizes gmeow:OpenItemReading ."@x-gmeow-english ;
+    logic:formalizes gmeow:OpenItemReading ;
+    logic:message "Readings explicitly marked open, replied or let go contain no settledBy record. Other declared state values remain open to their own semantics." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:OpenItemReading ] ],
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation gmeow:openItemState ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:openItemOpen ] ],
+                    [ a logic:Formula ; logic:relation gmeow:openItemState ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:openItemReplied ] ],
+                    [ a logic:Formula ; logic:relation gmeow:openItemState ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:openItemLetGo ] ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ;
+                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "record" ] ;
+                    logic:exists [ a logic:Formula ; logic:relation gmeow:settledBy ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] ] ] .
+
+gmeow:StateReadingSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "state reading source scope constraint"@x-gmeow-english ;
+    skos:definition "Every source observed by an open-item, recurrence or habit reading belongs to that reading’s declared offered-record scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:StateReadingSourceScopeConstraint logic:formalizes gmeow:readingScope ."@x-gmeow-english ;
+    logic:formalizes gmeow:readingScope ;
+    logic:message "Every source observed by an open-item, recurrence or habit reading belongs to that reading’s declared offered-record scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:OpenItemReading ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:RecurrenceReading ] ],
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                            [ logic:termIndex 1 ; logic:termIri gmeow:HabitFigure ] ] ],
+                [ a logic:Formula ; logic:relation gmeow:readingScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "scope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:observedFeature ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ],
+                    [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:ItemSettlingScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "item settling scope constraint"@x-gmeow-english ;
+    skos:definition "Every settling record cited by an open-item reading belongs to its offered-record scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:ItemSettlingScopeConstraint logic:formalizes gmeow:settledBy ."@x-gmeow-english ;
+    logic:formalizes gmeow:settledBy ;
+    logic:message "Every settling record cited by an open-item reading belongs to its offered-record scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:OpenItemReading ] ],
+                [ a logic:Formula ; logic:relation gmeow:readingScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "scope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:settledBy ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ],
+                    [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:RecurrenceMemberScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recurrence member scope constraint"@x-gmeow-english ;
+    skos:definition "Every counted recurrence record belongs to the reading’s explicitly offered-record scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:RecurrenceMemberScopeConstraint logic:formalizes gmeow:recurrenceMember ."@x-gmeow-english ;
+    logic:formalizes gmeow:recurrenceMember ;
+    logic:message "Every counted recurrence record belongs to the reading’s explicitly offered-record scope." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:RecurrenceReading ] ],
+                [ a logic:Formula ; logic:relation gmeow:readingScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "scope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:recurrenceMember ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ],
+                    [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:RecurrenceBoundaryScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "recurrence boundary scope constraint"@x-gmeow-english ;
+    skos:definition "A supplied recurrence settling boundary is retained among the records offered to that reading; no boundary is manufactured when none was supplied."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:RecurrenceBoundaryScopeConstraint logic:formalizes gmeow:recurrenceSettledBy ."@x-gmeow-english ;
+    logic:formalizes gmeow:recurrenceSettledBy ;
+    logic:message "A supplied recurrence settling boundary is retained among the records offered to that reading; no boundary is manufactured when none was supplied." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:RecurrenceReading ] ],
+                [ a logic:Formula ; logic:relation gmeow:readingScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "scope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:recurrenceSettledBy ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ],
+                    [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:HabitMemberScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "habit member scope constraint"@x-gmeow-english ;
+    skos:definition "Every act retained as habit-figure evidence belongs to the offered-record scope. Membership alone imposes no count equality or denominator inequality."@x-gmeow-english ;
+    gmeow:useWhen "Use to check intrinsic state or evidence consistency within an attributed reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this law as proof of global absence, successful settlement or statistical correctness."@x-gmeow-english ;
+    gmeow:howToUse "Read the realized formula with the source scope and retain original evidence when reporting a violation."@x-gmeow-english ;
+    skos:example "Retain this governing law: gmeow:HabitMemberScopeConstraint logic:formalizes gmeow:habitMember ."@x-gmeow-english ;
+    logic:formalizes gmeow:habitMember ;
+    logic:message "Every act retained as habit-figure evidence belongs to the offered-record scope. Membership alone imposes no count equality or denominator inequality." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "scope" ], [ logic:termIndex 2 ; logic:termVariable "record" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termIri gmeow:HabitFigure ] ],
+                [ a logic:Formula ; logic:relation gmeow:readingScope ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "scope" ] ],
+                [ a logic:Formula ; logic:relation gmeow:habitMember ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
+                        [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ;
+            logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ],
+                    [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+# Reviewed reading parameters and reported textual measurements.
+gmeow:limitUnrecordedSource
+    a logic:NamedIndividual , gmeow:ReadingLimitReason ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "unrecorded source"@x-gmeow-english ;
+    skos:definition "The selected reader lacks recorded source attribution for the words, so it cannot determine whether they repeat outside words the holder was told. This is a scoped reading limitation, not proof of originality."@x-gmeow-english ;
+    gmeow:useWhen "Use when missing source attribution prevents the selected restatement reading."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating no recorded source as proof that the words were independently authored."@x-gmeow-english ;
+    gmeow:howToUse "Retain actually excluded source records as QueryLoss instances under the existing ReadingLimit scope and count contract."@x-gmeow-english ;
+    skos:scopeNote "A missing attribution does not invent a source, reject the words or silently establish a negative restatement verdict."@x-gmeow-english ;
+    skos:example "ex:limit gmeow:limitReason gmeow:limitUnrecordedSource ."@x-gmeow-english .
+
+gmeow:foundNothing
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "found nothing"@x-gmeow-english ;
+    skos:definition "An explicit report that a selected completed refinement read its declared input scope and produced no selected reading; the nonnegative integer counts distinct declared input records, not repeated visits."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish a completed empty reading from a computation that did not run."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving completion or global absence from missing results, missing data or a failed operation."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Refinement's scope, exact input evidence, versioned vantage, generating activity and explicit unresolved outcome."@x-gmeow-english ;
+    skos:scopeNote "Two-way scope/evidence laws and COUNT DISTINCT check the reported input count, including an explicit zero-row presence contract. They do not execute the computation or authenticate its completion."@x-gmeow-english ;
+    skos:example "ex:emptyReading gmeow:foundNothing \"1\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:domain gmeow:Refinement ; logic:range xsd:nonNegativeInteger .
+
+
+# Intrinsic reading contracts; no lexical or execution computation.
+gmeow:FoundNothingReportConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing report constraint"@x-gmeow-english ;
+    skos:definition "Every foundNothing report is an explicit Refinement over its own ReadingScope with the same observed scope, declared reader, generating Activity, reader association, supplied event time and unresolved outcome, and no selected observationResult."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "These are explicit completion and no-output claims with retained evidence, not authenticated execution, a failure fallback or global absence."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingReportConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "Every foundNothing report is an explicit Refinement over its own ReadingScope with the same observed scope, declared reader, generating Activity, reader association, supplied event time and unresolved outcome, and no selected observationResult."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] , [ logic:termIndex 2 ; logic:termVariable "activity" ] , [ logic:termIndex 3 ; logic:termVariable "instant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Refinement ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ReadingScope ] ] , [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "reader" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] , [ a logic:Formula ; logic:relation gmeow:wasGeneratedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] ] , [ a logic:Formula ; logic:relation gmeow:used ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Activity ] ] , [ a logic:Formula ; logic:relation gmeow:wasAssociatedWith ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation gmeow:eventTime ; logic:argument [ logic:termIndex 0 ; logic:termVariable "activity" ] , [ logic:termIndex 1 ; logic:termVariable "instant" ] ] , [ a logic:Formula ; logic:relation gmeow:refinementOutcome ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:refinementUnresolved ] ] , [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "absentValue" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "absentValue" ] ] ] ] ] ] ] ] .
+
+gmeow:FoundNothingInputEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing input evidence constraint"@x-gmeow-english ;
+    skos:definition "Every source record in a foundNothing report's scope retains its exact RDF identity as the report's own derivation evidence, including supplied blank nodes or triple terms."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The law preserves the declared input roster; it neither discovers missing inputs nor proves that an activity read them."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingInputEvidenceConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "Every source record in a foundNothing report's scope retains its exact RDF identity as the report's own derivation evidence, including supplied blank nodes or triple terms."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] , [ logic:termIndex 2 ; logic:termVariable "scope" ] , [ logic:termIndex 3 ; logic:termVariable "record" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:FoundNothingEvidenceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing evidence scope constraint"@x-gmeow-english ;
+    skos:definition "Every wasDerivedFrom source on a foundNothing report is a member of its own declared input scope."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Additional rule or execution provenance belongs on the generating activity, without contaminating the report's exact input evidence roster."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingEvidenceScopeConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "Every wasDerivedFrom source on a foundNothing report is a member of its own declared input scope."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] , [ logic:termIndex 2 ; logic:termVariable "scope" ] , [ logic:termIndex 3 ; logic:termVariable "record" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "record" ] ] ] ] .
+
+gmeow:FoundNothingCountEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing count evidence constraint"@x-gmeow-english ;
+    skos:definition "A zero foundNothing count has no scoped input records; a positive count retains at least one scoped input record."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "Zero/positive evidence closes empty aggregate groups. The separate COUNT DISTINCT law checks exact cardinality against the same retained input roster."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingCountEvidenceConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "A zero foundNothing count has no scoped input records; a positive count retains at least one scoped input record."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] , [ logic:termIndex 2 ; logic:termVariable "scope" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] ] ; logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] ] ; logic:consequent [ a logic:Formula ; logic:not [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "zeroInput" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "zeroInput" ] ] ] ] ] , [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation logic:termGreater ; logic:argument [ logic:termIndex 0 ; logic:termVariable "count" ] , [ logic:termIndex 1 ; logic:termLiteral "0" ; logic:termLiteralDatatype xsd:integer ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "positiveInput" ] ; logic:exists [ a logic:Formula ; logic:relation gmeow:scopeRecord ; logic:argument [ logic:termIndex 0 ; logic:termVariable "scope" ] , [ logic:termIndex 1 ; logic:termVariable "positiveInput" ] ] ] ] ] ] ] .
+
+gmeow:FoundNothingFieldUniquenessConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing field uniqueness constraint"@x-gmeow-english ;
+    skos:definition "A foundNothing report has one count, input scope, vantage and generating activity; independent executions or vantages retain distinct reports."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "The conditional uniqueness law applies only to explicit foundNothing reports, not to all observations or provenance relationships."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingFieldUniquenessConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "A foundNothing report has one count, input scope, vantage and generating activity; independent executions or vantages retain distinct reports."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "count" ] ] , [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termIri gmeow:foundNothing ] , [ logic:termIndex 2 ; logic:termIri gmeow:readingScope ] , [ logic:termIndex 3 ; logic:termIri gmeow:vantage ] , [ logic:termIndex 4 ; logic:termIri gmeow:wasGeneratedBy ] ] , [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] ] ] .
+
+gmeow:FoundNothingReportIdentityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing report identity constraint"@x-gmeow-english ;
+    skos:definition "The same generating activity, input scope and reader identify one foundNothing report; a later execution has its own activity and report."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the declared binding or numeric boundary on its own supplied reading record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this intrinsic law as an executed reader, authenticated receipt or digest verification."@x-gmeow-english ;
+    gmeow:howToUse "Retain actual source values and evaluate the canonical law in the selected interpretation."@x-gmeow-english ;
+    skos:scopeNote "This prevents duplicate reports for one selected computation without collapsing reports from different executions or readers."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingReportIdentityConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "The same generating activity, input scope and reader identify one foundNothing report; a later execution has its own activity and report."@x-gmeow-english ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] , [ logic:termIndex 2 ; logic:termVariable "leftCount" ] , [ logic:termIndex 3 ; logic:termVariable "rightCount" ] , [ logic:termIndex 4 ; logic:termVariable "scope" ] , [ logic:termIndex 5 ; logic:termVariable "reader" ] , [ logic:termIndex 6 ; logic:termVariable "activity" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "leftCount" ] ] , [ a logic:Formula ; logic:relation gmeow:foundNothing ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "rightCount" ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation gmeow:readingScope ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "scope" ] ] , [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "reader" ] ] , [ a logic:Formula ; logic:relation gmeow:wasGeneratedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] ] , [ a logic:Formula ; logic:relation gmeow:wasGeneratedBy ; logic:argument [ logic:termIndex 0 ; logic:termVariable "other" ] , [ logic:termIndex 1 ; logic:termVariable "activity" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "other" ] ] ] ] .
+
+
+
+gmeow:FoundNothingExactCountConstraint
+    a logic:AggregateConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/refinement-readings> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Found-nothing exact input count constraint"@x-gmeow-english ;
+    skos:definition "The foundNothing value equals the number of distinct wasDerivedFrom input records retained on that report; two-way scope/evidence laws bind precisely the same declared scope roster."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the reported count against its own distinct retained RDF terms."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid counting neighboring reports, repeated visits or decoded literal values."@x-gmeow-english ;
+    gmeow:howToUse "Retain the binding and empty-group evidence laws alongside this aggregate."@x-gmeow-english ;
+    skos:scopeNote "The positive-input triple creates aggregate groups; the separate zero/positive evidence law covers the empty group. Repeated visits do not increase a distinct-record count."@x-gmeow-english ;
+    skos:example "gmeow:FoundNothingExactCountConstraint logic:formalizes gmeow:foundNothing ."@x-gmeow-english ;
+    logic:formalizes gmeow:foundNothing ; logic:message "The foundNothing value equals the number of distinct wasDerivedFrom input records retained on that report; two-way scope/evidence laws bind precisely the same declared scope roster."@x-gmeow-english ;
+    logic:onClass gmeow:Refinement ; logic:aggFunction "COUNT" ; logic:aggDistinct true ; logic:aggPath gmeow:wasDerivedFrom ; logic:aggComparator "=" ; logic:aggCompareTo gmeow:foundNothing .
+
+
+# Explicit range reading does not require fields on unrelated records.
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/foundNothing" ; logic:closureValue logic:ClosedWorldClosure ] .

@@ -795,7 +795,7 @@ fn assessment_artifacts_inner(
         score_slices_with_rubric_timed(repo_root, &dirs, &rubric, catalog_bytes, &grounding);
     let mut slice_timings = Vec::with_capacity(scored.len());
     // The per-slice blocks are accumulated first because the corpus header carries a
-    // digest OVER them (`report::corpus_content_digest`): the header cannot be written
+    // digest OVER them (`report::corpus_record_fingerprint`): the header cannot be written
     // until every grade it attests is known.
     let mut blocks = String::new();
     let mut assessments: Vec<crate::model::SliceAssessment> = Vec::new();
@@ -819,7 +819,7 @@ fn assessment_artifacts_inner(
     // `read::read_recorded_corpus_bytes`, which refuse a record failing either witness.
     let mut nquads = report::corpus_fingerprint_nquads(
         &scored_input_fingerprint(repo_root)?,
-        &report::corpus_content_digest(&assessments),
+        &report::corpus_record_fingerprint(&assessments),
     );
     nquads.push_str(&blocks);
     Ok(AssessmentArtifacts {

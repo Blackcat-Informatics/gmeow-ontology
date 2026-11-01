@@ -71,7 +71,8 @@ fn fixed_policy_emits_source_and_root_suppresses_imports_through_the_fold() {
         "application/json",
         blob,
     );
-    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle));
+    let product = StageProduct::from_bundle("stage-source-load", Arc::new(bundle))
+        .expect("the stage carrier digests");
     let folded = product
         .span_index()
         .expect("read span table back from the fold");

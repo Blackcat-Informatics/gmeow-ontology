@@ -17,6 +17,8 @@
 //! This cache never substitutes for the raw GTS frame/profile audit. Callers retain and
 //! independently grade the original bytes where header/blob/compression semantics matter.
 
+mod action_payload_json;
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
@@ -164,12 +166,12 @@ pub struct BundleFixtureSelector {
     pub corpus_artifacts: BTreeMap<String, CorpusArtifactPublication>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug)]
 struct TestFixtureSelectorEnvelope {
     bundle_import: BundleFixtureSelector,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct CorpusArtifactPayload {
     schema_version: u32,
     name: String,

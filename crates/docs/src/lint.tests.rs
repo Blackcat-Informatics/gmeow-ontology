@@ -276,7 +276,7 @@ fn fully_covered_terms_emit_no_coverage_warnings() {
             terms_referenced: vec![curie.clone()],
             expected_outcome: None,
             violation_code: None,
-            rationale: None,
+            rationales: Vec::new(),
             catalog_slug: None,
         });
         model.fixtures.push(DocFixture {
@@ -288,7 +288,7 @@ fn fully_covered_terms_emit_no_coverage_warnings() {
             terms_referenced: vec![curie.clone()],
             expected_outcome: None,
             violation_code: None,
-            rationale: None,
+            rationales: Vec::new(),
             catalog_slug: None,
         });
         model.examples.push(DocExample {

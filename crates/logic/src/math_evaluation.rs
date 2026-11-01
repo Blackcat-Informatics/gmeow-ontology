@@ -418,11 +418,56 @@ fn validate_quantity_result(
     Ok(())
 }
 
+fn encode_identity(
+    root: &str,
+    bindings: &BTreeMap<String, String>,
+    premises: &[Formula],
+    calls: &[Formula],
+    context: &EvaluationContext,
+) -> gmeow_errors::Result<Vec<u8>> {
+    use gmeow_errors::DiagKind;
+    use purrdf_lex::json::{Format, Value, record::ToJson};
+
+    let mut fields = vec![
+        PROFILE.to_json(),
+        root.to_json(),
+        bindings.to_json(),
+        premises.to_json(),
+        calls.to_json(),
+    ];
+    if !context.identity.is_empty()
+        || !context.premises.is_empty()
+        || !context.quantity_classes.is_empty()
+    {
+        fields.extend([
+            context.identity.to_json(),
+            context.premises.to_json(),
+            context.quantity_classes.to_json(),
+        ]);
+    }
+    let mut resident = purrdf_lex::allocation::Resident;
+    let mut memory = purrdf_lex::allocation::Memory::new(&mut resident);
+    purrdf_lex::json::write_with_memory(&Value::Array(fields), Format::COMPACT, &mut memory)
+        .map(String::into_bytes)
+        .map_err(|error| {
+            let kind = crate::error::Result::new(format!("{PROFILE}: {error}"));
+            let mut diagnostic =
+                gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                    .with_source(error)
+                    .with_context(format!("encode {PROFILE} result identity"));
+            if let Some(class) = kind.failure_class() {
+                diagnostic = diagnostic.with_failure_class(class);
+            }
+            diagnostic
+        })
+}
+
 /// Prepare the explicitly selected exact-scalar profile without executing it.
 ///
 /// # Errors
 /// Rejects malformed ASTs, binding ambiguity, unsupported dimensions or values,
 /// division by zero, and nonterminating decimal quotients. It never rounds.
+/// Retains native storage failures when encoding the result identity.
 pub fn prepare(
     dataset: &RdfDataset,
     root: &str,
@@ -449,25 +494,7 @@ pub fn prepare(
             "unused binding: every selected symbol must occur in the root expression",
         ));
     }
-    let identity = if context.identity.is_empty()
-        && context.premises.is_empty()
-        && context.quantity_classes.is_empty()
-    {
-        serde_json::to_vec(&(PROFILE, root, bindings, &lowering.premises, &lowering.calls))
-            .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
-    } else {
-        serde_json::to_vec(&(
-            PROFILE,
-            root,
-            bindings,
-            &lowering.premises,
-            &lowering.calls,
-            &context.identity,
-            &context.premises,
-            &context.quantity_classes,
-        ))
-        .map_err(|error| crate::error::profile_result(PROFILE, error.to_string()))?
-    };
+    let identity = encode_identity(root, bindings, &lowering.premises, &lowering.calls, context)?;
     let digest = format!("{:x}", Sha256::digest(identity));
     let quantity = format!("urn:gmeow:math-evaluation:quantity:{digest}");
     if source.keys().any(|(subject, _)| subject == &quantity)

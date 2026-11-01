@@ -46,7 +46,7 @@ use gmeow_errors::Diag;
 use purrdf::{RdfDataset, RdfTerm};
 
 use crate::error::DocsDistribution as DocsDistributionError;
-use crate::projections::{TagMap, project_graph};
+use crate::projections::{DigestAlgorithm, TagMap, blake3_blob_literal, project_graph};
 use crate::stages::distribution_catalog::{dist_iri, iri, sub_asset_iri, triple, triple_lit};
 
 fn err(message: impl Into<String>) -> Diag {
@@ -307,7 +307,7 @@ pub mod consumer_verification_fixture {
 fn release_instance_ntriples(
     entries: &[DistributionEntry],
     sub_asset_entries: &[DistributionEntry],
-) -> String {
+) -> Result<String, Diag> {
     let mut lines: Vec<String> =
         Vec::with_capacity((entries.len() + sub_asset_entries.len()) * 4 + 1);
     lines.push(triple(
@@ -317,7 +317,7 @@ fn release_instance_ntriples(
     ));
     // Each top-level distribution member IS its distribution-catalog subject.
     for entry in entries {
-        emit_member(&mut lines, dist_iri(&entry.slug), entry);
+        emit_member(&mut lines, dist_iri(&entry.slug), entry)?;
     }
     // Each shared sub-asset (the vendored interactive engines, the browser bundle, the
     // demo library) is a corpus member keyed by its sub_asset subject, so its per-release
@@ -327,18 +327,22 @@ fn release_instance_ntriples(
     // by both `site` and `console` contributes one digest and two `gmeow:sourceLocation`
     // values — an honest "one component, two locations", not two components.
     for entry in sub_asset_entries {
-        emit_member(&mut lines, sub_asset_iri(&entry.slug), entry);
+        emit_member(&mut lines, sub_asset_iri(&entry.slug), entry)?;
     }
     lines.sort();
     lines.dedup();
     let mut out = lines.join("\n");
     out.push('\n');
-    out
+    Ok(out)
 }
 
 /// Emit one corpus-member's four release-instance triples (membership, source location,
 /// content digest, media type) onto `member`.
-fn emit_member(lines: &mut Vec<String>, member: String, entry: &DistributionEntry) {
+fn emit_member(
+    lines: &mut Vec<String>,
+    member: String,
+    entry: &DistributionEntry,
+) -> Result<(), Diag> {
     lines.push(triple(
         RELEASE_CORPUS_IRI,
         &iri(GMEOW_NS, "corpusMember"),
@@ -349,16 +353,16 @@ fn emit_member(lines: &mut Vec<String>, member: String, entry: &DistributionEntr
         &iri(GMEOW_NS, "sourceLocation"),
         &entry.rel_path,
     ));
-    lines.push(triple_lit(
-        &member,
-        &iri(GMEOW_NS, "contentDigest"),
-        &entry.blake3,
+    lines.push(format!(
+        "<{member}> <{GMEOW_NS}contentDigest> {} .",
+        RdfTerm::literal(blake3_blob_literal(&entry.blake3)?)
     ));
     lines.push(triple_lit(
         &member,
         &iri(GMEOW_NS, "artifactMediaType"),
         &entry.media_type,
     ));
+    Ok(())
 }
 
 /// Build the release-time DCAT distribution manifest from the release instance
@@ -372,7 +376,7 @@ pub fn build_docs_distribution_manifest(
     sub_asset_entries: &[DistributionEntry],
     gts_bytes: &[u8],
 ) -> Result<String, Diag> {
-    let instance_nt = release_instance_ntriples(entries, sub_asset_entries);
+    let instance_nt = release_instance_ntriples(entries, sub_asset_entries)?;
 
     let program =
         crate::projection_execution::PreparedProjectionProfile::from_bundle(gts_bytes, "dcat")?;
@@ -424,7 +428,7 @@ pub struct DistributionVerdict {
 ///
 /// Reads every `dcat:Distribution` the manifest declares (its catalog subject IRI
 /// `…/distribution/dist/<slug>` yields the slug; its `spdx:checksum`/
-/// `spdx:checksumValue` pair yields the declared VERBATIM `blake3:<hex>` digest), then
+/// `spdx:algorithm` / typed `spdx:checksumValue` pair identifies its byte digest), then
 /// for each — optionally restricted to the single slug `only` — recomputes
 /// [`package_docs_dir`]`(dir.join(slug)).1` and compares.
 ///
@@ -456,16 +460,14 @@ pub fn verify_docs_distribution(
     const DCAT_DISTRIBUTION: &str = "http://www.w3.org/ns/dcat#Distribution";
     const SPDX_CHECKSUM: &str = "http://spdx.org/rdf/terms#checksum";
     const SPDX_CHECKSUM_VALUE: &str = "http://spdx.org/rdf/terms#checksumValue";
+    const SPDX_ALGORITHM: &str = "http://spdx.org/rdf/terms#algorithm";
 
     let mut declared: BTreeMap<String, String> = BTreeMap::new();
     for quad in &quads {
         if quad.predicate != RDF_TYPE {
             continue;
         }
-        let RdfTerm::Iri(subject) = &quad.subject else {
-            continue;
-        };
-        let RdfTerm::Iri(object) = &quad.object else {
+        let (RdfTerm::Iri(subject), RdfTerm::Iri(object)) = (&quad.subject, &quad.object) else {
             continue;
         };
         if object != DCAT_DISTRIBUTION {
@@ -474,30 +476,54 @@ pub fn verify_docs_distribution(
         let Some(slug) = subject.strip_prefix(DIST_BASE) else {
             continue;
         };
-
-        let checksum_node = quads
+        // Distinct checksum nodes and values are all inspected; no first-match selection.
+        let nodes: Vec<_> = quads
             .iter()
-            .find(|q| q.subject == quad.subject && q.predicate == SPDX_CHECKSUM)
-            .ok_or_else(|| {
-                err(format!(
-                    "distribution {slug} is missing spdx:checksum in {}",
-                    manifest_path.display()
-                ))
-            })?;
-        let checksum_value = quads
-            .iter()
-            .find(|q| q.subject == checksum_node.object && q.predicate == SPDX_CHECKSUM_VALUE)
-            .and_then(|q| match &q.object {
-                RdfTerm::Literal(lit) => Some(lit.lexical_form.clone()),
-                _ => None,
-            })
-            .ok_or_else(|| {
-                err(format!(
-                    "distribution {slug} checksum node is missing spdx:checksumValue in {}",
-                    manifest_path.display()
-                ))
-            })?;
-        declared.insert(slug.to_string(), checksum_value);
+            .filter(|q| q.subject == quad.subject && q.predicate == SPDX_CHECKSUM)
+            .map(|q| &q.object)
+            .collect();
+        if nodes.is_empty() {
+            return Err(err(format!("distribution {slug} is missing spdx:checksum")));
+        }
+        let mut algorithms = BTreeMap::new();
+        for node in nodes {
+            let mut algorithm_terms = Vec::new();
+            let mut value_terms = Vec::new();
+            for q in quads.iter().filter(|q| &q.subject == node) {
+                if q.predicate == SPDX_ALGORITHM && !algorithm_terms.contains(&&q.object) {
+                    algorithm_terms.push(&q.object);
+                } else if q.predicate == SPDX_CHECKSUM_VALUE && !value_terms.contains(&&q.object) {
+                    value_terms.push(&q.object);
+                }
+            }
+            let [RdfTerm::Iri(algorithm)] = algorithm_terms.as_slice() else {
+                return Err(err(format!(
+                    "distribution {slug} checksum {node} requires one distinct spdx:algorithm IRI"
+                )));
+            };
+            let algorithm = DigestAlgorithm::from_spdx(algorithm)?;
+            let [RdfTerm::Literal(value)] = value_terms.as_slice() else {
+                return Err(err(format!(
+                    "distribution {slug} checksum {node} requires one distinct literal spdx:checksumValue"
+                )));
+            };
+            let native = purrdf::TermValue::from_rdf_term(&RdfTerm::literal((*value).clone()));
+            let hex = algorithm.admit_spdx_value(&native)?;
+            if let Some(previous) = algorithms.insert(algorithm, hex.to_owned())
+                && previous != hex
+            {
+                return Err(err(format!(
+                    "distribution {slug} has conflicting {} checksums",
+                    algorithm.name()
+                )));
+            }
+        }
+        let Some(hex) = algorithms.get(&DigestAlgorithm::Blake3) else {
+            return Err(err(format!(
+                "distribution {slug} has no required BLAKE3 checksum"
+            )));
+        };
+        declared.insert(slug.to_owned(), format!("blake3:{hex}"));
     }
     if declared.is_empty() {
         return Err(err(format!(

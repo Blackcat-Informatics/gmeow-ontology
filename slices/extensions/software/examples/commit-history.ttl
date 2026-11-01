@@ -17,7 +17,8 @@ ex:dana a gmeow:Person ; gmeow:name "Dana Reyes"@x-gmeow-english .
 
 ex:repo a gmeow:Repository ;
     rdfs:label           "myapp.git"@x-gmeow-english ;
-    gmeow:repositoryType gmeow:repoTypeGit .
+    gmeow:repositoryType gmeow:repoTypeGit ;
+    gmeow:objectFormat gmeow:gitObjectFormatSha1 .
 
 # --- The author's git identity, canonicalized to the real agent.
 ex:danaGitId a gmeow:AuthorIdentity ;

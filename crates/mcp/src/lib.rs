@@ -215,7 +215,7 @@ use gmeow_logic_compile::ir::LOGIC_NAMESPACE;
 // As with lang-bridge, `gmeow-validate` stays linked in the reasoning image through
 // `gmeow-slice-quality`; only these readers are gated.
 #[cfg(feature = "core")]
-use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView};
+use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView, LiteralView};
 // `recall` is a core read over the grounded-memory triad; the three WRITE option types
 // belong to the WRITE tools, which are segment tools because their commit gate is a TR
 // transaction.
@@ -736,19 +736,19 @@ fn governed_budget(max_steps: Option<u64>, max_answers: Option<usize>) -> Budget
 
 /// SELECT the counter-example conformance fixtures from the documentation graph: the
 /// fixture IRI, its authored violation code, the full Turtle body, its label, the
-/// authored outcome/rationale, and each referenced documented term (repeatable).
+/// authored outcome, and each referenced documented term (repeatable). Rationales
+/// are read separately as complete native literals.
 #[cfg(feature = "core")]
 const COUNTER_EXAMPLE_FIXTURE_QUERY: &str = "\
 PREFIX gm: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?f ?code ?text ?label ?outcome ?rationale ?term WHERE {
+SELECT ?f ?code ?text ?label ?outcome ?term WHERE {
   ?f a gm:DocFixture ;
      gm:docFixtureKind gm:docFixtureKindCounterExample ;
      gm:docViolationCode ?code ;
      gm:docFixtureText ?text .
   OPTIONAL { ?f rdfs:label ?label }
   OPTIONAL { ?f gm:docExpectedOutcome ?outcome }
-  OPTIONAL { ?f gm:conformanceRationale ?rationale }
   OPTIONAL { ?f gm:documents ?term }
 }";
 
@@ -795,7 +795,7 @@ fn fixtures_by_term_query(term_iri: &str) -> String {
         "\
 PREFIX gm: <{GMEOW_NS}>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
+SELECT ?f ?kind ?text ?label ?outcome ?code WHERE {{
   ?f a gm:DocFixture ;
      gm:documents <{term_iri}> ;
      gm:docFixtureKind ?kind ;
@@ -803,7 +803,6 @@ SELECT ?f ?kind ?text ?label ?outcome ?code ?rationale WHERE {{
   OPTIONAL {{ ?f rdfs:label ?label }}
   OPTIONAL {{ ?f gm:docExpectedOutcome ?outcome }}
   OPTIONAL {{ ?f gm:docViolationCode ?code }}
-  OPTIONAL {{ ?f gm:conformanceRationale ?rationale }}
 }}"
     )
 }
@@ -1324,9 +1323,9 @@ fn value_str_array(value: &Value, key: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Render one fixture record as the tool's JSON object. The advisory fields are
-/// emitted as `null` when the slice authored none (a stable shape callers can read
-/// without probing for key presence).
+/// Render one fixture record as the tool's JSON object, with nullable scalar
+/// metadata and a complete literal array for rationales.
+/// No authored rationales is an empty array.
 #[cfg(feature = "core")]
 fn fixture_json(view: &FixtureView) -> Value {
     json!({
@@ -1334,7 +1333,7 @@ fn fixture_json(view: &FixtureView) -> Value {
         "text": view.text,
         "expected_outcome": view.expected_outcome,
         "violation_code": view.violation_code,
-        "rationale": view.rationale,
+        "rationales": view.rationales,
     })
 }
 
@@ -1521,14 +1520,16 @@ impl McpView {
     /// read from the `gmeow:graph/documentation` projection and split by
     /// `gmeow:docFixtureKind`. Each fixture is one record carrying its title, full
     /// Turtle body, and the authored advisory fields (expected outcome, violation
-    /// code, conformance rationale) — `null` when the slice authored none. Both lists
+    /// code, and all conformance rationales). Missing scalar values are null; missing
+    /// rationales form an empty array. Both lists
     /// are ordered by fixture IRI, so the surface is deterministic. A term that
     /// documents no fixtures yields two empty lists (honest empty-but-ok).
     #[cfg(feature = "core")]
     fn term_fixtures(&self, term_iri: &str) -> gmeow_errors::Result<(Vec<Value>, Vec<Value>)> {
         let query = fixtures_by_term_query(term_iri);
-        // One record per fixture IRI: the fixture-scoped columns are single-valued,
-        // so first-row-wins is the whole record. BTreeMap → fixture-IRI order.
+        let rationales = self.fixture_rationales()?;
+        // Aggregate scalar fixture fields by IRI. Rationales are read separately
+        // with full term identity. BTreeMap gives fixture-IRI order.
         let mut by_fixture: BTreeMap<String, (String, FixtureView)> = BTreeMap::new();
         for row in self.docs_select_rows(&query)? {
             let (Some(fixture), Some(kind), Some(text)) =
@@ -1544,7 +1545,7 @@ impl McpView {
                         text: text.clone(),
                         expected_outcome: row.get("outcome").cloned(),
                         violation_code: row.get("code").cloned(),
-                        rationale: row.get("rationale").cloned(),
+                        rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                     },
                 )
             });
@@ -1834,6 +1835,64 @@ impl McpView {
         Ok(select_rows(&value))
     }
 
+    /// Read rationale terms separately from scalar fixture fields and term joins.
+    #[cfg(feature = "core")]
+    fn fixture_rationales(&self) -> gmeow_errors::Result<BTreeMap<String, Vec<LiteralView>>> {
+        let docs = self.documentation()?;
+        let result = gmeow_bundle_view::native_query::query(
+            docs,
+            "PREFIX gm: <https://blackcatinformatics.ca/gmeow/> SELECT ?f ?rationale WHERE { ?f a gm:DocFixture ; gm:conformanceRationale ?rationale . }",
+        )?;
+        let invalid = |message: &str| {
+            gmeow_errors::Diag::of_kind(crate::error::Mcp {
+                message: format!("fixture rationales: {message}"),
+            })
+        };
+        let purrdf::SparqlResult::Solutions {
+            variables, rows, ..
+        } = result
+        else {
+            return Err(invalid("expected native SELECT solutions"));
+        };
+        if variables != ["f", "rationale"] {
+            return Err(invalid("unexpected native SELECT columns"));
+        }
+        let mut values = BTreeMap::<String, BTreeSet<LiteralView>>::new();
+        for row in rows {
+            if row.len() != variables.len() {
+                return Err(invalid("malformed native SELECT row width"));
+            }
+            let terms = row
+                .into_iter()
+                .map(|value| value.map(|term| term.to_rdf_term()).transpose())
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|why| invalid(&format!("malformed native term: {why}")))?;
+            let [
+                Some(purrdf::RdfTerm::Iri(subject)),
+                Some(purrdf::RdfTerm::Literal(literal)),
+            ] = terms.as_slice()
+            else {
+                return Err(invalid(
+                    "fixture must be an IRI and rationale must be a literal",
+                ));
+            };
+            purrdf::RdfLiteral::validate_components(
+                literal.datatype_iri(),
+                literal.language.as_deref(),
+                literal.direction,
+            )
+            .map_err(|why| invalid(&format!("malformed rationale: {why}")))?;
+            values
+                .entry(subject.clone())
+                .or_default()
+                .insert(LiteralView::from(literal));
+        }
+        Ok(values
+            .into_iter()
+            .map(|(iri, values)| (iri, values.into_iter().collect()))
+            .collect())
+    }
+
     /// Build the two fixture correspondence maps from the `gmeow:graph/documentation`
     /// projection: `finding-code → counter-example` (keyed on the authored
     /// `gmeow:docViolationCode`) and `finding-code → positive exemplar` (the
@@ -1846,6 +1905,7 @@ impl McpView {
         if let Some(maps) = self.fixture_maps.get() {
             return Ok(maps);
         }
+        let rationales = self.fixture_rationales()?;
         // Counter-example fixtures: aggregate the (possibly multi-`documents`) rows
         // back per fixture IRI so a fixture is one record with its full referenced-term
         // set. BTreeMap keeps the fixture IRIs sorted → deterministic first-wins.
@@ -1866,7 +1926,7 @@ impl McpView {
                             text: text.clone(),
                             expected_outcome: row.get("outcome").cloned(),
                             violation_code: Some(code.clone()),
-                            rationale: row.get("rationale").cloned(),
+                            rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                         },
                         BTreeSet::new(),
                     )
@@ -1893,7 +1953,7 @@ impl McpView {
                             text: text.clone(),
                             expected_outcome: row.get("outcome").cloned(),
                             violation_code: None,
-                            rationale: row.get("rationale").cloned(),
+                            rationales: rationales.get(fixture).cloned().unwrap_or_default(),
                         },
                         BTreeSet::new(),
                     )
@@ -7936,8 +7996,12 @@ fn sha256_hex(bytes: &[u8]) -> String {
 /// Intern one IRI into the GTS term table, deduplicated by value. Shared by the subject /
 /// predicate / object paths and by a typed literal's datatype-IRI leg.
 #[cfg(feature = "reasoning")]
-fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String, usize>) -> usize {
-    let sig = format!("I\u{1}{iri}");
+fn intern_nt_iri(
+    iri: &str,
+    terms: &mut Vec<GtsTerm>,
+    seen: &mut HashMap<purrdf::TermValue, usize>,
+) -> usize {
+    let sig = purrdf::TermValue::Iri(iri.to_owned());
     if let Some(&id) = seen.get(&sig) {
         return id;
     }
@@ -7946,8 +8010,9 @@ fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String,
     id
 }
 
-/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or typed literal) into the GTS
-/// term table (deduplicated by semantic value); a literal first interns its datatype IRI so
+/// Intern one purrdf-parsed N-Triples node (IRI, blank node, or literal) into the GTS
+/// term table using native term identity, including literal language and direction.
+/// A literal first interns its effective datatype IRI so
 /// the literal term references a live datatype id — reproducing the exact encounter order the
 /// append-only, content-addressed GTS segment bytes are keyed on. A quoted-triple term is
 /// rejected fail-closed via `reject`: the projection's closed subset never emits one.
@@ -7955,13 +8020,13 @@ fn intern_nt_iri(iri: &str, terms: &mut Vec<GtsTerm>, seen: &mut HashMap<String,
 fn intern_nt_term(
     node: &RdfTerm,
     terms: &mut Vec<GtsTerm>,
-    seen: &mut HashMap<String, usize>,
+    seen: &mut HashMap<purrdf::TermValue, usize>,
     reject: impl FnOnce() -> gmeow_errors::Diag,
 ) -> gmeow_errors::Result<usize> {
     match node {
         RdfTerm::Iri(iri) => Ok(intern_nt_iri(iri, terms, seen)),
         RdfTerm::BlankNode(label) => {
-            let sig = format!("B\u{1}{label}");
+            let sig = purrdf::TermValue::from_rdf_term(node);
             if let Some(&id) = seen.get(&sig) {
                 return Ok(id);
             }
@@ -7979,14 +8044,17 @@ fn intern_nt_term(
             Ok(id)
         }
         RdfTerm::Literal(lit) => {
-            // The projection always emits `"lex"^^<dt>`, so purrdf carries an explicit datatype.
-            let datatype = lit.datatype.as_deref().ok_or_else(reject)?;
-            let sig = format!("L\u{1}{datatype}\u{1}{}", lit.lexical_form);
+            // Native owned terms omit datatypes implied by plain or tagged strings.
+            let datatype = lit.datatype_iri();
+            let sig = purrdf::TermValue::from_rdf_term(node);
             if let Some(&id) = seen.get(&sig) {
                 return Ok(id);
             }
             let dt_id = intern_nt_iri(datatype, terms, seen);
-            let id = push_gts_term(terms, gts_literal_dt(&lit.lexical_form, dt_id));
+            let mut term = gts_literal_dt(&lit.lexical_form, dt_id);
+            term.lang = lit.language.clone();
+            term.direction = lit.direction.map(|value| value.as_str().to_owned());
+            let id = push_gts_term(terms, term);
             seen.insert(sig, id);
             Ok(id)
         }
@@ -7998,7 +8066,7 @@ fn intern_nt_term(
 /// verdict carrying its authoring-role + provenance triples) into a GTS `ai-package` segment's
 /// serialized bytes — the PURE, side-effect-free segment builder shared by the conjecture and
 /// candidate libraries. The body is parsed into `(subject, predicate, object)` triples, interned
-/// as RDF-1.2-native GTS terms (IRIs, blank nodes, and typed literals with their datatype), and
+/// as RDF-1.2-native GTS terms (IRIs, blank nodes, and complete native literals), and
 /// written via [`GtsWriter`] — no plain-RDF / quad shortcut, so the append-only libraries stay
 /// RDF-1.2-native. Building the bytes is separated from appending them so a caller can assemble
 /// MULTIPLE segments (e.g. the verdict segment AND its audit segment) in memory and commit them
@@ -8011,7 +8079,7 @@ fn build_nt_segment(
 ) -> gmeow_errors::Result<Vec<u8>> {
     let mut terms: Vec<GtsTerm> = Vec::new();
     let mut quads: Vec<(usize, usize, usize, Option<usize>)> = Vec::new();
-    let mut seen: HashMap<String, usize> = HashMap::new();
+    let mut seen: HashMap<purrdf::TermValue, usize> = HashMap::new();
 
     for (lineno, raw) in nt_body.lines().enumerate() {
         let line = raw.trim();

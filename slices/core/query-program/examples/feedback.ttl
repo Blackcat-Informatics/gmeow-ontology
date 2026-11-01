@@ -1,0 +1,60 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix ex: <https://example.org/query-feedback/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# A consumer expands a seed over a pinned finite universe. Its graph may carry
+# positive feedback inside one stratum; neither loop nor body has external effects.
+ex:graph a gmeow:QueryProgramGraph ;
+    gmeow:queryAdmissionContract gmeow:queryStratifiedFeedbackContract ;
+    gmeow:queryGraphNode ex:loop, ex:expand ;
+    gmeow:queryGraphEdge ex:bodyToLoop, ex:loopToBody .
+ex:universe a gmeow:InformationObject ; gmeow:queryCandidate ex:a, ex:b .
+ex:needsExpansion a logic:Situation .
+ex:loop a gmeow:ConvergentQueryIteration ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    gmeow:queryAdmissionContract gmeow:queryStratifiedFeedbackContract ;
+    gmeow:queryConvergenceCriterion gmeow:queryFiniteSetEquality ;
+    gmeow:iterationUniverse ex:universe ;
+    logic:iterationBody ex:expand ; logic:iterationCondition ex:needsExpansion ;
+    logic:dataflowConsumes ex:expand .
+ex:expand a gmeow:QueryProgramNode ;
+    gmeow:queryNodeEffectful false ; gmeow:queryNodeStratum 0 ;
+    logic:dataflowConsumes ex:loop .
+ex:bodyToLoop a logic:DataFlowEdge ;
+    logic:flowFrom ex:expand ; logic:flowTo ex:loop ; gmeow:queryEdgeMonotone true .
+ex:loopToBody a logic:DataFlowEdge ;
+    logic:flowFrom ex:loop ; logic:flowTo ex:expand ; gmeow:queryEdgeMonotone true .
+
+# The first completed pass adds b. The second leaves membership unchanged.
+ex:run a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:loop ;
+    gmeow:queryIterationState ex:seed, ex:expanded, ex:stable ;
+    gmeow:queryIterationCount "2"^^xsd:nonNegativeInteger ;
+    gmeow:queryIterationFinalState ex:stable ;
+    gmeow:queryIterationTermination gmeow:queryIterationConverged .
+ex:seed a gmeow:QueryIterationState ;
+    gmeow:queryStateIndex "0"^^xsd:nonNegativeInteger ; gmeow:queryCandidate ex:a .
+ex:expanded a gmeow:QueryIterationState ;
+    gmeow:queryStateIndex "1"^^xsd:nonNegativeInteger ;
+    gmeow:queryCandidate ex:a, ex:b ; gmeow:wasGeneratedBy ex:firstPass .
+ex:stable a gmeow:QueryIterationState ;
+    gmeow:queryStateIndex "2"^^xsd:nonNegativeInteger ;
+    gmeow:queryCandidate ex:a, ex:b ; gmeow:wasGeneratedBy ex:secondPass .
+ex:firstPass a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:expand ; gmeow:queryExecutionInput ex:seed .
+ex:secondPass a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:expand ; gmeow:queryExecutionInput ex:expanded .
+
+# A separate occurrence exhausted its declared budget before a completed pass.
+# Its last completed state is still the seed; it claims no fixed point.
+ex:budgetRun a gmeow:QueryNodeExecution ;
+    gmeow:executesQueryNode ex:loop ; gmeow:queryIterationState ex:budgetSeed ;
+    gmeow:queryIterationCount "0"^^xsd:nonNegativeInteger ;
+    gmeow:queryIterationFinalState ex:budgetSeed ;
+    gmeow:queryIterationTermination gmeow:queryIterationBudgetStopped .
+ex:budgetSeed a gmeow:QueryIterationState ;
+    gmeow:queryStateIndex "0"^^xsd:nonNegativeInteger ; gmeow:queryCandidate ex:a .

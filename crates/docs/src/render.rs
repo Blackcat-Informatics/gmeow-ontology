@@ -4332,9 +4332,24 @@ fn md_slice(model: &DocsModel, slug: &str, page_map: &SourceToPageMap) -> String
         push_line(&mut out, &format!("| Identifier | `{}` |", code_escape(id)));
     }
     if !slice.creators.is_empty() {
+        // Show supplied language and direction beside annotated names. Plain
+        // proper names retain their lexical display; every source value is shown.
+        let creators = slice
+            .creators
+            .iter()
+            .map(|creator| {
+                let literal = creator.object();
+                if literal.language.is_some() || literal.direction.is_some() {
+                    purrdf::emit_term(&purrdf::RdfTerm::Literal(literal.clone()))
+                } else {
+                    literal.lexical_form.clone()
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
         push_line(
             &mut out,
-            &format!("| Creators | {} |", md_escape(&slice.creators.join(", "))),
+            &format!("| Creators | {} |", md_escape(&creators)),
         );
     }
     if !slice.consumers.is_empty() {
@@ -5205,8 +5220,11 @@ fn push_fixture_binding_bullets(
             ),
         );
     }
-    if let Some(rationale) = &fixture.rationale {
-        push_line(out, &format!("  - {}", md_escape(&one_line(rationale))));
+    for rationale in &fixture.rationales {
+        push_line(
+            out,
+            &format!("  - {}", md_escape(&one_line(&rationale.lexical_form))),
+        );
     }
 }
 

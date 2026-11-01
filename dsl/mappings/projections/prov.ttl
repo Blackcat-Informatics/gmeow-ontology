@@ -6,15 +6,16 @@
 @prefix prov:  <http://www.w3.org/ns/prov#> .
 
 # Projection mappings: GMEOW build provenance → the PROV-O qualification
-# pattern (#415, #34 audit verdict 8). Compiled to projections/prov.edoal.ttl +
+# pattern. Compiled to projections/prov.edoal.ttl +
 # queries/projections/prov.rq by `gmeow compile-mappings`.
 #
-# The #47 model already carries everything PROV's qualification idiom needs:
+# The build model carries the terms used by PROV's qualification idiom:
 # gmeow:buildConfigUri IS the prov:Plan (the Plan node's IRI is the config URI
 # itself — no synthetic identity), gmeow:hasParticipant gives the qualified
 # Association, buildSource/buildOutput are used/generated, and the build's
-# eventTime is both prov:endedAtTime on the activity and prov:generatedAtTime
-# on its outputs (the generation instant of a build output IS the build end).
+# timestamped default-frame eventTime stands in for prov:endedAtTime on the
+# activity and prov:generatedAtTime on its outputs. Coarse placements and other
+# frames are omitted by this profile, without manufacturing an instant.
 # The flat prov:wasAssociatedWith leg is NOT re-emitted here: it derives via
 # saturation from the strong hasParticipant ≡ prov:wasAssociatedWith
 # equivalence (events mapping set).
@@ -60,11 +61,13 @@ gmeow:mapProvEndedAtTime a gmeow:ProjectionMapping ;
         gmeow:anchor "pveAct" ; gmeow:value "pveTime" ;
         gmeow:atom (
             [ gmeow:subjectVar "pveAct" ; gmeow:predicate rdf:type ; gmeow:objectValue gmeow:BuildActivity ]
-            [ gmeow:subjectVar "pveAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pveTime" ] ) ;
+            [ gmeow:subjectVar "pveAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pveTime" ]
+            [ gmeow:subjectVar "pveAct" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "pveTimeFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "pveTime" ] ) ] <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "pveTimeFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "pveTimeFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
         gmeow:edoalSource gmeow:eventTime ] ;
     gmeow:hasBinding [
         gmeow:profile "prov" ; gmeow:toPredicate prov:endedAtTime ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "a point eventTime stands in for the activity end; build start/duration are not modelled" ] .
+        gmeow:lossyDrop "a point eventTime stands in for the activity end; build start/duration are not modelled; only xsd:dateTime values in the absent or canonical UTC-Gregorian frame are emitted; day, month, year and other frames are omitted without constructing an instant" ] .
 
 gmeow:mapProvGeneratedAtTime a gmeow:ProjectionMapping ;
     rdfs:label "buildOutput × build eventTime → prov:generatedAtTime on the output"@x-gmeow-english ;
@@ -72,11 +75,13 @@ gmeow:mapProvGeneratedAtTime a gmeow:ProjectionMapping ;
         gmeow:anchor "pvtOut" ; gmeow:value "pvtTime" ;
         gmeow:atom (
             [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:buildOutput ; gmeow:objectVar "pvtOut" ]
-            [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pvtTime" ] ) ;
+            [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:eventTime ; gmeow:objectVar "pvtTime" ]
+            [ gmeow:subjectVar "pvtAct" ; gmeow:predicate gmeow:eventTemporalFrame ; gmeow:objectVar "pvtTimeFrame" ; gmeow:optional true ] ) ;
+        gmeow:filter [ gmeow:exprOp gmeow:opAnd ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opIn ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opDatatype ; gmeow:exprArgs ( [ gmeow:exprVar "pvtTime" ] ) ] <http://www.w3.org/2001/XMLSchema#dateTime> ) ] [ gmeow:exprOp gmeow:opOr ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opNot ; gmeow:exprArgs ( [ gmeow:exprOp gmeow:opBound ; gmeow:exprArgs ( [ gmeow:exprVar "pvtTimeFrame" ] ) ] ) ] [ gmeow:exprOp gmeow:opEq ; gmeow:exprArgs ( [ gmeow:exprVar "pvtTimeFrame" ] gmeow:temporalFrameUTCGregorian ) ] ) ] ) ] ;
         gmeow:edoalSource gmeow:buildOutput ] ;
     gmeow:hasBinding [
         gmeow:profile "prov" ; gmeow:toPredicate prov:generatedAtTime ; gmeow:relation "<=" ; gmeow:confidence 0.85 ;
-        gmeow:lossyDrop "the generation instant of a build output IS its build's end time; sub-second generation ordering within one build drops" ] .
+        gmeow:lossyDrop "the generation instant of a build output IS its build's end time; sub-second generation ordering within one build drops; only xsd:dateTime values in the absent or canonical UTC-Gregorian frame are emitted; day, month, year and other frames are omitted without constructing an instant" ] .
 
 # The qualification pattern proper: a minted prov:Association node binds the
 # Builder participant to the Plan, and the Plan node's IRI IS the declared

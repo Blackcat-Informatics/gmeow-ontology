@@ -174,6 +174,7 @@ impl<'a> Sources<'a> {
         })
     }
 
+    /// Produce the selected artifact with its complete typed success or recorded failure.
     pub(super) fn produce(&self, name: &str) -> FixtureResult<Vec<u8>> {
         let member_limit = archive::MAX_NATIVE_MEMBER_BYTES;
         match name {
@@ -242,14 +243,24 @@ impl<'a> Sources<'a> {
                         gmeow_errors::DiagLedger::new()
                             .record(error, gmeow_errors::StageId::new("coherence.disjoint"))
                     });
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(
+                    purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_result_to_json(
+                        &observation,
+                    ))
+                    .into_bytes(),
+                )
             }
             coherence::RELCOMP_ARTIFACT => {
                 let observation = coherence::observe_relcomp(self.dataset()?).map_err(|error| {
                     gmeow_errors::DiagLedger::new()
                         .record(error, gmeow_errors::StageId::new("coherence.relcomp"))
                 });
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(
+                    purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_result_to_json(
+                        &observation,
+                    ))
+                    .into_bytes(),
+                )
             }
             coherence::CHARACTERISTIC_ARTIFACT => {
                 let observation =
@@ -259,7 +270,12 @@ impl<'a> Sources<'a> {
                             gmeow_errors::StageId::new("coherence.characteristic"),
                         )
                     });
-                serde_json::to_vec(&observation).map_err(fail)
+                Ok(
+                    purrdf_lex::json::write_compact(&gmeow_errors::json::recorded_result_to_json(
+                        &observation,
+                    ))
+                    .into_bytes(),
+                )
             }
             conformance_ontology::PACK_ARTIFACT => self.conformance_ontology()?.pack(),
             conformance_ontology::TEXT_ARTIFACT => self.conformance_ontology()?.text(),

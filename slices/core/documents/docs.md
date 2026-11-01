@@ -139,6 +139,56 @@ episode, or chapter of a serial. Both are out-of-universe, rights-bearing
 Manifestations, held strictly apart from any in-universe narrative frame they source
 (linked via `gmeow:sourceFor`).
 
+## Media identity
+
+`gmeow:mediaType` is an object property from Entity to the open MediaType value
+vocabulary. Registered MIME types use their IANA resource IRIs, such as
+`<https://www.iana.org/assignments/media-types/text/html>`. An unregistered
+format uses a GMEOW identity under
+`https://blackcatinformatics.ca/gmeow/media-types/<type>/<subtype>`, such as
+`<https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`.
+These are format values, grounded as `logic:QualityValue` individuals rather
+than carrier subclasses (Principles 4 and 17).
+
+`gmeow:mediaTypeName` carries the value's exact parameter-free MIME
+`type/subtype` spelling as xsd:string. The spelling belongs to the value;
+there is no parallel string media-type property on the carrier. A registered
+IRI can be used without repeating its external metadata on each carrier.
+The name is optional; supplied names retain their exact machine spelling and
+are checked for parameter-free syntax. Neither a name nor a matching IRI shape
+proves registration, byte content or agreement between a name and an IRI.
+Authors determine registration and select the corresponding resource.
+
+The existing functional characteristic permits at most one media identity on
+an entity. It does not require a media type on every Entity. Distinct media
+formats are modeled as distinct carriers. Charset and other MIME parameters
+are separate carrier or source-header metadata, outside both the identity IRI
+and `mediaTypeName`; no default charset or parameter parser is introduced.
+Source header evidence retains casing, parameters and other syntax beyond the
+parameter-free format identity.
+
+The two authored schema.org bindings use this same IRI as the URL-valued
+`schema:encodingFormat` object. They do not replace it with `mediaTypeName`
+or invent a formatter. The media class, name metadata and authored identity
+policy are outside those projected triples. The
+[media identity design](design/MEDIA-TYPES.md) records the exact source contract
+and its verification limits.
+
+## Character encoding
+
+`gmeow:charset` records the character encoding of an information object's textual
+content, including a web page, a document carrier or a MIME body part. Keep the
+supplied charset label as a literal, such as `"utf-8"` or `"iso-8859-1"`; the
+property does not enumerate a closed registry or normalize that label.
+
+Keep the encoding separate from `gmeow:mediaType` and from the content's natural
+language (`gmeow:contentLanguage` or `gmeow:contentLanguageCode`). Compression and
+MIME content-transfer encoding are different metadata. The
+[web presence example](examples/web-presence.ttl) records the IANA media IRI
+`<https://www.iana.org/assignments/media-types/text/html>` and the separate
+charset literal `"utf-8"` on a web page. Email uses this same charset property
+for a MIME part's `Content-Type` charset parameter.
+
 ## Identifiers, extent and decoded content
 
 `gmeow:identifier` applies to a `gmeow:MediaObject`: the current canonical chain
@@ -178,3 +228,53 @@ Depends on `kernel`, `creative-works` (the WEMI spine), `names` (Appellation),
 `observations`, `places`, `standpoint` (ReadingOrder), and `tags` (the isAbout
 trichotomy). Consumed by creative-works manifestations, the mail-corpus attachments,
 and depictions of any entity.
+
+## Source structural blocks and volumes
+
+`segmentTypeVolume` classifies one structural volume using ContentSegment,
+segmentOf and segmentIndex. It does not identify an abstract work with a
+published Manifestation or physical copy.
+
+`ContentBlock` specializes ContentSegment for the atomic unit inside a source
+division under a declared segmentation. Use its immediate `blockOf` division,
+one source structural index and one open segmentType value. blockOf specializes
+segmentOf without being transitive; segmentOf still reaches structural
+ancestors. A nonempty containment cycle or duplicate block index within one
+immediate division violates the canonical obligations.
+
+Block indivisibility is a retrieval boundary, not a prohibition on internal
+text, media or cell structure. Later chunking consumers must preserve that
+boundary. This vocabulary does not run a chunker.
+
+The twelve block kinds are paragraph, heading, verse, dialogue, stage direction,
+code listing, equation display, table, figure, formal block, epigraph and
+quotation. They are ContentSegmentType values, never one subclass per kind.
+Paragraph reuses the existing value; the vocabulary remains open.
+
+`caption` admits MediaObject or ContentSegment through a single union domain.
+A caption on a table or figure block therefore does not make it a media file.
+The schema profile retains actual media captions as schema:caption; structural
+captions become an explicitly lossy schema:description that loses the caption
+role and attachment distinction.
+
+[The ordinary source inventory](examples/source-blocks.ttl) shows every block
+kind. The downstream [reference apparatus extension](../../extensions/reference-apparatus/docs.md)
+adds source speaker/language/notation fields, documentary cells, printed formal
+roles and actual lang/math rendering links without a reverse core dependency.
+
+## Acquisition and original filenames
+
+acquiredAt retains a source-supplied xsd:dateTime for acquisition of an actual
+MediaObject. It differs from capture, dispatch, receipt and recording time.
+Do not parse a provider's raw time string into it or invent a timezone.
+
+originalFilename preserves the actual media object's filename exactly, including
+spaces and Unicode. It does not reuse filename, whose owner is an email
+attachment, and does not turn a refused-media description into a manifestation.
+
+## Source channel layout
+
+channelLayout preserves a MediaObject image's exact source channel-layout
+string, such as RGBA. It is independent of colour space, image decoding and
+pixel verification. Keep original case and spaces; the property provides no
+parser, closed code list or inferred channel count.

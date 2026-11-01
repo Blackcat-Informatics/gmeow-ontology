@@ -29,6 +29,7 @@ use std::path::Path;
 
 use gmeow_errors::Diag;
 
+mod manifest;
 mod rationale;
 
 /// Where a validate phase actually executes on `make check`.
@@ -82,7 +83,48 @@ pub const VALIDATE_PHASE_COVERAGE: &[PhaseCoverage] = &[
         surface: "dsl/tests/",
         home: PhaseHome::OnValidate,
     },
+    PhaseCoverage {
+        phase: "slice-manifest-shacl",
+        surface: "slices/*/*/manifest.ttl",
+        home: PhaseHome::OnValidate,
+    },
 ];
+
+/// The explicitly selected authored manifests and their complete validation
+/// surface. Construction reads sources only; it never produces a corpus.
+#[derive(Debug, Clone)]
+pub struct AuthoredManifestShacl {
+    /// Exact manifest files, sorted by path.
+    pub paths: Vec<std::path::PathBuf>,
+    /// Canonical creator projections composed with unchanged residual checks.
+    pub shapes: String,
+}
+
+/// Resolve the selected manifest validation inputs without enabling any example
+/// or slice-test corpus path.
+///
+/// # Errors
+/// Missing/empty manifest selections, vocabulary and residual shapes fail closed.
+pub fn authored_manifest_shacl_inputs(root: &Path) -> gmeow_errors::Result<AuthoredManifestShacl> {
+    let paths = crate::validate_all::find_slice_manifests(&root.join("slices").to_string_lossy())?;
+    if paths.is_empty() {
+        return Err(io_err(
+            "selected manifest SHACL surface contains no manifest.ttl files".to_owned(),
+        ));
+    }
+    let vocabulary_path = root.join("slices/vocabulary.ttl");
+    let vocabulary = std::fs::read(&vocabulary_path).map_err(|error| {
+        io_err(format!(
+            "cannot read required slice vocabulary {}: {error}",
+            vocabulary_path.display()
+        ))
+    })?;
+    let shapes = manifest::compose(
+        &vocabulary,
+        &require_shapes(root, "shapes/slice-manifest-shapes.ttl")?,
+    )?;
+    Ok(AuthoredManifestShacl { paths, shapes })
+}
 
 /// The central-DSL SHACL inputs the live `validate` gate wires: one
 /// (directory, shapes-text) pair per surface, all mandatory. Test shapes compose

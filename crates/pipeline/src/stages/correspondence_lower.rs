@@ -21,9 +21,13 @@ use gmeow_logic_compile::projections::correspondence::CorrespondenceProgram;
 use gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed;
 use gmeow_logic_compile::projections::{ProjectionResult, edoal, emotionml, fno, sparql, sssom};
 use purrdf::dataset_view::{DatasetView, GraphMatch};
-use purrdf::slice::{ArtifactRole, SliceCatalog, SliceError};
+use purrdf::slice::{ArtifactRole, SliceCatalog};
 use purrdf::{NativeRdfFormat, RdfDataset, RdfDatasetBuilder, TermRef, TermValue, parse_dataset};
 
+use purrdf_lex::json::record::ToJson;
+
+#[path = "correspondence_lower/json.rs"]
+mod json;
 mod statistics;
 
 const GM_VERSION_FINGERPRINT: &str = "https://blackcatinformatics.ca/gmeow/versionFingerprint";
@@ -40,7 +44,6 @@ const SF_INTENSITY_IRI: &str = "https://blackcatinformatics.ca/gmeow/schadenfreu
 
 pub(crate) const WORKED_ENVELOPE_CHANNEL: &str = "pipeline/affect-worked-envelope.json";
 
-#[derive(serde::Serialize, serde::Deserialize)]
 struct WorkedEnvelopeObservation {
     observation_present: bool,
     envelope: emotionml::WorkedEnvelope,
@@ -58,11 +61,7 @@ pub(crate) fn record_worked_envelope(
     };
     artifacts.insert(
         WORKED_ENVELOPE_CHANNEL.into(),
-        serde_json::to_vec(&observed).map_err(|error| {
-            gmeow_errors::Diag::of_kind(crate::error::Transform {
-                message: error.to_string(),
-            })
-        })?,
+        purrdf_lex::json::write_compact(&observed.to_json()).into_bytes(),
     );
     Ok(())
 }
@@ -134,7 +133,7 @@ pub struct CorrespondenceArtifacts {
 pub fn lower_all(
     root: &Path,
     catalog: Option<&SliceCatalog>,
-) -> Result<CorrespondenceArtifacts, SliceError> {
+) -> gmeow_errors::Result<CorrespondenceArtifacts> {
     let dsl = merge_dsl(root, catalog)?;
     let onto = merge_ontology(root, catalog)?;
     let dsl_view = DslView::new(&dsl);
@@ -150,29 +149,29 @@ pub fn lower_all(
         Some(catalog) => gmeow_validate::grounding_catalog::owned_sources(root, catalog),
         None => gmeow_validate::grounding_catalog::discover(root),
     }
-    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let (correspondences, lookup) =
         transpile_correspondences_indexed(&dsl_view, &onto_view, &owned_sources)
-            .map_err(|e| SliceError::Parse(e.to_string()))?;
+            .map_err(|e| crate::error::parse_diag(e.to_string()))?;
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let fno = fno::lower_fno(&dsl_view, &onto_view, &lookup)
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
-    let edoal =
-        edoal::lower_edoal(&onto_view, &lookup).map_err(|e| SliceError::Parse(e.to_string()))?;
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
+    let edoal = edoal::lower_edoal(&onto_view, &lookup)
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let sparql = sparql::lower_sparql(
         &onto_view,
         &lookup,
         gmeow_logic_compile::projections::get_leg::PROFILES,
     )
-    .map_err(|e| SliceError::Parse(e.to_string()))?;
+    .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let correspondences = correspondences
         .with_projection_bindings(sparql.bindings.clone())
         .and_then(|program| {
             program.with_projection_profiles(sparql.profiles.values().cloned().collect())
         })
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
     // Required catalog reconstruction proves that transported native support
     // still agrees with the actual canonical ontology used by this lowering.
     let grounding_catalog =
@@ -181,7 +180,7 @@ pub fn lower_all(
             &onto_view,
             &owned_sources,
         )
-        .map_err(|e| SliceError::Parse(e.to_string()))?;
+        .map_err(|e| crate::error::parse_diag(e.to_string()))?;
 
     // The EmotionML XML lowering enumerates the affect category (gmeow:EmotionType) and
     // dimension (gmeow:AppraisalDimension / gmeow:CoreAffectDimension) vocabularies straight
@@ -192,7 +191,8 @@ pub fn lower_all(
     // base-graph A-Box (the same in-memory `onto` carrier the lane already folds) over
     // gmeow:coreAffectGram — never a fabricated constant and never a disk re-read. A missing
     // observation or a compute failure is a HARD FAIL here (no fallback literal).
-    let worked = compute_worked_envelope(&onto).map_err(|e| SliceError::Parse(e.to_string()))?;
+    let worked =
+        compute_worked_envelope(&onto).map_err(|e| crate::error::parse_diag(e.to_string()))?;
     let emotionml = emotionml::lower_emotionml(&onto_view, &worked);
 
     // Aggregate the per-correspondence ledger across all four dialects plus the EmotionML
@@ -215,7 +215,7 @@ pub fn lower_all(
     loss.union(&emotionml.loss);
 
     let dsl_stats = statistics::emit(&dsl_view, &lookup, &gmeow_ns::gmeow_slice_vocab())
-        .map_err(|error| SliceError::Parse(error.to_string()))?;
+        .map_err(|error| crate::error::parse_diag(error.to_string()))?;
 
     Ok(CorrespondenceArtifacts {
         grounding_catalog,
@@ -353,17 +353,17 @@ fn schadenfreude_geometry(onto: &RdfDataset) -> gmeow_errors::Result<gmeow_affec
         })
 }
 
-fn parse_turtle(bytes: &[u8], context: &str) -> Result<Arc<RdfDataset>, SliceError> {
+fn parse_turtle(bytes: &[u8], context: &str) -> gmeow_errors::Result<Arc<RdfDataset>> {
     parse_dataset(bytes, NativeRdfFormat::Turtle.media_type(), None)
-        .map_err(|e| SliceError::Parse(format!("{context}: {e}")))
+        .map_err(|e| crate::error::parse_diag(format!("{context}: {e}")))
 }
 
-fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), SliceError> {
+fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result<()> {
     if !dir.is_dir() {
         return Ok(());
     }
-    for entry in std::fs::read_dir(dir).map_err(SliceError::Io)? {
-        let path = entry.map_err(SliceError::Io)?.path();
+    for entry in std::fs::read_dir(dir).map_err(crate::error::io_diag)? {
+        let path = entry.map_err(crate::error::io_diag)?.path();
         if path.is_dir() {
             collect_ttl_files(&path, out)?;
         } else if path.extension().and_then(|e| e.to_str()) == Some("ttl") {
@@ -377,7 +377,7 @@ fn merge_slice_artifacts(
     catalog: Option<&SliceCatalog>,
     role: ArtifactRole,
     b: &mut RdfDatasetBuilder,
-) -> Result<(), SliceError> {
+) -> gmeow_errors::Result<()> {
     let Some(catalog) = catalog else {
         return Ok(());
     };
@@ -404,18 +404,19 @@ fn merge_slice_artifacts(
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDataset>, SliceError> {
+fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut b = RdfDatasetBuilder::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
     files.sort();
     for path in &files {
-        let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(path).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
         b.push_dataset(&ds)?;
     }
     merge_slice_artifacts(catalog, ArtifactRole::Mapping, &mut b)?;
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    b.freeze()
+        .map_err(|e| crate::error::parse_diag(e.to_string()))
 }
 
 /// The ontology source set (`rdfs:range` / suppression vocabulary / language tags):
@@ -423,41 +424,46 @@ fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> Result<Arc<RdfDatas
 fn merge_ontology(
     root: &Path,
     catalog: Option<&SliceCatalog>,
-) -> Result<Arc<RdfDataset>, SliceError> {
+) -> gmeow_errors::Result<Arc<RdfDataset>> {
     let mut b = RdfDatasetBuilder::new();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
-        let bytes = std::fs::read(&onto).map_err(SliceError::Io)?;
+        let bytes = std::fs::read(&onto).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
         b.push_dataset(&ds)?;
     }
     merge_slice_artifacts(catalog, ArtifactRole::Module, &mut b)?;
-    b.freeze().map_err(|e| SliceError::Parse(e.to_string()))
+    b.freeze()
+        .map_err(|e| crate::error::parse_diag(e.to_string()))
 }
 
 /// Read `(version, release_date)` from `metadata/gmeow-self.ttl` (the Manifestation is
 /// the subject of `gmeow:versionFingerprint`; its `gmeow:datePublished` is the date).
-fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
-    let bytes =
-        std::fs::read(root.join("metadata").join("gmeow-self.ttl")).map_err(SliceError::Io)?;
+fn read_self_metadata(root: &Path) -> gmeow_errors::Result<(String, String)> {
+    let bytes = std::fs::read(root.join("metadata").join("gmeow-self.ttl"))
+        .map_err(crate::error::io_diag)?;
     let ds = parse_turtle(&bytes, "metadata/gmeow-self.ttl")?;
     let vfp = ds
         .as_ref()
         .term_id_by_value(&TermValue::Iri(GM_VERSION_FINGERPRINT.to_owned()))
         .ok_or_else(|| {
-            SliceError::Parse("gmeow-self.ttl: no gmeow:versionFingerprint predicate".to_owned())
+            crate::error::parse_diag(
+                "gmeow-self.ttl: no gmeow:versionFingerprint predicate".to_owned(),
+            )
         })?;
     let manifestation = ds
         .quads_for_pattern(None, Some(vfp), None, GraphMatch::Default)
         .next()
         .ok_or_else(|| {
-            SliceError::Parse("gmeow-self.ttl: no manifestation with versionFingerprint".to_owned())
+            crate::error::parse_diag(
+                "gmeow-self.ttl: no manifestation with versionFingerprint".to_owned(),
+            )
         })?
         .s;
     let subject_iri = match ds.as_ref().resolve(manifestation) {
         TermRef::Iri(iri) => iri.to_owned(),
         _ => {
-            return Err(SliceError::Parse(
+            return Err(crate::error::parse_diag(
                 "gmeow-self.ttl: versionFingerprint subject is not an IRI".to_owned(),
             ));
         }
@@ -466,11 +472,13 @@ fn read_self_metadata(root: &Path) -> Result<(String, String), SliceError> {
     let version = view
         .object_literal(&subject_iri, GM_VERSION_FINGERPRINT)
         .ok_or_else(|| {
-            SliceError::Parse("gmeow-self.ttl: missing versionFingerprint".to_owned())
+            crate::error::parse_diag("gmeow-self.ttl: missing versionFingerprint".to_owned())
         })?;
     let release_date = view
         .object_literal(&subject_iri, GM_DATE_PUBLISHED)
-        .ok_or_else(|| SliceError::Parse("gmeow-self.ttl: missing datePublished".to_owned()))?;
+        .ok_or_else(|| {
+            crate::error::parse_diag("gmeow-self.ttl: missing datePublished".to_owned())
+        })?;
     Ok((version, release_date))
 }
 

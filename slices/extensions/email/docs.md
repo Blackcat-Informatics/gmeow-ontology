@@ -8,6 +8,17 @@ GMEOW email terms, so the importer can emit GMEOW RDF. Each email becomes a
 `gmeow:EmailMessage`; participants are reached through `gmeow:EmailAddress` (the
 seam to people and accounts); residence and address tenure are time-scoped.
 
+## Shared message structure
+
+The [messaging core](../../core/messaging/docs.md) owns `Message`, `BodyPart`,
+`Thread`, `hasBodyPart`, `inReplyTo`, `partOfThread`, `sentAt` and `receivedAt`.
+Their IRIs are shared by email and chat. Email keeps its RFC-specific classes,
+MIME specializations, participant-address relators and header metadata. The shared
+`BodyPart` admits non-MIME content; email parts retain their MIME meaning here.
+A `Message` can be intended communication whose dispatch was refused. Its type
+alone proves neither sending nor delivery. The source meaning of RFC 5322
+`Date` and provider receive time remains as described below.
+
 ## Facet metadata fields
 
 | gmeow facet field | GMEOW term | Object kind |
@@ -121,6 +132,11 @@ identifier property:
 ### MIME body part metadata
 
 GMEOW models the MIME body-part tree using the existing `BodyPart` / `Attachment` / `hasBodyPart` spine, with the universal `hasPart` / `partOf` relation for internal multipart structure (Principle 12: decoding and reconstruction are computations, not OWL entailments).
+
+The [documents core](../../core/documents/docs.md#character-encoding) owns
+`gmeow:charset`, shared by MIME parts and other textual information objects.
+For MIME, it records the `Content-Type` charset parameter; content-transfer
+encoding remains the separate `gmeow:hasContentTransferEncoding` relation.
 
 | Source facet / header | GMEOW term | Object kind |
 |---|---|---|
@@ -535,9 +551,16 @@ collision flags, fingerprints, and patch-diff artifact type.
 A `patch_diff` compound part is modeled as a `gmeow:EmailPatchDiff`, which is a
 `gmeow:BodyPart` subclass. It is linked from the variant message via
 `gmeow:hasPatchDiff` (a subproperty of `gmeow:hasBodyPart`). The patch carries
-`gmeow:mediaType "text/x-gmeow-patch"`, a `gmeow:contentDigest` for reliable
+`gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`, a `gmeow:contentDigest` for reliable
 identity, and `gmeow:wasDerivedFrom` pointing to the canonical body part(s) it
 was computed from.
+
+The patch format is unregistered, so its identity is the explicit GMEOW IRI
+`<https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch>`.
+Its exact MIME spelling is `"text/x-gmeow-patch"` on that MediaType value's
+`mediaTypeName`, rather than a string on the body part. Registered formats
+use their IANA resource IRIs. Charset and other source MIME parameters remain
+separate from the media identity.
 
 | gmeow part role | GMEOW term |
 |---|---|
@@ -556,7 +579,7 @@ ex:msgCanonical a gmeow:EmailMessage ;
 
 ex:msgCanonicalBody a gmeow:BodyPart ;
     gmeow:partId "1" ;
-    gmeow:mediaType "text/plain" ;
+    gmeow:mediaType <https://www.iana.org/assignments/media-types/text/plain> ;
     gmeow:contentDigest "blake3:canonical-body-bytes" .
 
 ex:canonicalMembership a gmeow:VersionMembership ;
@@ -581,7 +604,7 @@ ex:variantMembership a gmeow:VersionMembership ;
     gmeow:membershipAuthority ex:gmeowImporter .
 
 ex:variantPatch a gmeow:EmailPatchDiff ;
-    gmeow:mediaType "text/x-gmeow-patch" ;
+    gmeow:mediaType <https://blackcatinformatics.ca/gmeow/media-types/text/x-gmeow-patch> ;
     gmeow:contentDigest "blake3:patch-bytes" ;
     gmeow:wasDerivedFrom ex:msgCanonicalBody .
 ```
@@ -730,7 +753,7 @@ The presentation-disposition facet (RFC 2183): `hasContentDisposition` relates a
 part to its `ContentDisposition` value — inline (rendered in the body) or attachment
 (presented as a separate file).
 
-### gmeow:ContentTransferEncoding · gmeow:hasContentTransferEncoding · gmeow:transferEncodingBase64 · gmeow:transferEncodingQuotedPrintable · gmeow:transferEncoding7bit · gmeow:transferEncoding8bit · gmeow:transferEncodingBinary
+### `gmeow:ContentTransferEncoding` · `gmeow:hasContentTransferEncoding` · `gmeow:transferEncodingBase64` · `gmeow:transferEncodingQuotedPrintable` · `gmeow:transferEncoding7bit` · `gmeow:transferEncoding8bit` · `gmeow:transferEncodingBinary`
 
 The MIME content-transfer-encoding facet (RFC 2045): `hasContentTransferEncoding`
 relates a body part to its encoding value — base64, quoted-printable, 7bit, 8bit, or
@@ -782,6 +805,9 @@ both non-functional because a message may carry multiple resent blocks; the raw
 headers remain on `MessageHeader` (Principle 4).
 
 ### gmeow:MessageKind · gmeow:hasMessageKind
+
+These shared declarations are owned by core messaging. Email retains the
+specialized report-kind individuals described below.
 
 The behavioral / report kind of a message as an open value vocabulary —
 overlapping categories (a bounce is also auto-generated), so `hasMessageKind` is

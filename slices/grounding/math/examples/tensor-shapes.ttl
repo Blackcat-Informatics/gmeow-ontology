@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix math: <https://blackcatinformatics.ca/math/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://example.org/math/tensor-shapes/> .
+
+# No tensorShape means rank unknown, not rank zero.
+ex:unknown a math:ExpressionType .
+ex:scalarType a math:ExpressionType ; math:tensorShape ex:scalar .
+ex:scalar a math:TensorShape ; math:tensorRank 0 .
+ex:matrixType a math:ExpressionType ; math:tensorShape ex:matrix .
+ex:matrix a math:TensorShape ; math:tensorRank "2"^^xsd:nonNegativeInteger ;
+    math:shapeAxis ex:row, ex:column .
+ex:row a math:TensorAxis ; math:axisIndex 0 ; math:symbolicExtent ex:batch .
+ex:column a math:TensorAxis ; math:axisIndex 1 ; math:axisExtent 4 .
+ex:batch a math:FreeVariableDeclaration ; rdfs:label "batch"@en ;
+    math:variableDomain math:naturalNumbers .
+# An axis can exist while its length remains undisclosed.
+ex:unknownExtentShape a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:unknownExtent .
+ex:unknownExtent a math:TensorAxis ; math:axisIndex 0 .
+
+# Zero is a disclosed concrete length, not a placeholder for an unknown extent.
+ex:zeroExtentShape a math:TensorShape ; math:tensorRank 1 ; math:shapeAxis ex:zeroExtent .
+ex:zeroExtent a math:TensorAxis ; math:axisIndex 0 ; math:axisExtent 0 .

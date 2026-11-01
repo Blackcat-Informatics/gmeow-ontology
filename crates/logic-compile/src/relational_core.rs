@@ -57,7 +57,10 @@ use crate::ir::{
     Term, TermKindPredicate,
 };
 
+mod cbor;
 pub mod formula_analysis;
+mod json;
+pub use json::read_signed_atom;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
@@ -709,6 +712,8 @@ pub struct RcViolationRule {
     pub term_kinds: Vec<RcTermKindTest>,
     /// Native equality filters on joined operands, never asserted relations.
     pub term_equalities: Vec<RcTermEqualityTest>,
+    /// Bound RDF component identity filters, never stored relations.
+    pub term_identities: Vec<RcTermIdentityTest>,
     /// Exact native numeric filters over original RDF operands.
     pub term_comparisons: Vec<RcTermComparisonTest>,
     /// The constraint's `∀` focus variable (`vars[0]`) as an [`RcTerm::Var`] — the
@@ -738,6 +743,21 @@ pub struct RcTermEqualityTest {
     /// Original right operand.
     pub right: RcTerm,
     /// True for equality, false for distinctness after literal negation.
+    pub expected: bool,
+}
+
+/// A bound identity predicate over selected components of original RDF operands.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RcTermIdentityTest {
+    /// Original left RDF operand.
+    pub left: RcTerm,
+    /// Component selected from the left operand.
+    pub left_component: crate::ir::TermComponent,
+    /// Original right RDF operand.
+    pub right: RcTerm,
+    /// Component selected from the right operand.
+    pub right_component: crate::ir::TermComponent,
+    /// Truth required to retain the violation candidate.
     pub expected: bool,
 }
 
@@ -888,15 +908,66 @@ fn lower_one_violation_constraint(
     constraint: &ConstraintIr,
     builtin_relations: &BTreeSet<String>,
 ) -> Result<Vec<RcViolationRule>, RcViolationGap> {
-    // The failure class is checked FIRST, before any shape analysis, and that ordering is
-    // part of the contract: it makes `NoFailureClass` mean exactly "this constraint does
-    // not ask to be enforced as a marker" and every OTHER gap mean "it asked and the
-    // fragment could not deliver". A caller can then hard-fail on the second kind without
-    // also condemning the many constraints whose enforcement surface is the derived SHACL.
+    // Authored failure ownership is required before native marker production.
     let failure_class = constraint
         .failure_class
         .clone()
         .ok_or(RcViolationGap::NoFailureClass)?;
+    Ok(lower_violation_bodies(constraint, builtin_relations)?
+        .into_iter()
+        .enumerate()
+        .map(|(conjunct_index, body)| RcViolationRule {
+            constraint_iri: constraint.iri.clone(),
+            conjunct_index,
+            body: body.body,
+            term_kinds: body.term_kinds,
+            term_equalities: body.term_equalities,
+            term_identities: body.term_identities,
+            term_comparisons: body.term_comparisons,
+            subject: body.subject,
+            failure_class: failure_class.clone(),
+        })
+        .collect())
+}
+
+/// A fully admitted violation body, independent of marker publication metadata.
+struct RcViolationBody {
+    body: Vec<RcAtom>,
+    term_kinds: Vec<RcTermKindTest>,
+    term_equalities: Vec<RcTermEqualityTest>,
+    term_identities: Vec<RcTermIdentityTest>,
+    term_comparisons: Vec<RcTermComparisonTest>,
+    subject: RcTerm,
+}
+
+/// Apply the native binding/scope admission before projecting component filters.
+/// No failure-class requirement or marker is fabricated for a projection-only law.
+pub(crate) fn admit_component_constraint(constraint: &ConstraintIr) -> Result<(), RcViolationGap> {
+    if !contains_component_identity(&constraint.integrity) {
+        return Ok(());
+    }
+    lower_violation_bodies(constraint, &BTreeSet::new()).map(|_| ())
+}
+
+fn contains_component_identity(formula: &Formula) -> bool {
+    match formula {
+        Formula::Atom { relation, .. } => matches!(relation,
+            Term::Iri(iri) if iri == &format!("{LOGIC_NAMESPACE}termSameComponent")),
+        Formula::Not(body) | Formula::Forall { body, .. } | Formula::Exists { body, .. } => {
+            contains_component_identity(body)
+        }
+        Formula::And(parts) | Formula::Or(parts) => parts.iter().any(contains_component_identity),
+        Formula::Implies(left, right) | Formula::Iff(left, right) => {
+            contains_component_identity(left) || contains_component_identity(right)
+        }
+    }
+}
+
+/// Shared body lowering enforces positive binding in every admitted branch/scope.
+fn lower_violation_bodies(
+    constraint: &ConstraintIr,
+    builtin_relations: &BTreeSet<String>,
+) -> Result<Vec<RcViolationBody>, RcViolationGap> {
     let Formula::Forall { vars, body } = &constraint.integrity else {
         return Err(RcViolationGap::NotUniversalImplication);
     };
@@ -918,7 +989,7 @@ fn lower_one_violation_constraint(
     // The antecedent: ordinary positive body atoms, the same per-atom reification the
     // formula lane uses. These are what BIND the focus variable.
     let mut guard_lowering = GuardLowering::new(&constraint.integrity);
-    let ante_atoms = guard_lowering.lower(antecedent)?;
+    let (ante_atoms, ante_identities) = guard_lowering.lower(antecedent)?;
     let subject = RcTerm::Var(format!("?{focus}"));
     // Safety: only a POSITIVE literal can bind the head's subject. A NAF literal is a
     // membership test over already-bound terms, never a generator.
@@ -939,8 +1010,11 @@ fn lower_one_violation_constraint(
     for (guards, universals, consequent) in cons_conjuncts {
         for conjuncts in violation_branches(consequent)? {
             let mut body = ante_atoms.clone();
+            let mut term_identities = ante_identities.clone();
             for guard in &guards {
-                body.extend(guard_lowering.lower(guard)?);
+                let (atoms, identities) = guard_lowering.lower(guard)?;
+                body.extend(atoms);
+                term_identities.extend(identities);
             }
             let mut term_kinds = Vec::new();
             let mut term_equalities = Vec::new();
@@ -962,7 +1036,10 @@ fn lower_one_violation_constraint(
                 {
                     return Err(RcViolationGap::BuiltinBoundConsequent);
                 }
-                if let Some(test) = term_kind_consequent(conjunct)? {
+                if let Some(mut test) = term_identity_literal(conjunct)? {
+                    test.expected = !test.expected;
+                    term_identities.push(test);
+                } else if let Some(test) = term_kind_consequent(conjunct)? {
                     term_kinds.push(test);
                 } else if let Some(test) = comparison_consequent(conjunct)? {
                     term_comparisons.push(test);
@@ -988,7 +1065,11 @@ fn lower_one_violation_constraint(
                         });
                     }
                 } else {
-                    body.extend(negate_consequent_conjunct(conjunct, &mut occupied)?);
+                    body.extend(negate_consequent_conjunct(
+                        conjunct,
+                        &mut occupied,
+                        &mut term_identities,
+                    )?);
                 }
             }
             body.retain(|atom| {
@@ -1024,6 +1105,13 @@ fn lower_one_violation_constraint(
                     }
                 }
             }
+            for test in &term_identities {
+                for operand in [&test.left, &test.right] {
+                    if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
+                        return Err(RcViolationGap::UnsafeEqualityVariable);
+                    }
+                }
+            }
             for test in &term_comparisons {
                 for operand in [&test.left, &test.right] {
                     if matches!(operand, RcTerm::Var(_)) && !positive_binding(&body, operand) {
@@ -1033,15 +1121,13 @@ fn lower_one_violation_constraint(
             }
             body.sort_unstable();
             body.dedup();
-            out.push(RcViolationRule {
-                constraint_iri: constraint.iri.clone(),
-                conjunct_index: out.len(),
+            out.push(RcViolationBody {
                 body,
                 term_kinds,
                 term_equalities,
+                term_identities,
                 term_comparisons,
                 subject: subject.clone(),
-                failure_class: failure_class.clone(),
             });
         }
     }
@@ -1192,17 +1278,26 @@ impl GuardLowering {
         }
     }
 
-    fn lower(&mut self, formula: &Formula) -> Result<Vec<RcAtom>, RcViolationGap> {
+    fn lower(
+        &mut self,
+        formula: &Formula,
+    ) -> Result<(Vec<RcAtom>, Vec<RcTermIdentityTest>), RcViolationGap> {
         let mut atoms = Vec::new();
-        self.visit(formula, &mut atoms)?;
-        Ok(atoms)
+        let mut identities = Vec::new();
+        self.visit(formula, &mut atoms, &mut identities)?;
+        Ok((atoms, identities))
     }
 
-    fn visit(&mut self, formula: &Formula, atoms: &mut Vec<RcAtom>) -> Result<(), RcViolationGap> {
+    fn visit(
+        &mut self,
+        formula: &Formula,
+        atoms: &mut Vec<RcAtom>,
+        identities: &mut Vec<RcTermIdentityTest>,
+    ) -> Result<(), RcViolationGap> {
         match formula {
             Formula::And(parts) => {
                 for part in parts {
-                    self.visit(part, atoms)?;
+                    self.visit(part, atoms, identities)?;
                 }
                 Ok(())
             }
@@ -1218,7 +1313,7 @@ impl GuardLowering {
                     };
                     self.scope.push((name.clone(), fresh));
                 }
-                let result = self.visit(body, atoms);
+                let result = self.visit(body, atoms, identities);
                 self.scope.truncate(depth);
                 result
             }
@@ -1230,10 +1325,31 @@ impl GuardLowering {
                         .map(|term| rename_scoped_term(term, &self.scope))
                         .collect(),
                 };
-                atoms.extend(
-                    formula_atom_to_rc_atoms(&atom, AtomPosition::Body)
-                        .map_err(|_| RcViolationGap::UnsupportedAntecedent)?,
-                );
+                if let Some(test) = term_identity_literal(&atom)? {
+                    identities.push(test);
+                } else {
+                    atoms.extend(
+                        formula_atom_to_rc_atoms(&atom, AtomPosition::Body)
+                            .map_err(|_| RcViolationGap::UnsupportedAntecedent)?,
+                    );
+                }
+                Ok(())
+            }
+            Formula::Not(inner) => {
+                let Formula::Atom { relation, args } = inner.as_ref() else {
+                    return Err(RcViolationGap::UnsupportedAntecedent);
+                };
+                let atom = Formula::Not(Box::new(Formula::Atom {
+                    relation: relation.clone(),
+                    args: args
+                        .iter()
+                        .map(|term| rename_scoped_term(term, &self.scope))
+                        .collect(),
+                }));
+                let Some(test) = term_identity_literal(&atom)? else {
+                    return Err(RcViolationGap::UnsupportedAntecedent);
+                };
+                identities.push(test);
                 Ok(())
             }
             _ => Err(RcViolationGap::UnsupportedAntecedent),
@@ -1279,6 +1395,45 @@ fn guarded_consequences<'a>(
         other => out.push((guards.clone(), bound.clone(), other)),
     }
     Ok(())
+}
+
+/// Decode one signed component-identity literal before stored-relation lowering.
+fn term_identity_literal(formula: &Formula) -> Result<Option<RcTermIdentityTest>, RcViolationGap> {
+    let (atom, expected) = match formula {
+        Formula::Not(inner) => (inner.as_ref(), false),
+        other => (other, true),
+    };
+    let Formula::Atom {
+        relation: Term::Iri(relation),
+        args,
+    } = atom
+    else {
+        return Ok(None);
+    };
+    if relation != &format!("{LOGIC_NAMESPACE}termSameComponent") {
+        return Ok(None);
+    }
+    let [
+        left,
+        Term::Iri(left_selector),
+        right,
+        Term::Iri(right_selector),
+    ] = args.as_slice()
+    else {
+        return Err(RcViolationGap::UnsupportedConsequent);
+    };
+    let left_component = crate::ir::TermComponent::from_iri(left_selector)
+        .ok_or(RcViolationGap::UnsupportedConsequent)?;
+    let right_component = crate::ir::TermComponent::from_iri(right_selector)
+        .ok_or(RcViolationGap::UnsupportedConsequent)?;
+    Ok(Some(RcTermIdentityTest {
+        left: formula_term_to_rc(left, true).map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        left_component,
+        right: formula_term_to_rc(right, true)
+            .map_err(|_| RcViolationGap::UnsupportedConsequent)?,
+        right_component,
+        expected,
+    }))
 }
 
 fn term_kind_consequent(formula: &Formula) -> Result<Option<RcTermKindTest>, RcViolationGap> {
@@ -1346,6 +1501,9 @@ fn pattern_free_variables(
                 }
             }
         }
+        Formula::Not(inner) if term_identity_literal(formula)?.is_some() => {
+            pattern_free_variables(inner, bound, free)?;
+        }
         Formula::And(parts) => {
             for part in parts {
                 pattern_free_variables(part, bound, free)?;
@@ -1367,16 +1525,21 @@ fn prohibited_pattern_atoms(
     formula: &Formula,
     occupied: &mut BTreeSet<String>,
     atoms: &mut Vec<RcAtom>,
+    identities: &mut Vec<RcTermIdentityTest>,
 ) -> Result<(), RcViolationGap> {
+    if let Some(test) = term_identity_literal(formula)? {
+        identities.push(test);
+        return Ok(());
+    }
     match formula {
         Formula::And(conjuncts) => {
             for conjunct in conjuncts {
-                prohibited_pattern_atoms(conjunct, occupied, atoms)?;
+                prohibited_pattern_atoms(conjunct, occupied, atoms, identities)?;
             }
         }
         Formula::Exists { vars, body } => {
             bind_violation_existentials(vars, occupied)?;
-            prohibited_pattern_atoms(body, occupied, atoms)?;
+            prohibited_pattern_atoms(body, occupied, atoms, identities)?;
         }
         atom @ Formula::Atom { .. } => atoms.extend(
             formula_atom_to_rc_atoms(atom, AtomPosition::Body)
@@ -1395,12 +1558,18 @@ fn prohibited_pattern_atoms(
 fn negate_consequent_conjunct(
     conjunct: &Formula,
     occupied: &mut BTreeSet<String>,
+    identities: &mut Vec<RcTermIdentityTest>,
 ) -> Result<Vec<RcAtom>, RcViolationGap> {
+    if let Some(mut test) = term_identity_literal(conjunct)? {
+        test.expected = !test.expected;
+        identities.push(test);
+        return Ok(Vec::new());
+    }
     match conjunct {
         Formula::Not(inner) => {
             pattern_free_variables(inner, &BTreeSet::new(), occupied)?;
             let mut atoms = Vec::new();
-            prohibited_pattern_atoms(inner, occupied, &mut atoms)?;
+            prohibited_pattern_atoms(inner, occupied, &mut atoms, identities)?;
             Ok(atoms)
         }
         Formula::Exists { .. } => {
@@ -1413,7 +1582,7 @@ fn negate_consequent_conjunct(
             if !matches!(inner, Formula::Atom { .. }) {
                 return Err(RcViolationGap::UnsupportedConsequent);
             }
-            negate_consequent_conjunct(inner, occupied)
+            negate_consequent_conjunct(inner, occupied, identities)
         }
         atom @ Formula::Atom { .. } => {
             let mut atoms = formula_atom_to_rc_atoms(atom, AtomPosition::Body)
@@ -1579,6 +1748,9 @@ fn formula_atom_to_rc_atoms(
     let Term::Iri(rel) = relation else {
         return Err("non-IRI relation in atom");
     };
+    if rel == &format!("{LOGIC_NAMESPACE}termSameComponent") {
+        return Err("component identity is supported only as a bound integrity filter");
+    }
     if NumericOperator::from_iri(rel).is_some() {
         return Err("interpreted numeric relation is legal only in a positive rule antecedent");
     }

@@ -12,24 +12,26 @@ fn repo_root() -> PathBuf {
         .unwrap()
 }
 
-/// Build a REAL `stage-compile-logic` upstream product carrying a typed `Logic` handle
-/// whose `reasoning_programs` are the AUTHORED demonstrator corpus
-/// (`REASONING_PROGRAMS_EXAMPLE_PATH`), parsed through the exact same production
-/// frontend entry point (`parse_logic_path`) the real stage uses — never a hand-built
-/// fake corpus. Its `graph/logic` backing graph carries only a placeholder triple: the
-/// handle pin only requires digest self-consistency (proven at construction), not full
-/// program re-derivability, and this stage never reads that graph directly (only the
-/// handle payload).
-fn compile_logic_upstream_with_reasoning_programs() -> StageProduct {
-    let path = repo_root().join(crate::stages::compile_logic::REASONING_PROGRAMS_EXAMPLE_PATH);
-    let (parsed, _diags) = gmeow_logic_compile::frontend::parse_logic_path(&path, None)
-        .expect("parse the authored reasoning-programs cell");
-    assert!(
-        !parsed.reasoning_programs.is_empty(),
-        "the authored cell must carry at least one logic:ReasoningProgram"
-    );
+/// A tiny independently authored typed input for the missing-reason refusal.
+/// The stage must reject its absent dependency before evaluating this program.
+fn compile_logic_upstream_for_missing_reason() -> StageProduct {
+    use gmeow_logic_compile::ir::{EvaluationMode, Formula, ReasoningProgramIr, Term};
+    let atom = Formula::Atom {
+        relation: Term::Iri("https://example.test/refusal/p".to_owned()),
+        args: vec![Term::Iri("https://example.test/refusal/a".to_owned())],
+    };
+    let reasoning = ReasoningProgramIr::new(
+        "https://example.test/refusal/program",
+        EvaluationMode::Backward,
+        vec![atom.clone()],
+        atom,
+        vec![],
+        vec![],
+        vec![],
+    )
+    .expect("independent one-fact reasoning program");
     let program = gmeow_logic_compile::ir::LogicProgram::new(vec![], vec![], vec![], None)
-        .with_reasoning_programs(parsed.reasoning_programs);
+        .with_reasoning_programs(vec![reasoning]);
     let dataset = crate::stages::carrier::parse_into_graph(
         b"<https://example.test/s> <https://example.test/p> <https://example.test/o> .\n",
         "application/n-triples",
@@ -52,6 +54,7 @@ fn compile_logic_upstream_with_reasoning_programs() -> StageProduct {
         )
         .expect("pin the Logic handle to graph/logic");
     StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+        .expect("the stage carrier digests")
 }
 
 /// Build a REAL `stage-reason` upstream product carrying a typed `Reasoning` handle
@@ -105,34 +108,14 @@ fn reason_upstream_with_math_tower() -> StageProduct {
             pinned,
         )
         .expect("pin the Reasoning handle to graph/reasoning");
-    StageProduct::from_bundle("stage-reason", Arc::new(bundle))
-}
-
-fn real_upstream() -> BTreeMap<String, StageProduct> {
-    let mut upstream = BTreeMap::new();
-    upstream.insert(
-        "stage-compile-logic".to_string(),
-        compile_logic_upstream_with_reasoning_programs(),
-    );
-    upstream.insert(
-        "stage-reason".to_string(),
-        reason_upstream_with_math_tower(),
-    );
-    upstream
+    StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
 }
 
 #[test]
 fn goal_directed_stage_attaches_a_nonempty_goal_directed_graph() {
-    let stage = GoalDirectedStage::new();
-    let upstream = real_upstream();
-    let root = std::path::Path::new(".");
-    let out = stage
-        .run(StageInput {
-            root,
-            upstream: &upstream,
-        })
-        .expect("goal-directed run");
-    let dataset = out.product.bundle().dataset();
+    let fixture = crate::fixture::stage_fixture(&repo_root(), 1, "stage-goal-directed")
+        .expect("exact authenticated goal-directed stage product");
+    let dataset = fixture.outcome.product.bundle().dataset();
     let graph = dataset
         .project_graph(Some(&purrdf::RdfTerm::iri(GRAPH_GOAL_DIRECTED)))
         .unwrap();
@@ -264,7 +247,7 @@ fn run_hard_fails_when_stage_reason_is_missing() {
     let mut upstream = BTreeMap::new();
     upstream.insert(
         "stage-compile-logic".to_string(),
-        compile_logic_upstream_with_reasoning_programs(),
+        compile_logic_upstream_for_missing_reason(),
     );
     let root = std::path::Path::new(".");
     let result = stage.run(StageInput {
@@ -305,7 +288,8 @@ fn run_hard_fails_when_the_logic_handle_carries_zero_reasoning_programs() {
     let mut upstream = BTreeMap::new();
     upstream.insert(
         "stage-compile-logic".to_string(),
-        StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle)),
+        StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
+            .expect("the stage carrier digests"),
     );
     upstream.insert(
         "stage-reason".to_string(),

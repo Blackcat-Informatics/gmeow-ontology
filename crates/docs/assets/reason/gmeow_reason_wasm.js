@@ -62,7 +62,8 @@ export function conjecture(kb, kb_format, formula, standpoint) {
 
 /**
  * Run the structured-DL chase over `data` (RDF text in `format`) and return the
- * **reasoned closure** — the inferred triples — as N-Quads text.
+ * **reasoned closure** as N-Quads text, retaining asserted facts, inferred facts,
+ * and the selected nonempty-domain witness.
  *
  * - `data` — the RDF document to reason over (UTF-8 text).
  * - `format` — a media type / short id purrdf understands (`turtle`/`ttl`,
@@ -129,12 +130,13 @@ export function version() {
 function __wbg_get_imports() {
     const import0 = {
         __proto__: null,
-        __wbg_Error_fdd633d4bb5dd76a: function(arg0, arg1) {
+        __wbg_Error_30c8987f7c2ed4e2: function(arg0, arg1) {
             const ret = Error(getStringFromWasm0(arg0, arg1));
             return addHeapObject(ret);
         },
-        __wbg___wbindgen_throw_ea4887a5f8f9a9db: function(arg0, arg1) {
-            throw new Error(getStringFromWasm0(arg0, arg1));
+        __wbg_now_449da2ee7e3b5247: function() {
+            const ret = performance.now();
+            return ret;
         },
     };
     return {
@@ -269,11 +271,15 @@ function __wbg_finalize_init(instance, module) {
 
 async function __wbg_load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
+        if (!module.ok) {
+            throw new Error(`failed to fetch Wasm: ${module.status} ${module.statusText} fetching '${module.url}'`);
+        }
+
         if (typeof WebAssembly.instantiateStreaming === 'function') {
             try {
                 return await WebAssembly.instantiateStreaming(module, imports);
             } catch (e) {
-                const validResponse = module.ok && expectedResponseType(module.type);
+                const validResponse = expectedResponseType(module.type);
 
                 if (validResponse && module.headers.get('Content-Type') !== 'application/wasm') {
                     console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve Wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e);

@@ -938,11 +938,12 @@ impl Stage for GlossaryTableStage {
             artifact_bytes = artifacts.values().map(Vec::len).sum::<usize>(),
             "glossary output size"
         );
-        Ok(crate::node::measure_stage_phase(
-            self.id(),
-            "publish-glossary-product",
-            || StageOutput::new(StageProduct::from_artifacts(self.id(), artifacts)),
-        ))
+        crate::node::measure_stage_phase(self.id(), "publish-glossary-product", || {
+            Ok(StageOutput::new(StageProduct::from_artifacts(
+                self.id(),
+                artifacts,
+            )?))
+        })
     }
 }
 

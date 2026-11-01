@@ -324,7 +324,9 @@ fn canonical(quads: &[RdfQuad]) -> String {
     let frozen = purrdf::flat_dataset_from_quads(quads).expect("the quad set freezes");
     // The input has already been materialized as the UNFOLDED flat statement layer;
     // canonicalizing it directly avoids a redundant flatten + refreeze pass.
-    purrdf::canonicalize(&frozen).nquads
+    purrdf::try_canonicalize(&frozen)
+        .expect("the quad set canonicalizes")
+        .nquads
 }
 
 fn blake3(bytes: &[u8]) -> String {

@@ -6,6 +6,9 @@
 //! Empty classes, supported local clashes, contextual conflicts, source refusal
 //! and incomplete execution remain independent observations.
 
+// Conformance transports still serialize these shared diagnostic projections.
+mod json;
+
 use crate::physical::{LogicalGraph, WitnessStatement};
 use crate::reason::InferredAxiom;
 use crate::reason::refute::{
@@ -13,6 +16,7 @@ use crate::reason::refute::{
 };
 use purrdf::TermValue;
 use std::collections::{BTreeMap, BTreeSet};
+mod receipt_cbor;
 
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";

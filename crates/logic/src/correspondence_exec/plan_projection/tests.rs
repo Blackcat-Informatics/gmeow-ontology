@@ -4,6 +4,7 @@
 use purrdf::{BlankScope, RdfDatasetBuilder, RdfLiteral};
 
 use super::*;
+use purrdf_lex::json::record::{ToJson, from_slice};
 
 const PLAN: &str = "urn:gmeow:plan:test";
 const CYCLE: &str = "urn:gmeow:plan:test/cycle";
@@ -179,6 +180,12 @@ fn observed_dataset(schemas: &[&str], missing_last_schema: bool) -> std::sync::A
 fn fixed_loop_projects_to_a_prescriptive_guarded_skeleton() {
     let source = plan_dataset();
     let projection = project_plan(&source, PLAN, None, PlanProjectionLimits::default()).unwrap();
+    let mut bytes = purrdf_lex::json::write_pretty(&projection.to_json()).into_bytes();
+    bytes.push(b'\n');
+    let restored: PlanProjection = from_slice(&bytes).unwrap();
+    assert_eq!(restored, projection);
+    verify_plan_projection_certificate(&restored).unwrap();
+    let projection = restored;
     assert_eq!(projection.loop_count, 2);
     assert!(projection.loop_variable.is_none());
     assert_eq!(projection.steps.len(), 10);
@@ -227,6 +234,12 @@ fn recovery_requires_real_plan_and_schema_witnesses() {
     let projection = project_plan(&source, PLAN, None, PlanProjectionLimits::default()).unwrap();
     let observed = observed_dataset(&[PREPARE, ADMINISTER, OBSERVE], false);
     let recovery = recover_planned_schema_skeleton(&projection, &observed).unwrap();
+    let mut bytes = purrdf_lex::json::write_pretty(&recovery.to_json()).into_bytes();
+    bytes.push(b'\n');
+    let restored: PlanRecovery = from_slice(&bytes).unwrap();
+    assert_eq!(restored, recovery);
+    verify_plan_recovery_receipt(&restored, &projection).unwrap();
+    let recovery = restored;
     assert_eq!(
         recovery.verdict,
         PlanRecoveryVerdict::PlannedSkeletonRecovered

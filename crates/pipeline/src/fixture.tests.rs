@@ -64,8 +64,8 @@ fn full_sync_receipts_select_the_same_fixture_closure_as_the_prefix_producer() {
         })
         .collect();
     assert_eq!(
-        serde_json::to_vec(&full).unwrap(),
-        serde_json::to_vec(&stage_fixture_manifest(&prefix).unwrap()).unwrap(),
+        purrdf_lex::json::record::to_vec(&full),
+        purrdf_lex::json::record::to_vec(&stage_fixture_manifest(&prefix).unwrap()),
     );
 }
 
@@ -108,6 +108,25 @@ fn candidate_replay_and_changes_never_replace_finalized_bindings() {
     std::fs::write(&selected, original).unwrap();
     let mut all = receipts();
     let first = prepare_stage_fixture_candidate(root.path(), &all).unwrap();
+    // Preserve the complete historical source-bound candidate byte identity.
+    let historical_bytes =
+        purrdf_hash::hex::decode(include_str!("fixture_reference/candidate.hex").trim()).unwrap();
+    let historical: StageFixtureManifest =
+        purrdf_lex::json::record::from_slice(&historical_bytes).unwrap();
+    let actual_sha = write_stage_fixture_record(
+        root.path(),
+        STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH,
+        &historical,
+    )
+    .unwrap();
+    assert_eq!(
+        actual_sha,
+        "713daca122c6132f7863258b294a6f4651c14756c9ae1a1cd0da4a11f3024f1a"
+    );
+    assert_eq!(
+        std::fs::read(root.path().join(STAGE_FIXTURE_CANDIDATE_RELATIVE_PATH)).unwrap(),
+        historical_bytes
+    );
     assert_eq!(std::fs::read(&selected).unwrap(), original);
     let replay = prepare_stage_fixture_candidate(root.path(), &all).unwrap();
     assert_eq!(first, replay);
@@ -157,7 +176,8 @@ fn source_export_cannot_substitute_another_selected_parent_or_artifact() {
     let product = StageProduct::from_artifacts(
         "synthetic-stage",
         BTreeMap::from([(path.into(), bytes.to_vec())]),
-    );
+    )
+    .expect("the stage carrier digests");
     let receipt = PipelineCache::receipt_only(
         &StageKeyContext::new("synthetic-stage", "synthetic-v1", Vec::new(), Vec::new()),
         StageStability::StablePrefix.iri(),

@@ -77,14 +77,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Asserts on the canonical carrier that gmeow:intensityBasis is functional: a derived intensity is the norm OF exactly one vector observation — the single declared basis it is computed from — so it cannot be the norm of two vectors at once without ceasing to be one intensity."
 msgstr "在规范载体上断言 gmeow:intensityBasis 是函数性的:一个派生强度恰好是某一个向量观测值的范数——即计算它所依据的那个单一声明基准——因此它不能同时是两个向量的范数,否则就不再是一个单一的强度。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "labelSetDecision is functional"
-msgstr "labelSetDecision 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:labelSetDecision is functional: a registered label set carries exactly one decision structure — argmax-exclusive or independent-threshold — because a set that was simultaneously single-label and multi-label would make its exclusivity, and hence whether a second label crossing is a violation, undecidable. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:labelSetDecision 是函数式的:一个已注册的标签集恰好携带一种决策结构——argmax 互斥式或独立阈值式——因为一个同时既是单标签又是多标签的集合,会使其互斥性、进而使第二个标签越界是否构成违规都变得不可判定。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "metricGram is functional"
 msgstr "metricGram 具有函数性"
@@ -101,22 +93,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Asserts on the canonical carrier that gmeow:metricProfile is functional: a derived intensity is computed under exactly one declared scale-normalization profile for the whole vector, so a second metric profile would leave the normalization of that one intensity ambiguous. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "在规范载体上断言 gmeow:metricProfile 是函数式的:一个派生强度是在整个向量恰好一个已声明的量表归一化画像下计算得出的,因此第二个度量画像会使该强度的归一化变得含糊不清。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelIdentifier is functional"
-msgstr "modelIdentifier 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelIdentifier is functional: an inference run executes exactly one pinned model repository id, so a run naming two model ids would not identify a single reproducible execution."
-msgstr "在规范载体上断言 gmeow:modelIdentifier 是函数式的:一次推理运行恰好执行一个被锁定的模型仓库标识,因此一次运行若指名两个模型标识,就无法标识出单一的可复现执行。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "modelRevision is functional"
-msgstr "modelRevision 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:modelRevision is functional: a run pins exactly one model revision/commit — the single most drift-prone coordinate of its reproducible identity — so two revisions on one run would name two different models rather than one execution."
-msgstr "在规范载体上断言 gmeow:modelRevision 是函数式的:一次运行恰好锁定一个模型修订版本/提交——这是其可复现身份中最易漂移的坐标——因此同一次运行上的两个修订版本将指向两个不同的模型,而不是一次执行。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "normFunction is functional"
 msgstr "normFunction 具有函数性"
@@ -124,14 +100,6 @@ msgstr "normFunction 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:normFunction is functional: a derived intensity is computed under exactly one declared math:Norm — a single Gram-induced ‖x‖=√(xᵀGx) — so two norms on one intensity would yield two incompatible magnitudes for the same reading. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
 msgstr "在规范载体上断言 gmeow:normFunction 是函数式的:一个派生强度是在恰好一个已声明的 math:Norm 下计算的——单一的由 Gram 矩阵导出的 ‖x‖=√(xᵀGx)——因此同一强度上的两个范数会为同一读数得出两个不相容的量值。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "producedBy is functional"
-msgstr "producedBy 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:producedBy is functional: a classifier output is generated by exactly one inference run — its single provenance source (prov:wasGeneratedBy) — so it cannot be attributed to two producing runs."
-msgstr "在规范载体上断言 gmeow:producedBy 是函数性的:一个分类器输出恰好由一次推理运行生成——其唯一的来源出处(prov:wasGeneratedBy)——因此它不能归因于两次生成运行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "profileMidpoint is functional"
@@ -180,14 +148,6 @@ msgstr "prototypeFor 具有函数性"
 msgctxt "https://blackcatinformatics.ca/gmeow/prototypeForFunctionality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Asserts on the canonical carrier that gmeow:prototypeFor is functional: a gmeow:AffectPrototype names exactly one gmeow:EmotionType — the single emotion it is the typical signature of — since a prototype's identity is carried by that one type link, not by a stored classification verdict."
 msgstr "在规范载体上断言 gmeow:prototypeFor 是函数性的:一个 gmeow:AffectPrototype 恰好指向一个 gmeow:EmotionType——它是该唯一情绪的典型特征——因为原型的身份由这唯一的类型链接承载,而不是由存储的分类判定承载。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
-msgid "scoreSemantics is functional"
-msgstr "scoreSemantics 具有函数性"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:scoreSemantics is functional: a classifier score has exactly one declared meaning — sigmoid, softmax probability, calibrated probability, logit, or margin — because one number cannot be two of those at once without becoming uninterpretable."
-msgstr "在规范载体上断言 gmeow:scoreSemantics 是函数性的:一个分类器分数恰好具有一种声明的含义——sigmoid、softmax 概率、校准概率、logit 或间隔(margin)——因为同一个数字若同时是其中两种,就会变得无法解释。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "sparseAxisCompletion is functional"
@@ -341,22 +301,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 msgstr "gmeow:intensityBasisFunctionality logic:characterizes gmeow:intensityBasis ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:labelSetDecision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:labelSetDecision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:labelSetDecision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-msgstr "gmeow:labelSetDecisionFunctionality logic:characterizes gmeow:labelSetDecision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:metricGram names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:metricGram 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
@@ -389,38 +333,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 msgstr "gmeow:metricProfileFunctionality logic:characterizes gmeow:metricProfile ."
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelIdentifier names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:modelIdentifier 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelIdentifier, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-msgstr "gmeow:modelIdentifierFunctionality logic:characterizes gmeow:modelIdentifier ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:modelRevision names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:modelRevision 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:modelRevision, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-msgstr "gmeow:modelRevisionFunctionality logic:characterizes gmeow:modelRevision ."
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:normFunction names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
 msgstr "当原生一致性门必须强制 gmeow:normFunction 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
@@ -436,22 +348,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:n
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
 msgstr "gmeow:normFunctionFunctionality logic:characterizes gmeow:normFunction ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:producedBy names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:producedBy 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:producedBy, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
-msgstr "gmeow:producedByFunctionality logic:characterizes gmeow:producedBy ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:profileMidpoint names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -532,22 +428,6 @@ msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:p
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
 msgstr "gmeow:profileTransformFunctionality logic:characterizes gmeow:profileTransform ."
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:scoreSemantics names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:scoreSemantics 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
-msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
-msgstr "当第二个值会使该记录产生歧义时避免使用该记录——应撤回该断言而非削弱它，且绝不将其复刻为手写形状。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."
-msgstr "与 logic:characteristicSort 一并阅读：(logic:characterizes gmeow:scoreSemantics, logic:characteristicSort logic:functionalProperty) 这一对构成完整义务，OWL 基础视图据此投影出相应特征。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#example"
-msgid "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
-msgstr "gmeow:scoreSemanticsFunctionality logic:characterizes gmeow:scoreSemantics ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the native coherence gate must enforce that gmeow:sparseAxisCompletion names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
@@ -645,10 +525,6 @@ msgctxt "https://blackcatinformatics.ca/gmeow/intensityBasisFunctionality|http:/
 msgid "Scope: this record carries ONE integrity obligation about gmeow:intensityBasis and nothing else. It is not a definition of gmeow:intensityBasis (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:intensityBasis 的一项完整性义务，别无其他。它不是 gmeow:intensityBasis 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/labelSetDecisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:labelSetDecision and nothing else. It is not a definition of gmeow:labelSetDecision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:labelSetDecision 的一项完整性义务，别无其他。它不是 gmeow:labelSetDecision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/metricGramFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricGram and nothing else. It is not a definition of gmeow:metricGram (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:metricGram 的一项完整性义务，别无其他。它不是 gmeow:metricGram 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
@@ -657,21 +533,9 @@ msgctxt "https://blackcatinformatics.ca/gmeow/metricProfileFunctionality|http://
 msgid "Scope: this record carries ONE integrity obligation about gmeow:metricProfile and nothing else. It is not a definition of gmeow:metricProfile (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:metricProfile 的一项完整性义务，别无其他。它不是 gmeow:metricProfile 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
-msgctxt "https://blackcatinformatics.ca/gmeow/modelIdentifierFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelIdentifier and nothing else. It is not a definition of gmeow:modelIdentifier (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:modelIdentifier 的一项完整性义务，别无其他。它不是 gmeow:modelIdentifier 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/modelRevisionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:modelRevision and nothing else. It is not a definition of gmeow:modelRevision (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:modelRevision 的一项完整性义务，别无其他。它不是 gmeow:modelRevision 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
 msgctxt "https://blackcatinformatics.ca/gmeow/normFunctionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:normFunction and nothing else. It is not a definition of gmeow:normFunction (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:normFunction 的一项完整性义务，别无其他。它不是 gmeow:normFunction 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/producedByFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:producedBy and nothing else. It is not a definition of gmeow:producedBy (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:producedBy 的一项完整性义务，别无其他。它不是 gmeow:producedBy 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/profileMidpointFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileMidpoint and nothing else. It is not a definition of gmeow:profileMidpoint (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -692,10 +556,6 @@ msgstr "范围：该记录仅承载关于 gmeow:profileRangeMin 的一项完整�
 msgctxt "https://blackcatinformatics.ca/gmeow/profileTransformFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:profileTransform and nothing else. It is not a definition of gmeow:profileTransform (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "范围：该记录仅承载关于 gmeow:profileTransform 的一项完整性义务，别无其他。它不是 gmeow:profileTransform 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
-
-msgctxt "https://blackcatinformatics.ca/gmeow/scoreSemanticsFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Scope: this record carries ONE integrity obligation about gmeow:scoreSemantics and nothing else. It is not a definition of gmeow:scoreSemantics (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
-msgstr "范围：该记录仅承载关于 gmeow:scoreSemantics 的一项完整性义务，别无其他。它不是 gmeow:scoreSemantics 的定义（定义位于术语自身），不是形状，也不是重述该术语含义的第二处位置——应撤回该记录而非扩大其范围。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sparseAxisCompletionFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:sparseAxisCompletion and nothing else. It is not a definition of gmeow:sparseAxisCompletion (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
@@ -768,3 +628,334 @@ msgstr "通过 Emotion 或 ArcSample 归属这种感受，并另行记录实际�
 msgctxt "https://blackcatinformatics.ca/gmeow/emotionSelfCorrection|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for the emotional moment of noticing and correcting oneself in a recorded experience or narrative reading."
 msgstr "用于记录体验或叙事解读中察觉并纠正自身判断的情绪时刻。"
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Label"
+msgstr "情感分类器标签"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An exact affect-classifier label identity specializing ClassifierLabel. It belongs to an AffectLabelSet and remains distinct from EmotionType; reviewed affect correspondences never replace the original identity."
+msgstr "特化自 ClassifierLabel 的确切情感分类器标签标识。它属于 AffectLabelSet，且有别于 EmotionType；经审查的情感对应关系绝不替代原始标识。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Classifier Output"
+msgstr "情感分类器输出"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutput|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-specialized ClassifierOutput whose emitted label is an AffectClassifierLabel. It inherits the general run, target, score and semantics contract and may support an AffectiveClaim. It never directly entails inner affect; calibrated probability is not automatically epistemic confidence."
+msgstr "情感特化的 ClassifierOutput，其输出标签为 AffectClassifierLabel。它继承通用的运行、目标、分数及语义契约，并可支持 AffectiveClaim。它绝不直接蕴含内在情感；校准概率不会自动成为认知置信度。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Affect Label Set"
+msgstr "情感标签集"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectLabelSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An affect-classifier label vocabulary specializing ClassifierLabelSet. A registered static set used by the affect producer declares labelSetDecision; a run-scoped zero-shot candidate set may legitimately lack that rule. Neither form defines canonical emotion categories."
+msgstr "特化自 ClassifierLabelSet 的情感分类器标签词表。情感生产器使用的已注册静态集合声明 labelSetDecision；运行范围的零样本候选集可合法地缺少此规则。两者都不定义规范情绪类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood"
+msgstr "心境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A diffuse background affective mode inhering in one agent, typically more persistent and less intense than an emotion, without a single focal object."
+msgstr "依存于一个行动者的弥散背景情感样态，通常比情绪更持久、强度更低，没有单一聚焦对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a source-attributed background mood, including a simulated actor’s explicitly reported mood."
+msgstr "用于由来源归属的背景心境，包括明确报告的模拟行动者心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a mood as an emotion prolonged by a fixed threshold, a felt episode or a classifier output."
+msgstr "避免把心境当作超过固定时长的情绪、感受事件或分类器输出。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name its actual moodBearer and at least one moodType; attribute the exact Mood claim to its reader and retained source."
+msgstr "指定实际 moodBearer 和至少一个 moodType；为确切的 Mood 断言保留解读者及来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Persistence and intensity are qualitative tendencies, not duration tests. Mood and Emotion are not declared disjoint."
+msgstr "持续性与强度是定性倾向，并非时长测试。Mood 与 Emotion 未声明互斥。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Mood|http://www.w3.org/2004/02/skos/core#example"
+msgid "Record a background mode: ex:quietMood a gmeow:Mood ; gmeow:moodBearer ex:actor ; gmeow:moodType gmeow:moodTypeContent ."
+msgstr "记录背景样态：ex:quietMood a gmeow:Mood ; gmeow:moodBearer ex:actor ; gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mood bearer"
+msgstr "心境承载者"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The actual agent in whom this Mood inheres; one mood mode has exactly one bearer."
+msgstr "该 Mood 所依存的实际行动者；一个心境样态恰有一个承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish the mood’s bearer from its observer, reporter or software provider."
+msgstr "用于区分心境承载者与观察者、报告者或软件提供者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the bearer on the source document or using emotionBearer for a Mood."
+msgstr "避免在来源文档上使用此关系，也不要为 Mood 使用 emotionBearer。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same actual agent across a mood’s bearer claims; another agent’s mood is a distinct mode."
+msgstr "同一心境的承载者断言应指向同一实际行动者；另一行动者的心境是不同样态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exact bearer cardinality is local to Mood. It supplies no universal identity between represented actors and provider programs."
+msgstr "精确承载者基数限于 Mood，不会把被表示的行动者与提供程序普遍等同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodBearer|http://www.w3.org/2004/02/skos/core#example"
+msgid "Identify the bearer: ex:quietMood gmeow:moodBearer ex:actor ."
+msgstr "指定承载者：ex:quietMood gmeow:moodBearer ex:actor ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood Type"
+msgstr "心境类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open vocabulary of qualitative mood kinds, independent of emotion inventories and external classifier labels."
+msgstr "开放的定性心境种类词汇，独立于情绪清单及外部分类器标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to name a reusable background-mood category without making a Mood subclass."
+msgstr "用于命名可复用的背景心境类别，而不建立 Mood 子类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating a mood kind with an EmotionType, measured magnitude or provider label."
+msgstr "避免将心境种类等同于 EmotionType、测量量值或提供方标签。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Extend with individually defined values and select them through moodType on actual modes."
+msgstr "通过逐一定义的值扩展词汇，并在实际样态上用 moodType 选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The four seeded kinds neither exhaust moods nor impose a mutually exclusive classification."
+msgstr "四个初始种类并非心境全集，也不强制互斥分类。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Extend the vocabulary: ex:moodTypePensive a gmeow:MoodType ."
+msgstr "扩展词汇：ex:moodTypePensive a gmeow:MoodType ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "mood type"
+msgstr "心境类型"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#definition"
+msgid "One qualitative kind attributed to a Mood; several independently supported classifications may coexist."
+msgstr "归属于 Mood 的一种定性种类；多个有独立依据的分类可以共存。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for source-reported mood categories on the enduring mode."
+msgstr "用于持存样态上由来源报告的心境类别。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing a raw classifier label here or selecting one globally preferred mood."
+msgstr "避免在此存放原始分类器标签或选定全局首选心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each category assertion’s standpoint, source and supplied validity separately."
+msgstr "分别保留每条类别断言的立场、来源及给定有效期。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Nonfunctional; multiple kinds do not imply multiple bearers or automatically establish a felt experience."
+msgstr "非函数性；多个种类不表示多个承载者，也不会自动确立感受体验。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodType|http://www.w3.org/2004/02/skos/core#example"
+msgid "Classify the mode: ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+msgstr "分类该样态：ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "affectionate mood"
+msgstr "亲昵心境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of warmth and readiness for affectionate contact, as classified by its source."
+msgstr "由来源分类为温暖、愿意亲昵接触的背景心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source describes affectionate background affect rather than one isolated gesture."
+msgstr "用于来源描述亲昵的背景情感，而非单个动作。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring this mood from a cuddle demand or interpreting it as consent to contact."
+msgstr "避免从拥抱需求推断此心境，或把它视为接触同意。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select on a Mood with its own actual bearer and attributed source claim."
+msgstr "在具有实际承载者及有来源断言的 Mood 上选择。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Affectionate classification neither creates a relationship nor promises a response."
+msgstr "亲昵分类既不建立关系，也不承诺回应。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAffectionate|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain warmth: ex:warmMood gmeow:moodType gmeow:moodTypeAffectionate ."
+msgstr "保留温暖分类：ex:warmMood gmeow:moodType gmeow:moodTypeAffectionate ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "aloof mood"
+msgstr "疏离心境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of distance or reserve toward interaction, under the source’s reading."
+msgstr "按来源解读，对互动保持距离或拘谨的背景心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for explicitly reported reserve that persists beyond one interaction."
+msgstr "用于明确报告且超出单次互动的疏远状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving aloofness from silence, an unanswered demand or missing telemetry."
+msgstr "避免从沉默、未获回应的需求或缺失遥测推断疏离。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source’s reserve classification on the actual Mood, not on its documentary report."
+msgstr "将来源的疏远分类置于实际 Mood，而非文档报告。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Reserve does not establish hostility, permanent personality or rejection of every interaction."
+msgstr "疏远不表示敌意、永久人格或拒绝所有互动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeAloof|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain reserve: ex:reservedMood gmeow:moodType gmeow:moodTypeAloof ."
+msgstr "保留疏远分类：ex:reservedMood gmeow:moodType gmeow:moodTypeAloof ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "content mood"
+msgstr "安适心境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A background mood of ease and contentment reported by the source, without a goal-satisfaction judgment."
+msgstr "来源报告的自在、安适背景心境，不包含目标满足判断。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit contented mood rather than a verdict about completed work."
+msgstr "用于明确的安适心境，而非已完成工作的判定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring that all demands were met or that an answering act was accepted."
+msgstr "避免据此推断所有需求均获满足或回应行为已获接受。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record contentment as a moodType claim and retain independent demand and outcome evidence."
+msgstr "将安适记录为 moodType 断言，另行保留需求及结果证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Contentment is qualitative; it supplies no score, duration or universal absence of other moods."
+msgstr "安适是定性类别，不提供分数、时长或其他心境普遍缺席的结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeContent|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain contentment: ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+msgstr "保留安适分类：ex:quietMood gmeow:moodType gmeow:moodTypeContent ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "restless mood"
+msgstr "躁动心境"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An unsettled background mood with difficulty remaining at ease, as reported by the source."
+msgstr "来源报告的难以安定自在的躁动背景心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicitly reported restless mood, independently of any visible movement."
+msgstr "用于明确报告的躁动心境，独立于可见运动。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid diagnosing anxiety, inferring a play demand or deriving inner mood from motion alone."
+msgstr "避免诊断焦虑、推断玩耍需求或仅从运动推断内在心境。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual bearer and source of the restless reading; keep observed behavior separate."
+msgstr "保留躁动解读的实际承载者与来源；另行记录观察行为。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The category establishes neither clinical severity nor a required intervention."
+msgstr "此类别既不确立临床严重度，也不要求采取干预。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/moodTypeRestless|http://www.w3.org/2004/02/skos/core#example"
+msgid "Retain restlessness: ex:unsettledMood gmeow:moodType gmeow:moodTypeRestless ."
+msgstr "保留躁动分类：ex:unsettledMood gmeow:moodType gmeow:moodTypeRestless ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mood source claim constraint"
+msgstr "心境来源断言约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
+msgstr "实际 Mood 应具有确切的原生类型断言，保留实际解读者 Agent 与文档 InformationObject 来源。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The abstract affective branch of MentalMoment: intrinsic modes inhering in one agent, including Emotion and Mood. Query it to retain an agent’s affective life alongside cognitive and intentional modes; instantiate the concrete mode instead."
+msgstr "MentalMoment 的抽象情感分支：依存于一个行动者的内在样态，包括 Emotion 和 Mood。查询此类可将情感生活与认知、意向样态一起保留；应实例化具体样态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid instantiating this umbrella directly; use Emotion or Mood. A felt AffectiveExperience is an occurrent, never a MentalMoment."
+msgstr "避免直接实例化此上位类别；应使用 Emotion 或 Mood。感受的 AffectiveExperience 是事件，绝不是 MentalMoment。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectiveMoment|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place concrete affective modes such as Emotion and Mood beneath this shared parent; keep their actual bearers and source claims explicit."
+msgstr "将 Emotion、Mood 等具体情感样态置于此共同父类下；明确保留实际承载者及来源断言。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Emotion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An intrinsic affective mode inhering in one agent under AffectiveMoment and MentalMoment, distinct from the diffuse background Mood and the occurrent AffectiveExperience. Source validity remains on the claim; self-report and third-party attribution remain separate standpoints."
+msgstr "依存于一个行动者、属于 AffectiveMoment 和 MentalMoment 的内在情感样态，区别于弥散背景 Mood 及事件性的 AffectiveExperience。来源有效性置于断言上；自述与第三方归属保持不同立场。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feltAffect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links an actual felt AffectiveExperience to the existing AffectiveMoment it manifests, specializing realizesMentalMoment. The experience’s experiencer is the mode’s actual bearer: emotionBearer for Emotion and moodBearer for Mood. Several coexisting modes may be manifested without creating them."
+msgstr "将实际感受的 AffectiveExperience 关联到其显现的已有 AffectiveMoment，是 realizesMentalMoment 的专门化。体验的 experiencer 应为样态的实际承载者：Emotion 使用 emotionBearer，Mood 使用 moodBearer。可显现多个共存样态而不创建它们。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/feltAffect|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the actual experience to its manifested mode; match experiencer with emotionBearer for an Emotion or moodBearer for a Mood, without assigning the other domain’s bearer property."
+msgstr "将实际体验关联到所显现样态；Emotion 的 emotionBearer 或 Mood 的 moodBearer 应与 experiencer 一致，不使用另一类型的承载者属性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Classifier label not canonical affect type constraint"
+msgstr "分类器标签非规范情感类型约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectClassifierLabel is neither an EmotionType nor a MoodType; external output identities stay distinct from canonical affect values."
+msgstr "AffectClassifierLabel 既不是 EmotionType，也不是 MoodType；外部输出身份应与规范情感值区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierLabelNotEmotionTypeConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A classifier label must not be modeled as a gmeow:EmotionType or a gmeow:MoodType. Retain the exact external label identity; evidence does not mint a canonical inner-affect value."
+msgstr "分类器标签不得建模为 gmeow:EmotionType 或 gmeow:MoodType。保留确切外部标签身份；证据不创建规范内在情感值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AffectClassifierOutput directly asserts none of emotionType, emotionBearer, moodType or moodBearer; evidence and inner-affect claims remain distinct."
+msgstr "AffectClassifierOutput 不得直接断言 emotionType、emotionBearer、moodType 或 moodBearer；证据与内在情感断言保持区分。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AffectClassifierOutputNoInnerAffectConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "A classifier output must not directly assert inner affect (gmeow:emotionType, gmeow:emotionBearer, gmeow:moodType or gmeow:moodBearer). Retain its evidence through supportsAffectiveClaim rather than treating an emitted label as an inner state."
+msgstr "分类器输出不得直接断言内在情感（gmeow:emotionType、gmeow:emotionBearer、gmeow:moodType 或 gmeow:moodBearer）。应通过 supportsAffectiveClaim 保留证据，而不把输出标签当作内在状态。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/affect|http://www.w3.org/2000/01/rdf-schema#comment"
+msgid "Affect is a core part of grounded agent memory. Emotion and Mood are intrinsic AffectiveMoment modes under MentalMoment; AffectiveExperience is the distinct occurrent that may manifest them through feltAffect. Mode bearers use emotionBearer or moodBearer according to the actual mode type. Open value vocabularies retain rival classifications. Appraisals and classifier outputs are attributed evidence rather than inner-state truth; raw scores are distinct from confidence. Source validity, standpoint and provenance remain separate. External correspondences and their declared loss remain governed by the grounding kernel. The native affect producer and EmotionML projection remain EmotionType-only; Mood has no automatic routing or export through those paths."
+msgstr "情感是有据行动者记忆的核心组成。Emotion 与 Mood 是 MentalMoment 下的内在 AffectiveMoment 样态；AffectiveExperience 是可通过 feltAffect 显现它们的独立事件。样态承载者按实际类型使用 emotionBearer 或 moodBearer。开放值词汇保留相互竞争的分类。评价与分类器输出是有归属的证据，而非内在状态真相；原始分数与置信度不同。来源有效性、立场、来源链保持独立。外部对应及其声明损失仍由奠基内核管理。原生情感生产器与 EmotionML 投影仍仅支持 EmotionType；Mood 不会自动进入这些处理或导出路径。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/slices/affect|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The GMEOW Affect Module: enduring Emotion and Mood modes, felt AffectiveExperience occurrences, and attributed appraisal and classifier evidence."
+msgstr "GMEOW 情感模块：持存的 Emotion、Mood 样态，感受的 AffectiveExperience 事件，以及有归属的评价和分类器证据。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to distinguish attributed inner mood from the record or classifier that reports it."
+msgstr "用于区分归属的内在心境与报告它的记录或分类器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing a self-report or treating the provider’s output as the mood’s bearer."
+msgstr "避免虚构自述或将提供方输出当作心境承载者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reify the exact Mood type assertion; retain accordingTo and wasDerivedFrom on that claim, keeping its writer independent."
+msgstr "重述确切的 Mood 类型断言；在该断言上保留 accordingTo、wasDerivedFrom，并独立保留记录者。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This validates attribution structure, not phenomenal consciousness or the truth of a mood report."
+msgstr "此约束验证归属结构，不验证现象意识或心境报告真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Name the source law: gmeow:MoodSourceClaimConstraint logic:formalizes gmeow:Mood ."
+msgstr "指定来源法则：gmeow:MoodSourceClaimConstraint logic:formalizes gmeow:Mood ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MoodSourceClaimConstraint|https://blackcatinformatics.ca/logic/message"
+msgid "An actual Mood has an exact native type claim retaining an actual reader Agent and documentary InformationObject source."
+msgstr "实际 Mood 应具有确切的原生类型断言，保留实际解读者 Agent 与文档 InformationObject 来源。"

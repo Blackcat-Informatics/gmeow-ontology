@@ -28,6 +28,14 @@ fn refutation_domain_is_owned_by_the_admitted_default_reduction() {
     let native = result.native_execution().unwrap();
     assert_eq!(native.selected_domains.worlds().len(), 1);
     let selected = &native.selected_domains.worlds()[0];
+    assert_eq!(
+        refutation_domain_basis(selected.authority()).unwrap().as_slice(),
+        br#"["gmeow.entail.default-refutation.v1","NonemptyObjectDomainV1","https://blackcatinformatics.ca/logic/entail/world"]"#
+    );
+    assert_eq!(
+        purrdf_hash::hex::encode(selected.selection()),
+        "d3d0a776c64f5da0be06a109e5220fe18baf9f19e939e4e27113478ec14ec3a3"
+    );
     assert_eq!(selected.world().unwrap(), ENTAIL_WORLD);
     assert_eq!(selected.authority(), "gmeow.entail.default-refutation.v1");
     assert_eq!(

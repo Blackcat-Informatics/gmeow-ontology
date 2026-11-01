@@ -1,0 +1,87 @@
+{
+  "build_fingerprint": "selected producer",
+  "bundle_import": {
+    "corpus_artifacts": {
+      "artifact": {
+        "action_key": "artifact action",
+        "artifact_producer_fingerprint": "artifact producer",
+        "build_fingerprint": "bundle producer",
+        "name": "artifact",
+        "product_bytes": 18446744073709551615,
+        "product_digest": "product sha",
+        "receipt_digest": "artifact receipt",
+        "schema_version": 1,
+        "source_sha256": "source sha"
+      }
+    },
+    "receipt": {
+      "action_key": "selected import action",
+      "build_fingerprint": "optimized producer",
+      "codec": "selected graph-preserving codec",
+      "dataset_quads": 1,
+      "named_graphs": 1,
+      "pack_bytes": 13,
+      "pack_digest": "selected packed digest",
+      "schema_version": 1,
+      "source_bytes": 11,
+      "source_digest": "selected source digest"
+    },
+    "receipt_digest": "4eadf890de3d4849be83182ad3328723f215bd8669e343a3022857badf55ebec",
+    "schema_version": 1
+  },
+  "closure_receipts": {
+    "ancestor": "retained ancestor é中😀\n\"\\ receipt"
+  },
+  "docs": {
+    "model": {
+      "context": {
+        "action": "model",
+        "codec": "selected model codec",
+        "dimensions": {},
+        "domain": "docs",
+        "implementation": {
+          "digest": "optimized producer",
+          "features": [],
+          "profile": null,
+          "target": null,
+          "toolchain": null
+        },
+        "inputs": [],
+        "schema_version": 1
+      },
+      "product_digest": "selected model product",
+      "receipt_digest": "selected model receipt"
+    },
+    "renders": {
+      "site:fr": {
+        "context": {
+          "action": "model",
+          "codec": "selected model codec",
+          "dimensions": {},
+          "domain": "docs",
+          "implementation": {
+            "digest": "optimized producer",
+            "features": [],
+            "profile": null,
+            "target": null,
+            "toolchain": null
+          },
+          "inputs": [],
+          "schema_version": 1
+        },
+        "product_digest": "selected model product",
+        "receipt_digest": "selected model receipt"
+      }
+    },
+    "schema_version": 1
+  },
+  "schema_version": 2,
+  "source_artifacts": {
+    "stage": {
+      "observation.json": "new source selection"
+    }
+  },
+  "stages": {
+    "stage": "new stage receipt"
+  }
+}

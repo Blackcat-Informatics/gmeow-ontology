@@ -176,23 +176,12 @@ pub fn build_corpus(
 
     if let Some(pack) = pack.finish(&input, catalog, &artifacts)? {
         let gates = gates.finish(root, catalog, sources, &pack)?;
-        artifacts.push((
-            gmn_gate::CHANNEL.to_owned(),
-            serde_json::to_vec(&gates).map_err(|error| {
-                stage_err(format!("encode native GMN gate observations: {error}"))
-            })?,
-        ));
-        artifacts.push((
-            gmn_pack::CHANNEL.to_owned(),
-            serde_json::to_vec(&pack).map_err(|error| {
-                stage_err(format!("encode native GMN pack observations: {error}"))
-            })?,
-        ));
+        artifacts.push((gmn_gate::CHANNEL.to_owned(), gates.to_bytes()));
+        artifacts.push((gmn_pack::CHANNEL.to_owned(), pack.to_bytes()));
     }
     artifacts.push((
         grammar_observations::CHANNEL.to_owned(),
-        serde_json::to_vec(&grammar_observations)
-            .map_err(|error| stage_err(format!("encode native grammar observations: {error}")))?,
+        grammar_observations.to_bytes(),
     ));
     artifacts.sort_by(|a, b| a.0.cmp(&b.0));
     Ok(LangProjectionCorpus {

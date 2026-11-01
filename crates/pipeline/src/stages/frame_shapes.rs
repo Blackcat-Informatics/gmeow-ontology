@@ -177,9 +177,14 @@ fn frame_shapes(dataset: &Dataset) -> Result<Vec<ValidationShapeIr>, gmeow_error
         )
         .map_err(|e| invalid(e.to_string()))?
         .with_severity(map_severity(severity)?)
-        .with_message(format!(
-            "A {carrier} must carry {count} reference frame (gmeow:{prop}) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
-        ))
+        .with_messages(vec![purrdf::RdfLiteral {
+            lexical_form: format!(
+                "A {carrier} must carry {count} reference frame (gmeow:{prop}) — a value asserted without its frame is ill-formed (CONSTITUTION P11)."
+            ),
+            datatype: None,
+            language: None,
+            direction: None,
+        }])
         .map_err(|e| invalid(e.to_string()))?;
         let shape = ValidationShapeIr::new(
             format!("{NS}{carrier}FrameRequirementShape"),
@@ -240,10 +245,11 @@ fn render_frame_shape(shape: &ValidationShapeIr) -> Result<String, gmeow_errors:
     let severity = property
         .severity
         .ok_or_else(|| invalid("frame-shapes: property is missing sh:severity".to_owned()))?;
-    let message = property
-        .message
-        .as_deref()
-        .ok_or_else(|| invalid("frame-shapes: property is missing sh:message".to_owned()))?;
+    if property.messages.is_empty() {
+        return Err(invalid(
+            "frame-shapes: property is missing sh:message".to_owned(),
+        ));
+    }
 
     let graph_iri = frame_shapes_graph_iri();
     let definition =
@@ -272,7 +278,12 @@ fn render_frame_shape(shape: &ValidationShapeIr) -> Result<String, gmeow_errors:
     }
     lines.push(format!("        sh:nodeKind sh:{} ;", node_kind.as_str()));
     lines.push(format!("        sh:severity sh:{} ;", severity.as_str()));
-    lines.push(format!("        sh:message \"{message}\" ;"));
+    for message in &property.messages {
+        lines.push(format!(
+            "        sh:message {} ;",
+            purrdf::RdfTerm::literal(message.clone())
+        ));
+    }
     lines.push("    ] .".to_string());
     Ok(lines.join("\n") + "\n")
 }
@@ -285,7 +296,7 @@ pub fn render_frame_shapes(root: &Path) -> Result<String, gmeow_errors::Diag> {
     for shape in &frame_shapes(&store)? {
         blocks.push(render_frame_shape(shape)?);
     }
-    Ok(blocks.join("\n"))
+    crate::projections::publicize_turtle(&blocks.join("\n"), store.inner())
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -323,7 +334,7 @@ impl Stage for FrameShapesStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             artifacts,
-        )))
+        )?))
     }
 }
 

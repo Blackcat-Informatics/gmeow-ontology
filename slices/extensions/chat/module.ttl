@@ -1,0 +1,1031 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+
+# Required paths belong only to the newly selected record contracts.
+
+gmeow:ChatReaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionKey" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatReaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionState ; logic:allValuesFrom gmeow:ReactionState ],
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionState ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:ReactionState ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionState" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatReaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:actorIdentity ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actorIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatReaction logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:targetMessage ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/targetMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observedFeature ; logic:allValuesFrom gmeow:InformationObject ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observedFeature" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:vantage ; logic:allValuesFrom gmeow:Agent ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/vantage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationMethod ; logic:allValuesFrom gmeow:ObservationMethod ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationMethod" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaObservation logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:observationResult ; logic:allValuesFrom gmeow:RejectedMediaPart ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaPart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:mediaRejectionReason ; logic:allValuesFrom xsd:string ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaPart ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mediaRejectionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaPart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:providerPartIndex ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:providerPartIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaPart ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerPartIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatMessage
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message"@x-gmeow-english ;
+    skos:definition "A message in a networked chat conversation, retaining its transport and participant occurrences, with response-turn grouping when supplied by the source. It can be an intended outgoing message refused before dispatch; its type asserts no delivery success."@x-gmeow-english ;
+    gmeow:useWhen "Use for chat communication with explicit source context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying email-address participant requirements to chat."@x-gmeow-english ;
+    gmeow:howToUse "Link chatTransport and hasChatParticipant; add chatTurn only when the source supplies response-turn grouping, and retain ordered ChatMessagePart nodes with hasBodyPart."@x-gmeow-english ;
+    skos:example "ex:message a gmeow:ChatMessage ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Message .
+
+gmeow:ChatTransport
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Transport"@x-gmeow-english ;
+    skos:definition "An open value vocabulary identifying the chat network or transport convention reported by a source. A transport value is distinct from a room, an account and the agent operating a service."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source network classification of chat artifacts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a protocol label as the identity of every deployment using it."@x-gmeow-english ;
+    gmeow:howToUse "Mint source-scoped network values when deployments differ; add values as individuals rather than subclasses."@x-gmeow-english ;
+    skos:example "ex:network a gmeow:ChatTransport ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:chatTransport
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat transport"@x-gmeow-english ;
+    skos:definition "The reported chat transport or network of a message, room or carried artifact. The domain is open so media and room identities can retain their network context without becoming messages."@x-gmeow-english ;
+    gmeow:useWhen "Use to scope a chat resource to its source network."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring account ownership or a room identity from transport alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference every source-supported ChatTransport; qualify independent network attributions when needed."@x-gmeow-english ;
+    skos:example "ex:message gmeow:chatTransport ex:network ."@x-gmeow-english ;
+    logic:range gmeow:ChatTransport .
+
+gmeow:ChatRoom
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Room"@x-gmeow-english ;
+    skos:definition "A room or channel entity identified within a source chat transport by verbatim room identifiers. It is distinct from a conversation thread and from a globally unique identifier string."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the room in which a message was carried."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid merging rooms from different networks because their raw identifiers match."@x-gmeow-english ;
+    gmeow:howToUse "Give the room chatTransport and chatRoomIdentifier values; retain separate source room identities when scope is uncertain."@x-gmeow-english ;
+    skos:example "ex:room a gmeow:ChatRoom ; gmeow:chatTransport ex:network ; gmeow:chatRoomIdentifier \"room-7\" ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:chatRoom
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat room"@x-gmeow-english ;
+    skos:definition "Relates a chat message to the room or channel entity reported by its source. This is a room reference rather than a literal-valued room identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use for source-supported room membership of a chat message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing a room for a direct conversation with no room identifier."@x-gmeow-english ;
+    gmeow:howToUse "Reference a ChatRoom with its scoped identifier; omit this relation when the source supplies no room."@x-gmeow-english ;
+    skos:example "ex:message gmeow:chatRoom ex:room ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatRoom .
+
+gmeow:chatRoomIdentifier
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat room identifier"@x-gmeow-english ;
+    skos:definition "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."@x-gmeow-english ;
+    gmeow:useWhen "Use to preserve opaque source room identifiers without token normalization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this string as a global key or putting a normalized replacement in its place."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied string on the room node and retain the transport that defines its scope."@x-gmeow-english ;
+    skos:example "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."@x-gmeow-english ;
+    logic:domain gmeow:ChatRoom ;
+    logic:range xsd:string .
+
+gmeow:OutputRole
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Output Role"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for the role an outgoing chat message plays in its response turn, including a terminal reply and an auxiliary message before it. Role does not assert successful delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish outgoing messages within a response turn."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a terminal role as evidence that the recipient saw the message."@x-gmeow-english ;
+    gmeow:howToUse "Use role individuals through outputRole on the relevant ChatMessage."@x-gmeow-english ;
+    skos:example "ex:role a gmeow:OutputRole ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:ChatParticipantRole
+    a logic:AbstractIndividualType , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Participant Role"@x-gmeow-english ;
+    skos:definition "An open value vocabulary for a participant occurrence in a chat message, independent of email header and envelope roles."@x-gmeow-english ;
+    gmeow:useWhen "Use for chat author and intended-recipient occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid translating chat participants into email addresses to express their roles."@x-gmeow-english ;
+    gmeow:howToUse "Attach supported role individuals through chatParticipantRole; retain coexisting roles."@x-gmeow-english ;
+    skos:example "ex:role a gmeow:ChatParticipantRole ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:outputRoleTerminalReply
+    a gmeow:OutputRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "terminal reply"@x-gmeow-english ;
+    skos:definition "The outgoing reply designated by the source as terminal within its response turn. It does not guarantee transmission, a unique final interpretation or successful delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use for the source-designated terminal outgoing reply."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving terminal role from timestamp order alone."@x-gmeow-english ;
+    gmeow:howToUse "Reference outputRoleTerminalReply through outputRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:outputRole gmeow:outputRoleTerminalReply ."@x-gmeow-english .
+
+gmeow:outputRoleAuxiliary
+    a gmeow:OutputRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "auxiliary message"@x-gmeow-english ;
+    skos:definition "An outgoing message sent or intended before the terminal reply as an auxiliary contribution to the same response turn."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-labelled auxiliary outgoing message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating auxiliary role as lesser truth or lesser participant status."@x-gmeow-english ;
+    gmeow:howToUse "Reference outputRoleAuxiliary through outputRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:outputRole gmeow:outputRoleAuxiliary ."@x-gmeow-english .
+
+gmeow:chatRoleAuthor
+    a gmeow:ChatParticipantRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chat author"@x-gmeow-english ;
+    skos:definition "The participant occurrence identifies the author of this chat message according to its source. It does not imply account ownership or delivery."@x-gmeow-english ;
+    gmeow:useWhen "Use for a source-supported authorship occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring a human identity from an account-only author endpoint."@x-gmeow-english ;
+    gmeow:howToUse "Reference chatRoleAuthor through chatParticipantRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english .
+
+gmeow:chatRoleRecipient
+    a gmeow:ChatParticipantRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "chat recipient"@x-gmeow-english ;
+    skos:definition "The participant occurrence identifies an intended recipient of this chat message. Intended receipt does not assert actual arrival or readership."@x-gmeow-english ;
+    gmeow:useWhen "Use for a retained intended-recipient occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating recipient role as proof of successful delivery."@x-gmeow-english ;
+    gmeow:howToUse "Reference chatRoleRecipient through chatParticipantRole in its source context."@x-gmeow-english ;
+    skos:example "ex:occurrence gmeow:chatParticipantRole gmeow:chatRoleRecipient ."@x-gmeow-english .
+
+gmeow:outputRole
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "output role"@x-gmeow-english ;
+    skos:definition "An attributed role of an outgoing ChatMessage within its ChatTurn. Multiple supported role attributions coexist and none entails delivery success."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain terminal or auxiliary intent on outgoing chat records."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring output roles on incoming messages or selecting one globally preferred role."@x-gmeow-english ;
+    gmeow:howToUse "Link each source-supported OutputRole and keep turn membership with chatTurn."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:outputRole gmeow:outputRoleTerminalReply ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:OutputRole .
+
+gmeow:ChatMessageParticipant
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message Participant"@x-gmeow-english ;
+    skos:definition "A reified source occurrence of an agent or online account playing one or more roles in a chat message. A known account does not fabricate an unknown agent or inherit email-address requirements."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain participants, roles and source order as separately annotatable occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid identifying the occurrence with the person, account or email participant relator."@x-gmeow-english ;
+    gmeow:howToUse "Link the occurrence to its message and endpoint, add supported roles, and retain entryOrdinal when source order is known."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."@x-gmeow-english ;
+    logic:subClassOf logic:Relator ;
+    logic:mediates gmeow:chatParticipantMessage , gmeow:chatParticipantEndpoint .
+
+gmeow:hasChatParticipant
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "has chat participant"@x-gmeow-english ;
+    skos:definition "Relates a chat message to one of its reified participant occurrences. This is the inverse of chatParticipantMessage, not an email-address relation."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate a chat record’s source participant occurrences."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid flattening a participant occurrence into account ownership."@x-gmeow-english ;
+    gmeow:howToUse "Link each occurrence; its message link is the inverse view of this relation."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasChatParticipant ex:authorOccurrence ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatMessageParticipant ;
+    logic:inverseOf gmeow:chatParticipantMessage .
+
+gmeow:chatParticipantMessage
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant message"@x-gmeow-english ;
+    skos:definition "The ChatMessage to which this source participant occurrence belongs."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the owning message of a chat participant occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an EmailMessage-specific participant link for this occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Reference its ChatMessage; hasChatParticipant provides the inverse navigation."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantMessage ex:message ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:ChatMessage .
+
+gmeow:chatParticipantEndpoint
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant endpoint"@x-gmeow-english ;
+    skos:definition "The source-known Agent or OnlineAccount endpoint of this participant occurrence. An account endpoint alone asserts no holder identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a chat participant is known as an agent, an account or both."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid coercing an account information object into an Agent."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual source endpoint; the agent and account specializations retain more specific evidence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantEndpoint ex:account ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range [ a logic:Class ; logic:unionOf ( gmeow:Agent gmeow:OnlineAccount ) ] .
+
+gmeow:chatParticipantAgent
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant agent"@x-gmeow-english ;
+    skos:definition "An Agent explicitly identified by the source for this participant occurrence. It specializes the endpoint relation without deriving account ownership."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source identifies the acting participant itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing an agent identity from an opaque account identifier."@x-gmeow-english ;
+    gmeow:howToUse "Reference the known Agent; keep any account evidence on chatParticipantAccount separately."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantAgent ex:agent ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:Agent ;
+    logic:subPropertyOf gmeow:chatParticipantEndpoint .
+
+gmeow:chatParticipantAccount
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant account"@x-gmeow-english ;
+    skos:definition "An OnlineAccount identified by the source for this participant occurrence. This endpoint remains an account even when its holder is unknown."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an account-only chat identity faithfully."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this occurrence link as a holdsAccount assertion."@x-gmeow-english ;
+    gmeow:howToUse "Reference the actual OnlineAccount; add chatParticipantAgent only with separate source evidence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantAccount ex:account ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:OnlineAccount ;
+    logic:subPropertyOf gmeow:chatParticipantEndpoint .
+
+gmeow:chatParticipantRole
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat participant role"@x-gmeow-english ;
+    skos:definition "A role attributed to this participant occurrence in its chat message. Supported roles coexist rather than replacing one another."@x-gmeow-english ;
+    gmeow:useWhen "Use for source-supported author, recipient or consumer-defined chat roles."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing the roles into the email header-role vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Reference each applicable ChatParticipantRole on the occurrence."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessageParticipant ;
+    logic:range gmeow:ChatParticipantRole .
+
+gmeow:ChatTurn
+    a logic:Kind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Turn"@x-gmeow-english ;
+    skos:definition "A source-identified response unit within a conversation thread, grouping related incoming and outgoing chat messages. It is distinct from the whole room or thread and makes auxiliary and terminal roles interpretable."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the producer’s response-turn grouping."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reconstructing a turn boundary from timestamps alone."@x-gmeow-english ;
+    gmeow:howToUse "Link the turn to its Thread with turnOfThread; place messages in it through chatTurn and preserve supplied order with entryOrdinal."@x-gmeow-english ;
+    skos:example "ex:turn a gmeow:ChatTurn ; gmeow:turnOfThread ex:conversation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:chatTurn
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat turn"@x-gmeow-english ;
+    skos:definition "The source response turn containing a chat message. The turn’s thread supplies shared partOfThread membership."@x-gmeow-english ;
+    gmeow:useWhen "Use to distinguish messages contributing to the same response unit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid making turn membership evidence of successful output."@x-gmeow-english ;
+    gmeow:howToUse "Reference a source-provided ChatTurn and retain entryOrdinal only as local source order; omit chatTurn when the source has no response-turn grouping."@x-gmeow-english ;
+    skos:example "ex:reply gmeow:chatTurn ex:turn ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessage ;
+    logic:range gmeow:ChatTurn .
+
+gmeow:turnOfThread
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "turn of thread"@x-gmeow-english ;
+    skos:definition "The conversation Thread containing a source chat response turn. It is not a network-room identifier."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a response-turn grouping to its conversation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing room identity with thread membership."@x-gmeow-english ;
+    gmeow:howToUse "Reference each source-supported Thread; message membership follows the chatTurn path."@x-gmeow-english ;
+    skos:example "ex:turn gmeow:turnOfThread ex:conversation ."@x-gmeow-english ;
+    logic:domain gmeow:ChatTurn ;
+    logic:range gmeow:Thread .
+
+gmeow:ChatMessagePart
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Message Part"@x-gmeow-english ;
+    skos:definition "An ordered body-part occurrence in a chat message. Its entryOrdinal preserves source position within that message; its content remains distinct from a reader’s diagnostic report."@x-gmeow-english ;
+    gmeow:useWhen "Use for retained typed, textual or media-bearing chat parts."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing an unparsed received part with an error message."@x-gmeow-english ;
+    gmeow:howToUse "Attach with hasBodyPart and retain its zero-based entryOrdinal; identify carried media separately with partMedia."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part0 . ex:part0 a gmeow:ChatMessagePart ; gmeow:entryOrdinal \"0\"^^xsd:nonNegativeInteger ."@x-gmeow-english ;
+    logic:subClassOf gmeow:BodyPart .
+
+gmeow:UnreadableChatPart
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Unreadable Chat Part"@x-gmeow-english ;
+    skos:definition "A retained chat-part occurrence classified by an identified reader as unreadable when received. Its exact received bytes are named by contentDigest; the classification is reader-relative, not a claim that no reader can parse those bytes."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep unreadable received content in the conversation without substituting diagnostics."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating one reader’s parsing limit as a universal property of the payload."@x-gmeow-english ;
+    gmeow:howToUse "Retain contentDigest, chatPartReader, source order and original bytes; keep any reader fault report outside conversation content."@x-gmeow-english ;
+    skos:example "ex:retainedPart a gmeow:UnreadableChatPart ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ChatMessagePart .
+
+gmeow:DisagreeingChatText
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disagreeing Chat Text"@x-gmeow-english ;
+    skos:definition "A retained occurrence of sender text that an identified reader found to disagree with accompanying typed parts. Its exact received content is retained by digest, alongside the compared parts and the reader-relative classification."@x-gmeow-english ;
+    gmeow:useWhen "Use when a source preserves a disagreeing plain-text mirror beside the typed content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid rewriting sender text to match a reader’s interpretation of typed parts."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original contentDigest and chatPartReader, and name the compared occurrence through disagreesWithPart."@x-gmeow-english ;
+    skos:example "ex:retainedPart a gmeow:DisagreeingChatText ."@x-gmeow-english ;
+    logic:subClassOf gmeow:ChatMessagePart .
+
+gmeow:chatPartReader
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "chat part classifying reader"@x-gmeow-english ;
+    skos:definition "An Agent responsible for the retained occurrence’s unreadability or disagreement classification. It identifies the actual reading context without inserting its error-report prose into the sender’s content."@x-gmeow-english ;
+    gmeow:useWhen "Use to qualify a retained chat part’s reader-relative classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting that every other reader had the same result."@x-gmeow-english ;
+    gmeow:howToUse "Reference each reporting reader and retain attribution provenance on the classification when needed."@x-gmeow-english ;
+    skos:example "ex:retainedPart gmeow:chatPartReader ex:reader ."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessagePart ;
+    logic:range gmeow:Agent .
+
+gmeow:disagreesWithPart
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "disagrees with part"@x-gmeow-english ;
+    skos:definition "Relates retained sender text to the accompanying chat-part occurrence with which its reader found disagreement. It records that comparison without deleting either original."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the actual typed part involved in a disagreement classification."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting this attributed comparison as a universal logical contradiction."@x-gmeow-english ;
+    gmeow:howToUse "Link the DisagreeingChatText occurrence to each compared ChatMessagePart and retain the classifying reader."@x-gmeow-english ;
+    skos:example "ex:mirror gmeow:disagreesWithPart ex:typedPart ."@x-gmeow-english ;
+    logic:domain gmeow:DisagreeingChatText ;
+    logic:range gmeow:ChatMessagePart .
+
+# Thread membership follows the source turn without duplicating its grouping.
+gmeow:partOfThread logic:propertyChainAxiom ( gmeow:chatTurn gmeow:turnOfThread ) .
+
+# Canonical value and source-presence obligations.
+
+gmeow:ChatMessage logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTransport ; logic:allValuesFrom gmeow:ChatTransport ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTurn ; logic:allValuesFrom gmeow:ChatTurn ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasChatParticipant ; logic:allValuesFrom gmeow:ChatMessageParticipant ],
+    [ a logic:Restriction ; logic:onProperty gmeow:hasBodyPart ; logic:allValuesFrom gmeow:ChatMessagePart ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatRoom ; logic:allValuesFrom gmeow:ChatRoom ],
+    [ a logic:Restriction ; logic:onProperty gmeow:outputRole ; logic:allValuesFrom gmeow:OutputRole ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessage ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/hasChatParticipant" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatRoom logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatTransport ; logic:allValuesFrom gmeow:ChatTransport ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatRoomIdentifier ; logic:allValuesFrom xsd:string ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatRoom ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatRoom ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatTurn logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:turnOfThread ; logic:allValuesFrom gmeow:Thread ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatTurn ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/turnOfThread" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatMessageParticipant logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantMessage ; logic:allValuesFrom gmeow:ChatMessage ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantEndpoint ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Agent gmeow:OnlineAccount ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantAgent ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantAccount ; logic:allValuesFrom gmeow:OnlineAccount ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatParticipantRole ; logic:allValuesFrom gmeow:ChatParticipantRole ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantEndpoint" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessageParticipant ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatParticipantRole" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatMessagePart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:entryOrdinal ; logic:allValuesFrom xsd:nonNegativeInteger ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:ChatMessagePart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:UnreadableChatPart logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnreadableChatPart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:UnreadableChatPart ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatPartReader" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DisagreeingChatText logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ],
+    [ a logic:Restriction ; logic:onProperty gmeow:disagreesWithPart ; logic:allValuesFrom gmeow:ChatMessagePart ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/chatPartReader" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:onClass gmeow:DisagreeingChatText ;
+    logic:closureKey "https://blackcatinformatics.ca/gmeow/disagreesWithPart" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ChatPartMessageConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat part message constraint"@x-gmeow-english ;
+    skos:definition "Every ChatMessagePart is retained under at least one ChatMessage by hasBodyPart. Its ordinal is local to that containing message."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the source context of an ordered chat-part occurrence."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid publishing an orphan ordered part without its conversation message."@x-gmeow-english ;
+    gmeow:howToUse "Link the existing ChatMessage to the part using hasBodyPart."@x-gmeow-english ;
+    skos:example "ex:message gmeow:hasBodyPart ex:part0 ."@x-gmeow-english ;
+    logic:formalizes gmeow:ChatMessagePart ;
+    logic:message "A ChatMessagePart must be retained under a ChatMessage." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessagePart ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "message" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ] ] ] ] ] .
+
+gmeow:ChatMessageAuthorConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat message author constraint"@x-gmeow-english ;
+    skos:definition "A ChatMessage retains at least one participant occurrence classified as author. That occurrence can identify an agent or an account without inventing a holder."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain source authorship evidence on a complete chat record."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid supplying a default author when source authorship is unknown."@x-gmeow-english ;
+    gmeow:howToUse "Link a source-supported author occurrence through hasChatParticipant and chatParticipantRole."@x-gmeow-english ;
+    skos:example "ex:authorOccurrence gmeow:chatParticipantRole gmeow:chatRoleAuthor ."@x-gmeow-english ;
+    logic:formalizes gmeow:ChatMessage ;
+    logic:message "A ChatMessage must retain a source-supported author participant occurrence." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "participant" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:hasChatParticipant ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "participant" ] ],
+                [ a logic:Formula ; logic:relation gmeow:chatParticipantRole ; logic:argument [ logic:termIndex 0 ; logic:termVariable "participant" ], [ logic:termIndex 1 ; logic:termIri gmeow:chatRoleAuthor ] ] ] ] ] ] .
+
+gmeow:DisagreeingPartContextConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Disagreeing part context constraint"@x-gmeow-english ;
+    skos:definition "A disagreeing text occurrence and each compared typed-part occurrence belong to a common retained ChatMessage. The relation preserves their actual source accompaniment."@x-gmeow-english ;
+    gmeow:useWhen "Use to keep disagreement classifications tied to the compared source message."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid comparing unrelated payloads as if they had accompanied one another."@x-gmeow-english ;
+    gmeow:howToUse "Keep both original occurrences under the same hasBodyPart context."@x-gmeow-english ;
+    skos:example "ex:mirror gmeow:disagreesWithPart ex:typedPart ."@x-gmeow-english ;
+    logic:formalizes gmeow:disagreesWithPart ;
+    logic:message "Compared disagreeing chat parts must share a containing ChatMessage." ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ;
+        logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:disagreesWithPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "message" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termIri gmeow:ChatMessage ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "this" ] ],
+                [ a logic:Formula ; logic:relation gmeow:hasBodyPart ; logic:argument [ logic:termIndex 0 ; logic:termVariable "message" ], [ logic:termIndex 1 ; logic:termVariable "part" ] ] ] ] ] ] .
+
+# Source-faithful conversation records (Principles 2, 4, 9, 17).
+
+gmeow:ChatReaction
+    a logic:Event , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Chat Reaction"@x-gmeow-english ;
+    skos:definition "A source-reported occurrence of placing or removing a reaction on a message identified within its provider, transport and source context. Opaque actor and target strings do not create an Agent or Message."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the source record: ex:record a gmeow:ChatReaction ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Event .
+
+gmeow:reactionKey
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reaction key"@x-gmeow-english ;
+    skos:definition "The exact emoji or short reaction key chosen in the source reaction occurrence. It is source content, not a preferred label or a globally interpreted emotion."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:reactionKey."@x-gmeow-english ;
+    logic:domain gmeow:ChatReaction ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionKey" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:reactionResource
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reaction resource"@x-gmeow-english ;
+    skos:definition "The transport's exact reaction-resource name or identifier. Its provider, transport and source context determine scope; whitespace and case are retained without creating a resource identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:reactionResource."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionResource" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ReactionState
+    a logic:Class , logic:AbstractIndividualType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reaction State"@x-gmeow-english ;
+    skos:definition "An open quality-value vocabulary for the source-reported disposition of a reaction occurrence. Placement and removal are distinct reports, not a mutable winning state inferred from order."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the source record: ex:record a gmeow:ReactionState ."@x-gmeow-english ;
+    logic:subClassOf logic:QualityValue .
+
+gmeow:reactionState
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "reaction state"@x-gmeow-english ;
+    skos:definition "The explicit disposition reported for this reaction occurrence. No placement or removal follows from an absent field, a later timestamp or another source's report."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:reactionState."@x-gmeow-english ;
+    logic:domain gmeow:ChatReaction ;
+    logic:range gmeow:ReactionState .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionState" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:reactionPlaced
+    a logic:NamedIndividual , gmeow:ReactionState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reaction placed"@x-gmeow-english ;
+    skos:definition "The source reports that the reaction was placed on its scoped target message. This value does not establish current presence across other events or standpoints."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:reactionPlaced."@x-gmeow-english .
+
+gmeow:reactionRemoved
+    a logic:NamedIndividual , gmeow:ReactionState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "reaction removed"@x-gmeow-english ;
+    skos:definition "The source reports that the reaction was taken off its scoped target message. This does not erase the placement record or infer that another source agreed."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:reactionRemoved."@x-gmeow-english .
+
+gmeow:actorIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "actor identity as recorded"@x-gmeow-english ;
+    skos:definition "The exact transport string naming who acted or sent the source content. It is provider-, transport- and context-scoped evidence, not a resolved Agent, account holder or message sender relation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:actorIdentity."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actorIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:targetMessage
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "target message identifier"@x-gmeow-english ;
+    skos:definition "The transport's exact identifier for the message a source event acted on. Equal strings across providers, transports or contexts do not identify one Message."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:targetMessage."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/targetMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:RejectedMediaObservation
+    a logic:SubKind , logic:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Rejected Media Observation"@x-gmeow-english ;
+    skos:definition "An attributed observation reporting provider refusal of submitted media before recipient visibility. Its observed feature is the retained source record; its results describe refused parts, independently of delivered body parts or published media artifacts."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the source record: ex:record a gmeow:RejectedMediaObservation ."@x-gmeow-english ;
+    logic:subClassOf gmeow:Observation .
+
+gmeow:RejectedMediaPart
+    a logic:Class , logic:Kind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Rejected Media Part"@x-gmeow-english ;
+    skos:definition "A retained information record describing one part the provider refused, with its provider position, refusal code and any sender-supplied description. It is not itself a delivered BodyPart or a published MediaObject."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the source record: ex:record a gmeow:RejectedMediaPart ."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:mediaRejectionReason
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "media rejection reason code"@x-gmeow-english ;
+    skos:definition "The provider's refusal code for a described media part, retained exactly with its source record. The code is not a prose explanation, an inferred safety finding or a universal taxonomy."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:mediaRejectionReason."@x-gmeow-english ;
+    logic:domain gmeow:RejectedMediaPart ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mediaRejectionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:providerPartIndex
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider part index"@x-gmeow-english ;
+    skos:definition "The zero-based position the provider supplied for a refused part within its own source message-part roster. It is not the order of delivered parts and is never inferred from RDF statement order."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:providerPartIndex."@x-gmeow-english ;
+    logic:domain gmeow:RejectedMediaPart ;
+    logic:range xsd:nonNegativeInteger .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerPartIndex" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:providerEvent
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider event identifier"@x-gmeow-english ;
+    skos:definition "The provider's exact event identifier retained on a source record, event or observation. Its provider, transport and source context remain explicit; the string is not a global Event IRI."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:providerEvent."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerEvent" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:providerEventType
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider event type code"@x-gmeow-english ;
+    skos:definition "The provider's exact source event-type code. It neither replaces the canonical event classification nor creates a closed vocabulary from provider spelling."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:providerEventType."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerEventType" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:providerOccurredAt
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "provider occurrence time as recorded"@x-gmeow-english ;
+    skos:definition "The occurrence-time text exactly as the provider supplied it. No parsing, timezone, precision, dateTime value or chronology follows from this source string."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:providerOccurredAt."@x-gmeow-english ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerOccurredAt" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:messagePartText
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "message part text"@x-gmeow-english ;
+    skos:definition "The original words of one textual chat body part, with supplied language and direction. It is content rather than a label, diagnostic wrapper or transcription inferred from media."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:messagePartText."@x-gmeow-english ;
+    logic:domain gmeow:ChatMessagePart ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/messagePartText" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:sessionIdentity
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verified session identifier"@x-gmeow-english ;
+    skos:definition "The exact provider session identifier on an observation reporting verification of that session for a scoped source sender. The identifier alone neither authenticates a session nor identifies a global conversation."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:sessionIdentity."@x-gmeow-english ;
+    logic:domain gmeow:Observation ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sessionIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:sessionSender
+    a logic:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "verified session sender"@x-gmeow-english ;
+    skos:definition "The exact source sender string for whom a session verification observation reports a held verification result. It does not resolve an Agent or assert account ownership."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:sessionSender."@x-gmeow-english ;
+    logic:domain gmeow:Observation ;
+    logic:range xsd:string .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sessionSender" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:transportMatrix
+    a logic:NamedIndividual , gmeow:ChatTransport ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Matrix transport"@x-gmeow-english ;
+    skos:definition "The Matrix communication network or protocol family, not a particular homeserver, deployment, account or room. Deployment and source context remain separate."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:transportMatrix."@x-gmeow-english .
+
+gmeow:transportGoogleChat
+    a logic:NamedIndividual , gmeow:ChatTransport ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:label "Google Chat transport"@x-gmeow-english ;
+    skos:definition "The Google Chat communication service as a transport value, distinct from a particular account, space, deployment or source archive."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain the supplied value for gmeow:transportGoogleChat."@x-gmeow-english .
+
+# Intrinsic source-record obligations; no transport operation is executed.
+
+gmeow:ChatSourceIdentifierScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Actor identity source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied actorIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:ChatSourceIdentifierScopeConstraint logic:formalizes gmeow:actorIdentity ."@x-gmeow-english ;
+    logic:message "Every supplied actorIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:actorIdentity ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:actorIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:ReactionResourceSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Reaction resource source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied reactionResource value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:ReactionResourceSourceScopeConstraint logic:formalizes gmeow:reactionResource ."@x-gmeow-english ;
+    logic:message "Every supplied reactionResource value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:reactionResource ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:reactionResource ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:TargetMessageSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Target message source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied targetMessage value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:TargetMessageSourceScopeConstraint logic:formalizes gmeow:targetMessage ."@x-gmeow-english ;
+    logic:message "Every supplied targetMessage value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:targetMessage ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:targetMessage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:ProviderEventSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Provider event source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied providerEvent value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:ProviderEventSourceScopeConstraint logic:formalizes gmeow:providerEvent ."@x-gmeow-english ;
+    logic:message "Every supplied providerEvent value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:providerEvent ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:providerEvent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:ProviderEventTypeSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Provider event type source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied providerEventType value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:ProviderEventTypeSourceScopeConstraint logic:formalizes gmeow:providerEventType ."@x-gmeow-english ;
+    logic:message "Every supplied providerEventType value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:providerEventType ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:providerEventType ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:ProviderOccurredAtSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Provider time source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied providerOccurredAt value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:ProviderOccurredAtSourceScopeConstraint logic:formalizes gmeow:providerOccurredAt ."@x-gmeow-english ;
+    logic:message "Every supplied providerOccurredAt value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:providerOccurredAt ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:providerOccurredAt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:SessionIdentitySourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Session identity source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied sessionIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:SessionIdentitySourceScopeConstraint logic:formalizes gmeow:sessionIdentity ."@x-gmeow-english ;
+    logic:message "Every supplied sessionIdentity value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:sessionIdentity ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sessionIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+
+gmeow:SessionSenderSourceScopeConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Session sender source scope constraint"@x-gmeow-english ;
+    skos:definition "Every supplied sessionSender value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:SessionSenderSourceScopeConstraint logic:formalizes gmeow:sessionSender ."@x-gmeow-english ;
+    logic:message "Every supplied sessionSender value retains its actual provider, transport, source context and derivation record; equal strings do not create global identities."@x-gmeow-english ;
+    logic:formalizes gmeow:sessionSender ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:sessionSender ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "value" ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] , [ logic:termIndex 2 ; logic:termVariable "context" ] , [ logic:termIndex 3 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "provider" ] , [ logic:termIndex 1 ; logic:termIri gmeow:SoftwareAgent ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "transport" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ChatTransport ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "context" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Entity ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .
+
+gmeow:RejectedMediaSourceEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Rejected media source evidence constraint"@x-gmeow-english ;
+    skos:definition "A rejection observation retains its actual source feature and derivation, the source actor and original provider-time text, and the same provider, transport and source context as that feature. Its observer and method remain distinct from sender identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:RejectedMediaSourceEvidenceConstraint logic:formalizes gmeow:RejectedMediaObservation ."@x-gmeow-english ;
+    logic:message "A rejection observation retains its actual source feature and derivation, the source actor and original provider-time text, and the same provider, transport and source context as that feature. Its observer and method remain distinct from sender identity."@x-gmeow-english ;
+    logic:formalizes gmeow:RejectedMediaObservation ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RejectedMediaObservation ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "actor" ] , [ logic:termIndex 2 ; logic:termVariable "time" ] , [ logic:termIndex 3 ; logic:termVariable "provider" ] , [ logic:termIndex 4 ; logic:termVariable "transport" ] , [ logic:termIndex 5 ; logic:termVariable "context" ] , [ logic:termIndex 6 ; logic:termVariable "observer" ] , [ logic:termIndex 7 ; logic:termVariable "method" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation gmeow:actorIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "actor" ] ] , [ a logic:Formula ; logic:relation gmeow:providerOccurredAt ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "time" ] ] , [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation gmeow:providerProgram ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "provider" ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation gmeow:chatTransport ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "transport" ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation gmeow:accordingTo ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termVariable "context" ] ] , [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "observer" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] , [ a logic:Formula ; logic:relation gmeow:observationMethod ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "method" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "method" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ObservationMethod ] ] ] ] ] ] .
+
+gmeow:RejectedMediaPartObservationConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Rejected part observation constraint"@x-gmeow-english ;
+    skos:definition "Every refused-part descriptor is an actual result of a retained rejection observation, not an unattached media artifact or a delivered body part inferred from its description."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:RejectedMediaPartObservationConstraint logic:formalizes gmeow:RejectedMediaPart ."@x-gmeow-english ;
+    logic:message "Every refused-part descriptor is an actual result of a retained rejection observation, not an unattached media artifact or a delivered body part inferred from its description."@x-gmeow-english ;
+    logic:formalizes gmeow:RejectedMediaPart ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RejectedMediaPart ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RejectedMediaObservation ] ] , [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] ] ] ] ] ] .
+
+gmeow:RejectedMediaPartIndexConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Rejected part index uniqueness constraint"@x-gmeow-english ;
+    skos:definition "One numeric provider part position identifies one descriptor within the same rejection observation. Different observations retain independent rosters; numeric lexical variants do not evade this check."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:RejectedMediaPartIndexConstraint logic:formalizes gmeow:providerPartIndex ."@x-gmeow-english ;
+    logic:message "One numeric provider part position identifies one descriptor within the same rejection observation. Different observations retain independent rosters; numeric lexical variants do not evade this check."@x-gmeow-english ;
+    logic:formalizes gmeow:providerPartIndex ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] , [ logic:termIndex 2 ; logic:termVariable "right" ] , [ logic:termIndex 3 ; logic:termVariable "leftIndex" ] , [ logic:termIndex 4 ; logic:termVariable "rightIndex" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termIri gmeow:RejectedMediaObservation ] ] , [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termVariable "left" ] ] , [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observation" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] , [ a logic:Formula ; logic:relation gmeow:providerPartIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "leftIndex" ] ] , [ a logic:Formula ; logic:relation gmeow:providerPartIndex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "right" ] , [ logic:termIndex 1 ; logic:termVariable "rightIndex" ] ] , [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "leftIndex" ] , [ logic:termIndex 1 ; logic:termVariable "rightIndex" ] ] ] ; logic:consequent [ a logic:Formula ; logic:relation logic:termEqual ; logic:argument [ logic:termIndex 0 ; logic:termVariable "left" ] , [ logic:termIndex 1 ; logic:termVariable "right" ] ] ] ] .
+
+gmeow:SessionVerificationEvidenceConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Session verification evidence constraint"@x-gmeow-english ;
+    skos:definition "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the explicitly retained source-record contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
+    gmeow:howToUse "Read the canonical formula against actual source identities and preserve competing attributed records."@x-gmeow-english ;
+    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    skos:example "Retain this source law: gmeow:SessionVerificationEvidenceConstraint logic:formalizes gmeow:sessionIdentity ."@x-gmeow-english ;
+    logic:message "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."@x-gmeow-english ;
+    logic:formalizes gmeow:sessionIdentity ;
+    logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ] , [ a logic:Formula ; logic:relation logic:linkVia ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "field" ] , [ logic:termIndex 2 ; logic:termVariable "value" ] ] , [ a logic:Formula ; logic:relation logic:termIn ; logic:argument [ logic:termIndex 0 ; logic:termVariable "field" ] , [ logic:termIndex 1 ; logic:termIri gmeow:sessionIdentity ] , [ logic:termIndex 2 ; logic:termIri gmeow:sessionSender ] ] ] ; logic:consequent [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "session" ] , [ logic:termIndex 1 ; logic:termVariable "sender" ] , [ logic:termIndex 2 ; logic:termVariable "feature" ] , [ logic:termIndex 3 ; logic:termVariable "observer" ] , [ logic:termIndex 4 ; logic:termVariable "method" ] , [ logic:termIndex 5 ; logic:termVariable "source" ] ; logic:exists [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Observation ] ] , [ a logic:Formula ; logic:relation gmeow:sessionIdentity ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "session" ] ] , [ a logic:Formula ; logic:relation gmeow:sessionSender ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "sender" ] ] , [ a logic:Formula ; logic:relation gmeow:observedFeature ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "feature" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "feature" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] , [ a logic:Formula ; logic:relation gmeow:vantage ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "observer" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "observer" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Agent ] ] , [ a logic:Formula ; logic:relation gmeow:observationMethod ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "method" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "method" ] , [ logic:termIndex 1 ; logic:termIri gmeow:ObservationMethod ] ] , [ a logic:Formula ; logic:relation gmeow:observationResult ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:verdictHeld ] ] , [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "source" ] ] , [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "source" ] , [ logic:termIndex 1 ; logic:termIri gmeow:InformationObject ] ] ] ] ] ] .

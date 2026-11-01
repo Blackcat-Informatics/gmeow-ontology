@@ -275,7 +275,7 @@ impl Stage for AgreementMatrixStage {
         Ok(StageOutput::new(StageProduct::from_artifacts(
             self.id(),
             render_agreement_matrix(tallies)?,
-        )))
+        )?))
     }
 }
 

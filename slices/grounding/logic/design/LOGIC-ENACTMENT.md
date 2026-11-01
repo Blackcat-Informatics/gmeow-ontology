@@ -22,7 +22,9 @@
 Three things are routinely collapsed into one word, and every durable-execution defect this layer
 exists to prevent is a consequence of that collapse. A **prescription** is what is to be done: a
 normative artifact that says nothing about whether it was done, is immutable once versioned, and is
-content-addressed so that an approval or an audit can name *exactly* the text that was authorized.
+content-addressed by default so that an approval or an audit can name *exactly* the text that was
+authorized. An explicitly selected immutable IRI identity contract is described below; it does
+not discharge independently selected content-addressed admission requirements.
 An **enactment** is one occurrence of doing it: a descriptive record bound to exactly one
 prescription version and exactly one closed input snapshot, immutable in its bindings and extended
 only by an append-only journal. A **commitment** is what became true outside the graph as a result:
@@ -71,8 +73,7 @@ occurrences, and every one of the six domains needs it.
 The **SCADA** reading forces the maintenance-goal law. A control program's success criterion is not
 "the setpoint was reached once"; it is "the setpoint held across the interval". So a successful
 enactment must **not** be permitted to license `logic:GoalEvaluationCompleted` on a
-`logic:MaintenanceGoal` beyond its own interval — the constraint
-`logic:MaintenanceGoalNotClosedByEnactmentConstraint`. The identical law is what makes a continuing
+`logic:MaintenanceGoal` beyond its own interval. This interval-scoping condition makes a continuing
 curriculum outcome, a recurring organizational compliance guide, and a weekly review cluster behave
 correctly: one good week does not close a continuing goal. Had the kernel been phrased as
 work-orchestration vocabulary, this would have looked like a quirk of one domain instead of the
@@ -92,13 +93,15 @@ action from*, rather than an unrepresentable hole.
 
 Every minted term states what makes two instances the same, because an operational record whose
 identity is undecided is a record two writers will duplicate and no reader can join on. The rule
-throughout: **content-addressed identity for immutable artifacts, occurrence identity for
-occurrences, and tuple identity for reified relations.** A digest is reused from `gmeow:contentDigest`
-and `gmeow:versionFingerprint`; the kernel mints no digest property of its own.
+throughout: **content-addressed identity by default for immutable artifacts, occurrence identity
+for occurrences, and tuple identity for reified relations.** The prescription seam uses
+`logic:prescriptionDigest` and its run-pinned witness `logic:enactedPrescriptionDigest`.
+An explicitly selected immutable IRI contract changes only the prescription version's identity
+contract, not any other artifact's identity or admission evidence.
 
 | Term | Identity criterion — two instances are the same exactly when… | Explicitly NOT identified by |
 | --- | --- | --- |
-| `logic:PrescriptionVersion` | their `gmeow:contentDigest` over the canonical rendering of the versioned `logic:Plan` is equal **and** they name the same `logic:prescriptionOf` plan | the version label, the authoring time, or the author |
+| `logic:PrescriptionVersion` | under the default contract, their `logic:prescriptionDigest` over frozen plan content is equal and they name the same `logic:prescriptionOf` plan; under explicitly selected immutable IRI identity, the external owner's immutable retained version has that IRI | the version label, the authoring time, the author, or an unrecorded assumption that a missing digest selects another mode |
 | `logic:InputSnapshot` | their content digest over the closed, order-independent input set is equal | the query or generator that produced the set |
 | `logic:Enactment` | they are the same occurrence — an occurrence is identified by its IRI, minted once and never reused | the (prescription version, input snapshot) pair; two enactments may legitimately share both, and conflating them destroys the repeat distinction |
 | `logic:EnactmentCohort` | they group the same prescription version and the same generation/schedule anchor | the count or membership of enactments, which grows |
@@ -156,6 +159,63 @@ is identified by its recomputed goal, not by its citations: `explain::assert_fai
 that cited IRIs appear in the trace, so a forgery citing entirely real IRIs passes it. Recomputation
 is what makes the criterion unforgeable.
 
+## Explicit prescription identity contracts
+
+`logic:prescriptionIdentityMode` selects the identity contract on a prescription
+version. Omitting the selector retains the existing content-addressed requirement.
+Explicit `logic:ContentAddressedPrescriptionIdentity` has the same requirement.
+Only explicit `logic:ImmutableIriPrescriptionIdentity` admits a version without a
+prescription digest. The selector is bounded to one declared mode on each version;
+an unknown value or two conflicting selections does not define another mode.
+
+The IRI contract requires an external owner to preserve immutable resolution of
+that version IRI, durable retention of historical versions and revision only by
+minting a successor. It does not compare bytes, compute a substitute hash or detect
+in-place edits. An IRI node-kind check establishes none of those external storage
+properties. The contract states who must maintain them; it is not a runtime
+verification certificate.
+
+`PrescriptionVersionIsContentAddressedConstraint` keeps its digest obligation
+unless that explicit mode is selected. The digest-bearing
+`PrescriptionVersionImmutabilityConstraint` still compares a supplied current
+digest with the independent value a run froze at pin time.
+`CapturedPrescriptionDigestPresenceConstraint` additionally requires a current
+prescription digest whenever a run has captured one, regardless of identity mode.
+It checks presence only; the existing immutability law owns the value comparison.
+Removing the current digest cannot make that comparison vacuous, and a different
+current value produces the existing immutability finding without a second mismatch
+finding from the presence law. A fresh IRI-only version with no captured digest
+remains admitted by its explicit identity contract. This selection changes
+no checkpoint descriptor, restore identity, snapshot digest, intent digest,
+approval binding or other selected operation's admission requirements. A caller
+requesting any such operation must supply its original mandatory evidence.
+
+## Explicit per-record exclusion accounting
+
+An ordinary ContextAssembly retains the existing aggregate exclusion-reason law.
+An explicitly typed `logic:PerRecordExclusionAssembly` instead requires a
+`logic:AssemblyExclusion` reifier for every `logic:assemblyExcluded` membership,
+with that membership's own language-bearing `logic:assemblyExclusionReason`.
+One aggregate reason cannot explain several individual exclusions in this mode,
+and an additional aggregate reason is not required.
+
+The generic reason property's domain admits either the assembly's aggregate report
+or an individual exclusion reifier. Domain-facing properties can specialize it
+through the canonical subproperty relation, so one authored reason supplies both
+readings without duplicating independent truth. The grounding owner does not
+depend on a recall-specific vocabulary.
+
+The reification obligation uses the existing schema declaration form:
+`rdf:Statement`, `rdf:subject` naming the subject class, `rdf:predicate` naming
+the membership property, and the reifier class as its type. The native validation
+derivation consumes that declaration into required reification and a reference to
+the reifier class's canonical shape. The declaration is schema metadata; it is
+not an actual exclusion and carries no invented explanation. Actual exclusion
+records use native RDF 1.2 `rdf:reifies` triple terms and their actual reasons.
+The reifier shape has its own required reason path; merely omitting the type on a
+reasonless reifier does not satisfy it. Language-presence integrity conditions
+also distinguish actual native reifiers from the schema declarations.
+
 ## The seven orthogonal axes
 
 An operational record has several independent things true of it at once, and every attempt to fold
@@ -164,8 +224,8 @@ them into one status enumeration produces a value set whose members are products
 values. The kernel therefore carries **seven** axes, and the governing rule is absolute:
 
 > **No property carries values from two axes.** A property whose value set spans axes is a conflation
-> by construction, and `logic:LifecycleAxisNonConflationConstraint` rejects it at
-> `logic:severity "Violation"`. Operator-facing composites (`logic:FrontierLabel`) are **derived**
+> by construction. Read each axis through its dedicated property and declared range.
+> Operator-facing composites (`logic:FrontierLabel`) are **derived**
 > total functions of the axis tuple that carry the tuple witness, never authored values.
 
 | # | Axis | Question it answers | Carrier | Provenance |
@@ -176,7 +236,7 @@ values. The kernel therefore carries **seven** axes, and the governing rule is a
 | 4 | effect protocol position | How far did the external exchange get? | `logic:EffectProtocolPosition` | minted, closed value class |
 | 5 | effect commitment knowledge | What is *known* about whether the effect happened? | the property `logic:effectKnowledge` over the existing `logic:InformationState` | **property minted; value class reused unchanged** |
 | 6 | goal-evaluation status | Has the success criterion been conclusively judged? | `logic:GoalEvaluationStatus` | **reused unchanged** |
-| 7 | recurrence state | Where is this generated occurrence slot in its schedule? | `logic:RecurrenceState` | minted, closed value class |
+| 7 | recurrence state | Where is this recurrence schedule in its lifecycle? | `logic:RecurrenceState` | minted, closed value class |
 
 Five value classes are minted. The sixth axis mints a **property only** — re-minting a status
 enumeration over external-effect knowledge would create a second truth-value vocabulary beside
@@ -213,40 +273,24 @@ minting-and-supersession law. Stating this taxonomy is not pedantry: authoring a
 a transition relation is what produces the classic bug in which a probe that *learns more* is
 recorded as an illegal state change and refused.
 
-### The shared `logic:Formula` shape
+### Transition-law formulas
 
-Every membership law compiles into one `logic:Formula` tree of the following shape, and
-`logic:AxisTransitionLaw` carries it:
+A `logic:AxisTransitionLaw` names its axis through `logic:lawGovernsAxis` and
+carries a `logic:Formula` describing admitted transitions through `logic:lawAdmits`.
+For a transition-membership law, the intended relationship can be summarized
+mathematically:
 
 ```text
-logic:Formula                                   # the law
-  logic:forall
-    logic:quantifiedVariable  [ termIndex 0 ; termVariable "R"  ]   # the record
-    logic:quantifiedVariable  [ termIndex 1 ; termVariable "S1" ]   # prior value
-    logic:quantifiedVariable  [ termIndex 2 ; termVariable "S2" ]   # posterior value
-    logic:quantifiedVariable  [ termIndex 3 ; termVariable "T"  ]   # journal position
-  logic:antecedent
-    logic:and
-      logic:Formula [ relation logic:axisValueAt ;                  # atomic predication
-                      argument ( ?R ?S1 ?T ) ]
-      logic:Formula [ relation logic:axisValueAtSuccessor ;
-                      argument ( ?R ?S2 ?T ) ]
-  logic:consequent
-    logic:Formula [ relation logic:axisTransitionAdmitted ;
-                    argument ( <the axis IRI> ?S1 ?S2 ) ]
+observed transition of record r from s₁ to s₂ on axis A
+    ⇒ (s₁, s₂) belongs to the relation described by A’s law
 ```
 
-The atomic predications are `logic:ArgumentStructure` nodes: a reified `logic:relation` over ordered
-zero-based `logic:argument` term-carriers, each carrying exactly one of `logic:termIri` /
-`logic:termVariable`. The admitted pairs are **data** — a `logic:axisTransitionAdmitted` extension
-authored per axis — so the law itself is one formula per axis and the relation it reads is the table
-below. This is what lets a single Rust property test quantify over the authored relation instead of
-over hand-written cases, and it is why widening an axis is a data edit that the liveness test
-immediately re-checks rather than a formula rewrite.
-
-Each law is enforced by a `logic:Constraint` at `logic:severity "Violation"` whose
-`logic:Formula` is the negation-carrying integrity form of the above; none carries a
-`logic:formalizes` edge onto a shape, because a hand-authored shape would be a second source of truth.
+This is explanatory mathematical notation. The concrete formula supplies its own
+authored relations and ordered arguments through the existing `logic:Formula`
+vocabulary. A transition law describes admitted moves; an authored
+`logic:Constraint` is a separate integrity obligation. The tables below describe
+the transition policies without asserting that each has an encoded formula,
+enforcing constraint or executed certificate.
 
 ### Axis 1 — `logic:EnactmentState`
 
@@ -319,15 +363,15 @@ The knowledge axis is the one axis whose law is not membership in an authored pa
 
 ```text
 ∀ a, k₁, k₂, t .  effectKnowledgeAt(a, k₁, t) ∧ effectKnowledgeAtSuccessor(a, k₂, t)
-                    →  knowledgeOrderLeq(k₁, k₂)
+                    →  (k₁ = k₂ ∨ knowledgePrecedes(k₁, k₂))
 ```
 
-— the same `logic:forall` / `logic:antecedent` / `logic:consequent` tree as the membership laws, with
-`logic:axisTransitionAdmitted` replaced by the authored `logic:knowledgeOrderLeq` relation of the next
-section. Enforced by `logic:ReconciliationKnowledgeMonotonicityConstraint`. The constraint fires only
-on **malformed records** — a genuine `Committed`-then-`NotCommitted` disagreement is not an authoring
-error; it is knowledge moving `InfoSupported → InfoBoth`, which is *up* the order and therefore
-admitted, then routed to `logic:ContradictionWitness` and attributed adjudication.
+The displayed history predicates are mathematical metavariables. The actual
+`logic:knowledgePrecedes` property names the strict knowledge order; allowing an
+unchanged value supplies its reflexive closure. A genuine committed-then-not-committed
+disagreement can move `InfoSupported → InfoBoth`, preserving both reports for
+attributed adjudication. This design condition does not claim a separately named
+reconciliation constraint has been authored or executed.
 
 ### Axis 6 — `logic:GoalEvaluationStatus`: a minting-and-supersession law
 
@@ -340,9 +384,9 @@ vantages that disagree coexist. The law is therefore:
 ∀ e, s₁, s₂ .  goalEvaluationStatus(e, s₁) ∧ goalEvaluationStatus(e, s₂)  →  s₁ = s₂
 ```
 
-together with `logic:MaintenanceGoalNotClosedByEnactmentConstraint`: no `logic:Enactment` whose own
-state is `EnactmentCompleted` may license `GoalEvaluationCompleted` on a `logic:MaintenanceGoal`
-outside the enactment's own interval.
+`logic:goalEvaluationStatusFunctionality` supplies the at-most-one status obligation.
+Separately, completing an enactment does not settle a maintenance goal beyond that
+enactment’s interval; preserve the evaluated world, evaluator, time and criterion.
 
 ### Axis 7 — `logic:RecurrenceState`
 
@@ -353,23 +397,25 @@ outside the enactment's own interval.
 | `RecurrenceSuspended` | `RecurrenceScheduled`, `RecurrenceActive`, `RecurrenceSkipped`, `RecurrenceEnded` |
 | `RecurrenceSkipped` · `RecurrenceEnded` | — (quiescent) |
 
-The axis is carried by the generated **occurrence slot**, not by the enactment and not by the
-generator. A skipped occurrence is a first-class recorded value on this axis; it is never a missing
-enactment, and the distinction is what stops a reader from mistaking a deliberate exception for a
-gap in the record.
+The `logic:recurrenceState` property belongs to the recurrence schedule. A generated
+occurrence and its enactment retain their own identities and status assertions.
+Do not use schedule state to erase the distinction between a deliberately skipped
+occurrence and a gap in the record.
 
 ### Liveness — the three properties, and why they are not optional
 
-The transition laws prove that bad moves are refused. Nothing in them proves the system cannot get
-**stuck**, which is the dominant real failure of durable sagas: not an illegal transition, but an
-intent nobody will ever attempt, a lease nobody will ever break, a step waiting on a signal that
-cannot arrive. `logic:LivenessCertificate` asserts three properties per axis over the authored
-transition relation, and they are machine-checked, not asserted:
+Safety of transitions and ability to make progress answer different questions.
+An intent can remain unattempted, a lease unbroken, or a step waiting for a signal.
+`logic:LivenessCertificate` provides the vocabulary for recording which progress
+properties were checked over an identified transition relation. A certificate’s
+asserted booleans describe the recorded check; their declarations alone do not
+establish that any check ran or passed. The following formulas explain those
+properties using mathematical metavariables.
 
 **Deadlock-freedom.** Every reachable, non-quiescent axis value has at least one admitted successor:
 
 ```text
-∀ v .  reachable(v) ∧ ¬quiescent(v)  →  ∃ v' . axisTransitionAdmitted(axis, v, v')
+∀ v .  reachable(v) ∧ ¬quiescent(v)  →  ∃ v' . admitted(axis, v, v')
 ```
 
 **Reachability (no dead state).** Every reachable value reaches a quiescent one along admitted
@@ -390,20 +436,22 @@ abandoned with a recorded reason; there is no third possibility:
                             ∨ ( ∃ w . intentAbandoned(i, w) ∧ abandonmentReason(w, _) )
 ```
 
-Enforced by `logic:OrphanIntentConstraint`. This is the property that makes an intent persisted
-immediately before a crash *recoverable rather than lost*: on restart it is either attempted or
-abandoned, and never sits indefinitely in a state no derivation looks at.
+This condition requires recovery to account for an intent persisted immediately
+before a crash: either an attempt or explicit abandonment must account for it.
+The displayed formula states that condition without claiming a named orphan-intent
+constraint has been authored or executed.
 
-Deadlock-freedom and reachability are checked over the **product** of the five membership axes as
-well as per axis, because a tuple can be individually live on each coordinate and jointly stuck — a
+A certificate for combined coordination must address the **product** of the five
+membership axes as well as each axis, because a tuple can be individually live on
+each coordinate and jointly stuck — a
 step at `StepWaiting` whose approval is at `ApprovalExpired` has an admitted successor on each axis
 and no admissible joint move. Checking only per-axis liveness would prove nothing about the system
 the operator actually faces.
 
 ## The ⊑ₖ knowledge order
 
-The commitment layer is a knowledge lattice, and the kernel defines the order explicitly because
-**the order does not exist in the codebase today and the value that looks like it is a trap**.
+The commitment layer has an explicit knowledge order. Its meaning comes from
+`logic:knowledgePrecedes`, independently of enumeration declaration order.
 
 ### The trap, stated plainly
 
@@ -418,8 +466,9 @@ order is the most dangerous kind, because a spot check passes.
 
 > **The derived `Ord` is for deterministic keying only** — `BTreeMap` ordering and canonical row sort,
 > the determinism contract's fourth clause. **No kernel law may read it.** Every monotonicity check,
-> every eligibility predicate, and every reconciliation constraint reads the authored
-> `logic:knowledgeOrderLeq` relation defined here, never `<=` on the Rust value.
+> every eligibility predicate, and every reconciliation constraint must use the authored
+> strict `logic:knowledgePrecedes` order, adding equality for nondecreasing comparisons,
+> rather than `<=` on the Rust value.
 
 ### The order the kernel uses
 
@@ -438,9 +487,9 @@ The kernel admits five values for `logic:effectKnowledge` — `InfoNotEvaluated`
 
 `x ⊑ₖ y` iff y carries at least as much evidence as x. It is a **bounded lattice**: reflexive,
 antisymmetric, transitive, with bottom `InfoNotEvaluated`, top `InfoBoth`, and all binary joins —
-notably `InfoSupported ⊔ InfoOpposed = InfoBoth`, which is the whole point. This is authored as the
-`logic:knowledgeOrderLeq` relation and pinned by a Rust property test asserting the three order laws
-and join totality, and asserting agreement with the Rust `InformationState` value set.
+notably `InfoSupported ⊔ InfoOpposed = InfoBoth`. The strict part is represented by
+`logic:knowledgePrecedes`; equality supplies reflexivity for the non-strict order.
+A declaration of that relation does not itself certify its runtime evaluation.
 
 `InfoNotEvaluated ⊏ₖ InfoUndetermined` is a real strictness, not a tidy-up. `NotEvaluated` means the
 engine *could not look* — no probe was possible, no semantics were available. `Undetermined` means a
@@ -523,7 +572,7 @@ indistinguishable that consumers must distinguish.
 | Candidate term | Verdict | Identity criterion forcing the mint, or the reason for reuse |
 | --- | --- | --- |
 | `WorkCluster` | **MINT** `gmeow:WorkCluster` (domain binding, not the kernel) | Identified by its continuing goal plus the standpoint that holds it — a *domain* identity binding a `gmeow:Goal`, a `gmeow:Norm`, and a `gmeow:EventSchedule`. It cannot live in `logic:`, which takes no axiom edge into `gmeow:`. The kernel-side continuing structure it needs is already covered by `logic:PrescriptionVersion` + supersession, so the kernel mints no cluster class of its own. |
-| `WorkPlanVersion` | **MINT** `logic:PrescriptionVersion` | Identified by the content digest of the versioned plan plus its `logic:prescriptionOf` target. `logic:Plan` has IRI identity and is mutable-by-revision; a version is content-addressed and immutable. Two different identity criteria, therefore two terms. Named domain-neutrally: a curriculum version and a SCADA recipe version are the same construct. |
+| `WorkPlanVersion` | **MINT** `logic:PrescriptionVersion` | Identified by the selected version identity contract plus its `logic:prescriptionOf` target. Content addressing remains the default; explicit immutable IRI identity requires external immutable resolution and retention. A version is distinct from the continuing plan under either contract. Named domain-neutrally: a curriculum version and a SCADA recipe version are the same construct. |
 | `WorkRun` | **MINT** `logic:Enactment` (the candidate name is not minted) | Identified as an occurrence, not by its (version, snapshot) pair — because a repeat legitimately shares both. `logic:TransactionOutcome` records one program run's success under executional entailment and is identified by (program, start state); it is a *verdict*, not a durable resumable occurrence with a journal, checkpoints, and a continuation kind. The candidate name is rejected under the generality obligations: a curriculum enrolment and a SCADA control session are not "work runs". |
 | `PlanExecution` | **MINT** `logic:Enactment` (the candidate name is not minted; it is the same term as the row above) | The same identity criterion, reached from the other direction. The "execution" spelling is rejected because it is already taken by a hand-authored process-model surface that this kernel **supersedes and removes** rather than retains beside it: keeping a second execution class as a projection surface would be a second source of truth by construction, and lossy compatibility for consumers belongs in generated projections, never in the canon. One occurrence class, one name. |
 | `PlanRefinementEpisode` | **MINT** `logic:RefinementEpisode` | Identified by (refined step, served goal, world snapshot, vantage, decision time). Nothing existing reifies a *bounded, attributed act of deciding how to decompose*; `logic:refinesGoal` is a standing relation between goals with no episode, no budget, and no closed candidate roster. |
@@ -552,7 +601,7 @@ indistinguishable that consumers must distinguish.
 | `logic:ClosureEntry` | **REUSE** | Certifies the refinement candidate roster as closed, rather than a bespoke "isClosed" boolean. |
 | `logic:BudgetBoundedResource` / `logic:BudgetExhausted` / `logic:resourceExhausted` / `logic:consumedBudget` | **REUSE** | Every budget in the kernel. `logic:DeadlineConsumption` is the one mint here, because a deadline is consumed against an **attributed clock** and the existing budget terms carry no clock attribution. |
 | `logic:Correspondence` with its `get`/`put` legs | **REUSE** | `logic:ContinuationRevise` **is** a `put`; checkpoint-restore **is** `get∘put`. The lens laws replace what would otherwise be ad-hoc revision constraints. |
-| `gmeow:contentDigest` / `gmeow:versionFingerprint` | **REUSE** | The kernel mints **no** digest property. |
+| `logic:prescriptionDigest` / `logic:enactedPrescriptionDigest` | **REUSE** | Frozen prescription content and the independently recorded run-pinned witness; neither is replaced by an IRI identity selection. |
 | `gmeow:supersededBy` and the supersession quartet | **REUSE** | The only revision path for a prescription version, and the mechanism by which a superseded goal evaluation stays auditable. |
 | `gmeow:CapabilityGap` | **REUSE**, disjoint | Retained for what it means; explicitly disjoint from the operational gap. |
 
@@ -600,8 +649,10 @@ receipt is refused). Sharing one code would let a fixture pass by tripping the w
 
 **Protocol position ≠ commitment knowledge.** Axes 4 and 5 vary independently; `EffectReceipted` with
 `InfoBoth` is an ordinary state. Folding them lets "we got as far as receipting" be read as "the
-effect happened". Enforced by `logic:LifecycleAxisNonConflationConstraint`, which refuses any property
-whose value set spans both.
+effect happened". Keep the `logic:effectProtocolPosition` range
+`logic:EffectProtocolPosition` separate from the `logic:effectKnowledge` range
+`logic:InformationState`; the range declarations identify the distinct axes without
+claiming a separate mixed-axis rejection proof.
 
 **`logic:actionResource` ≠ `logic:resourcePolicy`.** The first is an action-theory facet: what an
 action *consumes or requires*, the seam to `logic:competesForResource` and to `logic:ResourceLease`.

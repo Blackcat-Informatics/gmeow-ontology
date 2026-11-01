@@ -26,8 +26,7 @@ fn fixture() -> &'static PreparedReasonedGates {
                 PREPARED_GATES_CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let gates: PreparedReasonedGates =
-                serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let gates: PreparedReasonedGates = PreparedReasonedGates::from_json_bytes(&bytes)?;
             gates.validate_source_identity()?;
             Ok(Selected {
                 selector: selector.clone(),

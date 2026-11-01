@@ -14,6 +14,7 @@ name = "xtask"
 path = "src/main.rs"
 
 [dependencies]
+purrdf-lex.workspace = true
 gmeow-build-inputs = { path = "../build-inputs" }
 cargo-config2.workspace = true
 gmeow-action-cache = { path = "../action-cache" }

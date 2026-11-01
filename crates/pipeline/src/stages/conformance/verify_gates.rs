@@ -107,7 +107,9 @@ pub(super) fn record(
     let gates = catalog.prepared_reasoned_gates().map_err(fail)?;
     artifacts.insert(
         PREPARED_GATES_CHANNEL.to_owned(),
-        serde_json::to_vec(gates.as_ref()).map_err(fail)?,
+        gates
+            .to_json_bytes()
+            .map_err(|error| error.with_context("encode prepared native laws"))?,
     );
     let queries = embedded_verify_queries();
     let query_digests: BTreeMap<_, _> = queries

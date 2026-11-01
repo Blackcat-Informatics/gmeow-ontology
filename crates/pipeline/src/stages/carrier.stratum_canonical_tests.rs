@@ -104,7 +104,8 @@ fn pass_one_receipt_key_binds_the_exact_snapshot_and_each_extra_graph() {
             "stage-snapshot",
             std::sync::Arc::clone(&carrier),
             BTreeMap::new(),
-        ),
+        )
+        .expect("the stage carrier digests"),
     );
     let first_graph = fixture_dataset("first");
     let second_graph = fixture_dataset("second");
@@ -146,24 +147,102 @@ fn present_pass_one_receipt_is_typed_and_fail_closed() {
         snapshot_content_digest: expected_content.clone(),
         stratum_digest: expected_stratum.clone(),
     };
-    let mut artifacts = BTreeMap::new();
-    artifacts.insert(
-        PASS_ONE_RECEIPT_PATH.to_string(),
-        serde_json::to_vec(&receipt).expect("receipt JSON"),
+    let wire = format!(
+        r#"{{"schema_version":1,"algorithm":"gts-pass-one-canonical-identities-v1","input_digest":"{expected_input}","snapshot_content_digest":"{expected_content}","stratum_digest":"{expected_stratum}"}}"#
     );
-    let mut upstream = BTreeMap::new();
-    upstream.insert(
-        "stage-gts-sink".to_string(),
-        StageProduct::from_artifacts("stage-gts-sink", artifacts),
-    );
+    let encoded = purrdf_lex::json::record::to_vec(&receipt);
+    assert_eq!(encoded, wire.as_bytes());
+    let with_receipt = |bytes| {
+        BTreeMap::from([(
+            "stage-gts-sink".to_string(),
+            StageProduct::from_artifacts(
+                "stage-gts-sink",
+                BTreeMap::from([(PASS_ONE_RECEIPT_PATH.to_string(), bytes)]),
+            )
+            .expect("the stage carrier digests"),
+        )])
+    };
+    let mut upstream = with_receipt(encoded);
 
     assert_eq!(
         reusable_pass_one_receipt(&upstream, &expected_input)
             .expect("matching receipt")
-            .expect("receipt is present")
-            .snapshot_content_digest,
-        expected_content
+            .expect("receipt is present"),
+        receipt
     );
+    let unknown = wire.replacen('{', "{\"future\":null,", 1);
+    assert_eq!(
+        reusable_pass_one_receipt(&with_receipt(unknown.into_bytes()), &expected_input)
+            .unwrap()
+            .unwrap(),
+        receipt
+    );
+    assert!(
+        reusable_pass_one_receipt(&BTreeMap::new(), &expected_input)
+            .unwrap()
+            .is_none()
+    );
+
+    for invalid in [
+        wire.replace(
+            "\"algorithm\":\"gts-pass-one-canonical-identities-v1\",",
+            "",
+        ),
+        wire.replace(
+            "\"schema_version\":1",
+            "\"schema_version\":1,\"schema_version\":1",
+        ),
+        wire.replace(
+            &format!("\"stratum_digest\":\"{expected_stratum}\""),
+            "\"stratum_digest\":null",
+        ),
+        format!(
+            r#"[1,"gts-pass-one-canonical-identities-v1","{expected_input}","{expected_content}","{expected_stratum}"]"#
+        ),
+        "{".into(),
+    ] {
+        assert!(
+            reusable_pass_one_receipt(&with_receipt(invalid.into_bytes()), &expected_input)
+                .is_err()
+        );
+    }
+    for token in ["-0", "-1", "1.0", "1e0", "4294967296", "null", "\"1\""] {
+        let invalid = wire.replace(
+            "\"schema_version\":1",
+            &format!("\"schema_version\":{token}"),
+        );
+        let error = reusable_pass_one_receipt(&with_receipt(invalid.into_bytes()), &expected_input)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("/schema_version"), "{error}");
+    }
+    let widest = wire.replace("\"schema_version\":1", "\"schema_version\":4294967295");
+    assert_eq!(
+        purrdf_lex::json::record::from_slice::<PassOneReceipt>(widest.as_bytes())
+            .unwrap()
+            .schema_version,
+        u32::MAX
+    );
+    for (invalid, context) in [
+        (widest, "schema version"),
+        (
+            wire.replace(PASS_ONE_RECEIPT_ALGORITHM, "wrong-algorithm"),
+            "algorithm",
+        ),
+        (
+            wire.replace(&expected_content, "blake3:UPPER"),
+            "snapshot content digest",
+        ),
+        (
+            wire.replace(&expected_stratum, "blake3:UPPER"),
+            "stratum digest",
+        ),
+    ] {
+        let error = reusable_pass_one_receipt(&with_receipt(invalid.into_bytes()), &expected_input)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains(context), "{error}");
+    }
     assert!(
         reusable_pass_one_receipt(&upstream, &crate::medium::blake3_digest(b"changed")).is_err(),
         "a stale same-stage receipt must hard-fail"
@@ -171,7 +250,8 @@ fn present_pass_one_receipt_is_typed_and_fail_closed() {
 
     upstream.insert(
         "stage-gts-sink".to_string(),
-        StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new()),
+        StageProduct::from_artifacts("stage-gts-sink", BTreeMap::new())
+            .expect("the stage carrier digests"),
     );
     assert!(
         reusable_pass_one_receipt(&upstream, &expected_input).is_err(),

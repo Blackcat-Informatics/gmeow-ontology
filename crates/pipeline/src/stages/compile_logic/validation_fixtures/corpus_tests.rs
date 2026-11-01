@@ -22,7 +22,8 @@ fn fixtures() -> &'static ValidationFixtures {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let bytes = crate::fixture::authenticated_artifact(&root, "stage-compile-logic", CHANNEL)
             .expect("authenticated producer-selected validation fixtures");
-        serde_json::from_slice(&bytes).expect("hydrate complete validation fixture outputs")
+        purrdf_lex::json::record::from_slice(&bytes)
+            .expect("hydrate complete validation fixture outputs")
     })
 }
 

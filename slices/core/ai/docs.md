@@ -282,3 +282,64 @@ The canonical value restrictions derive the validation view; they do not add a
 closed-world requirement for an explicitly asserted subject type. A machine key,
 source expression, or byte payload uses its own declared property and datatype.
 See [literal policy](../../../docs/LITERALS.md) for the shared contract.
+
+## General classifier evidence
+
+`ClassifierOutput` records an attributed score for an exact external
+`ClassifierLabel` in a `ClassifierLabelSet`, including genre and zero-shot
+classification. Shared run provenance and score/decision vocabulary are owned
+here; affect retains its class specializations and affect-only laws.
+`ModelInferenceRun` is an enduring execution record compatible with the
+observation vantage contract. See [the contract and example](design/CLASSIFIER-EVIDENCE.md)
+for candidate-set scope, calibration and the separate execution-activity boundary.
+
+## Contract-bound chunkings and summary carriers
+
+`Chunking` records one segmentation of an exact source revision under an
+identified rules artifact. `ChunkingMember` selects actual chunks with scoped
+ordinals. `BlockExtent` places atomic ContentBlocks in the same whole-source
+coordinate frame as the chunks, enabling intrinsic no-split and coverage laws.
+Selected source and contract digests identify those artifacts’ own bytes;
+overlap and exhaustive coverage follow the declared contract without defaults.
+
+A retrieved summary’s `chunkOf` names the carrier containing its text, while
+`wasDerivedFrom` names the summarized division. A generated summary is not a cut
+of its original division. Summary and Chunk can share a node when both meanings
+hold; separate summary and retrieval-chunk nodes are also valid. CommunitySummary
+keeps its GraphRAG community meaning. See [the contract and ordinary scenes](design/CHUNKING.md).
+
+## Records held among prose
+
+A `HeldRecord` is an occurrence of a machine record removed from one source
+text and decomposed into facts. `textHeldRecord` connects the exact text
+occurrence to each removed record. A labelled text facet is one suitable
+carrier: its `facetText` retains the surrounding words, while other decomposed
+fields reuse `hasFacet`, `LabelledFacet` and `entryOrdinal`.
+
+The original zero-based, half-open `spanStart`/`spanEnd` pair counts Unicode
+code points before extraction. Both are required single nonnegative integers,
+with start strictly before end. The original span is never checked against the
+shortened retained text, and an original source length is not fabricated.
+One held occurrence belongs to one text occurrence; identical content in
+different texts remains separate occurrences.
+
+`heldContentStatement` supplies the distinguished content as an actual RDF 1.2
+triple term. Keep the identical explicit `rdf:reifies` link on the held record:
+current statement-metadata extraction reads that established predicate, not a
+new alias inferred later. The canonical binding law joins the same graph term
+in both roles, and COUNT DISTINCT requires one distinguished term. A separate
+evidence law covers the aggregate's zero-row case and requires a containing text.
+
+The retained surrounding words are verbatim, but the removed record's own text,
+whitespace, escapes and key order are absent. Original text therefore cannot be
+rebuilt exactly. The content statement and other fields are facts supplied by
+the producer or importer; quotation alone does not assert the quoted content.
+The [ordinary intake scene](examples/record-intake.ttl) includes an
+explicitly asserted content fact separately from its reifier.
+
+These source contracts do not parse serialized records, prove decomposition
+fidelity or introduce a generic triple-term node-kind validator. They retain
+actual RDF 1.2 syntax and explicit reifier evidence through the existing path.
+Use the established type and subproperty closure before inherited facet
+validation, and completed statement-metadata lowering before its component
+binding laws. No execution or authenticity is claimed by the declarations.

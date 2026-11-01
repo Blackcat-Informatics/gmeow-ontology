@@ -59,9 +59,11 @@ define_diag_kind! {
 }
 
 define_diag_kind! {
-    /// A (de)serialization failure on the on-disk cache: a corrupt `index.json`,
-    /// a corrupt cached `StageProduct` blob, or a JSON encode failure on persist.
-    /// Distinct from [`Parse`] (RDF) — these are JSON, not RDF, decode failures.
+    native_cause;
+    /// A cache or typed-publication encoding, decoding or validation failure.
+    /// Covers JSON, binary product blobs and complete native publications;
+    /// distinct from [`Parse`], which reports RDF parsing failures.
+    /// Native codec failures retain their cause beneath this downcastable kind.
     pub struct Decode { message: String }
     code = "pipeline.cache.decode";
     grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
@@ -546,6 +548,21 @@ pub fn register_all() -> Vec<Code> {
         crate::transcode::CodecError::register(),
         crate::stages::rule_severity::UnknownRuleSeverity::register(),
     ]
+}
+
+/// A [`Parse`] diagnostic: the one constructor pipeline modules use for an RDF
+/// source or semantic refusal in their own inputs.
+pub(crate) fn parse_diag(message: impl Into<String>) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(Parse {
+        message: message.into(),
+    })
+}
+
+/// An [`Io`] diagnostic for a filesystem failure reading a source artifact.
+pub(crate) fn io_diag(error: std::io::Error) -> gmeow_errors::Diag {
+    gmeow_errors::Diag::of_kind(Io {
+        message: error.to_string(),
+    })
 }
 
 #[path = "error.tests.rs"]

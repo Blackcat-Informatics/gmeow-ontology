@@ -79,7 +79,7 @@ use crate::result::{
 /// Wrap a reasoning-result-projection condition message as a typed diagnostic on
 /// the shared substrate, preserving the authored text verbatim.
 fn result_err(detail: String) -> gmeow_errors::Diag {
-    gmeow_errors::Diag::of_kind(crate::error::Result { detail })
+    gmeow_errors::Diag::of_kind(crate::error::Result::new(detail))
 }
 
 /// The `graph/reasoning` named-graph IRI — the snapshot folds this projection here.
@@ -2465,10 +2465,12 @@ pub struct PromotionCandidateRecord {
     pub node: String,
     /// `logic:candidateSourceHash` (the `sha256:` content hash of the conjectured formula).
     pub source_hash: String,
-    /// `logic:candidateExtractionProvenance` (what produced it — the conjecture-test run).
-    pub extraction_provenance: String,
-    /// `logic:candidateScope` (the formula the proposed axiom would constrain).
-    pub scope: String,
+    /// Every original `logic:candidateExtractionProvenance` statement, retaining
+    /// the supplied literal language, direction and datatype.
+    pub extraction_provenance: Vec<gmeow_errors::SourceAnnotation>,
+    /// Every original `logic:candidateScope` statement. Native producer formula
+    /// keys remain plain strings; authored scope descriptions retain their prose metadata.
+    pub scope: Vec<gmeow_errors::SourceAnnotation>,
     /// `logic:candidateContract` (the reasoning contract IRI the conjecture ran under).
     pub contract: String,
     /// `logic:candidateCategory` (the formalization-category IRI).
@@ -2509,9 +2511,9 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
         .find(|t| t.predicate == RDF_TYPE && t.object_iri() == Some(logic("Conjecture")))
         .map(|t| t.subject)
         .ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Result {
-                detail: "graph/conjecture: no logic:Conjecture subject".to_owned(),
-            })
+            gmeow_errors::Diag::of_kind(crate::error::Result::new(
+                "graph/conjecture: no logic:Conjecture subject".to_owned(),
+            ))
         })?;
 
     let one_iri = |local: &str| -> Option<String> {
@@ -2535,18 +2537,18 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
         "conjectureLifecycleState",
     )?)?)
     .ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Result {
-            detail: "graph/conjecture: unrecognized conjectureLifecycleState".to_owned(),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Result::new(
+            "graph/conjecture: unrecognized conjectureLifecycleState".to_owned(),
+        ))
     })?;
     let discharge = ConjectureDischarge::from_local(local_of(&req(
         one_iri("conjectureDischargeVerdict"),
         "conjectureDischargeVerdict",
     )?)?)
     .ok_or_else(|| {
-        gmeow_errors::Diag::of_kind(crate::error::Result {
-            detail: "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned(),
-        })
+        gmeow_errors::Diag::of_kind(crate::error::Result::new(
+            "graph/conjecture: unrecognized conjectureDischargeVerdict".to_owned(),
+        ))
     })?;
 
     // The embedded reasoning-result graph re-derives via the existing reader (it keys off
@@ -2577,7 +2579,7 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
         .transpose()?;
 
     // The two symmetric promotion legs (present exactly on their lifecycle).
-    let promotion_candidate = parse_promotion_candidate(&triples, subject);
+    let promotion_candidate = parse_promotion_candidate(&triples, subject)?;
     let obligation_candidate = parse_obligation_candidate(&triples, subject);
 
     Ok(ConjectureVerdictRecord {
@@ -2600,11 +2602,21 @@ pub fn parse_conjecture_verdict(nt_body: &str) -> gmeow_errors::Result<Conjectur
 fn parse_promotion_candidate(
     triples: &ResultGraph<'_>,
     subject: TermId,
-) -> Option<PromotionCandidateRecord> {
-    let node = triples
-        .for_subject(subject)
-        .find(|t| t.predicate == logic("conjecturePromotionCandidate"))
-        .and_then(|t| t.object_node())?;
+) -> gmeow_errors::Result<Option<PromotionCandidateRecord>> {
+    let Some(node) = optional_component(
+        triples,
+        subject,
+        "conjecturePromotionCandidate",
+        "FormalizationCandidate",
+    )?
+    else {
+        return Ok(None);
+    };
+    if !matches!(triples.dataset.resolve(node), TermRef::Iri(_)) {
+        return Err(result_err(
+            "graph/conjecture: conjecturePromotionCandidate must name an IRI".to_owned(),
+        ));
+    }
     let carrier_iri = |local: &str| -> String {
         triples
             .for_subject(node)
@@ -2619,17 +2631,81 @@ fn parse_promotion_candidate(
             .and_then(|t| t.object_string())
             .unwrap_or_default()
     };
-    Some(PromotionCandidateRecord {
+    Ok(Some(PromotionCandidateRecord {
         source_hash: carrier_str("candidateSourceHash"),
-        extraction_provenance: carrier_str("candidateExtractionProvenance"),
-        scope: carrier_str("candidateScope"),
+        extraction_provenance: promotion_candidate_prose(
+            triples,
+            node,
+            "candidateExtractionProvenance",
+        )?,
+        scope: promotion_candidate_prose(triples, node, "candidateScope")?,
         contract: carrier_iri("candidateContract"),
         category: carrier_iri("candidateCategory"),
         lifecycle: carrier_iri("candidateLifecycle"),
         projection_behavior: carrier_iri("candidateProjectionBehavior"),
         semantic_risk: carrier_iri("candidateSemanticRisk"),
         node: triples.node_iri(node),
-    })
+    }))
+}
+
+/// Retain all supplied descriptions on a selected promotion candidate, without
+/// selecting a language or silently replacing a missing carrier with empty text.
+fn promotion_candidate_prose(
+    triples: &ResultGraph<'_>,
+    node: TermId,
+    local: &str,
+) -> gmeow_errors::Result<Vec<gmeow_errors::SourceAnnotation>> {
+    let subject = purrdf_core::BaseIri::parse(&triples.node_iri(node))?;
+    let predicate = purrdf_core::BaseIri::parse(&logic(local))?;
+    let mut annotations = Vec::new();
+    for field in triples
+        .for_subject(node)
+        .filter(|field| field.predicate == predicate.as_str())
+    {
+        let purrdf::RdfTerm::Literal(literal) = triples.dataset.to_owned_term(field.object_id)
+        else {
+            return Err(result_err(format!(
+                "graph/conjecture: {subject} {local} must be a prose literal"
+            )));
+        };
+        if !matches!(
+            literal.datatype_iri(),
+            "http://www.w3.org/2001/XMLSchema#string"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString"
+                | "http://www.w3.org/1999/02/22-rdf-syntax-ns#dirLangString"
+        ) {
+            return Err(result_err(format!(
+                "graph/conjecture: {subject} {local} must be a prose literal"
+            )));
+        }
+        annotations.push(
+            gmeow_errors::SourceAnnotation::new(subject.clone(), predicate.clone(), literal)
+                .map_err(|error| {
+                    result_err(format!("graph/conjecture: {subject} {local}: {error}"))
+                })?,
+        );
+    }
+    if annotations.is_empty() {
+        return Err(result_err(format!(
+            "graph/conjecture: {subject} is missing {local}"
+        )));
+    }
+    let key = |annotation: &gmeow_errors::SourceAnnotation| {
+        let literal = annotation.object();
+        (
+            literal.lexical_form.clone(),
+            literal.datatype_iri().to_owned(),
+            literal.language.clone(),
+            literal.direction.map(|direction| direction.as_str()),
+        )
+    };
+    annotations.sort_by(|a, b| {
+        key(a)
+            .cmp(&key(b))
+            .then_with(|| a.object().datatype.cmp(&b.object().datatype))
+    });
+    annotations.dedup_by(|a, b| key(a) == key(b));
+    Ok(annotations)
 }
 
 /// Re-read the anti-conjecture leg from a parsed body: the candidate

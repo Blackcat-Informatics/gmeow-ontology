@@ -21,6 +21,9 @@
 //! - Predicate IRIs: bare IRI string, no angle brackets.
 //! - Variables: any token starting with uppercase or `_`.
 
+mod execution_cbor;
+mod json;
+
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::seam::BudgetStatus;
@@ -172,6 +175,19 @@ pub enum QBuiltin {
         right: gmeow_logic_compile::ir::AtomicTerm,
         /// Numeric ordering predicate.
         comparison: gmeow_logic_compile::relational_core::RcComparison,
+        /// Truth required to retain the violation candidate.
+        expected: bool,
+    },
+    /// A bound native RDF component identity filter, with body truth polarity.
+    TermIdentity {
+        /// Original left RDF operand.
+        left: gmeow_logic_compile::ir::AtomicTerm,
+        /// Component selected from the left operand.
+        left_component: gmeow_logic_compile::ir::TermComponent,
+        /// Original right RDF operand.
+        right: gmeow_logic_compile::ir::AtomicTerm,
+        /// Component selected from the right operand.
+        right_component: gmeow_logic_compile::ir::TermComponent,
         /// Truth required to retain the violation candidate.
         expected: bool,
     },
