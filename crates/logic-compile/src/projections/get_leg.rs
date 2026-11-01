@@ -465,7 +465,9 @@ pub(super) fn analyze_projections(
     view: &DslView,
     catalog: &super::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<ParsedProjections> {
-    projection_subjects(view, catalog, view.subjects_of_type(GM_PROJECTION_MAPPING))
+    let mut parsed = parse_projection_subjects(view, view.subjects_of_type(GM_PROJECTION_MAPPING))?;
+    super::selected_templates::resolve(view, catalog, &mut parsed.cells)?;
+    Ok(parsed)
 }
 
 /// Parse explicitly selected subjects through the shared projection frontend.
@@ -473,6 +475,15 @@ pub(super) fn analyze_projections(
 pub(super) fn projection_subjects(
     view: &DslView,
     catalog: &super::grounding_catalog::GroundingCatalog,
+    subjects: impl IntoIterator<Item = String>,
+) -> gmeow_errors::Result<ParsedProjections> {
+    let mut parsed = parse_projection_subjects(view, subjects)?;
+    super::selected_templates::resolve_inspected(view, catalog, &mut parsed.cells)?;
+    Ok(parsed)
+}
+
+fn parse_projection_subjects(
+    view: &DslView,
     subjects: impl IntoIterator<Item = String>,
 ) -> gmeow_errors::Result<ParsedProjections> {
     let mut cells = Vec::new();
@@ -527,7 +538,6 @@ pub(super) fn projection_subjects(
                 .expect("INVARIANT: completed subject-read recorder is not poisoned"),
         );
     }
-    super::selected_templates::resolve(view, catalog, &mut cells)?;
     Ok(ParsedProjections {
         cells,
         definition_subjects,

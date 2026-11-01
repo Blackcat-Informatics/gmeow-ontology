@@ -612,6 +612,26 @@ pub(crate) fn check_projection_alternatives(
                             cell.iri
                         ))
                     })?;
+                    let source_endpoint =
+                        correspondence.source_endpoint.as_ref().ok_or_else(|| {
+                            registry_err(format!(
+                                "kernel projection {} lacks its source endpoint",
+                                cell.iri
+                            ))
+                        })?;
+                    let target_endpoint =
+                        correspondence.target_endpoint.as_ref().ok_or_else(|| {
+                            registry_err(format!(
+                                "kernel projection {} lacks its target endpoint",
+                                cell.iri
+                            ))
+                        })?;
+                    if target_endpoint != &target {
+                        return Err(registry_err(format!(
+                            "kernel projection {} reaches <{target}> outside its grounding target endpoint <{target_endpoint}>",
+                            cell.iri
+                        )));
+                    }
                     for index in origins {
                         let physical = originals[index].physical()?;
                         let identity = physical.identity();
@@ -625,8 +645,8 @@ pub(crate) fn check_projection_alternatives(
                             family: family.iri.clone(),
                             correspondence: correspondence.iri.clone(),
                             semantic_key: native_semantic_key(&correspondence),
-                            source: source.clone(),
-                            target: target.clone(),
+                            source: source_endpoint.clone(),
+                            target: target_endpoint.clone(),
                             source_owner: declaration.owner.clone(),
                             source_module_path: declaration.path.clone(),
                             source_module_digest: declaration.digest.clone(),

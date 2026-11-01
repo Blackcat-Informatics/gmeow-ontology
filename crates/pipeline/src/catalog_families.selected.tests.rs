@@ -219,6 +219,26 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
         let (_, analysis) = gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
             &gmeow_logic_compile::ingest::DslView::new(&dataset), &ontology, &[],
         ).unwrap();
+        if expected {
+            let unrelated = format!(
+                "{text}\ng:UnrelatedSelector g:tPredFromCorrespondence <urn:unrelated:alias> ."
+            );
+            let unrelated =
+                purrdf::parse_dataset(unrelated.as_bytes(), "text/turtle", None).unwrap();
+            let view = gmeow_logic_compile::ingest::DslView::new(&unrelated);
+            analysis
+                .inspect_projection_subjects(
+                    &view,
+                    &BTreeSet::from(["https://blackcatinformatics.ca/gmeow/Export".to_owned()]),
+                )
+                .unwrap();
+            assert!(
+                gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
+                    &view, &ontology, &[],
+                ).is_err(),
+                "production admission still rejects the unrelated orphan selector"
+            );
+        }
         let original =
             native_kernel::OriginalMapping::new(owner, mapping_path, text.as_bytes(), dataset);
         let mut proof = observations.native_kernel_evidence.clone();
@@ -296,6 +316,17 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
             .iter()
             .any(|proof| proof.target.ends_with("#Entity")),
         "shared native projection binding is admitted with cross-file definitions"
+    );
+    let multi_target = projection.replace(
+        "g:emitSssom true ;",
+        "g:emitSssom false ; g:templateAtoms ( [ g:tSubj \"x\" ; g:tPred prov:used ; g:tObj \"y\" ] ) ;",
+    );
+    let mismatch = inspect_projection(&multi_target, &pattern, owner, pattern_path).unwrap_err();
+    assert!(
+        mismatch
+            .to_string()
+            .contains("outside its grounding target endpoint"),
+        "a scoped template target must match the admitted correspondence endpoint: {mismatch}"
     );
     for malformed in [
         projection.replace(", logic:GroundingCorrespondence", ""),
