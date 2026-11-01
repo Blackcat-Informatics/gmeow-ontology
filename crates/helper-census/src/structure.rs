@@ -266,7 +266,8 @@ impl<'ast> Visit<'ast> for Structure<'_> {
                 self.hit(DEFAULT_HASHER_NEW, line, HASHER_DETAIL);
             }
             if let (Some(state), Some(name)) = (self.functions.last_mut(), last.as_deref())
-                && LIST_HOME_ENTRY_POINTS.contains(&name)
+                && (LIST_HOME_ENTRY_POINTS.contains(&name)
+                    || (before.as_deref() == Some("RdfListWalk") && name == "new"))
             {
                 state.uses_home = true;
             }

@@ -450,18 +450,44 @@ impl Facts {
     }
 
     fn list(&self, head: &str, limit: usize) -> gmeow_errors::Result<Vec<String>> {
-        let mut node = head.to_owned();
-        let mut seen = BTreeSet::new();
+        use purrdf_core::{ListError, RdfListWalk, SoleObject};
+
+        let head = head.strip_prefix("_:").map_or_else(
+            || RdfTerm::Iri(head.to_owned()),
+            |id| RdfTerm::BlankNode(id.to_owned()),
+        );
+        let nil = RdfTerm::Iri(RDF_NIL.to_owned());
+        let edge = |cell: &RdfTerm, predicate: &str| {
+            SoleObject::of(
+                self.values(&term_key(cell), predicate)
+                    .iter()
+                    .filter(|term| matches!(term, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))),
+            )
+        };
+        let walk = RdfListWalk::new(
+            &head,
+            Some(&nil),
+            |cell| edge(cell, RDF_FIRST),
+            |cell| edge(cell, RDF_REST),
+        );
         let mut values = Vec::new();
-        while node != RDF_NIL {
-            if !seen.insert(node.clone()) {
-                return Err(exec_error("RDF list contains a cycle"));
-            }
+        for item in walk {
+            let member = item.map_err(|fault| {
+                let source = ListError {
+                    kind: fault.kind,
+                    members: values
+                        .iter()
+                        .take(fault.members)
+                        .cloned()
+                        .collect::<Vec<String>>(),
+                    node: term_key(fault.node),
+                };
+                exec_error(format!("RDF list admission: {source}")).with_source(source)
+            })?;
             if values.len() >= limit {
                 return Err(exec_error("RDF list admission limit exceeded"));
             }
-            values.push(self.one_resource(&node, RDF_FIRST)?);
-            node = self.one_resource(&node, RDF_REST)?;
+            values.push(term_key(member));
         }
         Ok(values)
     }
