@@ -176,6 +176,7 @@ fn observed_dataset(schemas: &[&str], missing_last_schema: bool) -> std::sync::A
     builder.freeze().unwrap()
 }
 
+/// Preserve the guarded plan skeleton while refusing malformed list inputs and certificates.
 #[test]
 fn fixed_loop_projects_to_a_prescriptive_guarded_skeleton() {
     let source = plan_dataset();
