@@ -110,8 +110,10 @@ its author. Existing statement standpoint and provenance retain that attribution
 
 `originatingTrace` and `originatingPacket` retain unresolved producer identifiers.
 `evidenceReference` does the same for an unresolved evidence reference.
-All three use `xsd:string`: verbatim producer identifiers may contain whitespace,
-and `xsd:token` would normalize it. Their producer namespace remains provenance.
+All three admit the supplied `xsd:string` or `xsd:token` through canonical
+datatype unions. Keep the original lexical form and datatype, including case,
+spacing and punctuation. Do not convert strings to tokens or normalize source
+whitespace. Their producer namespace remains provenance.
 Use actual source, trace, message or evidence links when those resources are
 established; the literal reference neither invents a node nor proves resolution.
 

@@ -552,8 +552,8 @@ msgid "The producer's unresolved identifier for the reasoning trace from which a
 msgstr "生产者提供的、记录所源自推理轨迹的未解析标识符，按原样保留。它是来源引用，不是轨迹对象或推理证明。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。该值域不解析引用，也不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:originatingTrace \"trace:17\" ."
@@ -568,8 +568,8 @@ msgid "The producer's unresolved identifier for the message packet that produced
 msgstr "生产者提供的、生成或承载此记录的消息包未解析标识符，按原样保留。它不声明某消息包节点已发送或接收。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。该值域不解析引用，也不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:originatingPacket \"packet:8\" ."
@@ -664,8 +664,8 @@ msgid "An unresolved producer reference cited as evidence by a record, retained 
 msgstr "记录作为证据引用、按原样保留的生产者未解析引用。它保留引用，不虚构引用可能标识的资源。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "生产者命名空间和归属仍是独立溯源信息。保留字符串空白，不按 xsd:token 归一化。"
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "生产者命名空间和归属仍是独立溯源信息。保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。该值域不解析引用，也不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:evidenceReference \"minutes:17\" ."
@@ -868,3 +868,40 @@ msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:stri
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
 msgstr "在每个 MalformedValue 上提供一个 xsd:string 或明确提供的 xsd:token；保留源数据类型、空白、大小写和标点。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the producer supplies a trace identifier without a corresponding graph node."
+msgstr "生产者提供轨迹标识符但图中没有对应节点时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a trace node or inferring trace identity from matching identifiers from unrelated producers."
+msgstr "避免凭空创建轨迹节点，也不要因不同生产者的标识符相同而推断轨迹身份相同。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal; link an actual trace resource through provenance when it exists."
+msgstr "保留提供的 xsd:string 或 xsd:token 字面量；实际轨迹资源存在时，通过溯源关系链接它。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer names an originating packet that is absent from the graph."
+msgstr "生产者指明图中不存在的来源数据包时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing an external packet identifier with the record's own identity."
+msgstr "避免将外部数据包标识符与记录自身的身份混淆。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal and its producer attribution; use actual message and provenance links when available."
+msgstr "保留提供的 xsd:string 或 xsd:token 字面量及其生产者归属；有实际消息和溯源链接时使用这些链接。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an evidence identifier that cannot be resolved to a graph node."
+msgstr "无法将证据标识符解析为图节点时使用。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating identifiers from unrelated producer namespaces or treating them as support verdicts."
+msgstr "避免将不同生产者命名空间中的标识符视为相同，也不要将其当作支持结论。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal with its source attribution; use a resolved evidence relation when established."
+msgstr "保留提供的 xsd:string 或 xsd:token 字面量及其来源归属；已确立解析后的证据关系时使用该关系。"

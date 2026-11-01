@@ -355,10 +355,10 @@ gmeow:originatingTrace
     skos:definition "The producer's unresolved identifier for the reasoning trace from which a record came, retained exactly as supplied. It is a source reference, not a trace object or proof of reasoning."@x-gmeow-english ;
     gmeow:useWhen "Use when the producer supplies a trace identifier without a corresponding graph node."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a trace node or inferring trace identity from matching identifiers from unrelated producers."@x-gmeow-english ;
-    gmeow:howToUse "Keep the identifier as xsd:string; link an actual trace resource through provenance when it exists."@x-gmeow-english ;
-    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal; link an actual trace resource through provenance when it exists."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:record gmeow:originatingTrace \"trace:17\" ."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:originatingPacket
     a logic:DatatypeProperty ;
@@ -368,10 +368,10 @@ gmeow:originatingPacket
     skos:definition "The producer's unresolved identifier for the message packet that produced or carried this record, retained exactly as supplied. It does not assert dispatch or receipt of a packet node."@x-gmeow-english ;
     gmeow:useWhen "Use when a producer names an originating packet that is absent from the graph."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid confusing an external packet identifier with the record's own identity."@x-gmeow-english ;
-    gmeow:howToUse "Keep the exact xsd:string and retain its producer attribution; use actual message and provenance links when available."@x-gmeow-english ;
-    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal and its producer attribution; use actual message and provenance links when available."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:record gmeow:originatingPacket \"packet:8\" ."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:MalformedValue
     a logic:Class , logic:SubKind ;
@@ -446,10 +446,10 @@ gmeow:evidenceReference
     skos:definition "An unresolved producer reference cited as evidence by a record, retained exactly as supplied. It preserves a reference without inventing the resource it might identify."@x-gmeow-english ;
     gmeow:useWhen "Use for an evidence identifier that cannot be resolved to a graph node."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid equating identifiers from unrelated producer namespaces or treating them as support verdicts."@x-gmeow-english ;
-    gmeow:howToUse "Keep the exact xsd:string with its source attribution; use a resolved evidence relation when established."@x-gmeow-english ;
-    skos:scopeNote "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its source attribution; use a resolved evidence relation when established."@x-gmeow-english ;
+    skos:scopeNote "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."@x-gmeow-english ;
     skos:example "ex:record gmeow:evidenceReference \"minutes:17\" ."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:durabilityReason
     a logic:DatatypeProperty ;
