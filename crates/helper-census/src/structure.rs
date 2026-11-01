@@ -242,6 +242,7 @@ impl Structure<'_> {
 }
 
 impl<'ast> Visit<'ast> for Structure<'_> {
+    /// Inspect call structure for forbidden copies and registered native entry points.
     fn visit_expr_call(&mut self, node: &'ast syn::ExprCall) {
         if let syn::Expr::Path(function) = node.func.as_ref() {
             let (before, last) = last_two(&function.path);

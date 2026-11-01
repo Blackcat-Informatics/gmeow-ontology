@@ -210,6 +210,65 @@ fn fixed_loop_projects_to_a_prescriptive_guarded_skeleton() {
     assert!(
         verify_plan_projection(&forged, &source, None, PlanProjectionLimits::default()).is_err()
     );
+
+    // Malformed source edges must never become a partial prescriptive list.
+    let facts: Vec<_> = purrdf::native_quads::flat_rdf_quads(&source)
+        .map(Fact::from_quad)
+        .collect();
+    let head = facts
+        .iter()
+        .find(|fact| fact.predicate == RDF_FIRST && iri_value(&fact.object) == Some(CYCLE))
+        .unwrap()
+        .subject
+        .clone();
+    let literal = RdfTerm::Literal(RdfLiteral::typed(
+        "invalid list resource",
+        "http://www.w3.org/2001/XMLSchema#string",
+    ));
+    for (subject, kind, prefix) in [
+        (
+            head.as_str(),
+            purrdf_core::ListErrorKind::MultipleFirst,
+            vec![],
+        ),
+        (
+            RDF_NIL,
+            purrdf_core::ListErrorKind::NonEmptyNil,
+            vec![CYCLE.to_owned()],
+        ),
+    ] {
+        let mut malformed = facts.clone();
+        malformed.push(Fact {
+            subject: subject.to_owned(),
+            predicate: RDF_FIRST.to_owned(),
+            object: literal.clone(),
+            graph: None,
+        });
+        let error = Facts::select(&malformed, PLAN, None)
+            .unwrap()
+            .list(&head, 32)
+            .unwrap_err();
+        let cause = error
+            .downcast_ref::<purrdf_core::ListError<String>>()
+            .unwrap();
+        assert_eq!(cause.kind, kind);
+        assert_eq!(cause.node, subject);
+        assert_eq!(cause.members, prefix);
+    }
+    for predicate in [RDF_FIRST, RDF_REST] {
+        let mut malformed = facts.clone();
+        malformed
+            .iter_mut()
+            .find(|fact| fact.subject == head && fact.predicate == predicate)
+            .unwrap()
+            .object = literal.clone();
+        let error = Facts::select(&malformed, PLAN, None)
+            .unwrap()
+            .list(&head, 32)
+            .unwrap_err();
+        assert!(error.message().contains("requires a resource"));
+        assert!(error.message().contains(predicate));
+    }
 }
 
 #[test]
