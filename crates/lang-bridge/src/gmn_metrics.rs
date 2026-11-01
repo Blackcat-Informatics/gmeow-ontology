@@ -332,8 +332,16 @@ fn measure_source(
     // substitute for the flattened GMN-0 model at this boundary.
     let normalized = model.to_dataset()?;
     let reconstructed = back.to_dataset()?;
-    if purrdf::try_canonicalize(&normalized)?.nquads
-        != purrdf::try_canonicalize(&reconstructed)?.nquads
+    if purrdf::try_canonicalize(
+        &normalized,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?
+    .nquads()
+        != purrdf::try_canonicalize(
+            &reconstructed,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?
+        .nquads()
     {
         return Ok(Some(measured));
     }

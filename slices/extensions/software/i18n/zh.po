@@ -1671,3 +1671,82 @@ msgstr "gitlink 模式为 160000 的树条目指向 Commit，并保留提交的 
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."
 msgstr "树条目记录的八进制 Git 模式字符串，保留其拼写和前导零。模式 100644、100755 和 120000 要求 Blob 目标；目录写法 040000 和 40000 要求 SourceTree；gitlink 模式 160000 要求 Commit。具有函数性：每个条目一个模式。这些类别约束不解析或验证对象字节。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required Blob source identity"
+msgstr "Blob 的必需来源身份"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Blob retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "Blob 至少保留一种来源身份：按算法类型化的原始字节 contentDigest，或承载来源所提供 Git、SWH 或其他方案标识符的 versionFingerprint。两者可以共存；方案标识符不构成原始字节摘要断言。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "用于要求来源对象具有身份，同时保留提供该身份所依据的准则。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "避免根据 Git 或 SWH 对象标识符伪造原始字节摘要。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "在 versionFingerprint 上保留精确方案标识符，或在 contentDigest 上保留获准的类型化字节摘要；来源同时提供两者时均予保留。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Commit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a source identity: a scheme fingerprint or an algorithm-typed byte digest. Aligned to Software Heritage Revision and git commit objects by reference."
+msgstr "版本控制提交：按内容寻址的溯源事件，记录仓库历史的变更。它是五侧面模型的历史侧面，区别于项目、产品、代码库和仓库。它承载作者与提交者归属、时间戳、父子关系及来源身份：方案指纹或按算法类型化的字节摘要。通过引用对齐到 Software Heritage Revision 与 Git 提交对象。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required Commit source identity"
+msgstr "Commit 的必需来源身份"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Commit retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "Commit 至少保留一种来源身份：按算法类型化的原始字节 contentDigest，或承载来源所提供 Git、SWH 或其他方案标识符的 versionFingerprint。两者可以共存；方案标识符不构成原始字节摘要断言。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "用于要求来源对象具有身份，同时保留提供该身份所依据的准则。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "避免根据 Git 或 SWH 对象标识符伪造原始字节摘要。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "在 versionFingerprint 上保留精确方案标识符，或在 contentDigest 上保留获准的类型化字节摘要；来源同时提供两者时均予保留。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required AnnotatedTag source identity"
+msgstr "AnnotatedTag 的必需来源身份"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AnnotatedTag retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "AnnotatedTag 至少保留一种来源身份：按算法类型化的原始字节 contentDigest，或承载来源所提供 Git、SWH 或其他方案标识符的 versionFingerprint。两者可以共存；方案标识符不构成原始字节摘要断言。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "用于要求来源对象具有身份，同时保留提供该身份所依据的准则。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "避免根据 Git 或 SWH 对象标识符伪造原始字节摘要。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "在 versionFingerprint 上保留精确方案标识符，或在 contentDigest 上保留获准的类型化字节摘要；来源同时提供两者时均予保留。"

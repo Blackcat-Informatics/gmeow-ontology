@@ -157,13 +157,17 @@ fn canonical_turtle(bytes: &[u8], label: &str) -> Result<String, gmeow_errors::D
             message: format!("cannot freeze {label} graph for producer parity: {error}"),
         })
     })?;
-    let canonical = purrdf::try_canonicalize(&flat).map_err(|error| {
+    let canonical = purrdf::try_canonicalize(
+        &flat,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: "stage-math-producers".to_owned(),
             message: format!("cannot canonicalize {label} graph for producer parity: {error}"),
         })
     })?;
-    Ok(canonical.nquads)
+    Ok(canonical.nquads().to_owned())
 }
 
 /// Retain the graph already computed by a failing parity check, never a stage product.

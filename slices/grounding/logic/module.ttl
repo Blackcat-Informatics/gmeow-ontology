@@ -2239,10 +2239,10 @@ logic:actionResource
 logic:mcpToolName
     a logic:DatatypeProperty ;
     logic:domain logic:ActionSchema ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "MCP tool name"@x-gmeow-english ;
-    skos:definition "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string."@x-gmeow-english ;
+    skos:definition "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string or xsd:token."@x-gmeow-english ;
     skos:example "ex:persistConjecture a logic:McpActionSchema ; logic:mcpToolName \"store_conjecture\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: an identity STRING on the wire, carrying no semantics of its own — it says WHICH tool a schema governs and nothing about what that tool does, which is what the eight action-theory facets are for; it is not a ninth facet. It is not a label either: nothing may translate, prettify, or case-fold the value, because it is compared byte-for-byte against the name the server advertises, and a friendlier spelling silently empties the correspondence. And it is ASSERTED, never derived: a schema's local name is an ONTOLOGY name chosen for the action — ex:withdrawConjecture is the tool refute_conjecture — so no transformation of a local name substitutes for this fact, and any gate built on name mangling would either reject the honest pairs or accept anything."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on anything outside the declared logic:domain of logic:ActionSchema, and avoid the two shapes that break the bijection — a second wire name on one schema, or two schemas claiming one name — since either leaves the engine's gate ambiguous while still passing a naive set comparison. Never omit it on a schema in the hope that its local name can be mangled back into the wire name: that guess is exactly what this property replaces."@x-gmeow-english ;
@@ -3817,7 +3817,7 @@ logic:unsupportedConstruct
 logic:projectionLoss
     a logic:DatatypeProperty ;
     rdfs:domain [ a logic:Class ; logic:unionOf ( logic:CoherenceCertificate logic:CoherenceCheckAttestation ) ] ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "projection loss code"@x-gmeow-english ;
     skos:definition "Names a loss-ledger code carried on a logic:CoherenceCertificate / logic:CoherenceCheckAttestation payload — MULTI-valued. Distinct from logic:unsupportedConstruct (which names the undecided DL construct): logic:projectionLoss records the ledger code of a lossy projection (Principle 17) that co-held when the coherence artifact was issued."@x-gmeow-english .
@@ -4423,7 +4423,7 @@ logic:externalRelationInvocationStatus
 
 logic:externalRelationResponseHash
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "external relation response hash"@x-gmeow-english ;
     skos:definition "The canonical response digest of a complete validated provider batch, including descriptor identity, RDF 1.2 arguments, order keys, and algebra-canonical annotation elements. It is absent on non-complete attempts."@x-gmeow-english ;
@@ -4469,7 +4469,7 @@ logic:externalRelationReceiptCompleteness
 
 logic:externalRelationQueryContractHash
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "external relation query contract hash"@x-gmeow-english ;
     skos:definition "The content address of the profile, reasoning budget, annotation contract and algebra, and provider manifest governing a provider-aware query. It is distinct from the whole-engine descriptor hash."@x-gmeow-english ;
@@ -4477,7 +4477,7 @@ logic:externalRelationQueryContractHash
 
 logic:externalRelationProviderManifestHash
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "external relation provider manifest hash"@x-gmeow-english ;
     skos:definition "The content address of every immutable query-local provider descriptor, per-call limit, and operation-wide call/row budget. It excludes ambient process state because no global registry participates."@x-gmeow-english ;
@@ -4485,7 +4485,7 @@ logic:externalRelationProviderManifestHash
 
 logic:externalRelationReceiptHash
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "external relation receipt hash"@x-gmeow-english ;
     skos:definition "The canonical digest over an external relation query receipt, including source and engine identities, ordered invocation evidence, structural counters, contributors or terminal failure detail. Identical inputs and budgets produce the same value."@x-gmeow-english ;
@@ -6876,10 +6876,10 @@ logic:ProseFieldAvoidWhen
 logic:candidateSourceHash
     a logic:DatatypeProperty ;
     rdfs:domain logic:FormalizationCandidate ;
-    rdfs:range xsd:string ;
+    logic:range gmeow:sha256Digest ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "candidate source hash"@x-gmeow-english ;
-    skos:definition "The content hash of the source text a logic:FormalizationCandidate was extracted from: the anchor that ties the candidate back to the exact prose it formalizes and detects drift if that prose changes. Single-valued, xsd:string. Domain logic:FormalizationCandidate."@x-gmeow-english ;
+    skos:definition "The SHA-256 digest of the exact source a formalization candidate was extracted from, carried as gmeow:sha256Digest with 64 lowercase hexadecimal digits without a prefix. Prose harvests hash the raw prose lexical UTF-8 bytes without language tags, quotes or a trailing newline; conjecture-promotion candidates hash the alpha-normalized formula content_key UTF-8 bytes. Single-valued; the source binding identifies which preimage applies."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:candidateExtractionProvenance
@@ -7094,10 +7094,10 @@ logic:Conjecture
 logic:conjectureFormula
     a logic:DatatypeProperty ;
     rdfs:domain logic:Conjecture ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "conjecture formula"@x-gmeow-english ;
-    skos:definition "The canonical, alpha-normalized identity of the conjectured formula: the content_key string of the full first-order AST (the alpha-normalized content identity from the full-FOL formula AST), so two conjectures that name the same formula up to bound-variable renaming share one key and cannot be double-counted. Single-valued, xsd:string. Domain logic:Conjecture."@x-gmeow-english ;
+    skos:definition "The canonical, alpha-normalized identity of the conjectured formula: the content_key string of the full first-order AST (the alpha-normalized content identity from the full-FOL formula AST), so two conjectures that name the same formula up to bound-variable renaming share one key and cannot be double-counted. Single-valued, xsd:string or xsd:token. Domain logic:Conjecture."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox .
 
 logic:conjectureStandpoint
@@ -7199,21 +7199,21 @@ logic:ContradictionWitness
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:witnessIndividual
-    a logic:DatatypeProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:ContradictionWitness ;
-    rdfs:range xsd:string ;
+    logic:range logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "witness individual"@x-gmeow-english ;
-    skos:definition "The individual a logic:ContradictionWitness records as forced to OWL Nothing — the entity whose type became unsatisfiable under the conjectured formula, identifying exactly where the contradiction bit. Single-valued, xsd:string (the individual's IRI as a string). Domain logic:ContradictionWitness."@x-gmeow-english ;
+    skos:definition "The individual a logic:ContradictionWitness records as forced to OWL Nothing — the entity whose type became unsatisfiable under the conjectured formula, identifying exactly where the contradiction bit. Single-valued, the individual's IRI as an object. Domain logic:ContradictionWitness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:witnessWorld
-    a logic:DatatypeProperty ;
+    a logic:ObjectProperty ;
     rdfs:domain logic:ContradictionWitness ;
-    rdfs:range xsd:string ;
+    logic:range logic:Thing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "witness world"@x-gmeow-english ;
-    skos:definition "The world IRI the logic:ContradictionWitness was found in — the modal/context world within the conjecture's standpoint where the contradiction was realized, so the refutation stays world-scoped rather than asserted across all worlds. Single-valued, xsd:string (the world IRI as a string). Domain logic:ContradictionWitness."@x-gmeow-english ;
+    skos:definition "The world IRI the logic:ContradictionWitness was found in — the modal/context world within the conjecture's standpoint where the contradiction was realized, so the refutation stays world-scoped rather than asserted across all worlds. Single-valued, the world IRI as an object. Domain logic:ContradictionWitness."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
 logic:witnessPremise
@@ -7307,7 +7307,7 @@ logic:lossCode
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "loss code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The stable machine code of a logic:ProjectionLoss — reifier-layer-dropped, annotation-layer-dropped, or standpoint-scope-dropped — naming exactly which structure the projection shed. The codes are shared verbatim with the conversion loss ledger so in-band and contract-level loss declarations agree."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -17642,7 +17642,7 @@ logic:sourceAdmissionWorldKey
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:domain logic:SourceAdmissionObservation ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:label "source admission world key"@x-gmeow-english ;
     skos:definition "An exact execution-context key observed in the source admission inventory. The complete terminal evidence retains the original default, named or scoped blank graph identity behind that key."@x-gmeow-english ;
     gmeow:useWhen "Use when publishing an authenticated observation of the selected source admission operation."@x-gmeow-english ;
@@ -17670,7 +17670,7 @@ logic:sourceAdmissionPublishedToken
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     logic:domain logic:SourceAdmissionObservation ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:label "source admission published token"@x-gmeow-english ;
     skos:definition "The external source’s published status retained verbatim as attribution beside an admission observation. It is not a native consistency verdict."@x-gmeow-english ;
     gmeow:useWhen "Use when publishing an authenticated observation of the selected source admission operation."@x-gmeow-english ;
@@ -19501,7 +19501,7 @@ logic:candidateNoOverTyping
 [ a logic:ClosureEntry ; logic:onClass logic:ChaseAcceptanceWitness ; logic:closureKey "https://blackcatinformatics.ca/logic/carriesTerminationCertificate" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:FormalizationCandidate logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:candidateSourceHash ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:candidateSourceHash ; logic:allValuesFrom gmeow:sha256Digest ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateExtractionProvenance ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateScope ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] ,
     [ a logic:Restriction ; logic:onProperty logic:candidateContract ; logic:allValuesFrom logic:ReasoningContract ] ,
@@ -19562,14 +19562,14 @@ logic:NonEntailmentObligation logic:subClassOf
     [ a logic:Restriction ; logic:onProperty logic:obligationDischargeCondition ; logic:allValuesFrom logic:DischargeCondition ] .
 
 logic:Conjecture logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:conjectureFormula ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:conjectureFormula ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty logic:conjectureStandpoint ; logic:allValuesFrom logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty logic:conjectureLifecycleState ; logic:allValuesFrom logic:ConjectureLifecycleState ] ,
     [ a logic:Restriction ; logic:onProperty logic:verdictProvenance ; logic:allValuesFrom logic:VerdictProvenanceKind ] .
 
 logic:ContradictionWitness logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty logic:witnessIndividual ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty logic:witnessWorld ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty logic:witnessIndividual ; logic:allValuesFrom logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty logic:witnessWorld ; logic:allValuesFrom logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty logic:witnessPremise ; logic:allValuesFrom xsd:string ] .
 
 logic:RecoveryCase logic:subClassOf
@@ -20105,9 +20105,9 @@ gmeow:FlagshipScenario a logic:Kind , logic:Class ;
 # functional property (the four scenario-only predicates). The shared
 # enforcesFailureClass annotation uses scoped integrity constraints below.
 gmeow:FlagshipScenario logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByExample ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByProducer ; logic:allValuesFrom xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:guardedByCounterExample ; logic:allValuesFrom xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByExample ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByProducer ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:guardedByCounterExample ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:demonstratedByCompetency ; logic:allValuesFrom logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByExample" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:FlagshipScenario ; logic:closureKey "https://blackcatinformatics.ca/gmeow/demonstratedByProducer" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -20126,7 +20126,7 @@ gmeow:UnwiredFlagshipScenario a logic:Category , logic:Class ;
 
 gmeow:demonstratedByExample a logic:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:label "demonstrated by example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -20147,7 +20147,7 @@ gmeow:demonstratedByCompetency a logic:ObjectProperty ;
 
 gmeow:demonstratedByProducer a logic:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:label "demonstrated by producer"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -20158,7 +20158,7 @@ gmeow:demonstratedByProducer a logic:DatatypeProperty ;
 
 gmeow:guardedByCounterExample a logic:DatatypeProperty ;
     logic:domain gmeow:FlagshipScenario ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:label "guarded by counter-example"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -23264,9 +23264,9 @@ logic:judgmentFormulaKey
     skos:scopeNote "This property supplies the judgment formula key coordinate; other coordinates retain their own identities."@x-gmeow-english ;
     skos:example "ex:record logic:judgmentFormulaKey \"content-key\" ."@x-gmeow-english ;
     logic:domain logic:ContextualJudgment ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
-logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentFormulaKey ; logic:allValuesFrom xsd:string ] .
+logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentFormulaKey ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContextualJudgment ; logic:closureKey "https://blackcatinformatics.ca/logic/judgmentFormulaKey" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:judgmentInstruction
@@ -23298,9 +23298,9 @@ logic:judgmentContextHash
     skos:scopeNote "This property supplies the judgment context hash coordinate; other coordinates retain their own identities."@x-gmeow-english ;
     skos:example "ex:record logic:judgmentContextHash \"digest\" ."@x-gmeow-english ;
     logic:domain logic:ContextualJudgment ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
-logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentContextHash ; logic:allValuesFrom xsd:string ] .
+logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentContextHash ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ContextualJudgment ; logic:closureKey "https://blackcatinformatics.ca/logic/judgmentContextHash" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:inferenceContext
@@ -23342,9 +23342,9 @@ logic:ContextualEvaluationRequest logic:subClassOf [ a logic:Restriction ; logic
 logic:Formula logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:inContext ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:AttributedContext ] .
 logic:ReasoningResult logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:resultAttributedContext ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:AttributedContext ] .
 logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentContext ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:AttributedContext ] .
-logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentFormulaKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentFormulaKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentInstruction ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] .
-logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentContextHash ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+logic:ContextualJudgment logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:judgmentContextHash ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 logic:ModalInference logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:inferenceContext ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:AttributedContext ] .
 
 logic:ContextJournalPositionConstraint
@@ -23671,7 +23671,7 @@ logic:journalInitialHead
     skos:scopeNote "Observation identity, attributed evidence, temporal truth, and permission to execute remain separate. This record does not itself create a state or commit an operation."@x-gmeow-english ;
     skos:example "Example: ex:record logic:journalInitialHead \"blake3:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
     logic:domain logic:TransitionJournal ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 logic:journalEntry
     a logic:ObjectProperty ;
@@ -23778,9 +23778,9 @@ logic:prefixInitialHead
     skos:scopeNote "Observation identity, attributed evidence, temporal truth, and permission to execute remain separate. This record does not itself create a state or commit an operation."@x-gmeow-english ;
     skos:example "Example: ex:record logic:prefixInitialHead \"blake3:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
     logic:domain logic:ObservedTemporalPrefix ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
-logic:ObservedTemporalPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:prefixInitialHead ; logic:allValuesFrom xsd:string ], [ a logic:Restriction ; logic:onProperty logic:prefixInitialHead ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+logic:ObservedTemporalPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:prefixInitialHead ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ], [ a logic:Restriction ; logic:onProperty logic:prefixInitialHead ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ObservedTemporalPrefix ; logic:closureKey "https://blackcatinformatics.ca/logic/prefixInitialHead" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:prefixHeadHash
@@ -23795,9 +23795,9 @@ logic:prefixHeadHash
     skos:scopeNote "Observation identity, attributed evidence, temporal truth, and permission to execute remain separate. This record does not itself create a state or commit an operation."@x-gmeow-english ;
     skos:example "Example: ex:record logic:prefixHeadHash \"blake3:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
     logic:domain logic:ObservedTemporalPrefix ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
-logic:ObservedTemporalPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:prefixHeadHash ; logic:allValuesFrom xsd:string ], [ a logic:Restriction ; logic:onProperty logic:prefixHeadHash ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+logic:ObservedTemporalPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:prefixHeadHash ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ], [ a logic:Restriction ; logic:onProperty logic:prefixHeadHash ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ObservedTemporalPrefix ; logic:closureKey "https://blackcatinformatics.ca/logic/prefixHeadHash" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:observedPath
@@ -23863,9 +23863,9 @@ logic:pathObservationDigest
     skos:scopeNote "Observation identity, attributed evidence, temporal truth, and permission to execute remain separate. This record does not itself create a state or commit an operation."@x-gmeow-english ;
     skos:example "Example: ex:record logic:pathObservationDigest \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
     logic:domain logic:ObservedPathPrefix ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
-logic:ObservedPathPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:pathObservationDigest ; logic:allValuesFrom xsd:string ], [ a logic:Restriction ; logic:onProperty logic:pathObservationDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+logic:ObservedPathPrefix logic:subClassOf [ a logic:Restriction ; logic:onProperty logic:pathObservationDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ], [ a logic:Restriction ; logic:onProperty logic:pathObservationDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass logic:ObservedPathPrefix ; logic:closureKey "https://blackcatinformatics.ca/logic/pathObservationDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 logic:pathBoundary
@@ -24291,18 +24291,18 @@ logic:groundingSourcePath a logic:DatatypeProperty ;
     gmeow:avoidWhen "Avoid absolute paths, parent traversal or selecting a duplicate archive member."@x-gmeow-english ;
     gmeow:howToUse "Resolve the exact named member with the shared strict archive reader and verify its owner and digest."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 logic:groundingSourceDigest a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "grounding source digest"@x-gmeow-english ;
-    skos:definition "The SHA-256 content identity of the complete original owned mapping artifact bytes, including the exact source alignment envelope."@x-gmeow-english ;
+    skos:definition "The SHA-256 digest of the complete original owned mapping artifact bytes, including the exact source alignment envelope. Its gmeow:sha256Digest literal contains 64 lowercase hexadecimal digits without a prefix; admission requires equality with the original artifact's recomputed digest."@x-gmeow-english ;
     skos:example "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"@x-gmeow-english ;
     gmeow:useWhen "Use to bind a retained named source to its original authenticated artifact bytes."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid hashing only an alias, a selected field or a reconstructed serialization."@x-gmeow-english ;
     gmeow:howToUse "Hash the required original archive member and require equality before admitting its correspondence source record."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    logic:range xsd:string .
+    logic:range gmeow:sha256Digest .
 
 logic:projectionProgramContent a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -24674,3 +24674,37 @@ logic:componentTripleObject
     gmeow:howToUse "Place componentTripleObject after the original quoted edge and componentWhole after its expected object, already bound through a positive stored relation. The comparison creates no output binding."@x-gmeow-english ;
     skos:scopeNote "The original object is compared as a native RDF term, including blank-node scope. An unavailable object component makes the predicate false before negation; an unbound operand refuses the program."@x-gmeow-english ;
     skos:example "An object selector on a quoted supersession edge paired with a whole selector on its positively bound predecessor checks that the edge names that exact predecessor."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/logic/candidateSourceHash" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/logic/groundingSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+logic:SourceHashValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes logic:candidateSourceHash ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation logic:candidateSourceHash ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .
+
+logic:GroundingSourceDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes logic:groundingSourceDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation logic:groundingSourceDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .

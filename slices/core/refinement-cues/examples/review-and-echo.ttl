@@ -19,11 +19,11 @@ ex:reviewSignoff a gmeow:Activity ;
     rdfs:label "Sign-off of the exact second cue payload"@en .
 # The earlier artifact is retained by identity and digest, not re-expanded as a new empty inventory.
 ex:cuesV1 a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:b208a8ad0cde5c0c5e472f14f450f01ffae60e95ae1ae093bf5b3b82e9eb51c6" .
+    gmeow:contentDigest "b208a8ad0cde5c0c5e472f14f450f01ffae60e95ae1ae093bf5b3b82e9eb51c6"^^gmeow:sha256Digest .
 ex:cuesV2 a gmeow:CueLexicon ;
     gmeow:supersedes ex:cuesV1 ;
     gmeow:versionOf ex:cueLineage ; gmeow:versionLabel "2" ;
-    gmeow:contentDigest "sha256:5d9994e2fb8f79af3dfb6a0518a97744cebb2f4c6921ee6cc3a54b6879127391" ;
+    gmeow:contentDigest "5d9994e2fb8f79af3dfb6a0518a97744cebb2f4c6921ee6cc3a54b6879127391"^^gmeow:sha256Digest ;
     gmeow:wasDerivedFrom ex:sourceNotes ; gmeow:wasAttributedTo ex:editor ;
     gmeow:cueReview ex:reviewSignoff ;
     rdfs:comment "The digest identifies the exact UTF-8 bytes of adjacent cues-v2.ttl, including its final newline. The release is immutable."@en .

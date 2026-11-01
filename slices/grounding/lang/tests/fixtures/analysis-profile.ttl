@@ -26,13 +26,13 @@ ex:profileNfcEn a lang:AnalyzerProfile ;
     lang:hasStage ex:stageSeg , ex:stageNorm , ex:stageStem , ex:stagePhon .
 
 ex:stageSeg a lang:ProfileStage ; lang:stageKind lang:stageKindSegmentation ; lang:stageOrder 0 ;
-    lang:stageImplementation ex:icuSeg ; lang:stageVersion "74.2" ; lang:stageDigest "blake3:aa00" .
+    lang:stageImplementation ex:icuSeg ; lang:stageVersion "74.2" ; lang:stageDigest "example-stage:aa00" .
 ex:stageNorm a lang:ProfileStage ; lang:stageKind lang:stageKindNormalization ; lang:stageOrder 1 ;
-    lang:stageImplementation ex:icuNorm ; lang:stageVersion "74.2" ; lang:stageDigest "blake3:bb11" .
+    lang:stageImplementation ex:icuNorm ; lang:stageVersion "74.2" ; lang:stageDigest "example-stage:bb11" .
 ex:stageStem a lang:ProfileStage ; lang:stageKind lang:stageKindStemming ; lang:stageOrder 2 ;
-    lang:stageImplementation ex:snowball ; lang:stageVersion "2.2.0" ; lang:stageDigest "blake3:cc22" .
+    lang:stageImplementation ex:snowball ; lang:stageVersion "2.2.0" ; lang:stageDigest "example-stage:cc22" .
 ex:stagePhon a lang:ProfileStage ; lang:stageKind lang:stageKindPhonetic ; lang:stageOrder 3 ;
-    lang:stageImplementation ex:metaphone ; lang:stageVersion "3.0" ; lang:stageDigest "blake3:dd33" .
+    lang:stageImplementation ex:metaphone ; lang:stageVersion "3.0" ; lang:stageDigest "example-stage:dd33" .
 
 # The attributed analysis output: cites the profile it was produced under. It answers.
 ex:outputAttributed a lang:AnalysisOutput ; lang:analyzedUnderProfile ex:profileNfcEn .

@@ -294,8 +294,12 @@ fn paired_closure(
     );
     let wire = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
     assert!(
-        purrdf::datasets_isomorphic(&dataset, &wire)
-            .expect("isomorphism is decided by canonical bytes"),
+        purrdf::datasets_isomorphic(
+            &dataset,
+            &wire,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        )
+        .expect("isomorphism is decided by canonical bytes"),
         "native closure must preserve the entire GMEOW artifact, including proof reifiers"
     );
     (text, dataset)

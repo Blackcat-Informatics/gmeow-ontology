@@ -23,8 +23,11 @@ pub(crate) fn record(
         .map_err(|error| fail(format!("read {SOURCE}: {error}")))?;
     let nquads = super::yaml_ld_star_to_gmeow_statement_metadata_nquads(&bytes)?;
     let native = super::dataset_from_nquads(nquads.as_bytes())?;
-    let pack =
-        purrdf::PackBuilder::build_bytes(&native).map_err(|error| fail(error.to_string()))?;
+    let pack = purrdf::PackBuilder::build_bytes(
+        &native,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| fail(error.to_string()))?;
     artifacts.insert(CHANNEL.to_owned(), pack);
     Ok(())
 }

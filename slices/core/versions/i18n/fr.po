@@ -84,3 +84,8 @@ msgstr "Un littéral simple sur toute gmeow:Entity : une version logicielle, une
 msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
 msgstr "Exemple : gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionFingerprint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A content fingerprint of the versioned entity — a hash, SWHID, content digest, or semantic identifier. Broader than gmeow:contentDigest (which identifies an exact byte preimage and is domain-free): versionFingerprint covers semantic fingerprints where exact bytes are not the identity criterion (e.g. a normalized form, a canonicalized serialization). Non-functional: a single entity may carry several fingerprints under different algorithms or schemes."
+msgstr "Empreinte de contenu d’une entité versionnée : hachage, SWHID, condensat de contenu ou identifiant sémantique. Plus large que gmeow:contentDigest, qui identifie une préimage exacte en octets sans domaine imposé, versionFingerprint couvre les empreintes sémantiques pour lesquelles les octets exacts ne sont pas le critère d’identité, comme une forme normalisée ou une sérialisation canonique. Non fonctionnelle : plusieurs empreintes d’algorithmes ou de schémas différents peuvent coexister sur une entité."

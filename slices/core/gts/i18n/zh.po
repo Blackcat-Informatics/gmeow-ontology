@@ -594,3 +594,43 @@ msgstr "词法值以 blake3: 开头的字典摘要字面量无法通过此检查
 msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
 msgstr "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 digest of the whole resolved dictionary corpus, including held-out members: sort and deduplicate the sample internal digest strings, join them with a newline, then hash those exact UTF-8 bytes. The RDF value uses gmeow:blake3_256Digest with 64 lowercase hexadecimal digits without a prefix. Exactly one per realization; it pins the committed sweep evidence to the selected corpus rather than only its training members."
+msgstr "完整解析的字典语料的 BLAKE3-256 摘要，包括留出成员：对样本内部摘要字符串排序并去重，以换行连接，再对这些精确 UTF-8 字节求哈希。RDF 值采用 gmeow:blake3_256Digest，包含 64 位不带前缀的小写十六进制。每个实现恰有一个；它将已记录的扫描证据固定到所选完整语料，而非仅固定到训练成员。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:measuredCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:measuredCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting a measured corpus digest on its authored selector, changing the recorded digest to bless stale evidence, or omitting held-out members from its exact preimage. Keep internal blake3: addresses distinct from the typed RDF literal."
+msgstr "避免在所编写的选择器上断言测得的语料摘要、修改记录摘要以认可过期证据，或从精确原像中省略留出成员。应区分内部 blake3: 地址与类型化 RDF 字面量。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/strataDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 digest of the exact sub-payload bytes named by envelopeDigestStratum, carried as a gmeow:blake3_256Digest literal with bare lowercase hexadecimal digits. Exactly one per envelope. It remains distinct from contentDigest: on the self-referential snapshot envelope that property retains the builder's snapshot_content_id preimage, not a hash of the final distributed file."
+msgstr "由 envelopeDigestStratum 指定的子载荷精确字节的 BLAKE3-256 摘要，以 gmeow:blake3_256Digest 字面量承载，词法形式为不带前缀的小写十六进制。每个封套恰有一个。它与 contentDigest 保持区分：在自引用快照封套上，后者保留构建器的 snapshot_content_id 原像，而非最终分发文件的哈希。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/strataDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:strataDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:strataDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumStrataDigestFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lexical check for a supplied strataDigest: exactly 64 lowercase hexadecimal digits without a prefix. The property range separately requires the BLAKE3-256 digest datatype; this check does not recompute the selected stratum bytes."
+msgstr "对所提供 strataDigest 的词法检查：恰为 64 位不带前缀的小写十六进制。属性值域另行要求 BLAKE3-256 摘要数据类型；此检查不重新计算所选分层字节的摘要。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasuredCorpusDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasuredCorpusDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"

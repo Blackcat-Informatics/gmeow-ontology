@@ -169,19 +169,19 @@ ex:cqDeterministicDigestShape a logic:ResultShape ;
     logic:shapeCardinality logic:RowsExact .
 ex:cqDeterministicDigestRow1 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:recDag ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "blake3:c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2"^^gmeow:blake3_256Digest ] .
 ex:cqDeterministicDigestRow2 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:recListwise ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "blake3:b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1"^^gmeow:blake3_256Digest ] .
 ex:cqDeterministicDigestRow3 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:recPairwise ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "blake3:a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90"^^gmeow:blake3_256Digest ] .
 ex:cqDeterministicDigestRow4 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:recPareto ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "blake3:d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3"^^gmeow:blake3_256Digest ] .
 ex:cqDeterministicDigestRow5 a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "receipt" ; gmeow:cellValueIri exd:recScalar ] ;
-    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "blake3:e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4" ] .
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "digest" ; gmeow:cellValueLiteral "e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4"^^gmeow:blake3_256Digest ] .
 
 # --- CQ / cq-hard-soft-orthogonal (AC3) ------------------------------------- #
 ex:cqHardSoftOrthogonal a gmeow:CompetencyQuestion ;

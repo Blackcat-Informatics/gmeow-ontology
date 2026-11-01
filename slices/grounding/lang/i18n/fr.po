@@ -562,8 +562,8 @@ msgid "glossary language"
 msgstr "langue de glossaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|skos:definition"
-msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."
-msgstr "L'étiquette de langue cible BCP-47 dans laquelle un gmeow:Glossary effectue son rendu (p. ex. \"fr\", \"zh\"). Fonctionnel : un glossaire correspond à une seule langue. Domaine gmeow:Glossary, portée xsd:string."
+msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string or xsd:token."
+msgstr "L'étiquette de langue cible BCP-47 dans laquelle un gmeow:Glossary effectue son rendu (p. ex. \"fr\", \"zh\"). Fonctionnel : un glossaire correspond à une seule langue. Domaine gmeow:Glossary, portée xsd:string ou xsd:token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|rdfs:label"
 msgid "glossary entry"
@@ -586,8 +586,8 @@ msgid "glossary predicate"
 msgstr "prédicat de glossaire"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|skos:definition"
-msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."
-msgstr "Le prédicat d'annotation dont une entrée de glossaire rend le littéral (p. ex. \"rdfs:label\", \"skos:definition\"), sous forme de CURIE. Fonctionnel : un prédicat par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string."
+msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string or xsd:token."
+msgstr "Le prédicat d'annotation dont une entrée de glossaire rend le littéral (p. ex. \"rdfs:label\", \"skos:definition\"), sous forme de CURIE. Fonctionnel : un prédicat par entrée. Domaine gmeow:GlossaryEntry, portée xsd:string ou xsd:token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|rdfs:label"
 msgid "glossary source"
@@ -2541,3 +2541,25 @@ msgstr "Chaque recherche individuelle respecte la borne Rust O(m*n), linéaire e
 msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#example"
 msgid "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."
 msgstr "\"(?i)cannot +continue\"^^gmeow:linearRegex déclare un motif ; il ne rapporte aucune recherche exécutée."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string or xsd:token. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."
+msgstr "La chaîne d’alias compacte qu’une entrée de dictionnaire crée pour son terme — le jeton qu’un écrivain GMN-1 conforme émet à la place de l’IRI complet. Fonctionnelle : exactement un alias par entrée. Domaine gmeow:GmnDictionaryEntry, portée xsd:string ou xsd:token. Injective dans un dictionnaire : deux entrées d’un même gmeow:GmnDictionary ne partagent jamais un alias pour deux termes différents (lang:GmnDictionaryAliasInjectivityShape)."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRewriteFromGlyph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."
+msgstr "La graphie du glyphe de l’opérateur dans la version majeure source qu’une réécriture de migration restitue — le jeton que l’exécuteur trouve dans le document GMN conservé à la version source. Fonctionnelle : exactement un glyphe source par réécriture. Domaine gmeow:GmnMigrationRewrite, portée xsd:string ou xsd:token. Une réécriture est un RENOMMAGE de glyphe exactement lorsque cette valeur diffère de gmeow:gmnRewriteToGlyph."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRewriteToGlyph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."
+msgstr "La graphie du glyphe de l’opérateur dans la version majeure cible qu’une réécriture de migration restitue — le jeton que l’exécuteur écrit à la place de gmeow:gmnRewriteFromGlyph lorsqu’il réémet le document dans la version cible. Fonctionnelle : exactement un glyphe cible par réécriture. Domaine gmeow:GmnMigrationRewrite, portée xsd:string ou xsd:token. Une réécriture est un RENOMMAGE de glyphe exactement lorsque cette valeur diffère de gmeow:gmnRewriteFromGlyph."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnViewSurface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable surface name a gmeow:GmnNotationView projects into — the machine key that binds the ontology view to its crate-side realization (\"codec\", \"ebnf\", \"abnf\", \"gbnf\", \"lark\", \"verbalizer\", \"token-metric\"). Domain gmeow:GmnNotationView, range xsd:string or xsd:token. Functional: one surface per view. The executable coherence gate iterates exactly these surface names, so a view named here without a landed surface is a declared-but-unpopulated leg, never a silent gap."
+msgstr "Le nom de surface stable vers lequel une gmeow:GmnNotationView se projette — la clé machine qui lie la vue ontologique à sa réalisation dans le crate (« codec », « ebnf », « abnf », « gbnf », « lark », « verbalizer », « token-metric »). Domaine gmeow:GmnNotationView, portée xsd:string ou xsd:token. Fonctionnelle : une surface par vue. Le contrôle de cohérence exécutable parcourt exactement ces noms de surface ; une vue nommée ici sans surface livrée est donc une branche déclarée mais non peuplée, jamais une lacune silencieuse."
+
+
+
+msgctxt "https://blackcatinformatics.ca/lang/stageDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied scheme identifier pinning a profile stage's declared implementation and data. Retain its complete xsd:string or xsd:token literal and spelling. The source declares no byte-preimage encoding or digest algorithm, so this identifier alone neither proves identical artifact bytes nor verifies reproducible output."
+msgstr "Identifiant de schéma fourni qui fixe l’implémentation et les données déclarées d’une étape de profil. Conserver son littéral xsd:string ou xsd:token complet et sa graphie. La source ne déclare ni encodage de préimage en octets ni algorithme de condensat ; cet identifiant seul ne prouve donc ni l’identité des octets d’artefact ni la reproductibilité du résultat."

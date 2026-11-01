@@ -463,7 +463,7 @@ gmeow:ChatMessagePart logic:subClassOf
     logic:closureKey "https://blackcatinformatics.ca/gmeow/entryOrdinal" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:UnreadableChatPart logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:UnreadableChatPart ;
@@ -473,7 +473,7 @@ gmeow:UnreadableChatPart logic:subClassOf
     logic:closureKey "https://blackcatinformatics.ca/gmeow/chatPartReader" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:DisagreeingChatText logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:chatPartReader ; logic:allValuesFrom gmeow:Agent ],
     [ a logic:Restriction ; logic:onProperty gmeow:disagreesWithPart ; logic:allValuesFrom gmeow:ChatMessagePart ] .
 

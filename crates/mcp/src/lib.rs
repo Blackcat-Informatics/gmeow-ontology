@@ -281,7 +281,7 @@ pub const REASONING_SEGMENT: &str = "reasoning";
 ///
 /// A tier of its own because it is bounded by the host's ADDRESS SPACE rather than by any
 /// budget the caller sets. Folding the governed bundle takes ~3.2 GiB and chasing it needs
-/// some 5.4 GiB beyond that — measured, not estimated — against wasm32's hard 4 GiB ceiling,
+/// some 5.4 GiB beyond that — measured, not estimated — against `wasm32`'s hard 4 GiB ceiling,
 /// and a supplied graph does not help because it is chased in UNION with the bundle. So a
 /// 32-bit host cannot finish these calls for ANY input, and saying so through the deferral
 /// signal is the difference between a tier a caller routes around and a trap they can only
@@ -575,7 +575,7 @@ fn segment_not_loaded(tool: &'static str, segment: &'static str) -> gmeow_errors
 
 // The internal→BCP-47 display-language map is carried on the lang: carrier
 // varieties: each lang:LanguageVariety bears its internal tag through
-// lang:carrierTag and its generated (folded) external tag through gmeow:bcp47Tag.
+// lang:carrierTag and its generated (folded) external tag through `gmeow:bcp47Tag`.
 const LANGUAGE_CLASS: &str = "https://blackcatinformatics.ca/lang/LanguageVariety";
 const LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/lang/carrierTag";
 const BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
@@ -8232,14 +8232,14 @@ impl ConjectureSegments {
 
 #[cfg(feature = "reasoning")]
 impl purrdf::gts::reader::StreamingSink for ConjectureSegments {
-    fn term(&mut self, segment_index: u64, term_id: usize, term: &GtsTerm) {
+    fn term(&mut self, segment_index: u64, term_id: usize, term: Arc<GtsTerm>) {
         let Some(rows) = self.seg(segment_index) else {
             return;
         };
         if term_id >= rows.terms.len() {
             rows.terms.resize(term_id + 1, None);
         }
-        rows.terms[term_id] = Some(term.clone());
+        rows.terms[term_id] = Some(term.as_ref().clone());
     }
 
     fn quad(&mut self, segment_index: u64, quad: purrdf::gts::model::Quad) {

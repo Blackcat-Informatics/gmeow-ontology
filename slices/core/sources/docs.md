@@ -30,12 +30,14 @@ census taker wrote it down.
 
 ### gmeow:contentDigest
 
-A content hash of an object's bytes — `"blake3:…"`, `"sha256:…"`, `"git:…"` — the
-*reliable* identity: two objects with the same bytes are the same object, regardless of
-path, name, or mtime. Deliberately domain-free: creative works, source files, commits,
-and distributions are all content-addressable (Principle 4: one identity mechanism, not
-one per artifact kind). Not functional — an object may carry digests under several
-algorithms, and they coexist.
+A supplied digest identifies an artifact's exact stated byte preimage. Algorithm identity
+rides in `gmeow:blake3_256Digest`, `gmeow:sha256Digest` or `gmeow:md5Digest`; the literal
+contains bare lowercase hexadecimal digits, with 64 digits for BLAKE3-256 and SHA-256
+and 32 for MD5. Compare complete RDF terms, preserving the datatype as well as spelling.
+The property is domain-free and non-functional, so several algorithm digests can coexist.
+A typed claim does not prove that bytes were read or verified. Git, SWH, history and
+canonical-model identifiers retain their own schemes on `versionFingerprint` or a
+more specific identity property.
 
 ### gmeow:sourceModifiedAt
 

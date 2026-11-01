@@ -86,7 +86,7 @@ ex:pipeline-run a gmeow:BuildActivity ;
 
 ex:lillith-crate a gmeow:Distribution ;
     rdfs:label "lillith.crate.zip"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66" ;
+    gmeow:contentDigest "8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66"^^gmeow:blake3_256Digest ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     skos:definition "The published Lillith benchmark distribution archive (lillith.crate.zip), the Workflow Run Crate's build output."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .

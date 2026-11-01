@@ -114,10 +114,13 @@ pub(super) fn record(
         .dataset;
     let context_source_digest = catalog.document_digest(MATH)?.to_owned();
     let reasoning_context = expression_reasoning_context(math)?;
-    let reasoning_projection_digest =
-        purrdf::try_flat_digest_view(reasoning_context.as_ref(), CanonHash::Sha256)
-            .map_err(fail)?
-            .to_hex();
+    let reasoning_projection_digest = purrdf::try_flat_digest_view(
+        reasoning_context.as_ref(),
+        CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(fail)?
+    .to_hex();
     let store = ActionStore::open(
         ActionStore::default_root(root),
         STORE_FORMAT_VERSION,

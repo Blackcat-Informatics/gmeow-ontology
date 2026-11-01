@@ -46,7 +46,7 @@
 //! ## Blob self-description (F4)
 //!
 //! The packed `docs-book` / `docs-print` blobs are self-described by a
-//! `gmeow:contentDigest "blake3:<hex>"` on a stable blob-descriptor IRI, so the graph
+//! `gmeow:contentDigest "<hex>"^^gmeow:blake3_256Digest` on a stable blob-descriptor IRI, so the graph
 //! records the byte identity of the docs artifacts it grounds.
 //!
 //! Every identity is content-addressed and the N-Triples are sorted + deduped, so the
@@ -204,20 +204,23 @@ fn rendering_kind(fmt: DocFormat) -> &'static str {
 /// they are packed into the `docs-print` tar) — it grounds the shipped bundle's
 /// `application/pdf` attestation so a consumer can verify the PDF's byte identity
 /// straight from the committed `gmeow.gts`, not only from the GPG-gated release fold.
+///
+/// # Errors
+/// Returns an error if a supplied internal blob address is not a complete BLAKE3 digest.
 pub fn build_docs_format_corpus(
     book_digest: &str,
     print_digest: &str,
     print_pdf_digest: &str,
-) -> DocsFormatCorpus {
-    let ntriples = emit_ntriples(book_digest, print_digest, print_pdf_digest);
+) -> Result<DocsFormatCorpus, gmeow_errors::Diag> {
+    let ntriples = emit_ntriples(book_digest, print_digest, print_pdf_digest)?;
     let mut loss = LossLedger::new();
     let mut ledger: Vec<ProjectionResult> = Vec::new();
     fold_docs_format_loss(&mut ledger, &mut loss);
-    DocsFormatCorpus {
+    Ok(DocsFormatCorpus {
         ntriples,
         ledger,
         loss,
-    }
+    })
 }
 
 /// Fold the per-format capability drops into the projection loss ledger. Blob-free
@@ -262,7 +265,11 @@ pub fn fold_docs_format_loss(ledger: &mut Vec<ProjectionResult>, loss: &mut Loss
 }
 
 /// Emit the sorted, deduped, byte-stable N-Triples for the whole grounding graph.
-fn emit_ntriples(book_digest: &str, print_digest: &str, print_pdf_digest: &str) -> Vec<u8> {
+fn emit_ntriples(
+    book_digest: &str,
+    print_digest: &str,
+    print_pdf_digest: &str,
+) -> Result<Vec<u8>, gmeow_errors::Diag> {
     let mut lines: Vec<String> = Vec::new();
 
     // ── the composition-DAG nodes ──
@@ -426,7 +433,7 @@ fn emit_ntriples(book_digest: &str, print_digest: &str, print_pdf_digest: &str) 
             RDF_TYPE,
             &iri(GMEOW_NS, "AttestationArtifact"),
         ));
-        lines.push(triple_lit(&blob, &iri(GMEOW_NS, "contentDigest"), digest));
+        lines.push(triple_digest(&blob, digest)?);
         lines.push(triple_lit(
             &blob,
             &iri(GMEOW_NS, "artifactMediaType"),
@@ -443,11 +450,7 @@ fn emit_ntriples(book_digest: &str, print_digest: &str, print_pdf_digest: &str) 
         RDF_TYPE,
         &iri(GMEOW_NS, "AttestationArtifact"),
     ));
-    lines.push(triple_lit(
-        &pdf_blob,
-        &iri(GMEOW_NS, "contentDigest"),
-        print_pdf_digest,
-    ));
+    lines.push(triple_digest(&pdf_blob, print_pdf_digest)?);
     lines.push(triple_lit(
         &pdf_blob,
         &iri(GMEOW_NS, "artifactMediaType"),
@@ -458,7 +461,7 @@ fn emit_ntriples(book_digest: &str, print_digest: &str, print_pdf_digest: &str) 
     lines.dedup();
     let mut out = lines.join("\n");
     out.push('\n');
-    out.into_bytes()
+    Ok(out.into_bytes())
 }
 
 // ── content-addressed identity helpers ─────────────────────────────────────────────
@@ -550,3 +553,13 @@ fn nt_literal(value: &str) -> String {
 #[path = "docs_format_rendering.tests.rs"]
 #[cfg(test)]
 mod tests;
+
+fn triple_digest(subject: &str, address: &str) -> Result<String, gmeow_errors::Diag> {
+    let literal = crate::projections::blake3_blob_literal(address)?;
+    Ok(triple_typed(
+        subject,
+        &iri(GMEOW_NS, "contentDigest"),
+        &literal.lexical_form,
+        literal.datatype_iri(),
+    ))
+}

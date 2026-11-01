@@ -39,7 +39,7 @@ ce:omitNorm a gmeow:NormalizationKind ;
 # projection's, so the C3 monotonicity guard is not tripped.
 ce:omitPack a gmeow:InformationObject ;
     rdfs:label "source pack (DON'T scene)"@en ;
-    gmeow:contentDigest  "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:contentDigest  "32c0000011112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest ;
     gmeow:hasSensitivity ce:omitSensitivity .
 
 # A COMPLETE generation contract — its irreducible model artifact and digest identity.
@@ -48,7 +48,7 @@ ce:omitModel a gmeow:SoftwareAgent ;
 
 ce:omitFamily a gmeow:EmbeddingFamily ;
     gmeow:embeddingModel ce:omitModel ;
-    gmeow:contentDigest  "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
 
 # A COMPLETE effective space — all four comparability-core axes plus digest identity.
 ce:omitVsc a gmeow:VectorSpaceContract ;
@@ -57,14 +57,14 @@ ce:omitVsc a gmeow:VectorSpaceContract ;
     gmeow:distanceMetric      ce:omitMetric ;
     gmeow:normalizationKind   ce:omitNorm ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
-    gmeow:contentDigest       "blake3:vsc000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:vsc000011112222333344445555666677778888999900001111222233334444" .
 
 # A COMPLETE, source-consistent projection: its recorded source digest equals the pack's
 # content digest (C1 passes), and its sensitivity equals the source's (C3 guard idle).
 ce:omitProj a gmeow:EmbeddingProjection ;
     gmeow:hasVectorSpaceContract ce:omitVsc ;
     gmeow:projectionSource       ce:omitPack ;
-    gmeow:projectionSourceDigest "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:projectionSourceDigest "32c0000011112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest ;
     gmeow:hasSensitivity         ce:omitSensitivity ;
     gmeow:reproducibilityLevel   gmeow:regenerableOnly .
 
@@ -72,7 +72,7 @@ ce:omitProj a gmeow:EmbeddingProjection ;
 ce:omitContainer a gmeow:ProfileSurface ;
     gmeow:profileSurfaceOf           ce:omitProj ;
     gmeow:profileSurfaceKind         gmeow:surfaceContainer ;
-    gmeow:recordsSourceDigest        "blake3:rsc000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsSourceDigest        "23c0000111122223333444455556666777788889999000011112222333344440"^^gmeow:blake3_256Digest ;
     gmeow:recordsModelContractDigest "blake3:rmc000011112222333344445555666677778888999900001111222233334444" ;
     gmeow:recordsTargetTableDigest   "blake3:rtt000011112222333344445555666677778888999900001111222233334444" .
 
@@ -82,5 +82,5 @@ ce:omitContainer a gmeow:ProfileSurface ;
 ce:omitManifest a gmeow:ProfileSurface ;
     gmeow:profileSurfaceOf           ce:omitProj ;
     gmeow:profileSurfaceKind         gmeow:surfaceManifest ;
-    gmeow:recordsSourceDigest        "blake3:rsc000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsSourceDigest        "23c0000111122223333444455556666777788889999000011112222333344440"^^gmeow:blake3_256Digest ;
     gmeow:recordsModelContractDigest "blake3:rmc000011112222333344445555666677778888999900001111222233334444" .

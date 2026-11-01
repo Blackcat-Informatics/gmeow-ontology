@@ -103,9 +103,12 @@ impl DlReasoner {
     /// # Errors
     /// Original source, execution or canonicalization refusals, as typed diagnostics.
     pub fn with_proofs<D: purrdf::DatasetView>(dataset: &D) -> Result<Self> {
-        Reasoner::with_proofs(dataset)
-            .map(|inner| Self { inner })
-            .map_err(map_entail_err)
+        Reasoner::with_proofs(
+            dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map(|inner| Self { inner })
+        .map_err(map_entail_err)
     }
 
     /// Record proofs with one caller signal covering canonical input identity,
@@ -119,7 +122,11 @@ impl DlReasoner {
         budget: purrdf::entail::reasoner::SchemaPreparationBudget,
         stop: std::sync::Arc<dyn purrdf::StopSignal>,
     ) -> Result<Self> {
-        Reasoner::with_proofs_and_stop(dataset, budget, stop)
+        let mut control = purrdf::CanonicalizationControl::new(
+            purrdf::RDFC_V2_CORPUS_POLICY,
+            Some(stop.as_ref()),
+        );
+        Reasoner::with_proofs_and_stop(dataset, budget, std::sync::Arc::clone(&stop), &mut control)
             .map(|inner| Self { inner })
             .map_err(map_entail_err)
     }
@@ -279,7 +286,13 @@ pub fn extract_module(
     signature: &[TermValue],
     method: ModuleMethod,
 ) -> Result<ModuleExtraction> {
-    purrdf::entail::extract_module(dataset, signature, method).map_err(map_entail_err)
+    purrdf::entail::extract_module(
+        dataset,
+        signature,
+        method,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(map_entail_err)
 }
 
 /// Attempt the combined (Lutz/Toman/Wolter, Stefanoni/Motik/Horrocks) approach for

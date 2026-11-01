@@ -15,12 +15,18 @@ fn reason_product(result: &gmeow_logic::result::ReasoningResult) -> StageProduct
     let dataset = rooted_in_graph(&reasoning, GRAPH_REASONING)
         .expect("route the complete reasoning projection");
     let mut bundle = bundle_from_artifacts_over(dataset, BTreeMap::new(), DatasetProvenance::new());
-    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
+    let pinned = bundle
+        .graph_digest(
+            GRAPH_REASONING,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(result.clone())),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .unwrap();
     StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
@@ -67,7 +73,19 @@ fn fold_attaches_a_coherence_artifact_to_graph_attestations() {
     // Deterministic: re-folding the same carrier + result is byte-identical.
     let composed2 = parse_dataset(edb.as_bytes(), "application/n-quads", None).unwrap();
     let folded2 = fold_coherence_certificate(composed2, &upstream).expect("fold again");
-    let nq1 = purrdf::canonical_flat_nquads(folded.as_ref()).unwrap();
-    let nq2 = purrdf::canonical_flat_nquads(folded2.as_ref()).unwrap();
-    assert_eq!(nq1, nq2, "the folded certificate is deterministic");
+    let nq1 = purrdf::canonical_flat_nquads(
+        folded.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
+    let nq2 = purrdf::canonical_flat_nquads(
+        folded2.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
+    assert_eq!(
+        nq1.nquads(),
+        nq2.nquads(),
+        "the folded certificate is deterministic"
+    );
 }

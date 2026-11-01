@@ -74,19 +74,19 @@ ex:reportedCreation a gmeow:Activity ;
 # neither a provider execution nor a native hash-verification operation.
 ex:profile a gmeow:InformationObject ;
     dcterms:description "Profile v1 selects label and place, encodes sorted JSON keys in UTF-8, no spaces, with one terminal LF."@en ;
-    gmeow:contentDigest "sha256:f060568aa439059577a390f7fc35411472c7d9c2e7667b1e02d20619f19749c9" .
+    gmeow:contentDigest "f060568aa439059577a390f7fc35411472c7d9c2e7667b1e02d20619f19749c9"^^gmeow:sha256Digest .
 ex:stateBytes1 a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4" .
+    gmeow:contentDigest "1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4"^^gmeow:sha256Digest .
 ex:stateBytes2 a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e" .
+    gmeow:contentDigest "2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e"^^gmeow:sha256Digest .
 ex:stateBytes3 a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a" .
+    gmeow:contentDigest "9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a"^^gmeow:sha256Digest .
 
 ex:claim1 a gmeow:WorldObjectStateClaim ;
     gmeow:recordedWorldObject ex:cup ;
     gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
     gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes1 ;
-    gmeow:worldObjectState "sha256:1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4" ;
+    gmeow:worldObjectState "1789e647c576371f8b93771cceb42bf5a00204cba5eaee833c52e98263b70ae4"^^gmeow:sha256Digest ;
     gmeow:validFrom "2024-04-01T12:00:00Z"^^xsd:dateTime ;
     gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
 # Source clock reversed, yet claim2 causally replaces claim1.
@@ -94,7 +94,7 @@ ex:claim2 a gmeow:WorldObjectStateClaim ;
     gmeow:recordedWorldObject ex:cup ;
     gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
     gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes2 ;
-    gmeow:worldObjectState "sha256:2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e" ;
+    gmeow:worldObjectState "2629bca35d4446ac635f0e51e86f6ce03c9cc923e74886f7b093cea012a55a3e"^^gmeow:sha256Digest ;
     gmeow:validFrom "2024-04-01T11:59:00Z"^^xsd:dateTime ;
     gmeow:supersedes ex:claim1 ;
     gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .
@@ -104,7 +104,7 @@ ex:claim3 a gmeow:WorldObjectStateClaim ;
     gmeow:recordedWorldObject ex:cup ;
     gmeow:providerProgram ex:provider ; gmeow:providerWorld ex:world ;
     gmeow:stateEncodingProfile ex:profile ; gmeow:stateContent ex:stateBytes3 ;
-    gmeow:worldObjectState "sha256:9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a" ;
+    gmeow:worldObjectState "9f126b509a8768d13e2f9fa6ded8d4d39fd65bfa8b7a8a907118b3c7512f9e7a"^^gmeow:sha256Digest ;
     gmeow:validFrom "2024-04-01T12:01:00Z"^^xsd:dateTime ;
     gmeow:supersedes ex:claim1 ;
     gmeow:wasAttributedTo ex:recorder ; gmeow:wasDerivedFrom ex:source .

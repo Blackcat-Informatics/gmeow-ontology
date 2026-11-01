@@ -11,6 +11,6 @@ SELECT ?proj WHERE {
         gmeow:projectionSourceDigest ?recorded ;
         gmeow:projectionSource ?src .
   ?src gmeow:contentDigest ?actual .
-  FILTER(STR(?recorded) != STR(?actual))
+  FILTER NOT EXISTS { ?src gmeow:contentDigest ?recorded . }
 }
 ORDER BY ?proj

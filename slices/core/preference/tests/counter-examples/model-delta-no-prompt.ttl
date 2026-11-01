@@ -15,9 +15,9 @@
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 
 # The bound identity-leg nodes (the omitted leg has no node/edge).
-ex:baseCkpt a gmeow:ModelArtifact ; gmeow:contentDigest "blake3:0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a" .
-ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest "blake3:1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b" .
-ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest "blake3:2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c" .
+ex:baseCkpt a gmeow:ModelArtifact ; gmeow:contentDigest "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a"^^gmeow:blake3_256Digest .
+ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest "1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b"^^gmeow:blake3_256Digest .
+ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest "2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c2c"^^gmeow:blake3_256Digest .
 ex:dpoLoss a gmeow:DisclosedLossEntry ; gmeow:droppedRelation ex:flattenedEdge .
 ex:flattenedEdge a math:Relation .
 ex:dpoCand a gmeow:InformationObject .
@@ -29,11 +29,11 @@ ex:rec1 a gmeow:DpoView ;
     gmeow:tieBreakRule "chosen-over-rejected-stable" ;
     gmeow:disclosesLoss ex:dpoLoss ;
     logic:preservationKind logic:SoundUnderApproximation ;
-    gmeow:contentDigest "blake3:3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d" .
-ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest "blake3:4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e" .
-ex:rubric1 a gmeow:Rubric ; gmeow:contentDigest "blake3:6060606060606060606060606060606060606060606060606060606060606060" .
-ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest "blake3:7171717171717171717171717171717171717171717171717171717171717171" .
-ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest "blake3:8282828282828282828282828282828282828282828282828282828282828282" .
+    gmeow:contentDigest "3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d"^^gmeow:blake3_256Digest .
+ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest "4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e4e"^^gmeow:blake3_256Digest .
+ex:rubric1 a gmeow:Rubric ; gmeow:contentDigest "6060606060606060606060606060606060606060606060606060606060606060"^^gmeow:blake3_256Digest .
+ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest "7171717171717171717171717171717171717171717171717171717171717171"^^gmeow:blake3_256Digest .
+ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest "8282828282828282828282828282828282828282828282828282828282828282"^^gmeow:blake3_256Digest .
 ex:span1 a gmeow:EvidenceSpan ; rdfs:label "evaluation evidence span leg"@en .
 
 # The DEFECT: the delta omits gmeow:deltaPrompt (only ten legs bound).
@@ -49,4 +49,4 @@ ex:delta1 a gmeow:ModelConfigDelta ;
     gmeow:deltaOptimizer ex:opt1 ;
     gmeow:deltaSeed 42 ;
     gmeow:deltaEvaluationEvidence ex:span1 ;
-    gmeow:contentDigest "blake3:9393939393939393939393939393939393939393939393939393939393939393" .
+    gmeow:contentDigest "9393939393939393939393939393939393939393939393939393939393939393"^^gmeow:blake3_256Digest .

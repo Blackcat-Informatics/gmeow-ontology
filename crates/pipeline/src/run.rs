@@ -1797,12 +1797,15 @@ fn canonical_quad_set(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>
         let quads = purrdf::flat_rdf_quads_from_dataset(&ir);
         if !quads.is_empty() {
             let flat = purrdf::flat_dataset_from_quads(&quads).ok()?;
-            let set: std::collections::BTreeSet<String> = purrdf::try_canonicalize(&flat)
-                .ok()?
-                .nquads
-                .lines()
-                .map(str::to_owned)
-                .collect();
+            let set: std::collections::BTreeSet<String> = purrdf::try_canonicalize(
+                &flat,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .ok()?
+            .nquads()
+            .lines()
+            .map(str::to_owned)
+            .collect();
             return Some(set);
         }
     }

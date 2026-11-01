@@ -212,7 +212,7 @@ impl PutLegProgram {
         let engine = NativeSparqlEngine::new();
         let prepare = |query| {
             engine
-                .prepare_algebra(query, QueryOptions::EMPTY)
+                .prepare_algebra(query, &QueryOptions::EMPTY)
                 .with_ctx(|| "admit native put-leg CONSTRUCT".to_owned())
         };
         let facts = fact_queries(&lawful)?
@@ -613,7 +613,7 @@ fn run_construct(
     query: &PreparedQuery,
 ) -> gmeow_errors::Result<Vec<RdfQuad>> {
     let result = engine
-        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
+        .query_prepared(dataset, query, &[], &QueryOptions::EMPTY)
         .with_ctx(|| {
             format!(
                 "put-leg CONSTRUCT evaluation failed\nquery: {:?}",

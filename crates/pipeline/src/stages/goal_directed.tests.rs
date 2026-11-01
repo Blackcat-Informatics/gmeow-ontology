@@ -44,13 +44,17 @@ fn compile_logic_upstream_for_missing_reason() -> StageProduct {
         purrdf::provenance::DatasetProvenance::new(),
     );
     let pinned = bundle
-        .graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)
+        .graph_digest(
+            crate::stages::compile_logic::GRAPH_LOGIC,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .unwrap();
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
             PipelineHandle::Logic(Arc::new(program)),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("pin the Logic handle to graph/logic");
     StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))
@@ -100,12 +104,18 @@ fn reason_upstream_with_math_tower() -> StageProduct {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
+    let pinned = bundle
+        .graph_digest(
+            GRAPH_REASONING,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result)),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("pin the Reasoning handle to graph/reasoning");
     StageProduct::from_bundle("stage-reason", Arc::new(bundle)).expect("the stage carrier digests")
@@ -276,13 +286,17 @@ fn run_hard_fails_when_the_logic_handle_carries_zero_reasoning_programs() {
         purrdf::provenance::DatasetProvenance::new(),
     );
     let pinned = bundle
-        .graph_digest(crate::stages::compile_logic::GRAPH_LOGIC)
+        .graph_digest(
+            crate::stages::compile_logic::GRAPH_LOGIC,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .unwrap();
     bundle
         .pin_handle(
             crate::stages::compile_logic::GRAPH_LOGIC,
             PipelineHandle::Logic(Arc::new(program)),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("pin the Logic handle to graph/logic");
     let mut upstream = BTreeMap::new();

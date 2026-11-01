@@ -53,12 +53,13 @@ payload. It specializes the domain-free `lang:literalValue` carrier, preserving
 the complete supplied literal without changing the existing key or payload
 constraints (Principles 2, 4, 9 and 17).
 
-A facet has at most one payload in total: `facetText` for text, or `facetValue`
-for a typed literal such as a number or boolean. Text retains supplied language
-and direction; untagged source text remains an `xsd:string`. A label without a
-payload preserves a present key with no content. This representation does not
-claim to distinguish a source null from a source empty value. Retain an explicitly supplied empty
-string as text so it remains distinguishable from a missing payload.
+A facet has at most one payload in total: `facetText` for text, `facetValue`
+for a literal such as a number or boolean, or `facetStructuredValue` for a
+structured value occurrence. Text retains supplied language and direction;
+untagged source text remains an `xsd:string`. A label without a payload preserves
+a present key with no content. It does not assert null or an empty value. Retain
+an explicitly supplied empty string as a literal so it remains distinct from a
+missing payload.
 
 Flatten a producer’s run-time object into one facet per leaf and keep its relative
 path label, such as `mood.tone` or `refs[]`. Such labels have no universal path
@@ -72,6 +73,41 @@ Several interpretations may coexist. Preserve the original label and use
 statement metadata when the interpretation needs provenance or a standpoint
 (Principles 9 and 10). The link interprets a label; it does not assert the truth
 of the labelled content.
+
+## Preserve payload structure and native terms
+
+`StructuredValue` describes one payload occurrence. Choose exactly one branch:
+a scalar with `structuredTerm`, a `StructuredMap`, a `StructuredSequence`, or an
+explicit `StructuredNull`. An empty map or sequence keeps its type and has no
+entries; null has its own type and no scalar or entries. An omitted payload
+relation asserts none of these states.
+
+`structuredTerm` carries the original RDF 1.2 term directly: IRI, blank node,
+literal or triple term. It is an annotation property with no range or node-kind
+restriction. Keep a literal's lexical form, datatype, language and direction.
+The canonical integrity law admits at most one term by whole-term RDF identity,
+so equal datatype values with different lexical forms remain distinct terms.
+
+A map uses `hasFacet` and distinct `LabelledFacet` occurrences. Keep each supplied
+key, including repeated keys. Existing literal payload channels remain available;
+`facetStructuredValue` links a nested value, explicit null or resource scalar.
+The three facet payload channels are mutually exclusive. `facetConcept` continues
+to interpret the label and does not become a resource payload channel.
+
+Map ordinals are optional: retain source order through `entryOrdinal` when given,
+and do not invent order for an unordered map. A sequence uses `structuredItem`
+and requires a nonnegative numeric ordinal position on each value occurrence.
+For both containers, an entry has at most one numeric position and distinct
+entries within the owner have different positions. Supplied lexical aliases of
+the same numeric position remain valid. Distinct occurrence nodes retain
+repeated values and keys; ordinal gaps do not manufacture missing items.
+
+Opaque media can use a scalar occurrence with the original literal in
+`structuredTerm` and existing `mediaType` and `charset` on that occurrence.
+The role linking a holder to the occurrence determines which payload the media
+metadata describes. This vocabulary supplies an RDF representation; it does not
+convert opaque content, infer equivalence between representations or define a
+serializer (Principles 2, 4 and 17).
 
 ## Identify context inputs without copying them
 

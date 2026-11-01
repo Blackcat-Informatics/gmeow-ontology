@@ -52,10 +52,10 @@ ex:emotionalTone a gmeow:Concept .
 # Shared, digest-identified context artifacts are referenced across records.
 # These illustrative artifact identities do not copy any source text.
 ex:catalogueRelease a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" .
+    gmeow:contentDigest "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"^^gmeow:sha256Digest .
 
 ex:searchProjection a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7" .
+    gmeow:contentDigest "486ea46224d1bb4fb680f34f7c9ad96a8f24ec88be73ea8e5a6c65260e9cb8a7"^^gmeow:sha256Digest .
 
 # This second note was exposed only to the projection. Its context says
 # nothing about whether the source release was included or actually used.

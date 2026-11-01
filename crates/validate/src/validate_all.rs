@@ -1752,12 +1752,16 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> gmeow_errors::Result<String> {
 fn slice_catalog_and_ownership(
     slices_dir: &str,
 ) -> gmeow_errors::Result<(SliceCatalog, OwnershipReport)> {
-    let catalog = SliceCatalog::discover(Path::new(slices_dir), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|e| {
-            Diag::of_kind(crate::error::Catalog {
-                detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
-            })
-        })?;
+    let catalog = SliceCatalog::discover(
+        Path::new(slices_dir),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| {
+        Diag::of_kind(crate::error::Catalog {
+            detail: format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"),
+        })
+    })?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
     let ownership = OwnershipAnalyzer::new(&catalog).analyze().map_err(|e| {

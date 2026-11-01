@@ -1699,7 +1699,7 @@ gmeow:currencyCode
     rdfs:domain gmeow:ReferenceFrame ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "currency code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The canonical short code of a currency reference frame (a member of gmeow:frameRealmCurrency) — the ISO 4217 alphabetic code for fiat currencies (USD, EUR, CAD …) and the conventional ticker for cryptocurrencies (BTC, ETH). Functional: one canonical code per frame. Lets a currency project to schema:currenciesAccepted and other code-bearing consumer terms."@x-gmeow-english ;
     skos:example "gmeow:referenceFrameUSD gmeow:currencyCode \"USD\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid on non-currency frames and avoid multiple codes per frame."@x-gmeow-english ;
@@ -1765,7 +1765,7 @@ gmeow:eulerOrder
     rdfs:domain gmeow:Orientation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Euler order"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The order of rotations for the Euler-angle representation (e.g., 'XYZ', 'ZYX', 'ZXZ')."@x-gmeow-english ;
     skos:example "ex:ori gmeow:eulerOrder \"ZYX\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting it whenever yaw/pitch/roll are present (the angles are ambiguous without it)."@x-gmeow-english ;
@@ -2086,7 +2086,7 @@ gmeow:geohash
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "geohash"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A geohash string — a hierarchical spatial indexing system encoding latitude and longitude into a base32 string (e.g. 'u4pruydqqvj')."@x-gmeow-english ;
     skos:example "ex:ghLoc gmeow:geohash \"u4pruydqqvj\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mixing a geohash base32 string with another geocoding system (e.g. MGRS) on one Geocode."@x-gmeow-english ;
@@ -2231,7 +2231,7 @@ gmeow:h3
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "H3 cell index"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "An H3 cell index string — Uber's hierarchical hexagonal spatial indexing system encoding a location as a single 64-bit cell address at a declared resolution (e.g. '8928308280fffff'). It names a whole hexagonal cell, not a raw latitude/longitude point, and is not interchangeable with a geohash or an MGRS string — unlike those grids, an H3 address is hexagonal and hierarchical, and encodes its own resolution in the index itself."@x-gmeow-english ;
     skos:example "ex:h3Loc gmeow:h3 \"8928308280fffff\" ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
@@ -2808,7 +2808,7 @@ gmeow:mgrs
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "MGRS"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A Military Grid Reference System coordinate — a geocoordinate standard used by NATO militaries (e.g. '33TWN00020001')."@x-gmeow-english ;
     skos:example "ex:mgrsLoc gmeow:mgrs \"33TWN00020001\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mixing an MGRS coordinate with another geocoding system (e.g. geohash) on one Geocode."@x-gmeow-english ;
@@ -3406,7 +3406,7 @@ gmeow:plusCode
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Plus Code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "An Open Location Code (Plus Code) — a geocoding system using alphanumeric codes to identify any location on Earth (e.g. '9F4W9C8C+W4')."@x-gmeow-english ;
     skos:example "ex:plusLoc gmeow:plusCode \"9F4W9C8C+W4\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing a non-Plus-Code system here (use the matching accessor) and avoid conflicting values on one Geocode."@x-gmeow-english ;
@@ -5201,7 +5201,7 @@ gmeow:unLocode
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "UN/LOCODE"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A UN/LOCODE — a five-character code identifying transport-related locations (ports, airports, rail terminals) worldwide (e.g. 'GBLHR')."@x-gmeow-english ;
     skos:example "ex:locodeLoc gmeow:unLocode \"GBLHR\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for non-transport places where no LOCODE exists."@x-gmeow-english ;
@@ -5310,7 +5310,7 @@ gmeow:what3words
     rdfs:domain gmeow:Geocode ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "what3words"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A what3words address — three words that identify a 3m×3m square on Earth (e.g. 'filled.county.limes')."@x-gmeow-english ;
     skos:example "ex:w3wLoc gmeow:what3words \"filled.county.limes\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid mixing it with another system on the same Geocode."@x-gmeow-english ;

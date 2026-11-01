@@ -462,14 +462,20 @@ pub fn assemble_with_cache(
                         let projected = sources
                             .dataset
                             .project_graph(Some(&purrdf::RdfTerm::iri(graph)))?;
-                        let ntriples =
-                            purrdf::canonical_flat_nquads(&projected).map_err(|err| {
-                                invalid_declaration(format!(
-                                    "<{corpus_iri}> selects graph <{graph}>, which does not \
+                        let ntriples = purrdf::canonical_flat_nquads(
+                            &projected,
+                            &mut purrdf::CanonicalizationControl::new(
+                                purrdf::RDFC_V2_CORPUS_POLICY,
+                                None,
+                            ),
+                        )
+                        .map_err(|err| {
+                            invalid_declaration(format!(
+                                "<{corpus_iri}> selects graph <{graph}>, which does not \
                                      canonicalize: {err}"
-                                ))
-                            })?;
-                        let sample: Arc<[u8]> = Arc::from(ntriples.into_bytes());
+                            ))
+                        })?;
+                        let sample: Arc<[u8]> = Arc::from(ntriples.nquads().as_bytes());
                         cache
                             .graph_samples
                             .insert(graph.clone(), Arc::clone(&sample));

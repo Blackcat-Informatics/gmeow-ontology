@@ -835,8 +835,8 @@ gmeow:identifier
     rdfs:domain gmeow:CreativeWork ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "identifier"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "A formal identifier of a creative work, such as a DOI or patent number."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "A formal external identifier of a creative work, such as a DOI or patent number, retained as the supplied xsd:string or xsd:token literal. Its scheme and spelling remain unchanged; a work may carry several identifiers."@x-gmeow-english ;
     skos:example "ex:paper gmeow:identifier \"doi:10.1145/3290605\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for the work's title (use gmeow:title / gmeow:hasTitle) and avoid it for the GMEOW IRI itself — this is an external identifier literal, not the resource's identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -861,14 +861,14 @@ gmeow:charset
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "charset"@x-gmeow-english ;
-    skos:definition "The character encoding of an information object's textual content, recorded as a charset label such as utf-8 or iso-8859-1. The same property applies to MIME parts and other textual carriers."@x-gmeow-english ;
+    skos:definition "The supplied character-encoding label of an information object's textual content, such as utf-8 or iso-8859-1, retained as xsd:string or xsd:token. The same property applies to MIME parts and other textual carriers; it neither selects a language nor normalizes the source label."@x-gmeow-english ;
     skos:scopeNote "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."@x-gmeow-english ;
     gmeow:useWhen "Use when a textual carrier's character encoding is supplied, whether or not the carrier is a message body part."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for natural language, media type, compression or MIME content-transfer encoding."@x-gmeow-english ;
     gmeow:howToUse "Record the supplied charset label on the concrete information object; keep mediaType and contentLanguage or contentLanguageCode separate. For a MIME part, record its Content-Type charset parameter here."@x-gmeow-english ;
     skos:example "Record media identity and charset separately: ex:page a gmeow:WebPage ; gmeow:mediaType <https://www.iana.org/assignments/media-types/text/html> ; gmeow:charset \"utf-8\" ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
-    logic:range rdfs:Literal .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:MediaType
     a logic:AbstractIndividualType, logic:Class ;
@@ -888,14 +888,14 @@ gmeow:mediaTypeName
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "media type name"@x-gmeow-english ;
-    skos:definition "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string. It is a machine code, separate from the carrier's charset and other MIME parameters."@x-gmeow-english ;
+    skos:definition "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string or xsd:token. It is a machine code, separate from the carrier's charset and other MIME parameters."@x-gmeow-english ;
     gmeow:useWhen "Use when the exact MIME spelling of an identified media-type value is needed by a consumer or at a serialization boundary."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid putting this code on the carrier as a sibling string media-type property, attaching a language tag, using xsd:token or appending charset or other parameters."@x-gmeow-english ;
     gmeow:howToUse "Record the exact type/subtype string on the MediaType value; retain source spelling evidence separately when a source header contains casing, parameters or other syntax beyond that identity."@x-gmeow-english ;
     skos:scopeNote "The name does not establish IANA registration or authenticate a resource. No MIME parser, registry service, parameter extraction or string normalization is implied."@x-gmeow-english ;
     skos:example "Record the machine spelling on the value: <https://www.iana.org/assignments/media-types/application/pdf> gmeow:mediaTypeName \"application/pdf\" ."@x-gmeow-english ;
     logic:domain gmeow:MediaType ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:mediaType
     a logic:ObjectProperty ;
@@ -1119,7 +1119,7 @@ gmeow:version
     rdfs:domain gmeow:Dataset ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "version"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The version tag of a dataset, such as a SemVer or release identifier."@x-gmeow-english ;
     skos:example "ex:dataset gmeow:version \"1.0.0\"^^xsd:string ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid it for ordered version lineages of multiple releases — use the versions module's VersionSet / VersionMembership."@x-gmeow-english ;
@@ -1502,7 +1502,7 @@ gmeow:originalFilename
     skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:originalFilename."@x-gmeow-english ;
     logic:domain gmeow:MediaObject ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/originalFilename" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -1516,10 +1516,14 @@ gmeow:channelLayout
     skos:definition "The exact source string naming an image's channel layout, such as RGBA, distinct from its colour space."@x-gmeow-english ;
     gmeow:useWhen "Use when an actual MediaObject has a source-supplied channel-layout code."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid token whitespace collapse, inferred colour profiles or claims of verified decoded pixels."@x-gmeow-english ;
-    gmeow:howToUse "Keep exact case, spaces and spelling in xsd:string on the media artifact."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact case, spaces and spelling in xsd:string or xsd:token on the media artifact."@x-gmeow-english ;
     skos:scopeNote "No parser, channel-count computation or closed code enumeration is supplied."@x-gmeow-english ;
     skos:example "For example: ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."@x-gmeow-english ;
     logic:domain gmeow:MediaObject ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/channelLayout" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/identifier" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/charset" ; logic:closureValue logic:ClosedWorldClosure ] .

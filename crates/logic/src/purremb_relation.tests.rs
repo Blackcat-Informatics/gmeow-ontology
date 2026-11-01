@@ -230,13 +230,11 @@ fn purremb_generation_iri_distinguishes_selection() {
         "https://example.org/gen",
         "abcd",
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Certified,
     );
     let matryoshka = purremb_generation_iri(
         "https://example.org/gen",
         "abcd",
         RetrievalPolicy::MatryoshkaPrefixThenRerank,
-        SourceVerificationMode::Certified,
     );
     assert_ne!(exact, matryoshka);
     assert!(exact.contains("abcd"));

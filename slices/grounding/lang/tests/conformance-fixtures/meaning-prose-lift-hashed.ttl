@@ -1,3 +1,4 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 # Flagship 2 (dogfooding) shape-pin: a lifted @x-gmeow-english prose literal is a
@@ -23,7 +24,7 @@ ex:proseSurface a lang:SurfaceForm , lang:UnanalyzedProse ;
     lang:unicodeNormalization "NFC" ;
     lang:collationLocale "en" ;
     lang:analysisLevel lang:rawLevel ;
-    logic:candidateSourceHash "sha256:cdbe30c133c611078b4667cb4a53b53fc3b111d15d2e5845b6c7a9564cfc2078" ;
+    logic:candidateSourceHash "cdbe30c133c611078b4667cb4a53b53fc3b111d15d2e5845b6c7a9564cfc2078"^^gmeow:sha256Digest ;
     lang:surfaceCorrespondence ex:proseCorr .
 
 # The surface round-trip re-emits the bytes verbatim: an exact isomorphism carried WITH

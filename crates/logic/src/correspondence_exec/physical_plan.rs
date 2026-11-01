@@ -397,13 +397,17 @@ impl PreparedCompositionPlan {
                 (execute_fused(&self.engine, dataset, query)?, 0)
             }
         };
-        let input_digest = purrdf::try_flat_digest_view(dataset.as_ref(), CanonHash::Sha256)
-            .map_err(|error| {
-                exec_error(format!(
-                    "canonicalize correspondence execution input: {error}"
-                ))
-            })?
-            .to_hex();
+        let input_digest = purrdf::try_flat_digest_view(
+            dataset.as_ref(),
+            CanonHash::Sha256,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(|error| {
+            exec_error(format!(
+                "canonicalize correspondence execution input: {error}"
+            ))
+        })?
+        .to_hex();
         let rows: Vec<_> = rows.into_iter().collect();
         let receipt = CompositionExecutionReceipt {
             certificate_digest: self.certificate.certificate_digest.clone(),
@@ -657,7 +661,7 @@ fn prepare_path(
     path: &LegPath,
 ) -> gmeow_errors::Result<Arc<PreparedQuery>> {
     engine
-        .prepare_algebra(leg_relation_algebra(path)?, QueryOptions::EMPTY)
+        .prepare_algebra(leg_relation_algebra(path)?, &QueryOptions::EMPTY)
         .map_err(|error| exec_error(format!("prepare correspondence relation path: {error}")))
 }
 
@@ -667,7 +671,7 @@ fn prepare_fused(
     second: &LegPath,
 ) -> gmeow_errors::Result<Arc<PreparedQuery>> {
     engine
-        .prepare_algebra(fused_relation_algebra(first, second), QueryOptions::EMPTY)
+        .prepare_algebra(fused_relation_algebra(first, second), &QueryOptions::EMPTY)
         .map_err(|error| exec_error(format!("prepare fused correspondence relation: {error}")))
 }
 
@@ -705,7 +709,7 @@ fn execute_fused(
     query: &PreparedQuery,
 ) -> gmeow_errors::Result<BTreeSet<CompositionRelationRow>> {
     let result = engine
-        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
+        .query_prepared(dataset, query, &[], &QueryOptions::EMPTY)
         .map_err(|error| exec_error(format!("execute fused correspondence relation: {error}")))?;
     let SparqlResult::Solutions {
         variables, rows, ..

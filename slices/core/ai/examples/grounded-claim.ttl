@@ -65,7 +65,7 @@ ex:card-assistant a gmeow:ModelCard ;
 ex:prompt-extract a gmeow:Prompt ;
     gmeow:promptRole gmeow:promptRoleSystem ;
     gmeow:filledFrom ex:template-extract-v1 ;
-    gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" ;
+    gmeow:contentDigest "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"^^gmeow:blake3_256Digest ;
     rdfs:label "claim-extraction prompt (system, filled from template v1)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     skos:definition "The system prompt, filled from ex:template-extract-v1, that ex:invocation-19 used to extract the closing-time claims."@x-gmeow-english ;

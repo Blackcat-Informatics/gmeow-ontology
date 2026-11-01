@@ -275,7 +275,7 @@ fn run_construct(
     query: &PreparedQuery,
 ) -> gmeow_errors::Result<purrdf::backend::DatasetHandle> {
     let result = engine
-        .query_prepared_view(dataset, query, &[], QueryOptions::EMPTY)
+        .query_prepared_view(dataset, query, &[], &QueryOptions::EMPTY)
         .map_err(|error| {
             gmeow_errors::Diag::from(error).with_context("correspondence CONSTRUCT evaluation")
         })?;
@@ -313,7 +313,10 @@ impl CarrierAtoms {
 
     fn canonical(dataset: &RdfDataset, marker: &str) -> gmeow_errors::Result<Self> {
         let canonical = if dataset.named_graphs().next().is_none() {
-            canonical_relabel(dataset)
+            canonical_relabel(
+                dataset,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
         } else {
             // Empty graph declarations are not N-Quads statements. Make their
             // incidence visible to the native canonicalizer, including when a
@@ -332,7 +335,10 @@ impl CarrierAtoms {
                 builder.push_quad(graph, marker_id, marker_id, Some(marker_id))?;
             }
             let augmented = builder.freeze()?;
-            canonical_relabel(&augmented)
+            canonical_relabel(
+                &augmented,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
         }
         .map_err(|error| {
             gmeow_errors::Diag::from(error).with_context("canonicalize correspondence carrier")
@@ -517,7 +523,7 @@ impl PreparedLawExecution {
         let engine = NativeSparqlEngine::new();
         let prepare = |query| {
             engine
-                .prepare_algebra(query, QueryOptions::EMPTY)
+                .prepare_algebra(query, &QueryOptions::EMPTY)
                 .map_err(|error| {
                     gmeow_errors::Diag::from(error).with_context("admit correspondence algebra")
                 })
@@ -915,7 +921,7 @@ fn execute_leg_relation(
     query: &PreparedQuery,
 ) -> gmeow_errors::Result<EndpointRelation> {
     let result = engine
-        .query_prepared(dataset, query, &[], QueryOptions::EMPTY)
+        .query_prepared(dataset, query, &[], &QueryOptions::EMPTY)
         .map_err(|error| {
             exec_error(format!(
                 "correspondence leg SELECT evaluation failed: {error}"
@@ -1003,7 +1009,7 @@ impl PreparedRecoveryLegs {
         let engine = NativeSparqlEngine::new();
         let prepare = |path| {
             engine
-                .prepare_algebra(leg_relation_algebra(path)?, QueryOptions::EMPTY)
+                .prepare_algebra(leg_relation_algebra(path)?, &QueryOptions::EMPTY)
                 .map_err(|error| {
                     gmeow_errors::Diag::from(error).with_context("prepare resolved recovery leg")
                 })
@@ -1020,12 +1026,12 @@ impl PreparedRecoveryLegs {
         let engine = &self.engine;
         let graphs = execution.seed.dataset().and_then(|source| {
             let get = engine
-                .prepare_algebra(execution.get, QueryOptions::EMPTY)
+                .prepare_algebra(execution.get, &QueryOptions::EMPTY)
                 .map_err(|error| {
                     gmeow_errors::Diag::from(error).with_context("prepare recovery get")
                 })?;
             let put = engine
-                .prepare_algebra(execution.put, QueryOptions::EMPTY)
+                .prepare_algebra(execution.put, &QueryOptions::EMPTY)
                 .map_err(|error| {
                     gmeow_errors::Diag::from(error).with_context("prepare recovery put")
                 })?;

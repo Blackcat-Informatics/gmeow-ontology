@@ -474,8 +474,12 @@ fn native_reasoning_summary_matches_the_wire_projection() {
     let native = project_reasoning_dataset(&result).unwrap();
     let wire = parse_nt(&project_reasoning_result(&result).unwrap()).unwrap();
     assert!(
-        purrdf::datasets_isomorphic(&native, &wire)
-            .expect("isomorphism is decided by canonical bytes")
+        purrdf::datasets_isomorphic(
+            &native,
+            &wire,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        )
+        .expect("isomorphism is decided by canonical bytes")
     );
     let restored = parse_reasoning_dataset(&native, GraphMatch::Default)
         .expect("authored placeholder text must not invalidate a derivation receipt");
@@ -1431,10 +1435,7 @@ fn promotion_leg_emitted_exactly_on_corroboration() {
         "the promotion target must be typed logic:FormalizationCandidate"
     );
     // All eight universal candidate carriers are populated (SHACL-valid, not a bare stub).
-    assert_eq!(
-        promo.source_hash,
-        format!("sha256:{}", sha256_hex("formula:corroborated-phi"))
-    );
+    assert_eq!(promo.source_hash, sha256_hex("formula:corroborated-phi"));
     assert_eq!(
         promo.scope,
         vec![

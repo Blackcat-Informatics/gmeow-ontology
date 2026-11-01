@@ -253,9 +253,12 @@ pub(crate) fn canonical_lines(dataset: &RdfDataset) -> Vec<String> {
     // Native full RDFC-1.0 over the FLATTENED carrier: `canonical_flat_nquads`
     // re-materializes the RDF 1.2 statement overlay to plain `rdf:reifies` / annotation
     // triples before canonicalizing.
-    let canonical = purrdf::canonical_flat_nquads(dataset)
-        .expect("RDFC-1.0 canonicalization of parsed dataset");
-    let mut lines: Vec<String> = canonical.lines().map(str::to_owned).collect();
+    let canonical = purrdf::canonical_flat_nquads(
+        dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("RDFC-1.0 canonicalization of parsed dataset");
+    let mut lines: Vec<String> = canonical.nquads().lines().map(str::to_owned).collect();
     lines.sort();
     lines
 }

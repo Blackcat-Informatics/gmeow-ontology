@@ -634,7 +634,7 @@ pub fn formalization_coverage(store: &Arc<RdfDataset>) -> gmeow_errors::Result<V
     Ok(findings)
 }
 
-/// The `sha256:`-prefixed lowercase-hex digest of `prose`, matching the recorded
+/// The bare lowercase-hex SHA-256 digest of `prose`, matching the recorded
 /// `logic:candidateSourceHash` lexical form byte-for-byte (the digest is over the raw
 /// UTF-8 lexical text — no language tag, no surrounding quotes, no trailing newline).
 ///
@@ -645,7 +645,36 @@ pub fn formalization_coverage(store: &Arc<RdfDataset>) -> gmeow_errors::Result<V
 /// (no normalization) they read from the RDF.
 pub fn candidate_source_hash(prose: &str) -> String {
     let digest = Sha256::digest(prose.as_bytes());
-    format!("sha256:{}", purrdf_hash::hex::encode(&digest))
+    purrdf_hash::hex::encode(&digest)
+}
+
+/// Admit the complete SHA-256 source literal before exposing its hexadecimal value.
+///
+/// # Errors
+/// Returns an error for any other datatype, literal facets or malformed hexadecimal value.
+pub(crate) fn admit_candidate_source_hash(value: &TermValue) -> gmeow_errors::Result<&str> {
+    let TermValue::Literal {
+        lexical_form,
+        datatype,
+        language,
+        direction,
+    } = value
+    else {
+        return Err(obligation_err(
+            "logic:candidateSourceHash requires a SHA-256 literal".to_owned(),
+        ));
+    };
+    if datatype != "https://blackcatinformatics.ca/gmeow/sha256Digest"
+        || language.is_some()
+        || direction.is_some()
+        || lexical_form.len() != 64
+        || !lexical_form
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        return Err(obligation_err("logic:candidateSourceHash requires gmeow:sha256Digest with 64 lowercase hexadecimal digits and no language or direction".to_owned()));
+    }
+    Ok(lexical_form)
 }
 
 /// A harvested candidate's declared hash and the distinct source-language prose literals
@@ -668,7 +697,7 @@ struct HarvestHash {
 /// AND `logic:candidateSourceField ?field` — it resolves the exact annotation the ontology
 /// itself names for that field (`?field logic:proseFieldProperty ?prop`, the closed
 /// `logic:ProseField` → property map), reads `?term ?prop ?prose` in the canonical source
-/// language, recomputes the `sha256:` digest, and emits an error `Finding` on any mismatch.
+/// language, recomputes the SHA-256 digest, and emits an error `Finding` on any mismatch.
 /// It is the recompute the SHACL `sh:minCount 1` presence shape structurally cannot express.
 ///
 /// The soft-advice peer — an advisory `logic:Constraint` whose `logic:message` mirrors a term's
@@ -709,11 +738,21 @@ pub fn check_candidate_source_hash_drift(
         else {
             continue;
         };
+        let declared_hash = admit_candidate_source_hash(hash)?.to_owned();
+        if by_candidate
+            .get(&term_value(c))
+            .is_some_and(|previous| previous.declared_hash != declared_hash)
+        {
+            return Err(obligation_err(format!(
+                "formalization candidate <{}> carries conflicting candidateSourceHash values",
+                term_value(c)
+            )));
+        }
         let entry = by_candidate
             .entry(term_value(c))
             .or_insert_with(|| HarvestHash {
                 term: term_value(term),
-                declared_hash: term_value(hash),
+                declared_hash,
                 prose: BTreeSet::new(),
             });
         // Only the canonical source-language literal is the hashed text; projected

@@ -25,5 +25,5 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:projectionSourceSet ex:candidates ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;   # <-- deterministic...
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:09a409a409a409a409a409a409a409a409a409a409a409a409a409a409a409a4" .
+    gmeow:contentDigest "09a409a409a409a409a409a409a409a409a409a409a409a409a409a409a409a4"^^gmeow:blake3_256Digest .
                                                         # <-- ...but NO gmeow:tieBreakRule

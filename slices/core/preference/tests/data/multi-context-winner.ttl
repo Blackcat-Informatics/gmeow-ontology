@@ -30,7 +30,7 @@ ex:goal1 a gmeow:Goal ; rdfs:label "select the strongest context-1 candidate"@en
 
 ex:ctx1 a gmeow:ComparisonContext ;
     gmeow:contextTask ex:goal1 ;
-    gmeow:contentDigest "blake3:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:contentDigest "1111111111111111111111111111111111111111111111111111111111111111"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obs1 .
 ex:feat1 a gmeow:InformationObject ; gmeow:hasPart ex:candA1 , ex:candB1 .
 ex:obs1 a gmeow:PreferenceObservation ;
@@ -56,7 +56,7 @@ ex:receipt1 a gmeow:ProjectionReceipt ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     gmeow:selectedCandidate ex:candA1 ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111" .
+    gmeow:contentDigest "aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111aaaa1111"^^gmeow:blake3_256Digest .
 
 # ============================================================================= #
 # CONTEXT 2 — a wholly separate comparison: winner ex:candA2                     #
@@ -71,7 +71,7 @@ ex:goal2 a gmeow:Goal ; rdfs:label "select the strongest context-2 candidate"@en
 
 ex:ctx2 a gmeow:ComparisonContext ;
     gmeow:contextTask ex:goal2 ;
-    gmeow:contentDigest "blake3:2222222222222222222222222222222222222222222222222222222222222222" ;
+    gmeow:contentDigest "2222222222222222222222222222222222222222222222222222222222222222"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obs2 .
 ex:feat2 a gmeow:InformationObject ; gmeow:hasPart ex:candA2 , ex:candB2 .
 ex:obs2 a gmeow:PreferenceObservation ;
@@ -97,4 +97,4 @@ ex:receipt2 a gmeow:ProjectionReceipt ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     gmeow:selectedCandidate ex:candA2 ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222" .
+    gmeow:contentDigest "bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222bbbb2222"^^gmeow:blake3_256Digest .

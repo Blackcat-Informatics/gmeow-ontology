@@ -274,7 +274,7 @@ gmeow:docCategory
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc category"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The stable vocabulary-category label of a documented term — one of \"Class\", \"Property\", \"Individual\", \"Datatype\", \"Other\", derived from the term's rdf:type. A display token, distinct from the term's logic stereotype; it drives the category badge and grouping on the term surface."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docCategory \"Class\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as the term's logic stereotype (that is a logic: type, not this display token) and avoid values outside the fixed set."@x-gmeow-english ;
@@ -303,7 +303,7 @@ gmeow:docUrl
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc url"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The site-relative path of a documentation record's rendered page (e.g. \"terms/{slug}/index.html\", \"slices/{slug}/index.html\", \"linkages/index.html\"). A relative path string, not an absolute IRI, so the rendered site is relocatable. Carried by every documentation-entry record (gmeow:DocumentedTerm / gmeow:DocumentedSlice / gmeow:DocumentedConcern / gmeow:DocumentedMappingSet / gmeow:DocumentedDocument)."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docUrl \"terms/cat/index.html\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing an absolute URL (the path is site-relative so the site can be relocated) and avoid using it for anything but the record's own rendered page."@x-gmeow-english ;
@@ -318,7 +318,7 @@ gmeow:docReasoningStatus
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc reasoning status"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The per-term native-reasoner observation, projected only when a validated native result is attached: satisfiable after conclusive admission; unsatisfiable for a class proved empty; undetermined when class satisfiability is not decided; or not-evaluated for a non-class term. Absence of a proved empty class does not establish satisfiability after unsupported or incomplete reasoning. Absent rather than fabricated when no native result is attached."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docReasoningStatus \"satisfiable\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid emitting it without a real reasoner verdict (an unfounded satisfiability claim is worse than an honest absence) and avoid reading \"not-evaluated\" as \"satisfiable\" — the two never collapse."@x-gmeow-english ;
@@ -393,9 +393,9 @@ gmeow:docCompetencyQueryDigest
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc competency query digest"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The blake3 content-address (\"blake3:...\") of the concatenated competency-query bodies that exercise the documented term — the query fingerprint carried on its competency gmeow:DocEvidence node. Lets a reader detect when the exercising queries changed, without embedding the query text in the graph."@x-gmeow-english ;
-    skos:example "ex:evCatCompetency gmeow:docCompetencyQueryDigest \"blake3:1a2b3c\" ."@x-gmeow-english ;
+    logic:range gmeow:blake3_256Digest ;
+    skos:definition "The BLAKE3-256 digest of the available competency query texts exercising the documented term, joined with a newline in model order. Its gmeow:blake3_256Digest literal contains 64 lowercase hexadecimal digits without a prefix and permits query drift detection without carrying the query bodies."@x-gmeow-english ;
+    skos:example "ex:record gmeow:docCompetencyQueryDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid authoring it by hand (it is computed from the query bodies) and avoid treating it as the query text — it is a content-address fingerprint."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Let the docs projection compute it as the blake3 of the joined competency query bodies; compare it across releases to detect query drift."@x-gmeow-english ;
@@ -548,7 +548,7 @@ gmeow:docExpectedOutcome
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc expected outcome"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The authored expected outcome of a conformance fixture — \"conforms\" or \"violates\" — from the slice's tests/example-conformance.ttl binding, carried on its gmeow:DocFixture record: one of exactly two enumerated tokens, never a free-text explanation (that is gmeow:conformanceRationale). Absent when the fixture carries no authored binding (an honest absence)."@x-gmeow-english ;
     skos:example "ex:fixtureCatOk gmeow:docExpectedOutcome \"conforms\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid fabricating it for an unbound fixture (leave it absent) and avoid values outside the \"conforms\"/\"violates\" pair."@x-gmeow-english ;
@@ -563,7 +563,7 @@ gmeow:docViolationCode
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc violation code"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The authored expected violation code of a counter-example fixture (e.g. \"shacl.MinCountConstraintComponent\"), carried on its gmeow:DocFixture record — the machine constraint identifier, never the human explanation of it (that is gmeow:conformanceRationale). Absent for a well-formed fixture or an unbound counter-example."@x-gmeow-english ;
     skos:example "ex:fixtureCatBad gmeow:docViolationCode \"shacl.MinCountConstraintComponent\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on a well-formed fixture, and avoid inventing a code for an unbound counter-example (leave it absent)."@x-gmeow-english ;
@@ -705,7 +705,7 @@ gmeow:cqCellVar
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "cq cell var"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The SPARQL projection variable an expected-row cell binds — the bare variable name, not the full \"?\"-prefixed SPARQL syntax — carried on the gmeow:CompetencyExpectedRow node beside its bound value."@x-gmeow-english ;
     skos:example "ex:cqCatsRow0 gmeow:cqCellVar \"c\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid including the leading \"?\" (carry the bare name) and avoid asserting a var without a paired gmeow:cqCellValueIri or gmeow:cqCellValueLiteral."@x-gmeow-english ;
@@ -769,7 +769,7 @@ gmeow:entailmentRule
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "entailment rule"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The firing rule of a gmeow:Entailment derivation, as a compact display form (a CURIE where the canonical prefix registry knows one, else the bare IRI) — the rule the reasoner applied, never a fabricated human label."@x-gmeow-english ;
     skos:example "ex:entCat0 gmeow:entailmentRule \"rdfs:subClassOf-transitive\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing a prose rule name (carry the rule's compact IRI/CURIE display) and avoid leaving it empty when the derivation names a rule."@x-gmeow-english ;
@@ -1191,7 +1191,7 @@ gmeow:docSourcePath
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc source path"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The normalized logical source path of a gmeow:DocumentedDocument, relative within its owning slice (forward-slash separators, no leading './' or '/', e.g. \"design/ARCHITECTURE.md\"). The stable sort key and provenance handle back to the authored Markdown source the rendered page projects."@x-gmeow-english ;
     skos:example "ex:entryDocZooArchitecture gmeow:docSourcePath \"design/ARCHITECTURE.md\" ."@x-gmeow-english ;
     skos:scopeNote "Always slice-relative and normalized (forward slashes, no leading './' or '/', no '..'); it is a logical source path into the slice, never an absolute filesystem path nor a rendered site URL (that is gmeow:docUrl)."@x-gmeow-english ;
@@ -1223,9 +1223,9 @@ gmeow:docRawDigest
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc raw digest"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The content-address digest of a gmeow:DocumentedDocument's raw source bytes — the same raw digest the slice artifact record carries. The provenance handle proving which exact source bytes a rendered page projects, and the change-detection key that invalidates the docs render cache when a source edits."@x-gmeow-english ;
-    skos:example "ex:entryDocZooArchitecture gmeow:docRawDigest \"9f2b…\" ."@x-gmeow-english ;
+    logic:range gmeow:sha256Digest ;
+    skos:definition "The SHA-256 digest of the exact raw source bytes carried by a documented document's artifact record. Its gmeow:sha256Digest literal contains 64 lowercase hexadecimal digits without a prefix; whitespace edits change the digest."@x-gmeow-english ;
+    skos:example "ex:record gmeow:docRawDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."@x-gmeow-english ;
     skos:scopeNote "The RAW byte digest of the source, NOT a semantic or canonicalized digest: it changes on any source edit including whitespace, which is exactly what the render-cache-invalidation contract requires."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting a semantic or canonicalized digest here — this is the RAW byte digest, so it changes on any source edit including whitespace, which is exactly what the cache-invalidation contract requires."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -1254,7 +1254,7 @@ gmeow:docSearchAlignment
     gmeow:addedInVersion "0.1.0" ;
     gmeow:termStability gmeow:stabilityExperimental ;
     rdfs:label "doc search alignment"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "One crosswalk alignment token of a gmeow:DocumentedTerm — a `tag:object` string (the alignment predicate's short tag plus the aligned resource's local name), carried repeatably as a searchable facet so an offline docs_search matches on external-vocabulary correspondences, distinct from gmeow:docSearchAdvice, which carries usage prose rather than an external crosswalk token. The SAME sorted, deduped alignment facet the site search-index.json indexes (crates/docs render precompute_alignment_facets). Emitted once per token in sorted order; absent for a term with no linkages."@x-gmeow-english ;
     skos:example "ex:entryCat gmeow:docSearchAlignment \"exact:Q146\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid re-deriving the tokens differently from precompute_alignment_facets (the offline and online alignment facets must be identical) and avoid emitting it for a term with no linkages (leave it absent)."@x-gmeow-english ;
@@ -1296,7 +1296,8 @@ gmeow:DocEvidence logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docEvidenceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:DocumentedTerm logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:docCategory ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:docCategory ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+        logic:severity "Violation" ; logic:message "A gmeow:DocumentedTerm must carry a gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)." ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:DocumentedTerm ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCategory" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 # Category requiredness is closed-world integrity, independent of owner metadata.
@@ -1308,7 +1309,7 @@ gmeow:DocumentedTermCategoryConstraint
     skos:definition "A closed-world integrity constraint: a gmeow:DocumentedTerm must carry at least one gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)."@x-gmeow-english ;
     logic:onClass gmeow:DocumentedTerm ;
     logic:anyOf gmeow:docCategory ;
-    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:formalizes gmeow:docCategory ;
     logic:message "A gmeow:DocumentedTerm must carry a gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)." .
 
 # gmeow:DocEvidenceGroundingShape — every gmeow:DocEvidence node carries at least
@@ -1344,7 +1345,7 @@ gmeow:DocumentedTermOwnerRequiredConstraint
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:onClass gmeow:DocumentedTerm ;
     logic:anyOf gmeow:docOwnerSlice ;
-    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:formalizes gmeow:docOwnerSlice ;
     logic:message "A DocumentedTerm must name its owning slice." .
 
 gmeow:DocumentedTermOwnerSingleValueConstraint
@@ -1357,7 +1358,7 @@ gmeow:DocumentedTermOwnerSingleValueConstraint
     logic:leftPath gmeow:docOwnerSlice ;
     logic:rightPath gmeow:docOwnerSlice ;
     logic:compareOp "!=" ;
-    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:formalizes gmeow:docOwnerSlice ;
     logic:message "A DocumentedTerm must name at most one owning slice." .
 
 gmeow:DocumentedTermOwnerIriConstraint
@@ -1369,7 +1370,7 @@ gmeow:DocumentedTermOwnerIriConstraint
     logic:onClass gmeow:DocumentedTerm ;
     logic:valuePath gmeow:docOwnerSlice ;
     logic:nodeKind "IRI" ;
-    logic:formalizes gmeow:DocumentedTermShape ;
+    logic:formalizes gmeow:docOwnerSlice ;
     logic:message "A DocumentedTerm owner must be an IRI." .
 
 <https://blackcatinformatics.ca/gmeow/slices/documentation>
@@ -1390,3 +1391,37 @@ gmeow:DocFixture logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docSearchDefinition" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:DocumentedDocument logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docTitle ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
 gmeow:DocumentedTerm logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:docSearchAdvice ; logic:allValuesFrom [ logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docRawDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:DocumentationDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes gmeow:docRawDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:docRawDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] ] .
+
+gmeow:CompetencyDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes gmeow:docCompetencyQueryDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:docCompetencyQueryDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] ] .

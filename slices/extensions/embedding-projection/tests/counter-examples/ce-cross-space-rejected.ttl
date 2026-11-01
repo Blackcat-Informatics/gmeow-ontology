@@ -12,21 +12,21 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:xFamily a gmeow:EmbeddingFamily ;
-    gmeow:contentDigest "blake3:fad0aa0011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:fad0aa0011112222333344445555666677778888999900001111222233334444" .
 
 ce:xFull a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily   ce:xFamily ;
     gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
     gmeow:distanceMetric      gmeow:distanceMetricCosine ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
-    gmeow:contentDigest       "blake3:f0110000111122223333444455556666777788889999000011112222aaaa4444" .
+    gmeow:versionFingerprint "blake3:f0110000111122223333444455556666777788889999000011112222aaaa4444" .
 
 ce:xPrefix a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily   ce:xFamily ;
     gmeow:embeddingDimensions "256"^^xsd:positiveInteger ;
     gmeow:distanceMetric      gmeow:distanceMetricCosine ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaPrefix ;
-    gmeow:contentDigest       "blake3:f0220000111122223333444455556666777788889999000011112222bbbb4444" .
+    gmeow:versionFingerprint "blake3:f0220000111122223333444455556666777788889999000011112222bbbb4444" .
 
 ce:xProjFull a gmeow:EmbeddingProjection ;
     gmeow:hasVectorSpaceContract ce:xFull .

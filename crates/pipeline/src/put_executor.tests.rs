@@ -12,7 +12,7 @@ fn run_one(
     q: Query,
 ) -> Vec<RdfQuad> {
     let prepared = engine
-        .prepare_algebra(q, QueryOptions::EMPTY)
+        .prepare_algebra(q, &QueryOptions::EMPTY)
         .expect("admit construct");
     run_construct(engine, dataset, &prepared).expect("construct ok")
 }

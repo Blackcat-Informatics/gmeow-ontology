@@ -382,7 +382,7 @@ gmeow:smuflCodepoint
     rdfs:domain gmeow:NotationSystem ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     rdfs:label "SMuFL codepoint"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Multiple codepoints may be asserted as multiple triples."@x-gmeow-english ;
     skos:example "ex:westernStaff gmeow:smuflCodepoint \"U+E050\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for non-SMuFL or non-musical glyph references and avoid treating a single triple as exhaustive — a notation system carries many codepoints, one per glyph."@x-gmeow-english ;
@@ -530,7 +530,8 @@ gmeow:NotationProjectionProfile logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:NotationProjectionProfile ; logic:closureKey "https://blackcatinformatics.ca/gmeow/notationSystemOf" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:NotationSystem rdfs:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:smuflCodepoint ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:smuflCodepoint ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+        logic:severity "Violation" ; logic:message "SMuFL codepoint must be a Unicode codepoint of the form U+HHHH(HH)." ] .
 
 # =========================================================================== #
 # Migrated procedural constraint: the closed-world no-subclass shape           #
@@ -564,19 +565,16 @@ logic:plnsEdge a logic:Formula ; logic:relation <http://www.w3.org/2000/01/rdf-s
 logic:plnsDistinct a logic:Formula ; logic:relation logic:termDistinct ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "sub" ] , [ logic:termIndex 1 ; logic:termVariable "this" ] .
 
-# gmeow:NotationSystemSMuFLShape — when present, gmeow:smuflCodepoint must match
-# the SMuFL Unicode-codepoint pattern U+HHHH(HH). sh:pattern has no ordinary-OWL
-# antecedent (the datatype half is already covered by the allValuesFrom xsd:string
-# restriction above); the regex half is authored as a logic:Constraint using
-# logic:termRegex, which "lowers to SPARQL REGEX ... and to sh:pattern" per its
-# own skos:definition in slices/grounding/logic/module.ttl.
+# The canonical datatype union and this regex law preserve the SMuFL value
+# contract. Restriction metadata retains the property message and severity;
+# the existing procedural formula retains the pattern obligation.
 gmeow:NotationSystemSMuFLPatternConstraint
     a logic:Constraint ;
     rdfs:label "SMuFL codepoint pattern constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     skos:definition "A closed-world integrity constraint: every gmeow:smuflCodepoint value matches the SMuFL Unicode-codepoint pattern U+HHHH(HH)."@x-gmeow-english ;
-    logic:formalizes gmeow:NotationSystemSMuFLShape ;
+    logic:formalizes gmeow:smuflCodepoint ;
     logic:message "SMuFL codepoint must be a Unicode codepoint of the form U+HHHH(HH)." ;
     logic:integrity logic:smufForall .
 logic:smufForall a logic:Formula ;
@@ -605,7 +603,7 @@ gmeow:NotationProjectionProfileLossOrParameterConstraint
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/NotationProjectionProfile> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/projectionFunction> ; logic:someValuesFrom logic:Thing ] .
-<https://blackcatinformatics.ca/gmeow/NotationSystem> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/smuflCodepoint> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/NotationSystem> rdfs:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/smuflCodepoint> ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 <https://blackcatinformatics.ca/gmeow/NotationSystemUsage> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/notationUsageInterval> ; logic:allValuesFrom logic:Thing ] .

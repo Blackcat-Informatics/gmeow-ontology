@@ -70,12 +70,17 @@ fn canonical_quads(text: &str, media_type: &str) -> gmeow_errors::Result<Vec<Str
     // `canonical_flat_nquads_byte_matches_oxigraph_path` gate in purrdf), so the
     // graph-isomorphism verdict is unchanged. Splitting into lines and sorting yields
     // the same canonical quad set the comparator compared before.
-    let canonical = purrdf::canonical_flat_nquads(&dataset).map_err(|e| {
+    let canonical = purrdf::canonical_flat_nquads(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| {
         Diag::of_kind(RdfCompare {
             detail: format!("RDF canonicalization error: {e}"),
         })
     })?;
     let mut quads: Vec<String> = canonical
+        .nquads()
         .lines()
         .filter(|l| !l.trim().is_empty())
         .map(str::to_owned)

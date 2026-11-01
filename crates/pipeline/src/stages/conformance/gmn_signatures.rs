@@ -110,9 +110,9 @@ fn observe(
                 overlay.insert(quad).map_err(gmeow_errors::Diag::from)?;
             }
             let view = overlay.snapshot_view().map_err(gmeow_errors::Diag::from)?;
-            engine.query_prepared_view(&view, prepared, &[], QueryOptions::EMPTY)
+            engine.query_prepared_view(&view, prepared, &[], &QueryOptions::EMPTY)
         }
-        None => engine.query_prepared(base, prepared, &[], QueryOptions::EMPTY),
+        None => engine.query_prepared(base, prepared, &[], &QueryOptions::EMPTY),
     }
     .map_err(gmeow_errors::Diag::from)?;
     match result {

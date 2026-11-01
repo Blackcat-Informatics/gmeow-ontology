@@ -29,7 +29,7 @@ ex:receiptOne a gmeow:ProjectionReceipt ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:1111111111111111111111111111111111111111111111111111111111111111" .
+    gmeow:contentDigest "1111111111111111111111111111111111111111111111111111111111111111"^^gmeow:blake3_256Digest .
 
 ex:receiptTwo a gmeow:ProjectionReceipt ;
     rdfs:label "pairwise projection, same inputs but digest #2"@en ;
@@ -38,4 +38,4 @@ ex:receiptTwo a gmeow:ProjectionReceipt ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:2222222222222222222222222222222222222222222222222222222222222222" .
+    gmeow:contentDigest "2222222222222222222222222222222222222222222222222222222222222222"^^gmeow:blake3_256Digest .

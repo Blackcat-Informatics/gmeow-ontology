@@ -27,5 +27,5 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;
     gmeow:tieBreakRule "higher-accuracy-first" ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:08a308a308a308a308a308a308a308a308a308a308a308a308a308a308a308a3" .
+    gmeow:contentDigest "08a308a308a308a308a308a308a308a308a308a308a308a308a308a308a308a3"^^gmeow:blake3_256Digest .
                                                         # <-- ...but NO gmeow:scalarizationWeights

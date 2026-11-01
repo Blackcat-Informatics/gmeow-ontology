@@ -481,7 +481,11 @@ fn skolemized_graph(raw_nt: &str) -> gmeow_errors::Result<Graph> {
 }
 
 fn skolemized_dataset(parsed: &RdfDataset) -> gmeow_errors::Result<Graph> {
-    let canon = purrdf::canonical_relabel(parsed).map_err(|e| {
+    let canon = purrdf::canonical_relabel(
+        parsed,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Transform {
             message: format!("canonicalization failed: {e}"),
         })

@@ -170,7 +170,7 @@ gmeow:stageImpl
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "stage impl"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The registry key binding a stage to its Rust Stage implementation in the gmeow-pipeline STAGE_REGISTRY. Exactly one per stage; the loader HARD-fails if the key resolves to no implementation. Stable across runs and language-neutral (an identifier, not localizable prose)."@x-gmeow-english ;
     skos:example "gmeow:stage-reason gmeow:stageImpl \"reason\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -180,7 +180,7 @@ gmeow:producesFormat
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "produces format"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "An output format tag a stage emits — typically on a gmeow:kindExportLeaf, which folds one artifact of this format into the bundle. Non-functional: a leaf may emit several formats. Stable identifiers (e.g. \"shacl\", \"linkml\"), not localizable prose."@x-gmeow-english ;
     skos:example "gmeow:stage-export-schemas gmeow:producesFormat \"linkml\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -246,7 +246,7 @@ gmeow:attachesBlobRep
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "attaches blob rep"@x-gmeow-english ;
     rdfs:domain gmeow:PipelineStage ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A blob-representation lane label a gmeow:PipelineStage ATTACHES to the carrier — a representation-keyed by-reference blob record (e.g. \"diagnostics:nodes\", \"spans:source-table\") whose (representation, content digest) identity is present in its output product but NOT in its assembled input (its blob-rep attach DELTA). Distinct producers may therefore each attach different content under the same shared lane label, as the compile, reason, and validation stages do for diagnostics:nodes. NOT the byte-artifact lane (logical paths) — only the representation-keyed blob lane the consumers read back by rep. Multi-valued. Stable identifier strings, not localizable prose. The Rust Stage's attaches_blob_reps() must agree exactly (Rust/RDF agreement) and the scheduler verifies the run-time delta (AttachDrift)."@x-gmeow-english ;
     skos:example "gmeow:stage-source-load gmeow:attachesBlobRep \"spans:source-table\" ."@x-gmeow-english ;
     gmeow:useWhen "Declare a representation-keyed blob a stage folds onto its product's by-reference lane (the diagnostics-nodes run-ledger contribution, the source-span table), so the run-time verification covers it."@x-gmeow-english ;
@@ -284,7 +284,7 @@ gmeow:extractsPath
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts path"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The committed repo-relative generated/ path (when gmeow:extractsMatch is \"exact\") or the directory-prefix (when \"prefix\") a fanout row reconstructs. A stable path string, not localizable prose."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores gmeow:extractsPath \"generated/evals/scores.ttl\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -294,7 +294,7 @@ gmeow:extractsMatch
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts match"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "How gmeow:extractsPath matches a committed path: \"exact\" (the path equals gmeow:extractsPath) or \"prefix\" (the path starts with gmeow:extractsPath, optionally further constrained by gmeow:extractsSuffix). Exactly one per row."@x-gmeow-english ;
     skos:example "gmeow:fanout-profiles gmeow:extractsMatch \"prefix\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -304,7 +304,7 @@ gmeow:extractsSuffix
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts suffix"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "An optional suffix filter refining a \"prefix\" match: the path must also end with this string. Used to distinguish the EDOAL projection family (generated/projections/*.edoal.ttl) from the plain RDF projections under the same directory. At most one per row."@x-gmeow-english ;
     skos:example "gmeow:fanout-edoal-projections gmeow:extractsSuffix \".edoal.ttl\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -314,7 +314,7 @@ gmeow:extractsGraphFamily
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts graph family"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The reconstruction family that fixes how the committed path is recovered from gmeow.gts: \"rdf-fanout\" (the named graph graph/fanout/<path-without-generated/>) or \"edoal\" (the named graph graph/projections/<stem>.edoal for generated/projections/<stem>.edoal.ttl) — the gate folds the named graph at that IRI to the committed bytes; or \"opaque\" (no reconstruction graph — the committed path rides as a byte-exact member of the inline generated-opaque archive blob, the byte-decorated / non-RDF fanout files); or \"header-dict\" (no reconstruction graph and no archive member — the committed path generated/medium/<dict-id>.zdict is the verbatim bytes of the <dict-id> entry of the segment header's in-band \"dct\" map). For the \"opaque\" family the row's gmeow:extractsForm is \"blob\", the match is always \"exact\", and the carrier emits one such row per archive member so the opaque blob inventory is declared as data and the superset gate bijection-checks it exactly as it does the RDF fanout graphs. For the \"header-dict\" family the row's gmeow:extractsForm is \"header-dict\", the match is always \"exact\", and the rows are AUTHORED (the declared dictionary set is stable hand-written data) so the superset gate bijection-checks them against the header's own \"dct\" map exactly as it does the opaque archive members. The declared family values are exactly: \"rdf-fanout\" | \"edoal\" | \"opaque\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-evals-scores gmeow:extractsGraphFamily \"rdf-fanout\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -324,7 +324,7 @@ gmeow:extractsForm
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "extracts form"@x-gmeow-english ;
     rdfs:domain gmeow:FanoutExtraction ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The serialization form whose fold of the reconstruction named graph equals the committed bytes: \"turtle\" (canonical Turtle, no graph label), \"ntriples\" (RDFC-canonical N-Triples), \"nquads-self\" (RDFC N-Quads re-rooted into the file's OWN fanout graph IRI), or \"nquads-diagnostics\" (RDFC N-Quads re-rooted into the shared graph/diagnostics label). Fixed by the producing stage's emission; a wrong form yields a byte mismatch the gate catches. The value \"blob\" marks an \"opaque\"-family row: the committed path is not a named-graph fold at all but a byte-exact member of the inline generated-opaque archive, so the gate resolves it from the archive lane rather than folding a graph. The value \"header-dict\" marks a \"header-dict\"-family row on the same footing: the committed path is not a named-graph fold either but the verbatim bytes of one entry of the segment header's in-band \"dct\" map, so the gate resolves it from the header rather than folding a graph or unpacking an archive. The declared form values are exactly: \"turtle\" | \"ntriples\" | \"nquads-self\" | \"nquads-diagnostics\" | \"blob\" | \"header-dict\"."@x-gmeow-english ;
     skos:example "gmeow:fanout-shacl-diagnostics gmeow:extractsForm \"nquads-diagnostics\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -334,7 +334,7 @@ gmeow:expectsGeneratedOutput
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "expects generated output"@x-gmeow-english ;
     rdfs:domain gmeow:Pipeline ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "One committed non-terminal generated/ path the pipeline is REQUIRED to produce — an entry of the independently-authored expected-output completeness inventory. Unlike gmeow:fanoutExtracts (whose opaque rows the carrier EMITS, so they are self-consistent with what it produced), this inventory is HAND-AUTHORED, so it is a second, independent source: when a carrier change silently stops emitting a declared output, the reconstructed bundle shrinks but this inventory does not, and the superset gate HARD-fails (expected ⊆ produced). The terminal bundle (generated/dist/gmeow.gts) is EXCLUDED — a bundle is not a projection of itself. Multi-valued; the whole set is the complete non-terminal generated/ tree."@x-gmeow-english ;
     skos:example "gmeow:pipeline-build gmeow:expectsGeneratedOutput \"generated/catalog/constraint-catalog.nq\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2655,7 +2655,7 @@ gmeow:receiptDigest
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "receipt digest"@x-gmeow-english ;
     rdfs:domain gmeow:StageReceipt ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The CONTENT ADDRESS of what a stage produced — a content-addressed digest string (algorithm-prefixed, e.g. \"blake3:…\") that fingerprints the stage's output. Two executions producing identical output carry the equal digest, so receipts deduplicate and two runs are byte-comparable stage by stage. A stable identifier string, not localizable prose; exactly one per receipt."@x-gmeow-english ;
     skos:example "gmeow:receipt-canon gmeow:receiptDigest \"blake3:1f9c0a…\" ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2871,7 +2871,7 @@ gmeow:runtimeDagAdmissionBoundary
 
 gmeow:PipelineStage logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:hasCapability ; logic:allValuesFrom gmeow:StageCapability ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:requiresResource ; logic:allValuesFrom gmeow:Resource ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dataflowConsumes ; logic:allValuesFrom gmeow:PipelineStage ] .
 
@@ -2913,7 +2913,7 @@ gmeow:PipelineStage logic:subClassOf
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-gmeow:PipelineStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+gmeow:PipelineStage logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stageImpl ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 # --- Shape-migration grounding (projected to generated/shapes/validation-shapes.ttl) ---
 # gmeow:PipelineShape: gmeow:hasStage is non-functional (min1, no maxCount).

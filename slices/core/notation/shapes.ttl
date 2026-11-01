@@ -30,18 +30,3 @@ gmeow:ProjectionLossNoSubclassShape
         """ ;
         sh:message "ProjectionLoss must not be subclassed (Principle 9)." ;
     ] .
-
-gmeow:NotationSystemSMuFLShape
-    a sh:NodeShape ;
-    rdfs:label "Notation system SMuFL codepoint shape"@x-gmeow-english ;
-    skos:definition "When a notation system carries a SMuFL codepoint annotation, the value must be a Unicode codepoint string."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
-    logic:formalizes gmeow:NotationSystemSMuFLPatternConstraint ;
-    sh:targetClass gmeow:NotationSystem ;
-    sh:property [
-        sh:path gmeow:smuflCodepoint ;
-        sh:datatype xsd:string ;
-        sh:pattern "^U\\+[0-9A-F]{4,6}$" ;
-        sh:severity sh:Violation ;
-        sh:message "SMuFL codepoint must be a Unicode codepoint of the form U+HHHH(HH)." ;
-    ] .

@@ -24,12 +24,6 @@ gmeow:Blob
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "Blob"@x-gmeow-english ;
     rdfs:subClassOf gmeow:SourceNode ;
-    logic:subClassOf
-        [
-            a logic:Restriction ;
-            logic:onProperty gmeow:contentDigest ;
-            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
-        ] ;
     skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -108,13 +102,7 @@ gmeow:Commit
             logic:onProperty gmeow:commitTree ;
             logic:someValuesFrom gmeow:SourceTree ;
         ] ;
-    logic:subClassOf
-        [
-            a logic:Restriction ;
-            logic:onProperty gmeow:contentDigest ;
-            logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ;
-        ] ;
-    skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
+    skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a source identity: a scheme fingerprint or an algorithm-typed byte digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Diff
@@ -440,7 +428,7 @@ gmeow:TreeEntry
         [
             a logic:Restriction ;
             logic:onProperty gmeow:treeEntryMode ;
-            logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ;
+            logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
         ] ,
         [
             a logic:Restriction ;
@@ -1056,7 +1044,7 @@ gmeow:treeEntryMode
     rdfs:domain gmeow:TreeEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
     rdfs:label "tree entry mode"@x-gmeow-english ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1765,8 +1753,7 @@ gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty
 gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:repositoryPath ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:hexBinary ) ] ] .
 gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:untracked ; logic:allValuesFrom xsd:boolean ] .
 gmeow:WorkingTreeEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:untracked ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onDataRange xsd:boolean ] .
-gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:AnnotatedTag ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagTarget ; logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:AnnotatedTag ; logic:closureKey "https://blackcatinformatics.ca/gmeow/tagTarget" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:AnnotatedTag logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:tagTarget ; logic:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ; logic:onClass [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit gmeow:AnnotatedTag ) ] ] .
@@ -1935,7 +1922,7 @@ gmeow:SourceTree logic:disjointWith gmeow:AnnotatedTag .
 gmeow:TreeEntry logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:treeEntryObject ;
       logic:allValuesFrom [ a logic:Class ; logic:unionOf ( gmeow:Blob gmeow:SourceTree gmeow:Commit ) ] ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryMode ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:treeEntryMode ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 gmeow:TreeEntryDirectoryTargetConstraint
     a logic:Constraint ;
@@ -1954,10 +1941,16 @@ logic:gitTreeDirectoryGuard a logic:Formula ; logic:and logic:gitTreeDirectoryTy
 logic:gitTreeDirectoryType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
 logic:gitTreeDirectoryMode a logic:Formula ; logic:or logic:gitTreeDirectoryMode0 , logic:gitTreeDirectoryMode1 .
-logic:gitTreeDirectoryMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "040000" ] .
-logic:gitTreeDirectoryMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "40000" ] .
+logic:gitTreeDirectoryMode0 a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "040000" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "040000" ; logic:termLiteralDatatype xsd:token ] ] .
+logic:gitTreeDirectoryMode1 a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "40000" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "40000" ; logic:termLiteralDatatype xsd:token ] ] .
 logic:gitTreeDirectoryObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
 logic:gitTreeDirectoryTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
@@ -1980,12 +1973,21 @@ logic:gitTreeBlobGuard a logic:Formula ; logic:and logic:gitTreeBlobType , logic
 logic:gitTreeBlobType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
 logic:gitTreeBlobMode a logic:Formula ; logic:or logic:gitTreeBlobMode0 , logic:gitTreeBlobMode1 , logic:gitTreeBlobMode2 .
-logic:gitTreeBlobMode0 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100644" ] .
-logic:gitTreeBlobMode1 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100755" ] .
-logic:gitTreeBlobMode2 a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "120000" ] .
+logic:gitTreeBlobMode0 a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100644" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100644" ; logic:termLiteralDatatype xsd:token ] ] .
+logic:gitTreeBlobMode1 a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100755" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "100755" ; logic:termLiteralDatatype xsd:token ] ] .
+logic:gitTreeBlobMode2 a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "120000" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "120000" ; logic:termLiteralDatatype xsd:token ] ] .
 logic:gitTreeBlobObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
 logic:gitTreeBlobTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
@@ -2007,9 +2009,60 @@ logic:gitTreeGitlinkImpl a logic:Formula ; logic:antecedent logic:gitTreeGitlink
 logic:gitTreeGitlinkGuard a logic:Formula ; logic:and logic:gitTreeGitlinkType , logic:gitTreeGitlinkMode , logic:gitTreeGitlinkObject .
 logic:gitTreeGitlinkType a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:TreeEntry ] .
-logic:gitTreeGitlinkMode a logic:Formula ; logic:relation gmeow:treeEntryMode ;
-    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "160000" ] .
+logic:gitTreeGitlinkMode a logic:Formula ; logic:or
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "160000" ] ] ,
+    [ a logic:Formula ; logic:relation gmeow:treeEntryMode ;
+        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termLiteral "160000" ; logic:termLiteralDatatype xsd:token ] ] .
 logic:gitTreeGitlinkObject a logic:Formula ; logic:relation gmeow:treeEntryObject ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "target" ] .
 logic:gitTreeGitlinkTarget a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "target" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Commit ] .
+
+# A source object's scheme identity and its raw-byte digest remain distinct.
+gmeow:BlobSourceIdentityConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "required Blob source identity"@x-gmeow-english ;
+    skos:definition "A Blob retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to require a source-object identity while preserving the criterion under which it was supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."@x-gmeow-english ;
+    logic:onClass gmeow:Blob ;
+    logic:choicePredicate gmeow:contentDigest, gmeow:versionFingerprint ;
+    logic:choiceMode "at-least-one" ;
+    logic:formalizes gmeow:Blob ;
+    logic:message "A source object requires a typed byte digest or its supplied scheme fingerprint." .
+
+# A source object's scheme identity and its raw-byte digest remain distinct.
+gmeow:CommitSourceIdentityConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "required Commit source identity"@x-gmeow-english ;
+    skos:definition "A Commit retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to require a source-object identity while preserving the criterion under which it was supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."@x-gmeow-english ;
+    logic:onClass gmeow:Commit ;
+    logic:choicePredicate gmeow:contentDigest, gmeow:versionFingerprint ;
+    logic:choiceMode "at-least-one" ;
+    logic:formalizes gmeow:Commit ;
+    logic:message "A source object requires a typed byte digest or its supplied scheme fingerprint." .
+
+# A source object's scheme identity and its raw-byte digest remain distinct.
+gmeow:AnnotatedTagSourceIdentityConstraint
+    a logic:ChoiceGroupConstraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "required AnnotatedTag source identity"@x-gmeow-english ;
+    skos:definition "An AnnotatedTag retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."@x-gmeow-english ;
+    gmeow:useWhen "Use to require a source-object identity while preserving the criterion under which it was supplied."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."@x-gmeow-english ;
+    logic:onClass gmeow:AnnotatedTag ;
+    logic:choicePredicate gmeow:contentDigest, gmeow:versionFingerprint ;
+    logic:choiceMode "at-least-one" ;
+    logic:formalizes gmeow:AnnotatedTag ;
+    logic:message "A source object requires a typed byte digest or its supplied scheme fingerprint." .

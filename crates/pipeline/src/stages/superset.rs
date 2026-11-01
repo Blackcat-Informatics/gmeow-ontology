@@ -1222,9 +1222,12 @@ pub(crate) fn canonical_ntriples(dataset: &RdfDataset) -> gmeow_errors::Result<V
     // re-materialized to plain `rdf:reifies`/annotation triples before canonicalizing.
     // Format-adaptive: a default-graph dataset yields N-Triples lines, a graph-labelled
     // one N-Quads — byte-identical to the prior oxigraph-flat path.
-    purrdf::canonical_flat_nquads(dataset)
-        .map(String::into_bytes)
-        .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize: {e}")))
+    purrdf::canonical_flat_nquads(
+        dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map(|canonical| canonical.nquads().as_bytes().to_vec())
+    .map_err(|e| stage_err(&format!("RDFC-1.0 canonicalize: {e}")))
 }
 
 /// Parse the emitted bundle back into a native dataset (closes serialize -> parse).

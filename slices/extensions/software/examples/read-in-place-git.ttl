@@ -25,11 +25,11 @@ ex:authorIdentity a gmeow:AuthorIdentity ;
     gmeow:authorIdentityString "Nora Valdez <nora@example.org>" ;
     gmeow:canonicalizedIdentity ex:author .
 ex:blob a gmeow:Blob ;
-    gmeow:contentDigest "git:e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" .
+    gmeow:versionFingerprint "git:e69de29bb2d1d6434b8b29ae775ad8c2e48c5391" .
 ex:root a gmeow:SourceTree ;
-    gmeow:contentDigest "git:1111111111111111111111111111111111111111" .
+    gmeow:versionFingerprint "git:1111111111111111111111111111111111111111" .
 ex:subtree a gmeow:SourceTree ;
-    gmeow:contentDigest "git:2222222222222222222222222222222222222222" .
+    gmeow:versionFingerprint "git:2222222222222222222222222222222222222222" .
 
 # One subtree is reused under a and b. Its entry f is one committed entry,
 # reached through two distinct paths under the same root.
@@ -53,19 +53,19 @@ ex:pathB a gmeow:TreePathOccurrence ;
     gmeow:pathEntry ex:f .
 
 ex:left a gmeow:Commit ;
-    gmeow:contentDigest "git:3333333333333333333333333333333333333333" ;
+    gmeow:versionFingerprint "git:3333333333333333333333333333333333333333" ;
     gmeow:commitInRepository ex:repository ;
     gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
     gmeow:commitAuthorIdentity ex:authorIdentity ;
     gmeow:commitCommitterIdentity ex:authorIdentity .
 ex:right a gmeow:Commit ;
-    gmeow:contentDigest "git:4444444444444444444444444444444444444444" ;
+    gmeow:versionFingerprint "git:4444444444444444444444444444444444444444" ;
     gmeow:commitInRepository ex:repository ;
     gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
     gmeow:commitAuthorIdentity ex:authorIdentity ;
     gmeow:commitCommitterIdentity ex:authorIdentity .
 ex:merge a gmeow:Commit ;
-    gmeow:contentDigest "git:5555555555555555555555555555555555555555" ;
+    gmeow:versionFingerprint "git:5555555555555555555555555555555555555555" ;
     gmeow:commitInRepository ex:repository ;
     gmeow:commitTree ex:root ; gmeow:authoredBy ex:author ;
     gmeow:commitAuthorIdentity ex:authorIdentity ;
@@ -113,12 +113,12 @@ ex:withoutRecordedCommit a gmeow:Checkout ;
 # A tag object can target another tag object. Its name and tagger clock belong
 # to that object, while the tag ref is a separate observed pointer.
 ex:innerTag a gmeow:AnnotatedTag ;
-    gmeow:contentDigest "git:6666666666666666666666666666666666666666" ;
+    gmeow:versionFingerprint "git:6666666666666666666666666666666666666666" ;
     gmeow:tagTarget ex:merge ; gmeow:tagName "v1.0" ;
     gmeow:taggerIdentity ex:authorIdentity ;
     gmeow:taggerTime "2026-10-30T17:00:00Z"^^xsd:dateTime .
 ex:outerTag a gmeow:AnnotatedTag ;
-    gmeow:contentDigest "git:7777777777777777777777777777777777777777" ;
+    gmeow:versionFingerprint "git:7777777777777777777777777777777777777777" ;
     gmeow:tagTarget ex:innerTag ; gmeow:tagName "archive-v1.0" ;
     gmeow:taggerIdentity ex:authorIdentity ;
     gmeow:taggerTime "2026-10-30T17:10:00Z"^^xsd:dateTime .

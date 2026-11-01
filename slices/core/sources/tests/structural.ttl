@@ -19,7 +19,8 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 ASK {
-    gmeow:contentDigest   a owl:DatatypeProperty ; rdfs:range rdfs:Literal .
+    gmeow:contentDigest a owl:DatatypeProperty ; rdfs:range ?digestRange .
+    ?digestRange owl:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) .
     gmeow:sourceLocation  a owl:DatatypeProperty ; rdfs:domain gmeow:CreativeWork ; rdfs:range rdfs:Literal .
     gmeow:sourceModifiedAt a owl:DatatypeProperty ; rdfs:domain gmeow:CreativeWork ; rdfs:range xsd:dateTime .
 }""" ;

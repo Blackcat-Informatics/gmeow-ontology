@@ -19,10 +19,10 @@ ce:famCollideA a gmeow:EmbeddingFamily ;
     gmeow:executionContract               "fp32;deterministic=true" ;
     gmeow:subjectProjectionContract       "text-serialization=turtle-v1" ;
     gmeow:generationNormalizationContract  "l2-normalize" ;
-    gmeow:contentDigest     "blake3:fada000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:fada000011112222333344445555666677778888999900001111222233334444" .
 
 ce:famCollideB a gmeow:EmbeddingFamily ;
     gmeow:executionContract               "fp16;deterministic=false" ;
     gmeow:subjectProjectionContract       "text-serialization=ntriples-v2" ;
     gmeow:generationNormalizationContract  "none" ;
-    gmeow:contentDigest     "blake3:fada000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:fada000011112222333344445555666677778888999900001111222233334444" .

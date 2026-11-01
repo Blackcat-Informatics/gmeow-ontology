@@ -47,5 +47,5 @@ ex:publicGuide a gmeow:StyleGuide ;
 
 ex:voiceDoc a gmeow:Document ;
     rdfs:label "vocal-mechanics excerpt"@en ;
-    gmeow:contentDigest "blake3:2f1a9c44d0e8b7a3" ;
+    gmeow:contentDigest "2f1a9c44d0e8b7a32f1a9c44d0e8b7a32f1a9c44d0e8b7a32f1a9c44d0e8b7a3"^^gmeow:blake3_256Digest ;
     gmeow:hasAboutness gmeow:aboutnessEnacts .

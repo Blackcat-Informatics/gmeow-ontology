@@ -237,8 +237,11 @@ fn build_output_from_report(
         crate::stages::carrier::GRAPH_VERIFY,
     )?;
 
-    let canonical_nquads = purrdf::canonical_flat_nquads(edb)
-        .map_err(|e| stage_err(format!("canonicalize verification input digest: {e}")))?;
+    let canonical_nquads = purrdf::canonical_flat_nquads(
+        edb,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| stage_err(format!("canonicalize verification input digest: {e}")))?;
     // The shipped CLI reconstructs the verdict-and-provenance handle from
     // `graph/reasoning`. That projection deliberately omits EDB payload rows, so grade
     // the transport-normalized value the consumer can actually recover rather than the
@@ -262,7 +265,9 @@ fn build_output_from_report(
     );
     report.metadata.insert(
         "verifyInputDigest".to_string(),
-        gmeow_errors::JsonEvidence::from(ContentDigest::of(canonical_nquads.as_bytes()).to_hex()),
+        gmeow_errors::JsonEvidence::from(
+            ContentDigest::of(canonical_nquads.nquads().as_bytes()).to_hex(),
+        ),
     );
     report.metadata.insert(
         "verifyReasoningDigest".to_string(),
@@ -389,13 +394,20 @@ pub fn grade_shipped_attestation(
     if shipped_graph.quad_count() == 0 {
         return Err(stage_err("snapshot carries no graph/verify attestation"));
     }
-    let expected_graph_bytes = purrdf::canonical_flat_nquads(&expected_graph)
-        .map_err(|error| stage_err(format!("canonicalize fresh graph/verify: {error}")))?;
-    let shipped_graph_bytes = purrdf::canonical_flat_nquads(&shipped_graph)
-        .map_err(|error| stage_err(format!("canonicalize shipped graph/verify: {error}")))?;
-    let expected_graph_digest = ContentDigest::of(expected_graph_bytes.as_bytes()).to_hex();
-    let shipped_graph_digest = ContentDigest::of(shipped_graph_bytes.as_bytes()).to_hex();
-    if expected_graph_bytes != shipped_graph_bytes {
+    let expected_graph_bytes = purrdf::canonical_flat_nquads(
+        &expected_graph,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| stage_err(format!("canonicalize fresh graph/verify: {error}")))?;
+    let shipped_graph_bytes = purrdf::canonical_flat_nquads(
+        &shipped_graph,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| stage_err(format!("canonicalize shipped graph/verify: {error}")))?;
+    let expected_graph_digest =
+        ContentDigest::of(expected_graph_bytes.nquads().as_bytes()).to_hex();
+    let shipped_graph_digest = ContentDigest::of(shipped_graph_bytes.nquads().as_bytes()).to_hex();
+    if expected_graph_bytes.nquads() != shipped_graph_bytes.nquads() {
         return Err(stage_err(format!(
             "shipped graph/verify is stale: expected {expected_graph_digest}, found \
              {shipped_graph_digest}"

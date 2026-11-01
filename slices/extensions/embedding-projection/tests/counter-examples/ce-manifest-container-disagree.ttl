@@ -15,13 +15,13 @@ ce:splitProj a gmeow:EmbeddingProjection ;
 ce:splitContainer a gmeow:ProfileSurface ;
     gmeow:profileSurfaceOf           ce:splitProj ;
     gmeow:profileSurfaceKind         gmeow:surfaceContainer ;
-    gmeow:recordsSourceDigest        "blake3:src0000011112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsSourceDigest        "32c0000011112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest ;
     gmeow:recordsModelContractDigest "blake3:mod0000011112222333344445555666677778888999900001111222233334444" ;
     gmeow:recordsTargetTableDigest   "blake3:tgt0000011112222333344445555666677778888999900001111222233334444" .
 
 ce:splitManifest a gmeow:ProfileSurface ;
     gmeow:profileSurfaceOf           ce:splitProj ;
     gmeow:profileSurfaceKind         gmeow:surfaceManifest ;
-    gmeow:recordsSourceDigest        "blake3:src9999911112222333344445555666677778888999900001111222233334444" ;
+    gmeow:recordsSourceDigest        "32c9999911112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest ;
     gmeow:recordsModelContractDigest "blake3:mod0000011112222333344445555666677778888999900001111222233334444" ;
     gmeow:recordsTargetTableDigest   "blake3:tgt0000011112222333344445555666677778888999900001111222233334444" .

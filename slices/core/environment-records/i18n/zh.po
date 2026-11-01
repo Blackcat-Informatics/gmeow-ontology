@@ -1766,8 +1766,8 @@ msgid "meaningful object state digest"
 msgstr "对象有意义状态摘要"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectState|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-tagged digest of meaningful state encoded under an explicit canonical profile. The claim record is an InformationObject; its own bytes are distinct from the selected state artifact."
-msgstr "按明确规范配置编码的有意义状态的带算法标记摘要。断言记录是 InformationObject；其自身字节区别于所选状态制品。"
+msgid "The supplied byte digest of the selected meaningful-state artifact encoded under an explicit canonical profile. The digest datatype identifies BLAKE3-256, SHA-256 or MD5; its lexical form is bare lowercase hexadecimal. The claim record's own bytes are distinct from the selected artifact."
+msgstr "所选有意义状态制品在明确规范配置下编码后的所提供字节摘要。摘要数据类型标识 BLAKE3-256、SHA-256 或 MD5；其词法形式是不带前缀的小写十六进制。声明记录自身的字节与所选制品的字节不同。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/worldObjectState|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for an explicitly attributed environment record with exact source identities."
@@ -2102,8 +2102,8 @@ msgid "answered request revision digest"
 msgstr "所回应请求修订摘要"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/requestRevisionDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-tagged digest of the exact request revision an offer, fulfillment or acceptance answers. It must agree with that revision's own contentDigest, not hash the response."
-msgstr "提议、履行或接受所回应的确切请求修订的带算法标记摘要。它必须与该修订自身的 contentDigest 一致，而非对回应计算哈希。"
+msgid "The supplied byte digest of the exact request revision an offer, fulfillment or acceptance answers. The complete algorithm-typed literal must also be a contentDigest of that revision; it does not hash the response."
+msgstr "报价、履行或接受所回答的精确请求修订版的所提供字节摘要。按算法类型化的完整字面量也必须是该修订版的 contentDigest；它不对响应求哈希。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/requestRevisionDigest|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for an explicitly attributed environment record with exact source identities."
@@ -2582,8 +2582,8 @@ msgid "meaningful state digest algorithm tag"
 msgstr "有意义状态摘要算法标记"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldStateDigestTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Each supplied worldObjectState digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length."
-msgstr "每个给出的 worldObjectState 摘要保留明确的算法标记和非空载荷。此词法义务不计算字节哈希，也不核验算法、编码或摘要长度。"
+msgid "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."
+msgstr "每个所提供摘要保留精确的 BLAKE3-256、SHA-256 或 MD5 数据类型，以及不带前缀的小写十六进制形式：BLAKE3-256 和 SHA-256 为 64 位，MD5 为 32 位。此准入检查既不计算摘要，也不验证来源字节。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/WorldStateDigestTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to check intrinsic consistency within the declared source scope."
@@ -2606,8 +2606,8 @@ msgid "request revision digest algorithm tag"
 msgstr "请求修订摘要算法标记"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RequestRevisionDigestTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Each supplied requestRevisionDigest digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length."
-msgstr "每个给出的 requestRevisionDigest 摘要保留明确的算法标记和非空载荷。此词法义务不计算字节哈希，也不核验算法、编码或摘要长度。"
+msgid "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."
+msgstr "每个所提供摘要保留精确的 BLAKE3-256、SHA-256 或 MD5 数据类型，以及不带前缀的小写十六进制形式：BLAKE3-256 和 SHA-256 为 64 位，MD5 为 32 位。此准入检查既不计算摘要，也不验证来源字节。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/RequestRevisionDigestTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to check intrinsic consistency within the declared source scope."
@@ -4986,8 +4986,8 @@ msgid "Avoid trimming spaces, inventing an endpoint or treating a name as a perf
 msgstr "避免裁剪空格、虚构端点或将名称视为已执行 ToolCall。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the exact xsd:string on the WorldAffordance; actual calls retain usedTool independently."
-msgstr "在 WorldAffordance 上保留精确 xsd:string，实际调用单独保留 usedTool。"
+msgid "Keep the exact xsd:string or xsd:token on the WorldAffordance; actual calls retain usedTool independently."
+msgstr "在 WorldAffordance 上保留精确 xsd:string 或 xsd:token，实际调用单独保留 usedTool。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/affordanceToolName|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "No tool registry lookup, name parser or capability fallback is implied."
@@ -5378,8 +5378,8 @@ msgid "Avoid normalizing the code or mapping it automatically to an AwarenessMod
 msgstr "避免规范化代码或自动映射到 AwarenessMode。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep exact case and spaces in xsd:string with source context on the statement."
-msgstr "以 xsd:string 保留精确大小写和空格，并在陈述上保留来源情境。"
+msgid "Keep exact case and spaces in xsd:string or xsd:token with source context on the statement."
+msgstr "以 xsd:string 或 xsd:token 保留精确大小写和空格，并在陈述上保留来源情境。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "The union carrier has an explicit native admission law; string typing is not a mode parser or state inference."
@@ -5406,8 +5406,8 @@ msgid "Avoid substituting defeatsResponse, normalizing digest syntax or claiming
 msgstr "避免用 defeatsResponse 替代、规范化摘要语法或声称已验证哈希匹配。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the exact xsd:string on Activity and retain the source statement's attribution independently."
-msgstr "在 Activity 上保留精确 xsd:string，并独立保留来源陈述归属。"
+msgid "Keep the exact xsd:string or xsd:token on Activity and retain the source statement's attribution independently."
+msgstr "在 Activity 上保留精确 xsd:string 或 xsd:token，并独立保留来源陈述归属。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "No algorithm, encoding, length, work identity or hash-verification receipt is invented from the opaque source string."

@@ -39,11 +39,14 @@ fn streamed_flat_union_matches_the_prior_flat_canonical_path() {
     ];
     let old_refs: Vec<&[RdfQuad]> = old_sources.iter().map(Vec::as_slice).collect();
     let old_union = purrdf::flat_dataset_from_quad_sources(&old_refs).expect("old flat union");
-    let expected =
-        purrdf::canonical_flat_nquads(old_union.as_ref()).expect("old flat union canonicalizes");
+    let expected = purrdf::canonical_flat_nquads(
+        old_union.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("old flat union canonicalizes");
 
     let actual = stratum_nquads(first.as_ref(), &[second]).expect("streamed flat union");
-    assert_eq!(actual, expected);
+    assert_eq!(actual, expected.nquads());
 }
 
 #[test]
@@ -73,12 +76,16 @@ fn medium_stratum_identity_binds_the_world_of_attributed_claims() {
     let (first_digest, first_len) = snapshot_stratum_digest(&first, &[]).unwrap();
     let (second_digest, _) = snapshot_stratum_digest(&second, &[]).unwrap();
     assert_ne!(first_digest, second_digest);
-    let expected = purrdf::canonical_flat_nquads(&first).unwrap();
+    let expected = purrdf::canonical_flat_nquads(
+        &first,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     assert_eq!(
         first_digest,
-        crate::medium::blake3_digest(expected.as_bytes())
+        crate::medium::blake3_digest(expected.nquads().as_bytes())
     );
-    assert_eq!(first_len, expected.len());
+    assert_eq!(first_len, expected.nquads().len());
 
     // Distinct source documents may share blank labels, and each claim's
     // world remains part of the exact union checked by the reader.
@@ -88,10 +95,17 @@ fn medium_stratum_identity_binds_the_world_of_attributed_claims() {
     ];
     let union =
         purrdf::flat_dataset_from_quad_sources(&[&source_quads[0], &source_quads[1]]).unwrap();
-    let expected = purrdf::canonical_flat_nquads(&union).unwrap();
+    let expected = purrdf::canonical_flat_nquads(
+        &union,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let (digest, len) = snapshot_stratum_digest(&first, &[second]).unwrap();
-    assert_eq!(digest, crate::medium::blake3_digest(expected.as_bytes()));
-    assert_eq!(len, expected.len());
+    assert_eq!(
+        digest,
+        crate::medium::blake3_digest(expected.nquads().as_bytes())
+    );
+    assert_eq!(len, expected.nquads().len());
 }
 
 #[test]

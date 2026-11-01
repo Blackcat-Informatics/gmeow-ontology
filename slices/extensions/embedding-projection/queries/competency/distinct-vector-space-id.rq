@@ -1,7 +1,7 @@
 # CT2 — distinct vector-space identity (violation finder; must be EMPTY over valid
 # data). Two gmeow:VectorSpaceContract nodes that DIFFER in a comparability
 # component (effectiveOfFamily, embeddingDimensions, distanceMetric,
-# normalizationKind, or matryoshkaPolicy) yet SHARE one gmeow:contentDigest — a
+# normalizationKind, or matryoshkaPolicy) yet SHARE one gmeow:versionFingerprint — a
 # digest collision that would make two incomparable spaces look comparable. The
 # Matryoshka case (a full space and its leading-prefix over one family differ in
 # dimensions) is included: they MUST carry different digests, so the clean scene
@@ -9,8 +9,8 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
 SELECT ?a ?b WHERE {
-  ?a a gmeow:VectorSpaceContract ; gmeow:contentDigest ?d .
-  ?b a gmeow:VectorSpaceContract ; gmeow:contentDigest ?d .
+  ?a a gmeow:VectorSpaceContract ; gmeow:versionFingerprint ?d .
+  ?b a gmeow:VectorSpaceContract ; gmeow:versionFingerprint ?d .
   FILTER(STR(?a) < STR(?b))
   {
     ?a gmeow:effectiveOfFamily ?fa . ?b gmeow:effectiveOfFamily ?fb . FILTER(?fa != ?fb)

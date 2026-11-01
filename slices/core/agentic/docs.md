@@ -55,14 +55,36 @@ called. One tool per call, functional.
 
 ### gmeow:toolArguments · gmeow:toolResult
 
-The verbatim, byte-faithful payloads of the call — what was asked and what came back.
-These record the **payload of the event**, never an entity link; `gmeow:toolResult` is
-the JSON the tool returned, not the thing it created. For large payloads the
-verbatim-or-digest doctrine applies: store a content digest literal (`"blake3:…"` — the
-`gmeow:contentDigest` convention from the sources slice) instead of the bytes; the
-digest is the value, resolvable from a content-addressed store, and the self-describing
-prefix keeps the two forms distinguishable. At most one arguments record and at most one
-result record per call — both optional (functional, with closed-world twins).
+The optional opaque literal slots record what the tool received and returned.
+A recording profile may supply its explicitly declared digest locator instead of
+inline content. Such a profile-specific string is not the generic
+`gmeow:contentDigest` contract. Each slot admits at most one value and requires
+none. The payload describes event content; an entity produced by the call still
+links back through `gmeow:wasGeneratedBy` (Principle 5).
+
+### gmeow:toolArgumentsStructured · gmeow:toolResultStructured
+
+Each optional companion links at most one `StructuredValue` occurrence from
+record-metadata. Structured arguments and results can therefore use native RDF
+without an opaque JSON object literal. A value is a native scalar term, labelled
+map, ordered sequence or explicit null. Typed empty containers, an empty literal,
+null and absence remain distinct. Maps retain repeated keys as separate facets;
+source map order is optional. Sequence occurrences require numeric ordinals.
+Literal lexical form, datatype, language and direction remain intact, as do
+IRI, blank-node and triple-term identity.
+
+For opaque media, put the supplied literal in `structuredTerm` and the existing
+`mediaType` and `charset` metadata on the linked payload occurrence. The arguments
+and result roles bind media metadata separately; one media type on the whole call
+would not identify which payload it described. The companion can coexist with an
+opaque slot, but neither relation asserts that the representations match or
+executes a conversion. These companions describe payloads rather than generated
+output artifacts (Principles 2, 4, 5 and 17).
+
+The existing generic RDF query and verification surfaces accept these graph
+assertions. This vocabulary does not widen the fixed memory audit DTOs or promise
+that their string-based arguments/result fields persist arbitrary structured
+subgraphs.
 
 ## Cross-slice bridges
 
@@ -71,8 +93,10 @@ result record per call — both optional (functional, with closed-world twins).
   requested.
 - **provenance** — produced entities link back via `gmeow:wasGeneratedBy`; agent
   responsibility rides `gmeow:wasAttributedTo`, unchanged.
-- **sources** — the digest-literal convention for large payloads is
-  `gmeow:contentDigest`'s (`"blake3:…"`, `"sha256:…"`), reused verbatim.
+- **record-metadata** — structured payload occurrences reuse labelled facets,
+  native terms and owner-local ordering.
+- **documents** — existing media identity and charset describe each payload
+  occurrence through the shared record-metadata dependency.
 - **temporal** — `gmeow:atTime` orders calls within a turn; no sequence machinery is
   minted here.
 

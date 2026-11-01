@@ -11,7 +11,7 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:collideFamily a gmeow:EmbeddingFamily ;
-    gmeow:contentDigest "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:fam000011112222333344445555666677778888999900001111222233334444" .
 
 ce:collideNorm a gmeow:NormalizationKind .
 
@@ -21,7 +21,7 @@ ce:collideFull a gmeow:VectorSpaceContract ;
     gmeow:distanceMetric      gmeow:distanceMetricCosine ;
     gmeow:normalizationKind   ce:collideNorm ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
-    gmeow:contentDigest       "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .
 
 ce:collidePrefix a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily   ce:collideFamily ;
@@ -29,4 +29,4 @@ ce:collidePrefix a gmeow:VectorSpaceContract ;
     gmeow:distanceMetric      gmeow:distanceMetricCosine ;
     gmeow:normalizationKind   ce:collideNorm ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaPrefix ;
-    gmeow:contentDigest       "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:cccc000011112222333344445555666677778888999900001111222233334444" .

@@ -702,7 +702,10 @@ pub fn project_correspondence_dataset(
             g.add_lit(
                 &source.alias,
                 &format!("{LOGIC_NAMESPACE}groundingSourceDigest"),
-                purrdf::RdfLiteral::simple(&ownership.digest),
+                purrdf::RdfLiteral::typed(
+                    &ownership.digest,
+                    "https://blackcatinformatics.ca/gmeow/sha256Digest",
+                ),
             )?;
         }
         let cell = program
@@ -1426,10 +1429,24 @@ pub fn parse_correspondence(
             ([owner], [path], [digest])
                 if path.language.is_none()
                     && path.direction.is_none()
-                    && path.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string"
+                    && match path.datatype_iri() {
+                        purrdf::xsd::datatype::XSD_STRING => {
+                            purrdf::xsd::simple::read_xml_string(&path.lexical_form).is_ok()
+                        }
+                        purrdf::xsd::datatype::XSD_TOKEN => {
+                            purrdf::xsd::simple::read_token(&path.lexical_form).is_ok()
+                        }
+                        _ => false,
+                    }
                     && digest.language.is_none()
                     && digest.direction.is_none()
-                    && digest.datatype_iri() == "http://www.w3.org/2001/XMLSchema#string" =>
+                    && digest.datatype_iri()
+                        == "https://blackcatinformatics.ca/gmeow/sha256Digest"
+                    && digest.lexical_form.len() == 64
+                    && digest
+                        .lexical_form
+                        .bytes()
+                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)) =>
             {
                 Some(super::grounding_catalog::GroundingSourceIdentity {
                     owner: (*owner).to_owned(),
@@ -1441,7 +1458,7 @@ pub fn parse_correspondence(
                 return Err(field_error(
                     alias,
                     "native source",
-                    "physical grounding ownership requires exactly one owner, untagged path and digest",
+                    "physical grounding ownership requires exactly one owner, an untagged xsd:string or xsd:token path and a typed SHA-256 digest with 64 lowercase hexadecimal digits",
                 ));
             }
         };

@@ -75,7 +75,7 @@ gmeow:LabelledFacet
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "Labelled Facet"@x-gmeow-english ;
-    skos:definition "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."@x-gmeow-english ;
+    skos:definition "An information object holding one verbatim run-time label and at most one payload across facetText, facetValue and facetStructuredValue. A label-only facet preserves a present key with no payload; it does not assert null or an empty value. Labels are data rather than ontology predicates."@x-gmeow-english ;
     gmeow:useWhen "Use for content whose field names are chosen at run time."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid replacing reviewed domain properties with facets when their semantics already fit."@x-gmeow-english ;
     gmeow:howToUse "Mint a facet by source position, attach it with hasFacet, preserve facetLabel and add only the appropriate payload."@x-gmeow-english ;
@@ -93,7 +93,7 @@ gmeow:hasFacet
     skos:definition "Relates a record or record part to a labelled content facet. It does not turn the facet label into a schema property or impose a single facet per label."@x-gmeow-english ;
     gmeow:useWhen "Use to expose run-time fields as graph content."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring vocabulary identity from matching facet labels."@x-gmeow-english ;
-    gmeow:howToUse "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."@x-gmeow-english ;
+    gmeow:howToUse "Link every field occurrence to its containing record, part or StructuredMap; retain source order with entryOrdinal when supplied."@x-gmeow-english ;
     skos:example "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."@x-gmeow-english ;
     logic:range gmeow:LabelledFacet .
 
@@ -134,7 +134,7 @@ gmeow:facetText
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "facet text"@x-gmeow-english ;
-    skos:definition "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."@x-gmeow-english ;
+    skos:definition "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes simultaneous facetValue and facetStructuredValue payloads but permits the facet to carry no payload at all."@x-gmeow-english ;
     gmeow:useWhen "Use when the run-time field contains text."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid stringifying numbers or booleans to fit this text property."@x-gmeow-english ;
     gmeow:howToUse "Supply one string, language-tagged string or directional language string; use facetValue for typed scalar data."@x-gmeow-english ;
@@ -147,10 +147,10 @@ gmeow:facetValue
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "facet value"@x-gmeow-english ;
-    skos:definition "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."@x-gmeow-english ;
+    skos:definition "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype and lexical form are retained without string coercion; simultaneous facetText and facetStructuredValue are excluded."@x-gmeow-english ;
     gmeow:useWhen "Use when a run-time field carries a typed scalar literal."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid representing a source null as an invented string or datatype value."@x-gmeow-english ;
-    gmeow:howToUse "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original literal datatype and lexical form; omit all three payload properties for a label-only facet."@x-gmeow-english ;
     skos:example "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."@x-gmeow-english ;
     logic:domain gmeow:LabelledFacet ;
     logic:range rdfs:Literal .
@@ -282,7 +282,7 @@ gmeow:ContextArtifactDigestConstraint
     gmeow:useWhen "Use to retain artifact identity when auditing injected context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid satisfying artifact identity with the digest of the containing record."@x-gmeow-english ;
     gmeow:howToUse "Place contentDigest on the referenced artifact; reuse that node across records."@x-gmeow-english ;
-    skos:example "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."@x-gmeow-english ;
+    skos:example "ex:inputArtifact gmeow:contentDigest \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\"^^gmeow:sha256Digest ."@x-gmeow-english ;
     logic:formalizes gmeow:contextIncluded ;
     logic:message "A context artifact must carry its own contentDigest." ;
     logic:integrity [ a logic:Formula ;
@@ -621,3 +621,416 @@ gmeow:statedRationale
     logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/statedRationale" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+# Structured event payloads, authored in the canonical grounding kernel.
+
+gmeow:StructuredValue
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured Value"@x-gmeow-english ;
+    skos:definition "An information object describing one payload occurrence as exactly one native RDF term, map, sequence or explicit null. Absence of a payload relation makes no null or empty-container assertion."@x-gmeow-english ;
+    gmeow:useWhen "Use for payloads whose structure or native RDF term must remain queryable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an omitted payload as null or converting native RDF terms to strings."@x-gmeow-english ;
+    gmeow:howToUse "Choose one branch: structuredTerm, StructuredMap, StructuredSequence or StructuredNull. Keep mediaType and charset on this occurrence when it carries opaque media."@x-gmeow-english ;
+    skos:example "A payload occurrence can retain a directional language literal as its native structuredTerm."@x-gmeow-english ;
+    logic:subClassOf gmeow:InformationObject .
+
+gmeow:StructuredMap
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured Map"@x-gmeow-english ;
+    skos:definition "A structured value whose entries are labelled facet occurrences linked by hasFacet. Distinct occurrences retain repeated keys. Source order is retained with entryOrdinal when supplied; unordered maps require no invented order. A typed map with no entries is empty."@x-gmeow-english ;
+    gmeow:useWhen "Use for structured payload objects with source-supplied keys."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving entry identity from a key or imposing unique keys."@x-gmeow-english ;
+    gmeow:howToUse "Attach distinct LabelledFacet occurrences with hasFacet; retain each exact key and any supplied entryOrdinal. Use facetStructuredValue for nesting."@x-gmeow-english ;
+    skos:example "An empty map remains explicitly typed StructuredMap and has no hasFacet entries."@x-gmeow-english ;
+    logic:subClassOf gmeow:StructuredValue , [ a logic:Restriction ; logic:onProperty gmeow:hasFacet ; logic:allValuesFrom gmeow:LabelledFacet ] .
+
+gmeow:StructuredSequence
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured Sequence"@x-gmeow-english ;
+    skos:definition "A structured value whose ordered value occurrences are linked by structuredItem. Each occurrence has one nonnegative numeric ordinal position; distinct occurrences preserve repeated values. A typed sequence with no items is empty."@x-gmeow-english ;
+    gmeow:useWhen "Use when payload item order is meaningful."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing facet labels for sequence positions or sharing one occurrence across different positions."@x-gmeow-english ;
+    gmeow:howToUse "Link one StructuredValue occurrence per item and retain entryOrdinal on it; gaps do not imply absent items."@x-gmeow-english ;
+    skos:example "Two occurrences may carry the same native term at different sequence ordinals."@x-gmeow-english ;
+    logic:subClassOf gmeow:StructuredValue , [ a logic:Restriction ; logic:onProperty gmeow:structuredItem ; logic:allValuesFrom gmeow:StructuredValue ] .
+
+gmeow:StructuredNull
+    a logic:Class , logic:SubKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured Null"@x-gmeow-english ;
+    skos:definition "A structured value explicitly asserting source null. It carries no structuredTerm, map facets or sequence items and differs from an empty container, empty literal and omitted payload."@x-gmeow-english ;
+    gmeow:useWhen "Use only when the source explicitly supplies null."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring null from missing information or a label-only facet."@x-gmeow-english ;
+    gmeow:howToUse "Type the payload occurrence StructuredNull without inventing a null literal."@x-gmeow-english ;
+    skos:example "An explicitly null map value uses facetStructuredValue to a StructuredNull occurrence."@x-gmeow-english ;
+    logic:subClassOf gmeow:StructuredValue .
+
+gmeow:structuredTerm
+    a logic:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "structured term"@x-gmeow-english ;
+    skos:definition "The single original RDF 1.2 term carried by a scalar StructuredValue occurrence: IRI, blank node, literal or triple term. Literal lexical form, datatype, language and direction remain intact. No object-kind restriction or conversion is imposed."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a native scalar RDF term in a structured payload."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid stringifying a resource, retyping a literal or replacing a triple term with a quoted string."@x-gmeow-english ;
+    gmeow:howToUse "Attach the original term directly. Integrity compares whole terms by RDF identity, not datatype value equality."@x-gmeow-english ;
+    skos:example "An IRI payload remains an IRI object of structuredTerm rather than an IRI-shaped literal."@x-gmeow-english ;
+    rdfs:seeAlso gmeow:StructuredValue .
+
+gmeow:structuredItem
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "structured item"@x-gmeow-english ;
+    skos:definition "Links a StructuredSequence to one value occurrence. The occurrence carries its payload branch and one nonnegative numeric ordinal position unique within that sequence. Supplied lexical aliases of the same position are retained. The relation creates no run-time key."@x-gmeow-english ;
+    gmeow:useWhen "Use to expose each ordered payload item as graph content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using one value occurrence for two positions in the same sequence."@x-gmeow-english ;
+    gmeow:howToUse "Link distinct occurrences and preserve their supplied zero-based nonnegative ordinals."@x-gmeow-english ;
+    skos:example "A nested sequence item points to a StructuredSequence occurrence with its own entries."@x-gmeow-english ;
+    logic:domain gmeow:StructuredSequence ; logic:range gmeow:StructuredValue .
+
+gmeow:facetStructuredValue
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "facet structured value"@x-gmeow-english ;
+    skos:definition "The structured payload occurrence of a labelled facet, exclusive with facetText and facetValue. It retains nested maps, sequences, explicit null or a native RDF scalar without changing the facet key."@x-gmeow-english ;
+    gmeow:useWhen "Use for nested or explicitly null facet values and resource-valued scalars."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a label-only facet as StructuredNull or using facetConcept as this payload channel."@x-gmeow-english ;
+    gmeow:howToUse "Retain the facet label and ordinal; link at most one StructuredValue and omit the two literal payload channels."@x-gmeow-english ;
+    skos:example "A map entry can retain its key while pointing to an explicitly empty StructuredSequence."@x-gmeow-english ;
+    logic:domain gmeow:LabelledFacet ; logic:range gmeow:StructuredValue .
+
+gmeow:StructuredValueBranchConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured value branch constraint"@x-gmeow-english ;
+    skos:definition "Every StructuredValue has exactly one scalar, map, sequence or null branch. Only maps carry hasFacet entries and only sequences carry structuredItem entries."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the canonical payload occurrence contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating integrity failure as permission to discard source content."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."@x-gmeow-english ;
+    skos:example "Malformed payload occurrences produce a validation failure rather than a weaker representation."@x-gmeow-english ;
+    logic:formalizes gmeow:StructuredValue ;
+    logic:message "Every StructuredValue has exactly one scalar, map, sequence or null branch. Only maps carry hasFacet entries and only sequences carry structuredItem entries." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredValue ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payload" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "payload" ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredNull ] ] ] ] ,
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payload" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "payload" ] ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredNull ] ] ] ] ,
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payload" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "payload" ] ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredNull ] ] ] ] ,
+                    [ a logic:Formula ; logic:and
+                        [ a logic:Formula ; logic:relation rdf:type ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termIri gmeow:StructuredNull ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "payload" ] ;
+                                logic:exists [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                        [ logic:termIndex 1 ; logic:termVariable "payload" ] ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ] ,
+                        [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation rdf:type ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ] ] ] ,
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "facet" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:hasFacet ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "facet" ] ] ] ] ] ,
+                [ a logic:Formula ; logic:or
+                    [ a logic:Formula ; logic:relation rdf:type ;
+                        logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                            [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ,
+                    [ a logic:Formula ; logic:not [ a logic:Formula ;
+                            logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "item" ] ;
+                            logic:exists [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "item" ] ] ] ] ] ] ] ] .
+
+gmeow:StructuredTermIntegrityConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured term integrity constraint"@x-gmeow-english ;
+    skos:definition "A subject of structuredTerm is a StructuredValue and carries at most one original RDF term, compared by whole-term RDF identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the canonical payload occurrence contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating integrity failure as permission to discard source content."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."@x-gmeow-english ;
+    skos:example "Malformed payload occurrences produce a validation failure rather than a weaker representation."@x-gmeow-english ;
+    logic:formalizes gmeow:structuredTerm ;
+    logic:message "A subject of structuredTerm is a StructuredValue and carries at most one original RDF term, compared by whole-term RDF identity." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "term" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "term" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:relation rdf:type ;
+                    logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                        [ logic:termIndex 1 ; logic:termIri gmeow:StructuredValue ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "first" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "second" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:structuredTerm ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] ,
+                                        [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "second" ] ,
+                                        [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] ] ] .
+
+gmeow:StructuredMapOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured map order constraint"@x-gmeow-english ;
+    skos:definition "Structured map ordinals are optional; no source order is invented. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the canonical payload occurrence contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating integrity failure as permission to discard source content."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."@x-gmeow-english ;
+    skos:example "Malformed payload occurrences produce a validation failure rather than a weaker representation."@x-gmeow-english ;
+    logic:formalizes gmeow:StructuredMap ;
+    logic:message "Structured map ordinals are optional; no source order is invented. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredMap ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "secondOrdinal" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:hasFacet ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termDistinct ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstOrdinal" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ] ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "secondEntry" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "firstOrdinal" ] ,
+                            [ logic:termIndex 3 ; logic:termVariable "secondOrdinal" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:hasFacet ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstEntry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:hasFacet ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondEntry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "secondEntry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                                        [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "secondEntry" ] ,
+                                        [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termEqual ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstOrdinal" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ] ] ] ] ] ] .
+
+gmeow:StructuredSequenceOrderConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Structured sequence order constraint"@x-gmeow-english ;
+    skos:definition "Every structured sequence entry has a nonnegative numeric ordinal position. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the canonical payload occurrence contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating integrity failure as permission to discard source content."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."@x-gmeow-english ;
+    skos:example "Malformed payload occurrences produce a validation failure rather than a weaker representation."@x-gmeow-english ;
+    logic:formalizes gmeow:StructuredSequence ;
+    logic:message "Every structured sequence entry has a nonnegative numeric ordinal position. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation rdf:type ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termIri gmeow:StructuredSequence ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "entry" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ;
+                                    logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "ordinal" ] ;
+                                    logic:exists [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                        logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                                            [ logic:termIndex 1 ; logic:termVariable "ordinal" ] ] ] ] ] ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "secondOrdinal" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "entry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "entry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termDistinct ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstOrdinal" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ] ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "secondEntry" ] ,
+                            [ logic:termIndex 2 ; logic:termVariable "firstOrdinal" ] ,
+                            [ logic:termIndex 3 ; logic:termVariable "secondOrdinal" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstEntry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:structuredItem ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondEntry" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "firstOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:entryOrdinal ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "secondEntry" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "firstEntry" ] ,
+                                        [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "secondEntry" ] ,
+                                        [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ,
+                            [ a logic:Formula ; logic:relation logic:termEqual ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "firstOrdinal" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "secondOrdinal" ] ] ] ] ] ] ] ] .
+
+gmeow:FacetStructuredPayloadConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/record-metadata> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "Facet structured payload constraint"@x-gmeow-english ;
+    skos:definition "A facet carrying facetStructuredValue has at most one structured payload and carries neither facetText nor facetValue. Label-only facets remain permitted and do not assert null."@x-gmeow-english ;
+    gmeow:useWhen "Use to validate the canonical payload occurrence contract."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating integrity failure as permission to discard source content."@x-gmeow-english ;
+    gmeow:howToUse "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."@x-gmeow-english ;
+    skos:example "Malformed payload occurrences produce a validation failure rather than a weaker representation."@x-gmeow-english ;
+    logic:formalizes gmeow:facetStructuredValue ;
+    logic:message "A facet carrying facetStructuredValue has at most one structured payload and carries neither facetText nor facetValue. Label-only facets remain permitted and do not assert null." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+            [ logic:termIndex 1 ; logic:termVariable "payload" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:facetStructuredValue ;
+                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                    [ logic:termIndex 1 ; logic:termVariable "payload" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "text" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:facetText ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "text" ] ] ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "literal" ] ;
+                        logic:exists [ a logic:Formula ; logic:relation gmeow:facetValue ;
+                            logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                [ logic:termIndex 1 ; logic:termVariable "literal" ] ] ] ] ,
+                [ a logic:Formula ; logic:not [ a logic:Formula ;
+                        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "first" ] ,
+                            [ logic:termIndex 1 ; logic:termVariable "second" ] ;
+                        logic:exists [ a logic:Formula ; logic:and
+                            [ a logic:Formula ; logic:relation gmeow:facetStructuredValue ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "first" ] ] ,
+                            [ a logic:Formula ; logic:relation gmeow:facetStructuredValue ;
+                                logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] ,
+                                    [ logic:termIndex 1 ; logic:termVariable "second" ] ] ,
+                            [ a logic:Formula ; logic:not [ a logic:Formula ; logic:relation logic:termSameComponent ;
+                                    logic:argument [ logic:termIndex 0 ; logic:termVariable "first" ] ,
+                                        [ logic:termIndex 1 ; logic:termIri logic:componentWhole ] ,
+                                        [ logic:termIndex 2 ; logic:termVariable "second" ] ,
+                                        [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ] ] ] ] ] ] ] ] .
+
+gmeow:LabelledFacet logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:facetStructuredValue ; logic:allValuesFrom gmeow:StructuredValue ] .
+
+gmeow:StructuredMap logic:disjointWith gmeow:StructuredSequence , gmeow:StructuredNull .
+gmeow:StructuredSequence logic:disjointWith gmeow:StructuredNull .

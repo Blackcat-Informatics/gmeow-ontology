@@ -34,7 +34,7 @@ use purrdf::ir::InMemoryPageProvider;
 use purrdf::{
     DistanceMetric, FamilyId, MatrixId, PageGeneration, PagedDataset, PagedQueryLimits,
     PrefixPostprocessing, ProjectionId, RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm,
-    SourceVerificationMode, TargetSetId, TermValue, VectorDtype, VectorSpaceId,
+    TargetSetId, TermValue, VectorDtype, VectorSpaceId,
 };
 
 use gmeow_cli_core::{Reporter, report_diag};
@@ -1866,8 +1866,6 @@ pub struct PurrembHybridQuery<'a> {
     pub postprocessing: &'a str,
     /// Selected retrieval branch.
     pub retrieval_policy: &'a str,
-    /// Source-verification mode.
-    pub source_mode: &'a str,
     /// RDF 1.2 term kind of the corpus rows (both query and candidate columns):
     /// `iri`, `triple-term`, or `literal`.
     pub term_kind: &'a str,
@@ -1945,17 +1943,6 @@ fn parse_retrieval_policy(value: &str) -> gmeow_errors::Result<RetrievalPolicy> 
         other => Err(purremb_selection_err(format!(
             "unknown retrieval policy '{other}' (expected exact-full-space or \
              matryoshka-prefix-then-rerank)"
-        ))),
-    }
-}
-
-/// Parse the source-verification mode.
-fn parse_source_mode(value: &str) -> gmeow_errors::Result<SourceVerificationMode> {
-    match value {
-        "exact" => Ok(SourceVerificationMode::Exact),
-        "certified" => Ok(SourceVerificationMode::Certified),
-        other => Err(purremb_selection_err(format!(
-            "unknown source-verification mode '{other}' (expected exact or certified)"
         ))),
     }
 }
@@ -2038,16 +2025,6 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
             );
         }
     };
-    let source_verification = match parse_source_mode(args.source_mode) {
-        Ok(mode) => mode,
-        Err(detail) => {
-            return fail(
-                reporter,
-                PURREMB_DIAG_CODE,
-                format!("invalid PURREMB selection: {detail}"),
-            );
-        }
-    };
     let term_kind = match parse_term_kind(args.term_kind) {
         Ok(kind) => kind,
         Err(detail) => {
@@ -2072,12 +2049,7 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
         Err(code) => return code,
     };
 
-    let binding = match PurrembBinding::open(
-        &artifact_bytes,
-        &source_bytes,
-        selection,
-        source_verification,
-    ) {
+    let binding = match PurrembBinding::open(&artifact_bytes, &source_bytes, selection) {
         Ok(binding) => binding,
         Err(error) => {
             return fail(
@@ -2089,13 +2061,9 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
     };
 
     // The generation IRI folds the pinned artifact root and the explicit
-    // selection so a differing policy/source-mode is never cache-aliased.
-    let generation_iri = purremb_generation_iri(
-        args.generation_base,
-        binding.artifact_root_hex(),
-        policy,
-        source_verification,
-    );
+    // selection so a differing retrieval policy is never cache-aliased.
+    let generation_iri =
+        purremb_generation_iri(args.generation_base, binding.artifact_root_hex(), policy);
 
     let algebra = VectorSpaceScopedAlgebra::with_cross_space_refusal(BTreeSet::new());
     let algebra_iri = TupleAnnotationAlgebra::identity(&algebra).to_owned();
@@ -2322,13 +2290,13 @@ pub fn hybrid_query_purremb(reporter: &dyn Reporter, args: &PurrembHybridQuery<'
             let receipt = provider.retrieval_receipt();
             println!(
                 "purremb-receipt artifact-root={} source-digest={} certified-rdf={} \
-                 source-mode={} target-set={} matrix={} projection={} vector-space={} \
+                 source-profile={} target-set={} matrix={} projection={} vector-space={} \
                  family={} metric={} metric-code={} dimension={} postprocessing={} \
                  policy={} recall={} loss={} index-guard={}",
                 receipt.artifact_root,
                 receipt.source_exact_digest,
                 receipt.certified_rdf_digest,
-                receipt.source_verification_mode,
+                receipt.source_verification_profile,
                 receipt.target_set,
                 receipt.matrix,
                 receipt.projection.as_deref().unwrap_or("-"),

@@ -114,7 +114,7 @@ ex:fastestRestore a gmeow:ComparisonContext ;
     gmeow:contextStandpoint ex:incidentCommanderStandpoint ;
     gmeow:contextTime ex:incident4412Window ;
     gmeow:contextPolicy ex:fastestRestoreNorm ;
-    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:contentDigest "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:frOverRollback, ex:rollbackOverHotfix .
 
 ex:incidentCommanderStandpoint a gmeow:Standpoint ;
@@ -132,7 +132,7 @@ ex:minimiseImpact a gmeow:ComparisonContext ;
     gmeow:contextStandpoint ex:supportLeadStandpoint ;
     gmeow:contextTime ex:incident4412Window ;
     gmeow:contextPolicy ex:minimiseImpactNorm ;
-    gmeow:contentDigest "blake3:2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a" ;
+    gmeow:contentDigest "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:rollbackTiesFeatureFlag .
 
 ex:supportLeadStandpoint a gmeow:Standpoint ;
@@ -150,7 +150,7 @@ ex:minimiseExposure a gmeow:ComparisonContext ;
     gmeow:contextStandpoint ex:complianceOfficerStandpoint ;
     gmeow:contextTime ex:incident4412Window ;
     gmeow:contextPolicy ex:minimiseExposureNorm ;
-    gmeow:contentDigest "blake3:3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b" ;
+    gmeow:contentDigest "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:hotfixOverRollbackOnExposure,
                                ex:rollbackOverHotfixOnReversibility .
 

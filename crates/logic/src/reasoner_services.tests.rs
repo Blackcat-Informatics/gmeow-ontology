@@ -8,7 +8,11 @@ use purrdf::entail::{ClaimSubject, DlCompleteness, Question};
 #[test]
 fn packed_view_retains_borrowed_proof_context_and_session() {
     let dataset = consistent_dataset();
-    let bytes = purrdf::PackBuilder::build_bytes(&dataset).unwrap();
+    let bytes = purrdf::PackBuilder::build_bytes(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let view = purrdf::PackView::from_bytes(&bytes).unwrap();
     let mut reasoner = DlReasoner::with_proofs(&view).unwrap();
     reasoner.prepare(&Question::Consistency).unwrap();
@@ -24,6 +28,7 @@ fn packed_view_retains_borrowed_proof_context_and_session() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -183,6 +188,7 @@ fn recorded_cancellation_preserves_completed_proofs_and_later_stop_receipts() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -236,9 +242,13 @@ fn recorded_cancellation_retains_the_selected_preparation_budget() {
         work: Some(0),
         bytes: None,
     };
-    let native = Reasoner::with_proofs_and_preparation_budget(&dataset, budget)
-        .unwrap()
-        .consistency();
+    let native = Reasoner::with_proofs_and_preparation_budget(
+        &dataset,
+        budget,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
+    .consistency();
     let adapted =
         DlReasoner::with_proofs_and_stop(&dataset, budget, Arc::new(CallerStop::default()))
             .unwrap()
@@ -535,6 +545,7 @@ fn recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss() {
             &Question::Consistency,
             Some(result.certificate()),
             &context,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("the retained proof and complete certificate check together");
     assert_eq!(replay.runs(), replay.replayed());
@@ -545,7 +556,8 @@ fn recorded_service_result_survives_the_gmeow_boundary_without_evidence_loss() {
                 &inconsistent_dataset(),
                 &Question::Consistency,
                 Some(result.certificate()),
-                &context
+                &context,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
             )
             .is_err(),
         "a GMEOW result cannot be rebound to different source premises"
@@ -639,6 +651,7 @@ fn canonical_language_tagged_data_reaches_the_native_recorded_service() {
                 &Question::Consistency,
                 Some(result.certificate()),
                 &context,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
             .unwrap();
     }
@@ -666,7 +679,13 @@ fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter
         .expect("prepare the exact consumer question");
     let context = checker.proof_context().unwrap();
     proof
-        .verify(&dataset, &question, Some(result.certificate()), &context)
+        .verify(
+            &dataset,
+            &question,
+            Some(result.certificate()),
+            &context,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .expect("the GMEOW boundary preserves a checkable question-bound proof");
     assert!(
         proof
@@ -674,7 +693,8 @@ fn native_proof_checker_prepares_the_selected_question_through_the_gmeow_adapter
                 &dataset,
                 &Question::Consistency,
                 Some(result.certificate()),
-                &context
+                &context,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
             )
             .is_err(),
         "a different question is not the selected proof task"

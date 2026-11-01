@@ -191,7 +191,7 @@ gmeow:occupationClassification
     rdfs:domain gmeow:Occupation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "occupation classification"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "An external classification code for an occupation (ESCO, SOC, O*NET, ISCO, NOC). Non-functional — an occupation may carry codes from several schemes. The scheme is solver-side; the literal is the raw code value (Principle 12)."@x-gmeow-english ;
     skos:example "ex:nurse gmeow:occupationClassification \"29-1141\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid trying to encode the scheme in the property or value (the scheme is solver-side; keep the literal the raw code) and avoid forcing one code — an occupation legitimately carries codes from several schemes at once."@x-gmeow-english ;

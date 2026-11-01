@@ -1671,3 +1671,82 @@ msgstr "Une entrée d’arbre de mode lien Git 160000 cible un Commit, qui conse
 msgctxt "https://blackcatinformatics.ca/gmeow/treeEntryMode|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The recorded octal Git mode string of a tree entry, preserving its spelling and leading zeroes. Modes 100644, 100755 and 120000 require a Blob target; directory spellings 040000 and 40000 require SourceTree; gitlink mode 160000 requires Commit. Functional: one mode per entry. These kind constraints do not parse or verify an object’s bytes."
 msgstr "La chaîne octale de mode Git consignée d’une entrée d’arbre, conservant sa graphie et ses zéros initiaux. Les modes 100644, 100755 et 120000 exigent une cible Blob ; les graphies de répertoire 040000 et 40000 exigent SourceTree ; le mode de lien Git 160000 exige Commit. Fonctionnelle : un mode par entrée. Ces contraintes de catégorie n’analysent ni ne vérifient les octets d’un objet."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required Blob source identity"
+msgstr "identité source requise pour Blob"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Blob retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "Un Blob conserve au moins une identité source : un contentDigest d’octets bruts typé par algorithme ou un versionFingerprint portant l’identifiant fourni selon Git, SWH ou un autre schéma. Les deux peuvent coexister ; un identifiant de schéma n’asserte pas un condensat d’octets bruts."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "Utiliser pour exiger une identité d’objet source en préservant le critère sous lequel elle a été fournie."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "Éviter de fabriquer un condensat d’octets bruts à partir d’un identifiant d’objet Git ou SWH."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/BlobSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "Conserver l’identifiant exact de schéma sur versionFingerprint, ou le condensat d’octets typé admis sur contentDigest ; garder les deux lorsque la source fournit les deux."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/Commit|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a source identity: a scheme fingerprint or an algorithm-typed byte digest. Aligned to Software Heritage Revision and git commit objects by reference."
+msgstr "Un commit de contrôle de versions : un événement de provenance adressé par contenu qui consigne une modification de l’historique d’un dépôt. Facette historique du modèle à cinq facettes, distincte du projet, du produit, de la base de code et du dépôt. Il porte les attributions d’auteur et de committer, les horodatages, la parenté et une identité source : empreinte de schéma ou condensat d’octets typé par algorithme. Aligné par référence sur Software Heritage Revision et les objets commit Git."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required Commit source identity"
+msgstr "identité source requise pour Commit"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A Commit retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "Un Commit conserve au moins une identité source : un contentDigest d’octets bruts typé par algorithme ou un versionFingerprint portant l’identifiant fourni selon Git, SWH ou un autre schéma. Les deux peuvent coexister ; un identifiant de schéma n’asserte pas un condensat d’octets bruts."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "Utiliser pour exiger une identité d’objet source en préservant le critère sous lequel elle a été fournie."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "Éviter de fabriquer un condensat d’octets bruts à partir d’un identifiant d’objet Git ou SWH."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CommitSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "Conserver l’identifiant exact de schéma sur versionFingerprint, ou le condensat d’octets typé admis sur contentDigest ; garder les deux lorsque la source fournit les deux."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "required AnnotatedTag source identity"
+msgstr "identité source requise pour AnnotatedTag"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An AnnotatedTag retains at least one source identity: an algorithm-typed raw-byte contentDigest or a versionFingerprint carrying its supplied Git, SWH or other scheme identifier. Both may coexist; a scheme identifier does not assert a raw-byte digest."
+msgstr "Un AnnotatedTag conserve au moins une identité source : un contentDigest d’octets bruts typé par algorithme ou un versionFingerprint portant l’identifiant fourni selon Git, SWH ou un autre schéma. Les deux peuvent coexister ; un identifiant de schéma n’asserte pas un condensat d’octets bruts."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to require a source-object identity while preserving the criterion under which it was supplied."
+msgstr "Utiliser pour exiger une identité d’objet source en préservant le critère sous lequel elle a été fournie."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid fabricating a raw-byte digest from a Git or SWH object identifier."
+msgstr "Éviter de fabriquer un condensat d’octets bruts à partir d’un identifiant d’objet Git ou SWH."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/AnnotatedTagSourceIdentityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the exact scheme identifier on versionFingerprint, or the admitted typed byte digest on contentDigest; keep both if the source supplies both."
+msgstr "Conserver l’identifiant exact de schéma sur versionFingerprint, ou le condensat d’octets typé admis sur contentDigest ; garder les deux lorsque la source fournit les deux."

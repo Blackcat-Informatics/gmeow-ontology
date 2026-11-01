@@ -29,4 +29,4 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     logic:preservationKind logic:SoundUnderApproximation ;   # <-- lossy, but no gmeow:disclosesLoss
-    gmeow:contentDigest "blake3:f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106" .
+    gmeow:contentDigest "f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106f106"^^gmeow:blake3_256Digest .

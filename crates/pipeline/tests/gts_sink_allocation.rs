@@ -95,7 +95,11 @@ fn legacy_stratum_digest(
         }
     }
     let union = builder.freeze().expect("legacy union freezes");
-    let canonical = purrdf::canonical_flat_nquads(&union).expect("legacy union canonicalizes");
+    let canonical = purrdf::canonical_flat_nquads(
+        &union,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("legacy union canonicalizes");
     let blank_count = (0..union.term_count())
         .filter(|index| {
             matches!(
@@ -106,8 +110,8 @@ fn legacy_stratum_digest(
         .count();
     drop(union);
     drop(sources);
-    let len = canonical.len();
-    let digest = blake3_digest(canonical.as_bytes());
+    let len = canonical.nquads().len();
+    let digest = blake3_digest(canonical.nquads().as_bytes());
     drop(canonical);
     (digest, len, blank_count)
 }
@@ -249,12 +253,19 @@ fn id_native_owl_projection_is_byte_identical_and_strictly_lowers_allocations() 
         measure(|| with_owl_rdfs_projection(source.as_ref()).unwrap());
     let (legacy, legacy_alloc) = measure(|| legacy_with_owl_rdfs_projection(source.as_ref()));
 
-    let candidate_nquads =
-        purrdf::canonical_flat_nquads(candidate.as_ref()).expect("candidate canonicalizes");
-    let legacy_nquads =
-        purrdf::canonical_flat_nquads(legacy.as_ref()).expect("legacy canonicalizes");
+    let candidate_nquads = purrdf::canonical_flat_nquads(
+        candidate.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("candidate canonicalizes");
+    let legacy_nquads = purrdf::canonical_flat_nquads(
+        legacy.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("legacy canonicalizes");
     assert_eq!(
-        candidate_nquads, legacy_nquads,
+        candidate_nquads.nquads(),
+        legacy_nquads.nquads(),
         "the id-native projection must preserve the exact projected carrier"
     );
     assert!(

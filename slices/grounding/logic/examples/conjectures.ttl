@@ -135,8 +135,8 @@ ex:resultParthoodTotallyComparable
 ex:witnessParthoodIncomparablePair
     a logic:ContradictionWitness ;
     rdfs:label "incomparable parthood pair (refutation witness)"@x-gmeow-english ;
-    logic:witnessIndividual "https://blackcatinformatics.ca/gmeow/examples/logic/leftHand"^^xsd:string ;
-    logic:witnessWorld "https://blackcatinformatics.ca/gmeow/examples/logic/worldActual"^^xsd:string ;
+    logic:witnessIndividual <https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> ;
+    logic:witnessWorld <https://blackcatinformatics.ca/gmeow/examples/logic/worldActual> ;
     logic:witnessPremise "<https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/gmeow/examples/logic/body>"^^xsd:string ,
         "<https://blackcatinformatics.ca/gmeow/examples/logic/rightHand> <https://blackcatinformatics.ca/logic/properPartOf> <https://blackcatinformatics.ca/gmeow/examples/logic/body>"^^xsd:string ,
         "<https://blackcatinformatics.ca/gmeow/examples/logic/leftHand> <http://www.w3.org/2002/07/owl#differentFrom> <https://blackcatinformatics.ca/gmeow/examples/logic/rightHand>"^^xsd:string .
@@ -222,7 +222,7 @@ ex:conjSpecialAdjacency
 ex:witnessSharedBoundaryNonUnique
     a logic:ContradictionWitness ;
     rdfs:label "two shared boundaries for one adjacent pair (refutation witness)"@x-gmeow-english ;
-    logic:witnessIndividual "https://blackcatinformatics.ca/gmeow/examples/logic/regionA"^^xsd:string ;
-    logic:witnessWorld "https://blackcatinformatics.ca/gmeow/examples/logic/worldActual"^^xsd:string ;
+    logic:witnessIndividual <https://blackcatinformatics.ca/gmeow/examples/logic/regionA> ;
+    logic:witnessWorld <https://blackcatinformatics.ca/gmeow/examples/logic/worldActual> ;
     logic:witnessPremise "<https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOne> <https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOf> <https://blackcatinformatics.ca/gmeow/examples/logic/regionA>"^^xsd:string ,
         "<https://blackcatinformatics.ca/gmeow/examples/logic/boundaryTwo> <https://blackcatinformatics.ca/gmeow/examples/logic/boundaryOf> <https://blackcatinformatics.ca/gmeow/examples/logic/regionA>"^^xsd:string .

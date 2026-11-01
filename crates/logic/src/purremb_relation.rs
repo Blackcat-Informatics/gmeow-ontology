@@ -50,11 +50,11 @@ use std::fmt;
 
 use gmeow_logic_compile::result_shape::ColumnKind;
 use purrdf::{
-    ArtifactRoot, BlankScope, DistanceMetric, EmbeddingError, EmbeddingView, FamilyId, MatrixId,
-    MatrixView, PrefixPostprocessing, ProjectionId, RdfTextDirection, ResidentEmbeddingCertificate,
-    SourceVerificationMode, TargetId, TargetKind, TargetSetId, TargetSetView, TermValue,
-    TlvWireType, VectorDtype, VectorSpaceId, canonical_tlv, reopen_prevalidated, verify_embedding,
-    verify_embedding_source,
+    ArtifactRoot, BlankScope, DistanceMetric, EmbeddingError, EmbeddingSource, EmbeddingView,
+    FamilyId, MatrixId, MatrixView, PrefixPostprocessing, ProjectionId, RdfTextDirection,
+    ResidentEmbeddingCertificate, SourceAttachmentError, TargetId, TargetKind, TargetSetId,
+    TargetSetView, TermValue, TlvWireType, VectorDtype, VectorSpaceId, canonical_tlv,
+    reopen_prevalidated, verify_embedding, verify_embedding_source,
 };
 use purrdf_core::distance::{Arithmetic, Exact, Resolved};
 
@@ -106,14 +106,8 @@ impl RetrievalPolicy {
     }
 }
 
-/// Stable wire identity of a source-verification mode, folded into descriptor identity.
-#[must_use]
-fn source_mode_wire(mode: SourceVerificationMode) -> &'static str {
-    match mode {
-        SourceVerificationMode::Exact => "exact",
-        SourceVerificationMode::Certified => "certified",
-    }
-}
+/// The pack-only binding always verifies exact bytes, RDF identity and every ordinal.
+const SOURCE_VERIFICATION_PROFILE: &str = "purrpck-v1-full";
 
 /// The complete, declared selection of one PURREMB retrieval surface.
 ///
@@ -169,10 +163,10 @@ pub struct ProfileSurfaceDigests {
 /// A PURREMB binding, selection, or profile-surface validation failure. Every variant is
 /// a fail-closed rejection of a well-formed request under the provider's declared
 /// contract.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub enum PurrembBindingError {
     /// The artifact failed to open, verify, or its source could not be certified.
-    Verification(String),
+    Verification(SourceAttachmentError),
     /// The declared selection does not resolve against the opened artifact.
     Selection(String),
     /// A declared profile-surface digest disagreed with the opened artifact.
@@ -193,7 +187,14 @@ impl fmt::Display for PurrembBindingError {
     }
 }
 
-impl std::error::Error for PurrembBindingError {}
+impl std::error::Error for PurrembBindingError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Verification(cause) => Some(cause),
+            Self::Selection(_) | Self::ProfileMismatch(_) => None,
+        }
+    }
+}
 
 /// A stale-generation signal from a cheap re-pin: the artifact bytes no longer match the
 /// certificate retained at binding open.
@@ -287,7 +288,7 @@ impl std::error::Error for ScoreError {}
 /// A fully verified, borrow-stable binding to one PURREMB artifact and its source pack.
 ///
 /// [`Self::open`] opens the container, verifies every contained digest, identity, scalar,
-/// and projection once, verifies the attached source pack under the requested mode, and
+/// and projection once, verifies exact source-pack bytes, RDF identity and every ordinal, and
 /// validates the declared selection against the artifact. It retains the resident
 /// verification certificate so [`Self::re_pin`] can cheaply detect a generation that
 /// changed under the pinned bytes.
@@ -298,7 +299,6 @@ pub struct PurrembBinding<'a> {
     artifact_root: ArtifactRoot,
     artifact_root_hex: String,
     selection: PurrembSelection,
-    source_mode: SourceVerificationMode,
 }
 
 impl<'a> PurrembBinding<'a> {
@@ -311,7 +311,7 @@ impl<'a> PurrembBinding<'a> {
     /// # Errors
     ///
     /// Returns [`PurrembBindingError::Verification`] if the artifact does not open, does
-    /// not fully verify, or its source pack does not certify under `source_mode`; returns
+    /// not fully verify, or its complete source pack does not certify; returns
     /// [`PurrembBindingError::Selection`] if any declared selection component does not
     /// resolve against the artifact or is mutually inconsistent (a cross-dtype selection
     /// is rejected, never reinterpreted).
@@ -319,14 +319,17 @@ impl<'a> PurrembBinding<'a> {
         artifact_bytes: &'a [u8],
         source_bytes: &'a [u8],
         selection: PurrembSelection,
-        source_mode: SourceVerificationMode,
     ) -> Result<Self, PurrembBindingError> {
         let mut view = EmbeddingView::from_bytes(artifact_bytes).map_err(embedding_verification)?;
         let certificate = verify_embedding(&mut view)
             .map_err(embedding_verification)?
             .into_certificate();
-        verify_embedding_source(&view, source_bytes, source_mode)
-            .map_err(embedding_verification)?;
+        verify_embedding_source(
+            &view,
+            EmbeddingSource::Purrpck(source_bytes),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(PurrembBindingError::Verification)?;
 
         let artifact_root = view.artifact_root();
         let artifact_root_hex = artifact_root.to_hex();
@@ -340,7 +343,6 @@ impl<'a> PurrembBinding<'a> {
             artifact_root,
             artifact_root_hex,
             selection,
-            source_mode,
         })
     }
 
@@ -354,12 +356,6 @@ impl<'a> PurrembBinding<'a> {
     #[must_use]
     pub fn selection(&self) -> &PurrembSelection {
         &self.selection
-    }
-
-    /// The source-verification mode the binding certified under.
-    #[must_use]
-    pub fn source_mode(&self) -> SourceVerificationMode {
-        self.source_mode
     }
 
     /// Lowercase hex of the pinned whole-artifact integrity root.
@@ -457,7 +453,7 @@ impl<'a> PurrembBinding<'a> {
             artifact_root: self.artifact_root_hex.clone(),
             source_exact_digest: source.source_exact_digest().to_hex(),
             certified_rdf_digest: purrdf_hash::hex::encode(&source.certified_rdf_digest()),
-            source_verification_mode: source_mode_wire(self.source_mode).to_owned(),
+            source_verification_profile: SOURCE_VERIFICATION_PROFILE.to_owned(),
             target_set: self.selection.target_set.to_hex(),
             matrix: self.selection.matrix.to_hex(),
             projection: self.selection.projection.map(|id| id.to_hex()),
@@ -477,7 +473,7 @@ impl<'a> PurrembBinding<'a> {
 
 /// Map an embedding-verification / source-certification failure to a binding error.
 fn embedding_verification(error: EmbeddingError) -> PurrembBindingError {
-    PurrembBindingError::Verification(error.to_string())
+    PurrembBindingError::Verification(SourceAttachmentError::Embedding(error))
 }
 
 /// Validate a declared selection against the opened artifact, failing closed.
@@ -1165,7 +1161,7 @@ impl PurrembScanner {
             .target_set(selection.target_set)
             .ok_or_else(|| ScanError::Rejected("selected target set absent".to_owned()))?;
 
-        // The projection fold is binary64 arithmetic: prove this thread's float
+        // The projection fold is `binary64` arithmetic: prove this thread's float
         // environment once per scan; a non-IEEE environment refuses the scan.
         let arithmetic =
             Exact::resolve().map_err(|error| ScanError::Rejected(error.to_string()))?;
@@ -1590,8 +1586,8 @@ pub struct PurrembRetrievalReceipt {
     pub source_exact_digest: String,
     /// Independently certified RDF digest (hex).
     pub certified_rdf_digest: String,
-    /// Source-verification mode the binding certified under.
-    pub source_verification_mode: String,
+    /// Mandatory native verification profile used at binding open.
+    pub source_verification_profile: String,
     /// Target-set identity (hex).
     pub target_set: String,
     /// Stored-matrix identity (hex).
@@ -1937,9 +1933,9 @@ fn rejected(detail: &str) -> RelationProviderError {
 // --------------------------------------------------------------------------- //
 
 /// Build the artifact-generation IRI that folds the pinned artifact root and the explicit
-/// retrieval policy + source-verification mode into one identity.
+/// retrieval policy and mandatory source-verification profile into one identity.
 ///
-/// Two providers differing only in an explicit selection (policy or source mode) get
+/// Two providers differing in retrieval policy get
 /// distinct generation IRIs and therefore distinct
 /// [`RelationProviderDescriptor::canonical_key`] cache keys — the selection is never
 /// aliased. `base` must be an absolute IRI; the fragment carries the selection.
@@ -1948,12 +1944,11 @@ pub fn purremb_generation_iri(
     base: &str,
     artifact_root_hex: &str,
     policy: RetrievalPolicy,
-    source_mode: SourceVerificationMode,
 ) -> String {
     format!(
         "{base}/{artifact_root_hex}#retrieval={}&source={}",
         policy.wire(),
-        source_mode_wire(source_mode),
+        SOURCE_VERIFICATION_PROFILE,
     )
 }
 

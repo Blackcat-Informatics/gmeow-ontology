@@ -11,13 +11,13 @@
 # All classifications and numeric values are supplied synthetic teller claims,
 # not results from an executed matching, counting or review engine.
 ex:sourceSnapshot a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:65bdd8fea0ffb6874057a614f283826d49b2268be98f645378c7ef6e2600eef7" ;
+    gmeow:contentDigest "65bdd8fea0ffb6874057a614f283826d49b2268be98f645378c7ef6e2600eef7"^^gmeow:sha256Digest ;
     rdfs:label "Exact retained source-record payload"@en .
 ex:confidenceLineage a gmeow:InformationObject ;
     rdfs:label "Archive teller confidence policy lineage"@en .
 ex:confidenceRuleV1 a gmeow:SignalConfidenceRule ;
     gmeow:versionOf ex:confidenceLineage ; gmeow:versionLabel "1" ;
-    gmeow:contentDigest "sha256:25950ef24369ce74a23f06e58b0b733723ab115ed7929cda88a96c70934412dc" ;
+    gmeow:contentDigest "25950ef24369ce74a23f06e58b0b733723ab115ed7929cda88a96c70934412dc"^^gmeow:sha256Digest ;
     gmeow:wasDerivedFrom ex:sourceSnapshot ;
     gmeow:wasAttributedTo ex:teller ;
     gmeow:signalConfidenceReview ex:confidenceReview ;

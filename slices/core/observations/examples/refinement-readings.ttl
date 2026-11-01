@@ -10,7 +10,7 @@
 ex:sourceV1 a gmeow:InformationObject, gmeow:CreativeWork ;
     gmeow:versionLabel "source-v1" ;
     gmeow:description "Alice saw Jordan.\n\nNobody replied."@x-gmeow-english ;
-    gmeow:contentDigest "sha256:07888ef51c82078f6cd614e9a1afac94b2f2f130edcde2e9fa078d932e5f5004" ;
+    gmeow:contentDigest "07888ef51c82078f6cd614e9a1afac94b2f2f130edcde2e9fa078d932e5f5004"^^gmeow:sha256Digest ;
     rdfs:comment "The exact source bytes are the UTF-8 NFC encoding of the description literal, without a trailing newline. All offsets count Unicode code points in that source."@x-gmeow-english .
 
 ex:refinerV1 a gmeow:SoftwareAgent ;
@@ -61,6 +61,6 @@ ex:unresolved a gmeow:Refinement ;
 # One identity can serve both retrieval and authored structural roles.
 ex:paragraphChunk a gmeow:Chunk, gmeow:ContentSegment ;
     gmeow:chunkOf ex:sourceV1 ; gmeow:spanStart "0"^^xsd:nonNegativeInteger ; gmeow:spanEnd "17"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:15dc86d65eb986e4526971a559b876482c19c6e1ad1813899ae8900c82e37f1b" ;
+    gmeow:contentDigest "15dc86d65eb986e4526971a559b876482c19c6e1ad1813899ae8900c82e37f1b"^^gmeow:sha256Digest ;
     gmeow:segmentOf ex:sourceV1 ; gmeow:segmentType gmeow:segmentTypeParagraph .
 ex:narratedMeeting a gmeow:Event ; gmeow:narratedIn ex:paragraphChunk .

@@ -257,6 +257,7 @@ fn run() -> Result<()> {
             &Question::Consistency,
             Some(result.certificate()),
             &context,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|error| foreign("native proof verification", error))?;
     emit(&json!({

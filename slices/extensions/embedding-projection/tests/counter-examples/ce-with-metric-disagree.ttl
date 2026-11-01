@@ -12,12 +12,12 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:disagreeFamily a gmeow:EmbeddingFamily ;
-    gmeow:contentDigest "blake3:d15a000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:d15a000011112222333344445555666677778888999900001111222233334444" .
 
 ce:disagreeSpace a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily ce:disagreeFamily ;
     gmeow:distanceMetric    gmeow:distanceMetricDotProduct ;
-    gmeow:contentDigest     "blake3:d15b000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:d15b000011112222333344445555666677778888999900001111222233334444" .
 
 ce:disagreeObs a gmeow:SimilarityObservation ;
     gmeow:overVectorSpace ce:disagreeSpace ;

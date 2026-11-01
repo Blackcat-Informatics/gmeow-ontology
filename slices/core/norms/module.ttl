@@ -900,7 +900,7 @@ gmeow:parameterName
     rdfs:domain gmeow:ConditionParameter ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "parameter name"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The parameter's name as used in the condition text or expressions. Functional and mandatory (SHACL). It is the binding's NAME, not its value (gmeow:parameterValue / gmeow:parameterEntity)."@x-gmeow-english ;
     skos:example "ex:p1 gmeow:parameterName \"threshold\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a parameter with no name or with more than one (it is functional and mandatory by SHACL)."@x-gmeow-english ;

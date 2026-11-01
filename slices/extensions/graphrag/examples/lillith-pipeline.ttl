@@ -24,7 +24,7 @@ ex:mail-archive a gmeow:Document ;
 ex:corpus-lillith a gmeow:Corpus ;
     rdfs:label "Lillith working corpus"@x-gmeow-english ;
     gmeow:corpusMember ex:mail-archive ;
-    gmeow:contentDigest "blake3:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:contentDigest "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^gmeow:blake3_256Digest ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     skos:definition "The Lillith working corpus: the content-addressed collection of documents (ex:mail-archive) the benchmark pipeline chunks, embeds, and indexes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
@@ -60,7 +60,7 @@ ex:embedding-7 a gmeow:Embedding ;
     gmeow:vectorRef "s3://lillith/vectors/chunk-7"^^xsd:anyURI ;
     gmeow:wasGeneratedBy ex:embed-run ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
-    gmeow:contentDigest "blake3:1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff" ;
+    gmeow:contentDigest "1111222233334444555566667777888899990000aaaabbbbccccddddeeeeffff"^^gmeow:blake3_256Digest ;
     rdfs:label "embedding of mail-archive chunk 7"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
     skos:definition "The 1024-dimension cosine embedding of ex:chunk-7, produced by ex:embedder and indexed into ex:index-lillith. Its vector payload rides outside the graph by reference (P12)."@x-gmeow-english ;
@@ -74,7 +74,7 @@ ex:index-build a gmeow:Activity ; rdfs:label "index build 2026-06-01"@x-gmeow-en
     gmeow:graphBoxRole gmeow:boxABox .
 
 ex:index-lillith a gmeow:VectorIndex ;
-    gmeow:contentDigest "blake3:2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00" ;
+    gmeow:contentDigest "2222333344445555666677778888999900001111aaaabbbbccccddddeeeeff00"^^gmeow:blake3_256Digest ;
     gmeow:indexesCorpus ex:corpus-lillith ;
     gmeow:indexAlgorithm gmeow:indexAlgorithmHnsw ;
     gmeow:distanceMetric gmeow:distanceMetricCosine ;
@@ -114,7 +114,7 @@ ex:invocation-44 a gmeow:ModelInvocation ;
 
 ex:desc-mara a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'Mara' (maintainer?)"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11" ;
+    gmeow:contentDigest "3333444455556666777788889999000011112222aaaabbbbccccddddeeeeff11"^^gmeow:blake3_256Digest ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
@@ -123,7 +123,7 @@ ex:desc-mara a gmeow:ExtractedEntity ;
 
 ex:desc-buildsys a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'the build system'"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22" ;
+    gmeow:contentDigest "4444555566667777888899990000111122223333aaaabbbbccccddddeeeeff22"^^gmeow:blake3_256Digest ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> ;
@@ -132,7 +132,7 @@ ex:desc-buildsys a gmeow:ExtractedEntity ;
 
 ex:rel-maintains a gmeow:ExtractedRelationship ;
     rdfs:label "extracted: Mara maintains the build system"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33" ;
+    gmeow:contentDigest "5555666677778888999900001111222233334444aaaabbbbccccddddeeeeff33"^^gmeow:blake3_256Digest ;
     gmeow:relationshipSource ex:desc-mara ;
     gmeow:relationshipTarget ex:desc-buildsys ;
     gmeow:wasDerivedFrom ex:chunk-7 ;
@@ -151,7 +151,7 @@ ex:cluster-run a gmeow:Activity ; rdfs:label "leiden clustering 2026-06-02"@x-gm
 
 ex:community-infra a gmeow:Community ;
     rdfs:label "infrastructure community"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44" ;
+    gmeow:contentDigest "6666777788889999000011112222333344445555aaaabbbbccccddddeeeeff44"^^gmeow:blake3_256Digest ;
     gmeow:communityLevel "0"^^xsd:nonNegativeInteger ;
     gmeow:communityMember ex:desc-mara, ex:desc-buildsys ;
     gmeow:wasGeneratedBy ex:cluster-run ;
@@ -161,7 +161,7 @@ ex:community-infra a gmeow:Community ;
 
 ex:summary-infra a gmeow:CommunitySummary ;
     rdfs:label "summary: the infrastructure crew"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55" ;
+    gmeow:contentDigest "7777888899990000111122223333444455556666aaaabbbbccccddddeeeeff55"^^gmeow:blake3_256Digest ;
     gmeow:summarizesCommunity ex:community-infra ;
     gmeow:wasDerivedFrom ex:desc-mara, ex:desc-buildsys, ex:chunk-7 ;
     gmeow:wasGeneratedBy ex:invocation-44 ;

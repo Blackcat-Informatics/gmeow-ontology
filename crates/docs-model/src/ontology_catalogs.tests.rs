@@ -38,8 +38,12 @@ fn authored_root() -> tempfile::TempDir {
 #[test]
 fn projection_literal_i18n_uses_actual_dsl_owner_across_native_index_export_and_reviewed_inputs() {
     let root = authored_root();
-    let catalog =
-        SliceCatalog::discover(&root.path().join("slices"), gmeow_ns::gmeow_slice_vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &root.path().join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let sources = for_repository(root.path(), &catalog).unwrap();
     assert_eq!(sources.len(), 1);
     assert_eq!(sources[0].owner_iri, MAPPING_DSL_OWNER);
@@ -159,8 +163,12 @@ fn cq_rationale_i18n_test_dsl_owner_reaches_all_shared_catalog_consumers() {
 "#).unwrap();
     let po = "msgid \"\"\nmsgstr \"\"\n\"Language: fr\\n\"\n\nmsgctxt \"urn:authored:rationale|http://www.w3.org/2000/01/rdf-schema#label\"\nmsgid \"authored rationale\"\nmsgstr \"justification rédigée\"\n";
     std::fs::write(root.path().join("dsl/tests/i18n/fr.po"), po).unwrap();
-    let catalog =
-        SliceCatalog::discover(&root.path().join("slices"), gmeow_ns::gmeow_slice_vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &root.path().join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let sources = for_repository(root.path(), &catalog).unwrap();
     assert_eq!(sources.len(), 2);
     let selected = sources

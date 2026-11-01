@@ -25,17 +25,17 @@ ex:danaGitId a gmeow:AuthorIdentity ;
     gmeow:canonicalizedIdentity ex:dana .
 
 # --- Two commits forming a DAG (commit2's ancestor is commit1). Each commit is
-#     content-addressed by its git hash (gmeow:contentDigest).
+#     identified by its Git object identifier (gmeow:versionFingerprint).
 ex:commit1 a gmeow:Commit ;
     gmeow:commitInRepository   ex:repo ;
     gmeow:commitAuthorIdentity ex:danaGitId ;
-    gmeow:contentDigest        "git:9f4d2a1c8e7b6f5a0d3c2b1e9f8a7d6c5b4a3e2f" .
+    gmeow:versionFingerprint        "git:9f4d2a1c8e7b6f5a0d3c2b1e9f8a7d6c5b4a3e2f" .
 
 ex:commit2 a gmeow:Commit ;
     gmeow:commitInRepository   ex:repo ;
     gmeow:commitAuthorIdentity ex:danaGitId ;
     gmeow:commitAncestor       ex:commit1 ;
-    gmeow:contentDigest        "git:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b" .
+    gmeow:versionFingerprint        "git:1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b" .
 
 # --- Build provenance: source commit → output distribution.
 ex:build a gmeow:BuildActivity ;

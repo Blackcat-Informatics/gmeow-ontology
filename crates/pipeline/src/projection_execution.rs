@@ -39,7 +39,12 @@ impl AdmittedProjection<'_> {
 
     pub(crate) fn execute(self) -> gmeow_errors::Result<SparqlResult> {
         let result = NativeSparqlEngine::new()
-            .query_prepared_view(self.source, &self.program.forward, &[], QueryOptions::EMPTY)
+            .query_prepared_view(
+                self.source,
+                &self.program.forward,
+                &[],
+                &QueryOptions::EMPTY,
+            )
             .with_ctx(|| format!("execute required projection {}", self.program.program.id))?;
         if !matches!(result, SparqlResult::Graph(_)) {
             return Err(Diag::of_kind(crate::error::Projection {
@@ -103,7 +108,7 @@ impl PreparedProjectionProfile {
         let engine = NativeSparqlEngine::new();
         for (check, query) in self.program.payload.checks.iter().zip(&self.checks) {
             let result = engine
-                .query_prepared_view(source, query, &[], QueryOptions::EMPTY)
+                .query_prepared_view(source, query, &[], &QueryOptions::EMPTY)
                 .with_ctx(|| format!("execute required native input check {}", check.id))?;
             let SparqlResult::Solutions {
                 variables, rows, ..

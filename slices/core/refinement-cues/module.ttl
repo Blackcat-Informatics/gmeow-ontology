@@ -51,7 +51,7 @@ gmeow:cueReview
 gmeow:CueLexicon logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ],
     [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ],
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ],
     [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ],
     [ a logic:Restriction ; logic:onProperty gmeow:cueReview ; logic:allValuesFrom gmeow:Activity ],
@@ -1934,7 +1934,7 @@ gmeow:ReadingRule logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/versionLabel" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:ReadingRule logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ReadingRule ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:ReadingRule logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .

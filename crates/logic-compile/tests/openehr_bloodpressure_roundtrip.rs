@@ -61,9 +61,13 @@ fn systolic_value(composition: &serde_json::Value) -> &serde_json::Value {
 fn canonical_nquads(turtle: &[u8]) -> String {
     let ds = purrdf::parse_dataset(turtle, "text/turtle", None)
         .expect("native parse of RDF-1.2 Turtle (full complement, triple term included)");
-    purrdf::try_canonicalize(&ds)
-        .expect("canonicalize the parsed graph")
-        .nquads
+    purrdf::try_canonicalize(
+        &ds,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("canonicalize the parsed graph")
+    .nquads()
+    .to_owned()
 }
 
 #[test]
@@ -250,9 +254,13 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
         .expect("read complement.ttl");
     let complement_ds = purrdf::parse_dataset(&complement_bytes, "text/turtle", None)
         .expect("native parse of the complement");
-    let complement_canon = purrdf::try_canonicalize(&complement_ds)
-        .expect("canonicalize the complement")
-        .nquads;
+    let complement_canon = purrdf::try_canonicalize(
+        &complement_ds,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("canonicalize the complement")
+    .nquads()
+    .to_owned();
 
     // Derive the archetype-node witnesses from the complement itself — load-bearing: the
     // RM-item index is READ from gmeow:rmPath, never hardcoded.
@@ -281,18 +289,26 @@ fn up_projection_reconstructs_source_from_rm_slice_and_complement() {
     // u(d(S)): union the re-lifted RM values with the parsed complement, canonicalize.
     let reconstructed = RdfDataset::union(&[complement_ds.as_ref(), minted_ds.as_ref()])
         .expect("the synthetic reconstructed graph must union successfully");
-    let reconstructed_canon = purrdf::try_canonicalize(&reconstructed)
-        .expect("canonicalize the reconstruction")
-        .nquads;
+    let reconstructed_canon = purrdf::try_canonicalize(
+        &reconstructed,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("canonicalize the reconstruction")
+    .nquads()
+    .to_owned();
 
     // The golden: the standalone canonical source object S.
     let source_bytes = std::fs::read(fixtures_dir().join("blood_pressure.source.ttl"))
         .expect("read blood_pressure.source.ttl");
     let source_ds = purrdf::parse_dataset(&source_bytes, "text/turtle", None)
         .expect("native parse of blood_pressure.source.ttl");
-    let source_canon = purrdf::try_canonicalize(&source_ds)
-        .expect("canonicalize the source")
-        .nquads;
+    let source_canon = purrdf::try_canonicalize(
+        &source_ds,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("canonicalize the source")
+    .nquads()
+    .to_owned();
 
     assert_eq!(
         reconstructed_canon, source_canon,

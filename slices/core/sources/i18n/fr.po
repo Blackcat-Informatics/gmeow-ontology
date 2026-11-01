@@ -24,3 +24,32 @@ msgstr "Une taille est une métadonnée, non la preuve d’une lecture des octet
 msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
 msgstr "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied digest of an artifact's exact identified byte preimage, with algorithm identity carried by gmeow:blake3_256Digest, gmeow:sha256Digest or gmeow:md5Digest. The lexical form is bare lowercase hexadecimal: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. Domain-free and non-functional, so digests under several algorithms may coexist. A typed claim does not prove that the artifact was read or its bytes verified; scheme, history and canonical-model identifiers belong on their own identity properties."
+msgstr "Condensat fourni de la préimage exacte en octets identifiée pour un artefact, dont l’algorithme est porté par gmeow:blake3_256Digest, gmeow:sha256Digest ou gmeow:md5Digest. La forme lexicale est hexadécimale minuscule sans préfixe : 64 chiffres pour BLAKE3-256 et SHA-256, 32 pour MD5. Sans domaine et non fonctionnel, il permet la coexistence de plusieurs algorithmes. Une valeur typée ne prouve ni la lecture ni la vérification des octets ; les identifiants de schéma, d’historique et de modèle canonique conservent leurs propres propriétés d’identité."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:report gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each supplied digest's bare hexadecimal lexical form and algorithm datatype on the artifact whose exact byte preimage it identifies. Compare complete RDF terms; preserve several algorithms without coercing their values or relabeling Git, SWH or model identifiers as raw-byte hashes."
+msgstr "Conserver la forme hexadécimale sans préfixe et le type d’algorithme de chaque condensat sur l’artefact dont il identifie la préimage exacte en octets. Comparer les termes RDF complets ; conserver plusieurs algorithmes sans conversion de valeurs ni réétiquetage d’identifiants Git, SWH ou de modèle comme condensats d’octets bruts."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied algorithm-typed digest of an artifact's identified byte preimage for content comparison and provenance."
+msgstr "Utiliser pour conserver un condensat fourni, typé par algorithme, de la préimage identifiée en octets d’un artefact, à des fins de comparaison de contenu et de provenance."

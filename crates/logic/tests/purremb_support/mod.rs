@@ -28,11 +28,11 @@ use gmeow_logic::purremb_relation::{
 use gmeow_logic_compile::result_shape::ColumnKind;
 use purrdf::{
     AppliedStage, ArtifactIdentity, ArtifactIdentityKind, CanonicalMetadataInput,
-    CertifiedPurrpckSource, ContentDigest, DimensionalityPolicy, DistanceMetric, EffectivePrefix,
+    CertifiedEmbeddingSource, ContentDigest, DimensionalityPolicy, DistanceMetric, EffectivePrefix,
     EmbeddingBuilder, EmbeddingFamilyContract, EmbeddingTarget, EmbeddingView, FamilyId, MatrixId,
     MatrixInput, MatrixRow, PrefixPostprocessing, ProjectionId, ProjectionSpec, RdfDatasetBuilder,
-    RdfTermTarget, SourceVerificationMode, StageImplementation, TargetSet, TargetSetId, TermValue,
-    VectorDtype, VectorSpaceId, verify_embedding,
+    RdfTermTarget, StageImplementation, TargetSet, TargetSetId, TermValue, VectorDtype,
+    VectorSpaceId, verify_embedding,
 };
 
 /// One reconstructable target and its stored vector, in canonical matrix-row order.
@@ -193,7 +193,7 @@ struct BuildSpec {
     metric: DistanceMetric,
     dimensionality: DimensionalityPolicy,
     /// The certified source pack the artifact binds to.
-    source: CertifiedPurrpckSource,
+    source: CertifiedEmbeddingSource,
     /// Exact source-pack bytes handed back to the caller.
     source_bytes: Vec<u8>,
     /// The certified-dataset target (referenced by RDF component targets/relations).
@@ -205,12 +205,15 @@ struct BuildSpec {
 }
 
 /// A fresh certified source pack over an empty RDF dataset, plus its dataset target.
-fn empty_source() -> (CertifiedPurrpckSource, Vec<u8>, EmbeddingTarget) {
+fn empty_source() -> (CertifiedEmbeddingSource, Vec<u8>, EmbeddingTarget) {
     let dataset = RdfDatasetBuilder::new()
         .freeze()
         .expect("empty certified RDF source dataset");
-    let (source, source_bytes) =
-        CertifiedPurrpckSource::from_dataset(&dataset).expect("certified source pack");
+    let (source, source_bytes) = CertifiedEmbeddingSource::from_dataset(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("certified source pack");
     let dataset_target = source.dataset_target(true).expect("dataset target");
     (source, source_bytes, dataset_target)
 }
@@ -984,14 +987,12 @@ pub fn purremb_provider<'a>(
         &fixture.artifact_bytes,
         &fixture.source_bytes,
         fixture.selection(RetrievalPolicy::ExactFullSpace),
-        SourceVerificationMode::Exact,
     )
     .expect("verified PURREMB binding");
     let generation = purremb_generation_iri(
         generation_base,
         binding.artifact_root_hex(),
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
     );
     let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
     let descriptor = purremb_descriptor(

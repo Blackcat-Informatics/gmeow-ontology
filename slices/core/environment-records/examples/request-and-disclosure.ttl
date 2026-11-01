@@ -27,7 +27,7 @@ ex:readingGoal a gmeow:Goal .
 # Illustrative exact request-revision bytes:
 # Please provide a readable bedside book.\n
 ex:request a gmeow:WorldObjectRequest ;
-    gmeow:contentDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:contentDigest "5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3"^^gmeow:sha256Digest ;
     gmeow:wasAttributedTo ex:agent ; gmeow:wasDerivedFrom ex:source ;
     gmeow:requestDesire ex:desire ; gmeow:originFocus ex:focusObject ;
     gmeow:missingCapability "I have no book I can read beside the bed."@en ;
@@ -89,7 +89,7 @@ ex:providedBook a gmeow:Entity ;
     gmeow:hasTag gmeow:tagReadable, gmeow:tagPlaceAtBedside ;
     gmeow:besideOf ex:bed ;
     gmeow:answersRequestRevision ex:request ;
-    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" .
+    gmeow:requestRevisionDigest "5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3"^^gmeow:sha256Digest .
 ex:bed a gmeow:Entity ; gmeow:worldObjectKind gmeow:worldObjectKindBed .
 
 # The functional observed feature remains each Condition, never providedBook.
@@ -106,7 +106,7 @@ ex:bedsideEvaluation a gmeow:ConditionEvaluation ;
     gmeow:recordedWorldObject ex:providedBook ; gmeow:wasDerivedFrom ex:source .
 ex:fulfillment a gmeow:RequestFulfillment ;
     gmeow:answersRequestRevision ex:request ;
-    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:requestRevisionDigest "5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3"^^gmeow:sha256Digest ;
     gmeow:fulfilledObject ex:providedBook ; gmeow:citesWork ex:work ;
     gmeow:meetsCondition ex:readableCondition, ex:bedsideCondition ;
     gmeow:fulfillmentEvaluation ex:readableEvaluation, ex:bedsideEvaluation ;
@@ -122,7 +122,7 @@ ex:fulfilledTransition a gmeow:RequestTransition ;
 ex:acceptance a gmeow:ObjectAcceptance ;
     gmeow:acceptedFulfillment ex:fulfillment ;
     gmeow:answersRequestRevision ex:request ;
-    gmeow:requestRevisionDigest "sha256:5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3" ;
+    gmeow:requestRevisionDigest "5005beeee82286f90f6e2b7b74c3de0ad3d4dcbf4d386cd1d2e87b54ef9432a3"^^gmeow:sha256Digest ;
     gmeow:acceptedBy ex:agent ;
     gmeow:acceptedAt "2024-04-02T10:05:00Z"^^xsd:dateTime ;
     gmeow:acceptanceText "Yes, I can read this here. Thank you."@en ;

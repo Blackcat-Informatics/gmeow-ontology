@@ -490,9 +490,13 @@ fn iri_value(value: &RdfTerm) -> Option<&str> {
 }
 
 fn input_digest(dataset: &RdfDataset) -> gmeow_errors::Result<String> {
-    Ok(purrdf::try_flat_digest_view(dataset, CanonHash::Sha256)
-        .map_err(|error| exec_error(format!("canonicalize plan input: {error}")))?
-        .to_hex())
+    Ok(purrdf::try_flat_digest_view(
+        dataset,
+        CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| exec_error(format!("canonicalize plan input: {error}")))?
+    .to_hex())
 }
 
 /// Project one canonical plan. A fixed `logic:loopCount` is an explicit bounded

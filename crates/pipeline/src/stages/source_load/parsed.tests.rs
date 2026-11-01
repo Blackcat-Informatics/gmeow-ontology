@@ -352,8 +352,12 @@ fn catalog_identity_binds_exact_bytes_roles_and_document_names() {
         ),
     ] {
         assert!(
-            purrdf::datasets_isomorphic(first.materialized(), changed.materialized())
-                .expect("isomorphism is decided by canonical bytes")
+            purrdf::datasets_isomorphic(
+                first.materialized(),
+                changed.materialized(),
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .expect("isomorphism is decided by canonical bytes")
         );
         assert_ne!(
             first.identity(),
@@ -390,12 +394,18 @@ fn persistent_cache_refuses_the_ephemeral_native_source_catalog() {
     .unwrap();
     let mut bundle =
         crate::bundle::bundle_from_artifacts_over(receipt, Default::default(), Default::default());
-    let pin = bundle.graph_digest(GRAPH_SOURCE_CATALOG).unwrap();
+    let pin = bundle
+        .graph_digest(
+            GRAPH_SOURCE_CATALOG,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     bundle
         .pin_handle(
             GRAPH_SOURCE_CATALOG,
             PipelineHandle::SourceCatalog(Arc::new(catalog)),
             pin,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .unwrap();
     let product = StageProduct::from_bundle("stage-parse-sources", Arc::new(bundle))

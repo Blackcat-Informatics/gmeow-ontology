@@ -50,7 +50,7 @@ gmeow:speaker
 gmeow:programmingLanguageAsRecorded
     a logic:DatatypeProperty ;
     logic:domain gmeow:ContentBlock ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "programming language as recorded"@x-gmeow-english ;
@@ -76,7 +76,7 @@ gmeow:equationSource
 gmeow:sourceNotation
     a logic:DatatypeProperty ;
     logic:domain gmeow:ContentBlock ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/reference-apparatus> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "notation as recorded"@x-gmeow-english ;

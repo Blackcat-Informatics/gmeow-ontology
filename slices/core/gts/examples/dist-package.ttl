@@ -28,7 +28,7 @@ ex:gts-dist-package-001
     a gmeow:GTSDocument ;
     rdfs:label "gmeow.gts — the dist snapshot, with a music extension appended"@en ;
     gmeow:embodies ex:gmeow-ontology-expression-001 ;
-    gmeow:contentDigest "blake3:0e2f4b8a3c1d5e7f9a0b2c4d6e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f" .
+    gmeow:contentDigest "0e2f4b8a3c1d5e7f9a0b2c4d6e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f"^^gmeow:blake3_256Digest .
 
 ex:gts-dist-segment-core
     a gmeow:GTSSegment ;

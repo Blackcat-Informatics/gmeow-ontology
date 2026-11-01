@@ -73,9 +73,9 @@ gmeow:ComparisonContext
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Comparison Context"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
-        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] ;
+        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ;
     skos:definition "The content-addressed frame a contextual comparison is made under: its task (gmeow:contextTask), possible world (gmeow:contextWorld), standpoint (gmeow:contextStandpoint), time (gmeow:contextTime), governing policy (gmeow:contextPolicy), and generation context (gmeow:contextGeneration). It is what makes a preference CONTEXTUAL rather than universal: the same candidates compared under two contexts are two comparisons, neither privileged (Principle 9). Its identity is the REUSED gmeow:contentDigest over the whole frame, so 'which exact context?' is answerable, and it registers the observations made under it (gmeow:registersObservation) as a closed vantage base a consensus section must reconcile in full (F2). It is NOT a gmeow:PreferenceObservation (a single vantage's judgment WITHIN the context) nor a bare timestamp: it is the whole task/world/standpoint/time/policy/generation frame."@x-gmeow-english ;
-    skos:example "ex:ctx1 a gmeow:ComparisonContext ; gmeow:contextTask ex:goalSummarize ; gmeow:contextStandpoint ex:editorStandpoint ; gmeow:contextPolicy ex:housePolicy ; gmeow:contentDigest \"blake3:9a2f…\" ; gmeow:registersObservation ex:obs1 , ex:obs2 ."@x-gmeow-english ;
+    skos:example "ex:ctx1 a gmeow:ComparisonContext ; gmeow:contextTask ex:goalSummarize ; gmeow:contextStandpoint ex:editorStandpoint ; gmeow:contextPolicy ex:housePolicy ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:registersObservation ex:obs1 , ex:obs2 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding a single evaluator's judgment into the context (that is a gmeow:PreferenceObservation with a gmeow:vantage) and avoid reusing one context object across genuinely different tasks/worlds — a distinct frame is a distinct content-addressed context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the comparison frame gmeow:ComparisonContext, bind its task/world/standpoint/time/policy/generation legs, content-address the whole with the existing gmeow:contentDigest, and register the observations made under it with gmeow:registersObservation so the vantage base a consensus section must reconcile is closed and complete."@x-gmeow-english ;
@@ -1411,9 +1411,9 @@ gmeow:ProjectionReceipt
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Projection Receipt"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
-        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] ;
+        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ;
     skos:definition "A lossy, disclosed, content-addressed record of ONE derived ranking over a candidate set: a projection of the canonical vantage-indexed sheaf into a pairwise / listwise / DAG-hypergraph / Pareto / scalarized view (gmeow:projectionKind), never the canonical model. Its identity is the REUSED gmeow:contentDigest over its source-set digest + kind + params + gmeow:tieBreakRule (gmeow:ProjectionMustBeContentAddressed), and same inputs MUST yield the same digest (gmeow:DeterministicDigestConstraint, F4). It carries a source set (gmeow:projectionSourceSet), a determinism declaration (gmeow:projectionDeterminism), and — reusing the shipped logic: loss ledger — EXACTLY ONE logic:preservationKind plus a logic:ExpressivenessBoundary and a gmeow:DisclosedLossEntry for every dropped relation (gmeow:CompleteLossDisclosureConstraint). It is NOT the canonical preference (the sheaf) and NOT a gmeow:PreferenceObservation: a projection is a disclosed derivative, mandatory to disclose, never an alternative canon."@x-gmeow-english ;
-    skos:example "ex:rec1 a gmeow:ProjectionReceipt ; gmeow:projectionKind gmeow:projectionListwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:projectionDeterminism gmeow:determinismDeterministic ; gmeow:tieBreakRule \"lexicographic-by-iri\" ; logic:preservationKind logic:SoundUnderApproximation ; gmeow:contentDigest \"blake3:77aa…\" ."@x-gmeow-english ;
+    skos:example "ex:rec1 a gmeow:ProjectionReceipt ; gmeow:projectionKind gmeow:projectionListwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:projectionDeterminism gmeow:determinismDeterministic ; gmeow:tieBreakRule \"lexicographic-by-iri\" ; logic:preservationKind logic:SoundUnderApproximation ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating a projection receipt as the canonical model (it is a disclosed derivative — the sheaf is canonical), avoid an undisclosed dropped relation (gmeow:CompleteLossDisclosureConstraint), and avoid a non-exact receipt with no named boundary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the derived ranking gmeow:ProjectionReceipt, declare its gmeow:projectionKind, bind its gmeow:projectionSourceSet, declare gmeow:projectionDeterminism (and a gmeow:tieBreakRule when deterministic, gmeow:scalarizationWeights when scalarized), name its logic:preservationKind and a gmeow:DisclosedLossEntry per dropped relation, and content-address the whole with the existing gmeow:contentDigest."@x-gmeow-english ;
@@ -1563,7 +1563,7 @@ gmeow:DpoView
     rdfs:label "DPO View"@x-gmeow-english ;
     logic:subClassOf gmeow:ProjectionReceipt ;
     skos:definition "A Direct-Preference-Optimization training view: a gmeow:ProjectionReceipt subtype that pairs chosen/rejected candidates for optimizer consumption. It is a DERIVED consumer of the canonical preference, NEVER the canonical model: a canonical gmeow:PreferenceObservation may not be derived FROM a gmeow:DpoView (gmeow:DpoNotCanonicalConstraint). It carries the same loss ledger and content-addressing as any projection receipt."@x-gmeow-english ;
-    skos:example "ex:dpo1 a gmeow:DpoView ; gmeow:projectionKind gmeow:projectionPairwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:contentDigest \"blake3:dd01…\" ."@x-gmeow-english ;
+    skos:example "ex:dpo1 a gmeow:DpoView ; gmeow:projectionKind gmeow:projectionPairwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid deriving a canonical gmeow:PreferenceObservation from a gmeow:DpoView (DPO is derived-only — gmeow:DpoNotCanonicalConstraint) and avoid treating the training view as the preference model."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the training view gmeow:DpoView (⊑ gmeow:ProjectionReceipt), carry its kind/source/loss-ledger/digest like any receipt, and consume it downstream only — never source a canonical observation from it."@x-gmeow-english ;
@@ -2139,9 +2139,9 @@ gmeow:ModelConfigDelta
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/preference> ;
     rdfs:label "Model Config Delta"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ,
-        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] ;
+        [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ;
     skos:definition "The content-addressed record of a model/config change a preference learning run produced — its identity is the REUSED gmeow:contentDigest over the WHOLE identity tuple (AC5). Every leg is mandatory (gmeow:ModelConfigDeltaCompletenessConstraint): the base artifact (gmeow:deltaBaseArtifact, typed to the core gmeow:InformationObject — model-serving gmeow:ModelArtifact by reference), tokenizer (gmeow:deltaTokenizer), codebook (gmeow:deltaCodebook), dataset projection (gmeow:deltaDatasetProjection → own gmeow:ProjectionReceipt), selection query (gmeow:deltaSelectionQuery, stored-not-executed, Principle 12), prompt (gmeow:deltaPromptIdentity → ai gmeow:Prompt), rubric (gmeow:deltaRubricIdentity, typed to the core gmeow:SocialObject — the observations gmeow:Rubric by reference), engine (gmeow:deltaEngine), optimizer (gmeow:deltaOptimizer), seed (gmeow:deltaSeed), and evaluation evidence (gmeow:deltaEvaluationEvidence → gmeow:EvidenceSpan). A delta missing any leg is not a reproducible identity. It is NOT the gmeow:PreferenceLearningEvent that produced it."@x-gmeow-english ;
-    skos:example "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"blake3:c0de…\" ."@x-gmeow-english ;
+    skos:example "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid omitting any of the eleven legs (a partial delta is not a reproducible identity — gmeow:ModelConfigDeltaCompletenessConstraint) and avoid minting a separate delta id; the reused gmeow:contentDigest over the whole tuple IS the identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the change gmeow:ModelConfigDelta, fill ALL eleven legs (base artifact, tokenizer, codebook, dataset projection, selection query, prompt, rubric, engine, optimizer, seed, evaluation evidence), and content-address the whole tuple with the existing gmeow:contentDigest — that digest is the delta's identity."@x-gmeow-english ;
@@ -2153,7 +2153,7 @@ gmeow:TokenizerContract
     rdfs:label "Tokenizer Contract"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "The tokenizer half of a model-config identity: the exact tokenization recipe (vocabulary, merges, special tokens, normalization) a gmeow:ModelConfigDelta is bound to — a bridge information object, minted here because it is own-slice model-config identity, not a norms/model-serving term. It is one leg of the delta's content-addressed tuple."@x-gmeow-english ;
-    skos:example "ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest \"blake3:70ke…\" ."@x-gmeow-english ;
+    skos:example "ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding tokenizer identity into the base artifact or the prompt; tokenization is a distinct, separately-addressed leg of the delta tuple."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the tokenization recipe gmeow:TokenizerContract, content-address it, and bind it to a delta via gmeow:deltaTokenizer."@x-gmeow-english ;
@@ -2165,7 +2165,7 @@ gmeow:CodebookContract
     rdfs:label "Codebook Contract"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "The codebook/quantization half of a model-config identity: the exact discrete-codebook or vector-quantization recipe a gmeow:ModelConfigDelta is bound to — an own-slice model-config identity bridge object. It is one leg of the delta's content-addressed tuple, distinct from the tokenizer (text→token) as the codebook is representation→code."@x-gmeow-english ;
-    skos:example "ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest \"blake3:c0d3…\" ."@x-gmeow-english ;
+    skos:example "ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating the codebook with the tokenizer; the tokenizer maps text to tokens, the codebook maps representations to codes — distinct legs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the codebook recipe gmeow:CodebookContract, content-address it, and bind it to a delta via gmeow:deltaCodebook."@x-gmeow-english ;
@@ -2177,7 +2177,7 @@ gmeow:SelectionQuery
     rdfs:label "Selection Query"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "The STORED, not-executed (Principle 12) data-selection query a gmeow:ModelConfigDelta is bound to — the recipe for which training examples were selected, content-addressed as a claim the consumer executes, never run by the ontology. It is one leg of the delta's tuple. It is NOT the dataset projection it selects over (gmeow:deltaDatasetProjection): this names the selection recipe, that names the projected data."@x-gmeow-english ;
-    skos:example "ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest \"blake3:5e1e…\" ."@x-gmeow-english ;
+    skos:example "ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid executing the query in the ontology (it is stored, not executed — Principle 12) and avoid conflating it with the dataset projection it selects over."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the stored selection recipe gmeow:SelectionQuery, content-address it, and bind it to a delta via gmeow:deltaSelectionQuery; the consumer executes it, the ontology gates its content-addressing."@x-gmeow-english ;
@@ -2189,7 +2189,7 @@ gmeow:EngineContract
     rdfs:label "Engine Contract"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "The inference/execution engine half of a model-config identity: the exact runtime, precision mode, and deterministic-execution settings a gmeow:ModelConfigDelta is bound to — an own-slice model-config identity bridge object. It is one leg of the delta's content-addressed tuple, distinct from the optimizer (training-time)."@x-gmeow-english ;
-    skos:example "ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest \"blake3:e491…\" ."@x-gmeow-english ;
+    skos:example "ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating the engine (execution runtime) with the optimizer (training algorithm); they are distinct legs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the execution engine recipe gmeow:EngineContract, content-address it, and bind it to a delta via gmeow:deltaEngine."@x-gmeow-english ;
@@ -2201,7 +2201,7 @@ gmeow:OptimizerContract
     rdfs:label "Optimizer Contract"@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     skos:definition "The optimizer half of a model-config identity: the exact training algorithm, hyperparameters, and schedule (e.g. the DPO objective and its β) a gmeow:ModelConfigDelta is bound to — an own-slice model-config identity bridge object. An optimizer view (like DPO) is itself a gmeow:ProjectionReceipt consumer, not the canonical preference. It is one leg of the delta's content-addressed tuple."@x-gmeow-english ;
-    skos:example "ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest \"blake3:0971…\" ."@x-gmeow-english ;
+    skos:example "ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating the optimizer (training algorithm) with the engine (execution runtime) and avoid treating the optimizer's DPO view as the canonical preference."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the training-algorithm recipe gmeow:OptimizerContract, content-address it, and bind it to a delta via gmeow:deltaOptimizer."@x-gmeow-english ;

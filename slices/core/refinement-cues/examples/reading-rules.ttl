@@ -21,7 +21,7 @@ ex:english a gmeow:Language ; gmeow:languageCode "en" .
 # The parameter values and inventories are immutable source declarations.
 ex:restatementV1 a gmeow:RestatementRule ;
     gmeow:versionOf ex:ruleLineage ; gmeow:versionLabel "1" ;
-    gmeow:contentDigest "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" ;
+    gmeow:contentDigest "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"^^gmeow:sha256Digest ;
     gmeow:wasAttributedTo ex:reviewer ;
     gmeow:writtenInLanguage ex:english ;
     gmeow:restatementMinimumRun "5"^^xsd:positiveInteger ;
@@ -29,7 +29,7 @@ ex:restatementV1 a gmeow:RestatementRule ;
     gmeow:restatementCommonWord "the" , "and" .
 ex:echoV1 a gmeow:ReadingRule ;
     gmeow:versionOf ex:echoLineage ; gmeow:versionLabel "1" ;
-    gmeow:contentDigest "sha256:abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789" ;
+    gmeow:contentDigest "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"^^gmeow:sha256Digest ;
     gmeow:wasAttributedTo ex:reviewer ;
     gmeow:minimumRun "4"^^xsd:positiveInteger ; gmeow:minimumShare 0.5 .
 

@@ -236,7 +236,7 @@ pub const PATH_SHAPES_EXAMPLE_PATH: &str = "slices/grounding/logic/examples/pred
 /// neither is a hardcoded Rust `CorrespondenceProgram` literal.
 pub const CORRESPONDENCE_EXAMPLE_PATH: &str =
     "slices/grounding/logic/examples/correspondence-program.ttl";
-/// The process-axis worked source: a fixed-count RCHOPS21 `logic:Plan` carrying
+/// The process-axis worked source: a fixed-count `RCHOPS21` `logic:Plan` carrying
 /// guarded branches, tracked-state freshness, nondeterministic outcomes,
 /// compensation and a conditional addition. It is projected by the same native
 /// correspondence execution layer, never treated as an observed run.
@@ -1044,23 +1044,31 @@ fn build_logic_bundle(
             report,
         )?),
     )?;
-    let pinned = bundle.graph_digest(GRAPH_LOGIC)?;
+    let pinned = bundle.graph_digest(
+        GRAPH_LOGIC,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     bundle
         .pin_handle(
             GRAPH_LOGIC,
             PipelineHandle::CompiledLogic(Arc::new(publication)),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|e| stage_err(format!("pin Logic handle to <{GRAPH_LOGIC}>: {e}")))?;
     // The REAL typed RelationalCore handle (C8): the typed dialect, pinned to its
     // backing `graph/relational-core` projection. `pin_handle` HARD-fails on a digest
     // mismatch, so a handle that disagrees with its backing graph can never attach.
-    let pinned_rc = bundle.graph_digest(GRAPH_RELATIONAL_CORE)?;
+    let pinned_rc = bundle.graph_digest(
+        GRAPH_RELATIONAL_CORE,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     bundle
         .pin_handle(
             GRAPH_RELATIONAL_CORE,
             PipelineHandle::RelationalCore(Arc::new(relational_core)),
             pinned_rc,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(format!(
@@ -1070,12 +1078,16 @@ fn build_logic_bundle(
     // The REAL typed Correspondence handle (C10): the typed correspondence program,
     // pinned to its backing `graph/correspondence` projection. `pin_handle` HARD-fails on
     // a digest mismatch, so a handle that disagrees with its backing graph can never attach.
-    let pinned_corr = bundle.graph_digest(GRAPH_CORRESPONDENCE)?;
+    let pinned_corr = bundle.graph_digest(
+        GRAPH_CORRESPONDENCE,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     bundle
         .pin_handle(
             GRAPH_CORRESPONDENCE,
             PipelineHandle::Correspondence(Arc::new(correspondence)),
             pinned_corr,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             stage_err(format!(

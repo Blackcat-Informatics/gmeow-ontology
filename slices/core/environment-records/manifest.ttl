@@ -18,7 +18,7 @@
     dcterms:title "GMEOW Environment Records Module"@x-gmeow-english ;
     gmeow:sliceConsumer "Environment providers and agent memory adapters retaining exact object, request and disclosure evidence without fabricated execution."@x-gmeow-english ;
     dcterms:creator "Blackcat Informatics® Inc." ;
-    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/logic>,
+    gmeow:sliceDependsOn <https://blackcatinformatics.ca/gmeow/slices/math> , <https://blackcatinformatics.ca/gmeow/slices/logic>,
         <https://blackcatinformatics.ca/gmeow/slices/kernel>,
         <https://blackcatinformatics.ca/gmeow/slices/entities>,
         <https://blackcatinformatics.ca/gmeow/slices/sources>,

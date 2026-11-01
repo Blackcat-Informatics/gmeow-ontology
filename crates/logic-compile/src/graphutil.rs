@@ -355,7 +355,12 @@ fn object_id<D: DatasetView<ReadError = Infallible> + ?Sized>(
 /// N-Quads allocation and immediate parser round trip. Canonicalization refusals remain
 /// hard compiler errors; there is no weaker labeling fallback.
 pub(crate) fn canonicalize_blank_nodes(ds: &RdfDataset) -> gmeow_errors::Result<Arc<RdfDataset>> {
-    canonical_relabel(ds).map(Arc::new).map_err(|e| {
+    canonical_relabel(
+        ds,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map(Arc::new)
+    .map_err(|e| {
         Diag::of_kind(crate::error::Graph {
             detail: format!("native blank-node canonicalization: {e}"),
         })

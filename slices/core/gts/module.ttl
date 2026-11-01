@@ -226,7 +226,7 @@ gmeow:gtsHeadId
     rdfs:domain gmeow:GTSSegment ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "GTS head id"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:subPropertyOf gmeow:versionFingerprint ;
     skos:definition "The chain head of a segment — the content-id of its last frame, written 'blake3:<hex>'. Transitively commits to the segment's entire history (spec §9.1), making it a version fingerprint of the segment rather than a digest of its bytes: hence a subproperty of gmeow:versionFingerprint, distinct from gmeow:contentDigest (which is byte-exact identity and applies to the file or a blob as a whole). Functional: a segment has exactly one head. It is also the key of a gmeow:GTSSegment (carried by the logic:KeyAssertion gmeow:gtsSegmentHeadKey): the head is a BLAKE3 content-id committing transitively to the segment's whole frame history, so two distinct segments sharing a head would be a full-history BLAKE3 collision — impossible by construction; the head therefore uniquely identifies its segment (content-addressing IS the identity). The datatype key is carried by a logic:KeyAssertion (the logic: analogue of OWL hasKey, OWL 2 DL) rather than an inverse-functional characteristic (which on a datatype property would be OWL 2 Full)."@x-gmeow-english ;
     skos:example "ex:seg0 gmeow:gtsHeadId \"blake3:9f2c4e…\" ."@x-gmeow-english ;
@@ -479,7 +479,7 @@ gmeow:OpaqueFrame logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:OpaqueFrame ; logic:closureKey "https://blackcatinformatics.ca/gmeow/opaqueFrameIn" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:GTSSegment rdfs:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:gtsHeadId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:gtsHeadId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gtsSegmentIndex ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gtsProfile ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:GTSProfile ] .
 
@@ -505,7 +505,7 @@ gmeow:GTSSegment rdfs:subClassOf
 
 # exact-one minCount restoration: min-qualified sibling restrictions
 # restoring sh:minCount for the reasoner-safe max-qualified exact-one antecedents.
-<https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsHeadId> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onDataRange <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ] .
 <https://blackcatinformatics.ca/gmeow/GTSSegment> <http://www.w3.org/2000/01/rdf-schema#subClassOf> [ <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/gtsProfile> ; logic:minQualifiedCardinality "1"^^<http://www.w3.org/2001/XMLSchema#integer> ; logic:onClass <https://blackcatinformatics.ca/gmeow/GTSProfile> ] .
 
@@ -579,7 +579,7 @@ gmeow:GtsHeadIdCanonicalConstraint
     logic:onClass gmeow:GTSSegment ;
     logic:valuePath gmeow:gtsHeadId ;
     logic:stringOp "regexRequired" ;
-    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:stringPattern "^[0-9a-f]{64}$" ;
     logic:formalizes gmeow:GTSSegmentShape ;
     logic:message "A gmeow:gtsHeadId value must match '^blake3:[0-9a-f]{64}$' — the canonical blake3 content-id form." .
 
@@ -880,7 +880,7 @@ gmeow:corpusSelectsBlobRep
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects blob rep"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A blob representation label whose members a dictionary corpus trains over — the exact wire rep string the carrier writes (matching a gmeow:payloadSchemaId). Non-functional: a corpus may draw on several archives. It selects the whole archive, not an individual member of it. Bundle-internal by construction: a rep names material the bundle already carries."@x-gmeow-english ;
     skos:example "gmeow:corpusGmeowCoreV1 gmeow:corpusSelectsBlobRep \"cells-archive\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property selects a whole ARCHIVE by its wire rep label, and nothing narrower or wider. It does not name a single member of that archive, does not select RDF quads (gmeow:corpusSelectsGraph), source files (gmeow:corpusSelectsPathPrefix), or a stage product (gmeow:corpusSelectsStageProduct), and it is not the rep-to-medium assignment: the same label appears as a gmeow:payloadSchemaId on the registry for an unrelated purpose."@x-gmeow-english ;
@@ -915,7 +915,7 @@ gmeow:corpusSelectsPathPrefix
     rdfs:domain gmeow:DictionaryCorpus ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "corpus selects path prefix"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A repository-relative logical path selector whose bytes a dictionary corpus trains over. A value ending in a slash selects that directory family; every other value selects one exact logical file. An authored selector resolves from the source tree; a generated selector resolves only from the current DAG's consumed in-memory artifact lanes, never from a stale committed file. Non-functional: a corpus may draw on several selectors."@x-gmeow-english ;
     skos:example "gmeow:corpusGmeowCoreV1 gmeow:corpusSelectsPathPrefix \"slices/core/\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property selects one exact AUTHORED or current in-memory GENERATED logical file, or a trailing-slash family of such files. It never reads generated bytes from disk, does not reach outside the repository tree the bundle is built from, and is not the archive selector (gmeow:corpusSelectsBlobRep): one names logical files while the other names a complete wire representation."@x-gmeow-english ;
@@ -988,7 +988,7 @@ gmeow:dictionaryId
     rdfs:domain gmeow:CompressionDictionary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary id"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The stable, human-readable id of an authored compression dictionary (e.g. \"gmeow-core-v1\"). Functional: one id per definition. An id alone does NOT identify decodable bytes — it must be read with gmeow:dictionaryVersion, because a zstd dictionary is a verbatim substring table of its corpus and two versions of one id share no compatibility guarantee."@x-gmeow-english ;
     skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryId \"gmeow-core-v1\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property carries the human-readable NAME of an authored dictionary, and never a complete identity on its own — it must be read with gmeow:dictionaryVersion. It is not the numeric zstd Dictionary_ID the frame header cites (gmeow:zstdDictionaryId, a realization field) and not the byte-exact identity of trained bytes (gmeow:dictionaryContentDigest)."@x-gmeow-english ;
@@ -1039,7 +1039,7 @@ gmeow:dictionaryVersion
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "dictionary version"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The version coordinate of a compression dictionary, carried on BOTH the authored gmeow:CompressionDictionary and the generated gmeow:CompressionDictionaryRealization (domain stated in prose) so an emitted realization can be checked against the definition it claims to realize. Functional per subject. Versions are never interchangeable: a dictionary is a verbatim substring table of its training corpus, so decoding a frame primed with version N against version N+1 produces garbage, not degraded output — hence gmeow:MediumDictionaryRegression, which fires when an emitted version is no longer retained by any authored definition."@x-gmeow-english ;
     skos:example "gmeow:dictGmeowCoreV1 gmeow:dictionaryVersion \"1\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property carries the version COORDINATE only, on both halves of the definition/realization split, so the two can be compared. It is not a compatibility statement — versions of one id share no guarantee — and it is not an ordering a consumer may resolve by taking the newest: a frame primed with version N is readable only with version N."@x-gmeow-english ;
@@ -1214,12 +1214,12 @@ gmeow:measuredCorpusDigest
     rdfs:domain gmeow:CompressionDictionaryRealization ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "measured corpus digest"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The identity of the WHOLE corpus this build resolved for the dictionary — held-out members included — written in the canonical blake3:<64 lowercase hex> form: every resolved sample's own digest, one per line in canonical digest order, hashed again. Exactly one per realization. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build, so an archive that gains or loses one member moves the corpus while the committed sweep evidence sits still; recording the identity is what lets the build REFUSE (gmeow:MediumCorpusDrift) instead of grading itself against numbers taken over different material. Held-out members are inside the digest deliberately: the sweep's argmin depends on the whole frame, so a held-out member that changed would leave the training set alone while moving the bytes every grid cell was scored over. It is over the samples' DIGESTS rather than over their concatenated bytes so the value costs bounded memory on a corpus whose members run to hundreds of megabytes, and so a reader who prints one member's digest can see it in this one's input."@x-gmeow-english ;
-    skos:example "ex:realCoreV1 gmeow:measuredCorpusDigest \"blake3:1f0a…\" ."@x-gmeow-english ;
+    logic:range gmeow:blake3_256Digest ;
+    skos:definition "The BLAKE3-256 digest of the whole resolved dictionary corpus, including held-out members: sort and deduplicate the sample internal digest strings, join them with a newline, then hash those exact UTF-8 bytes. The RDF value uses gmeow:blake3_256Digest with 64 lowercase hexadecimal digits without a prefix. Exactly one per realization; it pins the committed sweep evidence to the selected corpus rather than only its training members."@x-gmeow-english ;
+    skos:example "ex:record gmeow:measuredCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property identifies the WHOLE corpus resolution of one build, held-out members included, so committed evidence can be pinned to it. It is not the size of that resolution (gmeow:measuredCorpusSampleCount, which counts the training side only), not the dictionary's own byte identity (gmeow:dictionaryContentDigest), and not a value an author may edit to make a stale table agree — that would assert an identity nothing measured."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
-    gmeow:avoidWhen "Avoid asserting it on the authored gmeow:CompressionDictionary (a corpus identity is a build product — the declaration is the SELECTOR, not the resolution), avoid writing it in any form but blake3:<64 lowercase hex> (a free-form digest could never match the corpus it claims to identify), and avoid computing it over the training side alone — the held-out members are part of what the evaluation ran on."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting a measured corpus digest on its authored selector, changing the recorded digest to bless stale evidence, or omitting held-out members from its exact preimage. Keep internal blake3: addresses distinct from the typed RDF literal."@x-gmeow-english ;
     gmeow:docsConcern gmeow:concernGTSPackaging ;
     gmeow:graphBoxRole gmeow:boxABox ,
         gmeow:boxRBox ;
@@ -1419,7 +1419,7 @@ gmeow:producerCallSite
     rdfs:domain gmeow:GtsProducer ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "producer call site"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A repo-relative production source path that authors GMEOW GTS bytes through a mandated-profile authorship door. A stable path string, not localizable prose. Non-functional: one producer may govern several files that write the same artifact through the same medium. The repo-static producer census reads exactly this literal, so a path that names no production authorship site is a stale row and HARD-fails."@x-gmeow-english ;
     skos:example "gmeow:gtsProducerDistBundle gmeow:producerCallSite \"crates/pipeline/src/stages/carrier.rs\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property lists PRODUCTION AUTHORSHIP paths only — files that write GMEOW GTS bytes. It is not a test path, not a file that merely reads or validates GTS, and not a Rust symbol or stage name: the repo-static census matches this literal against the source tree, so a stale path classifies nothing while leaving the map looking complete."@x-gmeow-english ;
@@ -1491,7 +1491,7 @@ gmeow:payloadSchemaId
     rdfs:domain gmeow:PayloadSchema ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "payload schema id"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The stable wire label of a registered payload schema — the EXACT blob representation string the carrier writes (\"cells-archive\", \"diagnostics:nodes\", \"gmeow:report/shacl/sarif\", …). Functional: one label per schema, one schema per label. It is the join key between the ontology registry and the emitter's representation constants, so a rep added in Rust without a schema minted here is caught rather than shipped."@x-gmeow-english ;
     skos:example "gmeow:payloadSchemaCellsArchive gmeow:payloadSchemaId \"cells-archive\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property carries the exact WIRE LABEL of a registered schema, byte-identical to the emitter's representation constant, because it is the join key between registry and carrier. It is not a display name and must not be decorated or abbreviated; it is also not the corpus selector that spells the same string (gmeow:corpusSelectsBlobRep), which names training material rather than a registry entry."@x-gmeow-english ;
@@ -1563,7 +1563,7 @@ gmeow:requiresReaderCapability
     rdfs:domain gmeow:Medium ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "requires reader capability"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A capability a reader MUST hold to decode payloads written through this medium. Non-functional: a medium may raise the contract on several axes at once. GTS spec §8.4 makes zstd-rsyncable NON-baseline, so the shipped bundle already demands a non-baseline reader, and dictionary priming raises the contract again — a reader with a zstd library but no dictionary support cannot read a primed frame at all. Principle 13 makes that a DECLARED property of the deliverable rather than a discovery a consumer makes at decode time: a reader compares its own capabilities against this list before starting, and a missing capability surfaces as gmeow:MediumOpaqueFrame (the medium-axis name for the existing gmeow:opacityUnknownCodec situation), never as a silent degraded decode."@x-gmeow-english ;
     skos:example "gmeow:mediumProfileDistL12 gmeow:requiresReaderCapability \"zstd-dictionary\" ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property declares what a READER must be able to do, on the medium, before anything is decoded. It is not a description of what the encoder did (gmeow:mediumCodec, gmeow:mediumZstdLevel) and not a claim about any particular reader. A reader lacking a listed capability surfaces gmeow:MediumOpaqueFrame rather than degrading, so omitting an entry does not make a payload more portable, only its failure less legible."@x-gmeow-english ;
@@ -1617,9 +1617,9 @@ gmeow:strataDigest
     rdfs:domain gmeow:MediumEnvelope ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     rdfs:label "strata digest"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The digest of the sub-payload named by gmeow:envelopeDigestStratum, written 'blake3:<hex>'. Exactly one per envelope. It is deliberately NOT a subproperty of gmeow:contentDigest: contentDigest is byte-exact identity of the WHOLE artifact, and a consumer that treated a stratum digest as whole-artifact identity would compare unequal things. The two coexist on every envelope — gmeow:contentDigest carries snapshot_content_id() verbatim, so the stratum digest is a strict ADDITION to the total witness, never a replacement for it. Without the stratum the snapshot envelope would be self-referential and its emission would not converge."@x-gmeow-english ;
-    skos:example "ex:env gmeow:strataDigest \"blake3:9f2c4e…\" ."@x-gmeow-english ;
+    logic:range gmeow:blake3_256Digest ;
+    skos:definition "The BLAKE3-256 digest of the exact sub-payload bytes named by envelopeDigestStratum, carried as a gmeow:blake3_256Digest literal with bare lowercase hexadecimal digits. Exactly one per envelope. It remains distinct from contentDigest: on the self-referential snapshot envelope that property retains the builder's snapshot_content_id preimage, not a hash of the final distributed file."@x-gmeow-english ;
+    skos:example "ex:record gmeow:strataDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     skos:scopeNote "Scope: this property carries the digest VALUE for the region gmeow:envelopeDigestStratum names. It is not artifact identity, and it is deliberately not a subproperty of gmeow:contentDigest, which the same envelope carries verbatim from the frame: a consumer that used this in place of that would compare a sub-payload against a whole artifact and find them unequal for the wrong reason."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid asserting it without gmeow:envelopeDigestStratum (a digest with no stated region is uncheckable) and avoid using it in place of gmeow:contentDigest for artifact identity."@x-gmeow-english ;
@@ -2999,23 +2999,21 @@ gmeow:MediumUnknownSchema
 # without a class pretending to raise five different failures at once.
 gmeow:MediumEnvelope gmeow:enforcesFailureClass gmeow:MediumUndeclaredDictionary .
 
-# A digest that is not a canonical 'blake3:<64 lowercase hex>' literal is
-# indistinguishable from a truncated or foreign digest, so comparing it is a
-# guaranteed mismatch rather than a check — the shape of the string is part of the
-# claim, exactly as it is for gmeow:gtsHeadId.
+# The typed byte digest carries its algorithm in its datatype and its exact width
+# in its bare hexadecimal spelling; a GTS chain head keeps its separate scheme.
 logic:MediumStrataDigestFormConstraint
     a logic:StringPatternConstraint ;
     rdfs:label "Medium strata-digest form constraint"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    skos:definition "A closed-world integrity constraint: a gmeow:strataDigest is written 'blake3:<64 lowercase hex>'. A free-form digest cannot be compared against the bytes it claims to commit to, so a malformed one is a gmeow:MediumDigestMismatch by construction."@x-gmeow-english ;
+    skos:definition "The lexical check for a supplied strataDigest: exactly 64 lowercase hexadecimal digits without a prefix. The property range separately requires the BLAKE3-256 digest datatype; this check does not recompute the selected stratum bytes."@x-gmeow-english ;
     logic:onClass gmeow:MediumEnvelope ;
     logic:valuePath gmeow:strataDigest ;
     logic:stringOp "regexRequired" ;
-    logic:stringPattern "^blake3:[0-9a-f]{64}$" ;
+    logic:stringPattern "^[0-9a-f]{64}$" ;
     logic:formalizes gmeow:MediumEnvelope ;
     gmeow:enforcesFailureClass gmeow:MediumDigestMismatch ;
-    logic:message "A gmeow:strataDigest must be written 'blake3:<64 lowercase hex>' — a free-form digest cannot be compared against the bytes it commits to." .
+    logic:message "A gmeow:strataDigest requires 64 lowercase hexadecimal digits without a prefix and the BLAKE3-256 digest datatype." .
 
 logic:MediumDictionaryDigestFormConstraint
     a logic:StringPatternConstraint ;
@@ -3217,16 +3215,16 @@ gmeow:MediumEnvelope logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeSchema ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:PayloadSchema ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopePayloadFrame ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:envelopeDigestStratum ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:strataDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] .
 
 # A medium is exactly one codec, one resolution rule, and one judged crossing.
 gmeow:Medium logic:subClassOf
@@ -3244,7 +3242,7 @@ gmeow:Medium logic:subClassOf
 gmeow:GtsProducer logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:producerMedium ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:producerMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:producerCallSite ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:producerCallSite ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 # The zstd level is declared on the medium, exactly once.
 gmeow:ZstdDictMedium logic:subClassOf
@@ -3255,10 +3253,10 @@ gmeow:ZstdDictMedium logic:subClassOf
 # Dictionary_ID obligation: those are build products, and requiring them on an
 # authored individual would be an UNSATISFIABLE axiom rather than a strict one.
 gmeow:CompressionDictionary logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
@@ -3277,16 +3275,16 @@ gmeow:CompressionDictionaryRealization logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:dictionaryByteLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:zstdDictionaryId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:dictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryStrategy ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredDictionaryTargetLength ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusSampleCount ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:nonNegativeInteger ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:measuredCorpusDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange gmeow:blake3_256Digest ] .
 
 # The DECLARED held-out split is exactly one modulus and one residue. Both are
 # mandatory for the same reason: a split missing either coordinate does not
@@ -3330,8 +3328,8 @@ gmeow:MediumDictionaryEffectMeasurement logic:subClassOf
 # logic:PayloadSchemaDictionaryConstraint): under the explicitly dictionary-less
 # gmeow:mediumProfileBaselineL12 its absence is the selection.
 gmeow:PayloadSchema logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:minQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaMedium ; logic:minQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaMedium ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Medium ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:payloadSchemaDictionary ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:CompressionDictionary ] .
@@ -3657,3 +3655,22 @@ gmeow:NativeSnapshotInputAdmission
     skos:scopeNote "Native statement bindings and annotations retain their own tables; the contract never authorizes flattening away their information."@x-gmeow-english ;
     skos:example "A native rule source retains its reifier bindings when admitted to the snapshot alongside ordinary RDF statements."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/strataDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:MeasuredCorpusDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gts> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes gmeow:measuredCorpusDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:measuredCorpusDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ] ] ] .

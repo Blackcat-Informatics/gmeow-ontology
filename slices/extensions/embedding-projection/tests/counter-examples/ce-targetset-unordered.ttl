@@ -11,7 +11,7 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:unorderedSet a gmeow:TargetSet ;
-    gmeow:contentDigest   "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0009" ;
+    gmeow:versionFingerprint "blake3:1111111122223333444455556666777788889999aaaabbbbccccddddeeee0009" ;
     gmeow:targetSetMember ce:unorderedMember .
 
 ce:unorderedMember a gmeow:VectorTarget ;

@@ -57,8 +57,8 @@ ex:cxRefineTotalParthood
 ex:cxRefineWitnessIncomparablePair
     a logic:ContradictionWitness ;
     rdfs:label "incomparable parthood pair (refutation witness)"@x-gmeow-english ;
-    logic:witnessIndividual "ex:leftHand"^^xsd:string ;
-    logic:witnessWorld "ex:worldActual"^^xsd:string ;
+    logic:witnessIndividual ex:leftHand ;
+    logic:witnessWorld ex:worldActual ;
     logic:witnessPremise "ex:leftHand logic:properPartOf ex:body"^^xsd:string ,
         "ex:rightHand logic:properPartOf ex:body"^^xsd:string ,
         "ex:leftHand owl:differentFrom ex:rightHand"^^xsd:string .

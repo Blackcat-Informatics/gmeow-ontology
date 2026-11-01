@@ -600,3 +600,163 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/withMetricFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:withMetric and nothing else. It is not a definition of gmeow:withMetric (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:withMetric, et rien d'autre. Ce n'est pas une définition de gmeow:withMetric (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddingFamily|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:versionFingerprint \"blake3:5c1e…\" ."
+msgstr "ex:fam1 a gmeow:EmbeddingFamily ; gmeow:embeddingModel ex:bgeM3 ; gmeow:inferenceEngine ex:onnxRuntime ; gmeow:poolingKind ex:poolingMean ; gmeow:vectorDtype \"float32\" ; gmeow:vectorByteOrder gmeow:byteOrderLittleEndian ; gmeow:quantizationContract \"none\" ; gmeow:versionFingerprint \"blake3:5c1e…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddingProjection|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proj1 a gmeow:EmbeddingProjection ; gmeow:hasVectorSpaceContract ex:vsc1 ; gmeow:projectionSource ex:pack1 ; gmeow:hasSensitivity gmeow:sensitivityInternal ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:aggregatesEmbedding ex:emb1 , ex:emb2 ."
+msgstr "ex:proj1 a gmeow:EmbeddingProjection ; gmeow:hasVectorSpaceContract ex:vsc1 ; gmeow:projectionSource ex:pack1 ; gmeow:hasSensitivity gmeow:sensitivityInternal ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:aggregatesEmbedding ex:emb1 , ex:emb2 ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ExternalBinding|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ext1 a gmeow:ExternalBinding ; gmeow:externalRole \"source-corpus\" ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:gtsHeadId \"g9h8…\" ."
+msgstr "ex:ext1 a gmeow:ExternalBinding ; gmeow:externalRole \"source-corpus\" ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:gtsHeadId \"g9h8…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetSet|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ts1 a gmeow:TargetSet ; gmeow:targetSetMember ex:vt1 , ex:vt2 ; gmeow:versionFingerprint \"blake3:7d21…\" ."
+msgstr "ex:ts1 a gmeow:TargetSet ; gmeow:targetSetMember ex:vt1 , ex:vt2 ; gmeow:versionFingerprint \"blake3:7d21…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorSpaceContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:vsc1 a gmeow:VectorSpaceContract ; gmeow:effectiveOfFamily ex:fam1 ; gmeow:embeddingDimensions 256 ; gmeow:distanceMetric gmeow:distanceMetricCosine ; gmeow:normalizationKind ex:normalizationL2 ; gmeow:matryoshkaPolicy gmeow:matryoshkaPrefix ; gmeow:versionFingerprint \"blake3:9ab3…\" ."
+msgstr "ex:vsc1 a gmeow:VectorSpaceContract ; gmeow:effectiveOfFamily ex:fam1 ; gmeow:embeddingDimensions 256 ; gmeow:distanceMetric gmeow:distanceMetricCosine ; gmeow:normalizationKind ex:normalizationL2 ; gmeow:matryoshkaPolicy gmeow:matryoshkaPrefix ; gmeow:versionFingerprint \"blake3:9ab3…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSource|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:proj1 gmeow:projectionSource ex:pack1 . ex:pack1 gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:gtsHeadId \"g1t2…\" ."
+msgstr "ex:proj1 gmeow:projectionSource ex:pack1 . ex:pack1 gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:gtsHeadId \"g1t2…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source-pack byte digest recorded in a projection's header at build time. Its complete BLAKE3-256, SHA-256 or MD5 typed literal must match a contentDigest of the resolved projectionSource; a mismatch is a hard failure, never a silent reconciliation."
+msgstr "Condensat exact des octets du paquet source enregistré dans l’en-tête d’une projection lors de sa construction. Son littéral complet typé BLAKE3-256, SHA-256 ou MD5 doit correspondre à un contentDigest du projectionSource résolu ; un désaccord est un échec explicite, jamais une réconciliation silencieuse."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/projectionSourceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:projectionSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:record gmeow:projectionSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProfileSurface|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ; gmeow:recordsModelContractDigest \"sha256:9ab3…\" ; gmeow:recordsTargetTableDigest \"sha256:7d21…\" ."
+msgstr "ex:sc1 a gmeow:ProfileSurface ; gmeow:profileSurfaceOf ex:proj1 ; gmeow:profileSurfaceKind gmeow:surfaceContainer ; gmeow:recordsSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ; gmeow:recordsModelContractDigest \"sha256:9ab3…\" ; gmeow:recordsTargetTableDigest \"sha256:7d21…\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordsSourceDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exact source-pack byte digest a profile surface records for its projection. Container and manifest surfaces must record the same complete algorithm-typed literal, preserving both hexadecimal spelling and datatype; disagreement is a hard failure."
+msgstr "Condensat exact des octets du paquet source qu’une surface de profil consigne pour sa projection. Les surfaces conteneur et manifeste doivent consigner le même littéral complet typé par algorithme, en préservant la graphie hexadécimale et le type ; tout désaccord est un échec explicite."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/recordsSourceDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:recordsSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:record gmeow:recordsSourceDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceByteDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SourceByteDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddingFamily|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The model plus the FULL generation contract that produces a projection's highest-dimensional vectors — the deterministic recipe a .purremb family stores its top-dimensional matrix ONCE under. It gathers the model (REUSED the core ai slice's gmeow:embeddingModel), inference engine (gmeow:inferenceEngine), execution configuration (gmeow:executionContract — precision mode / deterministic-inference settings), tokenizer (gmeow:tokenizerContract), subject-projection / text-serialization (gmeow:subjectProjectionContract), preprocessing (gmeow:preprocessingContract), chunking (gmeow:chunkingContract), pooling (gmeow:poolingKind), generation-time normalization (gmeow:generationNormalizationContract), truncation (gmeow:truncationContract), dtype (gmeow:vectorDtype), byte order (gmeow:vectorByteOrder), and quantization (gmeow:quantizationContract). Its IDENTITY is the REUSED gmeow:versionFingerprint over the whole generation contract: same family ⇔ same digest. A family is DISTINCT from a gmeow:VectorSpaceContract (the comparable effective/prefix space): the family produces and stores the top-dimensional vectors, while each effective space is the full family space or a declared leading-prefix over it (Matryoshka) that reuses the family's stored matrix without duplication."
+msgstr "Le modèle et le contrat complet de génération des vecteurs de dimension maximale, sous lesquels une famille .purremb stocke sa matrice une seule fois. Le contrat comprend modèle, moteur d’inférence, précision et déterminisme d’exécution, tokenizer, projection des sujets et sérialisation textuelle, prétraitement, découpage, regroupement, normalisation de génération, troncature, type de valeurs, ordre des octets et quantification. Son identité réutilise gmeow:versionFingerprint sur le contrat entier : même famille si et seulement si même condensat. Elle se distingue du gmeow:VectorSpaceContract comparable : chaque espace effectif est l’espace complet ou un préfixe initial déclaré (Matryoshka), réutilisant la matrice sans duplication."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddingFamily|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid folding the effective/prefix dimension, distance metric, or per-prefix normalization into the family (those name the comparable space on a gmeow:VectorSpaceContract) and avoid minting a separate familyId — the REUSED gmeow:versionFingerprint over the generation contract IS the identity."
+msgstr "Éviter d’intégrer dimension effective ou de préfixe, métrique et normalisation par préfixe à la famille : elles nomment l’espace comparable sur gmeow:VectorSpaceContract. Éviter un familyId séparé : le gmeow:versionFingerprint réutilisé sur le contrat de génération est l’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EmbeddingFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the generation contract gmeow:EmbeddingFamily, fill its components (model reused from the core ai slice; inference engine, execution configuration, tokenizer, subject-projection/text-serialization, preprocessing, chunking, pooling, generation-time normalization, truncation, dtype, byte order, quantization minted here), and content-address the whole with the existing gmeow:versionFingerprint — that digest is the family's identity and the anchor an effective gmeow:VectorSpaceContract points back to via gmeow:effectiveOfFamily. The enforced core is the gmeow:versionFingerprint identity plus the irreducible model artifact gmeow:embeddingModel: BOTH are individually required (allValuesFrom carrier + ClosedWorldClosure). The remaining generation-contract components are DECLARED (they fold into the digest and bear on comparability) but are NOT each individually mandated — the digest, not per-component requiredness, is the comparability identity."
+msgstr "Typer le contrat gmeow:EmbeddingFamily et renseigner modèle, moteur d’inférence, configuration d’exécution, tokenizer, projection et sérialisation des sujets, prétraitement, découpage, regroupement, normalisation de génération, troncature, type de valeurs, ordre des octets et quantification. Identifier le tout par gmeow:versionFingerprint, identité vers laquelle l’espace effectif renvoie par gmeow:effectiveOfFamily. Le cœur imposé exige individuellement cette identité et gmeow:embeddingModel, par allValuesFrom et ClosedWorldClosure. Les autres composantes sont déclarées et entrent dans le condensat et la comparabilité, sans être chacune obligatoire ; le condensat est l’identité de comparabilité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetSet|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The ordered target NAMESPACE a projection's matrix rows map to — its gmeow:VectorTarget members (gmeow:targetSetMember) taken in ASCENDING gmeow:targetOrdinal order, which IS the row order of the stored matrix (the member with ordinal N is matrix row N). Because gmeow:targetSetMember is itself an UNORDERED edge, the row order is DEFINED as — and reconstructed by — sorting the members on their gmeow:targetOrdinal, so every member MUST carry one (gmeow:TargetSetOrderedMembershipConstraint); the ordinal is the row index, not identity. Its IDENTITY is the REUSED gmeow:versionFingerprint over that ordinal-sequenced membership: same ordered membership ⇔ same digest. MULTIPLE target sets may exist over one source (different subject projections or subject families — TEXT chunks vs RDF 1.2 statements), so a projection binds the exact one its rows realize via gmeow:hasTargetSet. It is the row→target namespace, distinct from a single gmeow:VectorTarget (one row) and from the gmeow:VectorSpaceContract (the comparable space the vectors live in)."
+msgstr "L’espace de noms ordonné des cibles de la matrice : les membres gmeow:VectorTarget liés par gmeow:targetSetMember sont triés par gmeow:targetOrdinal croissant ; l’ordinal N désigne la ligne N. Le lien d’appartenance étant non ordonné, chaque membre doit porter un ordinal (gmeow:TargetSetOrderedMembershipConstraint), index de ligne et non identité. L’identité réutilise gmeow:versionFingerprint sur cette appartenance séquencée : même appartenance ordonnée si et seulement si même condensat. Plusieurs ensembles peuvent couvrir une source, selon les projections et familles de sujets, par exemple fragments textuels ou énoncés RDF 1.2 ; gmeow:hasTargetSet lie la projection à son ensemble exact. Cet espace de noms se distingue d’une cible individuelle et de l’espace vectoriel comparable."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetSet|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid conflating the target set with the effective space (the set names the rows; the gmeow:VectorSpaceContract names the space) and avoid minting a separate targetSetId — the REUSED gmeow:versionFingerprint over the ordered membership IS the identity."
+msgstr "Éviter de confondre l’ensemble, qui nomme les lignes, avec l’espace effectif nommé par gmeow:VectorSpaceContract. Éviter un targetSetId séparé : le gmeow:versionFingerprint de l’appartenance ordonnée est l’identité."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TargetSet|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the row namespace gmeow:TargetSet, enumerate its rows with gmeow:targetSetMember, give every member gmeow:VectorTarget a gmeow:targetOrdinal so the row order is exactly the members sorted ascending by ordinal, content-address that ordinal-sequenced membership with the existing gmeow:versionFingerprint, and bind it to its projection with gmeow:hasTargetSet."
+msgstr "Typer l’espace de noms gmeow:TargetSet, énumérer ses membres par gmeow:targetSetMember et donner à chacun un gmeow:targetOrdinal pour reconstruire l’ordre croissant exact des lignes. Identifier cette appartenance séquencée par gmeow:versionFingerprint et lier l’ensemble à la projection par gmeow:hasTargetSet."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorSpaceContract|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An EFFECTIVE vector space — the comparable space two vectors legitimately live in — which is either the full space of a gmeow:EmbeddingFamily or a declared leading-PREFIX of it (Matryoshka). It fixes the family (gmeow:effectiveOfFamily), the EFFECTIVE/prefix dimension (REUSED gmeow:embeddingDimensions), the metric (REUSED gmeow:distanceMetric), the normalization a prefix may declare of its own (gmeow:normalizationKind), and the prefix policy (gmeow:matryoshkaPolicy). Its IDENTITY is the REUSED gmeow:versionFingerprint over (the family's digest + the effective dimension + the metric + the normalization): same effective space ⇔ same digest. A prefix space shares the family's stored matrix WITHOUT duplication, and every effective prefix has None or deterministic-L2 postprocessing. There is no separate vectorSpaceId — the digest IS the identity, so comparability is decidable by hash equality rather than by prose agreement."
+msgstr "L’espace effectif comparable des vecteurs : espace complet d’une gmeow:EmbeddingFamily ou préfixe initial déclaré (Matryoshka). Il fixe famille (gmeow:effectiveOfFamily), dimension effective ou de préfixe (gmeow:embeddingDimensions), métrique (gmeow:distanceMetric), normalisation par préfixe (gmeow:normalizationKind) et politique de préfixe (gmeow:matryoshkaPolicy). Son identité réutilise gmeow:versionFingerprint sur le condensat de famille, la dimension, la métrique et la normalisation : même espace si et seulement si même condensat. Le préfixe partage la matrice sans duplication et utilise un post-traitement None ou L2 déterministe. Il n’existe pas de vectorSpaceId distinct ; la comparabilité se décide par égalité de condensats plutôt que par accord textuel."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorSpaceContract|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid folding the family's generation contract (model/tokenizer/pooling/dtype/…) into the effective space (those live on gmeow:EmbeddingFamily), avoid minting a separate vectorSpaceId (the REUSED gmeow:versionFingerprint IS the identity), and avoid comparing vectors across two contracts whose digests differ."
+msgstr "Éviter d’intégrer le contrat de génération de la famille, tel que modèle, tokenizer, regroupement et type de valeurs, à l’espace effectif ; il appartient à gmeow:EmbeddingFamily. Éviter un vectorSpaceId séparé puisque gmeow:versionFingerprint est l’identité, et éviter de comparer des vecteurs de contrats aux condensats différents."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/VectorSpaceContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the effective space gmeow:VectorSpaceContract, bind its family with gmeow:effectiveOfFamily, fix its effective/prefix dimension (reused gmeow:embeddingDimensions) and metric (reused gmeow:distanceMetric), declare any per-prefix gmeow:normalizationKind and its gmeow:matryoshkaPolicy, and content-address the whole with the existing gmeow:versionFingerprint — that digest is the space's identity and the join key for comparability. The enforced comparability core is individually required (allValuesFrom carrier + ClosedWorldClosure): the gmeow:versionFingerprint identity, the family anchor gmeow:effectiveOfFamily, and the three space-level comparability axes gmeow:embeddingDimensions, gmeow:distanceMetric, and gmeow:normalizationKind — two vectors are comparable only when these agree. The prefix policy gmeow:matryoshkaPolicy stays DECLARED, not individually mandated."
+msgstr "Typer l’espace gmeow:VectorSpaceContract, lier sa famille par gmeow:effectiveOfFamily, fixer gmeow:embeddingDimensions et gmeow:distanceMetric, déclarer gmeow:normalizationKind et gmeow:matryoshkaPolicy, puis identifier le tout par gmeow:versionFingerprint, clé de comparabilité. Le cœur exige individuellement identité, famille, dimension, métrique et normalisation par allValuesFrom et ClosedWorldClosure : seuls des axes concordants permettent la comparaison. La politique de préfixe demeure déclarée sans être individuellement obligatoire."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chunkingContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:chunkingContract on a gmeow:EmbeddingFamily as a digest or verbatim config string; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:chunkingContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant le découpage ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/effectiveOfFamily|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert exactly one gmeow:effectiveOfFamily from a gmeow:VectorSpaceContract to the gmeow:EmbeddingFamily whose full or prefix space it names; the family's gmeow:versionFingerprint folds into the effective space's digest."
+msgstr "Relier exactement une famille par gmeow:effectiveOfFamily depuis le contrat qui en nomme l’espace complet ou de préfixe ; le gmeow:versionFingerprint de la famille entre dans le condensat de l’espace effectif."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/executionContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:executionContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming the precision mode and deterministic-inference settings; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:executionContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant le mode de précision et les réglages déterministes de l’inférence ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/generationNormalizationContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:generationNormalizationContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming the generation-time normalization; it folds into the family's gmeow:versionFingerprint identity, separate from the per-prefix gmeow:normalizationKind."
+msgstr "Porter gmeow:generationNormalizationContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant la normalisation de génération, distincte de gmeow:normalizationKind par préfixe ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/inferenceEngine|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Assert gmeow:inferenceEngine from a gmeow:EmbeddingFamily to the gmeow:SoftwareAgent that executes its model; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Relier gmeow:EmbeddingFamily par gmeow:inferenceEngine au gmeow:SoftwareAgent exécutant son modèle ; il entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/preprocessingContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:preprocessingContract on a gmeow:EmbeddingFamily as a digest or verbatim config string; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:preprocessingContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant le prétraitement ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/quantizationContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:quantizationContract on a gmeow:EmbeddingFamily as a digest or verbatim config string (\"none\" in v1); it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:quantizationContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant la quantification (« none » en v1) ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/subjectProjectionContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:subjectProjectionContract on a gmeow:EmbeddingFamily as a digest or verbatim config string naming how source subjects are serialized to embed-ready text; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:subjectProjectionContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant la sérialisation des sujets en texte prêt à encoder ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/tokenizerContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:tokenizerContract on a gmeow:EmbeddingFamily as a digest or verbatim config string; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:tokenizerContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant le tokenizer ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/truncationContract|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:truncationContract on a gmeow:EmbeddingFamily as a digest or verbatim config string; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:truncationContract sur gmeow:EmbeddingFamily comme condensat ou configuration textuelle littérale décrivant la troncature ; cette valeur entre dans l’identité gmeow:versionFingerprint de la famille."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorByteOrder|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The byte order an embedding family's stored matrix is serialized under (value vocabulary gmeow:ByteOrder). Functional: a family fixes one byte order — the .purremb v1 container is canonically gmeow:byteOrderLittleEndian. It folds into the family's gmeow:versionFingerprint identity so a byte-order difference is a family difference, never a silent reinterpretation of the stored bytes."
+msgstr "L’ordre des octets de la matrice stockée d’une famille, selon gmeow:ByteOrder. Fonctionnel : une famille fixe un ordre unique ; .purremb v1 utilise canoniquement gmeow:byteOrderLittleEndian. Il entre dans l’identité gmeow:versionFingerprint : un ordre différent désigne une autre famille, jamais une réinterprétation silencieuse des octets stockés."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/vectorDtype|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Carry gmeow:vectorDtype on a gmeow:EmbeddingFamily as a dtype token string; it folds into the family's gmeow:versionFingerprint identity."
+msgstr "Porter gmeow:vectorDtype sur gmeow:EmbeddingFamily comme chaîne de type de valeurs ; elle entre dans l’identité gmeow:versionFingerprint de la famille."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedSourceByteDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/RecordedSourceByteDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."

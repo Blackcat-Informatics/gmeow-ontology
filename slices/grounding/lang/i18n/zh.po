@@ -562,8 +562,8 @@ msgid "glossary language"
 msgstr "术语表语言"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryLanguage|skos:definition"
-msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."
-msgstr "一个 gmeow:Glossary 渲染所用的 BCP-47 目标语言标签（例如 \"fr\"、\"zh\"）。函数性：一个术语表对应一种语言。定义域 gmeow:Glossary，值域 xsd:string。"
+msgid "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string or xsd:token."
+msgstr "一个 gmeow:Glossary 渲染所用的 BCP-47 目标语言标签（例如 \"fr\"、\"zh\"）。函数性：一个术语表对应一种语言。定义域 gmeow:Glossary，值域 xsd:string 或 xsd:token。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryEntry|rdfs:label"
 msgid "glossary entry"
@@ -586,8 +586,8 @@ msgid "glossary predicate"
 msgstr "术语表谓词"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossaryPredicate|skos:definition"
-msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."
-msgstr "一个术语表条目所渲染字面量对应的注解谓词（例如 \"rdfs:label\"、\"skos:definition\"），以 CURIE 形式给出。函数性：每个条目一个谓词。定义域 gmeow:GlossaryEntry，值域 xsd:string。"
+msgid "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string or xsd:token."
+msgstr "一个术语表条目所渲染字面量对应的注解谓词（例如 \"rdfs:label\"、\"skos:definition\"），以 CURIE 形式给出。函数性：每个条目一个谓词。定义域 gmeow:GlossaryEntry，值域 xsd:string 或 xsd:token。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/glossarySource|rdfs:label"
 msgid "glossary source"
@@ -2541,3 +2541,25 @@ msgstr "每次独立搜索具有 Rust 的 O(m*n) 最坏界限，对固定大小 
 msgctxt "https://blackcatinformatics.ca/gmeow/linearRegex|http://www.w3.org/2004/02/skos/core#example"
 msgid "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."
 msgstr "\"(?i)cannot +continue\"^^gmeow:linearRegex 声明一个模式，不报告已执行搜索。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnDictionaryEntryAlias|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string or xsd:token. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."
+msgstr "字典条目为其所指术语建立的紧凑别名字符串，即合规 GMN-1 写入器替代完整 IRI 输出的词元。具有函数性：每个条目恰有一个别名。定义域为 gmeow:GmnDictionaryEntry，值域为 xsd:string 或 xsd:token。在同一字典内具有单射性：同一 gmeow:GmnDictionary 的两个条目不能为不同术语共享一个别名（lang:GmnDictionaryAliasInjectivityShape）。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRewriteFromGlyph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."
+msgstr "迁移重写重新呈现的运算符在源主版本中的字形拼写，即执行器在存储的源版本 GMN 文档中查找的词元。具有函数性：每个重写恰有一个源字形。定义域为 gmeow:GmnMigrationRewrite，值域为 xsd:string 或 xsd:token。当且仅当此值与 gmeow:gmnRewriteToGlyph 不同时，该重写属于字形重命名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnRewriteToGlyph|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."
+msgstr "迁移重写重新呈现的运算符在目标主版本中的字形拼写，即以目标版本重新输出文档时，执行器替换 gmeow:gmnRewriteFromGlyph 写出的词元。具有函数性：每个重写恰有一个目标字形。定义域为 gmeow:GmnMigrationRewrite，值域为 xsd:string 或 xsd:token。当且仅当此值与 gmeow:gmnRewriteFromGlyph 不同时，该重写属于字形重命名。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/gmnViewSurface|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The stable surface name a gmeow:GmnNotationView projects into — the machine key that binds the ontology view to its crate-side realization (\"codec\", \"ebnf\", \"abnf\", \"gbnf\", \"lark\", \"verbalizer\", \"token-metric\"). Domain gmeow:GmnNotationView, range xsd:string or xsd:token. Functional: one surface per view. The executable coherence gate iterates exactly these surface names, so a view named here without a landed surface is a declared-but-unpopulated leg, never a silent gap."
+msgstr "gmeow:GmnNotationView 所投影到的稳定表面名称，即将本体视图绑定到 crate 实现的机器键（codec、ebnf、abnf、gbnf、lark、verbalizer、token-metric）。定义域为 gmeow:GmnNotationView，值域为 xsd:string 或 xsd:token。具有函数性：每个视图只有一个表面。可执行一致性门逐一检查这些确切表面名，因此此处已命名但尚无已交付表面的视图属于已声明但未填充的投影分支，绝非静默缺口。"
+
+
+
+msgctxt "https://blackcatinformatics.ca/lang/stageDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The supplied scheme identifier pinning a profile stage's declared implementation and data. Retain its complete xsd:string or xsd:token literal and spelling. The source declares no byte-preimage encoding or digest algorithm, so this identifier alone neither proves identical artifact bytes nor verifies reproducible output."
+msgstr "所提供的方案标识符固定配置阶段所声明的实现和数据。保留完整的 xsd:string 或 xsd:token 字面量及其拼写。来源未声明字节原像编码或摘要算法，因此该标识符本身既不证明制品字节相同，也不验证输出可复现。"
