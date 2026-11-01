@@ -127,14 +127,22 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
 /// The encoded size of each receipt field, so an oversized receipt names its cause.
 fn receipt_sizes(execution: &NativeExecutionEvidence) -> String {
     fn size(value: &impl ExecutionCbor) -> String {
+        size_all(std::iter::once(value))
+    }
+    fn size_all<'a, T: ExecutionCbor + 'a>(values: impl Iterator<Item = &'a T>) -> String {
         let mut counter = ByteCounter(0);
-        match value.write_cbor(&mut counter) {
-            Ok(()) => format!("{} B", counter.0),
-            Err(error) => format!("unencodable ({error})"),
+        for value in values {
+            if let Err(error) = value.write_cbor(&mut counter) {
+                return format!("unencodable ({error})");
+            }
         }
+        format!("{} B", counter.0)
     }
     format!(
-        "families {} ({} ledger(s), {} outcome(s)), class_admission {}, source_coverage {}, \
+        "families {} ({} ledger(s), {} outcome(s), {} proof node(s), {} contextual receipt(s), \
+         {} producer obstruction(s); \
+         outcomes {}, proofs {} (statements {}, origins {}), \
+         contextual_receipts {}, producer_obstructions {}), class_admission {}, source_coverage {}, \
          classes {} ({}), chase_certificates {}, witness_derivations {} ({}), frontier {}",
         size(&execution.families),
         execution.families.len(),
@@ -143,6 +151,47 @@ fn receipt_sizes(execution: &NativeExecutionEvidence) -> String {
             .iter()
             .map(|ledger| ledger.outcomes.len())
             .sum::<usize>(),
+        execution
+            .families
+            .iter()
+            .map(|ledger| ledger.proofs.len())
+            .sum::<usize>(),
+        execution
+            .families
+            .iter()
+            .map(|ledger| ledger.contextual_receipts.len())
+            .sum::<usize>(),
+        execution
+            .families
+            .iter()
+            .map(|ledger| ledger.producer_obstructions.len())
+            .sum::<usize>(),
+        size_all(execution.families.iter().map(|ledger| &ledger.outcomes)),
+        size_all(execution.families.iter().map(|ledger| &ledger.proofs)),
+        size_all(
+            execution
+                .families
+                .iter()
+                .flat_map(|ledger| ledger.proofs.iter().map(|proof| &proof.statement)),
+        ),
+        size_all(
+            execution
+                .families
+                .iter()
+                .flat_map(|ledger| ledger.proofs.iter().map(|proof| &proof.origin)),
+        ),
+        size_all(
+            execution
+                .families
+                .iter()
+                .map(|ledger| &ledger.contextual_receipts),
+        ),
+        size_all(
+            execution
+                .families
+                .iter()
+                .map(|ledger| &ledger.producer_obstructions),
+        ),
         size(&execution.class_admission),
         size(&execution.source_coverage),
         size(&execution.classes),
@@ -158,7 +207,10 @@ struct ByteCounter(usize);
 
 impl Write for ByteCounter {
     fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
-        self.0 += bytes.len();
+        self.0 = self
+            .0
+            .checked_add(bytes.len())
+            .ok_or_else(|| std::io::Error::other("native receipt byte accounting overflow"))?;
         Ok(bytes.len())
     }
 
