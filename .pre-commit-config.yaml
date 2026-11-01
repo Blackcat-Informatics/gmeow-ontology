@@ -112,6 +112,7 @@ repos:
     rev: v0.17.2
     hooks:
       - id: markdownlint-cli2
+        language_version: 22.16.0
         exclude: '^(ontology-docs/)'
 
   - repo: https://github.com/shellcheck-py/shellcheck-py

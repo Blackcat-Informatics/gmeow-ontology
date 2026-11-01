@@ -25,6 +25,7 @@ impl CorrespondenceAnalysis {
         by_key.insert(NaturalKey::Binding { semantic_key }, typed);
         Self {
             native_catalog: catalog,
+            definition_subjects: BTreeMap::new(),
             by_key,
             binding_keys,
             alignment_cells: Vec::new(),

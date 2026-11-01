@@ -449,6 +449,22 @@ pub fn projections(
     view: &DslView,
     catalog: &super::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+    Ok(analyze_projections(view, catalog)?.cells)
+}
+
+/// Parsed cells and the named definition subjects actually read for each cell.
+#[derive(Debug, Default)]
+pub struct ParsedProjections {
+    /// Shared parsed projection model.
+    pub cells: Vec<ProjectionCell>,
+    /// Invocation-local source reads; excluded from semantic and wire identities.
+    pub definition_subjects: BTreeMap<String, BTreeSet<String>>,
+}
+
+pub(super) fn analyze_projections(
+    view: &DslView,
+    catalog: &super::grounding_catalog::GroundingCatalog,
+) -> gmeow_errors::Result<ParsedProjections> {
     projection_subjects(view, catalog, view.subjects_of_type(GM_PROJECTION_MAPPING))
 }
 
@@ -458,13 +474,17 @@ pub(super) fn projection_subjects(
     view: &DslView,
     catalog: &super::grounding_catalog::GroundingCatalog,
     subjects: impl IntoIterator<Item = String>,
-) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+) -> gmeow_errors::Result<ParsedProjections> {
     let mut cells = Vec::new();
+    let mut definition_subjects = BTreeMap::new();
     let grounding = view
         .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
         .into_iter()
         .collect::<BTreeSet<_>>();
     for cell_iri in subjects {
+        let reads = std::sync::Mutex::new(BTreeSet::new());
+        let traced = view.recording_named_subjects(&reads);
+        let view = &traced;
         let Some(pattern_node) = view.first_object(&cell_iri, GM_HAS_MAPPING_PATTERN) else {
             return Err(Diag::of_kind(crate::error::GetLeg {
                 detail: format!("projection mapping {cell_iri} missing hasMappingPattern"),
@@ -492,14 +512,26 @@ pub(super) fn projection_subjects(
                 source_endpoint: view.object_iri(&cell_iri, LOGIC_SOURCE_ENDPOINT),
                 target_endpoint: view.object_iri(&cell_iri, LOGIC_TARGET_ENDPOINT),
             }),
-            iri: cell_iri,
+            iri: cell_iri.clone(),
             label,
             pattern,
             bindings,
         });
+        // The recorder cannot be poisoned on a successful parser return: its
+        // critical section contains only String ordering and allocation, whose
+        // failure aborts rather than unwinding through the lock.
+        definition_subjects.insert(
+            cell_iri,
+            reads
+                .into_inner()
+                .expect("INVARIANT: completed subject-read recorder is not poisoned"),
+        );
     }
     super::selected_templates::resolve(view, catalog, &mut cells)?;
-    Ok(cells)
+    Ok(ParsedProjections {
+        cells,
+        definition_subjects,
+    })
 }
 
 fn parse_pattern(view: &DslView, node: &DslTerm) -> gmeow_errors::Result<MappingPattern> {

@@ -416,7 +416,7 @@ pub(crate) fn check_projection_alternatives(
         })
         .collect();
     let untyped = if structural_subjects.is_empty() {
-        Vec::new()
+        gmeow_logic_compile::projections::get_leg::ParsedProjections::default()
     } else {
         let source_views: Vec<_> = originals
             .iter()
@@ -425,7 +425,7 @@ pub(crate) fn check_projection_alternatives(
         let merged = RdfDataset::union(&source_views)?;
         analysis.inspect_projection_subjects(&DslView::new(&merged), &structural_subjects)?
     };
-    for cell in analysis.projection_cells().iter().chain(&untyped) {
+    for cell in analysis.projection_cells().iter().chain(&untyped.cells) {
         for binding in &cell.bindings {
             let mut pairs = BTreeSet::new();
             if binding.emit_sssom {
@@ -484,7 +484,17 @@ pub(crate) fn check_projection_alternatives(
                     {
                         continue;
                     }
-                    let origins = projection_origins(&cell.iri, &documents, &named, ownership);
+                    let definitions = if admitted_subjects.contains(cell.iri.as_str()) {
+                        analysis.projection_definition_subjects(&cell.iri)?
+                    } else {
+                        untyped.definition_subjects.get(&cell.iri).ok_or_else(|| {
+                            registry_err(format!(
+                                "projection {} has no recorded definition reads",
+                                cell.iri
+                            ))
+                        })?
+                    };
+                    let origins = projection_origins(definitions, &named);
                     if origins.is_empty() {
                         return Err(registry_err(format!(
                             "kernel projection {} has no original physical defining occurrence",
@@ -681,58 +691,18 @@ fn singular_iri(
     }
 }
 
-/// Follow owned definition nodes while leaving canonical term references by reference.
+/// Attribute actual named-subject reads, never canonical ownership assertions.
+/// Blank nodes remain in the document reached through their named entry point.
 fn projection_origins(
-    root: &str,
-    documents: &[Vec<purrdf::RdfQuad>],
+    definitions: &BTreeSet<String>,
     named: &BTreeMap<String, BTreeSet<usize>>,
-    ownership: &CanonicalOwnership,
 ) -> BTreeSet<usize> {
-    let mut work: Vec<_> = named
-        .get(root)
-        .into_iter()
+    definitions
+        .iter()
+        .filter_map(|subject| named.get(subject))
         .flatten()
-        .map(|index| (*index, RdfTerm::Iri(root.to_owned())))
-        .collect();
-    let mut visited = Vec::new();
-    let mut origins = BTreeSet::new();
-    while let Some((index, node)) = work.pop() {
-        if visited.contains(&(index, node.clone())) {
-            continue;
-        }
-        visited.push((index, node.clone()));
-        origins.insert(index);
-        for quad in documents[index].iter().filter(|quad| quad.subject == node) {
-            match &quad.object {
-                RdfTerm::BlankNode(_) => work.push((index, quad.object.clone())),
-                RdfTerm::Iri(iri)
-                    if !ownership.claims.contains_key(iri)
-                        && !matches!(
-                            quad.predicate.as_str(),
-                            RDF_TYPE
-                                | OWNER
-                                | "https://blackcatinformatics.ca/logic/sourceEndpoint"
-                                | "https://blackcatinformatics.ca/logic/targetEndpoint"
-                                | "https://blackcatinformatics.ca/gmeow/edoalSource"
-                                | "https://blackcatinformatics.ca/gmeow/edoalTarget"
-                                | "https://blackcatinformatics.ca/gmeow/toClass"
-                                | "https://blackcatinformatics.ca/gmeow/toPredicate"
-                                | "https://blackcatinformatics.ca/gmeow/whenValue"
-                                | "https://blackcatinformatics.ca/gmeow/objectValue"
-                                | "https://blackcatinformatics.ca/gmeow/tObjValue"
-                                | "https://blackcatinformatics.ca/gmeow/predicate"
-                                | "https://blackcatinformatics.ca/gmeow/tPred"
-                        ) =>
-                {
-                    if let Some(indices) = named.get(iri) {
-                        work.extend(indices.iter().map(|index| (*index, quad.object.clone())));
-                    }
-                }
-                _ => {}
-            }
-        }
-    }
-    origins
+        .copied()
+        .collect()
 }
 
 pub(super) fn validate_evidence(

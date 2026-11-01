@@ -42,7 +42,7 @@ use crate::ir::{
     PreservationKind,
 };
 use crate::projections::correspondence::CorrespondenceProgram;
-use crate::projections::get_leg::{ProjectionBinding, ProjectionCell, binding_key, projections};
+use crate::projections::get_leg::{ProjectionBinding, ProjectionCell, binding_key};
 use crate::projections::sssom::{equivalence_cells, sssom_band};
 
 /// A content-addressed correspondence IRI under `LOGIC_NAMESPACE` for the cell keyed by
@@ -162,6 +162,7 @@ pub struct CorrespondenceAnalysis {
     /// unit (a single UNION branch's law must be checked in isolation).
     binding_keys: BTreeMap<String, String>,
     native_catalog: super::grounding_catalog::GroundingCatalog,
+    definition_subjects: BTreeMap<String, std::collections::BTreeSet<String>>,
 }
 
 impl CorrespondenceAnalysis {
@@ -180,8 +181,20 @@ impl CorrespondenceAnalysis {
         &self,
         view: &DslView,
         subjects: &std::collections::BTreeSet<String>,
-    ) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+    ) -> gmeow_errors::Result<super::get_leg::ParsedProjections> {
         super::get_leg::projection_subjects(view, &self.native_catalog, subjects.iter().cloned())
+    }
+
+    /// Required original definition subjects recorded by the shared parser.
+    pub fn projection_definition_subjects(
+        &self,
+        cell: &str,
+    ) -> gmeow_errors::Result<&std::collections::BTreeSet<String>> {
+        self.definition_subjects.get(cell).ok_or_else(|| {
+            super::grounding_catalog::error(format!(
+                "projection <{cell}> has no recorded definition reads"
+            ))
+        })
     }
     /// The exact native alignment cells from which the typed program was admitted.
     pub fn alignment_cells(&self) -> &[super::sssom::EquivalenceCell] {
@@ -531,7 +544,8 @@ pub fn transpile_correspondences_indexed(
         *source = owned.clone();
     }
     let mut binding_keys: BTreeMap<String, String> = BTreeMap::new();
-    let projection_cells = projections(dsl_view, &catalog)?;
+    let parsed = super::get_leg::analyze_projections(dsl_view, &catalog)?;
+    let projection_cells = parsed.cells;
 
     // ── gmeow:ProjectionMapping per-profile bindings (the EDOAL/SPARQL get leg) ─────
     for cell in &projection_cells {
@@ -566,6 +580,7 @@ pub fn transpile_correspondences_indexed(
         program,
         CorrespondenceAnalysis {
             native_catalog: catalog,
+            definition_subjects: parsed.definition_subjects,
             alignment_cells,
             projection_cells,
             by_key,

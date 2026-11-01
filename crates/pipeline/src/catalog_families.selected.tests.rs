@@ -76,7 +76,7 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
     let module_path = "slices/grounding/logic/module.ttl";
     let mapping_path = "slices/grounding/logic/mappings/native.ttl";
     let module = format!(
-        "{prefixes}\n{}",
+        "{prefixes}\ng:Pattern rdfs:isDefinedBy <{owner}> .\n{}",
         (1..=6)
             .map(|index| { format!("g:Usage{index} rdfs:isDefinedBy <{owner}> .") })
             .collect::<String>()
