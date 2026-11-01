@@ -10,7 +10,8 @@ reply and source-time authorities stay in one place (Principles 4 and 16).
 ## Source context
 
 Room identity is represented as an entity carrying a source network and verbatim
-string identifier. Required paths preserve both pieces of scope. They introduce
+`xsd:string` or `xsd:token` identifier literal. Required paths preserve both pieces
+of scope. They introduce
 no global key, single preferred identifier or forced token normalization.
 `chatTransport` remains domain-free so media and rooms do not acquire Message type.
 
@@ -44,7 +45,7 @@ is inherited.
 | Object | Canonical obligation |
 | --- | --- |
 | ChatMessage | Required network and participant paths; a realized author-occurrence obligation; optional source-provided turn with a constrained range. |
-| ChatRoom | Required transport and exact string identifier paths. |
+| ChatRoom | Required transport and exact source identifier paths. |
 | ChatTurn | Required Thread reference. |
 | ChatMessageParticipant | Required message, Agent-or-account endpoint and role paths. |
 | ChatMessagePart | Required nonnegative source ordinal and a realized incoming-message obligation. |
@@ -83,9 +84,10 @@ A ChatReaction is an Event occurrence, with one supplied reactionKey and one
 reactionState. reactionPlaced and reactionRemoved seed an open ReactionState
 vocabulary; a missing state never defaults to either. Separate occurrences retain
 separate provider claims. actorIdentity and targetMessage are opaque source
-strings, not links resolving an Agent or Message. reactionResource, providerEvent,
-providerEventType and providerOccurredAt preserve their exact spelling, including
-whitespace. Each identifier-bearing record retains providerProgram, chatTransport,
+identifier literals, not links resolving an Agent or Message. reactionResource,
+providerEvent and providerEventType retain their source spelling and datatype.
+providerOccurredAt preserves unparsed source timestamp text as `xsd:string`.
+All retain exact source whitespace. Each identifier-bearing record retains providerProgram, chatTransport,
 accordingTo and wasDerivedFrom evidence (Principles 2, 4 and 9).
 
 Eight canonical scope laws guard the supplied actorIdentity, reactionResource,
@@ -118,3 +120,17 @@ including language and RDF 1.2 base direction. Whole-message utteranceText belon
 to core messaging. Neither predicate assembles, translates or normalizes parts.
 The [source-record scene](../examples/source-records.ttl) keeps reactions, rejected
 descriptors, actual text, acquisition and session evidence distinct.
+
+## Machine datatype admission
+
+Ten existing machinery properties use anonymous canonical string/token unions.
+The matching room, actor, target and media-refusal universal fillers agree; the
+reaction-key universal and qualified maximum share that same union. Required
+paths, cardinalities, domains, closure entries and all integrity formula trees
+remain unchanged. No global identity rule or closed provider-code vocabulary
+is added.
+
+Preserve the supplied literal rather than converting its datatype from its
+spelling. Provider occurrence-time text and human message wording retain their
+separate contracts. The declarations introduce no token lexical checker,
+normalization, authentication or token-preserving capture API.

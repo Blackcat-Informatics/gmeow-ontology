@@ -12,8 +12,8 @@
 # Required paths belong only to the newly selected record contracts.
 
 gmeow:ChatReaction logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:allValuesFrom xsd:string ],
-    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
+    [ a logic:Restriction ; logic:onProperty gmeow:reactionKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionKey" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ChatReaction logic:subClassOf
@@ -22,11 +22,11 @@ gmeow:ChatReaction logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionState" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ChatReaction logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:actorIdentity ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:actorIdentity ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actorIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:ChatReaction logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:targetMessage ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:targetMessage ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatReaction ; logic:closureKey "https://blackcatinformatics.ca/gmeow/targetMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:RejectedMediaObservation logic:subClassOf
@@ -46,7 +46,7 @@ gmeow:RejectedMediaObservation logic:subClassOf
 [ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaObservation ; logic:closureKey "https://blackcatinformatics.ca/gmeow/observationResult" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:RejectedMediaPart logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:mediaRejectionReason ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:mediaRejectionReason ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RejectedMediaPart ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mediaRejectionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:RejectedMediaPart logic:subClassOf
@@ -120,13 +120,14 @@ gmeow:chatRoomIdentifier
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/chat> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "chat room identifier"@x-gmeow-english ;
-    skos:definition "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."@x-gmeow-english ;
+    skos:definition "The room identifier exactly as the source network supplied it, retaining its xsd:string or xsd:token datatype. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."@x-gmeow-english ;
     gmeow:useWhen "Use to preserve opaque source room identifiers without token normalization."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid interpreting this string as a global key or putting a normalized replacement in its place."@x-gmeow-english ;
-    gmeow:howToUse "Keep the supplied string on the room node and retain the transport that defines its scope."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal on the ChatRoom and retain the chatTransport that defines its scope."@x-gmeow-english ;
     skos:example "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     logic:domain gmeow:ChatRoom ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:OutputRole
     a logic:AbstractIndividualType , logic:Class ;
@@ -424,7 +425,7 @@ gmeow:ChatMessage logic:subClassOf
 
 gmeow:ChatRoom logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:chatTransport ; logic:allValuesFrom gmeow:ChatTransport ],
-    [ a logic:Restriction ; logic:onProperty gmeow:chatRoomIdentifier ; logic:allValuesFrom xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:chatRoomIdentifier ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ChatRoom ;
     logic:closureKey "https://blackcatinformatics.ca/gmeow/chatTransport" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -560,11 +561,11 @@ gmeow:reactionKey
     skos:definition "The exact emoji or short reaction key chosen in the source reaction occurrence. It is source content, not a preferred label or a globally interpreted emotion."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token reaction key on its actual ChatReaction, with its source reactionState and attribution. Retain exact emoji code points without normalization."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:reactionKey."@x-gmeow-english ;
     logic:domain gmeow:ChatReaction ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionKey" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -576,10 +577,10 @@ gmeow:reactionResource
     skos:definition "The transport's exact reaction-resource name or identifier. Its provider, transport and source context determine scope; whitespace and case are retained without creating a resource identity."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:reactionResource."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/reactionResource" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -644,10 +645,10 @@ gmeow:actorIdentity
     skos:definition "The exact transport string naming who acted or sent the source content. It is provider-, transport- and context-scoped evidence, not a resolved Agent, account holder or message sender relation."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:actorIdentity."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/actorIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -659,10 +660,10 @@ gmeow:targetMessage
     skos:definition "The transport's exact identifier for the message a source event acted on. Equal strings across providers, transports or contexts do not identify one Message."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:targetMessage."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/targetMessage" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -700,11 +701,11 @@ gmeow:mediaRejectionReason
     skos:definition "The provider's refusal code for a described media part, retained exactly with its source record. The code is not a prose explanation, an inferred safety finding or a universal taxonomy."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token refusal code on RejectedMediaPart with its retained source record and zero-based source ordinal. Keep any prose explanation separately."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:mediaRejectionReason."@x-gmeow-english ;
     logic:domain gmeow:RejectedMediaPart ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/mediaRejectionReason" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -732,10 +733,10 @@ gmeow:providerEvent
     skos:definition "The provider's exact event identifier retained on a source record, event or observation. Its provider, transport and source context remain explicit; the string is not a global Event IRI."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:providerEvent."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerEvent" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -747,10 +748,10 @@ gmeow:providerEventType
     skos:definition "The provider's exact source event-type code. It neither replaces the canonical event classification nor creates a closed vocabulary from provider spelling."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:providerEventType."@x-gmeow-english ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/providerEventType" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -793,11 +794,11 @@ gmeow:sessionIdentity
     skos:definition "The exact provider session identifier on an observation reporting verification of that session for a scoped source sender. The identifier alone neither authenticates a session nor identifies a global conversation."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:sessionIdentity."@x-gmeow-english ;
     logic:domain gmeow:Observation ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sessionIdentity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -809,11 +810,11 @@ gmeow:sessionSender
     skos:definition "The exact source sender string for whom a session verification observation reports a held verification result. It does not resolve an Agent or assert account ownership."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this record or field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring identity, delivery, verification or execution from missing source evidence."@x-gmeow-english ;
-    gmeow:howToUse "Retain exact source values, their scope and attribution; preserve supplied language and base direction."@x-gmeow-english ;
-    skos:scopeNote "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."@x-gmeow-english ;
     skos:example "Retain the supplied value for gmeow:sessionSender."@x-gmeow-english ;
     logic:domain gmeow:Observation ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/sessionSender" ; logic:closureValue logic:ClosedWorldClosure ] .
 

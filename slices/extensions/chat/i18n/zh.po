@@ -134,8 +134,8 @@ msgid "chat room identifier"
 msgstr "聊天房间标识符"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."
-msgstr "来源网络原样提供的房间标识符，以 xsd:string 表示。保留大小写、空白及标点；其作用域来自 ChatRoom 的 chatTransport。"
+msgid "The room identifier exactly as the source network supplied it, retaining its xsd:string or xsd:token datatype. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."
+msgstr "来源网络按原样提供的房间标识符，保留其 xsd:string 或 xsd:token 数据类型。保留大小写、空白和标点；其作用域由 ChatRoom 的 chatTransport 界定。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to preserve opaque source room identifiers without token normalization."
@@ -146,8 +146,8 @@ msgid "Avoid interpreting this string as a global key or putting a normalized re
 msgstr "避免将此字符串解释为全局键，或以规范化替代值取代它。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the supplied string on the room node and retain the transport that defines its scope."
-msgstr "在房间节点保留所提供字符串，并保留定义其作用域的传输。"
+msgid "Keep the supplied xsd:string or xsd:token literal on the ChatRoom and retain the chatTransport that defines its scope."
+msgstr "在 ChatRoom 上保留所提供的 xsd:string 或 xsd:token 字面量，并保留界定其作用域的 chatTransport。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."
@@ -816,12 +816,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token reaction key on its actual ChatReaction, with its source reactionState and attribution. Retain exact emoji code points without normalization."
+msgstr "在实际 ChatReaction 上保留所提供的 xsd:string 或 xsd:token 反应键、来源 reactionState 及其归属。原样保留表情符号的确切码点，不进行归一化。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:reactionKey."
@@ -844,12 +844,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:reactionResource."
@@ -984,12 +984,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:actorIdentity."
@@ -1012,12 +1012,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:targetMessage."
@@ -1096,12 +1096,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token refusal code on RejectedMediaPart with its retained source record and zero-based source ordinal. Keep any prose explanation separately."
+msgstr "在 RejectedMediaPart 上保留所提供的 xsd:string 或 xsd:token 拒绝代码，以及保留的来源记录和从零开始的来源序号。另行保留任何文字解释。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:mediaRejectionReason."
@@ -1152,12 +1152,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:providerEvent."
@@ -1180,12 +1180,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:providerEventType."
@@ -1264,12 +1264,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:sessionIdentity."
@@ -1292,12 +1292,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "避免根据缺失的来源证据推断身份、交付、验证或执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "保留精确来源值、范围和归属，并保持所提供的语言和基本方向。"
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "保留所提供的 xsd:string 或 xsd:token 字面量，以及实际的 providerProgram、chatTransport、accordingTo 和 wasDerivedFrom 证据。保留其来源作用域，不仅凭拼写解析身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "独立的来源主张可以并存。这些声明保留证据，不认证提供方，也不执行其操作。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:sessionSender."
@@ -1742,3 +1742,7 @@ msgstr "保留此来源法则：gmeow:SessionVerificationEvidenceConstraint logi
 msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."
 msgstr "所提供会话验证标识属于实际 Observation，并保留会话和发送者字符串、观察对象、观察者、方法、持有结果及来源证据。此检查针对记录主张，不认证密码学真实性。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。独立来源的声明可以并存；数据类型准入既不认证提供者，也不执行其操作。这些声明不安装 token 词法检查器。"
