@@ -47,8 +47,8 @@ OWL/RDFS or validation-shape surface.
 
 Presence requirements use universal restrictions with class-scoped closed-world
 entries rather than existential witnesses that would manufacture missing source
-objects. Fixed datatype obligations preserve standard strings, decimals and
-booleans. Digest roles reuse the existing algorithm-labelled literal convention;
+objects. Datatype obligations preserve supplied string/token identity for machinery,
+standard decimals and booleans. Digest roles reuse the existing algorithm-labelled literal convention;
 no custom digest datatype or provider is introduced.
 
 A receipt is an actual subordinate activity occurrence, not a free-floating claim
@@ -131,8 +131,9 @@ and their context carry time-relative evidence without a globally functional
 state, latest-value rule or a negative constraint against later outcomes.
 Only the running value is seeded; absent state or outcome fields stay absent.
 
-injectionCategory is an exact source code, not a normalized token or a
-language-bearing instruction body. The source supplies its category semantics;
+injectionCategory is an exact source code carried as the supplied xsd:string
+or xsd:token literal, without normalization or inferred language. The source
+supplies its category semantics;
 the ontology does not create a security taxonomy or a screening implementation.
 Its actual Observation points to the retained information-object answer,
 rather than retyping that answer or a ModelInvocation as the observation.
@@ -221,3 +222,18 @@ or acceptance machinery. All semantic obligations live in canonical logic:
 declarations, explicit closure and realized Formula trees. Their authoring
 does not claim a completed contextual evaluation, provider execution or
 runtime qualification (Principles 4, 9, 11, 17 and 19).
+
+## Machinery literal identity
+
+The six machinery ranges are anonymous canonical string/token unions.
+The ArtifactOperationReceipt tool-name universal and ConditionVerifier key
+universal use those same unions. Domains, required paths, functionality and
+cardinalities remain unchanged. Native lexical checking is a separate capability; these
+source declarations add no checker or token-preserving API implementation.
+
+The existing condition/verifier/evaluation formulas join the same complete
+literal through their shared key variable. Datatype identity remains part of
+that binding; lexical equality alone does not supply a missing matching claim.
+All integrity formula trees and closure entries remain unchanged. Tool-agent
+identity, provider/world object resolution, execution evidence and screening
+verdicts retain their existing owners (Principles 2, 4, 7, 9 and 17).

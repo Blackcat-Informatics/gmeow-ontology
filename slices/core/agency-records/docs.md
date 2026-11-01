@@ -296,12 +296,12 @@ A later succeeded or failed invocationOutcome can coexist with the earlier
 reading. Observation time, record creation time and invocation occurrence time
 remain distinct; missing precision or timezone is never invented.
 
-injectionCategory retains the screen's exact source code as xsd:string on an
-Observation of the actual outside-answer artifact. Keep source whitespace and
-case, the observing vantage and the retained screening evidence. The code is
-not injected instruction text, a universal taxonomy or proof that an attack
-succeeded. The declaration neither admits an unsupported token datatype nor
-implements token normalization or a lexical validator.
+injectionCategory retains the screen's exact source code as its supplied
+xsd:string or xsd:token on an Observation of the actual outside-answer artifact.
+Keep source whitespace, case and datatype, the observing vantage and the
+retained screening evidence. The code is not injected instruction text, a
+universal taxonomy or proof that an attack succeeded. These declarations
+implement neither token normalization nor a lexical validator.
 
 The two canonical evidence laws have direct binary field guards and therefore
 target subjects supplying the new fields, including malformed subjects. Each
@@ -361,3 +361,19 @@ Its moods use the affect owner’s complete Mood contract. All reported events
 remain source-scoped; source structure supplies no simulation execution,
 actual-world travel, automatic delivery, native mood ingestion or EmotionML
 export (Principles 2, 4, 9, 11, 17 and 19).
+
+## Machine identifiers retain source datatypes
+
+`receiptTool`, `verifierKey`, `expectedWorldObject`, `conditionKey`,
+`engineContract` and `injectionCategory` admit supplied `xsd:string` and
+`xsd:token` literals through canonical datatype unions. Keep the complete
+supplied literal, including lexical form and datatype. Do not normalize source
+whitespace or infer token typing from a string's spelling.
+
+The key joining a goal condition, configured verifier, evaluation and exact
+evidence citation is the same complete source literal within that goal and
+citation. Matching spelling from unrelated producers remains independent.
+A tool name does not identify a tool agent, and an unresolved object identifier
+needs its provider-and-world context. The datatype union neither resolves
+references nor supplies evidence of execution, success or contract compliance.
+Existing required paths, scopes and integrity formulas remain intact.

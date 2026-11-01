@@ -1178,8 +1178,8 @@ msgid "Avoid token whitespace normalization or inferred tool identity from this 
 msgstr "Éviter la normalisation des espaces de token ou l’identité d’outil déduite de cette seule chaîne."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Preserve the exact string and retain the parent attempt or ToolCall separately."
-msgstr "Préserver la chaîne exacte et conserver séparément la tentative ou le ToolCall parent."
+msgid "Keep the supplied xsd:string or xsd:token tool-name literal and retain the parent attempt or ToolCall separately."
+msgstr "Conserver le littéral de nom d’outil xsd:string ou xsd:token fourni et garder séparément la tentative parente ou le ToolCall parent."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:receiptTool \"source value\" ."
@@ -1982,12 +1982,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+msgid "Keep the supplied xsd:string or xsd:token key on its actual condition, configured verifier and exact evidence citation. Retain the same complete literal, including datatype, across those scoped bindings."
+msgstr "Conserver la clé xsd:string ou xsd:token fournie sur sa condition réelle, son vérificateur configuré et sa citation de preuve exacte. Garder le même littéral complet, type de données compris, dans ces liaisons délimitées."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Key binding remains local to the containing goal and exact evaluation citation; it does not establish global identity."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. La liaison par clé reste locale à l’objectif contenant et à la citation d’évaluation exacte ; elle n’établit pas d’identité globale."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:verifierKey \"source-value\" ."
@@ -2094,12 +2094,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+msgid "Keep the supplied xsd:string or xsd:token identifier on ConditionVerifier with its source attribution. Retain provider-and-world context and any separately established object resolution."
+msgstr "Conserver l’identifiant xsd:string ou xsd:token fourni sur ConditionVerifier avec son attribution de source. Garder le contexte de fournisseur et de monde ainsi que toute résolution d’objet établie séparément."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching unresolved spelling does not identify objects across providers or worlds."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Une même graphie non résolue n’identifie pas des objets entre fournisseurs ou mondes différents."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:expectedWorldObject \"source-value\" ."
@@ -2306,8 +2306,8 @@ msgid "condition key"
 msgstr "clé de condition"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."
-msgstr "Clé source exacte de preuve de condition sur une évaluation de but. Elle relie un vérificateur configuré et une condition au sein du but évalué, sans normaliser la chaîne en jeton."
+msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original literal and datatype without token normalization."
+msgstr "La clé exacte de preuve de condition fournie par la source sur une évaluation d’objectif. Elle relie un vérificateur configuré et une condition au sein de l’objectif évalué, en préservant le littéral et le type de données d’origine sans normalisation token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the source explicitly supplies this relation and its context."
@@ -2318,12 +2318,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+msgid "Keep the supplied xsd:string or xsd:token key on the actual GoalEvaluation. Its condition, configured verifier and exact evidence citation retain the same complete literal, including datatype."
+msgstr "Conserver la clé xsd:string ou xsd:token fournie sur le GoalEvaluation réel. Sa condition, son vérificateur configuré et sa citation de preuve exacte gardent le même littéral complet, type de données compris."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Existing same-goal and exact-citation laws remain in force; a matching key alone is not proof that a condition held."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Les lois existantes relatives au même objectif et à la citation exacte restent en vigueur ; une clé correspondante ne prouve pas à elle seule qu’une condition était remplie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:conditionKey \"source-value\" ."
@@ -2654,12 +2654,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "Éviter d’inventer des liens source absents ou de déduire exécution et réussite de ce seul enregistrement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "Conserver valeurs, identités et attribution réelles de la source ; préserver formulation, langue et direction fournies."
+msgid "Keep the supplied xsd:string or xsd:token engine-contract identifier on the recorded Event with its source attribution. Retain any actual contract artifact or execution evidence separately."
+msgstr "Conserver l’identifiant de contrat moteur xsd:string ou xsd:token fourni sur l’Event consigné avec son attribution de source. Garder séparément tout artefact de contrat réel ou toute preuve d’exécution."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "Les preuves source et la configuration restent distinctes. Des enregistrements attribués concurrents peuvent coexister sans déclaration privilégiée."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Naming a contract does not authenticate its implementation or establish that an event executed under it."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Nommer un contrat n’authentifie pas son implémentation et n’établit pas qu’un événement s’est exécuté sous ce contrat."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:engineContract \"source-value\" ."
@@ -3573,8 +3573,8 @@ msgid "injection category code"
 msgstr "code de catégorie d’injection"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine string preserves source whitespace and case."
-msgstr "Code de catégorie exact rapporté par un filtre pour des instructions qu’une réponse extérieure a tenté d’injecter, conservé sur son observation attribuée. La chaîne machine conserve espaces et casse source."
+msgid "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine literal preserves source whitespace, case and datatype."
+msgstr "Le code de catégorie exact déclaré par un filtre pour des instructions qu’une réponse extérieure a tenté d’injecter, conservé sur son observation attribuée. Le littéral machine préserve les espaces, la casse et le type de données de la source."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a retained screening report names a category for a particular outside-answer artifact."
@@ -3585,12 +3585,12 @@ msgid "Avoid storing the injected instruction text as the code, resolving the co
 msgstr "Éviter de stocker le texte de l’instruction injectée comme code, de résoudre le code en taxonomie universelle ou d’affirmer que le modèle ou l’expéditeur est globalement malveillant."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the literal as xsd:string on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."
-msgstr "Conserver le littéral en xsd:string sur une Observation avec la réponse réelle comme observedFeature, son vantage et sa source de filtrage conservée. Conserver les segments de preuve ou la méthode rapportée lorsqu’ils sont fournis."
+msgid "Keep the supplied xsd:string or xsd:token literal on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni sur une Observation avec la réponse réelle comme observedFeature, son point de vue et la source de filtrage conservée. Préserver les segments de preuve ou la méthode déclarée lorsqu’ils sont fournis."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "This is a source classification, not execution of a screen or proof that an attack succeeded. No token datatype admission, normalization, lexical validator or closed category registry follows from the string range."
-msgstr "Il s’agit d’une classification source, non de l’exécution d’un filtre ni d’une preuve de réussite d’attaque. La plage de chaînes n’implique aucune admission du type token, normalisation, validation lexicale ou registre fermé de catégories."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. This source classification neither executes a screen, proves attack success nor supplies a closed category registry."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Cette classification de source n’exécute aucun filtre, ne prouve pas la réussite d’une attaque et ne fournit aucun registre fermé de catégories."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the screen's exact code: ex:screenReading gmeow:injectionCategory \" role-override  \" ."
@@ -5346,3 +5346,7 @@ msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string verbatim et xsd:token explicitement fourni sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni inférer le type token. Cette déclaration n’installe pas de vérificateur lexical de token."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching tool-name spelling does not establish tool-agent identity."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Ces déclarations n’installent aucun vérificateur lexical de token. Une même graphie de nom d’outil n’établit pas l’identité de l’agent outil."
