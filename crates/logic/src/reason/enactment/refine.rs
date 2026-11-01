@@ -410,6 +410,111 @@ pub(crate) fn select_means_end_program(
     ))
 }
 
+/// Admit exactly the selected rule surface without merging caller worlds or dropping
+/// unsupported terms that could change the refinement's answer.
+fn admit_input(
+    input: &RdfDataset,
+    preparation: &crate::operator_rules::PreparedOperatorRules,
+) -> gmeow_errors::Result<()> {
+    let (program, _) = preparation.means_end_preparation();
+    let mut list_cells = BTreeSet::new();
+    let rows = input_triples(input);
+    let yields_p = format!("{LOGIC_NS}methodYields");
+    let mut tails: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let mut pending = Vec::new();
+    for (subject, predicate, object) in &rows {
+        if predicate == &yields_p {
+            pending.push(object.as_str());
+        } else if predicate == RDF_REST {
+            tails
+                .entry(subject.as_str())
+                .or_default()
+                .push(object.as_str());
+        }
+    }
+    // Structural carrier reachability: inspect each reachable cell and tail once,
+    // including conflicting branches that carrier validation will refuse below.
+    while let Some(cell) = pending.pop() {
+        if !list_cells.insert(cell) {
+            continue;
+        }
+        if let Some(next) = tails.get(cell) {
+            pending.extend(next.iter().copied());
+        }
+    }
+    let relevant = |predicate: &str, object: &purrdf::RdfTerm| {
+        program
+            .rules
+            .iter()
+            .flat_map(|rule| &rule.body)
+            .any(|atom| {
+                atom.predicate == predicate
+                && (predicate != RDF_TYPE
+                    || atom.obj.as_iri().is_none_or(|expected| {
+                        matches!(object, purrdf::RdfTerm::Iri(actual) if actual == expected)
+                    }))
+            })
+    };
+    let owned = |predicate: &str, object: &purrdf::RdfTerm| {
+        program.rules.iter().any(|rule| {
+            rule.head.predicate == predicate
+                && (predicate != RDF_TYPE
+                    || rule.head.obj.as_iri().is_some_and(|expected| {
+                        matches!(object, purrdf::RdfTerm::Iri(actual) if actual == expected)
+                    }))
+        })
+    };
+    for quad in input.owned_quads() {
+        if quad.graph_name.is_some() {
+            return Err(refine_err(
+                "refinement requires one default-graph world; project the selected world into \
+                 the default graph instead of merging named worlds"
+                    .to_owned(),
+            ));
+        }
+        if owned(&quad.predicate, &quad.object) {
+            return Err(refine_err(format!(
+                "<{}> is a refinement conclusion and must be derived, not supplied",
+                quad.predicate
+            )));
+        }
+        let selected_carrier = ![RDF_FIRST, RDF_REST].contains(&quad.predicate.as_str())
+            || matches!(&quad.subject, purrdf::RdfTerm::Iri(iri) if list_cells.contains(iri.as_str()));
+        if selected_carrier
+            && relevant(&quad.predicate, &quad.object)
+            && (!matches!(quad.subject, purrdf::RdfTerm::Iri(_))
+                || !(matches!(quad.object, purrdf::RdfTerm::Iri(_))
+                    || (quad.predicate == format!("{LOGIC_NS}methodDigest")
+                        && matches!(quad.object, purrdf::RdfTerm::Literal(_)))))
+        {
+            return Err(refine_err(format!(
+                "<{}> requires named IRI resources in this refinement profile \
+                 (only logic:methodDigest may carry a literal)",
+                quad.predicate
+            )));
+        }
+    }
+    for reifier in input.owned_reifiers() {
+        if reifier.graph.is_some() {
+            return Err(refine_err(
+                "refinement does not merge named statement worlds".to_owned(),
+            ));
+        }
+    }
+    for annotation in input.owned_annotations() {
+        if annotation.graph.is_some()
+            || relevant(&annotation.predicate, &annotation.object)
+            || owned(&annotation.predicate, &annotation.object)
+        {
+            return Err(refine_err(format!(
+                "statement annotation <{}> cannot supply a refinement fact in this profile",
+                annotation.predicate
+            )));
+        }
+    }
+    Ok(())
+}
+
 /// Every `(subject, predicate, object)` IRI-or-literal triple of `input`, as owned
 /// strings — the carrier view the `rdf:List` validation and the order read work over.
 fn input_triples(input: &RdfDataset) -> Vec<(String, String, String)> {
@@ -505,8 +610,8 @@ fn own(builder: RdfDatasetBuilder) -> gmeow_errors::Result<RdfDataset> {
 /// delete every step after the break.
 fn list_members(
     head: &str,
-    first: &BTreeMap<&str, &str>,
-    rest: &BTreeMap<&str, &str>,
+    first: &BTreeMap<&str, BTreeSet<&str>>,
+    rest: &BTreeMap<&str, BTreeSet<&str>>,
 ) -> gmeow_errors::Result<Vec<String>> {
     let mut out: Vec<String> = Vec::new();
     let mut seen: BTreeSet<&str> = BTreeSet::new();
@@ -523,13 +628,27 @@ fn list_members(
                 "the list cell <{cell}> carries no rdf:first"
             )));
         };
-        out.push((*member).to_owned());
+        if member.len() != 1 {
+            return Err(refine_err(format!(
+                "the list cell <{cell}> has conflicting rdf:first values"
+            )));
+        }
+        out.extend(member.iter().map(|value| (*value).to_owned()));
         let Some(next) = rest.get(cell) else {
             return Err(refine_err(format!(
                 "the list cell <{cell}> carries no rdf:rest, so the chain never reaches rdf:nil"
             )));
         };
-        cell = next;
+        if next.len() != 1 {
+            return Err(refine_err(format!(
+                "the list cell <{cell}> has conflicting rdf:rest values"
+            )));
+        }
+        cell = next
+            .iter()
+            .next()
+            .copied()
+            .ok_or_else(|| refine_err(format!("the list cell <{cell}> carries no rdf:rest")))?;
     }
     Ok(out)
 }
@@ -551,15 +670,15 @@ fn method_orders(
     let yields_p = format!("{LOGIC_NS}methodYields");
 
     let mut yields: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
-    let mut first: BTreeMap<&str, &str> = BTreeMap::new();
-    let mut rest: BTreeMap<&str, &str> = BTreeMap::new();
+    let mut first: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+    let mut rest: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
     for (subject, predicate, object) in rows {
         if *predicate == yields_p {
             yields.entry(subject).or_default().push(object);
         } else if predicate == RDF_FIRST {
-            first.insert(subject, object);
+            first.entry(subject).or_default().insert(object);
         } else if predicate == RDF_REST {
-            rest.insert(subject, object);
+            rest.entry(subject).or_default().insert(object);
         }
     }
 
@@ -588,6 +707,13 @@ fn method_orders(
         }
         out.insert(method.to_owned(), steps);
     }
+    for (method, predicate, _) in rows {
+        if predicate == &format!("{LOGIC_NS}methodDecomposes") && !out.contains_key(method) {
+            return Err(refine_err(format!(
+                "<{method}> decomposes a task but carries no logic:methodYields sequence"
+            )));
+        }
+    }
     Ok(out)
 }
 
@@ -615,6 +741,27 @@ fn witness_index(session: &ReasoningSession) -> BTreeMap<(String, String, String
     index
 }
 
+/// Require the native firing recorded for a conclusion; an asserted leaf cannot
+/// witness a refinement decision.
+fn native_witness(
+    witnesses: &BTreeMap<(String, String, String), ProofWitness>,
+    subject: &str,
+    predicate: &str,
+    object: &str,
+) -> gmeow_errors::Result<ProofWitness> {
+    witnesses
+        .get(&(displayed(subject), predicate.to_owned(), displayed(object)))
+        .filter(|witness| {
+            witness.rule_iri != crate::provenance::ASSERT_RULE_IRI
+                && witness.proof_height > 0
+                && !witness.premises.is_empty()
+        })
+        .cloned()
+        .ok_or_else(|| refine_err(format!(
+            "refinement conclusion <{subject}> <{predicate}> <{object}> has no native derivation witness"
+        )))
+}
+
 /// Every `(subject, object)` IRI pair the closure carries under `predicate`.
 fn closure_pairs(session: &ReasoningSession, predicate: &str) -> Vec<(String, String)> {
     let mut out: Vec<(String, String)> = session
@@ -634,7 +781,11 @@ fn closure_pairs(session: &ReasoningSession, predicate: &str) -> Vec<(String, St
     out
 }
 
-/// The `logic:methodDigest` each method carries, read off the input carrier.
+/// The `logic:methodDigest` each method carries as an untagged `xsd:string`.
+///
+/// Every claimed digest is checked in its native RDF term form before the report's text
+/// representation is read; other term kinds and tagged or non-string literals fail
+/// admission rather than collapsing into lexical aliases.
 ///
 /// A CARRIER READ, in the same sense as [`method_orders`] — and for a sharper reason. The
 /// incremental session's EDB is IRI-object only (`crate::reason::build_edb_facts` drops
@@ -647,15 +798,66 @@ fn closure_pairs(session: &ReasoningSession, predicate: &str) -> Vec<(String, St
 /// pin carries is the method version's own, byte for byte, and if the method carries none
 /// then neither does the pin — which is why [`collect_pins`] reports no pin at all rather
 /// than an unaddressed one.
-fn method_digests(rows: &[(String, String, String)]) -> BTreeMap<String, String> {
+fn method_digests(input: &RdfDataset) -> gmeow_errors::Result<BTreeMap<String, String>> {
     let digest_p = format!("{LOGIC_NS}methodDigest");
     let mut out: BTreeMap<String, String> = BTreeMap::new();
-    for (subject, predicate, object) in rows {
-        if *predicate == digest_p {
-            out.insert(subject.clone(), object.clone());
+    for quad in input.quads() {
+        if !matches!(input.resolve(quad.p), TermRef::Iri(iri) if iri == digest_p) {
+            continue;
         }
+        let TermRef::Iri(subject) = input.resolve(quad.s) else {
+            return Err(refine_err(
+                "logic:methodDigest requires a named method in this refinement profile".to_owned(),
+            ));
+        };
+        // This report carries a digest as text. Admit its exact text carrier before
+        // extracting the lexical value, so no native term identity is erased.
+        let TermRef::Literal {
+            lexical,
+            datatype,
+            language: None,
+            direction: None,
+        } = input.resolve(quad.o)
+        else {
+            return Err(refine_err(format!(
+                "<{subject}> logic:methodDigest requires an untagged xsd:string literal"
+            )));
+        };
+        if !matches!(input.resolve(datatype), TermRef::Iri(iri) if iri == "http://www.w3.org/2001/XMLSchema#string")
+        {
+            return Err(refine_err(format!(
+                "<{subject}> logic:methodDigest requires an untagged xsd:string literal"
+            )));
+        }
+        if out.get(subject).is_some_and(|previous| previous != lexical) {
+            return Err(refine_err(format!(
+                "<{subject}> has conflicting logic:methodDigest values"
+            )));
+        }
+        out.insert(subject.to_owned(), lexical.to_owned());
     }
-    out
+    Ok(out)
+}
+
+/// Read a single-valued pin component without choosing among native conclusions.
+fn unique_pin_pairs(
+    session: &ReasoningSession,
+    predicate: &str,
+) -> gmeow_errors::Result<BTreeMap<String, String>> {
+    let mut values = BTreeMap::new();
+    for (subject, object) in closure_pairs(session, predicate) {
+        if values
+            .get(&subject)
+            .is_some_and(|previous| previous != &object)
+        {
+            return Err(refine_err(format!(
+                "<{subject}> has multiple <{predicate}> values; this refinement profile \
+                 requires one value and cannot choose a pin component"
+            )));
+        }
+        values.insert(subject, object);
+    }
+    Ok(values)
 }
 
 /// Assemble the derived pins out of the settled closure.
@@ -672,18 +874,17 @@ fn collect_pins(
     orders: &BTreeMap<String, Vec<String>>,
     digests: &BTreeMap<String, String>,
     witnesses: &BTreeMap<(String, String, String), ProofWitness>,
-) -> Vec<RefinePin> {
-    let methods: BTreeMap<String, String> = closure_pairs(session, PIN_INSTANTIATES_METHOD)
-        .into_iter()
-        .collect();
-    let sequences: BTreeMap<String, String> = closure_pairs(session, PINNED_STEP_SEQUENCE)
-        .into_iter()
-        .collect();
-    let authorities: BTreeMap<String, String> =
-        closure_pairs(session, PIN_AUTHORITY).into_iter().collect();
+) -> gmeow_errors::Result<Vec<RefinePin>> {
+    let methods = unique_pin_pairs(session, PIN_INSTANTIATES_METHOD)?;
+    let sequences = unique_pin_pairs(session, PINNED_STEP_SEQUENCE)?;
+    // RefinePin carries one authority. Multiple legitimate proofs cannot be rendered
+    // faithfully by this profile, so refuse instead of selecting one by sort order.
+    let authorities = unique_pin_pairs(session, PIN_AUTHORITY)?;
+    let selected = unique_pin_pairs(session, SELECTED_PIN)?;
+    let heads = unique_pin_pairs(session, &format!("{LOGIC_NS}methodYields"))?;
 
     let mut pins: Vec<RefinePin> = Vec::new();
-    for (episode, pin) in closure_pairs(session, SELECTED_PIN) {
+    for (episode, pin) in selected {
         let (Some(method), Some(cell), Some(authority)) = (
             methods.get(&pin),
             sequences.get(&pin),
@@ -691,27 +892,26 @@ fn collect_pins(
         ) else {
             continue;
         };
+        if heads.get(method) != Some(cell) {
+            return Err(refine_err(format!(
+                "pin <{pin}> sequence <{cell}> does not match method <{method}>'s \
+                 validated logic:methodYields head"
+            )));
+        }
         let Some(digest) = digests.get(method) else {
             continue;
         };
         // In scope through the METHOD's task: a pin is this refinement's business when the
         // method it instantiates decomposes something the expansion reached.
-        let steps = orders.get(method).cloned().unwrap_or_default();
+        let steps = orders.get(method).cloned().ok_or_else(|| {
+            refine_err(format!(
+                "derived method <{method}> has no validated ordered carrier"
+            ))
+        })?;
         if !steps.iter().any(|step| scope.contains(step)) && !scope.contains(method) {
             continue;
         }
-        let witness = witnesses
-            .get(&(
-                displayed(&pin),
-                PINNED_STEP_SEQUENCE.to_owned(),
-                displayed(cell),
-            ))
-            .cloned()
-            .unwrap_or_else(|| ProofWitness {
-                rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
-                premises: Vec::new(),
-                proof_height: 0,
-            });
+        let witness = native_witness(witnesses, &pin, PINNED_STEP_SEQUENCE, cell)?;
         pins.push(RefinePin {
             episode,
             pin,
@@ -723,7 +923,7 @@ fn collect_pins(
         });
     }
     pins.sort_by(|a, b| (&a.pin, &a.episode).cmp(&(&b.pin, &b.episode)));
-    pins
+    Ok(pins)
 }
 
 /// Run a bounded means–end refinement of `task` over the method set carried by `input`.
@@ -755,11 +955,14 @@ pub fn refine(
         );
     }
 
+    if let Err(why) = admit_input(input, preparation) {
+        return invalid(task, fragment, why.to_string());
+    }
     let rows = input_triples(input);
-    if !rows
-        .iter()
-        .any(|(subject, _, object)| subject == task || object == task)
-    {
+    if !input.quads().any(|quad| {
+        matches!(input.resolve(quad.s), TermRef::Iri(iri) if iri == task)
+            || matches!(input.resolve(quad.o), TermRef::Iri(iri) if iri == task)
+    }) {
         // A typo'd task IRI must not read as "no decomposition exists". That answer is
         // both wrong and reassuring, which is the worst pair available.
         return invalid(
@@ -779,6 +982,10 @@ pub fn refine(
         }
     };
 
+    let digests = match method_digests(input) {
+        Ok(digests) => digests,
+        Err(why) => return invalid(task, fragment, why.to_string()),
+    };
     let edb = match seed_edb(task, fragment) {
         Ok(edb) => edb,
         Err(diagnostic) => return engine_failure(task, fragment, diagnostic),
@@ -823,14 +1030,10 @@ pub fn refine(
         };
     }
 
-    collect(
-        &session,
-        task,
-        fragment,
-        &orders,
-        &method_digests(&rows),
-        outcome,
-    )
+    match collect(&session, task, fragment, &orders, &digests, outcome) {
+        Ok(report) => report,
+        Err(diagnostic) => engine_failure(task, fragment, diagnostic),
+    }
 }
 
 /// Project the settled closure into the report.
@@ -841,8 +1044,18 @@ fn collect(
     orders: &BTreeMap<String, Vec<String>>,
     digests: &BTreeMap<String, String>,
     outcome: OperationOutcome,
-) -> RefineReport {
+) -> gmeow_errors::Result<RefineReport> {
     let witnesses = witness_index(session);
+    for predicate in MEANS_END_PREDICATES.into_iter().chain([
+        PIN_INSTANTIATES_METHOD,
+        PINNED_STEP_SEQUENCE,
+        PIN_AUTHORITY,
+        SELECTED_PIN,
+    ]) {
+        for (subject, object) in closure_pairs(session, predicate) {
+            native_witness(&witnesses, &subject, predicate, &object)?;
+        }
+    }
     let reaches = closure_pairs(session, &format!("{LOGIC_NS}refinementReaches"));
     let candidate_pairs = closure_pairs(session, &format!("{LOGIC_NS}refinementCandidateMethod"));
 
@@ -878,24 +1091,17 @@ fn collect(
         if !scope.contains(candidate_task) {
             continue;
         }
-        let steps = orders.get(method).cloned().unwrap_or_default();
+        let steps = orders.get(method).cloned().ok_or_else(|| {
+            refine_err(format!(
+                "derived method <{method}> has no validated ordered carrier"
+            ))
+        })?;
         let open_steps: Vec<String> = steps
             .iter()
             .filter(|step| open.contains(step.as_str()))
             .cloned()
             .collect();
-        let witness = witnesses
-            .get(&(
-                displayed(candidate_task),
-                candidate_predicate.clone(),
-                displayed(method),
-            ))
-            .cloned()
-            .unwrap_or_else(|| ProofWitness {
-                rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
-                premises: Vec::new(),
-                proof_height: 0,
-            });
+        let witness = native_witness(&witnesses, candidate_task, &candidate_predicate, method)?;
         candidates.push(RefineCandidate {
             task: candidate_task.clone(),
             method: method.clone(),
@@ -912,14 +1118,7 @@ fn collect(
             if !scope.contains(&step) {
                 continue;
             }
-            let witness = witnesses
-                .get(&(displayed(&step), predicate.clone(), displayed(&witness_iri)))
-                .cloned()
-                .unwrap_or_else(|| ProofWitness {
-                    rule_iri: crate::provenance::ASSERT_RULE_IRI.to_owned(),
-                    premises: Vec::new(),
-                    proof_height: 0,
-                });
+            let witness = native_witness(&witnesses, &step, &predicate, &witness_iri)?;
             rejections.push(RefineRejection {
                 step,
                 kind,
@@ -945,9 +1144,9 @@ fn collect(
         outcome
     };
     let closed = matches!(outcome, OperationOutcome::Applied { .. });
-    let pins = collect_pins(session, &scope, orders, digests, &witnesses);
+    let pins = collect_pins(session, &scope, orders, digests, &witnesses)?;
 
-    RefineReport {
+    Ok(RefineReport {
         task: task.to_owned(),
         fragment: fragment.to_owned(),
         candidates: if closed { candidates } else { Vec::new() },
@@ -956,7 +1155,7 @@ fn collect(
         pins: if closed { pins } else { Vec::new() },
         cycles,
         outcome,
-    }
+    })
 }
 
 #[path = "refine.tests.rs"]
