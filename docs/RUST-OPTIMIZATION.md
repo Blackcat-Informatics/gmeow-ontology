@@ -214,6 +214,12 @@ are consumed through its public Rust API:
   and hydration verifies the recomputed whole-product commitment. Releasing a
   transient span table preserves published identity, so warm fixture admission
   needs no separate hydration or transition-witness action.
+- Diagnostic metadata: each immutable value retains only canonical JSON lexical
+  evidence, preserving exact numbers and sorted last-wins objects. CBOR and its
+  streamed typed commitment borrow that text directly. JSON/SARIF projections
+  parse temporary native values on demand; they do not retain parallel trees or
+  hide read/allocation errors as absent metadata. This is an evidence-storage
+  contract, with projection costs, not a measured performance advantage.
 - Native compiler canonicalization: `graphutil::canonicalize_blank_nodes` applies
   PurRDF's `canonical_relabel` directly to the typed dataset. Label issuance and
   RDF 1.2 statement preservation stay upstream-owned; the compiler no longer

@@ -7,8 +7,12 @@ use std::collections::BTreeMap;
 
 use gmeow_action_cache::content_digest;
 use purrdf::{PipelineBundle, PipelineBundleError, RdfTerm};
+use purrdf_hash::Domain;
 
 use crate::bundle::PipelineHandle;
+
+/// Frozen domain for complete diagnostic payloads retaining lexical JSON evidence.
+const DIAGNOSTICS_JSON_EVIDENCE_DOMAIN: Domain = Domain::new(b"diagnostics-json-evidence-v2");
 
 /// An immutable commitment calculated once when a producer publishes its handle.
 #[derive(Debug, Clone)]
@@ -103,10 +107,14 @@ pub(crate) fn handle_payload_digest(handle: &PipelineHandle) -> String {
         PipelineHandle::SourceCatalog(catalog) => catalog.identity().to_owned(),
         PipelineHandle::Logic(program) => typed_digest(program.as_ref()),
         PipelineHandle::CompiledLogic(publication) => typed_digest(publication.as_ref()),
-        PipelineHandle::Diagnostics(publication) => native_digest(
-            |sink| publication.write_cbor(sink),
-            "native diagnostic serialization into an infallible hash sink",
-        ),
+        PipelineHandle::Diagnostics(publication) => content_digest(&[
+            DIAGNOSTICS_JSON_EVIDENCE_DOMAIN.as_bytes(),
+            native_digest(
+                |sink| publication.write_cbor(sink),
+                "native diagnostic serialization into an infallible hash sink",
+            )
+            .as_bytes(),
+        ]),
         PipelineHandle::Reasoning(result) => typed_digest(result.as_ref()),
         PipelineHandle::RelationalCore(program) => native_digest(
             |sink| program.write_cbor(sink),

@@ -127,17 +127,17 @@ fn canonical_record(report: &Report, key: &str) -> Report {
 /// consumer side. Neither has a private copy.
 ///
 /// # Errors
-/// If the canonical record fails to serialize — a serde regression, never a data
-/// condition.
+/// Preserves failures projecting the immutable native metadata evidence.
 pub fn record_digest(report: &Report, key: &str) -> Result<String, gmeow_errors::Diag> {
     let canonical = canonical_record(report, key);
-    let bytes = serde_json::to_vec(&canonical).map_err(|e| {
+    let value = canonical.json_value().map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::Parse {
             message: format!("digesting the recorded {} verdict: {e}", canonical.tool),
         })
     })?;
+    let bytes = purrdf_lex::json::write_compact(&value).into_bytes();
     let mut hasher = purrdf_hash::blake3::Hasher::new();
-    hasher.update(b"gmeow-diagnostics-record-v1\x1e");
+    hasher.update(b"gmeow-diagnostics-record-v2\x1e");
     hasher.update(key.as_bytes());
     hasher.update(b"\x1e");
     hasher.update(&bytes);
@@ -165,9 +165,12 @@ pub fn verify_record_digest(
     origin: &str,
 ) -> Result<(), gmeow_errors::Diag> {
     let declared = recorded
-        .metadata
-        .get(key)
-        .and_then(serde_json::Value::as_str)
+        .metadata_string(key)
+        .map_err(|error| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: format!("read recorded diagnostics digest: {error}"),
+            })
+        })?
         .ok_or_else(|| {
             gmeow_errors::Diag::of_kind(crate::error::Parse {
                 message: format!(
@@ -177,7 +180,7 @@ pub fn verify_record_digest(
                 ),
             })
         })?
-        .to_owned();
+        .into_owned();
     let live = record_digest(recorded, key)?;
     if live != declared {
         return Err(gmeow_errors::Diag::of_kind(crate::error::Parse {
@@ -223,7 +226,7 @@ pub struct RenderedDiagnostics {
 /// that is actually written. A producer whose record nobody reads back passes `None` and
 /// its projections are byte-unchanged. Only the JSON projection is affected when it IS
 /// stamped: `to_gmeow_rdf` projects findings and ignores metadata entirely, and the SARIF
-/// surface reads only the `category` metadata key.
+/// surface carries every metadata value and uses `category` for automation identity.
 pub fn render_diagnostics_artifacts(
     stage: &str,
     mut report: Report,
@@ -275,9 +278,7 @@ pub fn render_diagnostics_artifacts(
     // file is the value written here.
     if let Some(key) = seal {
         let digest = record_digest(&report, key)?;
-        report
-            .metadata
-            .insert(key.to_owned(), serde_json::Value::String(digest));
+        report.metadata.insert(key.to_owned(), digest.into());
     }
     let report = std::sync::Arc::new(report);
 

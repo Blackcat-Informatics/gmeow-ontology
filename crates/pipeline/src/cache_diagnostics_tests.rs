@@ -42,18 +42,18 @@ fn diagnostics_codec_roundtrip_preserves_complete_reports_and_accounting() {
         Standpoint,
     };
 
-    // Frozen originals pin the complete cache packet and actual producer commitments.
+    // Selected v2 references pin the complete cache packet and actual producer commitments.
     let check_reference = |case: &str, handle: &PipelineHandle, encoded: &[u8], pin: &str| {
         let reference = include_str!("cache/fixtures/diagnostics-cbor-v1.txt")
             .lines()
             .map(|line| line.split('|').collect::<Vec<_>>())
             .find(|fields| fields[0] == case)
-            .expect("every complete report packet has its original reference");
+            .expect("every complete report packet has its selected reference");
         assert_eq!(reference.len(), 7);
         assert_eq!(
             purrdf_hash::hex::encode(encoded),
             reference[1],
-            "original complete cache bytes: {case}"
+            "selected complete cache bytes: {case}"
         );
         let PipelineHandle::Diagnostics(publication) = handle else {
             panic!("the selected complete diagnostic codec arm")
@@ -68,14 +68,14 @@ fn diagnostics_codec_roundtrip_preserves_complete_reports_and_accounting() {
         assert_eq!(
             purrdf_hash::hex::encode(purrdf_hash::blake3::hash(encoded).as_bytes()),
             reference[2],
-            "original raw identity: {case}"
+            "selected raw identity: {case}"
         );
         assert_eq!(
             handle_payload_digest(handle),
             reference[3],
             "actual payload identity: {case}"
         );
-        assert_eq!(pin, reference[4], "original graph pin: {case}");
+        assert_eq!(pin, reference[4], "selected graph pin: {case}");
         let commitment = crate::handle_identity::handle_commitment(GRAPH_DIAGNOSTICS, pin, handle);
         assert_eq!(
             commitment.identity, reference[5],
@@ -263,24 +263,17 @@ fn diagnostics_codec_roundtrip_preserves_complete_reports_and_accounting() {
         .push(Rule::new("synthetic.sparse-rule", Severity::Info));
     rich.metadata.insert(
         "scalar-and-container-boundaries".into(),
-        serde_json::json!({
-            "signed-min": i64::MIN,
-            "signed-max": i64::MAX,
-            "unsigned-max": u64::MAX,
-            "zero": 0,
-            "minus-one": -1,
-            "null": null,
-            "false": false,
-            "true": true,
-            "empty-array": [],
-            "empty-map": {},
-            "text": "quoted \"text\" λ\0\n",
-            "nested": [{"values": [null, false, "retained"]}],
-        }),
+        purrdf_lex::json::record::FromJson::from_json(
+            &purrdf_lex::json::record::read_document(
+                br#"{"signed-min":-9223372036854775808,"signed-max":9223372036854775807,"unsigned-max":18446744073709551615,"zero":0,"minus-one":-1,"null":null,"false":false,"true":true,"empty-array":[],"empty-map":{},"text":"quoted \"text\" \u03bb\u0000\n","nested":[{"values":[null,false,"retained"]}]}"#,
+            )
+            .unwrap(),
+        )
+        .unwrap(),
     );
     rich.metadata.insert(
         "finite-float-widths".into(),
-        serde_json::Value::Array(
+        purrdf_lex::json::record::FromJson::from_json(&purrdf_lex::json::Value::Array(
             [
                 0.5_f64,
                 f64::from_bits(0x3fd5_5555_6000_0000),
@@ -289,12 +282,12 @@ fn diagnostics_codec_roundtrip_preserves_complete_reports_and_accounting() {
             ]
             .into_iter()
             .map(|value| {
-                serde_json::Value::Number(
-                    serde_json::Number::from_f64(value).expect("all captured floats are finite"),
-                )
+                purrdf_lex::json::record::read_document(format!("{value:?}").as_bytes())
+                    .expect("all captured floats are finite JSON numbers")
             })
             .collect(),
-        ),
+        ))
+        .unwrap(),
     );
     for (case, owner, report) in [
         (
@@ -337,7 +330,11 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
             0 => {
                 report.metadata.insert(
                     "nested-evidence".into(),
-                    serde_json::json!({"source":"substituted"}),
+                    purrdf_lex::json::record::FromJson::from_json(
+                        &purrdf_lex::json::record::read_document(br#"{"source":"substituted"}"#)
+                            .unwrap(),
+                    )
+                    .unwrap(),
                 );
             }
             1 => {
@@ -373,12 +370,69 @@ fn diagnostics_codec_rejects_report_only_evidence_tampering() {
     }
 }
 
+/// Binary metadata restores exact lexical evidence and refuses malformed or
+/// noncanonical strings, even when the surrounding CBOR publication is valid.
+#[test]
+fn diagnostics_codec_requires_canonical_json_evidence_on_hydration() {
+    // gmeow-test-input: synthetic-only
+    use purrdf_lex::cbor::{Value, encode};
+    let publication = |lexical: &str| {
+        encode(&Value::Map(vec![(
+            Value::Text("reports".into()),
+            Value::Map(vec![(
+                Value::Text("Validate".into()),
+                Value::Map(vec![
+                    (Value::Text("tool".into()), Value::Text("shacl".into())),
+                    (
+                        Value::Text("metadata".into()),
+                        Value::Map(vec![(
+                            Value::Text("evidence".into()),
+                            Value::Text(lexical.into()),
+                        )]),
+                    ),
+                ]),
+            )]),
+        )]))
+    };
+    let canonical = r#"{"a":[1e400,-0,1.00],"z":"中"}"#;
+    let PipelineHandle::Diagnostics(restored) =
+        rebuild_handle("diagnostics", Some(&publication(canonical))).unwrap()
+    else {
+        panic!("complete native diagnostic publication");
+    };
+    let report = restored.report(DiagnosticReportOwner::Validate).unwrap();
+    assert_eq!(report.metadata["evidence"].canonical_json(), canonical);
+    let roundtrip = gmeow_errors::Report::from_json_slice(
+        gmeow_errors::render::to_json(report).unwrap().as_bytes(),
+    )
+    .unwrap();
+    assert_eq!(&roundtrip, report.as_ref());
+    for invalid in [
+        " null",
+        r#"{"b":1,"a":2}"#,
+        r#"{"a":1,"a":2}"#,
+        "[",
+        r#""\ud800""#,
+    ] {
+        assert!(
+            rebuild_handle("diagnostics", Some(&publication(invalid))).is_err(),
+            "accepted {invalid}"
+        );
+    }
+    let too_deep = format!(
+        "{}0{}",
+        "[".repeat(gmeow_errors::METADATA_JSON_DEPTH + 1),
+        "]".repeat(gmeow_errors::METADATA_JSON_DEPTH + 1)
+    );
+    assert!(rebuild_handle("diagnostics", Some(&publication(&too_deep))).is_err());
+}
+
 /// Missing, trailing and duplicate-owner encodings are errors; a legitimate
 /// singleton cannot claim another producer or stand in for both snapshot reports.
 #[test]
 fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding() {
     // gmeow-test-input: synthetic-only
-    use gmeow_errors::cbor::{DiagnosticCborError, MAX_DIAGNOSTIC_CBOR_DEPTH};
+    use gmeow_errors::cbor::DiagnosticCborError;
     use purrdf_lex::cbor::{self, Value};
     use std::error::Error as _;
     assert!(rebuild_handle("diagnostics", None).is_err());
@@ -458,25 +512,24 @@ fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding(
         ]),
         "duplicate Report.tool",
     );
-    for metadata in [
-        Value::Map(vec![
-            (text("same"), Value::Bool(false)),
-            (text("same"), Value::Bool(true)),
-        ]),
-        Value::Map(vec![(
+    refuse(
+        with_metadata(Value::Map(vec![
+            (text("same"), text("false")),
+            (text("same"), text("true")),
+        ])),
+        "duplicate diagnostic metadata key",
+    );
+    refuse(
+        with_metadata(Value::Map(vec![(
             text("nested"),
-            Value::Map(vec![
-                (text("same"), Value::Null),
-                (text("same"), Value::Bool(true)),
-            ]),
-        )]),
-    ] {
-        refuse(with_metadata(metadata), "duplicate diagnostic metadata key");
-    }
+            text(r#"{"same":null,"same":true}"#),
+        )])),
+        "noncanonical diagnostic metadata evidence",
+    );
     for value in [Value::Bytes(vec![1]), Value::Tag(42, Box::new(Value::Null))] {
         refuse(
             with_metadata(Value::Map(vec![(text("unsupported"), value)])),
-            "unsupported diagnostic metadata CBOR kind",
+            "expected diagnostic text",
         );
     }
     refuse(
@@ -484,7 +537,7 @@ fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding(
             text("nonfinite"),
             Value::Float(f64::NAN),
         )])),
-        "nonfinite diagnostic metadata float",
+        "expected diagnostic text",
     );
 
     let finding = |severity: Value, source_graph: Option<Value>| {
@@ -521,15 +574,16 @@ fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding(
         "native IRI cause survives the typed admission error"
     );
 
-    // Four enclosing maps consume the same original publication container budget.
-    let nested = |depth: usize| (0..depth).fold(Value::Null, |value, _| Value::Array(vec![value]));
-    let metadata_depth = MAX_DIAGNOSTIC_CBOR_DEPTH - 4;
+    // Metadata text has its own JSON depth budget, independent of the
+    // publication's shallow CBOR envelope.
+    let nested = |depth: usize| format!("{}null{}", "[".repeat(depth), "]".repeat(depth));
+    let metadata_depth = gmeow_errors::METADATA_JSON_DEPTH;
     let at_limit = cbor::encode(&with_metadata(Value::Map(vec![(
         text("nested"),
-        nested(metadata_depth),
+        text(&nested(metadata_depth)),
     )])));
     let restored = rebuild_handle("diagnostics", Some(&at_limit))
-        .expect("the exact container boundary is admitted");
+        .expect("the exact metadata container boundary is admitted");
     assert_eq!(
         encode_handle(&restored).unwrap(),
         at_limit,
@@ -537,10 +591,10 @@ fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding(
     );
     let beyond_limit = cbor::encode(&with_metadata(Value::Map(vec![(
         text("nested"),
-        nested(metadata_depth + 1),
+        text(&nested(metadata_depth + 1)),
     )])));
     let error = rebuild_handle("diagnostics", Some(&beyond_limit))
-        .expect_err("the next container exceeds the selected bound");
+        .expect_err("the next metadata container exceeds the selected bound");
     let native = error
         .downcast_ref::<crate::error::Decode>()
         .unwrap()
@@ -548,8 +602,11 @@ fn diagnostics_codec_rejects_missing_payload_duplicate_owners_and_wrong_binding(
         .unwrap();
     assert!(native.is::<DiagnosticCborError>());
     assert!(
-        native.source().unwrap().is::<cbor::DecodeError>(),
-        "native decoder enforces the enclosing bound"
+        native
+            .source()
+            .unwrap()
+            .is::<purrdf_lex::json::record::DecodeError>(),
+        "native JSON admission enforces the metadata bound"
     );
 
     for wrong_stage in ["stage-compile-logic", "stage-snapshot", "another-stage"] {

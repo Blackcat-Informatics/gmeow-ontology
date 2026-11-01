@@ -192,8 +192,8 @@ fn typed_citations_survive_join_projection_and_replay() {
         report.findings[0].cited_iris,
         ["urn:citation:a", "urn:citation:b", "urn:citation:c"]
     );
-    let wire = serde_json::to_vec(&report).unwrap();
-    let restored: crate::Report = serde_json::from_slice(&wire).unwrap();
+    let wire = report.to_json().unwrap();
+    let restored = crate::Report::from_json_slice(wire.as_bytes()).unwrap();
     assert_eq!(
         restored.findings[0].cited_iris,
         report.findings[0].cited_iris
@@ -204,8 +204,8 @@ fn typed_citations_survive_join_projection_and_replay() {
     let mut replay = DiagLedger::new();
     replay.replay(restored);
     assert_eq!(
-        serde_json::to_vec(&replay.project_report("test")).unwrap(),
-        serde_json::to_vec(&report).unwrap()
+        replay.project_report("test").to_json().unwrap(),
+        report.to_json().unwrap()
     );
     assert_eq!(replay.verdict(), ledger.verdict());
 }

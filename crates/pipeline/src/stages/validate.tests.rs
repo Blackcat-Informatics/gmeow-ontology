@@ -61,13 +61,15 @@ fn a_verdict_with_a_deleted_violation_is_refused() {
         "shacl.violation",
         "ex:Other violates ex:Shape",
     ));
-    report
-        .metadata
-        .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
+    report.metadata.insert(
+        SHACL_INPUT_DIGEST_KEY.to_owned(),
+        gmeow_errors::JsonEvidence::from("blake3:inputs"),
+    );
     let digest = record_digest(&report, SHACL_RECORD_DIGEST_KEY).expect("digest");
-    report
-        .metadata
-        .insert(SHACL_RECORD_DIGEST_KEY.to_owned(), json!(digest));
+    report.metadata.insert(
+        SHACL_RECORD_DIGEST_KEY.to_owned(),
+        gmeow_errors::JsonEvidence::from(digest),
+    );
 
     // Control: the sealed record is admitted.
     verify_record_digest(&report, SHACL_RECORD_DIGEST_KEY, "<in-memory>")
@@ -134,18 +136,21 @@ fn the_rendered_record_verifies_against_the_digest_the_renderer_stamped() {
     report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
     report.add_rule(gmeow_errors::Rule::new("shacl.aaa", Severity::Error));
     report.add_rule(gmeow_errors::Rule::new("shacl.zzz", Severity::Warning));
-    report
-        .metadata
-        .insert(SHACL_INPUT_DIGEST_KEY.to_owned(), json!("blake3:inputs"));
-    report
-        .metadata
-        .insert("shaclResultCount".to_owned(), json!(3));
+    report.metadata.insert(
+        SHACL_INPUT_DIGEST_KEY.to_owned(),
+        gmeow_errors::JsonEvidence::from("blake3:inputs"),
+    );
+    report.metadata.insert(
+        "shaclResultCount".to_owned(),
+        gmeow_errors::JsonEvidence::from(3_usize),
+    );
 
     let artifacts = render_artifacts(report.clone(), None, None)
         .expect("render")
         .artifacts;
     let json = artifacts.get(SHACL_JSON_PATH).expect("rendered shacl.json");
-    let recorded: Report = serde_json::from_slice(json).expect("parse the committed record");
+    let recorded: Report =
+        gmeow_errors::Report::from_json_slice(json).expect("parse the committed record");
 
     // The renderer really did rewrite the content the naive fold would have digested.
     assert_ne!(
@@ -202,7 +207,8 @@ fn an_unsealed_render_carries_no_record_digest() {
     .expect("render")
     .artifacts;
     let recorded: Report =
-        serde_json::from_slice(artifacts.get(SHACL_JSON_PATH).expect("json")).expect("parse");
+        gmeow_errors::Report::from_json_slice(artifacts.get(SHACL_JSON_PATH).expect("json"))
+            .expect("parse");
     assert!(
         !recorded.metadata.contains_key(SHACL_RECORD_DIGEST_KEY),
         "an unsealed render stamps nothing"
@@ -228,8 +234,8 @@ ex:RequiredShape a sh:NodeShape ;
     let (report, _adv) = validate_source_graph(repo.path(), b"", &mock_fresh()).expect("validate");
     assert_eq!(report.error_count(), 1);
     assert_eq!(
-        report.metadata["shaclGatePassed"],
-        serde_json::Value::Bool(false)
+        report.metadata["shaclGatePassed"].value().unwrap(),
+        purrdf_lex::json::Value::Bool(false)
     );
 
     let artifacts = render_artifacts(report.clone(), None, None)
@@ -391,7 +397,8 @@ ex:RequiredShape a sh:NodeShape ;
         .product
         .artifact(SHACL_JSON_PATH)
         .expect("shacl.json artifact on the stage product");
-    let report: Report = serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+    let report: Report =
+        gmeow_errors::Report::from_json_slice(json_bytes).expect("shacl.json parses as a Report");
 
     assert!(
         !report.rules.is_empty(),
@@ -539,7 +546,7 @@ ex:world {
     .unwrap();
     let nq = purrdf::canonical_flat_nquads(&source).unwrap();
     let output = run_full_stage_with_reason("", "", nq.as_bytes());
-    let report: Report = serde_json::from_slice(
+    let report: Report = gmeow_errors::Report::from_json_slice(
         output
             .product
             .artifact(SHACL_JSON_PATH)
@@ -675,7 +682,8 @@ fn stage_validate_emits_both_advice_projections() {
         .product
         .artifact(SHACL_JSON_PATH)
         .expect("shacl.json artifact on the stage product");
-    let report: Report = serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+    let report: Report =
+        gmeow_errors::Report::from_json_slice(json_bytes).expect("shacl.json parses as a Report");
     assert_eq!(
         report.error_count(),
         0,
@@ -747,7 +755,8 @@ ex:RequiredShape a sh:NodeShape ;\n\
         .product
         .artifact(SHACL_JSON_PATH)
         .expect("shacl.json artifact on the stage product");
-    let report: Report = serde_json::from_slice(json_bytes).expect("shacl.json parses as a Report");
+    let report: Report =
+        gmeow_errors::Report::from_json_slice(json_bytes).expect("shacl.json parses as a Report");
     assert!(
         report.error_count() >= 1,
         "the minCount-violation corpus must be genuinely non-conforming: {report:?}"

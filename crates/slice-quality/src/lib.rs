@@ -804,7 +804,7 @@ fn assessment_artifacts_inner(
         let report = report?;
         blocks.push_str(&report.to_gmeow_rdf());
         assessments.push(report.assessment.clone());
-        let diagnostics = report.to_report();
+        let diagnostics = report.to_report()?;
         for finding in diagnostics.findings {
             aggregate.add_finding(finding);
         }

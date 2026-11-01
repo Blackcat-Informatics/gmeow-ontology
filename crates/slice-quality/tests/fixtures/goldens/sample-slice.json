@@ -1,4 +1,5 @@
 {
+  "schema": "gmeow.diagnostics-report.v2",
   "tool": "slice-quality",
   "findings": [
     {

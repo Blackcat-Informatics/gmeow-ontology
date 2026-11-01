@@ -6206,8 +6206,12 @@ pub fn slice_quality(reporter: &dyn Reporter, dir: &Path, format: &str, profile:
         .is_some_and(|profile| !profile.complete);
     let rendered = match format {
         "human" => Ok(report.render_text()),
-        "json" => gmeow_errors::render::to_json(&report.to_report()),
-        "sarif" => gmeow_errors::render::to_sarif(&report.to_report()),
+        "json" => report.to_report().and_then(|diagnostics| {
+            gmeow_errors::render::to_json(&diagnostics).map_err(Diag::from)
+        }),
+        "sarif" => report.to_report().and_then(|diagnostics| {
+            gmeow_errors::render::to_sarif(&diagnostics).map_err(Diag::from)
+        }),
         other => {
             return fail(
                 reporter,
@@ -6279,7 +6283,13 @@ pub fn slice_lint(
             );
         }
     };
-    let outcome = gmeow_slice_quality::lint_report(&report, declared.as_ref(), required.as_ref());
+    let outcome =
+        match gmeow_slice_quality::lint_report(&report, declared.as_ref(), required.as_ref()) {
+            Ok(outcome) => outcome,
+            Err(error) => {
+                return fail(reporter, "gmeow-cli.slice.lint.metadata", error.to_string());
+            }
+        };
     let rendered = match format {
         "human" => Ok(outcome.render_text(&report)),
         "json" => gmeow_errors::render::to_json(&outcome.findings),

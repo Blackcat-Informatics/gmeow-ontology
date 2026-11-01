@@ -20,7 +20,6 @@ use purrdf::gts::reader::read;
 use purrdf::gts_compose::{BlobRow, SnapshotBuilder};
 use purrdf::parse_dataset;
 use purrdf_lex::cbor::Value as CborValue;
-use serde_json::Value;
 
 /// Blob representation label for the embedded SARIF 2.1.0 projection.
 pub const REP_SARIF: &str = "gmeow:report/sarif";
@@ -53,7 +52,7 @@ pub fn build_feedback_bundle(
     let mut stamped = report.clone();
     stamped
         .metadata
-        .insert(META_SNAPSHOT_ID.to_owned(), Value::String(snapshot_id));
+        .insert(META_SNAPSHOT_ID.to_owned(), snapshot_id.into());
 
     let sarif = render::to_sarif(&stamped)
         .map_err(|e| crate::error::feedback(format!("sarif render: {e}")))?;
@@ -130,15 +129,11 @@ pub fn verify_feedback_bundle(bundle: &[u8]) -> bool {
         return false;
     };
 
-    let Ok(payload) = serde_json::from_slice::<Value>(&flat) else {
+    let Ok(report) = Report::from_json_slice(&flat) else {
         return false;
     };
 
-    let Some(metadata) = payload.get("metadata").and_then(Value::as_object) else {
-        return false;
-    };
-
-    let Some(stamped) = metadata.get(META_SNAPSHOT_ID).and_then(Value::as_str) else {
+    let Ok(Some(stamped)) = report.metadata_string(META_SNAPSHOT_ID) else {
         return false;
     };
 

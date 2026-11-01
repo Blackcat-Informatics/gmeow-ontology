@@ -96,7 +96,7 @@ use crate::node::StageProduct;
 /// subdirectory and the [`CachedBundle`] manifest so a stale cache (e.g. the C4-spine
 /// byte-only stand-in, version-less or an older rev) is treated as a clean MISS, not
 /// mis-decoded. Bump on ANY change to the persisted shape (no migration path).
-pub const CACHE_VERSION: u32 = 22;
+pub const CACHE_VERSION: u32 = 23;
 
 /// Schema revision for the canonical action-key rows and immutable stage receipt.
 pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
@@ -104,7 +104,7 @@ pub const RECEIPT_SCHEMA_VERSION: u32 = 2;
 /// The structural codec identity. This is explicit in every action key rather than
 /// relying only on [`CACHE_VERSION`], because a receipt must name the representation
 /// it authenticates without knowing its storage path.
-pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir4+typed-payload7+compiled-logic-cbor2+diagnostics-cbor1+receipt-json-2";
+pub const CACHE_CODEC_IDENTITY: &str = "bincode-1+purrpack1+typed-ir4+typed-payload7+compiled-logic-cbor2+diagnostics-cbor2+receipt-json-2";
 
 /// Complete independently reusable contributions use the shared store's byte
 /// budget. Stage disposition and authenticated output selection determine which

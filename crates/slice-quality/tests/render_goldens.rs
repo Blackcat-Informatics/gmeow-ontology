@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Frozen byte-goldens for the four slice-quality renderings (issue AC9,
-//! "golden-tested"): text, JSON, SARIF, and RDF (N-Quads).
+//! Frozen byte-goldens for the four slice-quality renderings:
+//! text, JSON, SARIF, and RDF (N-Quads).
 //!
 //! Determinism is asserted inline elsewhere; this test adds the missing regression
 //! net — a committed byte-golden per rendering, so a change to any render FORMAT is
@@ -61,8 +61,9 @@ fn goldens_dir() -> PathBuf {
 #[test]
 fn sarif_from_frozen_report_matches_the_versioned_golden() {
     let goldens = goldens_dir();
-    let report: gmeow_errors::Report =
-        serde_json::from_slice(&read_golden(&goldens, "sample-slice.json")).unwrap();
+    let frozen_json = read_golden(&goldens, "sample-slice.json");
+    let report = gmeow_errors::Report::from_json_slice(&frozen_json).unwrap();
+    assert_eq!(to_json(&report).unwrap().as_bytes(), frozen_json);
     let rendered = to_sarif(&report).unwrap();
     assert_no_machine_paths("sample-slice.sarif", &rendered);
     assert_eq!(
@@ -73,7 +74,7 @@ fn sarif_from_frozen_report_matches_the_versioned_golden() {
 
 /// Render the fixture slice all four ways: (name, produced-bytes).
 fn render_all(report: &SliceReport) -> Vec<(&'static str, String)> {
-    let diag = report.to_report();
+    let diag = report.to_report().unwrap();
     vec![
         ("sample-slice.text", report.render_text()),
         (

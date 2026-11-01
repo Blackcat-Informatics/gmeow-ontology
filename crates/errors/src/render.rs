@@ -5,13 +5,16 @@ mod finding_rdf;
 
 use std::collections::BTreeMap;
 
-use serde_json::{Value, json};
+use purrdf_lex::json::{
+    self, Object, Value,
+    record::{DecodeError, ToJson, sorted_last_wins},
+};
 
 use crate::model::{Finding, Location, RelatedLabel, Report, Rule};
 
 /// Render a report as stable pretty JSON.
-pub fn to_json(report: &Report) -> Result<String, serde_json::Error> {
-    serde_json::to_string_pretty(&report.normalized())
+pub fn to_json(report: &Report) -> Result<String, DecodeError> {
+    Ok(json::write_pretty(&report.normalized().json_value()?))
 }
 
 /// Render a report as SARIF 2.1.0.
@@ -28,45 +31,50 @@ pub fn to_json(report: &Report) -> Result<String, serde_json::Error> {
 /// `automationDetails.id` — the stable grouping key GitHub code-scanning keys
 /// per-category SARIF uploads on. Absent the key, no `automationDetails` is
 /// emitted (so existing single-category uploads are unchanged).
-pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
+pub fn to_sarif(report: &Report) -> Result<String, DecodeError> {
     let normalized = report.normalized();
     let rules = sarif_rules(&normalized);
     let artifacts = sarif_artifacts(&normalized);
     let results: Vec<Value> = normalized.findings.iter().map(sarif_result).collect();
-    let mut run = json!({
-        "tool": {
-            "driver": {
-                "name": normalized.tool,
-                "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
-                "rules": rules,
-            }
-        },
-        "artifacts": artifacts,
-        "results": results,
-    });
-    if let Some(category) = sarif_category(&normalized) {
-        run["automationDetails"] = json!({ "id": category });
+    let mut run: Value = Object::new()
+        .with(
+            "tool",
+            Object::new().with(
+                "driver",
+                Object::new()
+                    .with("name", normalized.tool.as_str())
+                    .with(
+                        "informationUri",
+                        "https://github.com/Blackcat-Informatics/gmeow-ontology",
+                    )
+                    .with("rules", rules),
+            ),
+        )
+        .with("artifacts", artifacts)
+        .with("results", results)
+        .into();
+    if let Some(category) = sarif_category(&normalized)? {
+        run["automationDetails"] = Object::new().with("id", category.as_ref()).into();
     }
     if !normalized.metadata.is_empty() {
-        run["properties"] = json!(normalized.metadata);
+        run["properties"] = normalized.metadata_json()?;
     }
-    let payload = json!({
-        "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
-        "version": "2.1.0",
-        "runs": [run],
-    });
-    serde_json::to_string_pretty(&payload)
+    let mut payload: Value = Object::new()
+        .with("$schema", "https://json.schemastore.org/sarif-2.1.0.json")
+        .with("version", "2.1.0")
+        .with("runs", vec![run])
+        .into();
+    sorted_last_wins(&mut payload);
+    Ok(json::write_pretty(&payload))
 }
 
 /// The stable code-scanning category for this report, if set: the `category`
 /// metadata value when it is a non-empty JSON string. Any other shape (absent,
 /// null, non-string, empty) yields `None` so the run omits `automationDetails`.
-fn sarif_category(report: &Report) -> Option<&str> {
-    report
-        .metadata
-        .get("category")
-        .and_then(Value::as_str)
-        .filter(|category| !category.is_empty())
+fn sarif_category(report: &Report) -> Result<Option<std::borrow::Cow<'_, str>>, DecodeError> {
+    Ok(report
+        .metadata_string("category")?
+        .filter(|category| !category.is_empty()))
 }
 
 /// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs.
@@ -143,7 +151,11 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
     uris.sort();
     uris.dedup();
     uris.into_iter()
-        .map(|uri| json!({ "location": { "uri": uri } }))
+        .map(|uri| {
+            Object::new()
+                .with("location", Object::new().with("uri", uri))
+                .into()
+        })
         .collect()
 }
 
@@ -875,20 +887,21 @@ fn sarif_rules(report: &Report) -> Vec<Value> {
     by_id
         .values()
         .map(|rule| {
-            let mut out = json!({
-                "id": rule.id,
-                "defaultConfiguration": {
-                    "level": rule.default_severity.sarif_level(),
-                }
-            });
+            let mut out: Value = Object::new()
+                .with("id", rule.id.as_str())
+                .with(
+                    "defaultConfiguration",
+                    Object::new().with("level", rule.default_severity.sarif_level()),
+                )
+                .into();
             if let Some(title) = &rule.title {
-                out["shortDescription"] = json!({ "text": title });
+                out["shortDescription"] = Object::new().with("text", title).into();
             }
             if let Some(description) = &rule.description {
-                out["fullDescription"] = json!({ "text": description });
+                out["fullDescription"] = Object::new().with("text", description).into();
             }
             if let Some(help_uri) = &rule.help_uri {
-                out["helpUri"] = json!(help_uri);
+                out["helpUri"] = help_uri.to_json();
             }
             out
         })
@@ -902,14 +915,18 @@ fn sarif_rules(report: &Report) -> Vec<Value> {
 const FALLBACK_ARTIFACT_URI: &str = "ontology/gmeow.ttl";
 
 fn sarif_result(finding: &Finding) -> Value {
-    let mut result = json!({
-        "ruleId": finding.code,
-        "level": finding.severity.sarif_level(),
-        "message": { "text": finding.message },
-        "partialFingerprints": {
-            "gmeowFindingHash/v3": stable_fingerprint(finding),
-        },
-    });
+    let mut result: Value = Object::new()
+        .with("ruleId", finding.code.as_str())
+        .with("level", finding.severity.sarif_level())
+        .with(
+            "message",
+            Object::new().with("text", finding.message.as_str()),
+        )
+        .with(
+            "partialFingerprints",
+            Object::new().with("gmeowFindingHash/v3", stable_fingerprint(finding)),
+        )
+        .into();
 
     // GitHub code-scanning requires every result to carry at least one location,
     // every location (primary AND related) to have a repo-relative
@@ -942,13 +959,24 @@ fn sarif_result(finding: &Finding) -> Value {
     // The primary location: the first physical one, else the ontology-root
     // fallback. All gathered logical entries fold onto it.
     let mut primary = if physical.is_empty() {
-        json!({
-            "physicalLocation": { "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI } },
-            "properties": {
-                "gmeow.syntheticPhysicalLocation": true,
-                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
-            }
-        })
+        Object::new()
+            .with(
+                "physicalLocation",
+                Object::new().with(
+                    "artifactLocation",
+                    Object::new().with("uri", FALLBACK_ARTIFACT_URI),
+                ),
+            )
+            .with(
+                "properties",
+                Object::new()
+                    .with("gmeow.syntheticPhysicalLocation", true)
+                    .with(
+                        "gmeow.syntheticPhysicalLocationReason",
+                        "logical-only diagnostic anchor",
+                    ),
+            )
+            .into()
     } else {
         physical.remove(0)
     };
@@ -957,9 +985,9 @@ fn sarif_result(finding: &Finding) -> Value {
             obj.remove("logicalLocations");
         }
     } else {
-        primary["logicalLocations"] = json!(logical);
+        primary["logicalLocations"] = logical.to_json();
     }
-    result["locations"] = json!([primary]);
+    result["locations"] = vec![primary].to_json();
 
     // Remaining physical locations ride as related locations (their logical
     // entries already folded onto the primary, so drop them to avoid duplication).
@@ -978,36 +1006,35 @@ fn sarif_result(finding: &Finding) -> Value {
         related_locations.push(sarif_related_label(label));
     }
     if !related_locations.is_empty() {
-        result["relatedLocations"] = json!(related_locations);
+        result["relatedLocations"] = related_locations.to_json();
     }
 
     // Emit result-level properties: detail text (if any) + structured
-    // slice attributions (§9 / S5). Uses a single json!() call so both fields
-    // land in the same "properties" object.
-    let mut props = serde_json::Map::new();
+    // slice attributions and complete source annotations in the same properties object.
+    let mut props = Object::new();
     if !finding.source_annotations.is_empty() {
         props.insert(
-            "gmeow.sourceAnnotations".to_owned(),
-            json!(finding.source_annotations),
+            "gmeow.sourceAnnotations",
+            finding.source_annotations.to_json(),
         );
     }
     if let Some(graph) = &finding.source_graph {
-        props.insert("gmeow.sourceGraph".to_owned(), json!(graph.as_str()));
+        props.insert("gmeow.sourceGraph".to_owned(), graph.as_str().to_json());
     }
     if let Some(detail) = &finding.detail {
-        props.insert("detail".to_owned(), json!(detail));
+        props.insert("detail".to_owned(), detail.to_json());
     }
     // The orthogonal finding KIND (the 8-way taxonomy), guarded by Some so an
     // un-categorized finding leaves the SARIF result byte-unchanged.
     if let Some(category) = finding.category {
-        props.insert("gmeow.category".to_owned(), json!(category.as_str()));
+        props.insert("gmeow.category".to_owned(), category.as_str().to_json());
     }
     // The TYPED conformance-failure class the violated law declares, under the PINNED
     // key `gmeow.failureClass`. `ruleId` carries only the generic component name every
     // gate of that shape shares, so this is the only place the SARIF artifact can name
     // the specific failure. Guarded by Some so a class-less finding is byte-unchanged.
     if let Some(class) = &finding.failure_class {
-        props.insert("gmeow.failureClass".to_owned(), json!(class));
+        props.insert("gmeow.failureClass".to_owned(), class.to_json());
     }
     if !finding.attributions.is_empty() {
         // Sorted (role, slice_iri) for deterministic output.
@@ -1015,13 +1042,13 @@ fn sarif_result(finding: &Finding) -> Value {
             .attributions
             .iter()
             .map(|a| {
-                let mut obj = serde_json::Map::new();
-                obj.insert("sliceIri".to_owned(), json!(a.slice_iri));
-                obj.insert("role".to_owned(), json!(a.role));
+                let mut obj = Object::new();
+                obj.insert("sliceIri".to_owned(), a.slice_iri.to_json());
+                obj.insert("role".to_owned(), a.role.to_json());
                 if let Some(ev) = &a.evidence {
-                    obj.insert("evidence".to_owned(), json!(ev));
+                    obj.insert("evidence".to_owned(), ev.to_json());
                 }
-                serde_json::Value::Object(obj)
+                Value::Object(obj)
             })
             .collect();
         sorted.sort_by_key(|v| {
@@ -1030,20 +1057,21 @@ fn sarif_result(finding: &Finding) -> Value {
                 v["sliceIri"].as_str().unwrap_or("").to_owned(),
             )
         });
-        props.insert("gmeow.attributions".to_owned(), json!(sorted));
+        props.insert("gmeow.attributions".to_owned(), sorted.to_json());
     }
     // Advisory suggestions land in properties as a plain string array — the
     // per-occurrence advice that carries no mechanical edit.
     if !finding.suggestions.is_empty() {
-        props.insert("gmeow.suggestions".to_owned(), json!(finding.suggestions));
+        props.insert(
+            "gmeow.suggestions".to_owned(),
+            finding.suggestions.to_json(),
+        );
     }
     // Per-term usage guidance (howToUse/useWhen/avoidWhen), grouped by modality
     // under its PINNED SARIF key (`gmeow.howToUse`/`gmeow.useWhen`/
-    // `gmeow.avoidWhen`) as a string array — `props` is a `serde_json::Map`
-    // (BTreeMap-backed; this crate carries no `preserve_order` feature), so the
-    // serialized key order is alphabetical regardless of insertion order,
-    // keeping byte-diffed goldens deterministic. Absent when the finding carries
-    // no guidance.
+    // `gmeow.avoidWhen`) as a string array. The final native payload sorts object
+    // keys recursively, preserving deterministic alphabetical presentation.
+    // Absent when the finding carries no guidance.
     let mut guidance_by_modality: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for guidance in &finding.guidance {
         guidance_by_modality
@@ -1052,7 +1080,7 @@ fn sarif_result(finding: &Finding) -> Value {
             .push(guidance.text.as_str());
     }
     for (key, texts) in guidance_by_modality {
-        props.insert(key.to_owned(), json!(texts));
+        props.insert(key.to_owned(), texts.to_json());
     }
     // The reasoner's explain-skeleton quad-derivation citations, under the
     // PINNED key `gmeow.derivedFromQuad` — a SEPARATE edge from the antecedent
@@ -1060,11 +1088,11 @@ fn sarif_result(finding: &Finding) -> Value {
     if !finding.derived_from_quads.is_empty() {
         props.insert(
             "gmeow.derivedFromQuad".to_owned(),
-            json!(finding.derived_from_quads),
+            finding.derived_from_quads.to_json(),
         );
     }
     if !props.is_empty() {
-        result["properties"] = serde_json::Value::Object(props);
+        result["properties"] = Value::Object(props);
     }
 
     // registry-authored remediations become SARIF `fixes`: one fix per remediation,
@@ -1074,7 +1102,7 @@ fn sarif_result(finding: &Finding) -> Value {
     // through the same repo-relative hygiene as every result location.
     let fixes: Vec<Value> = finding.remediation.iter().map(sarif_fix).collect();
     if !fixes.is_empty() {
-        result["fixes"] = json!(fixes);
+        result["fixes"] = fixes.to_json();
     }
     result
 }
@@ -1091,12 +1119,18 @@ fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
     // leg the gate morphism reads) survives into the SARIF byte artifact, not just
     // the RDF/CLI surfaces. This is the property the annotate-by-fingerprint pass's
     // output is greppable on in the regenerated `shacl.sarif`.
-    let mut fix = json!({
-        "description": { "text": remediation.text },
-        "properties": { "gmeow.standpoint": remediation.standpoint.as_str() },
-    });
+    let mut fix: Value = Object::new()
+        .with(
+            "description",
+            Object::new().with("text", remediation.text.as_str()),
+        )
+        .with(
+            "properties",
+            Object::new().with("gmeow.standpoint", remediation.standpoint.as_str()),
+        )
+        .into();
     if let Some(uri) = &remediation.help_uri {
-        fix["properties"]["gmeow.helpUri"] = json!(uri);
+        fix["properties"]["gmeow.helpUri"] = uri.to_json();
     }
     if let Some(change) = &remediation.artifact_change {
         // Route the artifact URI through the same repo-relative validation as a
@@ -1104,12 +1138,18 @@ fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
         // valid SARIF artifactLocation.uri.
         let loc = Location::new(Some(change.artifact_uri.clone()), None, None, None);
         if let Some(uri) = artifact_uri(&loc) {
-            let mut replacement = json!({ "deletedRegion": sarif_region(&change.region) });
-            replacement["insertedContent"] = json!({ "text": change.replacement });
-            fix["artifactChanges"] = json!([{
-                "artifactLocation": { "uri": uri },
-                "replacements": [replacement],
-            }]);
+            let mut replacement: Value = Object::new()
+                .with("deletedRegion", sarif_region(&change.region))
+                .into();
+            replacement["insertedContent"] = Object::new()
+                .with("text", change.replacement.as_str())
+                .into();
+            fix["artifactChanges"] = vec![Value::from(
+                Object::new()
+                    .with("artifactLocation", Object::new().with("uri", uri))
+                    .with("replacements", vec![replacement]),
+            )]
+            .into();
         }
     }
     fix
@@ -1124,29 +1164,32 @@ fn sarif_fix(remediation: &crate::diag::Remediation) -> Value {
 fn sarif_related_label(label: &RelatedLabel) -> Value {
     let mut out = sarif_location(&label.location);
     if out.get("physicalLocation").is_none() {
-        out["physicalLocation"] = json!({
-            "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI },
-        });
+        out["physicalLocation"] = Object::new()
+            .with(
+                "artifactLocation",
+                Object::new().with("uri", FALLBACK_ARTIFACT_URI),
+            )
+            .into();
     }
-    out["message"] = json!({ "text": label.message });
+    out["message"] = Object::new().with("text", label.message.as_str()).into();
     out
 }
 
 /// The SARIF `region` object for a mechanical edit — only the coordinates present
 /// are emitted (a whole-line replacement carries no column, etc.).
 fn sarif_region(region: &crate::diag::Region) -> Value {
-    let mut out = serde_json::Map::new();
+    let mut out = Object::new();
     if let Some(v) = region.start_line {
-        out.insert("startLine".to_owned(), json!(v));
+        out.insert("startLine".to_owned(), v.to_json());
     }
     if let Some(v) = region.start_column {
-        out.insert("startColumn".to_owned(), json!(v));
+        out.insert("startColumn".to_owned(), v.to_json());
     }
     if let Some(v) = region.end_line {
-        out.insert("endLine".to_owned(), json!(v));
+        out.insert("endLine".to_owned(), v.to_json());
     }
     if let Some(v) = region.end_column {
-        out.insert("endColumn".to_owned(), json!(v));
+        out.insert("endColumn".to_owned(), v.to_json());
     }
     Value::Object(out)
 }
@@ -1157,11 +1200,13 @@ fn sarif_logical_locations(location: &Location) -> Vec<Value> {
     let mut out: Vec<Value> = Vec::new();
     let mut push = |kind: &str, value: u64| {
         let short = kind.strip_prefix("gts:").unwrap_or(kind);
-        out.push(json!({
-            "name": format!("{short}#{value}"),
-            "kind": kind,
-            "fullyQualifiedName": format!("{kind}/{value}"),
-        }));
+        out.push(
+            Object::new()
+                .with("name", format!("{short}#{value}"))
+                .with("kind", kind)
+                .with("fullyQualifiedName", format!("{kind}/{value}"))
+                .into(),
+        );
     };
     if let Some(v) = location.gts_term_id {
         push("gts:term", v);
@@ -1184,21 +1229,21 @@ fn sarif_logical_locations(location: &Location) -> Vec<Value> {
 /// SARIF `properties` carrying the raw GTS wire coordinates as scalars, for
 /// consumers that prefer structured fields over the logical-location names.
 fn sarif_location_properties(location: &Location) -> Option<Value> {
-    let mut props = serde_json::Map::new();
+    let mut props = Object::new();
     if let Some(v) = location.gts_term_id {
-        props.insert("gts.termId".to_owned(), json!(v));
+        props.insert("gts.termId".to_owned(), v.to_json());
     }
     if let Some(v) = location.gts_quad_index {
-        props.insert("gts.quadIndex".to_owned(), json!(v));
+        props.insert("gts.quadIndex".to_owned(), v.to_json());
     }
     if let Some(v) = location.gts_reifier_id {
-        props.insert("gts.reifierId".to_owned(), json!(v));
+        props.insert("gts.reifierId".to_owned(), v.to_json());
     }
     if let Some(v) = location.gts_frame_index {
-        props.insert("gts.frameIndex".to_owned(), json!(v));
+        props.insert("gts.frameIndex".to_owned(), v.to_json());
     }
     if let Some(v) = location.gts_segment_index {
-        props.insert("gts.segmentIndex".to_owned(), json!(v));
+        props.insert("gts.segmentIndex".to_owned(), v.to_json());
     }
     if props.is_empty() {
         None
@@ -1208,7 +1253,7 @@ fn sarif_location_properties(location: &Location) -> Option<Value> {
 }
 
 fn sarif_location(location: &Location) -> Value {
-    let mut out = json!({});
+    let mut out = Value::Object(Object::new());
 
     // Physical location: a concrete file path, or a bare-IRI logical anchor.
     // Only a valid bare URI may become `artifactLocation.uri`; angle-bracketed
@@ -1216,16 +1261,19 @@ fn sarif_location(location: &Location) -> Value {
     let uri = artifact_uri(location);
     let has_region = location.line.is_some() || location.column.is_some();
     if uri.is_some() || has_region {
-        let mut physical = json!({
-            "artifactLocation": { "uri": uri.as_deref().unwrap_or("unknown") }
-        });
+        let mut physical: Value = Object::new()
+            .with(
+                "artifactLocation",
+                Object::new().with("uri", uri.as_deref().unwrap_or("unknown")),
+            )
+            .into();
         if has_region {
-            let mut region = json!({});
+            let mut region = Value::Object(Object::new());
             if let Some(line) = location.line {
-                region["startLine"] = json!(line);
+                region["startLine"] = line.to_json();
             }
             if let Some(column) = location.column {
-                region["startColumn"] = json!(column);
+                region["startColumn"] = column.to_json();
             }
             physical["region"] = region;
         }
@@ -1238,11 +1286,11 @@ fn sarif_location(location: &Location) -> Value {
     if let Some(annotation) = location.logical.as_deref() {
         let annotation = strip_angle(annotation);
         if !is_artifact_uri(annotation) {
-            logical.push(json!({ "fullyQualifiedName": annotation }));
+            logical.push(Object::new().with("fullyQualifiedName", annotation).into());
         }
     }
     if !logical.is_empty() {
-        out["logicalLocations"] = json!(logical);
+        out["logicalLocations"] = logical.to_json();
     }
 
     if let Some(properties) = sarif_location_properties(location) {

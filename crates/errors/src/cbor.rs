@@ -21,8 +21,8 @@ use crate::{
 };
 
 /// The existing persistent decoder permits 256 nested containers. For this
-/// closed wire, typed record/sequence maps and metadata containers account for
-/// the same open-container levels as the original Ciborium recursion budget.
+/// closed wire, typed record/sequence maps count toward this outer budget.
+/// Metadata is canonical JSON text with its own independent depth budget.
 /// Enum text keys are shallow and their temporary enum visitor is released
 /// before the associated report value is decoded. Tags are not in this schema.
 pub const MAX_DIAGNOSTIC_CBOR_DEPTH: usize = 256;
@@ -2196,76 +2196,23 @@ fn read_guidance(value: &Value) -> Result<Guidance, DiagnosticCborError> {
     })
 }
 
-/// Stream the report's retained metadata map in its existing key iteration order.
+/// Stream canonical lexical evidence directly, preserving every JSON number spelling.
 fn write_metadata_map<W: Write + ?Sized>(
-    metadata: &BTreeMap<String, serde_json::Value>,
+    metadata: &BTreeMap<String, crate::JsonEvidence>,
     out: &mut W,
 ) -> io::Result<()> {
     head::write_head(out, head::MAP, metadata.len() as u64)?;
     for (key, value) in metadata {
         head::write_text(out, key)?;
-        write_metadata(value, out)?;
+        head::write_text(out, value.canonical_json())?;
     }
     Ok(())
 }
 
-/// Traverse existing metadata values directly; no JSON or CBOR value tree is built.
-fn write_metadata<W: Write + ?Sized>(value: &serde_json::Value, out: &mut W) -> io::Result<()> {
-    enum Item<'a> {
-        Value(&'a serde_json::Value),
-        Key(&'a str),
-    }
-    let mut pending = vec![Item::Value(value)];
-    while let Some(item) = pending.pop() {
-        let value = match item {
-            Item::Key(key) => {
-                head::write_text(out, key)?;
-                continue;
-            }
-            Item::Value(value) => value,
-        };
-        match value {
-            serde_json::Value::Null => cbor::write(&Value::Null, out)?,
-            serde_json::Value::Bool(value) => cbor::write(&Value::Bool(*value), out)?,
-            serde_json::Value::String(value) => head::write_text(out, value)?,
-            serde_json::Value::Number(number) => {
-                if let Some(value) = number.as_u64() {
-                    cbor::write(&Value::from(value), out)?;
-                } else if let Some(value) = number.as_i64() {
-                    cbor::write(&Value::from(value), out)?;
-                } else {
-                    let value = number
-                        .as_f64()
-                        .filter(|value| value.is_finite())
-                        .ok_or_else(|| {
-                            io::Error::new(
-                                io::ErrorKind::InvalidData,
-                                "unsupported diagnostic metadata number",
-                            )
-                        })?;
-                    cbor::write(&Value::Float(value), out)?;
-                }
-            }
-            serde_json::Value::Array(values) => {
-                head::write_head(out, head::ARRAY, values.len() as u64)?;
-                pending.extend(values.iter().rev().map(Item::Value));
-            }
-            serde_json::Value::Object(entries) => {
-                head::write_head(out, head::MAP, entries.len() as u64)?;
-                for (key, value) in entries.iter().rev() {
-                    pending.push(Item::Value(value));
-                    pending.push(Item::Key(key));
-                }
-            }
-        }
-    }
-    Ok(())
-}
-
-/// Admit distinct textual metadata keys and only the existing retained value kinds.
+/// Admit distinct metadata keys and canonical lexical evidence without repair.
 fn read_metadata_map(
     value: &Value,
-) -> Result<BTreeMap<String, serde_json::Value>, DiagnosticCborError> {
+) -> Result<BTreeMap<String, crate::JsonEvidence>, DiagnosticCborError> {
     let mut metadata = BTreeMap::new();
     for (key, value) in read_map(value)? {
         let key = read_text(key)?.to_owned();
@@ -2274,67 +2221,11 @@ fn read_metadata_map(
                 "duplicate diagnostic metadata key {key}"
             )));
         }
-        metadata.insert(key, read_metadata(value, 1)?);
+        let evidence = crate::JsonEvidence::from_canonical_json(read_text(value)?.to_owned())
+            .map_err(|error| {
+                DiagnosticCborError::caused_by("noncanonical diagnostic metadata evidence", error)
+            })?;
+        metadata.insert(key, evidence);
     }
     Ok(metadata)
-}
-
-/// Reconstruct bounded metadata without text conversion, key replacement or nonfinite loss.
-fn read_metadata(value: &Value, depth: usize) -> Result<serde_json::Value, DiagnosticCborError> {
-    use serde_json::{Map, Number, Value as MetadataValue};
-    match value {
-        Value::Null => Ok(MetadataValue::Null),
-        Value::Bool(value) => Ok(MetadataValue::Bool(*value)),
-        Value::Text(value) => Ok(MetadataValue::String(value.clone())),
-        Value::Integer(integer) => {
-            let value = integer.get();
-            if value >= 0 {
-                let value = u64::try_from(value).map_err(|error| {
-                    DiagnosticCborError::caused_by("metadata unsigned integer exceeds u64", error)
-                })?;
-                Ok(MetadataValue::Number(Number::from(value)))
-            } else {
-                let value = i64::try_from(value).map_err(|error| {
-                    DiagnosticCborError::caused_by("metadata signed integer exceeds i64", error)
-                })?;
-                Ok(MetadataValue::Number(Number::from(value)))
-            }
-        }
-        Value::Float(value) => Number::from_f64(*value)
-            .map(MetadataValue::Number)
-            .ok_or_else(|| DiagnosticCborError::invalid("nonfinite diagnostic metadata float")),
-        Value::Array(values) => {
-            if depth >= MAX_DIAGNOSTIC_CBOR_DEPTH {
-                return Err(DiagnosticCborError::invalid(
-                    "diagnostic metadata exceeds its structural bound",
-                ));
-            }
-            values
-                .iter()
-                .map(|value| read_metadata(value, depth + 1))
-                .collect::<Result<Vec<_>, _>>()
-                .map(MetadataValue::Array)
-        }
-        Value::Map(entries) => {
-            if depth >= MAX_DIAGNOSTIC_CBOR_DEPTH {
-                return Err(DiagnosticCborError::invalid(
-                    "diagnostic metadata exceeds its structural bound",
-                ));
-            }
-            let mut object = Map::new();
-            for (key, value) in entries {
-                let key = read_text(key)?.to_owned();
-                if object.contains_key(&key) {
-                    return Err(DiagnosticCborError::invalid(format!(
-                        "duplicate diagnostic metadata key {key}"
-                    )));
-                }
-                object.insert(key, read_metadata(value, depth + 1)?);
-            }
-            Ok(MetadataValue::Object(object))
-        }
-        _ => Err(DiagnosticCborError::invalid(
-            "unsupported diagnostic metadata CBOR kind",
-        )),
-    }
 }

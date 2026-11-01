@@ -34,8 +34,8 @@ fn observations() -> &'static Observations {
                 CHANNEL,
             )
             .map_err(gmeow_errors::Diag::from)?;
-            let observed: Observations =
-                serde_json::from_slice(&bytes).map_err(gmeow_errors::Diag::from)?;
+            let observed: Observations = gmeow_errors::json::read_diagnostic_document(&bytes)
+                .map_err(gmeow_errors::Diag::from)?;
             let queries: BTreeMap<_, _> = embedded_verify_queries()
                 .into_iter()
                 .map(|(name, text)| (name, bytes_digest(text.as_bytes())))

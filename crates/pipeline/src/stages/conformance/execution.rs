@@ -438,7 +438,7 @@ pub(super) fn cached_native_inputs<
 
 /// Coordinate and publish exactly one completed byte observation, retaining the
 /// existing action identity and live initializer failure before publication.
-fn cached_bytes(
+pub(super) fn cached_bytes(
     store: &ActionStore,
     operation: &str,
     inputs: Vec<ActionInput>,

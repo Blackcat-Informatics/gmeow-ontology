@@ -17,7 +17,6 @@ use std::time::Instant;
 use gmeow_errors::{DiagLedger, Finding, Report, Severity, StageId};
 use gmeow_logic::result_rdf::GRAPH_REASONING;
 use purrdf::provenance::DatasetProvenance;
-use serde_json::json;
 
 use crate::bundle::PipelineHandle;
 use crate::node::{Stage, StageInput, StageOutput, StageProduct, StageRunTiming};
@@ -211,13 +210,22 @@ fn diagnostics_report(
         );
     }
     let mut out = ledger.project_report("shacl");
-    out.metadata.insert("category".to_owned(), json!("shacl"));
-    out.metadata
-        .insert("stage".to_owned(), json!("stage-validate"));
-    out.metadata
-        .insert("shaclConforms".to_owned(), json!(report.conforms));
-    out.metadata
-        .insert("shaclResultCount".to_owned(), json!(report.results.len()));
+    out.metadata.insert(
+        "category".to_owned(),
+        gmeow_errors::JsonEvidence::from("shacl"),
+    );
+    out.metadata.insert(
+        "stage".to_owned(),
+        gmeow_errors::JsonEvidence::from("stage-validate"),
+    );
+    out.metadata.insert(
+        "shaclConforms".to_owned(),
+        gmeow_errors::JsonEvidence::from(report.conforms),
+    );
+    out.metadata.insert(
+        "shaclResultCount".to_owned(),
+        gmeow_errors::JsonEvidence::from(report.results.len()),
+    );
 
     if out.findings.is_empty() && !report.conforms {
         out.add_finding(
@@ -246,12 +254,18 @@ fn diagnostics_report(
             .with_tool("shacl"),
         );
     }
-    out.metadata
-        .insert("shaclGatePassed".to_owned(), json!(out.ok()));
-    out.metadata
-        .insert("shaclErrorCount".to_owned(), json!(out.error_count()));
-    out.metadata
-        .insert("shaclWarningCount".to_owned(), json!(out.warning_count()));
+    out.metadata.insert(
+        "shaclGatePassed".to_owned(),
+        gmeow_errors::JsonEvidence::from(out.ok()),
+    );
+    out.metadata.insert(
+        "shaclErrorCount".to_owned(),
+        gmeow_errors::JsonEvidence::from(out.error_count()),
+    );
+    out.metadata.insert(
+        "shaclWarningCount".to_owned(),
+        gmeow_errors::JsonEvidence::from(out.warning_count()),
+    );
     out
 }
 
@@ -616,7 +630,7 @@ impl ValidateStage {
             }
             report.metadata.insert(
                 SHACL_INPUT_DIGEST_KEY.to_owned(),
-                json!(shacl_input_digest(members)?),
+                gmeow_errors::JsonEvidence::from(shacl_input_digest(members)?),
             );
         }
         // Lift the authored source spans onto each SHACL finding whose focus node (a bare

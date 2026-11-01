@@ -1263,10 +1263,9 @@ fn attach_coherence_certificate(
     if nquads.is_empty() {
         return;
     }
-    report.metadata.insert(
-        "coherence_certificate".to_owned(),
-        serde_json::Value::String(nquads),
-    );
+    report
+        .metadata
+        .insert("coherence_certificate".to_owned(), nquads.into());
 }
 
 /// An internal-invariant violation raised while folding a reasoning verdict: a

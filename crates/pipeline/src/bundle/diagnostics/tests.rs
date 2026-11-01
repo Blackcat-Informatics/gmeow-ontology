@@ -120,11 +120,11 @@ pub(crate) fn rich_report(owner: DiagnosticReportOwner) -> Report {
     report.rules.extend([rule.clone(), rule]);
     report.metadata.insert(
         "nested-evidence".into(),
-        serde_json::json!({"array":[null,true,17,-3,1.25],"source":"original","max":u64::MAX}),
+        purrdf_lex::json::record::FromJson::from_json(&purrdf_lex::json::record::read_document(br#"{"array":[null,true,17,-3,1.25],"source":"original","max":18446744073709551615}"#).unwrap()).unwrap(),
     );
     report.metadata.insert(
         crate::stages::validate::SHACL_INPUT_DIGEST_KEY.into(),
-        serde_json::json!("blake3:explicit-tiny-input"),
+        gmeow_errors::JsonEvidence::from("blake3:explicit-tiny-input"),
     );
     report
 }
@@ -209,15 +209,14 @@ fn native_diagnostics_report_matches_terminal_value_and_seal() {
             DiagnosticReportOwner::CompileLogic => crate::stages::compile_logic::DIAG_JSON_PATH,
             DiagnosticReportOwner::Validate => crate::stages::validate::SHACL_JSON_PATH,
         };
-        let recorded: Report = serde_json::from_slice(product.artifact(path).unwrap()).unwrap();
+        let recorded: Report =
+            gmeow_errors::Report::from_json_slice(product.artifact(path).unwrap()).unwrap();
         assert_eq!(actual.as_ref(), &recorded);
         let mut expected = original.normalized();
         if owner == DiagnosticReportOwner::Validate {
             let key = crate::stages::validate::SHACL_RECORD_DIGEST_KEY;
             let digest = crate::stages::diag_render::record_digest(&expected, key).unwrap();
-            expected
-                .metadata
-                .insert(key.into(), serde_json::Value::String(digest));
+            expected.metadata.insert(key.into(), digest.into());
             crate::stages::diag_render::verify_record_digest(actual, key, "tiny native report")
                 .unwrap();
         }
@@ -281,7 +280,8 @@ fn native_diagnostics_publish_meta_enrichment_before_sealing() {
         Some("https://example.org/derivedRoot")
     );
     assert!(original.findings[0].root_cause.is_none());
-    let final_json: Report = serde_json::from_slice(&rendered.artifacts["report.json"]).unwrap();
+    let final_json: Report =
+        gmeow_errors::Report::from_json_slice(&rendered.artifacts["report.json"]).unwrap();
     assert_eq!(published.as_ref(), &final_json);
     crate::stages::diag_render::verify_record_digest(
         published,

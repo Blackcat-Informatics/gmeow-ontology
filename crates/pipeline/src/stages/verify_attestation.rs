@@ -258,54 +258,57 @@ fn build_output_from_report(
     let warning_count = report.warning_count();
     report.metadata.insert(
         "schemaVersion".to_string(),
-        serde_json::json!("gmeow.verify-attestation.v2"),
+        gmeow_errors::JsonEvidence::from("gmeow.verify-attestation.v2"),
     );
     report.metadata.insert(
         "verifyInputDigest".to_string(),
-        serde_json::json!(ContentDigest::of(canonical_nquads.as_bytes()).to_hex()),
+        gmeow_errors::JsonEvidence::from(ContentDigest::of(canonical_nquads.as_bytes()).to_hex()),
     );
     report.metadata.insert(
         "verifyReasoningDigest".to_string(),
-        serde_json::json!(ContentDigest::of(reasoning_projection.as_bytes()).to_hex()),
+        gmeow_errors::JsonEvidence::from(
+            ContentDigest::of(reasoning_projection.as_bytes()).to_hex(),
+        ),
     );
     report.metadata.insert(
         "verifyContractDigest".to_string(),
-        serde_json::json!(gmeow_logic::reason::native_contract_hash()),
+        gmeow_errors::JsonEvidence::from(gmeow_logic::reason::native_contract_hash()),
     );
     report.metadata.insert(
         "verifyQuerySetDigest".to_string(),
-        serde_json::json!(query_digest),
+        gmeow_errors::JsonEvidence::from(query_digest),
     );
     report.metadata.insert(
         "verifyPreparedLawsDigest".to_owned(),
-        serde_json::json!(ContentDigest::of(&prepared_gates).to_hex()),
+        gmeow_errors::JsonEvidence::from(ContentDigest::of(&prepared_gates).to_hex()),
     );
     report.metadata.insert(
         "verifyQueryCount".to_string(),
-        serde_json::json!(queries.len()),
+        gmeow_errors::JsonEvidence::from(queries.len()),
     );
     report.metadata.insert(
         "verifyEdbQuads".to_string(),
-        serde_json::json!(edb.owned_quads().count()),
+        gmeow_errors::JsonEvidence::from(edb.owned_quads().count()),
     );
     report.metadata.insert(
         "verifyInferredAxioms".to_string(),
-        serde_json::json!(transported_reasoning.inferred().len()),
+        gmeow_errors::JsonEvidence::from(transported_reasoning.inferred().len()),
     );
-    report
-        .metadata
-        .insert("closureConstructions".to_string(), serde_json::json!(0));
+    report.metadata.insert(
+        "closureConstructions".to_string(),
+        gmeow_errors::JsonEvidence::from(0_usize),
+    );
     report.metadata.insert(
         "verifyFindingCount".to_string(),
-        serde_json::json!(finding_count),
+        gmeow_errors::JsonEvidence::from(finding_count),
     );
     report.metadata.insert(
         "verifyErrorCount".to_string(),
-        serde_json::json!(error_count),
+        gmeow_errors::JsonEvidence::from(error_count),
     );
     report.metadata.insert(
         "verifyWarningCount".to_string(),
-        serde_json::json!(warning_count),
+        gmeow_errors::JsonEvidence::from(warning_count),
     );
     report.normalize();
 
@@ -410,14 +413,16 @@ pub fn grade_shipped_attestation(
 /// Describe the first deterministic JSON-value differences without dumping a whole
 /// report into a diagnostic. Byte-only drift remains visible as such.
 fn json_difference_summary(expected: &[u8], shipped: &[u8]) -> String {
-    let expected: serde_json::Value = match serde_json::from_slice(expected) {
-        Ok(value) => value,
-        Err(error) => return format!("fresh record is not JSON: {error}"),
-    };
-    let shipped: serde_json::Value = match serde_json::from_slice(shipped) {
-        Ok(value) => value,
-        Err(error) => return format!("shipped record is not JSON: {error}"),
-    };
+    let expected: purrdf_lex::json::Value =
+        match gmeow_errors::json::read_diagnostic_document(expected) {
+            Ok(value) => value,
+            Err(error) => return format!("fresh record is not JSON: {error}"),
+        };
+    let shipped: purrdf_lex::json::Value =
+        match gmeow_errors::json::read_diagnostic_document(shipped) {
+            Ok(value) => value,
+            Err(error) => return format!("shipped record is not JSON: {error}"),
+        };
     let mut differences = Vec::new();
     collect_json_differences("", &expected, &shipped, &mut differences, 12);
     if differences.is_empty() {
@@ -429,8 +434,8 @@ fn json_difference_summary(expected: &[u8], shipped: &[u8]) -> String {
 
 fn collect_json_differences(
     pointer: &str,
-    expected: &serde_json::Value,
-    shipped: &serde_json::Value,
+    expected: &purrdf_lex::json::Value,
+    shipped: &purrdf_lex::json::Value,
     differences: &mut Vec<String>,
     limit: usize,
 ) {
@@ -438,7 +443,7 @@ fn collect_json_differences(
         return;
     }
     match (expected, shipped) {
-        (serde_json::Value::Object(expected), serde_json::Value::Object(shipped)) => {
+        (purrdf_lex::json::Value::Object(expected), purrdf_lex::json::Value::Object(shipped)) => {
             let keys: BTreeSet<&str> = expected
                 .keys()
                 .chain(shipped.keys())
@@ -465,7 +470,7 @@ fn collect_json_differences(
                 }
             }
         }
-        (serde_json::Value::Array(expected), serde_json::Value::Array(shipped)) => {
+        (purrdf_lex::json::Value::Array(expected), purrdf_lex::json::Value::Array(shipped)) => {
             if expected.len() != shipped.len() {
                 differences.push(format!(
                     "{pointer}/length: expected {}, shipped {}",
@@ -499,7 +504,7 @@ fn json_pointer_token(token: &str) -> String {
     token.replace('~', "~0").replace('/', "~1")
 }
 
-fn short_json(value: &serde_json::Value) -> String {
+fn short_json(value: &purrdf_lex::json::Value) -> String {
     const MAX_CHARS: usize = 160;
     let rendered = value.to_string();
     if rendered.chars().count() <= MAX_CHARS {

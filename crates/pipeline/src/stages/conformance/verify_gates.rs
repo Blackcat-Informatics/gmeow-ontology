@@ -17,16 +17,17 @@ use gmeow_logic::verify::{
     GATE_SOURCES, PREPARED_GATES_CHANNEL, PreparedVerification, embedded_verify_queries,
 };
 use purrdf::{DatasetMut, MutableDataset, QuadValues, RdfDataset, TermValue};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::cache::BuildIdentity;
 use crate::stages::parse_sources::SourceCatalog;
 
+mod json;
 mod sources;
 
 pub(super) const CHANNEL: &str = "pipeline/verify-gate-observations.json";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct Observations {
     pub producer: BuildIdentity,
     pub query_digests: BTreeMap<String, String>,
@@ -35,7 +36,7 @@ pub(super) struct Observations {
     pub sources: BTreeMap<String, SourceObservation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct SourceObservation {
     pub source_path: String,
     pub source_digest: String,
@@ -43,7 +44,7 @@ pub(super) struct SourceObservation {
     pub repairs: BTreeMap<String, RepairObservation>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub(super) struct RepairObservation {
     pub mutation_digest: String,
     pub removed_rows: usize,
@@ -154,8 +155,8 @@ pub(super) fn record(
                 bytes_digest(&serde_json::to_vec(repair).map_err(fail)?),
             ));
         }
-        let observed =
-            super::execution::cached_inputs(&store, "reasoned-verify-scene-v1", inputs, || {
+        let encoded =
+            super::execution::cached_bytes(&store, "reasoned-verify-scene-v2", inputs, || {
                 let verifier =
                     verifier.get_or_try_init(|| PreparedVerification::new(&queries, &gates))?;
                 let base = purrdf::parse_dataset(&bytes, "text/turtle", None)
@@ -169,13 +170,18 @@ pub(super) fn record(
                             .map(|observed| (repair.name.to_owned(), observed))
                     })
                     .collect::<Result<_, gmeow_errors::Diag>>()?;
-                Ok(SourceObservation {
+                let observed = SourceObservation {
                     source_path: source.path.to_owned(),
                     source_digest: digest.clone(),
                     original,
                     repairs,
-                })
+                };
+                Ok(
+                    purrdf_lex::json::write_compact(&observed.json_value().map_err(fail)?)
+                        .into_bytes(),
+                )
             })?;
+        let observed = gmeow_errors::json::read_diagnostic_document(&encoded).map_err(fail)?;
         observations.insert(source.path.to_owned(), observed);
     }
     let observed = Observations {
@@ -187,7 +193,7 @@ pub(super) fn record(
     };
     artifacts.insert(
         CHANNEL.to_owned(),
-        serde_json::to_vec(&observed).map_err(fail)?,
+        purrdf_lex::json::write_compact(&observed.json_value().map_err(fail)?).into_bytes(),
     );
     Ok(())
 }

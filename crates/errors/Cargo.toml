@@ -19,11 +19,11 @@ path = "src/lib.rs"
 # The substrate's one lowercase-hex spelling for digests.
 purrdf-hash.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 purrdf-core.workspace = true
 purrdf-lex.workspace = true
 
 [dev-dependencies]
+serde_json.workspace = true
 # insta: whole-output snapshot goldens for the five renderers. The
 # renderers are pure functions of the Report and the fingerprint is a content
 # hash, so the output is fully deterministic — snapshots carry it verbatim, no

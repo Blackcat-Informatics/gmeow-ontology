@@ -25,6 +25,7 @@ pub mod diag;
 pub mod error;
 pub mod grade;
 pub mod json;
+mod json_evidence;
 pub mod ledger;
 pub mod lower;
 pub mod model;
@@ -46,12 +47,13 @@ pub use diag::{
 pub use grade::{
     Belnap, Blocking, BoundedLattice, GateVerdict, Grade, GradeMerge, Standpoint, gate,
 };
+pub use json_evidence::{JsonEvidence, METADATA_JSON_DEPTH};
 pub use ledger::{
     DiagFingerprint, DiagLedger, DiagNode, Observation, RecordedDiag, SerFrame, SerLocation,
     fingerprint_iri,
 };
 pub use model::{
-    DiagnosticAttribution, Finding, FindingCategory, Location, RelatedLabel, Report, Rule,
-    Severity, SourceAnnotation,
+    DiagnosticAttribution, Finding, FindingCategory, Location, REPORT_JSON_SCHEMA, RelatedLabel,
+    Report, Rule, Severity, SourceAnnotation,
 };
 pub use rdf::severity_from_rdf;
