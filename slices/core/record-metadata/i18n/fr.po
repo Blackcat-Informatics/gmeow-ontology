@@ -552,8 +552,8 @@ msgid "The producer's unresolved identifier for the reasoning trace from which a
 msgstr "Identifiant non résolu, fourni par le producteur, de la trace de raisonnement dont provient un enregistrement, conservé exactement. C’est une référence de source, non un objet trace ni une preuve de raisonnement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. La plage ne résout aucune référence et n’installe aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:originatingTrace \"trace:17\" ."
@@ -568,8 +568,8 @@ msgid "The producer's unresolved identifier for the message packet that produced
 msgstr "Identifiant non résolu du producteur pour le paquet de message ayant produit ou porté cet enregistrement, conservé exactement. Il n’affirme ni envoi ni réception d’un nœud de paquet."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. La plage ne résout aucune référence et n’installe aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:originatingPacket \"packet:8\" ."
@@ -664,8 +664,8 @@ msgid "An unresolved producer reference cited as evidence by a record, retained 
 msgstr "Référence non résolue du producteur citée comme preuve par un enregistrement, conservée exactement. Elle préserve une référence sans inventer la ressource qu’elle pourrait identifier."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Producer namespace and attribution remain separate provenance. String whitespace is retained rather than normalized as xsd:token."
-msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Les espaces sont conservés, sans normalisation xsd:token."
+msgid "Producer namespace and attribution remain separate provenance. Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. The range does not resolve a reference or install a token lexical checker."
+msgstr "L’espace de noms du producteur et l’attribution restent des éléments de provenance séparés. Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. La plage ne résout aucune référence et n’installe aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:evidenceReference \"minutes:17\" ."
@@ -868,3 +868,40 @@ msgstr "Conserver la forme lexicale et le type de données fournis : xsd:string 
 msgctxt "https://blackcatinformatics.ca/gmeow/malformedField|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Supply one xsd:string or explicitly supplied xsd:token on each MalformedValue; preserve the source datatype, spacing, case and punctuation."
 msgstr "Fournir un xsd:string ou un xsd:token explicitement fourni sur chaque MalformedValue ; conserver le type source, les espaces, la casse et la ponctuation."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the producer supplies a trace identifier without a corresponding graph node."
+msgstr "Utiliser lorsque le producteur fournit un identifiant de trace sans nœud correspondant dans le graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a trace node or inferring trace identity from matching identifiers from unrelated producers."
+msgstr "Éviter de créer un nœud de trace ou de déduire une identité de trace à partir d’identifiants identiques de producteurs indépendants."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingTrace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal; link an actual trace resource through provenance when it exists."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni ; relier une véritable ressource de trace par la provenance lorsqu’elle existe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a producer names an originating packet that is absent from the graph."
+msgstr "Utiliser lorsqu’un producteur nomme un paquet d’origine absent du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing an external packet identifier with the record's own identity."
+msgstr "Éviter de confondre un identifiant de paquet externe avec l’identité propre de l’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/originatingPacket|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal and its producer attribution; use actual message and provenance links when available."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni et son attribution au producteur ; utiliser les liens réels de message et de provenance lorsqu’ils sont disponibles."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an evidence identifier that cannot be resolved to a graph node."
+msgstr "Utiliser pour un identifiant de preuve qui ne peut pas être résolu en nœud du graphe."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating identifiers from unrelated producer namespaces or treating them as support verdicts."
+msgstr "Éviter d’assimiler des identifiants de producteurs aux espaces de noms indépendants ou de les traiter comme des verdicts de justification."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the supplied xsd:string or xsd:token literal with its source attribution; use a resolved evidence relation when established."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec son attribution de source ; utiliser une relation de preuve résolue lorsqu’elle est établie."

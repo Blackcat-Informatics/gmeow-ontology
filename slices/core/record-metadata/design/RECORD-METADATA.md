@@ -125,7 +125,13 @@ provide these requirements. Existing subproperty inference carries their
 meaning into the generic facet path. No source path syntax, repair strategy or
 contract interpreter is added.
 
-Verbatim producer references use strings rather than token-normalized values.
+Verbatim producer references admit supplied `xsd:string` and `xsd:token`
+literals through anonymous canonical datatype unions. `originatingTrace`,
+`originatingPacket` and `evidenceReference` retain their domain-free provided-value
+closures: they declare the admissible datatypes of supplied references without
+requiring references on unrelated records. The union retains the exact lexical form and datatype,
+without whitespace normalization, inferred token typing, reference resolution
+or producer-namespace equivalence. It adds no lexical-checking implementation.
 Human wording retains its supplied language and direction, including plain
 strings where language was not stated. Attribution and uncertainty remain on
 the existing provenance and statement layers. Description subproperties record
