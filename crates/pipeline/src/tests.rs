@@ -1472,7 +1472,12 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
     for source in [None, Some(""), Some("https://example.org/source")] {
         let mut bundle =
             bundle_from_artifacts_over(dataset.clone(), BTreeMap::new(), DatasetProvenance::new());
-        let pin = bundle.graph_digest(GRAPH).unwrap();
+        let pin = bundle
+            .graph_digest(
+                GRAPH,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .unwrap();
         graph_digests.push(pin);
         bundle
             .pin_handle(
@@ -1484,6 +1489,7 @@ fn typed_payload_changes_invalidate_selected_and_whole_action_keys() {
                     source.map(str::to_string),
                 ))),
                 pin,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
             .unwrap();
         let product = StageProduct::from_bundle("source", Arc::new(bundle))

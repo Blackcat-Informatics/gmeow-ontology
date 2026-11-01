@@ -9,10 +9,10 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:driftPack a gmeow:InformationObject ;
-    gmeow:contentDigest "blake3:aaaa000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:contentDigest "aaaa000011112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest .
 
 ce:driftProj a gmeow:EmbeddingProjection ;
     gmeow:projectionSource       ce:driftPack ;
-    gmeow:projectionSourceDigest "blake3:bbbb000011112222333344445555666677778888999900001111222233335555" ;
+    gmeow:projectionSourceDigest "bbbb000011112222333344445555666677778888999900001111222233335555"^^gmeow:blake3_256Digest ;
     gmeow:hasVectorSpaceContract ce:driftVsc ;
     gmeow:hasSensitivity         gmeow:sensitivityInternal .

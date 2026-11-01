@@ -109,7 +109,7 @@ ex:desire a gmeow:Desire ;
     gmeow:cognitionModeAsRecorded " dreaming / cycle  " .
 ex:request a gmeow:WorldObjectRequest ;
     gmeow:requestDesire ex:desire ;
-    gmeow:contentDigest "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" ;
+    gmeow:contentDigest "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"^^gmeow:sha256Digest ;
     gmeow:wasAttributedTo ex:agent ;
     gmeow:wasDerivedFrom ex:source ;
     gmeow:cognitionModeAsRecorded " dreaming / cycle  " .

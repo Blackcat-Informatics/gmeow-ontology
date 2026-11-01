@@ -219,7 +219,12 @@ fn stage_pins_logic_handle_re_derivable_to_isomorphic_ir() {
     // The pin is digest-valid: the pinned digest equals the live graph/logic digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_LOGIC).unwrap(),
+        bundle
+            .graph_digest(
+                GRAPH_LOGIC,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
         "the Logic handle is digest-pinned to its backing graph/logic"
     );
     let PipelineHandle::CompiledLogic(publication) = &entry.payload else {
@@ -299,7 +304,12 @@ fn pin_logic_handle_hard_fails_on_digest_mismatch() {
     // A deliberately WRONG digest (the all-zero digest never equals a real graph).
     let wrong = ContentDigest::of(b"not the graph/logic canonical bytes");
     let err = bundle
-        .pin_handle(GRAPH_LOGIC, PipelineHandle::Logic(Arc::new(program)), wrong)
+        .pin_handle(
+            GRAPH_LOGIC,
+            PipelineHandle::Logic(Arc::new(program)),
+            wrong,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .expect_err("a mismatched pin must HARD-fail");
     assert!(
         matches!(
@@ -327,7 +337,12 @@ fn stage_pins_relational_core_handle_re_derivable_to_equal_dialect() {
     // The pin is digest-valid: the pinned digest equals the live backing digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_RELATIONAL_CORE).unwrap(),
+        bundle
+            .graph_digest(
+                GRAPH_RELATIONAL_CORE,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
         "the RelationalCore handle is digest-pinned to its backing graph/relational-core"
     );
     let PipelineHandle::RelationalCore(program) = &entry.payload else {
@@ -364,6 +379,7 @@ fn pin_relational_core_handle_hard_fails_on_digest_mismatch() {
             GRAPH_RELATIONAL_CORE,
             PipelineHandle::RelationalCore(Arc::new(lowered)),
             wrong,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect_err("a mismatched pin must HARD-fail");
     assert!(
@@ -462,7 +478,12 @@ fn stage_pins_correspondence_handle_re_derivable_with_no_overclaim() {
     // The pin is digest-valid: the pinned digest equals the live backing digest.
     assert_eq!(
         entry.content_digest,
-        bundle.graph_digest(GRAPH_CORRESPONDENCE).unwrap(),
+        bundle
+            .graph_digest(
+                GRAPH_CORRESPONDENCE,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
         "the Correspondence handle is digest-pinned to its backing graph/correspondence"
     );
     let PipelineHandle::Correspondence(program) = &entry.payload else {
@@ -907,6 +928,7 @@ fn pin_correspondence_handle_hard_fails_on_digest_mismatch() {
             GRAPH_CORRESPONDENCE,
             PipelineHandle::Correspondence(Arc::new(program)),
             wrong,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect_err("a mismatched pin must HARD-fail");
     assert!(

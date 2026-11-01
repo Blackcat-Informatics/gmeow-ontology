@@ -48,7 +48,12 @@ pub(super) fn stratum_nquads(
     extra_graphs: &[std::sync::Arc<purrdf::RdfDataset>],
 ) -> Result<String, gmeow_errors::Diag> {
     let union = flat_stratum_union(carrier, extra_graphs)?;
-    Ok(purrdf::try_canonicalize(&union)?.nquads)
+    Ok(purrdf::try_canonicalize(
+        &union,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?
+    .nquads()
+    .to_owned())
 }
 
 /// Render the mdbook `src/` source tree and pack it into the single `docs-book` archive blob
@@ -65,9 +70,12 @@ pub(super) fn build_docs_book_archive(
     model: &gmeow_docs::model::DocsModel,
     exec: &gmeow_docs::ExecutableDocsData,
 ) -> Result<BlobRow, gmeow_errors::Diag> {
-    let catalog =
-        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-            .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let catalog = purrdf::slice::SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
     let translations = gmeow_docs::Translations::from_catalog(&catalog);
     let prefix = translations.internal_tag(gmeow_docs::i18n::ENGLISH);
 

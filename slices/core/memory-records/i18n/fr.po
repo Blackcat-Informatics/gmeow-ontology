@@ -710,8 +710,8 @@ msgid "curation manifest digest"
 msgstr "empreinte du manifeste de curation"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-tagged digest of the original manifest artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
-msgstr "L’empreinte étiquetée par algorithme de l’artefact manifeste original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+msgid "The supplied byte digest of the original manifest artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."
+msgstr "Condensat fourni des octets de l’artefact original de manifeste consigné par les preuves externes de curation. Son littéral complet typé BLAKE3-256, SHA-256 ou MD5 correspond au contentDigest de cet artefact, et non au hachage de la description de l’époque."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to retain this part of an attributed memory record or its exact source evidence."
@@ -726,16 +726,16 @@ msgid "Keep exact identities, original words and attributed scope; record missin
 msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/curationManifestDigest|http://www.w3.org/2004/02/skos/core#example"
-msgid "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
-msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgid "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:curationManifestDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "epoch predecessor digest"
 msgstr "empreinte du prédécesseur"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-tagged digest of the original predecessor ledger artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
-msgstr "L’empreinte étiquetée par algorithme de l’artefact registre prédécesseur original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+msgid "The supplied byte digest of the original predecessor ledger artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."
+msgstr "Condensat fourni des octets de l’artefact original de registre prédécesseur consigné par les preuves externes de curation. Son littéral complet typé BLAKE3-256, SHA-256 ou MD5 correspond au contentDigest de cet artefact, et non au hachage de la description de l’époque."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to retain this part of an attributed memory record or its exact source evidence."
@@ -750,16 +750,16 @@ msgid "Keep exact identities, original words and attributed scope; record missin
 msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest|http://www.w3.org/2004/02/skos/core#example"
-msgid "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
-msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgid "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochPredecessorDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "epoch archive digest"
 msgstr "empreinte de l’archive"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The algorithm-tagged digest of the original archive artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."
-msgstr "L’empreinte étiquetée par algorithme de l’artefact archive original consignée par les preuves externes de curation. Elle correspond au contentDigest de cet artefact, pas à une empreinte de la description de l’époque."
+msgid "The supplied byte digest of the original archive artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."
+msgstr "Condensat fourni des octets de l’artefact original de archive consigné par les preuves externes de curation. Son littéral complet typé BLAKE3-256, SHA-256 ou MD5 correspond au contentDigest de cet artefact, et non au hachage de la description de l’époque."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to retain this part of an attributed memory record or its exact source evidence."
@@ -774,8 +774,8 @@ msgid "Keep exact identities, original words and attributed scope; record missin
 msgstr "Conserver les identités exactes, les mots originaux et le périmètre attribué ; signaler les preuves manquantes sans inventer de valeurs par défaut."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/epochArchiveDigest|http://www.w3.org/2004/02/skos/core#example"
-msgid "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
-msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."
+msgid "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
+msgstr "Conserver cet enregistrement attribué : ex:epoch gmeow:epochArchiveDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/memory-records|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "memory records"
@@ -1062,8 +1062,8 @@ msgid "epoch digest algorithm tag constraint"
 msgstr "contrainte d’étiquette d’algorithme des empreintes"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes."
-msgstr "Chaque littéral d’empreinte d’époque conserve une étiquette d’algorithme et une charge non vide. Le contrôle lexical ne calcule ni ne valide algorithme, encodage ou octets sources."
+msgid "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."
+msgstr "Chaque condensat fourni conserve son type exact BLAKE3-256, SHA-256 ou MD5 et sa forme hexadécimale minuscule sans préfixe : 64 chiffres pour BLAKE3-256 et SHA-256, 32 pour MD5. Ce contrôle d’admission ne calcule aucun condensat et ne vérifie pas les octets source."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/EpochDigestTagConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to check intrinsic consistency of the supplied memory record and source bindings."

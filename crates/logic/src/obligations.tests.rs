@@ -716,7 +716,7 @@ fn harvested_candidate_store(
         "<https://ex/cand> <{rdf_type}> <{logic}FormalizationCandidate> .\n\
              <https://ex/cand> <{logic}candidateFormalizes> <{term}> .\n\
              <https://ex/cand> <{logic}candidateSourceField> <{field}> .\n\
-             <https://ex/cand> <{logic}candidateSourceHash> \"{declared_hash}\" .\n\
+             <https://ex/cand> <{logic}candidateSourceHash> \"{declared_hash}\"^^<https://blackcatinformatics.ca/gmeow/sha256Digest> .\n\
              <{field}> <{logic}proseFieldProperty> <{prop}> .\n\
              <{term}> <{prop}> \"{prose}\"@{lang} .\n"
     );

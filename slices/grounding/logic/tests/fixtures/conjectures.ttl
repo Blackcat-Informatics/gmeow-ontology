@@ -27,8 +27,8 @@ ex:cxRefutedTotalParthood
 
 ex:cxWitnessIncomparablePair
     a logic:ContradictionWitness ;
-    logic:witnessIndividual "ex:leftHand" ;
-    logic:witnessWorld "ex:worldActual" ;
+    logic:witnessIndividual ex:leftHand ;
+    logic:witnessWorld ex:worldActual ;
     logic:witnessPremise "ex:leftHand logic:properPartOf ex:body" .
 
 # The general conjecture (the phi of the propagation pair): it entails the refuted

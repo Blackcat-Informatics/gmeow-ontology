@@ -332,7 +332,12 @@ pub fn attach_rep_blob(
     // (the pins are stable against the unchanged dataset).
     for (graph, entry) in bundle.handles() {
         rebuilt
-            .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
+            .pin_handle(
+                graph.clone(),
+                entry.payload.clone(),
+                entry.content_digest,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                     "attach_rep_blob: re-pin handle <{graph}>: {e}"
@@ -421,7 +426,12 @@ pub fn strip_rep_blob(
     );
     for (graph, entry) in bundle.handles() {
         rebuilt
-            .pin_handle(graph.clone(), entry.payload.clone(), entry.content_digest)
+            .pin_handle(
+                graph.clone(),
+                entry.payload.clone(),
+                entry.content_digest,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                     "strip_rep_blob: re-pin handle <{graph}>: {e}"

@@ -20,7 +20,7 @@
 ex:editor a gmeow:Agent .
 ex:otherReader a gmeow:Agent .
 ex:revision a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:0f5ed48194ab52aa20bef917f854fe59183f73c6cd7236f206d0546656325eb8" ;
+    gmeow:contentDigest "0f5ed48194ab52aa20bef917f854fe59183f73c6cd7236f206d0546656325eb8"^^gmeow:sha256Digest ;
     gmeow:wasAttributedTo ex:editor .
 ex:section1 a gmeow:ContentSegment ;
     gmeow:segmentType gmeow:segmentTypeSection ; gmeow:segmentIndex 1 ;

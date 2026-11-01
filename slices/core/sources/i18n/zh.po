@@ -24,3 +24,32 @@ msgstr "大小是元数据，不是已读取字节或验证摘要的证明。带
 msgctxt "https://blackcatinformatics.ca/gmeow/encodedByteLength|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
 msgstr "ex:artifact gmeow:encodedByteLength \"128\"^^xsd:nonNegativeInteger ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A supplied digest of an artifact's exact identified byte preimage, with algorithm identity carried by gmeow:blake3_256Digest, gmeow:sha256Digest or gmeow:md5Digest. The lexical form is bare lowercase hexadecimal: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. Domain-free and non-functional, so digests under several algorithms may coexist. A typed claim does not prove that the artifact was read or its bytes verified; scheme, history and canonical-model identifiers belong on their own identity properties."
+msgstr "所提供的摘要标识制品已明确说明的精确字节原像，算法身份由 gmeow:blake3_256Digest、gmeow:sha256Digest 或 gmeow:md5Digest 承载。词法形式是不带前缀的小写十六进制：BLAKE3-256 和 SHA-256 为 64 位，MD5 为 32 位。此属性无定义域且非函数性，允许多种算法摘要共存。类型化声明不证明字节已被读取或验证；方案、历史和规范模型标识符保留各自的身份属性。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:report gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:report gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain each supplied digest's bare hexadecimal lexical form and algorithm datatype on the artifact whose exact byte preimage it identifies. Compare complete RDF terms; preserve several algorithms without coercing their values or relabeling Git, SWH or model identifiers as raw-byte hashes."
+msgstr "在摘要所标识的精确字节原像对应制品上，保留每个摘要不带前缀的十六进制词法形式及其算法数据类型。比较完整 RDF 项；保留多种算法，不强制转换其值，也不将 Git、SWH 或模型标识符重新标为原始字节哈希。"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ContentDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/contentDigest|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a supplied algorithm-typed digest of an artifact's identified byte preimage for content comparison and provenance."
+msgstr "用于保留按算法类型化的所提供摘要，标识制品已明确说明的字节原像，以支持内容比较与溯源。"

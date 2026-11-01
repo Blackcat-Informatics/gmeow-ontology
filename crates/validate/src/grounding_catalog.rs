@@ -51,12 +51,16 @@ pub fn owned_sources(
 /// Standalone repository callers must discover the same physical slice roles;
 /// they cannot substitute a surface-local DSL union for a required catalog.
 pub fn discover(root: &Path) -> gmeow_errors::Result<Vec<OwnedGroundingSource>> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|why| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("required grounding slice catalog: {why}"),
-            })
-        })?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|why| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("required grounding slice catalog: {why}"),
+        })
+    })?;
     owned_sources(root, &catalog)
 }
 
@@ -65,12 +69,16 @@ pub fn discover(root: &Path) -> gmeow_errors::Result<Vec<OwnedGroundingSource>> 
 pub fn load(
     root: &Path,
 ) -> gmeow_errors::Result<gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())
-        .map_err(|why| {
-            gmeow_errors::Diag::of_kind(crate::error::Parse {
-                detail: format!("required grounding slice catalog: {why}"),
-            })
-        })?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|why| {
+        gmeow_errors::Diag::of_kind(crate::error::Parse {
+            detail: format!("required grounding slice catalog: {why}"),
+        })
+    })?;
     from_catalog(root, &catalog)
 }
 

@@ -272,7 +272,7 @@ struct DatasetMeta {
     description: String,
     date_published: String,
     landing_page: String,
-    version: Option<String>,
+    versions: Vec<RdfLiteral>,
     cite_as: Option<String>,
 }
 
@@ -312,10 +312,21 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
             message: format!("dataset descriptor {ds} needs a valid gmeow:datePublished"),
         }));
     }
-    let version = {
-        let v = text(store, &ds, &g("version"));
-        if v.is_empty() { None } else { Some(v) }
-    };
+    let versions = store
+        .triples()
+        .filter(|quad| iri_is(&quad.subject, &ds) && quad.predicate == g("version"))
+        .map(|quad| {
+            let RdfTerm::Literal(literal) = &quad.object else {
+                return Err(ro_err(format!("dataset {ds} version requires a string or token literal")));
+            };
+            if !matches!(literal.datatype_iri(), "http://www.w3.org/2001/XMLSchema#string" | "http://www.w3.org/2001/XMLSchema#token")
+                || literal.language.is_some() || literal.direction.is_some()
+            {
+                return Err(ro_err(format!("dataset {ds} version requires xsd:string or xsd:token without language or direction")));
+            }
+            Ok(literal.clone())
+        })
+        .collect::<Result<Vec<_>, gmeow_errors::Diag>>()?;
     let cite_as = {
         let v = text(store, &ds, &g("citeAs"));
         if v.is_empty() { None } else { Some(v) }
@@ -351,7 +362,7 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, gmeow_errors::Diag> {
         },
         date_published,
         landing_page: landing,
-        version,
+        versions,
         cite_as,
     })
 }
@@ -816,8 +827,11 @@ fn build_research_source(
             &xsd_string,
         )?;
     }
-    if let Some(v) = &ds.version {
-        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string)?;
+    for version in &ds.versions {
+        let subject = b.intern_iri(dsi)?;
+        let predicate = b.intern_iri(roles.iri(RR::Version))?;
+        let object = b.intern_literal(version.clone())?;
+        b.push_quad(subject, predicate, object, None)?;
     }
     if let Some(c) = &ds.cite_as {
         push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string)?;
@@ -1103,8 +1117,11 @@ fn build_ro_crate_source(
             &xsd_string,
         )?;
     }
-    if let Some(v) = &ds.version {
-        push_lit(&mut b, dsi, roles.iri(RR::Version), v, &xsd_string)?;
+    for version in &ds.versions {
+        let subject = b.intern_iri(dsi)?;
+        let predicate = b.intern_iri(roles.iri(RR::Version))?;
+        let object = b.intern_literal(version.clone())?;
+        b.push_quad(subject, predicate, object, None)?;
     }
     if let Some(c) = &ds.cite_as {
         push_lit(&mut b, dsi, roles.iri(RR::Identifier), c, &xsd_string)?;

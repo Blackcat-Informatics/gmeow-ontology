@@ -46,7 +46,7 @@ ex:ctx a gmeow:ComparisonContext ;
     rdfs:label "summary review, 2026-Q3"@en ;
     gmeow:contextTask ex:goalSummarize ;
     gmeow:contextStandpoint ex:panelStandpoint ;
-    gmeow:contentDigest "blake3:1a2b3c4d5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9" ;
+    gmeow:contentDigest "1a2b3c4d5e6f70819293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f9"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obsAB , ex:obsBC , ex:obsCA .
 
 # --- The three reified, vantage-indexed observations (the FLAG-1 carriers) ---- #

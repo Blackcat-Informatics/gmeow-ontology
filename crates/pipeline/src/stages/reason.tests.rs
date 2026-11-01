@@ -454,12 +454,18 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING).unwrap();
+    let pinned = bundle
+        .graph_digest(
+            GRAPH_REASONING,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     bundle
         .pin_handle(
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result.clone())),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect("pin Reasoning handle to its backing graph");
     let entry = bundle.handle(GRAPH_REASONING).expect("handle attached");
@@ -473,18 +479,32 @@ fn reason_stage_pins_a_reasoning_handle_to_graph_reasoning() {
     );
     // The graph/reasoning named graph is non-empty (the projection landed).
     assert_ne!(
-        bundle.graph_digest(GRAPH_REASONING).unwrap(),
         bundle
-            .graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent")
+            .graph_digest(
+                GRAPH_REASONING,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
+        bundle
+            .graph_digest(
+                "https://blackcatinformatics.ca/gmeow/graph/absent",
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
             .unwrap(),
         "graph/reasoning carries the projection"
     );
     assert_ne!(
         bundle
-            .graph_digest(crate::stages::carrier::GRAPH_DIAGNOSTICS)
+            .graph_digest(
+                crate::stages::carrier::GRAPH_DIAGNOSTICS,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
             .unwrap(),
         bundle
-            .graph_digest("https://blackcatinformatics.ca/gmeow/graph/absent")
+            .graph_digest(
+                "https://blackcatinformatics.ca/gmeow/graph/absent",
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
             .unwrap(),
         "graph/diagnostics always carries the run's native contract evidence"
     );
@@ -715,6 +735,7 @@ fn pin_handle_hard_fails_on_a_digest_mismatch() {
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result)),
             wrong,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .expect_err("a mismatched pin must hard-fail");
     let _ = err;

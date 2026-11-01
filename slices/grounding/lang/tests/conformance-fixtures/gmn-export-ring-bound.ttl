@@ -38,6 +38,6 @@ ex:envelopeExportBound a gmeow:GmnEnvelope ;
     gmeow:gmnSecurityRing gmeow:gmnRingTrusted ;
     gmeow:accordingTo ex:archiveTeam ;
     gmeow:wasGeneratedBy ex:exportRun ;
-    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f80" ;
+    gmeow:contentDigest "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f800"^^gmeow:blake3_256Digest ;
     gmeow:gmnCodebookDigest "blake3:26a68453ecfe47867551038b8b247e9f4b07b3815bd87979c401afb0f7edf5ce" ;
     gmeow:gmnEnvelopeCorrespondence ex:corrExportEnvelope .

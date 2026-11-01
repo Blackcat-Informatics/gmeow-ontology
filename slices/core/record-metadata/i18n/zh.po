@@ -162,8 +162,8 @@ msgid "Labelled Facet"
 msgstr "带标签分面"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|http://www.w3.org/2004/02/skos/core#definition"
-msgid "An information object holding one verbatim run-time label and at most one literal payload across facetText and facetValue. A label-only facet preserves a present key with no payload; it does not distinguish a null value from an empty source value. Labels are data rather than ontology predicates."
-msgstr "保存一个原样运行时标签，并在 facetText 和 facetValue 两者中至多保存一个字面值载荷的信息对象。仅有标签的分面保留存在但无载荷的键；它不区分空值与来源中的空内容。标签是数据而非本体谓词。"
+msgid "An information object holding one verbatim run-time label and at most one payload across facetText, facetValue and facetStructuredValue. A label-only facet preserves a present key with no payload; it does not assert null or an empty value. Labels are data rather than ontology predicates."
+msgstr "承载一个原样运行时标签及 facetText、facetValue 和 facetStructuredValue 中最多一个载荷的信息对象。仅有标签的分面保留存在的键但不承载载荷，不表示空值或空内容。标签是数据，而非本体谓词。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/LabelledFacet|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use for content whose field names are chosen at run time."
@@ -198,8 +198,8 @@ msgid "Avoid inferring vocabulary identity from matching facet labels."
 msgstr "避免从相同分面标签推断词汇身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link every leaf occurrence to its containing record or part; retain source order with entryOrdinal."
-msgstr "将每个叶节点出现关联到所属记录或部分；用 entryOrdinal 保留来源顺序。"
+msgid "Link every field occurrence to its containing record, part or StructuredMap; retain source order with entryOrdinal when supplied."
+msgstr "将每个字段出现节点连接到其所属记录、部分或 StructuredMap；来源提供顺序时，使用 entryOrdinal 保留该顺序。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/hasFacet|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:hasFacet ex:facet0 , ex:facet1 ."
@@ -234,8 +234,8 @@ msgid "facet text"
 msgstr "分面文本"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetText|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes a simultaneous facetValue but permits the facet to carry no payload at all."
-msgstr "带标签分面的原样文本载荷，保留来源的语言和方向。它排斥同时存在的 facetValue，但允许分面完全不带载荷。"
+msgid "The verbatim textual payload of a labelled facet, retaining any source language and direction. It excludes simultaneous facetValue and facetStructuredValue payloads but permits the facet to carry no payload at all."
+msgstr "带标签分面的原样文本载荷，保留来源提供的语言和方向。它与 facetValue 和 facetStructuredValue 载荷互斥，但允许分面完全没有载荷。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetText|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the run-time field contains text."
@@ -258,8 +258,8 @@ msgid "facet value"
 msgstr "分面值"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype is retained without string coercion; no simultaneous facetText is permitted."
-msgstr "带标签分面的字面值载荷，保留来源提供的数据类型，包括数字和布尔值。不强制转换为字符串；不允许同时存在 facetText。"
+msgid "The literal payload of a labelled facet with the datatype supplied by its source, including numbers and booleans. Its datatype and lexical form are retained without string coercion; simultaneous facetText and facetStructuredValue are excluded."
+msgstr "带标签分面的字面量载荷，保留来源提供的数据类型，包括数字和布尔值。其数据类型和词法形式不经字符串强制转换而保留；排除同时存在的 facetText 和 facetStructuredValue。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a run-time field carries a typed scalar literal."
@@ -270,8 +270,8 @@ msgid "Avoid representing a source null as an invented string or datatype value.
 msgstr "避免把来源空值表示为虚构字符串或数据类型值。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the original literal datatype and lexical form; omit both payload properties for a label-only facet."
-msgstr "保留原字面值的数据类型和词法形式；仅有标签的分面省略两个载荷属性。"
+msgid "Keep the original literal datatype and lexical form; omit all three payload properties for a label-only facet."
+msgstr "保留原始字面量的数据类型和词法形式；仅有标签的分面应省略全部三个载荷属性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/facetValue|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:facet1 gmeow:facetValue \"true\"^^xsd:boolean ."
@@ -490,8 +490,8 @@ msgid "Place contentDigest on the referenced artifact; reuse that node across re
 msgstr "将 contentDigest 放在被引用制品上；在记录之间复用该节点。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/ContextArtifactDigestConstraint|http://www.w3.org/2004/02/skos/core#example"
-msgid "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
-msgstr "ex:inputArtifact gmeow:contentDigest \"sha256:2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\" ."
+msgid "ex:inputArtifact gmeow:contentDigest \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\"^^gmeow:sha256Digest ."
+msgstr "ex:inputArtifact gmeow:contentDigest \"2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824\"^^gmeow:sha256Digest ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/slices/record-metadata|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "record metadata"
@@ -905,3 +905,291 @@ msgstr "避免将不同生产者命名空间中的标识符视为相同，也不
 msgctxt "https://blackcatinformatics.ca/gmeow/evidenceReference|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the supplied xsd:string or xsd:token literal with its source attribution; use a resolved evidence relation when established."
 msgstr "保留提供的 xsd:string 或 xsd:token 字面量及其来源归属；已确立解析后的证据关系时使用该关系。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured Value"
+msgstr "结构化值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An information object describing one payload occurrence as exactly one native RDF term, map, sequence or explicit null. Absence of a payload relation makes no null or empty-container assertion."
+msgstr "信息对象，将一次载荷出现描述为恰好一个原生 RDF 术语、映射、序列或显式空值。缺少载荷关系不表示空值或空容器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for payloads whose structure or native RDF term must remain queryable."
+msgstr "用于结构或原生 RDF 术语必须保持可查询的载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an omitted payload as null or converting native RDF terms to strings."
+msgstr "避免将省略的载荷视为空值，或将原生 RDF 术语转换为字符串。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose one branch: structuredTerm, StructuredMap, StructuredSequence or StructuredNull. Keep mediaType and charset on this occurrence when it carries opaque media."
+msgstr "选择一个分支：structuredTerm、StructuredMap、StructuredSequence 或 StructuredNull。承载不透明媒体时，将 mediaType 和 charset 保留在此出现节点上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "A payload occurrence can retain a directional language literal as its native structuredTerm."
+msgstr "载荷出现节点可将带方向的语言字面量保留为原生 structuredTerm。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured Map"
+msgstr "结构化映射"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structured value whose entries are labelled facet occurrences linked by hasFacet. Distinct occurrences retain repeated keys. Source order is retained with entryOrdinal when supplied; unordered maps require no invented order. A typed map with no entries is empty."
+msgstr "通过 hasFacet 连接带标签分面出现节点的结构化值。不同出现节点保留重复键。来源提供顺序时使用 entryOrdinal 保留；无序映射不要求虚构顺序。已标注类型但没有条目的映射为空映射。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for structured payload objects with source-supplied keys."
+msgstr "用于具有来源提供键的结构化载荷对象。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving entry identity from a key or imposing unique keys."
+msgstr "避免从键推导条目标识或强制键唯一。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach distinct LabelledFacet occurrences with hasFacet; retain each exact key and any supplied entryOrdinal. Use facetStructuredValue for nesting."
+msgstr "通过 hasFacet 连接不同的 LabelledFacet 出现节点；保留每个精确键及任何来源提供的 entryOrdinal。使用 facetStructuredValue 表示嵌套。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMap|http://www.w3.org/2004/02/skos/core#example"
+msgid "An empty map remains explicitly typed StructuredMap and has no hasFacet entries."
+msgstr "空映射保持显式 StructuredMap 类型，且没有 hasFacet 条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured Sequence"
+msgstr "结构化序列"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structured value whose ordered value occurrences are linked by structuredItem. Each occurrence has one nonnegative numeric ordinal position; distinct occurrences preserve repeated values. A typed sequence with no items is empty."
+msgstr "通过 structuredItem 连接有序值出现节点的结构化值。每个出现节点具有一个非负数值序号位置；不同出现节点保留重复值。已标注类型但没有元素的序列为空序列。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when payload item order is meaningful."
+msgstr "用于载荷元素顺序具有意义的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing facet labels for sequence positions or sharing one occurrence across different positions."
+msgstr "避免为序列位置虚构分面标签，或在不同位置共用同一个出现节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one StructuredValue occurrence per item and retain entryOrdinal on it; gaps do not imply absent items."
+msgstr "为每个元素连接一个 StructuredValue 出现节点并在其上保留 entryOrdinal；序号间隙不表示缺失元素。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two occurrences may carry the same native term at different sequence ordinals."
+msgstr "两个出现节点可以在不同序号上承载同一原生术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured Null"
+msgstr "结构化空值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structured value explicitly asserting source null. It carries no structuredTerm, map facets or sequence items and differs from an empty container, empty literal and omitted payload."
+msgstr "显式断言来源空值的结构化值。它不承载 structuredTerm、映射分面或序列元素，且不同于空容器、空字面量和省略的载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use only when the source explicitly supplies null."
+msgstr "仅用于来源明确提供空值的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring null from missing information or a label-only facet."
+msgstr "避免从缺失信息或仅有标签的分面推断空值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the payload occurrence StructuredNull without inventing a null literal."
+msgstr "将载荷出现节点标注为 StructuredNull，不虚构空值字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredNull|http://www.w3.org/2004/02/skos/core#example"
+msgid "An explicitly null map value uses facetStructuredValue to a StructuredNull occurrence."
+msgstr "映射中的显式空值通过 facetStructuredValue 指向 StructuredNull 出现节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structured term"
+msgstr "结构化术语"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single original RDF 1.2 term carried by a scalar StructuredValue occurrence: IRI, blank node, literal or triple term. Literal lexical form, datatype, language and direction remain intact. No object-kind restriction or conversion is imposed."
+msgstr "标量 StructuredValue 出现节点承载的唯一原始 RDF 1.2 术语：IRI、空白节点、字面量或三元组术语。字面量的词法形式、数据类型、语言和方向保持完整。不施加对象种类限制或转换。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain a native scalar RDF term in a structured payload."
+msgstr "用于在结构化载荷中保留原生标量 RDF 术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid stringifying a resource, retyping a literal or replacing a triple term with a quoted string."
+msgstr "避免将资源字符串化、更改字面量类型，或用引号字符串替换三元组术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the original term directly. Integrity compares whole terms by RDF identity, not datatype value equality."
+msgstr "直接连接原始术语。完整术语的完整性比较使用 RDF 标识相等，而非数据类型值相等。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredTerm|http://www.w3.org/2004/02/skos/core#example"
+msgid "An IRI payload remains an IRI object of structuredTerm rather than an IRI-shaped literal."
+msgstr "IRI 载荷保持为 structuredTerm 的 IRI 对象，而非外观类似 IRI 的字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "structured item"
+msgstr "结构化元素"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Links a StructuredSequence to one value occurrence. The occurrence carries its payload branch and one nonnegative numeric ordinal position unique within that sequence. Supplied lexical aliases of the same position are retained. The relation creates no run-time key."
+msgstr "将 StructuredSequence 连接到一个值出现节点。该节点承载载荷分支，以及在该序列中唯一的非负数值序号位置。保留来源提供的同一位置的词法变体。此关系不创建运行时键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to expose each ordered payload item as graph content."
+msgstr "用于将每个有序载荷元素表示为图内容。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using one value occurrence for two positions in the same sequence."
+msgstr "避免在同一序列的两个位置使用同一个值出现节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link distinct occurrences and preserve their supplied zero-based nonnegative ordinals."
+msgstr "连接不同出现节点并保留其提供的零基非负序号。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/structuredItem|http://www.w3.org/2004/02/skos/core#example"
+msgid "A nested sequence item points to a StructuredSequence occurrence with its own entries."
+msgstr "嵌套序列元素指向具有自身条目的 StructuredSequence 出现节点。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "facet structured value"
+msgstr "分面结构化值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The structured payload occurrence of a labelled facet, exclusive with facetText and facetValue. It retains nested maps, sequences, explicit null or a native RDF scalar without changing the facet key."
+msgstr "带标签分面的结构化载荷出现节点，与 facetText 和 facetValue 互斥。它保留嵌套映射、序列、显式空值或原生 RDF 标量，而不改变分面键。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for nested or explicitly null facet values and resource-valued scalars."
+msgstr "用于嵌套分面值、显式空分面值和资源标量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a label-only facet as StructuredNull or using facetConcept as this payload channel."
+msgstr "避免将仅有标签的分面解释为 StructuredNull，或将 facetConcept 用作载荷通道。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the facet label and ordinal; link at most one StructuredValue and omit the two literal payload channels."
+msgstr "保留分面标签和序号；最多连接一个 StructuredValue，并省略两个字面量载荷通道。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/facetStructuredValue|http://www.w3.org/2004/02/skos/core#example"
+msgid "A map entry can retain its key while pointing to an explicitly empty StructuredSequence."
+msgstr "映射条目可保留其键，同时指向显式空的 StructuredSequence。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured value branch constraint"
+msgstr "结构化值分支约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every StructuredValue has exactly one scalar, map, sequence or null branch. Only maps carry hasFacet entries and only sequences carry structuredItem entries."
+msgstr "每个 StructuredValue 恰好具有标量、映射、序列或空值中的一个分支。只有映射承载 hasFacet 条目，只有序列承载 structuredItem 条目。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the canonical payload occurrence contract."
+msgstr "用于验证规范的载荷出现节点约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating integrity failure as permission to discard source content."
+msgstr "避免将完整性失败视为丢弃来源内容的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."
+msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredValueBranchConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
+msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured term integrity constraint"
+msgstr "结构化术语完整性约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A subject of structuredTerm is a StructuredValue and carries at most one original RDF term, compared by whole-term RDF identity."
+msgstr "structuredTerm 的主语属于 StructuredValue，且最多承载一个以完整 RDF 术语标识比较的原始 RDF 术语。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the canonical payload occurrence contract."
+msgstr "用于验证规范的载荷出现节点约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating integrity failure as permission to discard source content."
+msgstr "避免将完整性失败视为丢弃来源内容的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."
+msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredTermIntegrityConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
+msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured map order constraint"
+msgstr "结构化映射顺序约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Structured map ordinals are optional; no source order is invented. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger."
+msgstr "结构化映射的序号是可选的，不虚构来源顺序。每个条目最多具有一个数值位置，并保留该位置的词法变体；同一容器中的不同条目具有不同数值位置。现有序号值域要求 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the canonical payload occurrence contract."
+msgstr "用于验证规范的载荷出现节点约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating integrity failure as permission to discard source content."
+msgstr "避免将完整性失败视为丢弃来源内容的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."
+msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredMapOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
+msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Structured sequence order constraint"
+msgstr "结构化序列顺序约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every structured sequence entry has a nonnegative numeric ordinal position. An entry has at most one numeric position, retaining lexical aliases of that position; distinct entries in the same owner have different numeric positions. The existing ordinal range requires xsd:nonNegativeInteger."
+msgstr "结构化序列的每个条目具有一个非负数值序号位置。每个条目最多具有一个数值位置，并保留该位置的词法变体；同一容器中的不同条目具有不同数值位置。现有序号值域要求 xsd:nonNegativeInteger。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the canonical payload occurrence contract."
+msgstr "用于验证规范的载荷出现节点约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating integrity failure as permission to discard source content."
+msgstr "避免将完整性失败视为丢弃来源内容的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."
+msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/StructuredSequenceOrderConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
+msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Facet structured payload constraint"
+msgstr "分面结构化载荷约束"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A facet carrying facetStructuredValue has at most one structured payload and carries neither facetText nor facetValue. Label-only facets remain permitted and do not assert null."
+msgstr "承载 facetStructuredValue 的分面最多具有一个结构化载荷，且不承载 facetText 或 facetValue。仅有标签的分面仍被允许，且不表示空值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to validate the canonical payload occurrence contract."
+msgstr "用于验证规范的载荷出现节点约定。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating integrity failure as permission to discard source content."
+msgstr "避免将完整性失败视为丢弃来源内容的许可。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Evaluate the realized integrity formula over the supplied graph without manufacturing missing values."
+msgstr "在所提供的图上评估实际完整性公式，不制造缺失值。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/FacetStructuredPayloadConstraint|http://www.w3.org/2004/02/skos/core#example"
+msgid "Malformed payload occurrences produce a validation failure rather than a weaker representation."
+msgstr "格式错误的载荷出现节点产生验证失败，而非弱化的表示。"

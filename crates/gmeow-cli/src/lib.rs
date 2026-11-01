@@ -557,7 +557,7 @@ pub enum Commands {
         #[arg(long = "purremb")]
         purremb: Option<PathBuf>,
         /// PURREMB MODE. The exact source pack the `--purremb` artifact is bound
-        /// to (verified under `--source-mode`).
+        /// to (fully verified against exact bytes, RDF identity and ordinal hints).
         #[arg(long = "source")]
         source: Option<PathBuf>,
         /// PURREMB MODE. Target-set identity (64 hex characters).
@@ -594,9 +594,6 @@ pub enum Commands {
         /// `matryoshka-prefix-then-rerank`.
         #[arg(long = "retrieval-policy", default_value = "exact-full-space")]
         retrieval_policy: String,
-        /// PURREMB MODE. Source-verification mode: `exact` or `certified`.
-        #[arg(long = "source-mode", default_value = "certified")]
-        source_mode: String,
         /// PURREMB MODE. RDF 1.2 term kind of the corpus target rows, applied to
         /// both the query and candidate columns: `iri` (default), `triple-term`,
         /// or `literal`. A `triple-term` corpus is queried with a `<<( s p o )>>`
@@ -2151,7 +2148,6 @@ pub fn run() -> i32 {
             dtype,
             postprocessing,
             retrieval_policy,
-            source_mode,
             term_kind,
             relation,
             provider_iri,
@@ -2178,7 +2174,6 @@ pub fn run() -> i32 {
                 dtype,
                 postprocessing,
                 retrieval_policy,
-                source_mode,
                 term_kind,
                 relation,
                 provider_iri,
@@ -2209,7 +2204,6 @@ struct HybridQueryInputs {
     dtype: String,
     postprocessing: String,
     retrieval_policy: String,
-    source_mode: String,
     term_kind: String,
     relation: String,
     provider_iri: String,
@@ -2320,7 +2314,6 @@ fn dispatch_hybrid_query(
                     dtype: &inputs.dtype,
                     postprocessing: &inputs.postprocessing,
                     retrieval_policy: &inputs.retrieval_policy,
-                    source_mode: &inputs.source_mode,
                     term_kind: &inputs.term_kind,
                     per_call_limit: inputs.per_call_limit,
                     max_calls: inputs.max_calls,

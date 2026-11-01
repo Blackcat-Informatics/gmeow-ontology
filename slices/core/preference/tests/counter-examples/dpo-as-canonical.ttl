@@ -26,7 +26,7 @@ ex:eval a gmeow:Standpoint ; rdfs:label "evaluator"@en .
 ex:goal a gmeow:Goal ; rdfs:label "select the strongest draft"@en .
 ex:ctx a gmeow:ComparisonContext ;
     gmeow:contextTask ex:goal ;
-    gmeow:contentDigest "blake3:0aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa5" ;
+    gmeow:contentDigest "0aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa50aa5"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obs .
 ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
 ex:obs a gmeow:PreferenceObservation ;
@@ -41,5 +41,5 @@ ex:dpo a gmeow:DpoView ;
     gmeow:projectionDeterminism gmeow:determinismDeterministic ;
     gmeow:tieBreakRule "chosen-over-rejected-stable" ;
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:0ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba5" ;
+    gmeow:contentDigest "0ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba50ba5"^^gmeow:blake3_256Digest ;
     gmeow:derivesCanonicalObservation ex:obs .         # <-- forbidden: DPO is derived-only

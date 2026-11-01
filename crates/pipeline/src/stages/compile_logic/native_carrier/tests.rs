@@ -274,7 +274,13 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     ));
     findings.add_finding(finding);
     let diagnostics = gmeow_errors::render::to_gmeow_dataset(&findings).unwrap();
-    let expected_diagnostics = purrdf::try_canonicalize(&diagnostics).unwrap().nquads;
+    let expected_diagnostics = purrdf::try_canonicalize(
+        &diagnostics,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
+    .nquads()
+    .to_owned();
     assert!(expected_diagnostics.contains("synthetic-projection.ttl"));
     let artifacts = BTreeMap::from([(
         "pipeline/synthetic-proof.json".into(),
@@ -301,7 +307,12 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     for graph in CARRIER_GRAPHS {
         assert_eq!(
             bundle.handle(graph).unwrap().content_digest,
-            bundle.graph_digest(graph).unwrap()
+            bundle
+                .graph_digest(
+                    graph,
+                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+                )
+                .unwrap()
         );
     }
     let PipelineHandle::CompiledLogic(publication) = &bundle.handle(GRAPH_LOGIC).unwrap().payload
@@ -332,7 +343,12 @@ fn assembled_bundle_retains_full_native_handles_loss_artifacts_and_diagnostic_lo
     let restored =
         crate::stages::carrier::rooted_in_graph(&diagnostics, GRAPH_DIAGNOSTICS).unwrap();
     assert_eq!(
-        purrdf::try_canonicalize(&restored).unwrap().nquads,
+        purrdf::try_canonicalize(
+            &restored,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        )
+        .unwrap()
+        .nquads(),
         expected_diagnostics
     );
 }

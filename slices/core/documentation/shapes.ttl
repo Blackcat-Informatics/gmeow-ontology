@@ -20,21 +20,6 @@
 # =========================================================================== #
 # A documented term names its owning slice and its category.
 # =========================================================================== #
-gmeow:DocumentedTermShape
-    a sh:NodeShape ;
-    rdfs:label "documented-term shape"@x-gmeow-english ;
-    skos:definition "Every gmeow:DocumentedTerm must name exactly one owning slice (gmeow:docOwnerSlice) and carry its display category (gmeow:docCategory)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documentation> ;
-    logic:formalizes gmeow:DocumentedTermCategoryConstraint ;
-    sh:targetClass gmeow:DocumentedTerm ;
-    sh:property [
-        sh:path gmeow:docCategory ;
-        sh:minCount 1 ;
-        sh:datatype xsd:string ;
-        sh:severity sh:Violation ;
-        sh:message "A gmeow:DocumentedTerm must carry a gmeow:docCategory display token (Class/Property/Individual/Datatype/Other)." ;
-    ] .
-
 # =========================================================================== #
 # The fail-fast grounding invariant, as a data shape: every gmeow:DocEvidence
 # node must be a claim WITH its grounds — at least one gmeow:docGroundedBy

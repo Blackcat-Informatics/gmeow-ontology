@@ -544,8 +544,12 @@ ex:world {
         None,
     )
     .unwrap();
-    let nq = purrdf::canonical_flat_nquads(&source).unwrap();
-    let output = run_full_stage_with_reason("", "", nq.as_bytes());
+    let nq = purrdf::canonical_flat_nquads(
+        &source,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
+    let output = run_full_stage_with_reason("", "", nq.nquads().as_bytes());
     let report: Report = gmeow_errors::Report::from_json_slice(
         output
             .product

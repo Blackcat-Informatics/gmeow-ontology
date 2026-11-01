@@ -59,9 +59,12 @@ fn canonical_quads(bytes: &[u8], fmt: NativeRdfFormat) -> gmeow_errors::Result<V
     // the prior oxigraph parse + `canonicalize_quads`.
     let dataset = purrdf::parse_dataset(bytes, fmt.media_type(), None)
         .map_err(|e| transform(format!("RDF parse error: {e}")))?;
-    let canonical = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
-    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
+    let canonical = purrdf::canonical_flat_nquads(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
+    let mut strings: Vec<String> = canonical.nquads().lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
 }
@@ -95,9 +98,12 @@ fn canonical_quads_star(bytes: &[u8], to_codec: &str) -> gmeow_errors::Result<Ve
     // oxigraph-quad canonicalize path.
     let dataset =
         parse_jsonld_star(&json_bytes).map_err(|e| transform(format!("parse jsonld-star: {e}")))?;
-    let canonical = purrdf::canonical_flat_nquads(&dataset)
-        .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
-    let mut strings: Vec<String> = canonical.lines().map(str::to_owned).collect();
+    let canonical = purrdf::canonical_flat_nquads(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|e| transform(format!("RDF canonicalization error: {e}")))?;
+    let mut strings: Vec<String> = canonical.nquads().lines().map(str::to_owned).collect();
     strings.sort();
     Ok(strings)
 }

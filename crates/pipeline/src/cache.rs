@@ -455,7 +455,15 @@ impl StageReceipt {
                     .project_graph(Some(&purrdf::RdfTerm::iri(&graph)))?;
                 Ok(ReceiptEntity {
                     identity: graph.clone(),
-                    digest: bundle.graph_digest(&graph)?.to_hex(),
+                    digest: bundle
+                        .graph_digest(
+                            &graph,
+                            &mut purrdf::CanonicalizationControl::new(
+                                purrdf::RDFC_V2_CORPUS_POLICY,
+                                None,
+                            ),
+                        )?
+                        .to_hex(),
                     structural_count: u64::try_from(projected.quad_count()).map_err(|_| {
                         gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                             "receipt graph <{graph}> quad count exceeds u64"
@@ -892,7 +900,12 @@ fn validate_handle_projection(
         PipelineHandle::Reasoning(result) => {
             let expected = gmeow_logic::result_rdf::project_reasoning_dataset(result)
                 .map_err(|e| error(e.to_string()))?;
-            purrdf::datasets_isomorphic(graph, &expected).map_err(|e| error(e.to_string()))?
+            purrdf::datasets_isomorphic(
+                graph,
+                &expected,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|e| error(e.to_string()))?
         }
         PipelineHandle::RelationalCore(program) => {
             let projected = gmeow_logic_compile::relational_core::parse_relational_core(graph)
@@ -1318,7 +1331,11 @@ impl CachedBundle {
 
         // dataset → deterministic packed IR. This retains the complete RDF 1.2
         // value and its query indexes without serializing through RDF text.
-        let dataset_pack = PackBuilder::build_bytes(bundle.dataset()).map_err(|e| {
+        let dataset_pack = PackBuilder::build_bytes(
+            bundle.dataset(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                 "cache: pack bundle dataset: {e}"
             )))
@@ -1500,13 +1517,17 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             // Derive the pin and typed payload from the SAME live graph projection.
             // `pin_handle` independently checks that pin against the restored carrier,
             // preserving the hard-fail invariant without a duplicate persisted graph.
-            let canonical = purrdf::try_canonicalize(&subgraph).map_err(|e| {
+            let canonical = purrdf::try_canonicalize(
+                &subgraph,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                     "cache: canonicalize handle graph <{}> failed: {e}",
                     h.graph
                 )))
             })?;
-            let pinned = ContentDigest::of(canonical.nquads.as_bytes());
+            let pinned = ContentDigest::of(canonical.nquads().as_bytes());
             let payload = rebuild_handle(&h.arm, h.typed_payload.as_ref().map(AsRef::as_ref))?;
             if let PipelineHandle::Diagnostics(publication) = &payload {
                 publication.validate_binding(&self.stage_id, &h.graph)?;
@@ -1524,7 +1545,12 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
                 }));
             }
             bundle
-                .pin_handle(h.graph.clone(), payload, pinned)
+                .pin_handle(
+                    h.graph.clone(),
+                    payload,
+                    pinned,
+                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                )
                 .map_err(|e| {
                     gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
                         "cache: re-pin handle for <{}> failed: {e}",
@@ -1540,11 +1566,16 @@ impl<Bytes: AsRef<[u8]> + Into<Vec<u8>>> CachedBundle<Bytes> {
             let empty =
                 crate::bundle::bundle_from_artifacts(BTreeMap::new(), DatasetProvenance::new());
             let carrier_digest = |bundle: &PipelineBundleAlias| {
-                bundle.digest().map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
-                        "cache: digest restored carrier failed: {e}"
-                    )))
-                })
+                bundle
+                    .digest(&mut purrdf::CanonicalizationControl::new(
+                        purrdf::RDFC_V2_CORPUS_POLICY,
+                        None,
+                    ))
+                    .map_err(|e| {
+                        gmeow_errors::Diag::of_kind(crate::error::Decode::new(format!(
+                            "cache: digest restored carrier failed: {e}"
+                        )))
+                    })
             };
             if !product.bundle().handles().is_empty()
                 || carrier_digest(product.bundle())? != carrier_digest(&empty)?

@@ -365,41 +365,41 @@ gmeow:epochEvidence
 gmeow:curationManifestDigest
     a logic:DatatypeProperty ;
     logic:domain gmeow:CurationEpoch ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "curation manifest digest"@x-gmeow-english ;
-    skos:definition "The algorithm-tagged digest of the original manifest artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    skos:definition "The supplied byte digest of the original manifest artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."@x-gmeow-english ;
     gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
     gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
-    skos:example "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+    skos:example "Retain this attributed record: ex:epoch gmeow:curationManifestDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."@x-gmeow-english .
 
 gmeow:epochPredecessorDigest
     a logic:DatatypeProperty ;
     logic:domain gmeow:CurationEpoch ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "epoch predecessor digest"@x-gmeow-english ;
-    skos:definition "The algorithm-tagged digest of the original predecessor ledger artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    skos:definition "The supplied byte digest of the original predecessor ledger artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."@x-gmeow-english ;
     gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
     gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
-    skos:example "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+    skos:example "Retain this attributed record: ex:epoch gmeow:epochPredecessorDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."@x-gmeow-english .
 
 gmeow:epochArchiveDigest
     a logic:DatatypeProperty ;
     logic:domain gmeow:CurationEpoch ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "epoch archive digest"@x-gmeow-english ;
-    skos:definition "The algorithm-tagged digest of the original archive artifact recorded by external curation evidence. It matches that artifact’s contentDigest, not a hash of the epoch description."@x-gmeow-english ;
+    skos:definition "The supplied byte digest of the original archive artifact recorded by external curation evidence. Its complete BLAKE3-256, SHA-256 or MD5 typed literal matches that artifact's contentDigest, not a hash of the epoch description."@x-gmeow-english ;
     gmeow:useWhen "Use to retain this part of an attributed memory record or its exact source evidence."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring endorsement, enforcement, a complete read or a governed store transition from a record alone."@x-gmeow-english ;
     gmeow:howToUse "Keep exact identities, original words and attributed scope; record missing evidence explicitly without inventing defaults."@x-gmeow-english ;
-    skos:example "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\" ."@x-gmeow-english .
+    skos:example "Retain this attributed record: ex:epoch gmeow:epochArchiveDigest \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"^^gmeow:sha256Digest ."@x-gmeow-english .
 
 # Class-local structural obligations preserve the existing owner sorts.
 gmeow:MemoryItem logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:memoryText ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( rdf:langString rdf:dirLangString ) ] ] .
@@ -441,11 +441,11 @@ gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gm
 gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochSuccessor ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
 gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochEvidence ; logic:allValuesFrom gmeow:InformationObject ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:curationManifestDigest ; logic:allValuesFrom xsd:string ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:curationManifestDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/curationManifestDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochPredecessorDigest ; logic:allValuesFrom xsd:string ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochPredecessorDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochArchiveDigest ; logic:allValuesFrom xsd:string ] .
+gmeow:CurationEpoch logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:epochArchiveDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CurationEpoch ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochArchiveDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 
 gmeow:MemoryTextLanguageConstraint
@@ -780,13 +780,13 @@ gmeow:EpochDigestTagConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/memory-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "epoch digest algorithm tag constraint"@x-gmeow-english ;
-    skos:definition "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes."@x-gmeow-english ;
+    skos:definition "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."@x-gmeow-english ;
     gmeow:useWhen "Use to check intrinsic consistency of the supplied memory record and source bindings."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid claiming this law proves access enforcement, authorship, digest computation or governed migration."@x-gmeow-english ;
     gmeow:howToUse "Retain the original record and evidence when reporting an intrinsic violation; do not manufacture missing inputs."@x-gmeow-english ;
     skos:example "Retain this governing law: gmeow:EpochDigestTagConstraint logic:formalizes gmeow:CurationEpoch ."@x-gmeow-english ;
     logic:formalizes gmeow:CurationEpoch ;
-    logic:message "Each epoch digest literal retains an explicit algorithm tag and nonempty payload. The lexical check neither computes a digest nor validates the algorithm, encoding or source bytes." ;
+    logic:message "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes." ;
     logic:integrity [ a logic:Formula ;
         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
         logic:forall [ a logic:Formula ;
@@ -804,9 +804,7 @@ gmeow:EpochDigestTagConstraint
                     [ a logic:Formula ; logic:relation gmeow:epochArchiveDigest ;
                         logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
                             [ logic:termIndex 1 ; logic:termVariable "value" ] ] ] ] ;
-            logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
-                    [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z][A-Za-z0-9+._-]*:[^:]+$" ] ] ] ] .
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .
 
 gmeow:EpochSuccessorProvenanceConstraint
     a logic:Constraint ;
@@ -840,3 +838,9 @@ gmeow:EpochSuccessorProvenanceConstraint
                 [ a logic:Formula ; logic:relation gmeow:wasDerivedFrom ;
                     logic:argument [ logic:termIndex 0 ; logic:termVariable "successor" ],
                         [ logic:termIndex 1 ; logic:termVariable "predecessor" ] ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/curationManifestDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochPredecessorDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/epochArchiveDigest" ; logic:closureValue logic:ClosedWorldClosure ] .

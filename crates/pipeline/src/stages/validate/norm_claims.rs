@@ -85,9 +85,13 @@ pub fn observe_shipped(dataset: &RdfDataset) -> gmeow_errors::Result<ShippedObse
         .collect();
     Ok(ShippedObservation {
         graph: GRAPH.to_owned(),
-        graph_digest: purrdf::try_graph_digest_view(dataset, GRAPH)
-            .map_err(Diag::from)?
-            .to_hex(),
+        graph_digest: purrdf::try_graph_digest_view(
+            dataset,
+            GRAPH,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(Diag::from)?
+        .to_hex(),
         asserted_quads: graph.quad_count(),
         advisory_assessments,
     })

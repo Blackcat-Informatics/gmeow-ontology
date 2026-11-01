@@ -865,11 +865,11 @@ gmeow:audienceCircle
 gmeow:worldObjectState
     a logic:DatatypeProperty ;
     logic:domain gmeow:InformationObject ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "meaningful object state digest"@x-gmeow-english ;
-    skos:definition "The algorithm-tagged digest of meaningful state encoded under an explicit canonical profile. The claim record is an InformationObject; its own bytes are distinct from the selected state artifact."@x-gmeow-english ;
+    skos:definition "The supplied byte digest of the selected meaningful-state artifact encoded under an explicit canonical profile. The digest datatype identifies BLAKE3-256, SHA-256 or MD5; its lexical form is bare lowercase hexadecimal. The claim record's own bytes are distinct from the selected artifact."@x-gmeow-english ;
     gmeow:useWhen "Use for an explicitly attributed environment record with exact source identities."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authority, acceptance or global completeness from a source record alone."@x-gmeow-english ;
     gmeow:howToUse "Retain the provider, world, original source and recorded scope; preserve conflicting reports without defaults."@x-gmeow-english ;
@@ -890,7 +890,7 @@ gmeow:providerHandle
 
 gmeow:worldObjectCapability
     a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "provider capability code"@x-gmeow-english ;
@@ -914,7 +914,7 @@ gmeow:firstSeenAt
 
 gmeow:semanticTypeAsRecorded
     a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "semantic type as recorded"@x-gmeow-english ;
@@ -1043,11 +1043,11 @@ gmeow:acceptedAt
 
 gmeow:requestRevisionDigest
     a logic:DatatypeProperty ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "answered request revision digest"@x-gmeow-english ;
-    skos:definition "The algorithm-tagged digest of the exact request revision an offer, fulfillment or acceptance answers. It must agree with that revision's own contentDigest, not hash the response."@x-gmeow-english ;
+    skos:definition "The supplied byte digest of the exact request revision an offer, fulfillment or acceptance answers. The complete algorithm-typed literal must also be a contentDigest of that revision; it does not hash the response."@x-gmeow-english ;
     gmeow:useWhen "Use for an explicitly attributed environment record with exact source identities."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring execution, authority, acceptance or global completeness from a source record alone."@x-gmeow-english ;
     gmeow:howToUse "Retain the provider, world, original source and recorded scope; preserve conflicting reports without defaults."@x-gmeow-english ;
@@ -1223,9 +1223,9 @@ gmeow:WorldObjectRecord logic:subClassOf [ a logic:Restriction ; logic:onPropert
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:WorldObjectRecord logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectRecord ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasDerivedFrom" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:worldObjectState ; logic:allValuesFrom xsd:string ] .
+gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:worldObjectState ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectStateClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldObjectState" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:worldObjectState ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:worldObjectState ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stateContent ; logic:allValuesFrom gmeow:InformationObject ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectStateClaim ; logic:closureKey "https://blackcatinformatics.ca/gmeow/stateContent" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:WorldObjectStateClaim logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:stateContent ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] .
@@ -1251,7 +1251,7 @@ gmeow:WorldStateView logic:subClassOf [ a logic:Restriction ; logic:onProperty g
 gmeow:WorldStateView logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:currentStateClaim ; logic:allValuesFrom gmeow:WorldObjectStateClaim ] .
 gmeow:WorldObjectRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectRequest ; logic:closureKey "https://blackcatinformatics.ca/gmeow/wasAttributedTo" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:WorldObjectRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ] .
+gmeow:WorldObjectRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:WorldObjectRequest ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RequestTransition logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:answersRequestRevision ; logic:allValuesFrom gmeow:WorldObjectRequest ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RequestTransition ; logic:closureKey "https://blackcatinformatics.ca/gmeow/answersRequestRevision" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1278,7 +1278,7 @@ gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProper
 gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fulfilledObject ; logic:allValuesFrom gmeow:Entity ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RequestFulfillment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/fulfilledObject" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fulfilledObject ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:Entity ] .
-gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestRevisionDigest ; logic:allValuesFrom xsd:string ] .
+gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestRevisionDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RequestFulfillment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestRevisionDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RequestFulfillment logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:meetsCondition ; logic:allValuesFrom gmeow:Condition ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RequestFulfillment ; logic:closureKey "https://blackcatinformatics.ca/gmeow/meetsCondition" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1311,7 +1311,7 @@ gmeow:ObjectAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty
 [ a logic:ClosureEntry ; logic:onClass gmeow:ObjectAcceptance ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptanceText" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:ObjectAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:acceptanceEvidence ; logic:allValuesFrom gmeow:InformationObject ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ObjectAcceptance ; logic:closureKey "https://blackcatinformatics.ca/gmeow/acceptanceEvidence" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:ObjectAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestRevisionDigest ; logic:allValuesFrom xsd:string ] .
+gmeow:ObjectAcceptance logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:requestRevisionDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ObjectAcceptance ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestRevisionDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:CitedWorkEvidence logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:workReferenceKind ; logic:allValuesFrom gmeow:WorkReferenceKind ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:CitedWorkEvidence ; logic:closureKey "https://blackcatinformatics.ca/gmeow/workReferenceKind" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1602,44 +1602,40 @@ gmeow:WorldStateDigestTagConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "meaningful state digest algorithm tag"@x-gmeow-english ;
-    skos:definition "Each supplied worldObjectState digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length."@x-gmeow-english ;
+    skos:definition "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."@x-gmeow-english ;
     gmeow:useWhen "Use to check intrinsic consistency within the declared source scope."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid claiming this law executes a provider, verifies source bytes or grants disclosure permission."@x-gmeow-english ;
     gmeow:howToUse "Retain the exact source evidence when diagnosing a violated obligation; never invent missing inputs."@x-gmeow-english ;
     skos:example "Retain this governing law: gmeow:WorldStateDigestTagConstraint logic:formalizes gmeow:worldObjectState ."@x-gmeow-english ;
     logic:formalizes gmeow:worldObjectState ;
-    logic:message "Each supplied worldObjectState digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length." ;
+    logic:message "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes." ;
     logic:integrity [ a logic:Formula ;
         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
         logic:forall [ a logic:Formula ;
             logic:antecedent [ a logic:Formula ; logic:relation gmeow:worldObjectState ;
                 logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
                     [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
-            logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
-                    [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z][A-Za-z0-9+._-]*:[^:]+$" ] ] ] ] .
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .
 
 gmeow:RequestRevisionDigestTagConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/environment-records> ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:label "request revision digest algorithm tag"@x-gmeow-english ;
-    skos:definition "Each supplied requestRevisionDigest digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length."@x-gmeow-english ;
+    skos:definition "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes."@x-gmeow-english ;
     gmeow:useWhen "Use to check intrinsic consistency within the declared source scope."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid claiming this law executes a provider, verifies source bytes or grants disclosure permission."@x-gmeow-english ;
     gmeow:howToUse "Retain the exact source evidence when diagnosing a violated obligation; never invent missing inputs."@x-gmeow-english ;
     skos:example "Retain this governing law: gmeow:RequestRevisionDigestTagConstraint logic:formalizes gmeow:requestRevisionDigest ."@x-gmeow-english ;
     logic:formalizes gmeow:requestRevisionDigest ;
-    logic:message "Each supplied requestRevisionDigest digest retains an explicit algorithm tag and nonempty payload. This lexical obligation neither hashes bytes nor verifies an algorithm, encoding or digest length." ;
+    logic:message "Each supplied digest retains its exact BLAKE3-256, SHA-256 or MD5 datatype and bare lowercase hexadecimal form: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. This admission check neither computes a digest nor verifies source bytes." ;
     logic:integrity [ a logic:Formula ;
         logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
         logic:forall [ a logic:Formula ;
             logic:antecedent [ a logic:Formula ; logic:relation gmeow:requestRevisionDigest ;
                 logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ],
                     [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
-            logic:consequent [ a logic:Formula ; logic:relation logic:termRegex ;
-                logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ],
-                    [ logic:termIndex 1 ; logic:termLiteral "^[A-Za-z][A-Za-z0-9+._-]*:[^:]+$" ] ] ] ] .
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .
 
 gmeow:RecordedResponseRevisionConstraint
     a logic:Constraint ;
@@ -2112,7 +2108,7 @@ gmeow:worldFilePath
     skos:scopeNote "The property is nonfunctional and never required on every InformationObject. Multiple attributed source paths may coexist. It neither parses a filesystem nor proves ledger coverage, file existence or current maintenance."@x-gmeow-english ;
     skos:example "Retain the original path: ex:node gmeow:worldFilePath \"snapshots/quiet pier.txt\" ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldFilePath" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -3013,11 +3009,11 @@ gmeow:affordanceToolName
     skos:definition "The exact source tool-name string advertised for a WorldAffordance, without resolving a tool identity."@x-gmeow-english ;
     gmeow:useWhen "Use for the catalog's actual tool-name field."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid trimming spaces, inventing an endpoint or treating a name as a performed ToolCall."@x-gmeow-english ;
-    gmeow:howToUse "Keep the exact xsd:string on the WorldAffordance; actual calls retain usedTool independently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string or xsd:token on the WorldAffordance; actual calls retain usedTool independently."@x-gmeow-english ;
     skos:scopeNote "No tool registry lookup, name parser or capability fallback is implied."@x-gmeow-english ;
     skos:example "For example: ex:action gmeow:affordanceToolName \" object.inspect  \" ."@x-gmeow-english ;
     logic:domain gmeow:WorldAffordance ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/affordanceToolName" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -3210,11 +3206,11 @@ gmeow:cognitionModeAsRecorded
     skos:definition "The environment's exact source string for the agent's cognition mode when a request arose, retained on a source InformationObject or actual Desire."@x-gmeow-english ;
     gmeow:useWhen "Use for the original mode code, including unknown or consumer-defined modes."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid normalizing the code or mapping it automatically to an AwarenessMode."@x-gmeow-english ;
-    gmeow:howToUse "Keep exact case and spaces in xsd:string with source context on the statement."@x-gmeow-english ;
+    gmeow:howToUse "Keep exact case and spaces in xsd:string or xsd:token with source context on the statement."@x-gmeow-english ;
     skos:scopeNote "The union carrier has an explicit native admission law; string typing is not a mode parser or state inference."@x-gmeow-english ;
     skos:example "For example: ex:requestRecord a gmeow:InformationObject ; gmeow:cognitionModeAsRecorded \" dreaming / cycle  \" ."@x-gmeow-english ;
     logic:domain [ a logic:Class ; logic:unionOf ( gmeow:InformationObject gmeow:Desire ) ] ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/cognitionModeAsRecorded" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -3226,11 +3222,11 @@ gmeow:defeatedWorkDigest
     skos:definition "The exact digest string of a work reference withdrawn by a request-evidence correction Activity, kept as sent. It identifies the challenged work reference, not the withdrawn response."@x-gmeow-english ;
     gmeow:useWhen "Use for the digest actually supplied by a correction activity's source."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting defeatsResponse, normalizing digest syntax or claiming a verified hash match."@x-gmeow-english ;
-    gmeow:howToUse "Keep the exact xsd:string on Activity and retain the source statement's attribution independently."@x-gmeow-english ;
+    gmeow:howToUse "Keep the exact xsd:string or xsd:token on Activity and retain the source statement's attribution independently."@x-gmeow-english ;
     skos:scopeNote "No algorithm, encoding, length, work identity or hash-verification receipt is invented from the opaque source string."@x-gmeow-english ;
     skos:example "For example: ex:correction a gmeow:Activity ; gmeow:defeatedWorkDigest \" work-ref / abc  \" ."@x-gmeow-english ;
     logic:domain gmeow:Activity ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/defeatedWorkDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -3508,3 +3504,7 @@ gmeow:DreamEligibleAffordanceTagConstraint
     logic:message "A tagDreamEligible assertion classifies an actual WorldAffordance catalog record. It preserves reported dream eligibility without granting permission or proving tool effects."@x-gmeow-english ;
     logic:formalizes gmeow:hasTag ;
     logic:integrity [ a logic:Formula ; logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] ; logic:forall [ a logic:Formula ; logic:antecedent [ a logic:Formula ; logic:relation gmeow:hasTag ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:tagDreamEligible ] ] ; logic:consequent [ a logic:Formula ; logic:relation rdf:type ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:WorldAffordance ] ] ] ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/worldObjectState" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/requestRevisionDigest" ; logic:closureValue logic:ClosedWorldClosure ] .

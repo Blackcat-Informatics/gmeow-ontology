@@ -317,7 +317,7 @@ gmeow:queryTieKey
     gmeow:howToUse "Retain the selected graph, identities and source evidence; apply the canonical obligations in this module."@x-gmeow-english ;
     skos:example "A unique source-supplied string within its input list; codepoint order supplies deterministic ordering only among equal ranks. It is not a global candidate key. Example declaration: gmeow:queryTieKey rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/query-program> ."@x-gmeow-english ;
     logic:domain gmeow:RankedQueryEntry ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:fusionInput
     a logic:ObjectProperty ;
@@ -920,9 +920,9 @@ gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty
 gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryInputRank ; logic:allValuesFrom xsd:positiveInteger ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RankedQueryEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/queryInputRank" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryInputRank ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:positiveInteger ] .
-gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryTieKey ; logic:allValuesFrom xsd:string ] .
+gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryTieKey ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:RankedQueryEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/queryTieKey" ; logic:closureValue logic:ClosedWorldClosure ] .
-gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryTieKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+gmeow:RankedQueryEntry logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:queryTieKey ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 gmeow:ReciprocalRankFusion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionInput ; logic:allValuesFrom gmeow:RankedQueryList ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:ReciprocalRankFusion ; logic:closureKey "https://blackcatinformatics.ca/gmeow/fusionInput" ; logic:closureValue logic:ClosedWorldClosure ] .
 gmeow:ReciprocalRankFusion logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:fusionOutput ; logic:allValuesFrom gmeow:QueryAnswer ] .

@@ -96,19 +96,19 @@ gmeow:mapCodeMetaLicense a gmeow:ProjectionMapping ;
         gmeow:lossyDrop "dual-licensing, license transitions over time, SPDX licenseId" ] .
 
 # --------------------------------------------------------------------------- #
-# contentDigest (SWHID) → codemeta:identifier
+# versionFingerprint (SWHID) → codemeta:identifier
 # --------------------------------------------------------------------------- #
 
 gmeow:mapCodeMetaIdentifier a gmeow:ProjectionMapping ;
-    rdfs:label "contentDigest → codemeta:identifier"@x-gmeow-english ;
+    rdfs:label "versionFingerprint → codemeta:identifier"@x-gmeow-english ;
     gmeow:hasMappingPattern [
         gmeow:anchor "entity" ; gmeow:value "digest" ;
         gmeow:atom (
-            [ gmeow:subjectVar "entity" ; gmeow:predicate gmeow:contentDigest ; gmeow:objectVar "digest" ] ) ;
-        gmeow:edoalSource gmeow:contentDigest ] ;
+            [ gmeow:subjectVar "entity" ; gmeow:predicate gmeow:versionFingerprint ; gmeow:objectVar "digest" ] ) ;
+        gmeow:edoalSource gmeow:versionFingerprint ] ;
     gmeow:hasBinding [
         gmeow:profile "codemeta" ; gmeow:toPredicate codemeta:identifier ; gmeow:relation "=" ;
-        gmeow:lossyDrop "digest algorithm, multiple digests; only the string value survives" ] .
+        gmeow:lossyDrop "fingerprint datatype and multiple scheme identifiers; only the string value survives" ] .
 
 # --------------------------------------------------------------------------- #
 # Author (maintainer) → codemeta:author

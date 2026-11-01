@@ -16,4 +16,4 @@ ex:report a gmeow:CreativeWork ;
     gmeow:title            "Q3 2026 Financial Report"@x-gmeow-english ;
     gmeow:sourceLocation   "/imports/finance/q3-2026.pdf" ;
     gmeow:sourceModifiedAt "2026-09-30T17:00:00Z"^^xsd:dateTime ;
-    gmeow:contentDigest    "blake3:5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e" .
+    gmeow:contentDigest    "5f8d1e2a9c4b7d0e3f6a1b8c5d2e9f0a3b6c7d4e1f8a2b5c9d0e3f6a7b4c1d8e"^^gmeow:blake3_256Digest .

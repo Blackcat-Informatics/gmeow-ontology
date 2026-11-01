@@ -1121,12 +1121,17 @@ pub fn replay_corpus(dataset: &purrdf::RdfDataset) -> Result<Vec<String>, gmeow_
     let projected = dataset.project_graph(Some(&purrdf::RdfTerm::iri(
         crate::stages::carrier::GRAPH_STATEMENTS,
     )))?;
-    let ntriples = purrdf::canonical_flat_nquads(&projected).map_err(|err| {
+    let ntriples = purrdf::canonical_flat_nquads(
+        &projected,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|err| {
         invalid_declaration(format!(
             "the population-B replay corpus does not canonicalize: {err}"
         ))
     })?;
     Ok(ntriples
+        .nquads()
         .lines()
         .filter(|line| !line.trim().is_empty())
         .take(REPLAY_RECORD_COUNT)

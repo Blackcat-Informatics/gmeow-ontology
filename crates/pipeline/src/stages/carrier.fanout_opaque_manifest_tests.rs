@@ -118,8 +118,18 @@ fn opaque_fanout_manifest_is_deterministic_regardless_of_key_order() {
     let reversed: Vec<&String> = members.keys().rev().collect();
     let b = build_fanout_opaque_manifest(reversed.into_iter()).expect("b");
     assert_eq!(
-        purrdf::canonical_flat_nquads(a.as_ref()).unwrap(),
-        purrdf::canonical_flat_nquads(b.as_ref()).unwrap(),
+        purrdf::canonical_flat_nquads(
+            a.as_ref(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        )
+        .unwrap()
+        .nquads(),
+        purrdf::canonical_flat_nquads(
+            b.as_ref(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        )
+        .unwrap()
+        .nquads(),
         "the opaque manifest is a deterministic function of the member set"
     );
 }

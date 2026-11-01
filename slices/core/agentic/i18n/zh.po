@@ -26,16 +26,16 @@ msgid "toolArguments is functional"
 msgstr "toolArguments 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:toolArguments 是函数性的:一次工具调用恰好携带一个逐字参数负载,即呈现给该工具的内容的唯一字节级精确记录(或其内容摘要)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "Asserts that toolArguments admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."
+msgstr "断言 toolArguments 对每次工具调用最多允许一个不透明载荷字面量。它不要求载荷，也不将不透明字段等同于结构化伴随属性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "toolResult is functional"
 msgstr "toolResult 具有函数性"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "在规范载体上断言 gmeow:toolResult 是函数性的:一次工具调用恰好返回一个逐字结果负载,即该工具所返回内容的唯一字节级精确记录(或其内容摘要)。该记录不是该术语的定义，也绝不是形状：义务由该记录推理得出，而非在别处重述。"
+msgid "Asserts that toolResult admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."
+msgstr "断言 toolResult 对每次工具调用最多允许一个不透明载荷字面量。它不要求载荷，也不将不透明字段等同于结构化伴随属性。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usedTool is functional"
@@ -62,8 +62,8 @@ msgid "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByI
 msgstr "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:toolArguments names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:toolArguments 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use to enforce at most one supplied opaque payload without requiring its presence."
+msgstr "用于约束最多一个提供的不透明载荷，而不要求其存在。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -78,8 +78,8 @@ msgid "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments 
 msgstr "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:toolResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "当原生一致性门必须强制 gmeow:toolResult 恰好命名一个值 时使用；该记录是门所连接的规范载体，因此该义务是被推理出来的，而非在形状表面上重述。"
+msgid "Use to enforce at most one supplied opaque payload without requiring its presence."
+msgstr "用于约束最多一个提供的不透明载荷，而不要求其存在。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -566,3 +566,99 @@ msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录
 msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:attentionMessage \"source-value\" ."
 msgstr "ex:record gmeow:attentionMessage \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool arguments structured"
+msgstr "工具参数结构化值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The optional single StructuredValue occurrence describing the tool call's arguments payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."
+msgstr "描述工具调用参数载荷的可选且唯一的 StructuredValue 出现节点。它描述事件内容，而非生成的实体；缺少该节点既不表示空值，也不表示空容器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the arguments payload needs a sanctioned structured RDF home or role-specific media metadata."
+msgstr "用于参数载荷需要规范的结构化 RDF 表示或特定角色媒体元数据的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."
+msgstr "避免将此载荷描述视为生成输出链接，或推断其与不透明字面量等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."
+msgstr "连接一个载荷出现节点，保留其原生术语和结构。对于不透明媒体，将字面量放入 structuredTerm，并将 mediaType 和 charset 放在该出现节点上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2004/02/skos/core#example"
+msgid "The arguments payload can be an empty map, explicit null or a native directional literal without a JSON object literal."
+msgstr "参数载荷可为空映射、显式空值或原生带方向字面量，无需 JSON 对象字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result structured"
+msgstr "工具结果结构化值"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The optional single StructuredValue occurrence describing the tool call's result payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."
+msgstr "描述工具调用结果载荷的可选且唯一的 StructuredValue 出现节点。它描述事件内容，而非生成的实体；缺少该节点既不表示空值，也不表示空容器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the result payload needs a sanctioned structured RDF home or role-specific media metadata."
+msgstr "用于结果载荷需要规范的结构化 RDF 表示或特定角色媒体元数据的情形。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."
+msgstr "避免将此载荷描述视为生成输出链接，或推断其与不透明字面量等价。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."
+msgstr "连接一个载荷出现节点，保留其原生术语和结构。对于不透明媒体，将字面量放入 structuredTerm，并将 mediaType 和 charset 放在该出现节点上。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2004/02/skos/core#example"
+msgid "The result payload can be an empty map, explicit null or a native directional literal without a JSON object literal."
+msgstr "结果载荷可为空映射、显式空值或原生带方向字面量，无需 JSON 对象字面量。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque arguments literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolArgumentsStructured."
+msgstr "工具调用记录的不透明参数字面量，或由记录配置明确规定的摘要定位符。此事件载荷不是生成实体链接。通用 contentDigest 约定不定义带前缀的定位符字符串。最多允许一个值；结构化 RDF 使用 toolArgumentsStructured。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool arguments"
+msgstr "工具参数"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an opaque payload supplied by the recording profile."
+msgstr "用于保留记录配置提供的不透明载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."
+msgstr "避免在已有结构化 RDF 时要求不透明 JSON 字面量，或从事件内容推断生成制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."
+msgstr "保留来源字面量及其声明的配置。对于特定角色媒体元数据，使用相应结构化伴随属性，并在其载荷出现节点上记录 structuredTerm、mediaType 和 charset。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
+msgstr "不透明参数和结果媒体分别在绑定各自角色的载荷出现节点上描述。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque result literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolResultStructured."
+msgstr "工具调用记录的不透明结果字面量，或由记录配置明确规定的摘要定位符。此事件载荷不是生成实体链接。通用 contentDigest 约定不定义带前缀的定位符字符串。最多允许一个值；结构化 RDF 使用 toolResultStructured。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result"
+msgstr "工具结果"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an opaque payload supplied by the recording profile."
+msgstr "用于保留记录配置提供的不透明载荷。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."
+msgstr "避免在已有结构化 RDF 时要求不透明 JSON 字面量，或从事件内容推断生成制品。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."
+msgstr "保留来源字面量及其声明的配置。对于特定角色媒体元数据，使用相应结构化伴随属性，并在其载荷出现节点上记录 structuredTerm、mediaType 和 charset。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
+msgstr "不透明参数和结果媒体分别在绑定各自角色的载荷出现节点上描述。"

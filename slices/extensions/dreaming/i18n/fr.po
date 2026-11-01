@@ -199,8 +199,8 @@ msgid "Avoid substituting the selection artifact's contentDigest or inventing an
 msgstr "Éviter de substituer le contentDigest de l’artefact de sélection ou d’inventer une marque d’algorithme."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain the exact tagged xsd:string; require its algorithm name and nonempty payload."
-msgstr "Conserver la chaîne xsd:string marquée exacte ; exiger le nom d’algorithme et une charge utile non vide."
+msgid "Retain the exact tagged xsd:string or xsd:token; require its algorithm name and nonempty payload."
+msgstr "Conserver la chaîne xsd:string ou xsd:token marquée exacte ; exiger le nom d’algorithme et une charge utile non vide."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/lotteryDigest|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Lexical validation neither verifies bytes nor proves draw fairness or randomness."

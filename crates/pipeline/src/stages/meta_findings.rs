@@ -415,7 +415,7 @@ impl MetaProgram {
         let mf = |message: String| gmeow_errors::Diag::of_kind(crate::error::MetaFold { message });
         let result = self
             .engine
-            .query_prepared(findings, &self.fact_query, &[], QueryOptions::EMPTY)
+            .query_prepared(findings, &self.fact_query, &[], &QueryOptions::EMPTY)
             .map_err(|error| mf(format!("diagnostic fact query: {error}")))?;
         let SparqlResult::Solutions {
             variables, rows, ..

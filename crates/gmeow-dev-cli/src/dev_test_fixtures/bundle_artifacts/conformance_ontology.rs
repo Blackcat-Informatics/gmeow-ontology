@@ -69,11 +69,19 @@ impl ConformanceOntology {
     }
 
     pub(super) fn authored_pack(&self) -> FixtureResult<Vec<u8>> {
-        PackBuilder::build_bytes(&self.default).map_err(fail)
+        PackBuilder::build_bytes(
+            &self.default,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(fail)
     }
 
     pub(super) fn pack(&self) -> FixtureResult<Vec<u8>> {
-        PackBuilder::build_bytes(self.reader()?).map_err(fail)
+        PackBuilder::build_bytes(
+            self.reader()?,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(fail)
     }
 
     pub(super) fn text(&self) -> FixtureResult<Vec<u8>> {

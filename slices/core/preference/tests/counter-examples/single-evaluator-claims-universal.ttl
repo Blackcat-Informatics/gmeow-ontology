@@ -30,7 +30,7 @@ ex:goal a gmeow:Goal ; rdfs:label "select the strongest draft"@en .
 
 ex:ctx a gmeow:ComparisonContext ;
     gmeow:contextTask ex:goal ;
-    gmeow:contentDigest "blake3:bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02" ;
+    gmeow:contentDigest "bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02bb02"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obsOne , ex:obsTwo .
 
 ex:featOne a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .

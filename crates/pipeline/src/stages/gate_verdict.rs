@@ -210,8 +210,12 @@ impl GateProgram {
         let dataset = dataset_from_bytes(finding_nq.as_bytes(), NativeRdfFormat::NQuads)
             .map_err(|error| gate_error(format!("parse diagnostics N-Quads: {error}")))?;
         let verdicts = self.derived_verdict_dataset(&dataset, graph_iri)?;
-        purrdf::canonical_flat_nquads(&verdicts)
-            .map_err(|error| gate_error(format!("render derived gate verdicts: {error}")))
+        purrdf::canonical_flat_nquads(
+            &verdicts,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map(|canonical| canonical.nquads().to_owned())
+        .map_err(|error| gate_error(format!("render derived gate verdicts: {error}")))
     }
 
     /// Derive verdicts over the existing carrier without rendering or reparsing it.
@@ -330,7 +334,7 @@ fn grade_tuples(
     let sb = |message: String| gmeow_errors::Diag::of_kind(crate::error::Scoreboard { message });
     let result = gate
         .engine
-        .query_prepared(dataset, &gate.grade_query, &[], QueryOptions::EMPTY)
+        .query_prepared(dataset, &gate.grade_query, &[], &QueryOptions::EMPTY)
         .map_err(|e| sb(format!("grade-tuple query: {e}")))?;
     let (variables, rows) = match result {
         SparqlResult::Solutions {

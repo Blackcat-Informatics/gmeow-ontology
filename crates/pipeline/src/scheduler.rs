@@ -1434,7 +1434,13 @@ impl ActionIdentity for StageProduct {
             return Ok(None);
         }
         Ok(Some(crate::handle_identity::entity_digest(
-            &self.bundle().graph_digest(entity)?.to_hex(),
+            &self
+                .bundle()
+                .graph_digest(
+                    entity,
+                    &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+                )?
+                .to_hex(),
             self.handle_commitments()
                 .get(entity)
                 .map(|binding| (binding.identity.as_str(), binding.digest.as_str())),

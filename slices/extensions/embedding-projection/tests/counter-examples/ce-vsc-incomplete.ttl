@@ -24,7 +24,7 @@ ce:someModel a gmeow:SoftwareAgent ;
 
 ce:someFamily a gmeow:EmbeddingFamily ;
     gmeow:embeddingModel ce:someModel ;
-    gmeow:contentDigest  "blake3:aa11b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e00" .
+    gmeow:versionFingerprint "blake3:aa11b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e00" .
 
 ce:normNone a gmeow:NormalizationKind ;
     rdfs:label "none (DON'T scene)"@en .
@@ -37,4 +37,4 @@ ce:incompleteVsc a gmeow:VectorSpaceContract ;
     gmeow:embeddingDimensions "1024"^^xsd:positiveInteger ;
     gmeow:normalizationKind   ce:normNone ;
     gmeow:matryoshkaPolicy    gmeow:matryoshkaFixed ;
-    gmeow:contentDigest       "blake3:bb22c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e0011" .
+    gmeow:versionFingerprint "blake3:bb22c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e0011" .

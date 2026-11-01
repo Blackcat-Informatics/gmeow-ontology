@@ -553,16 +553,16 @@ ex:cqRefutedConjectureHasWitness a gmeow:CompetencyQuestion ;
 ex:cqRefutedConjectureHasWitnessShape a logic:ResultShape ;
     logic:declaresColumn
         [ logic:columnVariable "conj" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "ind" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
-        [ logic:columnVariable "world" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "ind" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
+        [ logic:columnVariable "world" ; logic:columnTermKind logic:TermKindIri ; logic:columnBinding logic:BindingRequired ] ,
         [ logic:columnVariable "premise" ; logic:columnTermKind logic:TermKindLiteral ; logic:columnDatatype <http://www.w3.org/2001/XMLSchema#string> ; logic:columnBinding logic:BindingRequired ] ;
     logic:shapeCardinality logic:RowsExact .
 
 ex:rowRefutedConjectureWitness a gmeow:ExpectedRow ;
     gmeow:rowCell
         [ a gmeow:ExpectedCell ; gmeow:cellVar "conj" ; gmeow:cellValueIri ex:cxRefutedTotalParthood ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "ind" ; gmeow:cellValueLiteral "ex:leftHand" ] ,
-        [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueLiteral "ex:worldActual" ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "ind" ; gmeow:cellValueIri ex:leftHand ] ,
+        [ a gmeow:ExpectedCell ; gmeow:cellVar "world" ; gmeow:cellValueIri ex:worldActual ] ,
         [ a gmeow:ExpectedCell ; gmeow:cellVar "premise" ; gmeow:cellValueLiteral "ex:leftHand logic:properPartOf ex:body" ] .
 
 # ── Conjecture library: contrapositive propagation frontier ──────────────────────

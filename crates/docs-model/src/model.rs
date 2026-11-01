@@ -2730,7 +2730,11 @@ impl DocsModel {
         manifest: BTreeMap<String, TermProvenance>,
         catalog_source: CatalogSource<'_>,
     ) -> Result<Self, DocsError> {
-        let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
+        let catalog = SliceCatalog::discover(
+            &root.join("slices"),
+            gmeow_ns::gmeow_slice_vocab(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let central_sets = read_central_mapping_sets(root)?;
         let translation_sources = crate::ontology_catalogs::for_repository(root, &catalog)
@@ -2822,10 +2826,14 @@ impl DocsModel {
     /// catalog, and never a compile-time hole that forces every consumer crate to
     /// duplicate the same target gate.
     pub fn from_slice_dir(slice_dir: &Path) -> Result<Self, DocsError> {
-        let catalog =
-            SliceCatalog::discover(slice_dir, gmeow_ns::gmeow_slice_vocab()).map_err(|e| {
-                attribute_mapping_parse_failure(slice_dir, &e).unwrap_or(DocsError::Slice(e))
-            })?;
+        let catalog = SliceCatalog::discover(
+            slice_dir,
+            gmeow_ns::gmeow_slice_vocab(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .map_err(|e| {
+            attribute_mapping_parse_failure(slice_dir, &e).unwrap_or(DocsError::Slice(e))
+        })?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         Self::from_catalog(&catalog, &ownership, &[])
     }

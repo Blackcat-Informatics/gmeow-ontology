@@ -1201,7 +1201,7 @@ lang:profileEncoding
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "profile encoding"@x-gmeow-english ;
     rdfs:domain lang:CanonicalizationProfile ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The character encoding a canonicalization profile folds under, such as UTF-8 — the profile-stratum twin of lang:encoding, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1210,7 +1210,7 @@ lang:profileNormalization
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "profile normalization"@x-gmeow-english ;
     rdfs:domain lang:CanonicalizationProfile ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The Unicode normalization form a canonicalization profile folds under — NFC, NFD, NFKC, or NFKD (UAX #15) — the profile-stratum twin of lang:unicodeNormalization, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property: two profiles differing only in normalization are distinct substrates."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1219,7 +1219,7 @@ lang:profileCollation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "profile collation"@x-gmeow-english ;
     rdfs:domain lang:CanonicalizationProfile ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The collation locale a canonicalization profile folds under, such as a CLDR/ICU locale identifier — the profile-stratum twin of lang:collationLocale, scoped to lang:CanonicalizationProfile. An IDENTITY-bearing frame property: canonicalization is locale-relative, so the profile names the locale it folds under."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1228,7 +1228,7 @@ lang:profileVersion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "profile version"@x-gmeow-english ;
     rdfs:domain lang:CanonicalizationProfile ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The declared version of a canonicalization profile — the second half of the comparability key alongside the profile IRI. Two analysis outputs are directly comparable exactly when they cite the same profile IRI at the same lang:profileVersion; a profile is versioned rather than mutated in place, so any frame or pipeline change mints a new version and a cited (IRI, version) pin resolves to one substrate forever."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1274,7 +1274,7 @@ lang:stageVersion
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "stage version"@x-gmeow-english ;
     rdfs:domain lang:ProfileStage ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The exact version string of a stage's lang:stageImplementation. Domain lang:ProfileStage, range a version string literal. Part of the stage's substrate pin: a re-run under a different implementation version is a different stage of a different profile version, never a silent substitution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1283,8 +1283,8 @@ lang:stageDigest
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "stage digest"@x-gmeow-english ;
     rdfs:domain lang:ProfileStage ;
-    rdfs:range xsd:string ;
-    skos:definition "The content-addressed digest of a stage's lang:stageImplementation (and its data, such as a stemmer's rule table) — a \"blake3:<hex>\" reference literal. Domain lang:ProfileStage, range a digest string literal. The tightest substrate pin: where a version string is a claim, the digest is a proof, so two stages with the same digest ran identical bytes and produced comparable output."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The supplied scheme identifier pinning a profile stage's declared implementation and data. Retain its complete xsd:string or xsd:token literal and spelling. The source declares no byte-preimage encoding or digest algorithm, so this identifier alone neither proves identical artifact bytes nor verifies reproducible output."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Attribution: a surface or output cites the profile it ran under -------- #
@@ -3579,8 +3579,8 @@ gmeow:gmnDictionaryEntryAlias
     rdfs:domain gmeow:GmnDictionaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn dictionary entry alias"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The compact alias string a dictionary entry mints for its aliased term — the token a conforming GMN-1 writer emits in place of the full IRI. Functional: exactly one alias per entry. Domain gmeow:GmnDictionaryEntry, range xsd:string or xsd:token. Injective within one dictionary: two entries of the same gmeow:GmnDictionary never share an alias for two different terms (lang:GmnDictionaryAliasInjectivityShape)."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid reusing an alias string for a second, different term within one dictionary version — that is exactly the injectivity gate's failure case — and avoid an alias that is not identifier-shaped (a GMN-1 alias has the same lexical shape as any other GMN identifier)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3653,8 +3653,8 @@ gmeow:glossaryLanguage
     rdfs:domain gmeow:Glossary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary language"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The BCP-47 target-language tag a gmeow:Glossary renders into (e.g. \"fr\", \"zh\"). Functional: one glossary is one language. Domain gmeow:Glossary, range xsd:string or xsd:token."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid folding two target languages into one glossary — French and Mandarin consistency are separate functions, so each language is its own gmeow:Glossary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3694,8 +3694,8 @@ gmeow:glossaryPredicate
     rdfs:domain gmeow:GlossaryEntry ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "glossary predicate"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The annotation predicate whose literal a glossary entry renders (e.g. \"rdfs:label\", \"skos:definition\"), in CURIE form. Functional: one predicate per entry. Domain gmeow:GlossaryEntry, range xsd:string or xsd:token."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid an entry with no gmeow:glossaryPredicate — the predicate is half of the catalog msgctxt key."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -3953,7 +3953,7 @@ gmeow:gmnTrainingTask
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn training task"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The task label of a gmeow:GmnTrainingExample — the operation the pair demonstrates (e.g. \"verbalize\" or \"encode\"). Domain gmeow:GmnTrainingExample, range a string literal. Exactly one per training example: the task fixes what the input→target mapping is an instance of."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid folding input or target surface text into the task label — those are gmeow:gmnTrainingInput and gmeow:gmnTrainingTarget — and avoid an empty task, which leaves the pair's operation unnamed."@x-gmeow-english ;
@@ -3992,7 +3992,7 @@ gmeow:gmnRejectionStage
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn rejection stage"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The verifier stage a gmeow:GmnRejectedCandidate was dropped at — the pipeline checkpoint (parse, round-trip, typecheck, proof-obligation, or ring-clean) whose gate the candidate failed. Domain gmeow:GmnRejectedCandidate, range a string literal. Exactly one per rejection: it localizes WHERE the candidate failed, so the drop is auditable rather than opaque."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid conflating the stage with the reason — the typed failure class is gmeow:gmnRejectionReason — and avoid a rejection carrying no stage, which hides where verification failed."@x-gmeow-english ;
@@ -4108,8 +4108,8 @@ gmeow:gmnRewriteFromGlyph
     rdfs:domain gmeow:GmnMigrationRewrite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn rewrite from glyph"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The source-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor finds in the stored source-version GMN document. Functional: exactly one source glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteToGlyph."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid setting it to the target spelling — that is gmeow:gmnRewriteToGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace, which the glyph surface discipline already forbids."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -4122,8 +4122,8 @@ gmeow:gmnRewriteToGlyph
     rdfs:domain gmeow:GmnMigrationRewrite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn rewrite to glyph"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The target-major glyph spelling of the operator a migration rewrite re-surfaces — the token the executor writes in place of gmeow:gmnRewriteFromGlyph when re-emitting the document at the target version. Functional: exactly one target glyph per rewrite. Domain gmeow:GmnMigrationRewrite, range xsd:string or xsd:token. A rewrite is a glyph RENAME exactly when this differs from gmeow:gmnRewriteFromGlyph."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid setting it to the source spelling — that is gmeow:gmnRewriteFromGlyph — and avoid a glyph carrying a GMN grammar delimiter or whitespace."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
@@ -5623,8 +5623,8 @@ gmeow:gmnViewSurface
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lang> ;
     rdfs:label "gmn view surface"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "The stable surface name a gmeow:GmnNotationView projects into — the machine key that binds the ontology view to its crate-side realization (\"codec\", \"ebnf\", \"abnf\", \"gbnf\", \"lark\", \"verbalizer\", \"token-metric\"). Domain gmeow:GmnNotationView, range xsd:string. Functional: one surface per view. The executable coherence gate iterates exactly these surface names, so a view named here without a landed surface is a declared-but-unpopulated leg, never a silent gap."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
+    skos:definition "The stable surface name a gmeow:GmnNotationView projects into — the machine key that binds the ontology view to its crate-side realization (\"codec\", \"ebnf\", \"abnf\", \"gbnf\", \"lark\", \"verbalizer\", \"token-metric\"). Domain gmeow:GmnNotationView, range xsd:string or xsd:token. Functional: one surface per view. The executable coherence gate iterates exactly these surface names, so a view named here without a landed surface is a declared-but-unpopulated leg, never a silent gap."@x-gmeow-english ;
     skos:example "gmeow:gmnViewAbnf gmeow:gmnViewSurface \"abnf\" ."@x-gmeow-english ;
     gmeow:addedInVersion "0.1.0" ;
     gmeow:avoidWhen "Avoid a free-form label here — the value is the machine key the crate-side registry/formalism name matches — and avoid two surface names on one view."@x-gmeow-english ;
@@ -10946,10 +10946,10 @@ lang:TranslationUnit logic:subClassOf
 # xsd:string for the string-valued frame and version properties.
 lang:CanonicalizationProfile logic:subClassOf
     [ a logic:Restriction ; logic:onProperty lang:profileScript ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty lang:profileVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty lang:profileEncoding ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty lang:profileNormalization ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] ,
-    [ a logic:Restriction ; logic:onProperty lang:profileCollation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty lang:profileVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileEncoding ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileNormalization ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] ,
+    [ a logic:Restriction ; logic:onProperty lang:profileCollation ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 # One pipeline stage names exactly one lang:StageKind; the stage-kind bound mirrors the
 # same idiom (logic:onClass logic:Thing for the object-valued lang:stageKind).
@@ -10980,7 +10980,7 @@ gmeow:GmnEnvelope rdfs:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:gmnDictionaryVersion ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnGlyphTableVersion ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:wasGeneratedBy ; logic:minQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:gmnCodebookDigest ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 
 lang:GmnEnvelopeStandpointRequiredConstraint
@@ -12800,3 +12800,5 @@ gmeow:linearRegex
     gmeow:howToUse "Retain the typed lexical form and explicit inline flags. A conforming matcher must validate syntax, reject every possible zero-width match and preserve original text positions; a check against only the empty input is insufficient."@x-gmeow-english ;
     skos:scopeNote "Each individual search has the Rust O(m*n) worst-case bound, linear in text length n for a fixed pattern of size m. Leftmost-first enumeration can cost O(m*n*n). Declaring this datatype does not add a parser or matcher: ontology validation checks the declared datatype, not lexical membership, zero-width freedom, complexity or execution. A selected operation lacking those capabilities must fail explicitly."@x-gmeow-english ;
     skos:example "\"(?i)cannot +continue\"^^gmeow:linearRegex declares a pattern; it does not report an executed search."@x-gmeow-english .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/lang/stageDigest" ; logic:closureValue logic:ClosedWorldClosure ] .

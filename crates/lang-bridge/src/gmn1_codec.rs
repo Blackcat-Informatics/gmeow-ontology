@@ -232,7 +232,12 @@ impl Gmn0Model {
     /// refusal.
     pub fn canonical_nquads(&self) -> gmeow_errors::Result<String> {
         let dataset = self.to_dataset()?;
-        Ok(purrdf::try_canonicalize(&dataset)?.nquads)
+        Ok(purrdf::try_canonicalize(
+            &dataset,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?
+        .nquads()
+        .to_owned())
     }
 }
 

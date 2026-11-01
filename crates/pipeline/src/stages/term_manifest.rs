@@ -216,12 +216,17 @@ fn definition_digest(
             message: e.to_string(),
         })
     })?;
-    let canon = sub.canonical_nquads_flat().map_err(|e| {
-        gmeow_errors::Diag::of_kind(crate::error::Parse {
-            message: e.to_string(),
-        })
-    })?;
-    Ok(digest_string(canon.as_bytes()))
+    let canon = sub
+        .canonical_nquads_flat(&mut purrdf::CanonicalizationControl::new(
+            purrdf::RDFC_V2_CORPUS_POLICY,
+            None,
+        ))
+        .map_err(|e| {
+            gmeow_errors::Diag::of_kind(crate::error::Parse {
+                message: e.to_string(),
+            })
+        })?;
+    Ok(digest_string(canon.nquads().as_bytes()))
 }
 
 /// The previous release's durable record for one term.

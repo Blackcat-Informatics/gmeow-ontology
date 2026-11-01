@@ -271,7 +271,9 @@ pub fn project(
         emit(
             &subject,
             gm("measuredCorpusDigest"),
-            RdfTerm::literal(RdfLiteral::simple(&realization.corpus_digest)),
+            RdfTerm::literal(crate::projections::blake3_blob_literal(
+                &realization.corpus_digest,
+            )?),
         );
         emit(
             &subject,
@@ -340,12 +342,16 @@ pub fn project(
         emit(
             &subject,
             gm("strataDigest"),
-            RdfTerm::literal(RdfLiteral::simple(&envelope.strata_digest)),
+            RdfTerm::literal(crate::projections::blake3_blob_literal(
+                &envelope.strata_digest,
+            )?),
         );
         emit(
             &subject,
             gm("contentDigest"),
-            RdfTerm::literal(RdfLiteral::simple(&envelope.content_digest)),
+            RdfTerm::literal(crate::projections::blake3_blob_literal(
+                &envelope.content_digest,
+            )?),
         );
     }
 
@@ -514,8 +520,8 @@ pub fn realizations(
             target_length: usize::try_from(number("measuredDictionaryTargetLength")?)
                 .unwrap_or(usize::MAX),
             corpus_sample_count: number("measuredCorpusSampleCount")?,
-            corpus_digest: required(literal_of("measuredCorpusDigest"), "measuredCorpusDigest")?,
-            content_digest: dictionary_content_digest(&quads, subject)?,
+            corpus_digest: blake3_digest_value(&quads, subject, "measuredCorpusDigest")?,
+            content_digest: blake3_digest_value(&quads, subject, "dictionaryContentDigest")?,
             byte_length: usize::try_from(number("dictionaryByteLength")?).unwrap_or(usize::MAX),
             zstd_dictionary_id: u32::try_from(number("zstdDictionaryId")?).unwrap_or(u32::MAX),
         };
@@ -533,11 +539,12 @@ pub fn realizations(
 }
 
 /// Admit the complete BLAKE3 literal before recovering its internal blob address.
-fn dictionary_content_digest(
+fn blake3_digest_value(
     quads: &[RdfQuad],
     subject: &str,
+    local: &str,
 ) -> Result<String, gmeow_errors::Diag> {
-    let predicate = gm("dictionaryContentDigest");
+    let predicate = gm(local);
     let mut digest: Option<String> = None;
     for quad in quads {
         if quad.subject != RdfTerm::iri(subject) || quad.predicate != predicate {
@@ -547,7 +554,7 @@ fn dictionary_content_digest(
         let (algorithm, hex) = crate::projections::admit_content_digest(&value)?;
         if algorithm != crate::projections::DigestAlgorithm::Blake3 {
             return Err(super::digest_mismatch(format!(
-                "realization <{subject}> requires a BLAKE3-256 dictionaryContentDigest"
+                "record <{subject}> requires a BLAKE3-256 {local}"
             )));
         }
         let address = format!("blake3:{hex}");
@@ -555,15 +562,13 @@ fn dictionary_content_digest(
             && previous != &address
         {
             return Err(super::digest_mismatch(format!(
-                "realization <{subject}> carries conflicting dictionaryContentDigest values"
+                "record <{subject}> carries conflicting {local} values"
             )));
         }
         digest = Some(address);
     }
     digest.ok_or_else(|| {
-        super::invalid_declaration(format!(
-            "realization <{subject}> carries no gmeow:dictionaryContentDigest"
-        ))
+        super::invalid_declaration(format!("record <{subject}> carries no gmeow:{local}"))
     })
 }
 
@@ -600,15 +605,6 @@ pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeo
                     _ => None,
                 })
         };
-        let literal_of = |predicate: &str| -> Option<String> {
-            quads
-                .iter()
-                .find(|q| q.subject == T::iri(subject) && q.predicate == gm(predicate))
-                .and_then(|q| match &q.object {
-                    T::Literal(literal) => Some(literal.lexical_form.clone()),
-                    _ => None,
-                })
-        };
         let required =
             |value: Option<String>, predicate: &str| -> Result<String, gmeow_errors::Diag> {
                 value.ok_or_else(|| {
@@ -637,8 +633,8 @@ pub fn envelopes(graph: &purrdf::RdfDataset) -> Result<Vec<MediumEnvelope>, gmeo
             medium: required(iri_of("envelopeMedium"), "envelopeMedium")?,
             dictionary: iri_of("envelopeDictionary"),
             stratum,
-            strata_digest: required(literal_of("strataDigest"), "strataDigest")?,
-            content_digest: required(literal_of("contentDigest"), "contentDigest")?,
+            strata_digest: blake3_digest_value(&quads, subject, "strataDigest")?,
+            content_digest: blake3_digest_value(&quads, subject, "contentDigest")?,
         });
     }
     out.sort();

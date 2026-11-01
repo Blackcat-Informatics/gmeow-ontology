@@ -648,7 +648,7 @@ fn verify_prepared(
         let stem = query_stem(name);
         let result = prepared
             .engine
-            .query_prepared(&reasoned, query, &[], QueryOptions::EMPTY)
+            .query_prepared(&reasoned, query, &[], &QueryOptions::EMPTY)
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::Verify {
                     detail: format!("verify query {name} evaluation error: {e}"),

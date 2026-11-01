@@ -93,7 +93,11 @@ gmeow:toolArguments
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool arguments"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The verbatim arguments payload presented to the tool (typically JSON), byte-faithful. For large payloads store a content digest literal instead ('blake3:…' — the gmeow:contentDigest convention): the digest is the value, resolvable from a content-addressed store. Functional: one arguments record per call."@x-gmeow-english ;
+    skos:definition "The opaque arguments literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolArgumentsStructured."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an opaque payload supplied by the recording profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."@x-gmeow-english ;
+    skos:example "Opaque arguments and result media are described on separate role-bound payload occurrences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:toolResult
@@ -102,7 +106,11 @@ gmeow:toolResult
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "tool result"@x-gmeow-english ;
     rdfs:range rdfs:Literal ;
-    skos:definition "The verbatim result payload the tool returned, byte-faithful — the PAYLOAD of the event, never a forward entity link: an entity the call produced links back via gmeow:wasGeneratedBy (Principle 5). For large payloads store a content digest literal instead ('blake3:…'), as gmeow:toolArguments. Functional: one result record per call."@x-gmeow-english ;
+    skos:definition "The opaque result literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolResultStructured."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain an opaque payload supplied by the recording profile."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."@x-gmeow-english ;
+    gmeow:howToUse "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."@x-gmeow-english ;
+    skos:example "Opaque arguments and result media are described on separate role-bound payload occurrences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:usedTool
@@ -122,10 +130,10 @@ gmeow:usedTool
 DOCTRINE.
   * THE MODELINVOCATION IDIOM, EXACTLY: ToolCall is a gufo:EventType under gmeow:Activity with one functional agent link (usedTool, mirroring usedModel) and verbatim call parameters as datatype properties (mirroring the sampling trio). 'Which tool, called by which invocation, with what arguments, at what time?' is answerable after the fact.
   * NO FORWARD OUTPUT ENTITY PROPERTY (Principle 5): an entity the call produced — a stored claim, a written file, a minted node — links BACK via gmeow:wasGeneratedBy, exactly as claims link back to their ModelInvocation. gmeow:toolResult records the verbatim PAYLOAD of the event itself, never an entity link.
-  * VERBATIM-OR-DIGEST: toolArguments/toolResult carry the byte-faithful payload. For large payloads store a content digest literal instead ("blake3:…" — the gmeow:contentDigest convention from the sources slice): the digest IS the value, resolvable from a content-addressed store. Self-describing prefixes keep the two forms distinguishable.
+  * PAYLOAD REPRESENTATIONS: toolArguments/toolResult retain opaque literals or locators defined by an explicit recording profile. A prefixed locator string is not the generic contentDigest contract. toolArgumentsStructured/toolResultStructured instead link role-bound StructuredValue occurrences; opaque media metadata belongs on the individual payload occurrence. Coexisting representations do not imply equivalence or conversion.
   * TOOLS ARE SOFTWARE AGENTS — deliberately no Tool subclass: tool-ness is the role the agent plays in this call event, not an identity (roles classify, never reify — the Persona lesson, register/persona design). An MCP tool, a search service, and a code runner are SoftwareAgents that happen to be called.
   * calledByInvocation IS OPTIONAL: a recording harness may not expose the requesting model invocation; a ToolCall without one is still auditable provenance. The result feeds a LATER invocation — that ordering is temporal (atTime), not a TBox link.
-  * THIN MEANS THIN (Principle 15): the named consumer is Project Lillith's agentic mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Five terms; growth requires a new consumer — trajectory aggregates (runs, episodes, plans) wait for one. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the slice stays at five terms (worked example: examples/trajectory-audit.ttl).
+  * THIN MEANS THIN (Principle 15): the named consumer is Project Lillith's agentic mode; the gmeow memory MCP triad is the first live producer (its store/revise calls record themselves). Growth requires a concrete consumer; structured payload companions serve callers that admit native RDF instead of opaque JSON objects. The T6 read-only trajectory audit is the verification consumer that finally exercises a recorded ToolCall SEQUENCE — but it mints NO aggregate term here: a recorded sequence is audited by treating each call as a logic:ActionSchema instance (logic:instantiatesSchema) anchored on the existing logic: mereology, run through the Transaction-Logic engine. The aggregate's structure lives in the logic: core, not as new agentic vocabulary; the aggregate remains in the grounding kernel (worked example: examples/trajectory-audit.ttl).
   * ALIGNMENTS: ToolCall is prov:Activity by inheritance (the provenance set). OpenAI function-calling, Anthropic tool_use, and MCP tool schemas are JSON specs with no stable RDF namespace — bridging is a projection concern (Lillith worked example, the OpenLineage precedent), recorded in the mapping trailer."""@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "GMEOW Agentic Module"@x-gmeow-english ;
@@ -214,11 +222,11 @@ gmeow:toolArgumentsFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolArguments is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts that toolArguments admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."@x-gmeow-english ;
     logic:characterizes gmeow:toolArguments ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toolArguments ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toolArguments names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce at most one supplied opaque payload without requiring its presence."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toolArguments, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toolArguments and nothing else. It is not a definition of gmeow:toolArguments (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -229,11 +237,11 @@ gmeow:toolResultFunctionality
         logic:PropertyCharacteristicAssertion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
     rdfs:label "toolResult is functional"@x-gmeow-english ;
-    skos:definition "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."@x-gmeow-english ;
+    skos:definition "Asserts that toolResult admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."@x-gmeow-english ;
     logic:characterizes gmeow:toolResult ;
     logic:characteristicSort logic:functionalProperty ;
     logic:formalizes gmeow:toolResult ;
-    gmeow:useWhen "Use when the native coherence gate must enforce that gmeow:toolResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."@x-gmeow-english ;
+    gmeow:useWhen "Use to enforce at most one supplied opaque payload without requiring its presence."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."@x-gmeow-english ;
     gmeow:howToUse "Read together with logic:characteristicSort: the pair (logic:characterizes gmeow:toolResult, logic:characteristicSort logic:functionalProperty) is the whole obligation, and the OWL grounding view projects the matching characteristic from it."@x-gmeow-english ;
     skos:scopeNote "Scope: this record carries ONE integrity obligation about gmeow:toolResult and nothing else. It is not a definition of gmeow:toolResult (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."@x-gmeow-english ;
@@ -429,3 +437,35 @@ gmeow:attentionMessage
     logic:range rdfs:Literal .
 
 gmeow:AttentionRequest logic:subClassOf [ a logic:Restriction ; logic:onProperty gmeow:attentionMessage ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string rdf:langString rdf:dirLangString ) ] ] .
+
+# Structured event payloads, authored in the canonical grounding kernel.
+
+gmeow:toolArgumentsStructured
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "tool arguments structured"@x-gmeow-english ;
+    skos:definition "The optional single StructuredValue occurrence describing the tool call's arguments payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."@x-gmeow-english ;
+    gmeow:useWhen "Use when the arguments payload needs a sanctioned structured RDF home or role-specific media metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."@x-gmeow-english ;
+    gmeow:howToUse "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."@x-gmeow-english ;
+    skos:example "The arguments payload can be an empty map, explicit null or a native directional literal without a JSON object literal."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ; logic:range gmeow:StructuredValue .
+
+gmeow:toolResultStructured
+    a logic:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agentic> ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:label "tool result structured"@x-gmeow-english ;
+    skos:definition "The optional single StructuredValue occurrence describing the tool call's result payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."@x-gmeow-english ;
+    gmeow:useWhen "Use when the result payload needs a sanctioned structured RDF home or role-specific media metadata."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."@x-gmeow-english ;
+    gmeow:howToUse "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."@x-gmeow-english ;
+    skos:example "The result payload can be an empty map, explicit null or a native directional literal without a JSON object literal."@x-gmeow-english ;
+    logic:domain gmeow:ToolCall ; logic:range gmeow:StructuredValue .
+
+gmeow:ToolCall logic:subClassOf
+    [ a logic:Restriction ; logic:onProperty gmeow:toolArgumentsStructured ; logic:allValuesFrom gmeow:StructuredValue ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolArgumentsStructured ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolResultStructured ; logic:allValuesFrom gmeow:StructuredValue ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:toolResultStructured ; logic:maxQualifiedCardinality 1 ; logic:onClass logic:Thing ] .

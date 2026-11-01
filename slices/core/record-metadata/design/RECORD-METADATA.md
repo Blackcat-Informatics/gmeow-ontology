@@ -22,15 +22,17 @@ ShEx remain generated projections; this slice authors none of those surfaces.
 | Ordinal | Standard `xsd:nonNegativeInteger` range with explicit property-global closed-world reading. |
 | Facet label | Universal `xsd:string` / `xsd:token` union restriction, class-scoped closed-world required path and canonical functionality assertion. |
 | Facet label wording | Optional, nonfunctional literal relation with property range and class-local universal restriction over `xsd:string`, `rdf:langString` and `rdf:dirLangString`. |
-| Facet payload | Literal restrictions, separate functionality assertions and a realized integrity formula excluding simultaneous text and value. |
+| Facet payload | Literal restrictions, separate functionality assertions and realized integrity formulas excluding simultaneous text, literal and structured channels. |
 | Concept interpretation | Nonfunctional relation to existing `Concept`; no preferred interpretation. |
 | Context identity | Realized guarded-existence formula requiring `contentDigest` on every referenced context artifact. |
 
 The required label uses a universal restriction plus explicit closure rather
 than an existential that could create a witness. Its functionality record sets
-at most one label. The payload exclusion formula applies to subjects of
-`facetText`, so a label-only facet remains permitted. Functionality of each
-payload channel combines with exclusion to bound their total to one.
+at most one label. The original payload exclusion formula applies to subjects of `facetText`; the
+structured-channel integrity formula excludes both literal channels and bounds
+its own payload by RDF identity. A label-only facet remains permitted. Together
+these obligations bound the total payload to one without turning absence into
+null.
 
 The context identity formula applies to objects of `contextIncluded`.
 The release and projection properties specialize that relation through canonical
@@ -100,7 +102,9 @@ No subproperty bridge to `facetLabel` is asserted: that key's machine-datatype
 contract must not erase language or direction from wording. No bridge to
 `facetText` is asserted either: label wording is metadata about the label,
 not the field's payload. The required key closure and functionality, both
-payload functionality records and their mutual exclusion remain unchanged.
+literal payload functionality records and their mutual exclusion remain intact.
+The structured channel adds a separate exclusion obligation against those literal
+channels.
 Retaining wording does not synthesize a key, select a preferred interpretation
 or promise source serialization reconstruction (Principles 2, 4, 9 and 17).
 
@@ -168,3 +172,39 @@ No new integrity law requires a reifier for every general rationale: a generic
 edge inferred from a specialized statement is not newly authored source evidence.
 The original specialized statement and its provenance remain canonical
 (Principles 2, 4, 9 and 17).
+
+## Structured payload occurrences
+
+`StructuredValue` is an `InformationObject` subkind. Map, sequence and null
+subkinds are pairwise disjoint. A realized branch formula requires exactly one
+of scalar-term presence, map, sequence or null. Only maps admit `hasFacet` and
+only sequences admit `structuredItem`; null and scalar branches admit neither.
+Typed empty containers therefore remain distinct from explicit null, an empty
+literal and an absent relation. Maps reuse labelled facets; sequence values are
+occurrences with no fabricated source key.
+
+The scalar carrier `structuredTerm` is an annotation property. No OWL role
+restriction or SHACL node-kind approximation narrows its object to resources or
+literals. The realized integrity formula requires its subject to be a
+`StructuredValue` and limits it to one original RDF term using the grounding
+kernel's `termSameComponent` with `componentWhole`. This comparison preserves
+RDF identity, including literal lexical form, datatype, language and direction,
+and does not compare scalar payloads by datatype value equality.
+
+The container ordering formulas use numeric `termEqual` and `termDistinct` for
+bound, valid `entryOrdinal` literals. They preserve lexical aliases of a numeric
+position, reject multiple numeric positions on one entry and reject a shared
+position between distinct entries within one owner. Sequence position is required;
+map position is optional, so unordered source objects need no invented order.
+The existing property-global ordinal closure supplies the nonnegative datatype
+obligation. Repeated map labels and repeated sequence values remain legal on
+distinct occurrence nodes. No contiguous-index or finite-tree law is asserted.
+
+`facetStructuredValue` complements the literal channels; it does not reinterpret
+`facetConcept` or the label-only state. Agentic consumes this slice through its
+existing dependency for separate arguments and result roles. Opaque media typing
+uses existing `mediaType` and `charset` on the role-bound payload occurrence,
+never an ambiguous format on the containing call. Neither representation implies
+that another representation is equivalent. These are canonical vocabulary and
+integrity laws, not a converter or a storage DTO contract (Principles 2, 4, 17
+and 19).

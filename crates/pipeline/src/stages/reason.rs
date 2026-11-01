@@ -97,12 +97,16 @@ fn reason_product_from_artifacts(
         BTreeMap::new(),
         purrdf::provenance::DatasetProvenance::new(),
     );
-    let pinned = bundle.graph_digest(GRAPH_REASONING)?;
+    let pinned = bundle.graph_digest(
+        GRAPH_REASONING,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     bundle
         .pin_handle(
             GRAPH_REASONING,
             PipelineHandle::Reasoning(Arc::new(reasoned.result)),
             pinned,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .map_err(|e| {
             gmeow_errors::Diag::of_kind(crate::error::StageFailed {
@@ -324,7 +328,12 @@ pub(crate) fn canonicalize_edb(
     edb: &RdfDataset,
     stage_id: &str,
 ) -> Result<Arc<RdfDataset>, gmeow_errors::Diag> {
-    purrdf::canonical_relabel(edb).map(Arc::new).map_err(|e| {
+    purrdf::canonical_relabel(
+        edb,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map(Arc::new)
+    .map_err(|e| {
         gmeow_errors::Diag::of_kind(crate::error::StageFailed {
             stage: stage_id.to_string(),
             message: format!("RDFC-1.0 canonicalize EDB: {e}"),
@@ -855,12 +864,16 @@ impl Stage for ReasonStage {
             "application/json",
             diag_blob,
         );
-        let pinned = bundle.graph_digest(GRAPH_REASONING)?;
+        let pinned = bundle.graph_digest(
+            GRAPH_REASONING,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )?;
         bundle
             .pin_handle(
                 GRAPH_REASONING,
                 PipelineHandle::Reasoning(Arc::new(reasoned.result)),
                 pinned,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
             )
             .map_err(|e| {
                 gmeow_errors::Diag::of_kind(crate::error::StageFailed {

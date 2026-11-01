@@ -17,7 +17,7 @@ ex:relyingParty a gmeow:SoftwareAgent ; gmeow:name "Production deploy gate"@x-gm
 
 ex:release a gmeow:CreativeWork ;
     gmeow:title         "myapp 1.0.0 release bundle"@x-gmeow-english ;
-    gmeow:contentDigest "sha256:abc123def4567890abc123def4567890abc123def4567890abc123def4567890" .
+    gmeow:contentDigest "abc123def4567890abc123def4567890abc123def4567890abc123def4567890"^^gmeow:sha256Digest .
 
 # --- The attestation: the CI system vouches for the release as SLSA provenance.
 ex:slsaAttestation a gmeow:Attestation ;
@@ -31,7 +31,7 @@ ex:slsaAttestation a gmeow:Attestation ;
 
 ex:artifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/vnd.in-toto+json" ;
-    gmeow:contentDigest     "sha256:def456abc1237890def456abc1237890def456abc1237890def456abc1237890" .
+    gmeow:contentDigest     "def456abc1237890def456abc1237890def456abc1237890def456abc1237890"^^gmeow:sha256Digest .
 
 ex:sig a gmeow:CryptographicSignature ;
     gmeow:signatureAlgorithm "ecdsa-p256" ;

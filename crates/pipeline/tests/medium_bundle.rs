@@ -220,6 +220,16 @@ fn literal_of(quads: &[RdfQuad], subject: &str, predicate: &str) -> String {
             quad.subject == RdfTerm::iri(subject) && quad.predicate == format!("{GMEOW}{predicate}")
         })
         .filter_map(|quad| match &quad.object {
+            RdfTerm::Literal(literal)
+                if matches!(
+                    predicate,
+                    "contentDigest" | "strataDigest" | "measuredCorpusDigest"
+                ) =>
+            {
+                assert_eq!(literal.datatype_iri(), format!("{GMEOW}blake3_256Digest"));
+                assert!(literal.language.is_none() && literal.direction.is_none());
+                Some(format!("blake3:{}", literal.lexical_form))
+            }
             RdfTerm::Literal(literal) => Some(literal.lexical_form.clone()),
             _ => None,
         })
@@ -324,9 +334,13 @@ fn canonical(quads: &[RdfQuad]) -> String {
     let frozen = purrdf::flat_dataset_from_quads(quads).expect("the quad set freezes");
     // The input has already been materialized as the UNFOLDED flat statement layer;
     // canonicalizing it directly avoids a redundant flatten + refreeze pass.
-    purrdf::try_canonicalize(&frozen)
-        .expect("the quad set canonicalizes")
-        .nquads
+    purrdf::try_canonicalize(
+        &frozen,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("the quad set canonicalizes")
+    .nquads()
+    .to_owned()
 }
 
 fn blake3(bytes: &[u8]) -> String {
@@ -480,7 +494,7 @@ fn the_emitted_bundle_ships_its_declared_medium() {
         // actually binds — the projection is of the WIRE, not of an intention.
         //
         // Presence is BICONDITIONAL, because not every rep is primed: a rep assigned
-        // an undicted medium (gmeow:mediumProfileBaselineL12) rides a codec entry that
+        // an undicted medium (`gmeow:mediumProfileBaselineL12`) rides a codec entry that
         // binds no dictionary, and `medium/rdf.rs` then emits no gmeow:envelopeDictionary
         // — which `medium/envelope.rs` accepts precisely when the medium declares none.
         // So the wire is checked both ways: a primed frame must name the dictionary it
@@ -1077,7 +1091,7 @@ fn no_rep_is_primed_by_a_retired_dictionary(
     // than by omission. Their being unprimed is not a fallthrough: gmeow-claims-v1 was
     // retired because no cell of its grid pays its own in-band bytes (23,673 B two-part
     // against a 22,214 B baseline over the whole two-frame population), so
-    // gmeow:mediumProfileBaselineL12 IS the measured argmin for them and naming no
+    // `gmeow:mediumProfileBaselineL12` IS the measured argmin for them and naming no
     // dictionary IS the selection. Asserting that explicitly keeps the guard total: were
     // they instead dropped from the loop, a later reassignment could re-prime them with a
     // dictionary that loses to the baseline and nothing here would notice.

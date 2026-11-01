@@ -54,10 +54,15 @@ pub fn lower_and_evaluate(
 ) -> Result<(Vec<FoundationQuad>, String, usize), OntoumlError> {
     let (quads, dataset) = evaluate_model(model, world_iri, policy)?;
     let count = dataset.quads().count();
-    let text = purrdf::try_canonicalize_flat_view(dataset.as_ref(), purrdf::CanonHash::Sha256)
-        .map_err(gmeow_errors::Diag::from)
-        .map_err(OntoumlError::from)?
-        .nquads;
+    let text = purrdf::try_canonicalize_flat_view(
+        dataset.as_ref(),
+        purrdf::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(gmeow_errors::Diag::from)
+    .map_err(OntoumlError::from)?
+    .nquads()
+    .to_owned();
     Ok((quads, text, count))
 }
 

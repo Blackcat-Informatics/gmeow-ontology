@@ -72,7 +72,7 @@ ex:readCall a gmeow:ToolCall ;
 # Digest literals stand for supplied identities in this ordinary illustrative
 # archive. The exact version read back is still an unfinished draft.
 ex:draftVersion a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:contentDigest "1111111111111111111111111111111111111111111111111111111111111111"^^gmeow:sha256Digest ;
     gmeow:artifactComplete false ;
     gmeow:wasGeneratedBy ex:writeCall .
 

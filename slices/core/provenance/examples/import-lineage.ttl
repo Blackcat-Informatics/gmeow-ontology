@@ -17,7 +17,7 @@
 ex:sourcePaper a gmeow:CreativeWork ;
     gmeow:sourceLocation  "/imports/papers/smith-2020-erosion.pdf" ;
     gmeow:sourceModifiedAt "2020-07-11T00:00:00Z"^^xsd:dateTime ;
-    gmeow:contentDigest   "blake3:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" .
+    gmeow:contentDigest   "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"^^gmeow:blake3_256Digest .
 
 # --- The activity and the agent that performed it (the importer self-records).
 ex:import a gmeow:ImportActivity ;

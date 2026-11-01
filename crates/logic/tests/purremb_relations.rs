@@ -41,7 +41,7 @@ use gmeow_logic::query_ir::{Budget, parse_query_program};
 use gmeow_logic::seam::{BudgetStatus, WorldFactSnapshot};
 use gmeow_logic::store::WorldStore;
 use gmeow_logic_compile::result_shape::ColumnKind;
-use purrdf::{DistanceMetric, SourceVerificationMode, TermValue, VectorSpaceId};
+use purrdf::{DistanceMetric, TermValue, VectorSpaceId};
 
 use support::Fixture;
 
@@ -120,7 +120,6 @@ fn descriptor_for(
     relation: &str,
     artifact_root_hex: &str,
     policy: RetrievalPolicy,
-    source_mode: SourceVerificationMode,
     algebra_identity: &str,
     dimension: RelationAnnotationDimension,
 ) -> gmeow_logic::external_relation::RelationProviderDescriptor {
@@ -129,7 +128,6 @@ fn descriptor_for(
         relation,
         artifact_root_hex,
         policy,
-        source_mode,
         algebra_identity,
         dimension,
         vec![ColumnKind::Iri, ColumnKind::Iri],
@@ -144,13 +142,12 @@ fn descriptor_for_kind(
     relation: &str,
     artifact_root_hex: &str,
     policy: RetrievalPolicy,
-    source_mode: SourceVerificationMode,
     algebra_identity: &str,
     dimension: RelationAnnotationDimension,
     columns: Vec<ColumnKind>,
 ) -> gmeow_logic::external_relation::RelationProviderDescriptor {
     let _ = fixture;
-    let generation = purremb_generation_iri(GEN_BASE, artifact_root_hex, policy, source_mode);
+    let generation = purremb_generation_iri(GEN_BASE, artifact_root_hex, policy);
     purremb_descriptor(
         "https://example.org/provider/purremb",
         generation,
@@ -164,17 +161,12 @@ fn descriptor_for_kind(
     .expect("valid PURREMB descriptor")
 }
 
-/// Open a verified binding for a fixture under a policy/source mode.
-fn open_binding<'a>(
-    fixture: &'a Fixture,
-    policy: RetrievalPolicy,
-    source_mode: SourceVerificationMode,
-) -> PurrembBinding<'a> {
+/// Open a verified binding for a fixture under a retrieval policy.
+fn open_binding<'a>(fixture: &'a Fixture, policy: RetrievalPolicy) -> PurrembBinding<'a> {
     PurrembBinding::open(
         &fixture.artifact_bytes,
         &fixture.source_bytes,
         fixture.selection(policy),
-        source_mode,
     )
     .expect("verified PURREMB binding")
 }
@@ -231,18 +223,16 @@ fn wire<'a>(
     fixture: &'a Fixture,
     relation: &str,
     policy: RetrievalPolicy,
-    source_mode: SourceVerificationMode,
     algebra: &VectorSpaceScopedAlgebra,
     dimension: RelationAnnotationDimension,
     profile: Option<ProfileSurfaceDigests>,
 ) -> Wired<'a> {
-    let binding = open_binding(fixture, policy, source_mode);
+    let binding = open_binding(fixture, policy);
     let descriptor = descriptor_for(
         fixture,
         relation,
         binding.artifact_root_hex(),
         policy,
-        source_mode,
         algebra.identity(),
         dimension,
     );
@@ -285,7 +275,6 @@ fn exact_full_space_returns_metric_ordered_iri_rows() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -347,17 +336,12 @@ fn triple_term_query_returns_metric_ordered_statement_candidates() {
     );
     let algebra = VectorSpaceScopedAlgebra::new(BTreeSet::new(), BTreeSet::new());
     let contract = AnnotationContract::exact();
-    let binding = open_binding(
-        &fixture,
-        RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
-    );
+    let binding = open_binding(&fixture, RetrievalPolicy::ExactFullSpace);
     let descriptor = descriptor_for_kind(
         &fixture,
         RELATION,
         binding.artifact_root_hex(),
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         algebra.identity(),
         RelationAnnotationDimension::Distance,
         vec![ColumnKind::TripleTerm, ColumnKind::TripleTerm],
@@ -464,7 +448,6 @@ fn heap_and_mmap_backed_bindings_yield_identical_answers() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -488,7 +471,6 @@ fn heap_and_mmap_backed_bindings_yield_identical_answers() {
         &mmap[..],
         &fixture.source_bytes,
         fixture.selection(RetrievalPolicy::ExactFullSpace),
-        SourceVerificationMode::Exact,
     )
     .expect("mmap binding");
     let descriptor = descriptor_for(
@@ -496,7 +478,6 @@ fn heap_and_mmap_backed_bindings_yield_identical_answers() {
         RELATION,
         mmap_binding.artifact_root_hex(),
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         algebra.identity(),
         RelationAnnotationDimension::Distance,
     );
@@ -541,7 +522,6 @@ fn f32_and_f64_matrices_produce_the_same_ordering() {
             fixture,
             RELATION,
             RetrievalPolicy::ExactFullSpace,
-            SourceVerificationMode::Exact,
             &algebra,
             RelationAnnotationDimension::Distance,
             None,
@@ -580,7 +560,6 @@ fn matryoshka_prefix_then_rerank_matches_exact_full_space() {
         &matryoshka,
         RELATION,
         RetrievalPolicy::MatryoshkaPrefixThenRerank,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -603,7 +582,6 @@ fn matryoshka_prefix_then_rerank_matches_exact_full_space() {
         &exact,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -647,7 +625,6 @@ fn run_with_profile(fixture: &Fixture, profile: ProfileSurfaceDigests) -> Result
         fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         Some(profile),
@@ -707,12 +684,9 @@ fn cross_dtype_selection_is_rejected_at_binding_open() {
     let fixture = distinct_corpus(); // an f32 matrix.
     let mut selection = fixture.selection(RetrievalPolicy::ExactFullSpace);
     selection.dtype = purrdf::VectorDtype::F64; // declare F64 for the F32 matrix.
-    let Err(error) = PurrembBinding::open(
-        &fixture.artifact_bytes,
-        &fixture.source_bytes,
-        selection,
-        SourceVerificationMode::Exact,
-    ) else {
+    let Err(error) =
+        PurrembBinding::open(&fixture.artifact_bytes, &fixture.source_bytes, selection)
+    else {
         panic!("a cross-dtype selection must be rejected, never reinterpreted");
     };
     assert!(matches!(error, PurrembBindingError::Selection(_)));
@@ -723,12 +697,9 @@ fn effective_dimension_exceeding_stored_dimension_is_rejected_at_binding_open() 
     let fixture = distinct_corpus();
     let mut selection = fixture.selection(RetrievalPolicy::ExactFullSpace);
     selection.effective_dimension = fixture.stored_dimension + 5;
-    let Err(error) = PurrembBinding::open(
-        &fixture.artifact_bytes,
-        &fixture.source_bytes,
-        selection,
-        SourceVerificationMode::Exact,
-    ) else {
+    let Err(error) =
+        PurrembBinding::open(&fixture.artifact_bytes, &fixture.source_bytes, selection)
+    else {
         panic!("an over-wide effective dimension must be rejected");
     };
     assert!(matches!(error, PurrembBindingError::Selection(_)));
@@ -760,7 +731,6 @@ fn negative_dot_scores_order_deterministically_across_repeats() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -810,7 +780,6 @@ fn limit_greater_than_corpus_returns_a_complete_full_answer() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -847,7 +816,6 @@ fn zero_vector_under_cosine_is_rejected() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -876,7 +844,6 @@ fn bound_query_naming_no_in_corpus_target_is_rejected() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -917,7 +884,6 @@ fn digest_only_candidate_is_rejected_without_fabricating_an_iri() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -947,7 +913,6 @@ fn cancellation_at_a_call_boundary_surfaces_the_cancelled_path() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -1016,7 +981,6 @@ fn row_budget_exhaustion_surfaces_the_budget_path() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -1048,11 +1012,7 @@ fn row_budget_exhaustion_surfaces_the_budget_path() {
 #[test]
 fn stable_binding_repins_against_its_retained_certificate() {
     let fixture = distinct_corpus();
-    let binding = open_binding(
-        &fixture,
-        RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
-    );
+    let binding = open_binding(&fixture, RetrievalPolicy::ExactFullSpace);
     assert!(
         binding.re_pin().is_ok(),
         "a stable, immutable artifact buffer must re-pin against its retained certificate"
@@ -1076,7 +1036,6 @@ fn provider_seed_feeds_recursion_with_transitive_provider_lineage() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -1168,7 +1127,6 @@ fn cross_space_conjunction_refused_without_license_and_allowed_with_one() {
         &fixture_a,
         RELATION_A,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &refusal_identity,
         dimension.clone(),
         None,
@@ -1177,7 +1135,6 @@ fn cross_space_conjunction_refused_without_license_and_allowed_with_one() {
         &fixture_b,
         RELATION_B,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &refusal_identity,
         dimension,
         None,
@@ -1295,7 +1252,6 @@ fn receipt_names_every_contributing_purremb_identity() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -1308,7 +1264,7 @@ fn receipt_names_every_contributing_purremb_identity() {
     assert_eq!(receipt.family.len(), 64);
     assert_eq!(receipt.metric_name, "squared-euclidean");
     assert_eq!(receipt.retrieval_policy, "exact-full-space");
-    assert_eq!(receipt.source_verification_mode, "exact");
+    assert_eq!(receipt.source_verification_profile, "purrpck-v1-full");
     assert_eq!(receipt.recall, Some(1.0));
 
     let providers = providers_for(
@@ -1360,7 +1316,6 @@ fn dispatch_answer_matches_a_naive_reference_scorer() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,
@@ -1430,7 +1385,6 @@ fn vague_similarity_preservation_is_carried_into_the_answer() {
         &fixture,
         RELATION,
         RetrievalPolicy::ExactFullSpace,
-        SourceVerificationMode::Exact,
         &algebra,
         RelationAnnotationDimension::Distance,
         None,

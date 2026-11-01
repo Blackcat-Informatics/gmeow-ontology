@@ -164,7 +164,7 @@ gmeow:seamCarryingTerm a logic:ObjectProperty ;
 gmeow:seamOwningDoc a logic:DatatypeProperty ;
     rdfs:label "seam owning doc"@x-gmeow-english ;
     logic:domain gmeow:Seam ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The design document that owns the theory of this seam."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
@@ -209,21 +209,21 @@ gmeow:groundingConceptDomain a logic:AnnotationProperty ;
 gmeow:sliceProfile a logic:DatatypeProperty ;
     rdfs:label "slice profile membership"@x-gmeow-english ;
     logic:domain gmeow:Slice ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A named profile this slice belongs to. Multi-valued: a slice may serve several profiles. One name serves both worlds (the twin doctrine, the twin profile doctrine): it names the OWL composition profile <…/gmeow/profiles/<name>> — a generated, dependency-closed owl:imports aggregation — and the GTS sub-profile tag a package segment carrying this slice's data declares in its header (how a reader without the slice installed reports what is missing). Membership is always explicit; there is no default."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:providesSubcommand a logic:DatatypeProperty ;
     rdfs:label "provides subcommand"@x-gmeow-english ;
     logic:domain gmeow:Slice ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "A CLI subcommand this slice contributes to the gmeow roll-up (e.g. \"image\", \"render\", \"gts\"). Discovery and dispatch are specified in the CLI roll-up spec (CLI roll-up design); this field is the declaration the loader will read."@x-gmeow-english;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
 gmeow:builtAgainstCore a logic:DatatypeProperty  ;
     rdfs:label "built against core version"@x-gmeow-english ;
     logic:domain gmeow:Slice ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The GMEOW core version (owl:versionInfo) this slice was authored and tested against. Required for third-party slices; in-repo slices inherit the repository version and omit it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
@@ -367,7 +367,7 @@ gmeow:computedSliceDependency a logic:Class ;
 gmeow:dependencyStatus a logic:DatatypeProperty ;
     rdfs:label "dependency status"@x-gmeow-english ;
     logic:domain gmeow:computedSliceDependency ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The reconciliation verdict for a computed slice dependency: matched (declared and evidenced), undeclared (evidenced but missing from sliceDependsOn), stale (declared but no evidence), or forbidden (violates the tier model — core→extension or extension→extension)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 
@@ -414,7 +414,7 @@ gmeow:coveredTerm a logic:ObjectProperty ;
 gmeow:computedProfileMembership a logic:DatatypeProperty ;
     rdfs:label "computed profile membership"@x-gmeow-english ;
     logic:domain gmeow:Slice ;
-    logic:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The computed profile membership of a slice, derived by the analysis graph emitter from the dependency closure. Emitted into gmeow:graph/slice-analysis; never authored. Complements the authored gmeow:sliceProfile."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
 

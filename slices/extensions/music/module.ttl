@@ -2772,7 +2772,7 @@ gmeow:hsNumber
     rdfs:domain gmeow:InstrumentType ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/music> ;
     rdfs:label "Hornbostel–Sachs number"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The Hornbostel–Sachs classification number for this instrument type, as a literal string (e.g. \"314.122-4-8\" for piano). Optional; carried as a literal because HS codes are not quantitative values (Principle 11)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

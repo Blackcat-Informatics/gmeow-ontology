@@ -2231,7 +2231,8 @@ fn read_list_member_subjects(store: &RdfDataset, head: &Node) -> Vec<Subject> {
 /// the reifier obligation the strengthened one (present shape / required OR). A same-path but
 /// opposite-`inverse` pair constrains different statements (forward vs. inverse) and is never
 /// merged. Deterministic: groups keep first-seen path order, and [`PropertyConstraintIr::new`]
-/// sorts the merged components into canonical order. A merged `min > max` is a genuine
+/// sorts the merged components into canonical order. Explicit severities must agree;
+/// an unannotated member does not erase the explicit value. A merged `min > max` is a genuine
 /// contradiction and hard-fails through the constructor, never a silent drop.
 fn merge_same_path_properties(
     props: Vec<PropertyConstraintIr>,
@@ -2261,6 +2262,7 @@ fn merge_same_path_properties(
         let mut reifier_shape: Option<String> = None;
         let mut reification_required = false;
         let mut messages = Vec::new();
+        let mut severity: Option<ShaclSeverity> = None;
         for p in group {
             if let Some(lo) = p.min_count {
                 min_count = Some(min_count.map_or(lo, |cur| cur.max(lo)));
@@ -2278,11 +2280,28 @@ fn merge_same_path_properties(
             }
             reification_required |= p.reification_required;
             messages.extend(p.messages);
+            if let Some(explicit) = p.severity {
+                if let Some(previous) = severity
+                    && previous != explicit
+                {
+                    return Err(Diag::of_kind(crate::error::Frontend {
+                        detail: format!(
+                            "conflicting explicit severities on property {path}: {} and {}",
+                            previous.as_str(),
+                            explicit.as_str(),
+                        ),
+                    }));
+                }
+                severity = Some(explicit);
+            }
         }
         let provenance = (min_count.is_some() || max_count.is_some())
             .then_some(ConstraintProvenance::OwlRestriction);
         let mut pc = PropertyConstraintIr::new(path, min_count, max_count, provenance, components)?
             .with_messages(messages)?;
+        if let Some(explicit) = severity {
+            pc = pc.with_severity(explicit);
+        }
         if inverse {
             pc = pc.inverted();
         }
@@ -2827,6 +2846,18 @@ pub fn derive_validation_shapes(
             .push(pc);
     }
 
+    // Restriction annotations belong to the property condition they describe.
+    // Absence stays implicit; an explicit severity is preserved through same-path merging.
+    let with_restriction_metadata = |property: PropertyConstraintIr,
+                                     restriction: &Subject|
+     -> gmeow_errors::Result<PropertyConstraintIr> {
+        let mut property = property.with_messages(read_messages(store, restriction)?)?;
+        if value(store, restriction, &nn(&logic_iri("severity"))).is_some() {
+            property = property.with_severity(sugar_severity(store, restriction)?);
+        }
+        Ok(property)
+    };
+
     // ── FAMILY 1 — per-class restriction walk (Class(C) target) ───────────────────────────
     // A shape-target class is found by its typing marker under EITHER spelling: the canonical
     // `logic:Class` (Principle 17) or its legacy `owl:Class` view. Reading both keeps the derived
@@ -2957,7 +2988,7 @@ pub fn derive_validation_shapes(
                         )?;
                         entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                             .2
-                            .push(pc);
+                            .push(with_restriction_metadata(pc, &restr_subj)?);
                     }
                 }
                 Some(filler @ Node::Blank { .. }) => {
@@ -2976,7 +3007,7 @@ pub fn derive_validation_shapes(
                             )?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
-                                .push(pc);
+                                .push(with_restriction_metadata(pc, &restr_subj)?);
                         } else if let Some(cc) = classify_filler(&fs) {
                             let min = closed_requirements
                                 .contains(&(class_iri.clone(), on.clone()))
@@ -2990,7 +3021,7 @@ pub fn derive_validation_shapes(
                             )?;
                             entry_for(&mut acc, ShapeTarget::Class(class_iri.clone()))
                                 .2
-                                .push(pc);
+                                .push(with_restriction_metadata(pc, &restr_subj)?);
                         }
                     }
                 }

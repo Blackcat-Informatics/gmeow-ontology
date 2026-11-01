@@ -84,3 +84,8 @@ msgstr "在任意 gmeow:Entity 上以普通字面量表示：软件发行版、�
 msgctxt "https://blackcatinformatics.ca/gmeow/versionLabel|http://www.w3.org/2004/02/skos/core#example"
 msgid "gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
 msgstr "示例：gmeow:release1 gmeow:versionLabel \"v2.1.0-beta\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/versionFingerprint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A content fingerprint of the versioned entity — a hash, SWHID, content digest, or semantic identifier. Broader than gmeow:contentDigest (which identifies an exact byte preimage and is domain-free): versionFingerprint covers semantic fingerprints where exact bytes are not the identity criterion (e.g. a normalized form, a canonicalized serialization). Non-functional: a single entity may carry several fingerprints under different algorithms or schemes."
+msgstr "版本化实体的内容指纹：哈希、SWHID、内容摘要或语义标识符。其范围比标识精确字节原像且无定义域的 gmeow:contentDigest 更广；versionFingerprint 涵盖不以精确字节作为身份准则的语义指纹，如规范化形式或规范序列化。此属性非函数性；单个实体可以具有不同算法或方案的多个指纹。"

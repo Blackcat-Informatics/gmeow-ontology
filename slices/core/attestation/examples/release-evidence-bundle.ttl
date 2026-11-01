@@ -28,7 +28,7 @@ ex:releaseConsumer a gmeow:SoftwareAgent ;
 #     this example keeps the WEMI spine out of scope to focus on the frames.
 ex:gmeowRelease a gmeow:CreativeWork ;
     gmeow:title         "gmeow.gts signed release bundle"@x-gmeow-english ;
-    gmeow:contentDigest "blake3:0000000000000000000000000000000000000000000000000000000000000000" .
+    gmeow:contentDigest "0000000000000000000000000000000000000000000000000000000000000000"^^gmeow:blake3_256Digest .
 
 # --- The Ed25519 release signature, carried by every attestation in the bundle.
 ex:releaseSig a gmeow:CryptographicSignature ;
@@ -53,7 +53,7 @@ ex:releaseAttestation a gmeow:Attestation ;
 # === Child attestation 1: the public conformance-suite verdicts. ===============
 ex:conformanceArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/json" ;
-    gmeow:contentDigest     "blake3:2222222222222222222222222222222222222222222222222222222222222222" .
+    gmeow:contentDigest     "2222222222222222222222222222222222222222222222222222222222222222"^^gmeow:blake3_256Digest .
 
 ex:conformanceAttestation a gmeow:Attestation ;
     gmeow:attester            ex:releaseBot ;
@@ -67,7 +67,7 @@ ex:conformanceAttestation a gmeow:Attestation ;
 # === Child attestation 2: the SHACL/diagnostics SARIF findings (quality report).
 ex:sarifArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/sarif+json" ;
-    gmeow:contentDigest     "blake3:3333333333333333333333333333333333333333333333333333333333333333" .
+    gmeow:contentDigest     "3333333333333333333333333333333333333333333333333333333333333333"^^gmeow:blake3_256Digest .
 
 ex:sarifAttestation a gmeow:Attestation ;
     gmeow:attester            ex:releaseBot ;
@@ -81,7 +81,7 @@ ex:sarifAttestation a gmeow:Attestation ;
 # === Child attestation 3: the machine-readable compliance report (quality report).
 ex:complianceArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "text/turtle" ;
-    gmeow:contentDigest     "blake3:4444444444444444444444444444444444444444444444444444444444444444" .
+    gmeow:contentDigest     "4444444444444444444444444444444444444444444444444444444444444444"^^gmeow:blake3_256Digest .
 
 ex:complianceAttestation a gmeow:Attestation ;
     gmeow:attester            ex:releaseBot ;
@@ -95,7 +95,7 @@ ex:complianceAttestation a gmeow:Attestation ;
 # === Child attestation 4: the perf results, carried as DATA, never a gate. ======
 ex:perfArtifact a gmeow:AttestationArtifact ;
     gmeow:artifactMediaType "application/json" ;
-    gmeow:contentDigest     "blake3:5555555555555555555555555555555555555555555555555555555555555555" .
+    gmeow:contentDigest     "5555555555555555555555555555555555555555555555555555555555555555"^^gmeow:blake3_256Digest .
 
 ex:perfAttestation a gmeow:Attestation ;
     gmeow:attester            ex:releaseBot ;

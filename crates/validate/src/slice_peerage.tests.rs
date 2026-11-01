@@ -145,7 +145,12 @@ fn grounding_catalog(root: &Path) -> SliceCatalog {
                 rdfs:label "ext" .
             "#,
     );
-    SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
 }
 
 fn artifact_evidence(slice: &str) -> ArtifactEvidence {
@@ -555,7 +560,12 @@ fn class_filter_catalog(root: &Path) -> SliceCatalog {
                 gmeow:relatedTerm gmeow:widgetDocAndRealTerm .
             "#,
     );
-    SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
 }
 
 /// Class A is REACHABLE, not dead code: prove that `purrdf`'s ownership
@@ -617,7 +627,12 @@ fn a_slice_iri_really_is_a_validated_owned_term_so_class_a_is_reachable() {
                 gmeow:ceilingSlice <https://blackcatinformatics.ca/gmeow/slices/owner> .
             "#,
     );
-    let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)
         .analyze()
         .unwrap();
@@ -1184,7 +1199,12 @@ fn tier_catalog(root: &Path) -> SliceCatalog {
                 gmeow:sliceTier gmeow:tierExtension .
             "#,
     );
-    SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
 }
 
 #[test]
@@ -1295,7 +1315,12 @@ fn declared_forbidden_catalog(root: &Path) -> SliceCatalog {
                 gmeow:sliceTier gmeow:tierExtension .
             "#,
     );
-    SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
 }
 
 /// R5 must judge the DECLARED `gmeow:sliceDependsOn` set, not only computed
@@ -1449,7 +1474,12 @@ fn grounding_doctrine_catalog(root: &Path) -> SliceCatalog {
                 rdfs:label "belief state" .
             "#,
     );
-    SliceCatalog::discover(&root.join("slices"), vocab()).unwrap()
+    SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap()
 }
 
 /// Proof the gate is NEEDED: the identical crossing is tier-legal, so R5
@@ -1622,7 +1652,12 @@ fn a_declared_grounding_to_domain_dependency_alone_is_not_a_doctrine_breach() {
                 gmeow:sliceTier gmeow:tierCore .
             "#,
     );
-    let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let report = OwnershipReport {
         ownership: std::collections::HashMap::default(),
         edges: Vec::new(),
@@ -1741,7 +1776,12 @@ fn a_marker_naming_an_undeclared_grounding_domain_does_not_fire() {
                 gmeow:groundingConceptDomain <https://blackcatinformatics.ca/gmeow/groundingDomainNeverDeclared> .
             "#,
     );
-    let catalog = SliceCatalog::discover(&root.join("slices"), vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let report = OwnershipReport {
         ownership: std::collections::HashMap::default(),
         edges: vec![edge(
@@ -1775,7 +1815,12 @@ fn a_marker_naming_an_undeclared_grounding_domain_does_not_fire() {
 #[test]
 fn the_real_corpus_marks_the_box_role_cluster_and_owns_every_marked_concept() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../slices");
-    let catalog = SliceCatalog::discover(&dir, vocab()).unwrap();
+    let catalog = SliceCatalog::discover(
+        &dir,
+        vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let corpus = CorpusIndex::build(&catalog).unwrap();
     let concepts = &corpus.grounding_concepts;
     let report = purrdf::slice::OwnershipAnalyzer::new(&catalog)

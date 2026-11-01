@@ -97,8 +97,11 @@ struct PageGroup {
 /// each catalog's entries by their `msgctxt` term-IRI page key, and emits the page rendering
 /// + roll-up records plus the exec-docs boundary gap.
 pub fn build_corpus(root: &std::path::Path) -> Result<LangDocsRenderingCorpus, gmeow_errors::Diag> {
-    let catalog =
-        purrdf::slice::SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
+    let catalog = purrdf::slice::SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     let ownership = purrdf::slice::OwnershipAnalyzer::new(&catalog).analyze()?;
     let pages = gmeow_docs::model::documented_term_iris(&catalog, &ownership);
     let sources = gmeow_docs::ontology_catalogs::for_repository(root, &catalog)?;

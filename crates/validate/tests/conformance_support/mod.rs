@@ -995,10 +995,13 @@ impl GraphStore {
     /// every call returns the SAME dataset instance.
     fn slice_dataset(&self) -> &SliceDataset {
         self.slice_ds.get_or_init(|| {
-            let canonical = canonical_flat_nquads(&self.ds)
-                .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
+            let canonical = canonical_flat_nquads(
+                &self.ds,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .unwrap_or_else(|e| panic!("canonical slice n-quads failed: {e}"));
             SliceDataset::parse(
-                canonical.as_bytes(),
+                canonical.nquads().as_bytes(),
                 "application/n-quads",
                 None,
                 "slice view",

@@ -116,7 +116,7 @@ struct Prose {
     sign_system_iri: String,
     /// The HONEST Unicode normalization-form label the bytes are actually in.
     normalization: String,
-    /// The `sha256:`-prefixed `logic:candidateSourceHash`, byte-identical to the obligations
+    /// The bare SHA-256 hexadecimal `logic:candidateSourceHash`, byte-identical to the obligations
     /// gate's recomputation over the same raw text.
     source_hash: String,
     /// The carried `logic:Correspondence` (the [`PlainTextBridge`] law spine) whose facets
@@ -572,10 +572,11 @@ fn emit_ntriples(proses: &[Prose]) -> Vec<u8> {
             &iri(LANG_NS, "rawLevel"),
         ));
         // The prose-hash the obligations gate resolves THROUGH this surface (byte-identical).
-        lines.push(triple_lit(
+        lines.push(triple_typed(
             &prose.surface_iri,
             &iri(LOGIC_NS, "candidateSourceHash"),
             &prose.source_hash,
+            "https://blackcatinformatics.ca/gmeow/sha256Digest",
         ));
         // THE attachment point of the law-spine: the surface carries exactly one
         // logic:Correspondence for its round-trip.

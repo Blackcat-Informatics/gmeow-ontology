@@ -41,10 +41,15 @@ use gmeow_ns::LOGIC_NS;
 pub fn lower_model(model: &OntoumlModel, world_iri: &str) -> Result<(String, usize), OntoumlError> {
     let dataset = lower_model_dataset(model, world_iri)?;
     let count = dataset.quads().count();
-    let text = purrdf::try_canonicalize_flat_view(dataset.as_ref(), purrdf::CanonHash::Sha256)
-        .map_err(gmeow_errors::Diag::from)
-        .map_err(OntoumlError::from)?
-        .nquads;
+    let text = purrdf::try_canonicalize_flat_view(
+        dataset.as_ref(),
+        purrdf::CanonHash::Sha256,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(gmeow_errors::Diag::from)
+    .map_err(OntoumlError::from)?
+    .nquads()
+    .to_owned();
     Ok((text, count))
 }
 

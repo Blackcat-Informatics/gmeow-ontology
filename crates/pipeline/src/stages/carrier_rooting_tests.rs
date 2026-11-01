@@ -227,12 +227,20 @@ fn compile_project_reinsert_keeps_all_selected_graph_layers_and_world_boundaries
 fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics() {
     let source = compile_source("urn:standpoint:logic", "urn:standpoint:diagnostic");
     let expected = commitment_bundle(Arc::clone(&source))
-        .graph_digest(GRAPH_LOGIC)
+        .graph_digest(
+            GRAPH_LOGIC,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .unwrap();
     let mut selected = compile_logic_carrier_graphs(&compile_inputs(source)).unwrap();
     let mut bundle = commitment_bundle(selected.remove(0));
     bundle
-        .pin_handle(GRAPH_LOGIC, (), expected)
+        .pin_handle(
+            GRAPH_LOGIC,
+            (),
+            expected,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
         .expect("reinsertion preserves the logic pin");
     assert_eq!(bundle.handle(GRAPH_LOGIC).unwrap().content_digest, expected);
 
@@ -242,9 +250,22 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
     )))
     .unwrap();
     let mut changed = commitment_bundle(changed_metadata.remove(0));
-    assert_ne!(changed.graph_digest(GRAPH_LOGIC).unwrap(), expected);
+    assert_ne!(
+        changed
+            .graph_digest(
+                GRAPH_LOGIC,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
+        expected
+    );
     assert!(matches!(
-        changed.pin_handle(GRAPH_LOGIC, (), expected),
+        changed.pin_handle(
+            GRAPH_LOGIC,
+            (),
+            expected,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+        ),
         Err(purrdf::PipelineBundleError::HandleDigestMismatch { .. })
     ));
 
@@ -254,7 +275,15 @@ fn logic_handle_commitment_tracks_reinserted_metadata_and_excludes_diagnostics()
     )))
     .unwrap();
     let diagnostic_only = commitment_bundle(changed_diagnostics.remove(0));
-    assert_eq!(diagnostic_only.graph_digest(GRAPH_LOGIC).unwrap(), expected);
+    assert_eq!(
+        diagnostic_only
+            .graph_digest(
+                GRAPH_LOGIC,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
+            .unwrap(),
+        expected
+    );
 }
 
 #[test]

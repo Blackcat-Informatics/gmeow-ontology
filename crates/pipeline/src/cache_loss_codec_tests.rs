@@ -154,8 +154,20 @@ fn product(handle: PipelineHandle) -> StageProduct {
         Arc::new(ContentStore::new()),
         DatasetProvenance::new(),
     );
-    let pin = bundle.graph_digest(GRAPH).unwrap();
-    bundle.pin_handle(GRAPH, handle, pin).unwrap();
+    let pin = bundle
+        .graph_digest(
+            GRAPH,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
+    bundle
+        .pin_handle(
+            GRAPH,
+            handle,
+            pin,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     StageProduct::from_bundle("stage-loss-codec", Arc::new(bundle))
         .expect("the stage carrier digests")
 }
@@ -534,8 +546,14 @@ fn persistent_actions_preserve_loss_vectors_in_both_binary_handle_arms() {
         let restored = &hit.product.bundle().handle(GRAPH).unwrap().payload;
         assert_same(&expected, restored);
         assert_eq!(
-            hit.product.bundle().graph_digest(GRAPH),
-            product.bundle().graph_digest(GRAPH)
+            hit.product.bundle().graph_digest(
+                GRAPH,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            ),
+            product.bundle().graph_digest(
+                GRAPH,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None)
+            )
         );
     }
 }

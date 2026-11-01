@@ -1019,7 +1019,11 @@ fn slice_group_name(root: &Path, slice_dir: &Path) -> (String, String) {
 }
 
 fn collect_slice_terms(root: &Path) -> Result<BTreeMap<String, Vec<TranslationKey>>> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     let localizable: HashSet<&str> = LOCALIZABLE_PREDICATES.iter().copied().collect();
     let mut groups: BTreeMap<String, BTreeMap<(String, String), TranslationKey>> = BTreeMap::new();
     let mut english_seen: BTreeMap<(String, String, String), BTreeSet<String>> = BTreeMap::new();
@@ -1091,7 +1095,11 @@ pub fn extract_catalog(
     lang: Option<&str>,
     terms_only: bool,
 ) -> Result<ExtractReport> {
-    let catalog = SliceCatalog::discover(&root.join("slices"), gmeow_ns::gmeow_slice_vocab())?;
+    let catalog = SliceCatalog::discover(
+        &root.join("slices"),
+        gmeow_ns::gmeow_slice_vocab(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )?;
     let by_iri: BTreeMap<String, (String, String)> = catalog
         .records()
         .iter()

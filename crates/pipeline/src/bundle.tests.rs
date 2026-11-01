@@ -43,7 +43,12 @@ fn bundle_digest_changes_with_artifacts_and_is_stable() {
     let b = bundle_from_artifacts(arts(&[("p", b"two")]), DatasetProvenance::new());
     let a2 = bundle_from_artifacts(arts(&[("p", b"one")]), DatasetProvenance::new());
     let digest = |bundle: &purrdf::PipelineBundle<PipelineHandle>| {
-        bundle.digest().expect("the carrier digests")
+        bundle
+            .digest(&mut purrdf::CanonicalizationControl::new(
+                purrdf::RDFC_V2_CORPUS_POLICY,
+                None,
+            ))
+            .expect("the carrier digests")
     };
     assert_ne!(digest(&a), digest(&b), "different bytes → different digest");
     assert_eq!(digest(&a), digest(&a2), "same artifacts → same digest");

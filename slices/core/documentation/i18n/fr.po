@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: documentation, language: fr).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 digest of the available competency query texts exercising the documented term, joined with a newline in model order. Its gmeow:blake3_256Digest literal contains 64 lowercase hexadecimal digits without a prefix and permits query drift detection without carrying the query bodies."
+msgstr "Le condensat BLAKE3-256 des textes de requêtes de compétence disponibles qui exercent le terme documenté, joints par un saut de ligne dans l’ordre du modèle. Son littéral gmeow:blake3_256Digest contient 64 chiffres hexadécimaux minuscules sans préfixe et permet de détecter la dérive des requêtes sans porter leurs corps."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:docCompetencyQueryDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:docCompetencyQueryDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docRawDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SHA-256 digest of the exact raw source bytes carried by a documented document's artifact record. Its gmeow:sha256Digest literal contains 64 lowercase hexadecimal digits without a prefix; whitespace edits change the digest."
+msgstr "Le condensat SHA-256 des octets source bruts exacts portés par l’enregistrement d’artefact d’un document documenté. Son littéral gmeow:sha256Digest contient 64 chiffres hexadécimaux minuscules sans préfixe ; les modifications d’espacement changent le condensat."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docRawDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:docRawDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:record gmeow:docRawDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."

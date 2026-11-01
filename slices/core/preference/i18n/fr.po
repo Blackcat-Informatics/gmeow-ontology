@@ -280,3 +280,48 @@ msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierOutcomeFunctionality|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Scope: this record carries ONE integrity obligation about gmeow:verifierOutcome and nothing else. It is not a definition of gmeow:verifierOutcome (that lives on the term itself), not a shape, and not a second place to state the term's meaning — retire the record rather than broaden it."
 msgstr "Portée : cet enregistrement porte UNE seule obligation d'intégrité au sujet de gmeow:verifierOutcome, et rien d'autre. Ce n'est pas une définition de gmeow:verifierOutcome (celle-ci figure sur le terme lui-même), ni une forme, ni un second endroit où énoncer le sens du terme — retirez l'enregistrement plutôt que de l'élargir."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ComparisonContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:ctx1 a gmeow:ComparisonContext ; gmeow:contextTask ex:goalSummarize ; gmeow:contextStandpoint ex:editorStandpoint ; gmeow:contextPolicy ex:housePolicy ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:registersObservation ex:obs1 , ex:obs2 ."
+msgstr "ex:ctx1 a gmeow:ComparisonContext ; gmeow:contextTask ex:goalSummarize ; gmeow:contextStandpoint ex:editorStandpoint ; gmeow:contextPolicy ex:housePolicy ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ; gmeow:registersObservation ex:obs1 , ex:obs2 ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ProjectionReceipt|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:rec1 a gmeow:ProjectionReceipt ; gmeow:projectionKind gmeow:projectionListwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:projectionDeterminism gmeow:determinismDeterministic ; gmeow:tieBreakRule \"lexicographic-by-iri\" ; logic:preservationKind logic:SoundUnderApproximation ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:rec1 a gmeow:ProjectionReceipt ; gmeow:projectionKind gmeow:projectionListwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:projectionDeterminism gmeow:determinismDeterministic ; gmeow:tieBreakRule \"lexicographic-by-iri\" ; logic:preservationKind logic:SoundUnderApproximation ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DpoView|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:dpo1 a gmeow:DpoView ; gmeow:projectionKind gmeow:projectionPairwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:dpo1 a gmeow:DpoView ; gmeow:projectionKind gmeow:projectionPairwise ; gmeow:projectionSourceSet ex:cs1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/ModelConfigDelta|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:delta1 a gmeow:ModelConfigDelta ; gmeow:deltaBaseArtifact ex:baseCkpt ; gmeow:deltaTokenizer ex:tok1 ; gmeow:deltaCodebook ex:cb1 ; gmeow:deltaDatasetProjection ex:rec1 ; gmeow:deltaSelectionQuery ex:sq1 ; gmeow:deltaPromptIdentity ex:sysPrompt ; gmeow:deltaRubricIdentity ex:rubric1 ; gmeow:deltaEngine ex:eng1 ; gmeow:deltaOptimizer ex:opt1 ; gmeow:deltaSeed 42 ; gmeow:deltaEvaluationEvidence ex:span1 ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/TokenizerContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:tok1 a gmeow:TokenizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CodebookContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:cb1 a gmeow:CodebookContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/SelectionQuery|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:sq1 a gmeow:SelectionQuery ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/EngineContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:eng1 a gmeow:EngineContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/OptimizerContract|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:opt1 a gmeow:OptimizerContract ; gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."

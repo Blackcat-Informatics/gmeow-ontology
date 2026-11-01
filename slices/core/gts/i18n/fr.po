@@ -506,8 +506,8 @@ msgid "measured corpus digest"
 msgstr "empreinte mesurée du corpus"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The identity of the WHOLE corpus this build resolved for the dictionary — held-out members included — written in the canonical blake3:<64 lowercase hex> form: every resolved sample's own digest, one per line in canonical digest order, hashed again. Exactly one per realization. It exists because a gmeow:DictionaryCorpus is a SELECTOR re-resolved on every build, so an archive that gains or loses one member moves the corpus while the committed sweep evidence sits still; recording the identity is what lets the build REFUSE (gmeow:MediumCorpusDrift) instead of grading itself against numbers taken over different material. Held-out members are inside the digest deliberately: the sweep's argmin depends on the whole frame, so a held-out member that changed would leave the training set alone while moving the bytes every grid cell was scored over. It is over the samples' DIGESTS rather than over their concatenated bytes so the value costs bounded memory on a corpus whose members run to hundreds of megabytes, and so a reader who prints one member's digest can see it in this one's input."
-msgstr "L'identité du corpus ENTIER que cette construction a résolu pour le dictionnaire — membres mis en réserve compris — écrite sous la forme canonique blake3:<64 lowercase hex> : l'empreinte propre de chaque échantillon résolu, une par ligne dans l'ordre canonique des empreintes, hachée à nouveau. Exactement une par réalisation. Elle existe parce qu'un gmeow:DictionaryCorpus est un SÉLECTEUR ré-résolu à chaque construction : une archive qui gagne ou perd un membre déplace le corpus alors que les preuves de balayage consignées, elles, ne bougent pas ; consigner l'identité est ce qui permet à la construction de REFUSER (gmeow:MediumCorpusDrift) au lieu de se noter face à des nombres pris sur une autre matière. Les membres mis en réserve figurent délibérément dans l'empreinte : l'argmin du balayage dépend de la trame entière, si bien qu'un membre mis en réserve qui changerait laisserait le jeu d'entraînement intact tout en déplaçant les octets sur lesquels chaque cellule de la grille a été notée. Elle porte sur les EMPREINTES des échantillons plutôt que sur leurs octets concaténés, afin que la valeur coûte une mémoire bornée sur un corpus dont les membres atteignent des centaines de mégaoctets, et afin qu'un lecteur qui affiche l'empreinte d'un membre puisse la retrouver dans l'entrée de celle-ci."
+msgid "The BLAKE3-256 digest of the whole resolved dictionary corpus, including held-out members: sort and deduplicate the sample internal digest strings, join them with a newline, then hash those exact UTF-8 bytes. The RDF value uses gmeow:blake3_256Digest with 64 lowercase hexadecimal digits without a prefix. Exactly one per realization; it pins the committed sweep evidence to the selected corpus rather than only its training members."
+msgstr "Condensat BLAKE3-256 du corpus résolu complet du dictionnaire, membres réservés compris : trier et dédupliquer les chaînes internes de condensat des échantillons, les joindre par un saut de ligne, puis condenser ces octets UTF-8 exacts. La valeur RDF utilise gmeow:blake3_256Digest avec 64 chiffres hexadécimaux minuscules sans préfixe. Exactement un par réalisation ; il lie les preuves de balayage consignées au corpus sélectionné plutôt qu’aux seuls membres d’entraînement."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusSampleCount|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "measured corpus sample count"
@@ -690,8 +690,8 @@ msgid "strata digest"
 msgstr "empreinte de strate"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/strataDigest|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The digest of the sub-payload named by gmeow:envelopeDigestStratum, written 'blake3:<hex>'. Exactly one per envelope. It is deliberately NOT a subproperty of gmeow:contentDigest: contentDigest is byte-exact identity of the WHOLE artifact, and a consumer that treated a stratum digest as whole-artifact identity would compare unequal things. The two coexist on every envelope — gmeow:contentDigest carries snapshot_content_id() verbatim, so the stratum digest is a strict ADDITION to the total witness, never a replacement for it. Without the stratum the snapshot envelope would be self-referential and its emission would not converge."
-msgstr "L'empreinte de la sous-charge utile nommée par gmeow:envelopeDigestStratum, notée 'blake3:<hex>'. Exactement une par enveloppe. Ce n'est délibérément PAS une sous-propriété de gmeow:contentDigest : contentDigest est l'identité exacte à l'octet de l'artefact ENTIER, et un consommateur qui traiterait une empreinte de strate comme identité de l'artefact entier comparerait des choses inégales. Les deux coexistent sur chaque enveloppe — gmeow:contentDigest porte littéralement snapshot_content_id(), si bien que l'empreinte de strate est un AJOUT strict au témoin total, jamais son remplacement. Sans la strate, l'enveloppe de l'instantané serait auto-référentielle et son émission ne convergerait pas."
+msgid "The BLAKE3-256 digest of the exact sub-payload bytes named by envelopeDigestStratum, carried as a gmeow:blake3_256Digest literal with bare lowercase hexadecimal digits. Exactly one per envelope. It remains distinct from contentDigest: on the self-referential snapshot envelope that property retains the builder's snapshot_content_id preimage, not a hash of the final distributed file."
+msgstr "Condensat BLAKE3-256 des octets exacts de la sous-charge nommée par envelopeDigestStratum, porté par un littéral gmeow:blake3_256Digest en hexadécimal minuscule sans préfixe. Exactement un par enveloppe. Il reste distinct de contentDigest : sur l’enveloppe autoréférentielle de l’instantané, cette propriété conserve la préimage snapshot_content_id du constructeur, et non un hachage du fichier distribué final."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/trainsOverCorpus|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "trains over corpus"
@@ -1122,3 +1122,33 @@ msgstr "Un littéral d’empreinte de dictionnaire dont la valeur lexicale comme
 msgctxt "https://blackcatinformatics.ca/gmeow/CompressionDictionaryRealization|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
 msgstr "ex:realCoreV1 a gmeow:CompressionDictionaryRealization ; gmeow:realizesDictionary gmeow:dictGmeowCoreV1 ; gmeow:dictionaryContentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:measuredCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:measuredCorpusDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/measuredCorpusDigest|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting a measured corpus digest on its authored selector, changing the recorded digest to bless stale evidence, or omitting held-out members from its exact preimage. Keep internal blake3: addresses distinct from the typed RDF literal."
+msgstr "Éviter d’asserter un condensat mesuré sur le sélecteur rédigé, de modifier le condensat consigné pour légitimer des preuves périmées ou d’omettre les membres réservés de sa préimage exacte. Distinguer les adresses internes blake3: du littéral RDF typé."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/strataDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:strataDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:strataDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+
+msgctxt "https://blackcatinformatics.ca/logic/MediumStrataDigestFormConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lexical check for a supplied strataDigest: exactly 64 lowercase hexadecimal digits without a prefix. The property range separately requires the BLAKE3-256 digest datatype; this check does not recompute the selected stratum bytes."
+msgstr "Vérification lexicale d’un strataDigest fourni : exactement 64 chiffres hexadécimaux minuscules sans préfixe. La portée de la propriété exige séparément le type de condensat BLAKE3-256 ; cette vérification ne recalcule pas les octets de la strate sélectionnée."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasuredCorpusDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "admission d’un condensat d’octets fourni"
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/MeasuredCorpusDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "Chaque condensat d’octets fourni sur les propriétés sélectionnées conserve un type d’algorithme admis et sa largeur hexadécimale minuscule exacte, sans préfixe. Cette vérification ne calcule aucun condensat et ne prouve pas la vérification des octets source."

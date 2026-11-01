@@ -18,6 +18,7 @@
     dcterms:creator "Blackcat Informatics® Inc." ;
     gmeow:sliceTier gmeow:tierCore ;
     gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/math> ,
         <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,

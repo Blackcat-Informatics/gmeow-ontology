@@ -9,14 +9,14 @@ gmeow:contentDigest
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
     rdfs:label "content digest"@x-gmeow-english ;
-    rdfs:range rdfs:Literal ;
-    skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
-    skos:example "ex:report gmeow:contentDigest \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ;
+    skos:definition "A supplied digest of an artifact's exact identified byte preimage, with algorithm identity carried by gmeow:blake3_256Digest, gmeow:sha256Digest or gmeow:md5Digest. The lexical form is bare lowercase hexadecimal: 64 digits for BLAKE3-256 and SHA-256, 32 for MD5. Domain-free and non-functional, so digests under several algorithms may coexist. A typed claim does not prove that the artifact was read or its bytes verified; scheme, history and canonical-model identifiers belong on their own identity properties."@x-gmeow-english ;
+    skos:example "ex:report gmeow:contentDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."@x-gmeow-english ;
     skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using a path, filename, or URL as identity (that is gmeow:sourceLocation, audit-only) and avoid making it functional — one artifact may legitimately carry digests under several algorithms."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:contentDigest with an algorithm-prefixed literal (\"blake3:…\", \"sha256:…\", \"git:…\") on any content-addressable artifact; multiple algorithm digests coexist, and consumers deduplicate by matching digests."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a content hash of an artifact's bytes — the reliable by-content identity, since two objects with the same bytes are the same object regardless of path, name, or mtime."@x-gmeow-english .
+    gmeow:howToUse "Retain each supplied digest's bare hexadecimal lexical form and algorithm datatype on the artifact whose exact byte preimage it identifies. Compare complete RDF terms; preserve several algorithms without coercing their values or relabeling Git, SWH or model identifiers as raw-byte hashes."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain a supplied algorithm-typed digest of an artifact's identified byte preimage for content comparison and provenance."@x-gmeow-english .
 
 gmeow:sourceLocation
     a logic:DatatypeProperty ;
@@ -207,3 +207,20 @@ gmeow:encodedByteLength
 
 # Explicit property-range validation; no required path on unrelated records.
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/encodedByteLength" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+[ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/contentDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
+
+gmeow:ContentDigestValueConstraint
+    a logic:Constraint ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:label "supplied byte digest admission"@x-gmeow-english ;
+    skos:definition "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."@x-gmeow-english ;
+    logic:formalizes gmeow:contentDigest ;
+    logic:severity "Violation" ;
+    logic:message "A supplied byte digest requires its admitted algorithm datatype and bare lowercase hexadecimal digits of the required width." ;
+    logic:integrity [ a logic:Formula ;
+        logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ;
+        logic:forall [ a logic:Formula ;
+            logic:antecedent [ a logic:Formula ; logic:relation gmeow:contentDigest ; logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ], [ logic:termIndex 1 ; logic:termVariable "value" ] ] ;
+            logic:consequent [ a logic:Formula ; logic:or [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:blake3_256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:sha256Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{64}$" ] ] ], [ a logic:Formula ; logic:and [ a logic:Formula ; logic:relation logic:termSameComponent ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termIri logic:componentDatatype ], [ logic:termIndex 2 ; logic:termIri gmeow:md5Digest ], [ logic:termIndex 3 ; logic:termIri logic:componentWhole ] ], [ a logic:Formula ; logic:relation logic:termRegex ; logic:argument [ logic:termIndex 0 ; logic:termVariable "value" ], [ logic:termIndex 1 ; logic:termLiteral "^[0-9a-f]{32}$" ] ] ] ] ] ] .

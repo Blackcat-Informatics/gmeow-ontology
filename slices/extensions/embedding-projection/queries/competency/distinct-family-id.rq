@@ -3,7 +3,7 @@
 # component — model, inference engine, execution (precision / deterministic-inference),
 # tokenizer, subject-projection / text-serialization, preprocessing, chunking, pooling,
 # generation-time normalization, truncation, dtype, byte order, or quantization — yet
-# SHARE one gmeow:contentDigest. The family IS the generation contract, so a shared
+# SHARE one gmeow:versionFingerprint. The family IS the generation contract, so a shared
 # digest across materially different contracts is a collision that would make two
 # incomparable families look like one. Family-level twin of distinct-vector-space-id.rq
 # and the direct SPARQL check of competency test 2 ("materially different generation
@@ -12,8 +12,8 @@
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 
 SELECT ?a ?b WHERE {
-  ?a a gmeow:EmbeddingFamily ; gmeow:contentDigest ?d .
-  ?b a gmeow:EmbeddingFamily ; gmeow:contentDigest ?d .
+  ?a a gmeow:EmbeddingFamily ; gmeow:versionFingerprint ?d .
+  ?b a gmeow:EmbeddingFamily ; gmeow:versionFingerprint ?d .
   FILTER(STR(?a) < STR(?b))
   {
     ?a gmeow:embeddingModel ?xa . ?b gmeow:embeddingModel ?xb . FILTER(?xa != ?xb)

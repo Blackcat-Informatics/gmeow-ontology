@@ -18,8 +18,8 @@ msgid "charset"
 msgstr "字符集"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The character encoding of an information object's textual content, recorded as a charset label such as utf-8 or iso-8859-1. The same property applies to MIME parts and other textual carriers."
-msgstr "信息对象文本内容的字符编码，以 utf-8 或 iso-8859-1 等字符集标签记录。同一属性适用于 MIME 部分和其他文本载体。"
+msgid "The supplied character-encoding label of an information object's textual content, such as utf-8 or iso-8859-1, retained as xsd:string or xsd:token. The same property applies to MIME parts and other textual carriers; it neither selects a language nor normalizes the source label."
+msgstr "信息对象文本内容所提供的字符编码标签，如 utf-8 或 iso-8859-1，保留为 xsd:string 或 xsd:token。同一属性适用于 MIME 部分和其他文本载体；它既不选择语言，也不规范化来源标签。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/charset|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Charset labels form an open vocabulary; this property does not impose a closed registry or normalize the supplied literal."
@@ -710,8 +710,8 @@ msgid "media type name"
 msgstr "媒体类型名称"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string. It is a machine code, separate from the carrier's charset and other MIME parameters."
-msgstr "MediaType 值表示的不含参数的精确 MIME 类型/子类型拼写，以 xsd:string 表示。这是机器代码，独立于载体的 charset 和其他 MIME 参数。"
+msgid "The exact parameter-free MIME type/subtype spelling denoted by a MediaType value, represented as xsd:string or xsd:token. It is a machine code, separate from the carrier's charset and other MIME parameters."
+msgstr "MediaType 值表示的不含参数的精确 MIME 类型/子类型拼写，以 xsd:string 或 xsd:token 表示。这是机器代码，独立于载体的 charset 和其他 MIME 参数。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaTypeName|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the exact MIME spelling of an identified media-type value is needed by a consumer or at a serialization boundary."
@@ -1214,8 +1214,8 @@ msgid "Avoid token whitespace collapse, inferred colour profiles or claims of ve
 msgstr "避免 token 空白折叠、推断色彩配置或声称已验证解码像素。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep exact case, spaces and spelling in xsd:string on the media artifact."
-msgstr "在媒体制品上以 xsd:string 保留精确大小写、空格和拼写。"
+msgid "Keep exact case, spaces and spelling in xsd:string or xsd:token on the media artifact."
+msgstr "在媒体制品上以 xsd:string 或 xsd:token 保留精确大小写、空格和拼写。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "No parser, channel-count computation or closed code enumeration is supplied."
@@ -1224,3 +1224,8 @@ msgstr "不提供解析器、通道数计算或封闭代码枚举。"
 msgctxt "https://blackcatinformatics.ca/gmeow/channelLayout|http://www.w3.org/2004/02/skos/core#example"
 msgid "For example: ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."
 msgstr "例如：ex:image a gmeow:MediaObject ; gmeow:channelLayout \"RGBA\" ."
+
+
+msgctxt "https://blackcatinformatics.ca/gmeow/identifier|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A formal external identifier of a creative work, such as a DOI or patent number, retained as the supplied xsd:string or xsd:token literal. Its scheme and spelling remain unchanged; a work may carry several identifiers."
+msgstr "创作作品的正式外部标识符，如 DOI 或专利号，按所提供的 xsd:string 或 xsd:token 字面量保留。其方案和拼写不变；作品可以具有多个标识符。"

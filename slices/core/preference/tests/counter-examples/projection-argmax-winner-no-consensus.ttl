@@ -29,4 +29,4 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     gmeow:selectedCandidate ex:candA ;               # <-- argmax winner, no consensus gate cleared
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104" .
+    gmeow:contentDigest "d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104d104"^^gmeow:blake3_256Digest .

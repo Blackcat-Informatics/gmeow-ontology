@@ -722,12 +722,12 @@ gmeow:timeZoneIanaId
     rdfs:domain gmeow:TimeZone ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "time zone IANA id"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The IANA time zone identifier, e.g. America/Toronto, Europe/Paris, UTC."@x-gmeow-english ;
     skos:example "ex:torontoZone gmeow:timeZoneIanaId \"America/Toronto\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting two ids (it is functional — one tzid per zone) and avoid storing a fixed numeric offset here; the tzid, not an offset, names the zone's seasonal rules."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Write the IANA tzid as an xsd:string (America/Toronto, Europe/Paris, UTC); reference the gmeow:TimeZone from the calendar/schedule/event time-zone edges."@x-gmeow-english ;
+    gmeow:howToUse "Write the IANA tzid as an xsd:string or xsd:token (America/Toronto, Europe/Paris, UTC); reference the gmeow:TimeZone from the calendar/schedule/event time-zone edges."@x-gmeow-english ;
     gmeow:useWhen "Use to carry a gmeow:TimeZone's canonical IANA tzid string — the identifier libraries resolve to the full DST ruleset."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/calendar>
@@ -800,7 +800,7 @@ logic:supEvDisp a logic:Formula ; logic:relation gmeow:displayable ;
 <https://blackcatinformatics.ca/gmeow/Reminder> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/reminderAction> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/ReminderAction> ] .
 <https://blackcatinformatics.ca/gmeow/Reminder> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/reminderTarget> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/Event> ] .
 <https://blackcatinformatics.ca/gmeow/Task> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/taskStatus> ; logic:allValuesFrom <https://blackcatinformatics.ca/gmeow/TaskStatus> ] .
-<https://blackcatinformatics.ca/gmeow/TimeZone> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/timeZoneIanaId> ; logic:allValuesFrom <http://www.w3.org/2001/XMLSchema#string> ] .
+<https://blackcatinformatics.ca/gmeow/TimeZone> logic:subClassOf [ a logic:Restriction ; logic:onProperty <https://blackcatinformatics.ca/gmeow/timeZoneIanaId> ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilityAgent" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilitySlot" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
 [ a <https://blackcatinformatics.ca/logic/ClosureEntry> ; <https://blackcatinformatics.ca/logic/onClass> <https://blackcatinformatics.ca/gmeow/Availability> ; <https://blackcatinformatics.ca/logic/closureKey> "https://blackcatinformatics.ca/gmeow/availabilityStatus" ; <https://blackcatinformatics.ca/logic/closureValue> <https://blackcatinformatics.ca/logic/ClosedWorldClosure> ] .
@@ -832,7 +832,7 @@ gmeow:Reminder logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:minQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:reminderTrigger ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] .
 gmeow:TimeZone logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:timeZoneIanaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange xsd:string ] .
+    [ a logic:Restriction ; logic:onProperty gmeow:timeZoneIanaId ; logic:maxQualifiedCardinality 1 ; logic:onDataRange [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ] .
 
 # EventSchedule wiring choice: at least one of a template event or a recurrence rule
 # (the disjunctive-requiredness image of the retired gmeow:ScheduleHasRuleShape sh:or).

@@ -165,11 +165,11 @@ gmeow:lotteryDigest
     skos:definition "The source-supplied algorithm-tagged digest of the draw that selected the dream. It names draw evidence, not the selection record's own content bytes or proof of fairness."@x-gmeow-english ;
     gmeow:useWhen "Use when the source supplies the digest naming its selection draw."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting the selection artifact's contentDigest or inventing an algorithm tag."@x-gmeow-english ;
-    gmeow:howToUse "Retain the exact tagged xsd:string; require its algorithm name and nonempty payload."@x-gmeow-english ;
+    gmeow:howToUse "Retain the exact tagged xsd:string or xsd:token; require its algorithm name and nonempty payload."@x-gmeow-english ;
     skos:scopeNote "Lexical validation neither verifies bytes nor proves draw fairness or randomness."@x-gmeow-english ;
     skos:example "For example: ex:choice gmeow:lotteryDigest \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\" ."@x-gmeow-english ;
     logic:domain gmeow:DreamSelection ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 [ a logic:ClosureEntry ; logic:closureKey "https://blackcatinformatics.ca/gmeow/lotteryDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 

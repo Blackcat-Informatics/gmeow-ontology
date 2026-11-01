@@ -1400,8 +1400,11 @@ ex:iri a logic:PathNodeKindConstraint ;
         quad.predicate == "http://www.w3.org/2002/07/owl#onProperty"
             && quad.object == purrdf::RdfTerm::iri("https://ex/metadata")
     }));
-    let mut native = purrdf::entail::Reasoner::with_proofs(&reader)
-        .expect("annotation integrity must not create invalid logical role restrictions");
+    let mut native = purrdf::entail::Reasoner::with_proofs(
+        &reader,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("annotation integrity must not create invalid logical role restrictions");
     native
         .prepare(&purrdf::entail::Question::Consistency)
         .unwrap();
@@ -1417,6 +1420,7 @@ ex:iri a logic:PathNodeKindConstraint ;
             &purrdf::entail::Question::Consistency,
             Some(result.certificate()),
             &context,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .unwrap();
     let generated = project_procedural_constraints(&program);

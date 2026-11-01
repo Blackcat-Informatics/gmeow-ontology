@@ -20,10 +20,11 @@ use assert_cmd::Command;
 use predicates::prelude::*;
 use purrdf::{
     AppliedStage, ArtifactIdentity, ArtifactIdentityKind, CanonicalMetadataInput,
-    CertifiedPurrpckSource, ContentDigest, DimensionalityPolicy, DistanceMetric, EmbeddingBuilder,
-    EmbeddingFamilyContract, EmbeddingView, MatrixInput, MatrixRow, PrefixPostprocessing,
-    ProjectionSpec, RdfDatasetBuilder, RdfGraphTarget, RdfStatementTarget, RdfTermTarget,
-    RelationKind, StageImplementation, TargetRelation, TargetSet, VectorDtype, verify_embedding,
+    CertifiedEmbeddingSource, ContentDigest, DimensionalityPolicy, DistanceMetric,
+    EmbeddingBuilder, EmbeddingFamilyContract, EmbeddingView, MatrixInput, MatrixRow,
+    PrefixPostprocessing, ProjectionSpec, RdfDatasetBuilder, RdfGraphTarget, RdfStatementTarget,
+    RdfTermTarget, RelationKind, StageImplementation, TargetRelation, TargetSet, VectorDtype,
+    verify_embedding,
 };
 
 /// Shared IRI namespace: `ex:` expands to this in the query program, so a target
@@ -109,8 +110,11 @@ fn build_fixture() -> Fixture {
     let dataset = RdfDatasetBuilder::new()
         .freeze()
         .expect("empty RDF dataset");
-    let (source, source_bytes) =
-        CertifiedPurrpckSource::from_dataset(&dataset).expect("certified source pack");
+    let (source, source_bytes) = CertifiedEmbeddingSource::from_dataset(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("certified source pack");
     let dataset_target = source.dataset_target(true).expect("dataset target");
 
     let contract = family_contract();
@@ -200,8 +204,11 @@ fn build_statement_fixture() -> Fixture {
     let dataset = RdfDatasetBuilder::new()
         .freeze()
         .expect("empty RDF dataset");
-    let (source, source_bytes) =
-        CertifiedPurrpckSource::from_dataset(&dataset).expect("certified source pack");
+    let (source, source_bytes) = CertifiedEmbeddingSource::from_dataset(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .expect("certified source pack");
     let dataset_target = source.dataset_target(true).expect("dataset target");
 
     let contract = family_contract();
@@ -400,7 +407,6 @@ fn purremb_hybrid_query_prints_answers_and_retrieval_receipt() {
         .args(["--dtype", "f32"])
         .args(["--postprocessing", "none"])
         .args(["--retrieval-policy", "exact-full-space"])
-        .args(["--source-mode", "certified"])
         .assert()
         .success()
         .stdout(
@@ -427,7 +433,7 @@ fn purremb_hybrid_query_prints_answers_and_retrieval_receipt() {
                     ids.vector_space
                 )))
                 .and(predicate::str::contains("policy=exact-full-space"))
-                .and(predicate::str::contains("source-mode=certified")),
+                .and(predicate::str::contains("source-profile=purrpck-v1-full")),
         );
 }
 
@@ -469,7 +475,6 @@ fn purremb_hybrid_query_triple_term_corpus_returns_quoted_triple_candidates() {
         .args(["--dtype", "f32"])
         .args(["--postprocessing", "none"])
         .args(["--retrieval-policy", "exact-full-space"])
-        .args(["--source-mode", "certified"])
         .args(["--term-kind", "triple-term"])
         .assert()
         .success()
@@ -528,7 +533,6 @@ fn purremb_hybrid_query_perturbed_source_fails_with_no_answers() {
         .args(["--dtype", "f32"])
         .args(["--postprocessing", "none"])
         .args(["--retrieval-policy", "exact-full-space"])
-        .args(["--source-mode", "certified"])
         .assert()
         .failure()
         .stdout(predicate::str::contains("answer ").not());
@@ -564,7 +568,6 @@ fn purremb_hybrid_query_wrong_matrix_identity_fails_with_no_answers() {
         .args(["--dtype", "f32"])
         .args(["--postprocessing", "none"])
         .args(["--retrieval-policy", "exact-full-space"])
-        .args(["--source-mode", "certified"])
         .assert()
         .failure()
         .stdout(predicate::str::contains("answer ").not());
@@ -599,7 +602,6 @@ fn purremb_hybrid_query_missing_effective_dimension_is_a_clear_usage_error() {
         .args(["--dtype", "f32"])
         .args(["--postprocessing", "none"])
         .args(["--retrieval-policy", "exact-full-space"])
-        .args(["--source-mode", "certified"])
         .assert()
         .failure()
         .stderr(predicate::str::contains(

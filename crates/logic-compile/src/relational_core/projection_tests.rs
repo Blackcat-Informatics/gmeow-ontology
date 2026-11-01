@@ -84,9 +84,13 @@ fn projection_identity_preserves_execution_order_and_blank_sharing() {
     );
 
     let native = project_relational_core_dataset(&source).unwrap();
-    let canonical = purrdf::try_canonicalize(&native).unwrap();
+    let canonical = purrdf::try_canonicalize(
+        &native,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .unwrap();
     let reparsed =
-        purrdf::parse_dataset(canonical.nquads.as_bytes(), "application/n-quads", None).unwrap();
+        purrdf::parse_dataset(canonical.nquads().as_bytes(), "application/n-quads", None).unwrap();
     let renamed = parse_relational_core(&reparsed).unwrap();
     assert_eq!(
         source.projection_key().unwrap(),

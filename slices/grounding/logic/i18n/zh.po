@@ -5675,8 +5675,8 @@ msgid "Names which annotation field of the logic:candidateFormalizes term a cand
 msgstr "指明某候选项采集了 logic:candidateFormalizes 词项的哪个注释字段——来自封闭集合的一个 logic:ProseField(logic:ProseFieldDefinition、logic:ProseFieldUseWhen、logic:ProseFieldAvoidWhen)。它与 logic:candidateFormalizes 一并把被采集公理钉到确切的源三元组。它与 logic:candidateFormalizes 共同呈现:一个候选项只携带这对中的一个而缺另一个,即为一项硬治理错误(verify.harvest-link-paired),绝非半个链接。单值。定义域 logic:FormalizationCandidate,值域 logic:ProseField。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateSourceHash|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The content hash of the source text a logic:FormalizationCandidate was extracted from: the anchor that ties the candidate back to the exact prose it formalizes and detects drift if that prose changes. Single-valued, xsd:string. Domain logic:FormalizationCandidate."
-msgstr "某 logic:FormalizationCandidate 被抽取自的源文本的内容哈希:即把候选项回系到其所形式化的确切散文、并在该散文变化时检测漂移的锚点。单值,xsd:string。定义域 logic:FormalizationCandidate。"
+msgid "The SHA-256 digest of the exact source a formalization candidate was extracted from, carried as gmeow:sha256Digest with 64 lowercase hexadecimal digits without a prefix. Prose harvests hash the raw prose lexical UTF-8 bytes without language tags, quotes or a trailing newline; conjecture-promotion candidates hash the alpha-normalized formula content_key UTF-8 bytes. Single-valued; the source binding identifies which preimage applies."
+msgstr "形式化候选所提取精确来源的 SHA-256 摘要，以 gmeow:sha256Digest 承载，包含 64 位不带前缀的小写十六进制。散文采集对原始散文词法 UTF-8 字节求哈希，不包含语言标签、引号或尾随换行；猜想提升候选对经过 alpha 规范化的公式 content_key 的 UTF-8 字节求哈希。单值；来源绑定确定适用的原像。"
 
 msgctxt "https://blackcatinformatics.ca/logic/candidateTenureClaimSurfacing|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The derivation-rule formalization candidate governing logic:ruleTenureClaimVantage and logic:ruleTenureClaimObservedFeature: it harvests the tenure→claim mapping documented in gmeow:StandpointTenure's skos:definition (the tenureStandpoint maps to the claim's vantage; the tenurePosition maps to the claim's observedFeature) into two enforced positive-Horn derivation rules, materialized natively as logic:ExactPreservation. Accepted through review (logic:reviewedBy logic:reviewerLogicFoundation) with a positive case (logic:cqTenureClaimSurfacingHolds) and a negative countermodel (logic:cqTenureClaimSurfacingSwapRejected). Its harvest back-link (logic:candidateFormalizes gmeow:StandpointTenure, logic:candidateSourceField logic:ProseFieldDefinition) ties it to the exact prose, and logic:candidateSourceHash is the sha256 of that definition text so a later edit surfaces as drift."
@@ -6055,8 +6055,8 @@ msgid "The corpus entailment pre-order over conjectures: logic:conjectureEntails
 msgstr "语料在猜想上的蕴含预序：logic:conjectureEntails 将公式 phi 关联到它所蕴含的公式 psi（phi 是 psi 的模型），因此对 psi 的反驳会逆否地传播到 phi（若 psi 被反驳，则 phi 不能成立）。该关系在意图上是预序（自反且传递），但其完整的传递闭包并不作为存储关系被物化：词汇表承载每一条成对的边，传播能力查询（conjecture-entails-propagation.rq）直接在这些边上进行推理，因此逆否传播是可查询的，而无需将全语料范围的闭包计算为持久化的外延。每条边本身都是一次猜想检验（即 phi 确实蕴含 psi），而非裸断言。定义域 logic:Conjecture，值域 logic:Conjecture。"
 
 msgctxt "https://blackcatinformatics.ca/logic/conjectureFormula|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The canonical, alpha-normalized identity of the conjectured formula: the content_key string of the full first-order AST (the alpha-normalized content identity from the full-FOL formula AST), so two conjectures that name the same formula up to bound-variable renaming share one key and cannot be double-counted. Single-valued, xsd:string. Domain logic:Conjecture."
-msgstr "被猜想公式的规范化、经 alpha 归一化的身份：完整一阶 AST 的 content_key 字符串（源自完整 FOL 公式 AST 的经 alpha 归一化的内容身份），从而使两个在约束变量重命名意义下指称同一公式的猜想共享同一个键，不会被重复计数。单值，xsd:string。定义域 logic:Conjecture。"
+msgid "The canonical, alpha-normalized identity of the conjectured formula: the content_key string of the full first-order AST (the alpha-normalized content identity from the full-FOL formula AST), so two conjectures that name the same formula up to bound-variable renaming share one key and cannot be double-counted. Single-valued, xsd:string or xsd:token. Domain logic:Conjecture."
+msgstr "被猜想公式的规范化、经 alpha 归一化的身份：完整一阶 AST 的 content_key 字符串（源自完整 FOL 公式 AST 的经 alpha 归一化的内容身份），从而使两个在约束变量重命名意义下指称同一公式的猜想共享同一个键，不会被重复计数。单值，xsd:string 或 xsd:token。定义域 logic:Conjecture。"
 
 msgctxt "https://blackcatinformatics.ca/logic/ConjectureLifecycleState|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The closed four-member value class of the logic:conjectureLifecycleState facet: the EPISTEMIC state a logic:Conjecture occupies, ORTHOGONAL to the GOVERNANCE lifecycle (logic:CandidateLifecycleState) it inherits from the candidate spine — Principle 9 refuses to collapse two distinct axes into one. Its individuals are logic:ConjectureOpen, logic:ConjectureCorroborated, logic:ConjectureRefutedInStandpoint and logic:ConjectureWithdrawn, each projected from a Belnap truth-value origin (Supported becomes Corroborated; Opposed or Both becomes RefutedInStandpoint; Neither-conclusive becomes Open carrying logic:ObligationDischarged; Undetermined or BudgetExhausted becomes Open carrying logic:ObligationUnknown; Withdrawn is an author action, never engine-produced). The set is closed, so a misspelt state names no declared value and is rejected (design/LOGIC-FOUNDATION.md, the conjecture-and-refutation section)."
@@ -10175,8 +10175,8 @@ msgid "Each list member is a facet record interpreted against the base named by 
 msgstr "列表中的每个成员都是一条面记录，依据由 logic:onDatatype 命名的基础进行解释。"
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessIndividual|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The individual a logic:ContradictionWitness records as forced to OWL Nothing — the entity whose type became unsatisfiable under the conjectured formula, identifying exactly where the contradiction bit. Single-valued, xsd:string (the individual's IRI as a string). Domain logic:ContradictionWitness."
-msgstr "logic:ContradictionWitness 记录为被迫归于 OWL Nothing 的个体——即在所猜想公式之下其类型变得不可满足的实体，精确标明矛盾在何处咬合。单值，xsd:string（个体的 IRI 作为字符串）。定义域 logic:ContradictionWitness。"
+msgid "The individual a logic:ContradictionWitness records as forced to OWL Nothing — the entity whose type became unsatisfiable under the conjectured formula, identifying exactly where the contradiction bit. Single-valued, the individual's IRI as an object. Domain logic:ContradictionWitness."
+msgstr "logic:ContradictionWitness 记录为被迫归于 OWL Nothing 的个体——即在所猜想公式之下其类型变得不可满足的实体，精确标明矛盾在何处咬合。单值，以个体 IRI 作为对象。定义域 logic:ContradictionWitness。"
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessPremise|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A premise that participated in the contradiction a logic:ContradictionWitness records — one serialized triple (subject predicate object) per value, MULTI-valued because a refutation typically rests on several jointly-inconsistent facts. Together the premises are the minimal derivation the reader can replay to see why the formula is refuted from the standpoint. Multi-valued, xsd:string. Domain logic:ContradictionWitness."
@@ -10187,8 +10187,8 @@ msgid "Relates an individual to an anti-rigid type it instantiates with no mater
 msgstr "将一个个体关联到它所实例化的、却没有物化反世界来见证其反刚性的反刚性类型：即反刚性下沉在严格的见证者必需策略下发出的实例级诊断（LOGIC-SEMANTICS.md §Anti-rigidity needs a witness policy）。对于在某世界中由反刚性角色或相位 T 定型的个体 x，若不存在另一个 x 存在但未被 T 定型的物化世界，则在定型世界中蕴含一条 logic:witnessRequiredViolation 事实；一个见证 x 存在且未被 T 定型的反世界会清偿该义务，从而不发出违反。与默认的见证-义务策略（它发出 logic:dischargeObligation，是义务而非违反）不同，此策略将缺失的反世界视为硬失败；见证世界本身的构造按需发生。它绝不由手工断言；其存在是一份机器可核验的证明，表明某个反刚性实例化缺少其反刚性所要求的存在世界。"
 
 msgctxt "https://blackcatinformatics.ca/logic/witnessWorld|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The world IRI the logic:ContradictionWitness was found in — the modal/context world within the conjecture's standpoint where the contradiction was realized, so the refutation stays world-scoped rather than asserted across all worlds. Single-valued, xsd:string (the world IRI as a string). Domain logic:ContradictionWitness."
-msgstr "找到 logic:ContradictionWitness 所在的世界 IRI——即在猜想立场之内实现矛盾的模态/语境世界，从而使反驳保持局限于一个世界，而非跨所有世界断言。单值，xsd:string（世界 IRI 作为字符串）。定义域 logic:ContradictionWitness。"
+msgid "The world IRI the logic:ContradictionWitness was found in — the modal/context world within the conjecture's standpoint where the contradiction was realized, so the refutation stays world-scoped rather than asserted across all worlds. Single-valued, the world IRI as an object. Domain logic:ContradictionWitness."
+msgstr "找到 logic:ContradictionWitness 所在的世界 IRI——即在猜想立场之内实现矛盾的模态/语境世界，从而使反驳保持局限于一个世界，而非跨所有世界断言。单值，以世界 IRI 作为对象。定义域 logic:ContradictionWitness。"
 
 msgctxt "https://blackcatinformatics.ca/logic/WorldBoundary|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A scoped region within which the closed-world assumption applies: it demarcates where what is not derivable may be read as false, leaving the rest of the model under the open-world assumption. The scoping construct of the hybrid open/closed feature (LOGIC-FOUNDATION.md §Greenfield feature map): the closed-world (CWA) lane realized by the built-in SHACL is confined to what a WorldBoundary encloses, while logic: outside it stays open-world. Enforcement is seamed to the engine."
@@ -18543,8 +18543,8 @@ msgid "MCP tool name"
 msgstr "MCP 工具名称"
 
 msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string."
-msgstr "logic:ActionSchema 所治理的 MCP（Model Context Protocol）工具的确切线路名称——客户端在 `tools/call` 中填入的字符串，例如 'store_conjecture'。模式的本地名是依据该动作本身是什么而选定的本体名称（向猜想库追加内容的动作以“追加”命名，而非以触发它的工具命名），因此它有意不必等同于工具的线路名；本属性把线路名作为已断言的事实来承载，这正是使表面↔理论对应关系可被核验、而非靠改写本地名去猜测的原因。它声明在 logic:ActionSchema 上而非 logic:McpActionSchema 上，因为该对应关系还必须覆盖读取类工具：读取是普通的 logic:ActionSchema（补偿义务对它是空洞的），却仍是一件对外公布的工具。受治理表面上的既定纪律是双射——每件公布的工具恰好命名一个模式，每个模式也恰好命名一件公布的工具——这正是使动作理论在其工具表面上是全覆盖而非抽样的原因。定义域 logic:ActionSchema；值域 xsd:string。"
+msgid "The EXACT wire name of the MCP (Model Context Protocol) tool a logic:ActionSchema governs — the string a client puts in `tools/call`, such as 'store_conjecture'. A schema's local name is an ONTOLOGY name chosen for what the action IS (an append to the conjecture library is named for the appending, not for the tool that triggers it), so it deliberately need not equal the tool's wire name; this property carries the wire name as an ASSERTED fact, which is what lets a surface↔theory correspondence be checked rather than guessed by mangling local names. Declared on logic:ActionSchema, not on logic:McpActionSchema, because the correspondence must cover the READ tools too: a read is a plain logic:ActionSchema (a compensation obligation would be vacuous on it) and is still an advertised tool. The intended discipline on a governed surface is BIJECTION — every advertised tool names exactly one schema and every schema names exactly one advertised tool — which is what makes an action theory TOTAL over its tool surface rather than a sample of it. Domain logic:ActionSchema; range xsd:string or xsd:token."
+msgstr "logic:ActionSchema 所治理的 MCP（Model Context Protocol）工具的确切线路名称——客户端在 `tools/call` 中填入的字符串，例如 'store_conjecture'。模式的本地名是依据该动作本身是什么而选定的本体名称（向猜想库追加内容的动作以“追加”命名，而非以触发它的工具命名），因此它有意不必等同于工具的线路名；本属性把线路名作为已断言的事实来承载，这正是使表面↔理论对应关系可被核验、而非靠改写本地名去猜测的原因。它声明在 logic:ActionSchema 上而非 logic:McpActionSchema 上，因为该对应关系还必须覆盖读取类工具：读取是普通的 logic:ActionSchema（补偿义务对它是空洞的），却仍是一件对外公布的工具。受治理表面上的既定纪律是双射——每件公布的工具恰好命名一个模式，每个模式也恰好命名一件公布的工具——这正是使动作理论在其工具表面上是全覆盖而非抽样的原因。定义域 logic:ActionSchema；值域 xsd:string 或 xsd:token。"
 
 msgctxt "https://blackcatinformatics.ca/logic/mcpToolName|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:persistConjecture a logic:McpActionSchema ; logic:mcpToolName \"store_conjecture\" ."
@@ -23286,8 +23286,8 @@ msgid "grounding source digest"
 msgstr "奠基源摘要"
 
 msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:definition"
-msgid "The SHA-256 content identity of the complete original owned mapping artifact bytes, including the exact source alignment envelope."
-msgstr "完整原始所属映射制品字节的 SHA-256 内容身份，包括精确的源对齐封装。"
+msgid "The SHA-256 digest of the complete original owned mapping artifact bytes, including the exact source alignment envelope. Its gmeow:sha256Digest literal contains 64 lowercase hexadecimal digits without a prefix; admission requires equality with the original artifact's recomputed digest."
+msgstr "完整原始归属映射制品字节的 SHA-256 摘要，包括精确来源对齐封套。其 gmeow:sha256Digest 字面量包含 64 位不带前缀的小写十六进制；准入要求其等于原始制品重新计算的摘要。"
 
 msgctxt "https://blackcatinformatics.ca/logic/groundingSourceDigest|skos:example"
 msgid "SELECT ?value WHERE { ?record logic:groundingSourceDigest ?value . }"
@@ -24154,3 +24154,23 @@ msgstr "原始宾语作为原生 RDF 项比较，包括空白节点作用域。�
 msgctxt "https://blackcatinformatics.ca/logic/componentTripleObject|http://www.w3.org/2004/02/skos/core#example"
 msgid "An object selector on a quoted supersession edge paired with a whole selector on its positively bound predecessor checks that the edge names that exact predecessor."
 msgstr "引用取代边的宾语选择器与其正向绑定前驱的完整项选择器配对，检查该边是否指定那个确切前驱。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/SourceHashValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/SourceHashValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/GroundingSourceDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+
+msgctxt "https://blackcatinformatics.ca/logic/GroundingSourceDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"

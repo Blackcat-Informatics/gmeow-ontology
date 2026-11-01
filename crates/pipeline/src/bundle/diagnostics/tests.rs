@@ -435,7 +435,12 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
     );
     let mut wrong = product(owner, rich_report(owner));
     let bundle = Arc::make_mut(&mut wrong.bundle);
-    let pin = bundle.graph_digest(GRAPH_DIAGNOSTICS).unwrap();
+    let pin = bundle
+        .graph_digest(
+            GRAPH_DIAGNOSTICS,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+        )
+        .unwrap();
     bundle
         .pin_handle(
             GRAPH_DIAGNOSTICS,
@@ -446,6 +451,7 @@ fn native_diagnostics_refuse_missing_wrong_and_substituted_publications() {
                 None,
             ))),
             pin,
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )
         .unwrap();
     assert!(

@@ -48,7 +48,7 @@ ex:incomingRecipient a gmeow:ChatMessageParticipant ;
 # content, rather than a replacement error report. Identities are illustrative.
 ex:receivedPart0 a gmeow:UnreadableChatPart ;
     gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:4444444444444444444444444444444444444444444444444444444444444444" ;
+    gmeow:contentDigest "4444444444444444444444444444444444444444444444444444444444444444"^^gmeow:sha256Digest ;
     gmeow:sourceLocation "https://example.org/archive/received-part-0" ;
     gmeow:chatPartReader ex:readerA .
 
@@ -63,18 +63,18 @@ ex:pictureExpression a gmeow:Expression ;
 ex:deliveryImage a gmeow:MediaObject ;
     gmeow:embodies ex:pictureExpression ;
     gmeow:chatTransport ex:network ;
-    gmeow:contentDigest "sha256:5555555555555555555555555555555555555555555555555555555555555555" ;
+    gmeow:contentDigest "5555555555555555555555555555555555555555555555555555555555555555"^^gmeow:sha256Digest ;
     gmeow:sourceMedia ex:sourceImageBytes ;
     gmeow:hasTag gmeow:tagContainsIllustrativeText .
 
 ex:sourceImageBytes a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:6666666666666666666666666666666666666666666666666666666666666666" .
+    gmeow:contentDigest "6666666666666666666666666666666666666666666666666666666666666666"^^gmeow:sha256Digest .
 
 # Reader A found the accompanying sender text inconsistent with the typed image
 # part. Both originals survive. The classification does not rewrite either one.
 ex:mirrorPart2 a gmeow:DisagreeingChatText ;
     gmeow:entryOrdinal "2"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:7777777777777777777777777777777777777777777777777777777777777777" ;
+    gmeow:contentDigest "7777777777777777777777777777777777777777777777777777777777777777"^^gmeow:sha256Digest ;
     gmeow:sourceLocation "https://example.org/archive/sender-text-2" ;
     gmeow:chatPartReader ex:readerA ;
     gmeow:disagreesWithPart ex:imagePart1 .
@@ -112,7 +112,7 @@ ex:auxiliaryRecipient a gmeow:ChatMessageParticipant ;
 
 ex:auxiliaryPart a gmeow:ChatMessagePart ;
     gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:8888888888888888888888888888888888888888888888888888888888888888" ;
+    gmeow:contentDigest "8888888888888888888888888888888888888888888888888888888888888888"^^gmeow:sha256Digest ;
     gmeow:sourceLocation "https://example.org/archive/auxiliary-body" .
 
 ex:terminal a gmeow:ChatMessage ;
@@ -139,5 +139,5 @@ ex:terminalRecipient a gmeow:ChatMessageParticipant ;
 
 ex:terminalPart a gmeow:ChatMessagePart ;
     gmeow:entryOrdinal "0"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "sha256:9999999999999999999999999999999999999999999999999999999999999999" ;
+    gmeow:contentDigest "9999999999999999999999999999999999999999999999999999999999999999"^^gmeow:sha256Digest ;
     gmeow:sourceLocation "https://example.org/archive/terminal-body" .

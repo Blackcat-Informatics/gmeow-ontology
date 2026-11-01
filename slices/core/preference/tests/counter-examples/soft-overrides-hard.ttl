@@ -31,7 +31,7 @@ ex:goal a gmeow:Goal ; rdfs:label "select the strongest response"@en .
 
 ex:ctx a gmeow:ComparisonContext ;
     gmeow:contextTask ex:goal ;
-    gmeow:contentDigest "blake3:e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105" ;
+    gmeow:contentDigest "e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105e105"^^gmeow:blake3_256Digest ;
     gmeow:registersObservation ex:obs .
 ex:feat a gmeow:InformationObject ; gmeow:hasPart ex:candA , ex:candB .
 ex:obs a gmeow:PreferenceObservation ;
@@ -70,4 +70,4 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     gmeow:selectedCandidate ex:candA ;               # <-- hard-failing candidate selected as winner
     logic:preservationKind logic:ExactPreservation ;
-    gmeow:contentDigest "blake3:e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205" .
+    gmeow:contentDigest "e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205e205"^^gmeow:blake3_256Digest .

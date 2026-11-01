@@ -26,16 +26,16 @@ msgid "toolArguments is functional"
 msgstr "toolArguments est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolArguments is functional: a tool call carries exactly one verbatim arguments payload, the single byte-faithful record (or its content digest) of what was presented to the tool. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:toolArguments est fonctionnelle : un appel d'outil porte exactement une charge utile d'arguments textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce qui a été présenté à l'outil. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgid "Asserts that toolArguments admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."
+msgstr "Affirme que toolArguments admet au plus un littéral de charge opaque par appel d’outil. Aucune charge n’est requise et le champ opaque n’est pas assimilé à un compagnon structuré."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "toolResult is functional"
 msgstr "toolResult est fonctionnelle"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Asserts on the canonical carrier that gmeow:toolResult is functional: a tool call returns exactly one verbatim result payload, the single byte-faithful record (or its content digest) of what the tool returned. This record is not a definition of that term and never a shape: the obligation is reasoned from the record, not restated elsewhere."
-msgstr "Affirme sur le porteur canonique que gmeow:toolResult est fonctionnelle : un appel d'outil renvoie exactement une charge utile de résultat textuelle exacte, l'unique enregistrement fidèle à l'octet (ou son condensé de contenu) de ce que l'outil a renvoyé. Cet enregistrement n'est pas une définition de ce terme et jamais une forme : l'obligation est raisonnée à partir de l'enregistrement, non redite ailleurs."
+msgid "Asserts that toolResult admits at most one opaque payload literal per tool call. It requires no payload and does not equate the opaque slot with a structured companion."
+msgstr "Affirme que toolResult admet au plus un littéral de charge opaque par appel d’outil. Aucune charge n’est requise et le champ opaque n’est pas assimilé à un compagnon structuré."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/usedToolFunctionality|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "usedTool is functional"
@@ -62,8 +62,8 @@ msgid "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByI
 msgstr "gmeow:calledByInvocationFunctionality logic:characterizes gmeow:calledByInvocation ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:toolArguments names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:toolArguments nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use to enforce at most one supplied opaque payload without requiring its presence."
+msgstr "Utiliser pour imposer au plus une charge opaque fournie sans exiger sa présence."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -78,8 +78,8 @@ msgid "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments 
 msgstr "gmeow:toolArgumentsFunctionality logic:characterizes gmeow:toolArguments ."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the native coherence gate must enforce that gmeow:toolResult names exactly one value; this record is the canonical carrier the gate joins, so the obligation is reasoned rather than restated on a shape surface."
-msgstr "À utiliser lorsque le portail de cohérence natif doit garantir que gmeow:toolResult nomme exactement une valeur ; cet enregistrement est le porteur canonique que le portail joint, de sorte que l'obligation est raisonnée plutôt que redite sur une surface de formes."
+msgid "Use to enforce at most one supplied opaque payload without requiring its presence."
+msgstr "Utiliser pour imposer au plus une charge opaque fournie sans exiger sa présence."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/toolResultFunctionality|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid this record when a second value would make the record ambiguous — retire the assertion instead of weakening it, and never mirror it as a hand-authored shape."
@@ -566,3 +566,99 @@ msgstr "Les preuves source et la configuration restent distinctes. Des enregistr
 msgctxt "https://blackcatinformatics.ca/gmeow/attentionMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:attentionMessage \"source-value\" ."
 msgstr "ex:record gmeow:attentionMessage \"source-value\" ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool arguments structured"
+msgstr "charge structurée des arguments"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The optional single StructuredValue occurrence describing the tool call's arguments payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."
+msgstr "L’unique occurrence facultative de StructuredValue décrivant la charge arguments de l’appel d’outil. Elle décrit le contenu de l’événement, non une entité produite ; son absence n’affirme ni valeur nulle ni conteneur vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the arguments payload needs a sanctioned structured RDF home or role-specific media metadata."
+msgstr "Utiliser lorsque la charge arguments nécessite une représentation RDF structurée reconnue ou des métadonnées de média propres à son rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."
+msgstr "Éviter de traiter cette description de charge comme un lien de sortie produite ou d’en déduire l’équivalence avec un littéral opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."
+msgstr "Relier une occurrence de charge ; conserver ses termes natifs et sa structure. Pour un média opaque, placer le littéral dans structuredTerm et mediaType et charset sur cette occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArgumentsStructured|http://www.w3.org/2004/02/skos/core#example"
+msgid "The arguments payload can be an empty map, explicit null or a native directional literal without a JSON object literal."
+msgstr "La charge arguments peut être une table vide, une valeur nulle explicite ou un littéral directionnel natif sans littéral objet JSON."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result structured"
+msgstr "charge structurée du résultat"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The optional single StructuredValue occurrence describing the tool call's result payload. It describes event content, not a generated entity; absence asserts neither null nor an empty container."
+msgstr "L’unique occurrence facultative de StructuredValue décrivant la charge résultat de l’appel d’outil. Elle décrit le contenu de l’événement, non une entité produite ; son absence n’affirme ni valeur nulle ni conteneur vide."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the result payload needs a sanctioned structured RDF home or role-specific media metadata."
+msgstr "Utiliser lorsque la charge résultat nécessite une représentation RDF structurée reconnue ou des métadonnées de média propres à son rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this payload description as a generated-output link or inferring equivalence with an opaque literal."
+msgstr "Éviter de traiter cette description de charge comme un lien de sortie produite ou d’en déduire l’équivalence avec un littéral opaque."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link one payload occurrence; retain its native terms and structure. For opaque media, put the literal in structuredTerm and mediaType and charset on that occurrence."
+msgstr "Relier une occurrence de charge ; conserver ses termes natifs et sa structure. Pour un média opaque, placer le littéral dans structuredTerm et mediaType et charset sur cette occurrence."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResultStructured|http://www.w3.org/2004/02/skos/core#example"
+msgid "The result payload can be an empty map, explicit null or a native directional literal without a JSON object literal."
+msgstr "La charge résultat peut être une table vide, une valeur nulle explicite ou un littéral directionnel natif sans littéral objet JSON."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque arguments literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolArgumentsStructured."
+msgstr "Littéral opaque arguments enregistré pour un appel d’outil, ou localisateur de condensé explicitement défini par son profil d’enregistrement. Cette charge d’événement n’est pas un lien d’entité produite. Le contrat générique contentDigest ne définit pas de chaînes de localisation préfixées. Au plus une valeur est admise ; le RDF structuré utilise toolArgumentsStructured."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool arguments"
+msgstr "arguments de l’outil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an opaque payload supplied by the recording profile."
+msgstr "Utiliser pour conserver une charge opaque fournie par le profil d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."
+msgstr "Éviter d’exiger un littéral JSON opaque lorsque le RDF structuré est disponible ou de déduire un artefact produit du contenu de l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."
+msgstr "Conserver le littéral source et son profil déclaré. Pour les métadonnées de média propres au rôle, utiliser le compagnon structuré correspondant avec structuredTerm, mediaType et charset sur son occurrence de charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolArguments|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
+msgstr "Les médias opaques d’arguments et de résultat sont décrits sur des occurrences de charge distinctes liées à leur rôle."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The opaque result literal recorded for a tool call, or a digest locator explicitly defined by its recording profile. This event payload is not a generated entity link. The generic contentDigest contract does not define prefixed locator strings. At most one value is admitted; structured RDF uses toolResultStructured."
+msgstr "Littéral opaque résultat enregistré pour un appel d’outil, ou localisateur de condensé explicitement défini par son profil d’enregistrement. Cette charge d’événement n’est pas un lien d’entité produite. Le contrat générique contentDigest ne définit pas de chaînes de localisation préfixées. Au plus une valeur est admise ; le RDF structuré utilise toolResultStructured."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "tool result"
+msgstr "résultat de l’outil"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain an opaque payload supplied by the recording profile."
+msgstr "Utiliser pour conserver une charge opaque fournie par le profil d’enregistrement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring an opaque JSON literal when structured RDF is available or inferring a generated artifact from event content."
+msgstr "Éviter d’exiger un littéral JSON opaque lorsque le RDF structuré est disponible ou de déduire un artefact produit du contenu de l’événement."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source literal and its declared profile. For role-specific media metadata, use the corresponding structured companion with structuredTerm, mediaType and charset on its payload occurrence."
+msgstr "Conserver le littéral source et son profil déclaré. Pour les métadonnées de média propres au rôle, utiliser le compagnon structuré correspondant avec structuredTerm, mediaType et charset sur son occurrence de charge."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/toolResult|http://www.w3.org/2004/02/skos/core#example"
+msgid "Opaque arguments and result media are described on separate role-bound payload occurrences."
+msgstr "Les médias opaques d’arguments et de résultat sont décrits sur des occurrences de charge distinctes liées à leur rôle."

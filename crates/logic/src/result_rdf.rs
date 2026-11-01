@@ -2348,7 +2348,10 @@ fn emit_promotion_candidate_body(sink: &mut Sink, node: &Node, input: &Conjectur
     sink.push(
         node.clone(),
         logic("candidateSourceHash"),
-        Node::string(format!("sha256:{}", sha256_hex(input.content_key))),
+        Node::Lit {
+            lex: sha256_hex(input.content_key),
+            datatype: format!("{GMEOW_NAMESPACE}sha256Digest"),
+        },
     );
     sink.push(
         node.clone(),
@@ -2463,7 +2466,7 @@ pub struct ConjectureVerdictRecord {
 pub struct PromotionCandidateRecord {
     /// The content-addressed candidate node IRI.
     pub node: String,
-    /// `logic:candidateSourceHash` (the `sha256:` content hash of the conjectured formula).
+    /// `logic:candidateSourceHash` (the bare SHA-256 hexadecimal hash of the conjectured formula content key).
     pub source_hash: String,
     /// Every original `logic:candidateExtractionProvenance` statement, retaining
     /// the supplied literal language, direction and datatype.
@@ -2624,15 +2627,29 @@ fn parse_promotion_candidate(
             .and_then(|t| t.object_iri())
             .unwrap_or_default()
     };
-    let carrier_str = |local: &str| -> String {
-        triples
-            .for_subject(node)
-            .find(|t| t.predicate == logic(local))
-            .and_then(|t| t.object_string())
-            .unwrap_or_default()
-    };
+    let mut source_hash = None;
+    for field in triples
+        .for_subject(node)
+        .filter(|field| field.predicate == logic("candidateSourceHash"))
+    {
+        let value =
+            purrdf::TermValue::from_rdf_term(&triples.dataset.to_owned_term(field.object_id));
+        let hex = crate::obligations::admit_candidate_source_hash(&value)?.to_owned();
+        if source_hash
+            .as_ref()
+            .is_some_and(|previous| previous != &hex)
+        {
+            return Err(result_err(
+                "graph/conjecture: conflicting candidateSourceHash values".to_owned(),
+            ));
+        }
+        source_hash = Some(hex);
+    }
+    let source_hash = source_hash.ok_or_else(|| {
+        result_err("graph/conjecture: promotion candidate requires candidateSourceHash".to_owned())
+    })?;
     Ok(Some(PromotionCandidateRecord {
-        source_hash: carrier_str("candidateSourceHash"),
+        source_hash,
         extraction_provenance: promotion_candidate_prose(
             triples,
             node,

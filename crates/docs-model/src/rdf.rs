@@ -430,11 +430,11 @@ pub fn to_gmeow_rdf(
                     &mut lines,
                 );
             }
-            for (predicate, value) in &ev.str_props {
+            for (predicate, value) in &ev.digest_props {
                 triple(
                     &ev_iri,
                     &format!("{GMEOW}{predicate}"),
-                    &literal(value),
+                    &format!("{}^^<{GMEOW}blake3_256Digest>", literal(value)),
                     &mut lines,
                 );
             }
@@ -623,7 +623,7 @@ pub fn to_gmeow_rdf(
             triple(
                 &subject,
                 &format!("{GMEOW}docRawDigest"),
-                &literal(&doc.raw_digest),
+                &format!("{}^^<{GMEOW}sha256Digest>", literal(&doc.raw_digest)),
                 &mut lines,
             );
             // The RESOLVED page location — the resolver projection. `page_of`
@@ -1324,8 +1324,8 @@ struct Evidence {
     judgment: Option<String>,
     /// Typed `xsd:integer` count properties (predicate local name → value).
     int_props: Vec<(&'static str, i64)>,
-    /// Typed string properties (predicate local name → literal value).
-    str_props: Vec<(&'static str, String)>,
+    /// BLAKE3-256 digest properties (predicate local name → bare hexadecimal value).
+    digest_props: Vec<(&'static str, String)>,
 }
 
 /// Build the uniform evidence nodes for one documented term, in a fixed
@@ -1351,21 +1351,16 @@ fn term_evidence(
         .collect();
     if !comps.is_empty() {
         let grounded = comps.iter().map(|c| format!("<{}>", c.iri)).collect();
-        let mut str_props: Vec<(&'static str, String)> = Vec::new();
+        let mut digest_props: Vec<(&'static str, String)> = Vec::new();
         let queries: String = comps
             .iter()
             .filter_map(|c| c.query_text.as_deref())
             .collect::<Vec<_>>()
             .join("\n");
         if !queries.is_empty() {
-            str_props.push((
+            digest_props.push((
                 "docCompetencyQueryDigest",
-                format!(
-                    "blake3:{}",
-                    purrdf_hash::hex::encode(
-                        purrdf_hash::blake3::hash(queries.as_bytes()).as_bytes()
-                    )
-                ),
+                purrdf_hash::hex::encode(purrdf_hash::blake3::hash(queries.as_bytes()).as_bytes()),
             ));
         }
         out.push(Evidence {
@@ -1375,7 +1370,7 @@ fn term_evidence(
             grounded,
             judgment: None,
             int_props: vec![("docCompetencyCount", comps.len() as i64)],
-            str_props,
+            digest_props,
         });
     }
 
@@ -1399,7 +1394,7 @@ fn term_evidence(
             grounded,
             judgment: None,
             int_props: vec![("docFindingCount", findings.len() as i64)],
-            str_props: Vec::new(),
+            digest_props: Vec::new(),
         });
     }
 
@@ -1420,7 +1415,7 @@ fn term_evidence(
             grounded,
             judgment: None,
             int_props: vec![("docFixtureCount", fixtures.len() as i64)],
-            str_props: Vec::new(),
+            digest_props: Vec::new(),
         });
     }
 
@@ -1460,7 +1455,7 @@ fn term_evidence(
             int_props: vec![("docLossRowCount", loss_grounded.len() as i64)],
             grounded: loss_grounded,
             judgment: Some(preservation_kinds.join(", ")),
-            str_props: Vec::new(),
+            digest_props: Vec::new(),
         });
     }
 
@@ -1478,7 +1473,7 @@ fn term_evidence(
             grounded: vec![format!("<{stage_iri}>")],
             judgment: None,
             int_props: vec![("docProvenanceDepth", depth)],
-            str_props: Vec::new(),
+            digest_props: Vec::new(),
         });
     }
 

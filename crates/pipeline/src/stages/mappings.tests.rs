@@ -40,8 +40,20 @@ fn mappings_require_and_borrow_complete_native_report_inputs() {
             BTreeMap::new(),
             DatasetProvenance::new(),
         );
-        let digest = bundle.graph_digest(GRAPH_LOGIC).unwrap();
-        bundle.pin_handle(GRAPH_LOGIC, handle, digest).unwrap();
+        let digest = bundle
+            .graph_digest(
+                GRAPH_LOGIC,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .unwrap();
+        bundle
+            .pin_handle(
+                GRAPH_LOGIC,
+                handle,
+                digest,
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .unwrap();
         BTreeMap::from([(
             "stage-compile-logic".into(),
             StageProduct::from_bundle("stage-compile-logic", Arc::new(bundle))

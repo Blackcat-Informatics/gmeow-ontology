@@ -119,7 +119,7 @@ gmeow:axisProducer
     rdfs:domain gmeow:QualityAxis ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "axis producer"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The identifier of the closed Rust measurement primitive that computes this axis — both the enum key the kernel dispatches on and the symbol the axis-to-producer binding gate checks for existence. It is NOT free advice text and NOT a dimension IRI: it is the one name that binds data to code, so a renamed or removed primitive reds the binding gate rather than silently orphaning the axis (the constitution-gate integrity pattern)."@x-gmeow-english ;
     skos:example "gmeow:axisProseQuality gmeow:axisProducer \"prose_axis\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a primitive that does not exist in the kernel's closed set (an unknown producer is a hard fail), and avoid changing the string without updating the Rust symbol — the two are bound and drift is a gate failure."@x-gmeow-english ;
@@ -354,7 +354,7 @@ gmeow:exemptionProducer
     rdfs:domain gmeow:AxisExemption ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "exemption producer"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The Rust symbol whose appearance in the repo makes this exemption STALE — the trigger the staleness gate watches. Once the symbol resolves, the exemption must be removed and the axis built, so an exemption can never become permanent optionality."@x-gmeow-english ;
     skos:example "gmeow:exemptionDocsPanels gmeow:exemptionProducer \"DocMaturityPanels\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid naming a symbol that already resolves (the exemption would be born stale) and avoid a vague name the staleness gate cannot check."@x-gmeow-english ;
@@ -477,7 +477,7 @@ gmeow:vocabularyPrefix
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary prefix"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "The short CURIE prefix of a guarded projection vocabulary (e.g. \"sh\", \"gufo\", \"bfo\") — the join key gmeow:ceilingVocabulary uses to bind a ceiling commitment to its vocabulary. It is NOT the namespace IRI (that is gmeow:vocabularyNamespace) and NOT a display label: it is the stable short key the counter and the ceiling ABox both key on."@x-gmeow-english ;
     skos:example "gmeow:projVocab-sh gmeow:vocabularyPrefix \"sh\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid more than one prefix per vocabulary (it is functional) and avoid two guarded vocabularies sharing one prefix — the join key must stay unique."@x-gmeow-english ;
@@ -544,7 +544,7 @@ gmeow:vocabularyCountKind
     rdfs:domain gmeow:ProjectionVocabulary ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/slice-quality-rubric> ;
     rdfs:label "vocabulary count kind"@x-gmeow-english ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     skos:definition "How a guarded vocabulary's hand-authored constructs are recognized in a slice's TTL surface — the exact literal \"countKindShape\" (SHACL, counted by structural role), \"countKindTypedAxiom\" (a typed-axiom projection such as gUFO/BFO/DOLCE/FnO/EDOAL/SSSOM, counted by namespace-matched triples), or \"countKindNonRdfSurface\" (Datalog/Prolog/N3, structurally 0 in TTL — documentary-only, never enforced). These three literals are the closed set the shared counter's Rust dispatch resolves against; an unrecognized literal is a hard fail, not a silent skip."@x-gmeow-english ;
     skos:example "gmeow:projVocab-sh gmeow:vocabularyCountKind \"countKindShape\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid any literal outside the closed three-value set (the counter dispatch would hard-fail on an unrecognized kind) and avoid assigning countKindNonRdfSurface to a vocabulary that IS RDF-authorable — that kind exists only for the documentary-only registry rows."@x-gmeow-english ;
@@ -3802,7 +3802,7 @@ gmeow:qualityProfileKey
     gmeow:avoidWhen "Do not reuse a key across profiles or use translated prose as its value."@x-gmeow-english ;
     gmeow:howToUse "Attach one plain string such as external-sacred to one profile."@x-gmeow-english ;
     logic:domain gmeow:QualityMeasurementProfile ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:qualityProfileTargetTier
     a logic:ObjectProperty ;

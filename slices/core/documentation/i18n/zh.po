@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# GMEOW translation catalog (slice: documentation, language: zh).
+# Authored translation store — the ONLY home for non-English ontology prose.
+# The build merges this into gmeow.gts; it is never written back into the .ttl.
+msgid ""
+msgstr ""
+"Project-Id-Version: gmeow\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The BLAKE3-256 digest of the available competency query texts exercising the documented term, joined with a newline in model order. Its gmeow:blake3_256Digest literal contains 64 lowercase hexadecimal digits without a prefix and permits query drift detection without carrying the query bodies."
+msgstr "检验所述术语的可用能力问题查询文本按模型顺序以换行连接后的 BLAKE3-256 摘要。其 gmeow:blake3_256Digest 字面量包含 64 位不带前缀的小写十六进制，可在不承载查询正文的情况下检测查询漂移。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docCompetencyQueryDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:docCompetencyQueryDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+msgstr "ex:record gmeow:docCompetencyQueryDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:blake3_256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docRawDigest|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The SHA-256 digest of the exact raw source bytes carried by a documented document's artifact record. Its gmeow:sha256Digest literal contains 64 lowercase hexadecimal digits without a prefix; whitespace edits change the digest."
+msgstr "文档化条目的制品记录所承载的精确原始来源字节的 SHA-256 摘要。其 gmeow:sha256Digest 字面量包含 64 位不带前缀的小写十六进制；空白改动会改变摘要。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/docRawDigest|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:record gmeow:docRawDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+msgstr "ex:record gmeow:docRawDigest \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"^^gmeow:sha256Digest ."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/DocumentationDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyDigestValueConstraint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "supplied byte digest admission"
+msgstr "所提供字节摘要的准入"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/CompetencyDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
+msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"

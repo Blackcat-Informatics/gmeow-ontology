@@ -178,13 +178,17 @@ fn compile_mappings_with_sources(
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                        stage: "stage-mappings".to_string(),
-                        message: format!("slice catalog discovery: {e}"),
-                    })
-                })?,
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                gmeow_ns::gmeow_slice_vocab(),
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("slice catalog discovery: {e}"),
+                })
+            })?,
         )
     } else {
         None
@@ -716,13 +720,17 @@ pub fn discharged_section_cells_from_root(
     let slices_dir = root.join("slices");
     let catalog = if slices_dir.is_dir() {
         Some(
-            purrdf::slice::SliceCatalog::discover(&slices_dir, gmeow_ns::gmeow_slice_vocab())
-                .map_err(|e| {
-                    gmeow_errors::Diag::of_kind(crate::error::StageFailed {
-                        stage: "stage-mappings".to_string(),
-                        message: format!("slice catalog discovery: {e}"),
-                    })
-                })?,
+            purrdf::slice::SliceCatalog::discover(
+                &slices_dir,
+                gmeow_ns::gmeow_slice_vocab(),
+                &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+            )
+            .map_err(|e| {
+                gmeow_errors::Diag::of_kind(crate::error::StageFailed {
+                    stage: "stage-mappings".to_string(),
+                    message: format!("slice catalog discovery: {e}"),
+                })
+            })?,
         )
     } else {
         None

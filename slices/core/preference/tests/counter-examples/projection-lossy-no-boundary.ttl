@@ -36,4 +36,4 @@ ex:receipt a gmeow:ProjectionReceipt ;
     gmeow:tieBreakRule "lexicographic-by-iri" ;
     gmeow:disclosesLoss ex:loss ;
     logic:preservationKind logic:ExactPreservation ;    # <-- exact, yet a relation was dropped
-    gmeow:contentDigest "blake3:07a207a207a207a207a207a207a207a207a207a207a207a207a207a207a207a2" .
+    gmeow:contentDigest "07a207a207a207a207a207a207a207a207a207a207a207a207a207a207a207a2"^^gmeow:blake3_256Digest .

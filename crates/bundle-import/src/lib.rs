@@ -986,8 +986,11 @@ fn import_graph_preserving_under_root(
     }
 
     let dataset = import(gts_bytes)?;
-    let pack = PackBuilder::build_bytes(dataset.as_ref())
-        .map_err(|error| diag(format!("bundle import: build PURRPCK1 image: {error}")))?;
+    let pack = PackBuilder::build_bytes(
+        dataset.as_ref(),
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(|error| diag(format!("bundle import: build PURRPCK1 image: {error}")))?;
     let pack_bytes = u64::try_from(pack.len()).unwrap_or(u64::MAX);
     if pack_bytes > MAX_PACK_BYTES {
         return Err(diag(format!(

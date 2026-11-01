@@ -582,6 +582,7 @@ pub fn lint_correspondence_soundness(
         Some(SliceCatalog::discover(
             &slices_dir,
             gmeow_ns::gmeow_slice_vocab(),
+            &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
         )?)
     } else {
         None

@@ -16,14 +16,14 @@
 @prefix ce:    <https://blackcatinformatics.ca/gmeow/counter-examples/embedding-projection/> .
 
 ce:missPack a gmeow:InformationObject ;
-    gmeow:contentDigest "blake3:1111000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:contentDigest "1111000011112222333344445555666677778888999900001111222233334444"^^gmeow:blake3_256Digest .
 
 ce:missFamily a gmeow:EmbeddingFamily ;
-    gmeow:contentDigest "blake3:2222000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:2222000011112222333344445555666677778888999900001111222233334444" .
 
 ce:missVsc a gmeow:VectorSpaceContract ;
     gmeow:effectiveOfFamily ce:missFamily ;
-    gmeow:contentDigest "blake3:3333000011112222333344445555666677778888999900001111222233334444" .
+    gmeow:versionFingerprint "blake3:3333000011112222333344445555666677778888999900001111222233334444" .
 
 # gmeow:projectionSourceDigest is DELIBERATELY OMITTED — the sole requiredness defect.
 ce:missProj a gmeow:EmbeddingProjection ;

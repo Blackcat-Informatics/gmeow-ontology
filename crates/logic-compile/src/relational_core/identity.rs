@@ -61,14 +61,18 @@ fn graph_key(program: &RelationalCoreProgram, ordered: bool) -> gmeow_errors::Re
         graph.edge(root, "residue", value)?;
     }
     let dataset = graph.builder.freeze().map_err(Diag::from)?;
-    let canonical = purrdf::try_canonicalize(&dataset).map_err(error)?;
+    let canonical = purrdf::try_canonicalize(
+        &dataset,
+        &mut purrdf::CanonicalizationControl::new(purrdf::RDFC_V2_CORPUS_POLICY, None),
+    )
+    .map_err(error)?;
     Ok(frame(
         if ordered {
             "RELATIONAL-CORE-PROJECTION-v1"
         } else {
             "RELATIONAL-CORE-v3"
         },
-        [canonical.nquads],
+        [canonical.nquads()],
     ))
 }
 

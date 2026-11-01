@@ -2380,7 +2380,7 @@ gmeow:SignalConfidenceSetting logic:subClassOf
 gmeow:SignalConfidenceRule logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:versionOf ; logic:allValuesFrom gmeow:Entity ],
     [ a logic:Restriction ; logic:onProperty gmeow:versionLabel ; logic:allValuesFrom rdfs:Literal ],
-    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom rdfs:Literal ],
+    [ a logic:Restriction ; logic:onProperty gmeow:contentDigest ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( gmeow:blake3_256Digest gmeow:sha256Digest gmeow:md5Digest ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:wasDerivedFrom ; logic:allValuesFrom logic:Thing ],
     [ a logic:Restriction ; logic:onProperty gmeow:wasAttributedTo ; logic:allValuesFrom gmeow:Agent ],
     [ a logic:Restriction ; logic:onProperty gmeow:signalConfidenceReview ; logic:allValuesFrom gmeow:Activity ] .

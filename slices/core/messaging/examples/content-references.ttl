@@ -27,14 +27,14 @@ ex:chartExpression a gmeow:Expression ;
 
 ex:deliveryFile a gmeow:MediaObject ;
     gmeow:embodies ex:chartExpression ;
-    gmeow:contentDigest "sha256:1111111111111111111111111111111111111111111111111111111111111111" ;
+    gmeow:contentDigest "1111111111111111111111111111111111111111111111111111111111111111"^^gmeow:sha256Digest ;
     gmeow:sourceMedia ex:generatorOutput ;
     gmeow:hasTag gmeow:tagContainsIllustrativeText .
 
 # The source was not retained as a published file. Its producer-reported
 # identity is still useful for linking other encodings of the same source bytes.
 ex:generatorOutput a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:2222222222222222222222222222222222222222222222222222222222222222" .
+    gmeow:contentDigest "2222222222222222222222222222222222222222222222222222222222222222"^^gmeow:sha256Digest .
 
 # A response answers words known only by digest. Nothing here asserts that
 # those words were a transmitted message or are available in this archive.
@@ -44,7 +44,7 @@ ex:answer a gmeow:Message ;
     gmeow:contentOrigin gmeow:originComposed .
 
 ex:externalWords a gmeow:InformationObject ;
-    gmeow:contentDigest "sha256:3333333333333333333333333333333333333333333333333333333333333333" .
+    gmeow:contentDigest "3333333333333333333333333333333333333333333333333333333333333333"^^gmeow:sha256Digest .
 
 # A deliberately stated commitment has the same composition source distinction,
 # without asserting that the commitment has been fulfilled.
