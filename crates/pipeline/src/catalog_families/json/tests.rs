@@ -135,7 +135,7 @@ fn json_catalog_observations_all_known_fields_require_values_and_refuse_duplicat
         &["registry", "guarded_namespaces", "native_kernel_evidence"],
     );
     record_refusals::<NativeKernelEvidence>(
-        r#"{"family":"urn:family","correspondence":"urn:correspondence","semantic_key":"complete semantic envelope","source":"urn:source","target":"urn:target","source_owner":"urn:owner","source_module_path":"module.ttl","source_module_digest":"digest","artifact_owner":"urn:owner","artifact_path":"mappings/native.ttl","artifact_digest":"digest"}"#,
+        r#"{"family":"urn:family","correspondence":"urn:correspondence","semantic_key":"complete semantic envelope","source":"urn:source","target":"urn:target","source_owner":"urn:owner","source_role":"module","source_types":[],"source_path":"module.ttl","source_digest":"digest","artifact_owner":"urn:owner","artifact_path":"mappings/native.ttl","artifact_digest":"digest"}"#,
         &[
             "family",
             "correspondence",
@@ -143,8 +143,10 @@ fn json_catalog_observations_all_known_fields_require_values_and_refuse_duplicat
             "source",
             "target",
             "source_owner",
-            "source_module_path",
-            "source_module_digest",
+            "source_role",
+            "source_types",
+            "source_path",
+            "source_digest",
             "artifact_owner",
             "artifact_path",
             "artifact_digest",

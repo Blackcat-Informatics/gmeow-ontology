@@ -1285,7 +1285,7 @@ impl Stage for MappingsStage {
         crate::stages::attach::blob_reps(self.id())
     }
     fn impl_version(&self) -> &str {
-        "mappings.v23-shared-mapping-analysis"
+        "mappings.v24-declared-source-authority"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, gmeow_errors::Diag> {
         // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
@@ -1295,7 +1295,7 @@ impl Stage for MappingsStage {
         // feeds the committed audit ledger. Declare them ALL so any edit busts the
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         let mut files = Vec::new();
-        // Module/Mapping roles and their physical owners are manifest-selected authority.
+        // Module/Example/Mapping roles and their physical owners are manifest-selected authority.
         files.extend(crate::stages::source_load::all_manifest_files(root)?);
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         // Translation and glossary products consume every registered DSL owner,

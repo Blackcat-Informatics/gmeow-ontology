@@ -134,6 +134,11 @@ owner boundaries. The native regime also covers the previously catalog-only kern
 families, including OWL and OntoUML, through their existing native frontend forms.
 Canonical source ownership comes from original Module-role declarations and their
 actual physical homes, including retained public IRIs such as `gmeow:used`. Every
+native example source instead requires its actual Example-role declaration in a
+grounding slice, including its explicitly declared native types. Example authority
+does not grant canonical Module ownership, and an invalid Module declaration cannot
+fall through to Example authority. Both declaration roles retain their original
+owner, path and source digest. Every
 original Mapping occurrence must retain its complete native term-cell or
 projection-binding envelope and catalog-owner home. Missing markers, missing native
 discriminators, ambiguous ownership and off-owner duplicates refuse. Shared merged
@@ -141,9 +146,12 @@ analysis resolves legal pattern and binding references; it cannot fill missing l
 grounding metadata. Ordinary graph transformations are not classified by every kernel
 property they happen to reference.
 
-Authenticated registry observations carry the original module and mapping paths,
-SHA-256 identities, endpoints and complete non-law semantic keys. Shipped-program
-acceptance reconciles those keys and canonical owners; law discharges remain a
+Authenticated registry observations carry the declaring artifact role, original
+declaration and mapping paths, declared source types, SHA-256 identities, endpoints
+and complete non-law semantic keys. Shipped-program acceptance reconciles those
+keys and Module owners or Example type ownership against the authenticated
+declarations. Catalog minimums count all admitted native rows, including examples;
+the Wikidata minimum remains 146. Law discharges remain a
 separate certified lane. Empty or stale proof records refuse. PROV-O's five kernel
 rows graduate through this regime and its target minimum rises to five; a sixth
 complete owned correspondence is admitted by the same rule without a row roster.

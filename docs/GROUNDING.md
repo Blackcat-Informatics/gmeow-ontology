@@ -91,7 +91,10 @@ source-scoped native admission unless they carry an explicit bounded exemption.
 The native guard admits both existing term cells and complete projection-binding
 envelopes, including executable OntoUML mappings. It selects canonical term ownership
 from original Module artifacts and validates every physical Mapping occurrence
-before deduplication. Shared analysis may resolve references across files; it cannot
+before deduplication. Native example records retain their actual Example-role
+declarations, declared native types and original physical identities; they do not
+claim canonical Module ownership. An invalid Module declaration cannot fall through
+to Example authority. Shared analysis may resolve references across files; it cannot
 supply missing local grounding metadata or promote an off-owner copy. Ordinary
 domain publication alignments retain their by-reference meaning (Principles 4, 5,
 17 and 19).

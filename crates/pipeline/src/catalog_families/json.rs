@@ -120,8 +120,10 @@ impl ToJson for NativeKernelEvidence {
             .with("source", self.source.to_json())
             .with("target", self.target.to_json())
             .with("source_owner", self.source_owner.to_json())
-            .with("source_module_path", self.source_module_path.to_json())
-            .with("source_module_digest", self.source_module_digest.to_json())
+            .with("source_role", self.source_role.to_json())
+            .with("source_types", self.source_types.to_json())
+            .with("source_path", self.source_path.to_json())
+            .with("source_digest", self.source_digest.to_json())
             .with("artifact_owner", self.artifact_owner.to_json())
             .with("artifact_path", self.artifact_path.to_json())
             .with("artifact_digest", self.artifact_digest.to_json())
@@ -139,8 +141,10 @@ impl FromJson for NativeKernelEvidence {
             source: record.required("source")?,
             target: record.required("target")?,
             source_owner: record.required("source_owner")?,
-            source_module_path: record.required("source_module_path")?,
-            source_module_digest: record.required("source_module_digest")?,
+            source_role: record.required("source_role")?,
+            source_types: record.required("source_types")?,
+            source_path: record.required("source_path")?,
+            source_digest: record.required("source_digest")?,
             artifact_owner: record.required("artifact_owner")?,
             artifact_path: record.required("artifact_path")?,
             artifact_digest: record.required("artifact_digest")?,

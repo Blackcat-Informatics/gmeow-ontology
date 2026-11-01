@@ -58,12 +58,16 @@ pub struct NativeKernelEvidence {
     pub source: String,
     /// Actual external target term.
     pub target: String,
-    /// Source term's canonical Module-role owner.
+    /// Physical owner of the original Module or Example declaration.
     pub source_owner: String,
-    /// Original declaring Module artifact.
-    pub source_module_path: String,
-    /// SHA-256 identity of that original Module artifact.
-    pub source_module_digest: String,
+    /// Exact declaring artifact role: module or example.
+    pub source_role: String,
+    /// Named types explicitly declared on this source in that artifact.
+    pub source_types: BTreeSet<String>,
+    /// Original declaring artifact.
+    pub source_path: String,
+    /// SHA-256 identity of that original declaring artifact.
+    pub source_digest: String,
     /// Actual owner of this defining Mapping artifact.
     pub artifact_owner: String,
     /// Normalized repository-relative Mapping artifact path.
@@ -73,20 +77,24 @@ pub struct NativeKernelEvidence {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) struct ModuleDeclaration {
+pub(crate) struct SourceDeclaration {
     owner: String,
     path: String,
     digest: String,
+    role: String,
+    types: BTreeSet<String>,
 }
 
-/// Canonical declarations from original Module-role artifacts, never mapping annotations.
+/// Declarations from original Module and Example artifacts, never mapping annotations.
 #[derive(Default)]
-pub(crate) struct CanonicalOwnership {
+pub(crate) struct SourceOwnership {
     claims: BTreeMap<String, BTreeSet<Option<String>>>,
-    declarations: BTreeMap<String, BTreeSet<ModuleDeclaration>>,
+    declarations: BTreeMap<String, BTreeSet<SourceDeclaration>>,
+    module_subjects: BTreeSet<String>,
+    examples: BTreeMap<String, BTreeSet<SourceDeclaration>>,
 }
 
-impl CanonicalOwnership {
+impl SourceOwnership {
     pub(crate) fn record_module(
         &mut self,
         owner: &str,
@@ -97,6 +105,11 @@ impl CanonicalOwnership {
         use sha2::{Digest, Sha256};
         let digest = purrdf_hash::hex::encode(&Sha256::digest(bytes));
         for quad in purrdf::native_quads::flat_rdf_quads(dataset) {
+            if quad.graph_name.is_none()
+                && let RdfTerm::Iri(source) = &quad.subject
+            {
+                self.module_subjects.insert(source.clone());
+            }
             if quad.predicate != OWNER || quad.graph_name.is_some() {
                 continue;
             }
@@ -133,22 +146,51 @@ impl CanonicalOwnership {
                             .all(|part| !part.is_empty() && part != "." && part != "..")
                 });
             if declared.as_deref() == Some(owner) && physical_home {
+                let types = DslView::new(dataset)
+                    .object_iris(&source, RDF_TYPE)
+                    .into_iter()
+                    .collect();
                 self.declarations
                     .entry(source)
                     .or_default()
-                    .insert(ModuleDeclaration {
+                    .insert(SourceDeclaration {
                         owner: owner.to_owned(),
                         path: path.to_owned(),
                         digest: digest.clone(),
+                        role: "module".to_owned(),
+                        types,
                     });
             }
         }
     }
 
-    fn source(&self, source: &str) -> gmeow_errors::Result<Option<&ModuleDeclaration>> {
+    fn source(&self, source: &str) -> gmeow_errors::Result<Option<&SourceDeclaration>> {
         let claims = self.claims.get(source);
-        if claims.is_none() {
-            return Ok(None);
+        if claims.is_none() && !self.module_subjects.contains(source) {
+            let Some(declarations) = self.examples.get(source) else {
+                return Ok(None);
+            };
+            if declarations.len() != 1 {
+                return Err(registry_err(format!(
+                    "example source <{source}> has ambiguous physical declarations"
+                )));
+            }
+            let declaration = declarations.first().expect("one example declaration");
+            let mut owned_type = false;
+            for class in &declaration.types {
+                if !self.module_subjects.contains(class) && !self.claims.contains_key(class) {
+                    continue;
+                }
+                if let Some(class) = self.source(class)? {
+                    owned_type |= class.role == "module" && class.owner == declaration.owner;
+                }
+            }
+            if !owned_type {
+                return Err(registry_err(format!(
+                    "example source <{source}> requires an explicitly declared type owned by its grounding slice"
+                )));
+            }
+            return Ok(Some(declaration));
         }
         let declaration = self.declarations.get(source);
         if claims.is_none_or(|claims| claims.len() != 1 || claims.contains(&None))
@@ -159,6 +201,58 @@ impl CanonicalOwnership {
             )));
         }
         Ok(declaration.and_then(|declarations| declarations.first()))
+    }
+
+    pub(crate) fn record_example(
+        &mut self,
+        owner: &str,
+        path: &str,
+        bytes: &[u8],
+        dataset: &RdfDataset,
+    ) -> gmeow_errors::Result<()> {
+        use sha2::{Digest, Sha256};
+        let stem = match owner {
+            "https://blackcatinformatics.ca/gmeow/slices/logic" => "slices/grounding/logic/",
+            "https://blackcatinformatics.ca/gmeow/slices/math" => "slices/grounding/math/",
+            "https://blackcatinformatics.ca/gmeow/slices/lang" => "slices/grounding/lang/",
+            _ => return Ok(()),
+        };
+        if !path
+            .strip_prefix(stem)
+            .is_some_and(|tail| tail.starts_with("examples/"))
+            || !path.ends_with(".ttl")
+            || path.contains('\\')
+            || path
+                .split('/')
+                .any(|part| part.is_empty() || part == "." || part == "..")
+        {
+            return Err(registry_err(format!(
+                "example declaration artifact {path} is outside its actual grounding owner home"
+            )));
+        }
+        let mut subjects: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+        for quad in purrdf::native_quads::flat_rdf_quads(dataset) {
+            if quad.graph_name.is_none()
+                && quad.predicate == RDF_TYPE
+                && let (RdfTerm::Iri(source), RdfTerm::Iri(class)) = (quad.subject, quad.object)
+            {
+                subjects.entry(source).or_default().insert(class);
+            }
+        }
+        let digest = purrdf_hash::hex::encode(&Sha256::digest(bytes));
+        for (source, types) in subjects {
+            self.examples
+                .entry(source)
+                .or_default()
+                .insert(SourceDeclaration {
+                    owner: owner.to_owned(),
+                    path: path.to_owned(),
+                    digest: digest.clone(),
+                    role: "example".to_owned(),
+                    types,
+                });
+        }
+        Ok(())
     }
 }
 
@@ -224,10 +318,10 @@ fn kernel_owner(owner: &str) -> bool {
 
 fn scoped_family<'a, 'b>(
     registry: &'a CatalogRegistry,
-    ownership: &'b CanonicalOwnership,
+    ownership: &'b SourceOwnership,
     source: &str,
     target: &str,
-) -> gmeow_errors::Result<Option<(&'a CatalogFamily, &'b ModuleDeclaration)>> {
+) -> gmeow_errors::Result<Option<(&'a CatalogFamily, &'b SourceDeclaration)>> {
     let families = families_for_target(&registry.families, target);
     let Some(family) = families
         .into_iter()
@@ -243,7 +337,7 @@ fn scoped_family<'a, 'b>(
 
 fn require_kernel_source(
     registry: &CatalogRegistry,
-    ownership: &CanonicalOwnership,
+    ownership: &SourceOwnership,
     source: &str,
     target: &str,
 ) -> gmeow_errors::Result<()> {
@@ -262,7 +356,7 @@ fn require_kernel_source(
 pub(crate) fn admit_source(
     registry: &CatalogRegistry,
     ontology: &DslView<'_>,
-    ownership: &CanonicalOwnership,
+    ownership: &SourceOwnership,
     original: &OriginalMapping,
 ) -> gmeow_errors::Result<Vec<NativeKernelEvidence>> {
     let dataset = original.dataset.as_ref();
@@ -355,8 +449,10 @@ pub(crate) fn admit_source(
             source: source.clone(),
             target: target.clone(),
             source_owner: declaration.owner.clone(),
-            source_module_path: declaration.path.clone(),
-            source_module_digest: declaration.digest.clone(),
+            source_role: declaration.role.clone(),
+            source_types: declaration.types.clone(),
+            source_path: declaration.path.clone(),
+            source_digest: declaration.digest.clone(),
             artifact_owner: identity.owner.clone(),
             artifact_path: identity.path.clone(),
             artifact_digest: identity.digest.clone(),
@@ -368,7 +464,7 @@ pub(crate) fn admit_source(
 /// Use the actual merged analysis, preserving cross-artifact pattern references.
 pub(crate) fn check_projection_alternatives(
     registry: &CatalogRegistry,
-    ownership: &CanonicalOwnership,
+    ownership: &SourceOwnership,
     evidence: &mut Vec<NativeKernelEvidence>,
     analysis: &gmeow_logic_compile::projections::correspondence_frontend::CorrespondenceAnalysis,
     originals: &[OriginalMapping],
@@ -639,8 +735,10 @@ pub(crate) fn check_projection_alternatives(
                             source: source_endpoint.clone(),
                             target: target_endpoint.clone(),
                             source_owner: declaration.owner.clone(),
-                            source_module_path: declaration.path.clone(),
-                            source_module_digest: declaration.digest.clone(),
+                            source_role: declaration.role.clone(),
+                            source_types: declaration.types.clone(),
+                            source_path: declaration.path.clone(),
+                            source_digest: declaration.digest.clone(),
                             artifact_owner: identity.owner.clone(),
                             artifact_path: identity.path.clone(),
                             artifact_digest: identity.digest.clone(),
@@ -749,17 +847,24 @@ pub(super) fn validate_evidence(
         };
         if !registry.native_kernel_families.contains(&family.iri)
             || !kernel_owner(&proof.source_owner)
+            || !matches!(proof.source_role.as_str(), "module" | "example")
+            || (proof.source_role == "example" && proof.source_types.is_empty())
+            || (proof.source_role == "example"
+                && !proof
+                    .source_path
+                    .strip_prefix(module_stem)
+                    .is_some_and(|tail| tail.starts_with("examples/")))
             || module_stem.is_empty()
-            || !proof.source_module_path.starts_with(module_stem)
-            || !proof.source_module_path.ends_with(".ttl")
+            || !proof.source_path.starts_with(module_stem)
+            || !proof.source_path.ends_with(".ttl")
             || proof
-                .source_module_path
+                .source_path
                 .split('/')
                 .any(|part| part.is_empty() || part == "." || part == "..")
-            || proof.source_module_path.contains('\\')
-            || proof.source_module_digest.len() != 64
+            || proof.source_path.contains('\\')
+            || proof.source_digest.len() != 64
             || !proof
-                .source_module_digest
+                .source_digest
                 .bytes()
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
             || !family.owners.contains(&proof.artifact_owner)
@@ -794,6 +899,8 @@ pub(super) fn validate_evidence(
             &proof.source,
             &proof.target,
             &proof.source_owner,
+            &proof.source_role,
+            &proof.source_types,
         );
         if let Some(previous) = semantics.insert(&proof.correspondence, signature)
             && previous != signature
@@ -827,7 +934,7 @@ pub(super) fn validate_evidence(
 /// Reconcile the source proof with every typed kernel row, including retagged rows.
 pub(crate) fn reconcile(
     registry: &CatalogRegistry,
-    ownership: &CanonicalOwnership,
+    ownership: &SourceOwnership,
     evidence: &[NativeKernelEvidence],
     program: &CorrespondenceProgram,
 ) -> gmeow_errors::Result<()> {
@@ -903,10 +1010,24 @@ pub(super) fn verify_transport(
                 )));
             }
             let owners = view.objects_of(&proof.source, OWNER);
-            if owners.len() != 1 || owners[0].as_iri() != Some(proof.source_owner.as_str()) {
+            let owner_matches =
+                owners.len() == 1 && owners[0].as_iri() == Some(proof.source_owner.as_str());
+            let authority_matches = match proof.source_role.as_str() {
+                "module" => owner_matches,
+                "example" => {
+                    (owners.is_empty() || owner_matches)
+                        && proof.source_types.iter().any(|class| {
+                            let owners = view.objects_of(class, OWNER);
+                            owners.len() == 1
+                                && owners[0].as_iri() == Some(proof.source_owner.as_str())
+                        })
+                }
+                _ => false,
+            };
+            if !authority_matches {
                 return Err(registry_err(format!(
-                    "transported source <{}> differs from its admitted canonical Module owner",
-                    proof.source
+                    "transported source <{}> differs from its admitted {} declaration authority",
+                    proof.source, proof.source_role
                 )));
             }
             true

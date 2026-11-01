@@ -426,7 +426,7 @@ fn merge_dsl(
     catalog: Option<&SliceCatalog>,
     registry: &crate::catalog_families::CatalogRegistry,
     ontology: &DslView<'_>,
-    ownership: &crate::catalog_families::native_kernel::CanonicalOwnership,
+    ownership: &crate::catalog_families::native_kernel::SourceOwnership,
 ) -> gmeow_errors::Result<(
     Arc<RdfDataset>,
     Vec<crate::catalog_families::NativeKernelEvidence>,
@@ -489,10 +489,10 @@ fn merge_ontology(
     catalog: Option<&SliceCatalog>,
 ) -> gmeow_errors::Result<(
     Arc<RdfDataset>,
-    crate::catalog_families::native_kernel::CanonicalOwnership,
+    crate::catalog_families::native_kernel::SourceOwnership,
 )> {
     let mut b = RdfDatasetBuilder::new();
-    let mut ownership = crate::catalog_families::native_kernel::CanonicalOwnership::default();
+    let mut ownership = crate::catalog_families::native_kernel::SourceOwnership::default();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
         let bytes = std::fs::read(&onto).map_err(crate::error::io_diag)?;
@@ -512,6 +512,13 @@ fn merge_ontology(
         let ds = parse_turtle(bytes, &path.display().to_string())?;
         ownership.record_module(owner, &relative.to_string_lossy(), bytes, &ds);
         b.push_dataset(&ds)?;
+    }
+    for (path, owner, bytes) in slice_artifacts(catalog, ArtifactRole::Example) {
+        let relative = path
+            .strip_prefix(root)
+            .map_err(|error| crate::error::parse_diag(error.to_string()))?;
+        let ds = parse_turtle(bytes, &path.display().to_string())?;
+        ownership.record_example(owner, &relative.to_string_lossy(), bytes, &ds)?;
     }
     Ok((
         b.freeze()

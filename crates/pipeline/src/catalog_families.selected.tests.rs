@@ -76,7 +76,7 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
     let module_path = "slices/grounding/logic/module.ttl";
     let mapping_path = "slices/grounding/logic/mappings/native.ttl";
     let module = format!(
-        "{prefixes}\ng:Pattern rdfs:isDefinedBy <{owner}> .\n{}",
+        "{prefixes}\ng:Pattern rdfs:isDefinedBy <{owner}> .\ng:ExampleKind rdfs:isDefinedBy <{owner}> .\n{}",
         (1..=6)
             .map(|index| { format!("g:Usage{index} rdfs:isDefinedBy <{owner}> .") })
             .collect::<String>()
@@ -89,7 +89,7 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
     let ontology =
         purrdf::RdfDataset::union(&[module_dataset.as_ref(), domain_dataset.as_ref()]).unwrap();
     let ontology = gmeow_logic_compile::ingest::DslView::new(&ontology);
-    let mut ownership = native_kernel::CanonicalOwnership::default();
+    let mut ownership = native_kernel::SourceOwnership::default();
     ownership.record_module(owner, module_path, module.as_bytes(), &module_dataset);
     ownership.record_module(
         domain_owner,
@@ -112,7 +112,7 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
     let admit = |text: &str,
                  physical_owner: &str,
                  path: &str,
-                 ownership: &native_kernel::CanonicalOwnership| {
+                 ownership: &native_kernel::SourceOwnership| {
         let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
         let original =
             native_kernel::OriginalMapping::new(physical_owner, path, text.as_bytes(), dataset);
@@ -127,6 +127,92 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
     };
     observations.validate().unwrap();
     let source_dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let example_path = "slices/grounding/logic/examples/scene.ttl";
+    let example = format!("{prefixes}g:Demo a g:ExampleKind .");
+    let example_dataset = purrdf::parse_dataset(example.as_bytes(), "text/turtle", None).unwrap();
+    ownership
+        .record_example(owner, example_path, example.as_bytes(), &example_dataset)
+        .unwrap();
+    let example_source = source.replace("g:Usage1", "g:Demo");
+    let example_proof = admit(&example_source, owner, mapping_path, &ownership).unwrap();
+    assert_eq!(example_proof.len(), 6);
+    assert!(
+        example_proof
+            .iter()
+            .any(|proof| proof.source_role == "example" && proof.source_path == example_path)
+    );
+    let example_mapping =
+        purrdf::parse_dataset(example_source.as_bytes(), "text/turtle", None).unwrap();
+    let example_program =
+        gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::admit(
+            &gmeow_logic_compile::ingest::DslView::new(&example_mapping),
+            &ontology,
+        )
+        .unwrap();
+    native_kernel::reconcile(
+        &registry,
+        &ownership,
+        &example_proof,
+        example_program.program(),
+    )
+    .unwrap();
+    native_kernel::verify_transport(
+        &registry,
+        &example_proof,
+        ontology.dataset(),
+        example_program.program(),
+    )
+    .unwrap();
+    let mut changed = example_proof.clone();
+    let proof = changed
+        .iter_mut()
+        .find(|proof| proof.source_role == "example")
+        .unwrap();
+    proof.source_role = "module".to_owned();
+    assert!(
+        native_kernel::verify_transport(
+            &registry,
+            &changed,
+            ontology.dataset(),
+            example_program.program()
+        )
+        .is_err()
+    );
+    let mut changed = example_proof.clone();
+    changed
+        .iter_mut()
+        .find(|proof| proof.source_role == "example")
+        .unwrap()
+        .source_types
+        .clear();
+    assert!(native_kernel::validate_evidence(&registry, &changed).is_err());
+    let mut changed = example_proof.clone();
+    changed
+        .iter_mut()
+        .find(|proof| proof.source_role == "example")
+        .unwrap()
+        .source_types =
+        BTreeSet::from(["https://blackcatinformatics.ca/gmeow/Publication".to_owned()]);
+    assert!(
+        native_kernel::verify_transport(
+            &registry,
+            &changed,
+            ontology.dataset(),
+            example_program.program()
+        )
+        .is_err()
+    );
+    let bad_module = format!("{module}\ng:Demo rdfs:isDefinedBy <{domain_owner}> .");
+    let bad_dataset = purrdf::parse_dataset(bad_module.as_bytes(), "text/turtle", None).unwrap();
+    let mut bad_owner = native_kernel::SourceOwnership::default();
+    bad_owner.record_module(owner, module_path, bad_module.as_bytes(), &bad_dataset);
+    bad_owner
+        .record_example(owner, example_path, example.as_bytes(), &example_dataset)
+        .unwrap();
+    assert!(
+        admit(&example_source, owner, mapping_path, &bad_owner).is_err(),
+        "an invalid Module claim cannot fall through to Example authority"
+    );
     let admitted = gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog::admit(
         &gmeow_logic_compile::ingest::DslView::new(&source_dataset),
         &ontology,
@@ -460,9 +546,9 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
             .is_err()
         );
     }
-    let missing = native_kernel::CanonicalOwnership::default();
+    let missing = native_kernel::SourceOwnership::default();
     assert!(admit(&source, owner, mapping_path, &missing).is_err());
-    let mut spoofed = native_kernel::CanonicalOwnership::default();
+    let mut spoofed = native_kernel::SourceOwnership::default();
     spoofed.record_module(
         owner,
         "slices/core/publication/module.ttl",
