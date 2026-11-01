@@ -349,6 +349,7 @@ fn promote_to_single_world(
     };
     let mut builder = RdfDatasetBuilder::new();
     for quad in purrdf::native_quads::flat_rdf_quads(edb) {
+        reject_external_support(&quad.predicate)?;
         if !keep(&quad.predicate, &quad.object) {
             continue;
         }
@@ -357,6 +358,7 @@ fn promote_to_single_world(
         builder.push_owned_quad(&promoted)?;
     }
     for quad in derived {
+        reject_external_support(&quad.predicate)?;
         if !keep(&quad.predicate, &quad.object) {
             continue;
         }
@@ -369,6 +371,16 @@ fn promote_to_single_world(
         builder.push_owned_quad(&promoted)?;
     }
     builder.freeze().map_err(gmeow_errors::Diag::from)
+}
+
+/// Satisfaction rows are valid only when derived inside this transient gate execution.
+fn reject_external_support(predicate: &str) -> gmeow_errors::Result<()> {
+    if predicate.starts_with(gmeow_logic_compile::relational_core::CONSTRAINT_SUPPORT_NAMESPACE) {
+        return Err(enactment_gate_err(format!(
+            "compiler-private constraint support predicate <{predicate}> cannot occur in input facts or a preexisting derived closure"
+        )));
+    }
+    Ok(())
 }
 
 /// Decode a materialized row's subject to a bare IRI.
@@ -433,12 +445,17 @@ pub(crate) fn enactment_gate_markers_with_laws(
     derived: &[RdfQuad],
     laws: &ViolationLowering,
 ) -> gmeow_errors::Result<Vec<KernelViolation>> {
-    let rules = &laws.rules;
-    let (keep_predicates, keep_type_objects) = gate_read_predicates(rules);
+    let rules: Vec<EvalRule> = laws
+        .support_rules
+        .iter()
+        .chain(&laws.rules)
+        .cloned()
+        .collect();
+    let (keep_predicates, keep_type_objects) = gate_read_predicates(&rules);
     let promoted = promote_to_single_world(edb, derived, &keep_predicates, &keep_type_objects)?;
     let store = WorldStore::from_dataset(promoted.as_ref())?;
 
-    let lookup = compile_cached(ENACTMENT_GATE_CONTRACT, rules.to_vec());
+    let lookup = compile_cached(ENACTMENT_GATE_CONTRACT, rules);
     let Some(executable) = lookup.executable else {
         return Err(enactment_gate_err(
             "enactment gate: the compiled violation rules are not stratifiable — a kernel \

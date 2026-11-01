@@ -760,18 +760,23 @@ const CLASS_EXPRESSION_CONSTRUCTORS: [&str; 5] = [
 /// or a skolemized boolean class expression (`logic:class-expression/<hash>`).
 #[derive(Default)]
 struct LiftedClassExpression<'a> {
+    /// Explicit source kinds retained by anonymous-owner lifting. Both may be
+    /// present in canonical RDF even though OWL DL cannot project that combination.
+    class: bool,
+    datatype: bool,
     /// `(constructor local name, operand or list head)`.
     edges: Vec<(&'a str, &'a AtomicTerm)>,
     /// Any further non-typing statement on the node (none is lifted today).
     other: Vec<&'a str>,
 }
 
-/// Collect every lifted anonymous class expression, keyed by node IRI. Its typing
-/// (`logic:Enumeration` / `logic:Class`) is internal and re-spelled by the emitter.
+/// Collect every lifted anonymous expression, keyed by node IRI. Preserve explicit
+/// datatype kind so its OWL view cannot be emitted as an object-class expression.
 fn collect_lifted_class_expressions(
     program: &LogicProgram,
 ) -> BTreeMap<String, LiftedClassExpression<'_>> {
     let enumeration_ty = logic(restriction::ENUMERATION_CLASS_LOCAL);
+    let class_ty = logic("Class");
     let mut out: BTreeMap<String, LiftedClassExpression<'_>> = BTreeMap::new();
     for axiom in &program.axioms {
         let typed_enumeration =
@@ -789,6 +794,11 @@ fn collect_lifted_class_expressions(
             continue;
         };
         if axiom.predicate == RDF_TYPE {
+            match axiom.obj.as_iri() {
+                Some(kind) if kind == class_ty => expression.class = true,
+                Some("http://www.w3.org/2000/01/rdf-schema#Datatype") => expression.datatype = true,
+                _ => {}
+            }
             continue;
         }
         match axiom
@@ -811,8 +821,54 @@ enum LoweredOperand<'a> {
     Class(&'a AtomicTerm),
 }
 
-/// Emit one lifted anonymous class expression to OWL 2 DL: the node typed `owl:Class`
-/// with its `owl:` constructor edges and list cells. An expression OWL 2 DL cannot carry
+/// Define the canonical named datatype through an anonymous OWL data range.
+/// Target-only expressions and collection cells use a separate blank scope from
+/// the compact IR's source blanks; their labels encode the complete owner IRI.
+/// The caller admits at least two operands, so the collection head exists.
+fn emit_datatype_definition(
+    g: &mut TripleSink,
+    node: &str,
+    constructor: &str,
+    cells: &[(&str, &AtomicTerm)],
+) -> gmeow_errors::Result<()> {
+    let scope = purrdf::BlankScope(1);
+    let label = purrdf_hash::hex::encode(node.as_bytes());
+    let range = g.builder.intern_blank(&label, scope)?;
+    let datatype = g.builder.intern_iri(&rdfs("Datatype"))?;
+    let rdf_type = g.builder.intern_iri(RDF_TYPE)?;
+    let named = g.builder.intern_iri(node)?;
+    let equivalent = g.builder.intern_iri(&owl("equivalentClass"))?;
+    g.builder.push_quad(named, rdf_type, datatype, None)?;
+    g.builder.push_quad(range, rdf_type, datatype, None)?;
+    g.builder.push_quad(named, equivalent, range, None)?;
+    let vocab = purrdf_core::ListVocab {
+        first: g.builder.intern_iri(crate::lists::RDF_FIRST)?,
+        rest: g.builder.intern_iri(crate::lists::RDF_REST)?,
+        nil: g.builder.intern_iri(crate::lists::RDF_NIL)?,
+    };
+    let cell_ids = (0..cells.len())
+        .map(|index| {
+            g.builder
+                .intern_blank(&format!("{label}-cell-{index}"), scope)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    let values = cells
+        .iter()
+        .map(|(_, member)| g.intern_atomic(member))
+        .collect::<gmeow_errors::Result<Vec<_>>>()?;
+    purrdf_core::collections::try_build_rdf_list(
+        values,
+        &vocab,
+        |index| Ok(cell_ids[index]),
+        |s, p, o| g.builder.push_quad(s, p, o, None),
+    )?;
+    let predicate = g.builder.intern_iri(&owl(constructor))?;
+    g.builder.push_quad(range, predicate, cell_ids[0], None)?;
+    Ok(())
+}
+
+/// Emit one lifted anonymous expression to OWL 2 DL with its retained class or
+/// datatype kind, constructor edges and list cells. An expression OWL 2 DL cannot carry
 /// faithfully here — an incomplete list, a literal (data) enumeration member, or any
 /// unrecognized statement — is dropped whole and disclosed in `drops`. Returns whether the
 /// expression was emitted.
@@ -823,6 +879,14 @@ fn emit_class_expression(
     lists: &ListCells<'_>,
     drops: &mut Vec<String>,
 ) -> gmeow_errors::Result<bool> {
+    if expression.class && expression.datatype {
+        drops.push(format!(
+            "anonymous expression <{node}> is explicitly both logic:Class and rdfs:Datatype; \
+             OWL DL cannot preserve both kinds, so the whole expression is dropped. \
+             Inspect the canonical RDF and resolve the intended target kind"
+        ));
+        return Ok(false);
+    }
     if let Some(predicate) = expression.other.first() {
         drops.push(format!(
             "class expression <{node}> carries <{predicate}>, which has no OWL DL class-\
@@ -836,8 +900,21 @@ fn emit_class_expression(
         ));
         return Ok(false);
     }
+    if expression.datatype && expression.edges.len() != 1 {
+        drops.push(format!(
+            "datatype expression <{node}> needs exactly one OWL data-range constructor; dropped"
+        ));
+        return Ok(false);
+    }
     let mut lowered: Vec<(&str, LoweredOperand<'_>)> = Vec::new();
     for (local, operand) in &expression.edges {
+        if expression.datatype && !matches!(*local, "unionOf" | "intersectionOf") {
+            drops.push(format!(
+                "datatype expression <{node}> carries logic:{local}, which has no admitted \
+                 OWL datatype constructor here; dropped"
+            ));
+            return Ok(false);
+        }
         if *local == "complementOf" {
             if operand.as_iri().is_none() {
                 drops.push(format!(
@@ -862,7 +939,22 @@ fn emit_class_expression(
             ));
             return Ok(false);
         }
+        if expression.datatype && cells.len() < 2 {
+            drops.push(format!(
+                "datatype expression <{node}> needs at least two operands for owl:{local}; dropped"
+            ));
+            return Ok(false);
+        }
         lowered.push((local, LoweredOperand::List(cells)));
+    }
+    if expression.datatype {
+        let [(local, LoweredOperand::List(cells))] = lowered.as_slice() else {
+            return Err(super::overclaim(
+                "validated OWL datatype constructor requires one operand list".into(),
+            ));
+        };
+        emit_datatype_definition(g, node, local, cells)?;
+        return Ok(true);
     }
     let node = owl_class_iri(node);
     g.add_iri(node, RDF_TYPE, &owl("Class"))?;

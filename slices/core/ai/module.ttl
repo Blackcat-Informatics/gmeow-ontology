@@ -1948,6 +1948,11 @@ gmeow:Chunking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking"@x-gmeow-english ;
     skos:definition "One recorded segmentation of an exact source revision under an identified frozen contract. Source and contract artifacts retain their own content digests; the selected pins are distinct from any digest of this enclosing result record. Granularity and ordered member chunks describe this segmentation without assuming overlap or exhaustive coverage policies."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain one segmentation of a named source revision under a frozen rules artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a result record as its source, its rules artifact or proof of complete source coverage."@x-gmeow-english ;
+    gmeow:howToUse "Name chunkingSource and chunkingRulesArtifact, retain their selected digest pins and hasGranularity, and link selected chunks through inChunking."@x-gmeow-english ;
+    skos:scopeNote "This InformationObject records a segmentation. Member ordinals and represented block extents do not impose overlap, consecutive ordering or exhaustive coverage policies."@x-gmeow-english ;
+    skos:example "ex:segmentation a gmeow:Chunking ; gmeow:chunkingSource ex:revision ; gmeow:chunkingRulesArtifact ex:rules ."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1956,6 +1961,11 @@ gmeow:ChunkingMember
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking Member"@x-gmeow-english ;
     skos:definition "The role of an actual contiguous Chunk selected into one Chunking. Its ordinal belongs to that chunking, and chunkOf identifies the exact carrier cut by its source-coordinate bounds. A different segmentation uses fresh chunk identities; this role does not turn every existing Chunk into a contract-bound member."@x-gmeow-english ;
+    gmeow:useWhen "Use for an actual contiguous Chunk selected into one recorded chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid applying this role to every Chunk or reusing a chunk identity for a different segmentation."@x-gmeow-english ;
+    gmeow:howToUse "Link inChunking to the selected result, retain entryOrdinal, chunkOf and span bounds, and identify covered atomic occurrences through coversBlockExtent."@x-gmeow-english ;
+    skos:scopeNote "The ordinal is scoped to the selected chunking. chunkOf names the carrier containing the retrieved text; derivation from another artifact does not change that carrier."@x-gmeow-english ;
+    skos:example "ex:member a gmeow:ChunkingMember ; gmeow:inChunking ex:segmentation ; gmeow:chunkOf ex:revision ."@x-gmeow-english ;
     logic:subClassOf gmeow:Chunk ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1964,6 +1974,11 @@ gmeow:BlockExtent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Block Extent"@x-gmeow-english ;
     skos:definition "A recorded whole-source extent of one ContentBlock in one exact source carrier. extentSource fixes the coordinate origin; spanStart and spanEnd retain the existing zero-based half-open Unicode-code-point semantics. These are not offsets local to the block or its division. This record supplies coordinates for atomic-boundary checks without redefining the block’s structural identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to locate a structural ContentBlock in an exact whole-source coordinate frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting block-local offsets or treating the extent record as the structural block itself."@x-gmeow-english ;
+    gmeow:howToUse "Name extentOfBlock and extentSource, then retain spanStart and spanEnd in that carrier’s zero-based, half-open Unicode-code-point frame."@x-gmeow-english ;
+    skos:scopeNote "This InformationObject supplies represented coordinates for boundary laws. Its presence does not certify that every block in the source has an extent record."@x-gmeow-english ;
+    skos:example "ex:extent a gmeow:BlockExtent ; gmeow:extentOfBlock ex:paragraph ; gmeow:extentSource ex:revision ."@x-gmeow-english ;
     logic:subClassOf gmeow:InformationObject ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1972,6 +1987,11 @@ gmeow:chunkingSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunking source revision"@x-gmeow-english ;
     skos:definition "The exact information artifact whose text this chunking segments, rather than a mutable work identity, location or enclosing import record."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the exact information artifact segmented by a Chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing at a mutable work, a location or an import wrapper in place of the actual source revision."@x-gmeow-english ;
+    gmeow:howToUse "Link the result to its source InformationObject and retain the selected source digest separately with chunkingSourceDigest."@x-gmeow-english ;
+    skos:scopeNote "The source artifact supplies the member carrier and whole-source coordinate origin. Naming it neither reads its bytes nor computes its digest."@x-gmeow-english ;
+    skos:example "ex:segmentation gmeow:chunkingSource ex:revision ."@x-gmeow-english ;
     logic:domain gmeow:Chunking ;
     logic:range gmeow:InformationObject ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -1986,21 +2006,27 @@ gmeow:chunkingSourceDigest
     logic:subPropertyOf lang:literalValue ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
-gmeow:chunkingContract
+gmeow:chunkingRulesArtifact
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
-    rdfs:label "chunking contract artifact"@x-gmeow-english ;
+    rdfs:label "chunking rules artifact"@x-gmeow-english ;
     skos:definition "The frozen rules artifact used for this segmentation and present in its creation context. It identifies the actual contract bytes, not prose describing a wrapper or a claim that the opaque contract has been executed or proved."@x-gmeow-english ;
     logic:domain gmeow:Chunking ;
     logic:range gmeow:InformationObject ;
     logic:subPropertyOf gmeow:contextIncluded ;
+    rdfs:seeAlso gmeow:chunkingContractDigest ;
+    gmeow:useWhen "Use to identify the exact information artifact containing the rules applied to one recorded segmentation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using an opaque configuration string, digest literal or reasoner contract in place of the actual rules artifact."@x-gmeow-english ;
+    gmeow:howToUse "Link the Chunking to its frozen InformationObject. Retain the artifact’s contentDigest and select its pin with chunkingContractDigest."@x-gmeow-english ;
+    skos:scopeNote "Specializes contextIncluded for the rules present in the chunking’s creation context. This artifact relation is distinct from the literal chunkingContract on an EmbeddingFamily; neither relation entails execution or verification of the rules."@x-gmeow-english ;
+    skos:example "ex:segmentation gmeow:chunkingRulesArtifact ex:rules ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:chunkingContractDigest
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "chunking contract digest"@x-gmeow-english ;
-    skos:definition "The selected contentDigest of the named chunkingContract artifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."@x-gmeow-english ;
+    skos:definition "The selected contentDigest of the artifact linked by chunkingRulesArtifact. It pins those rule bytes; it is not a contentDigest of the enclosing Chunking. No IRI, path or result hash substitutes for the required contract digest."@x-gmeow-english ;
     logic:domain gmeow:Chunking ;
     logic:range rdfs:Literal ;
     logic:subPropertyOf lang:literalValue ;
@@ -2011,6 +2037,11 @@ gmeow:inChunking
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "in chunking"@x-gmeow-english ;
     skos:definition "The one segmentation containing this selected chunk. Its source, contract and ordinal scope belong to that Chunking; membership is not a claim that all source text has been covered."@x-gmeow-english ;
+    gmeow:useWhen "Use to select the one segmentation whose member role this chunk bears."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting membership as global chunk order, source completeness or membership in every segmentation of that source."@x-gmeow-english ;
+    gmeow:howToUse "Link each ChunkingMember to its Chunking and interpret its entryOrdinal within that result."@x-gmeow-english ;
+    skos:scopeNote "This relation scopes the member’s source, rules and ordinal obligations. It does not require consecutive ordinals or prohibit overlap between distinct members."@x-gmeow-english ;
+    skos:example "ex:member gmeow:inChunking ex:segmentation ."@x-gmeow-english ;
     logic:domain gmeow:ChunkingMember ;
     logic:range gmeow:Chunking ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2020,6 +2051,11 @@ gmeow:coversBlockExtent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "covers block extent"@x-gmeow-english ;
     skos:definition "An atomic block occurrence wholly covered by this chunk, identified through its BlockExtent and extentOfBlock. The extent must share the chunk’s exact source origin. This relation neither substitutes local block offsets nor declares exhaustive source coverage."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the atomic block occurrences wholly included in a selected chunk."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid claiming coverage for an extent that is disjoint, merely touches a boundary or uses another source origin."@x-gmeow-english ;
+    gmeow:howToUse "Link the ChunkingMember to each covered BlockExtent, retaining the extent’s structural block, exact carrier and whole-source bounds."@x-gmeow-english ;
+    skos:scopeNote "The boundary law also examines represented extents without this relation. Omitting the relation cannot hide an intersecting split; asserted coverage does not certify exhaustive source coverage."@x-gmeow-english ;
+    skos:example "ex:member gmeow:coversBlockExtent ex:extent ."@x-gmeow-english ;
     logic:domain gmeow:ChunkingMember ;
     logic:range gmeow:BlockExtent ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2029,6 +2065,11 @@ gmeow:extentOfBlock
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "extent of block"@x-gmeow-english ;
     skos:definition "The structural ContentBlock located by this whole-source extent record. The block keeps its existing division, structural index and segment kind."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the structural ContentBlock located by a BlockExtent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the block’s division, structural index or segment kind with this coordinate record."@x-gmeow-english ;
+    gmeow:howToUse "Link the extent to the existing ContentBlock and keep its whole-source carrier in extentSource."@x-gmeow-english ;
+    skos:scopeNote "The relation identifies the block occurrence described by the extent. Coordinates remain on the extent; the block retains its documents-slice structure."@x-gmeow-english ;
+    skos:example "ex:extent gmeow:extentOfBlock ex:paragraph ."@x-gmeow-english ;
     logic:domain gmeow:BlockExtent ;
     logic:range gmeow:ContentBlock ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2038,6 +2079,11 @@ gmeow:extentSource
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "extent source origin"@x-gmeow-english ;
     skos:definition "The exact whole-source carrier whose Unicode-code-point origin these extent bounds use. A block-local rendering or a different revision is a different frame and cannot be compared silently with chunk bounds."@x-gmeow-english ;
+    gmeow:useWhen "Use to declare the exact whole-source carrier supplying an extent’s coordinate origin."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid silently comparing bounds from different revisions or block-local and whole-source frames."@x-gmeow-english ;
+    gmeow:howToUse "Link the BlockExtent to the actual source InformationObject and express both span bounds in that carrier’s Unicode-code-point coordinates."@x-gmeow-english ;
+    skos:scopeNote "Covered extents use the selected chunkingSource as origin. This frame relation performs no coordinate conversion or validation against source bytes."@x-gmeow-english ;
+    skos:example "ex:extent gmeow:extentSource ex:revision ."@x-gmeow-english ;
     logic:domain gmeow:BlockExtent ;
     logic:range gmeow:InformationObject ;
     gmeow:graphBoxRole gmeow:boxRBox .
@@ -2047,14 +2093,14 @@ gmeow:Chunking logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSource ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:allValuesFrom rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingSourceDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:allValuesFrom gmeow:InformationObject ] ,
-    [ a logic:Restriction ; logic:onProperty gmeow:chunkingContract ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingRulesArtifact ; logic:allValuesFrom gmeow:InformationObject ] ,
+    [ a logic:Restriction ; logic:onProperty gmeow:chunkingRulesArtifact ; logic:maxQualifiedCardinality 1 ; logic:onClass gmeow:InformationObject ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:allValuesFrom rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:chunkingContractDigest ; logic:maxQualifiedCardinality 1 ; logic:onDataRange rdfs:Literal ] ,
     [ a logic:Restriction ; logic:onProperty gmeow:hasGranularity ; logic:allValuesFrom gmeow:GranularityLevel ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSource" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingSourceDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
-[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContract" ; logic:closureValue logic:ClosedWorldClosure ] .
+[ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingRulesArtifact" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/chunkingContractDigest" ; logic:closureValue logic:ClosedWorldClosure ] .
 [ a logic:ClosureEntry ; logic:onClass gmeow:Chunking ; logic:closureKey "https://blackcatinformatics.ca/gmeow/hasGranularity" ; logic:closureValue logic:ClosedWorldClosure ] .
 
@@ -2092,6 +2138,11 @@ gmeow:ChunkingSourceDigestWitnessConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking source digest witness constraint"@x-gmeow-english ;
     skos:definition "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin."@x-gmeow-english ;
+    gmeow:useWhen "Use to require the selected source pin to be witnessed on the named source artifact."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid accepting a matching digest on another artifact or treating a recorded witness as byte authentication."@x-gmeow-english ;
+    gmeow:howToUse "For each Chunking with chunkingSource and chunkingSourceDigest, retain the corresponding contentDigest on that exact source."@x-gmeow-english ;
+    skos:scopeNote "The formula checks the recorded source/digest relation. It neither computes a hash nor selects an algorithm or a default source."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingSourceDigestWitnessConstraint logic:formalizes gmeow:chunkingSourceDigest ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:Chunking , gmeow:chunkingSourceDigest ;
     logic:message "The selected chunkingSourceDigest must occur as a contentDigest of the exact chunkingSource artifact. A digest of an enclosing record or another source does not satisfy this pin." ;
@@ -2114,10 +2165,15 @@ gmeow:ChunkingContractDigestWitnessConstraint
     a logic:Constraint ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking contract digest witness constraint"@x-gmeow-english ;
-    skos:definition "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."@x-gmeow-english ;
+    skos:definition "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to require a digest witness on the actual rules artifact selected by the chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting the result record’s digest or treating matching recorded pins as proof that rules were executed."@x-gmeow-english ;
+    gmeow:howToUse "Follow chunkingRulesArtifact and retain the selected chunkingContractDigest among that artifact’s own contentDigest values."@x-gmeow-english ;
+    skos:scopeNote "The formula concerns the selected rules artifact and its recorded digest. It does not execute the rules, authenticate bytes or equate an EmbeddingFamily configuration literal with an artifact."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingContractDigestWitnessConstraint logic:formalizes gmeow:chunkingRulesArtifact ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    logic:formalizes gmeow:Chunking , gmeow:chunkingContractDigest ;
-    logic:message "The selected chunkingContractDigest must occur as a contentDigest of the actual named chunkingContract artifact. The result record’s own content hash cannot substitute for the rule artifact’s identity." ;
+    logic:formalizes gmeow:Chunking , gmeow:chunkingContractDigest , gmeow:chunkingRulesArtifact ;
+    logic:message "The selected chunkingContractDigest must occur as a contentDigest of the actual rules artifact linked by chunkingRulesArtifact. The result record’s own content hash cannot substitute for the rule artifact’s identity." ;
     logic:integrity logic:chunkingContractWitnessForall .
 logic:chunkingContractWitnessForall a logic:Formula ;
     logic:quantifiedVariable [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] , [ logic:termIndex 2 ; logic:termVariable "digest" ] ;
@@ -2126,7 +2182,7 @@ logic:chunkingContractWitnessImpl a logic:Formula ; logic:antecedent logic:chunk
 logic:chunkingContractWitnessGuard a logic:Formula ; logic:and logic:chunkingContractWitnessGuard0 , logic:chunkingContractWitnessGuard1 , logic:chunkingContractWitnessGuard2 .
 logic:chunkingContractWitnessGuard0 a logic:Formula ; logic:relation <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termIri gmeow:Chunking ] .
-logic:chunkingContractWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingContract ;
+logic:chunkingContractWitnessGuard1 a logic:Formula ; logic:relation gmeow:chunkingRulesArtifact ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "contract" ] .
 logic:chunkingContractWitnessGuard2 a logic:Formula ; logic:relation gmeow:chunkingContractDigest ;
     logic:argument [ logic:termIndex 0 ; logic:termVariable "this" ] , [ logic:termIndex 1 ; logic:termVariable "digest" ] .
@@ -2138,6 +2194,11 @@ gmeow:ChunkingMemberSourceConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking member source constraint"@x-gmeow-english ;
     skos:definition "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division."@x-gmeow-english ;
+    gmeow:useWhen "Use to check that a selected chunk’s actual text carrier agrees with the chunking’s source."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using wasDerivedFrom to claim that generated summary text is cut from its original division."@x-gmeow-english ;
+    gmeow:howToUse "Follow inChunking to chunkingSource and compare that carrier with the member’s recorded chunkOf."@x-gmeow-english ;
+    skos:scopeNote "The formula compares the named carriers. It does not inspect the retrieved text or infer a carrier from derivation history."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingMemberSourceConstraint logic:formalizes gmeow:chunkOf ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:ChunkingMember , gmeow:chunkOf ;
     logic:message "A selected member’s actual chunkOf carrier equals the exact chunkingSource. Derivation from an original division does not make generated text a cut of that division." ;
@@ -2163,6 +2224,11 @@ gmeow:ChunkingOrdinalUniquenessConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking ordinal uniqueness constraint"@x-gmeow-english ;
     skos:definition "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage."@x-gmeow-english ;
+    gmeow:useWhen "Use to require one member identity at each recorded ordinal within a chunking."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading ordinal uniqueness as consecutive numbering, source order or non-overlapping coverage."@x-gmeow-english ;
+    gmeow:howToUse "Compare members sharing inChunking and entryOrdinal; those bindings must identify the same member."@x-gmeow-english ;
+    skos:scopeNote "The comparison is local to one result. Gaps in ordinals and overlap between different members are not forbidden by this law."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingOrdinalUniquenessConstraint logic:formalizes gmeow:entryOrdinal ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:ChunkingMember , gmeow:entryOrdinal ;
     logic:message "Two selected members of one Chunking with the same entryOrdinal are the same member. This scoped sequence law imposes neither global order nor consecutive, non-overlapping or exhaustive source coverage." ;
@@ -2190,6 +2256,11 @@ gmeow:ChunkingCoveredExtentOriginConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Covered block extent origin constraint"@x-gmeow-english ;
     skos:definition "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it."@x-gmeow-english ;
+    gmeow:useWhen "Use to check the source origin of every extent explicitly claimed as covered by a member."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid silently substituting a block-local frame, a division-local frame or another revision."@x-gmeow-english ;
+    gmeow:howToUse "Follow coversBlockExtent to extentSource and compare it with chunkingSource selected through inChunking."@x-gmeow-english ;
+    skos:scopeNote "The formula compares recorded origins for claimed coverage. It performs no coordinate transformation and does not enumerate missing extent records."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingCoveredExtentOriginConstraint logic:formalizes gmeow:extentSource ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:coversBlockExtent , gmeow:extentSource ;
     logic:message "An explicitly covered BlockExtent uses the exact chunkingSource as its whole-source coordinate origin. Local block or division frames cannot silently stand in for it." ;
@@ -2217,6 +2288,11 @@ gmeow:ChunkingAtomicBlockBoundaryConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking atomic block boundary constraint"@x-gmeow-english ;
     skos:definition "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented."@x-gmeow-english ;
+    gmeow:useWhen "Use to require whole-block containment whenever a selected chunk intersects a represented extent in the same source frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid hiding a represented split by omitting coversBlockExtent or treating the law as a certificate of complete block inventory."@x-gmeow-english ;
+    gmeow:howToUse "For every represented same-source extent intersecting the member, retain enclosing chunk bounds and the corresponding coversBlockExtent relation."@x-gmeow-english ;
+    skos:scopeNote "The guard uses strict intersection comparisons; the consequent requires containment and explicit coverage. It neither discovers unrepresented blocks nor calculates coordinates from source bytes."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingAtomicBlockBoundaryConstraint logic:formalizes gmeow:BlockExtent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:ChunkingMember , gmeow:BlockExtent , gmeow:coversBlockExtent ;
     logic:message "Whenever a selected chunk intersects a represented atomic BlockExtent in the same exact source frame, it contains that whole extent and records coversBlockExtent. Omitting a coverage assertion does not hide a split boundary. The law does not certify that all source blocks have been represented." ;
@@ -2265,6 +2341,11 @@ gmeow:ChunkingCoverageIntersectionConstraint
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunking coverage intersection constraint"@x-gmeow-english ;
     skos:definition "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks."@x-gmeow-english ;
+    gmeow:useWhen "Use to require actual intersection for every asserted covered extent in the shared source frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling a disjoint extent or one that merely touches an exclusive boundary a covered block."@x-gmeow-english ;
+    gmeow:howToUse "For each coversBlockExtent relation, compare member and extent bounds using start < blockEnd and blockStart < end."@x-gmeow-english ;
+    skos:scopeNote "This law checks strict intersection of claimed coverage. Whole-block containment is a separate boundary obligation; neither obligation proves exhaustive source coverage."@x-gmeow-english ;
+    skos:example "gmeow:ChunkingCoverageIntersectionConstraint logic:formalizes gmeow:coversBlockExtent ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     logic:formalizes gmeow:coversBlockExtent , gmeow:BlockExtent ;
     logic:message "An asserted covered extent must actually intersect the selected chunk in their shared whole-source frame. Boundary-touching and disjoint extents are not covered blocks." ;

@@ -237,6 +237,7 @@ fn authored_prepared_laws() -> PreparedReasonedGates {
         math_rules,
         enactment: ViolationLowering {
             rules: vec![ungrouped.clone(), authored_rule("Count"), ungrouped],
+            support_rules: Vec::new(),
             residue: gaps
                 .into_iter()
                 .map(|gap| RcViolationResidue {

@@ -13877,3 +13877,18 @@ repo:README.md a gmeow:CreativeWork ;
     skos:definition "The repository source section naming the exact bound RDF component identity authorities."@en ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     gmeow:selectorLocator "slices/grounding/logic/design/LOGIC-REFERENCES.md#bound-component-identity-authorities" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/state-records-native-tuple-identity> a gmeow:CitationAct ;
+    rdfs:label "slices/core/state-records/design/STATE-RECORDS.md"@en ;
+    skos:definition "RDF 1.2 Concepts supplies the original assignment and supersession triple terms, RDF reification and exact term identity used by the state-record integrity laws."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/state-records/design/STATE-RECORDS.md> ;
+    gmeow:citedEntity <https://www.w3.org/TR/rdf12-concepts/> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/state-records-native-tuple-identity> .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/state-records-native-tuple-identity> a gmeow:Selector ;
+    rdfs:label "state records original RDF tuple source selector"@en ;
+    skos:definition "The repository source section naming native RDF tuple and term identity as the authority for the state-record laws."@en ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
+    gmeow:selectorLocator "slices/core/state-records/design/STATE-RECORDS.md#original-rdf-tuple-authority" .

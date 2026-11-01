@@ -5,12 +5,12 @@
 
 `Chunking` is one recorded segmentation of an exact source revision. It names the
 actual source artifact and frozen rules artifact through `chunkingSource` and
-`chunkingContract`, with selected digest pins for each. These artifacts carry
+`chunkingRulesArtifact`, with selected digest pins for each. These artifacts carry
 their own `contentDigest` values. A digest of the enclosing segmentation record
 does not identify the contract, and a contract digest alone does not identify a
 segmentation of every possible source (Principles 4, 5 and 11).
 
-`chunkingContract` specializes the existing `contextIncluded` relation: the rules
+`chunkingRulesArtifact` specializes the existing `contextIncluded` relation: the rules
 artifact was present in the result’s creation context. The stronger local relation
 identifies which artifact supplies the rules. Each pin must match an actual
 `contentDigest` of its named artifact. Other algorithm-labelled digests remain
@@ -22,6 +22,16 @@ chunking, using the existing open granularity vocabulary (Principles 9 and 19).
 The rules artifact is an `InformationObject`. `logic:ReasoningContract` selects
 reasoner semantics, and `logic:PrescriptionVersion` versions a plan; a rules file
 does not by itself assert either of those meanings or an executed workflow.
+
+## Migrating the rules-artifact relation
+
+For a `Chunking` record that formerly used an object-valued
+`chunkingContract`, replace that predicate with `chunkingRulesArtifact` and
+retain the same rules-artifact object. Keep `chunkingContractDigest` and its
+selected value unchanged; the artifact relation and its digest pin remain
+separate statements. The literal-valued `chunkingContract` on an
+`EmbeddingFamily` is a separate configuration relation and stays unchanged.
+This migration supplies no compatibility alias or inferred conversion.
 
 ## Selected chunks and order
 
@@ -102,7 +112,7 @@ ex:paragraphLevel a gmeow:GranularityLevel .
 ex:segmentation a gmeow:Chunking ;
     gmeow:chunkingSource ex:source ;
     gmeow:chunkingSourceDigest "sha256:7cf72eeddc0c6811824aa5087f4e560067d06a4dc33407822730b6d525248a14" ;
-    gmeow:chunkingContract ex:rules ;
+    gmeow:chunkingRulesArtifact ex:rules ;
     gmeow:chunkingContractDigest "sha256:b5a3b69e5ea5e6ba74ac565d740c281dd2d852286e7bf770286f7a413334af62" ;
     gmeow:hasGranularity ex:paragraphLevel .
 ex:division a gmeow:ContentSegment ;

@@ -36,6 +36,19 @@ its segments' heads (`gtsSegmentIndex` order).
 
 ## Reuse map (no parallel mechanisms)
 
+`dictionaryContentDigest` names the exact trained dictionary bytes using the
+mathematics-owned `blake3_256Digest` datatype. Its lexical form is 64 lowercase
+hexadecimal digits without an algorithm prefix. The realization retains one
+required value; the native reader checks every complete digest literal and
+refuses wrong algorithms, malformed values and conflicting claims before
+recovering the existing internal `blake3:` address. Verification still hashes
+the actual held dictionary bytes before priming a decoder.
+
+The dictionary's numeric zstd ID, the resolved training-corpus fingerprint and
+the payload envelope's identities remain separate coordinates. A datatype
+declaration records the hash algorithm; lexical admission alone does not prove
+that any supplied dictionary matches its declared hash.
+
 | transport concept | reused machinery |
 |---|---|
 | frame/head signatures, signers | attestation (`hasSignature`, `Attestation`) |

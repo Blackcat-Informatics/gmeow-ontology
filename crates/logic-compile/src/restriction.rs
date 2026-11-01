@@ -157,10 +157,8 @@ struct Constraint {
     local: String,
     /// The complete filler or literal value.
     value: AtomicTerm,
-    /// Whether the filler is itself an anonymous node (a nested class / datatype
-    /// expression, e.g. `someValuesFrom [ owl:unionOf … ]` or a `withRestrictions`
-    /// datarange).  Such fillers have no stable identity here and take the restriction
-    /// to the fail-soft disclosure path — the documented anonymous-nested boundary.
+    /// Whether an anonymous filler still lacks a lifted owner identity. Ready
+    /// dependencies are resolved before restriction identity is computed.
     is_blank: bool,
 }
 
@@ -193,7 +191,7 @@ fn skolem_iri(content_key: &str) -> String {
 /// property slot (`<ns>onProperty`) or is typed `<ns>Restriction`.  Returned as the
 /// set of subject *labels* (`subject_str`) so the generic extractors can cheaply skip
 /// restriction-internal triples, plus the resolved [`Subject`]s for querying.
-fn restriction_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subject> {
+pub(crate) fn restriction_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subject> {
     let on_property = vocab.iri(ON_PROPERTY_LOCAL);
     let restriction_ty = vocab.iri(RESTRICTION_CLASS_LOCAL);
     let mut seen: BTreeSet<String> = BTreeSet::new();
@@ -211,17 +209,6 @@ fn restriction_nodes(store: &RdfDataset, vocab: &RestrictionVocab) -> Vec<Subjec
     out
 }
 
-/// The set of restriction-node labels (for the generic extractors' skip filter).
-pub(crate) fn restriction_node_labels(
-    store: &RdfDataset,
-    vocab: &RestrictionVocab,
-) -> BTreeSet<String> {
-    restriction_nodes(store, vocab)
-        .iter()
-        .map(subject_str)
-        .collect()
-}
-
 /// Collect a restriction node's single-valued constraints (the [`CONSTRAINT_LOCALS`]
 /// set).  Cardinality-count constraints are part of [`CONSTRAINT_LOCALS`] and lift
 /// here; `owl:oneOf` class enumerations are a separate multi-valued construct handled
@@ -230,15 +217,23 @@ fn collect_constraints(
     store: &RdfDataset,
     node: &Subject,
     vocab: &RestrictionVocab,
+    skolems: &BTreeMap<String, String>,
 ) -> gmeow_errors::Result<Vec<Constraint>> {
     let mut constraints: Vec<Constraint> = Vec::new();
     for local in CONSTRAINT_LOCALS {
         let pred = crate::graphutil::nn(&vocab.iri(local));
         for obj in objects(store, node, &pred) {
+            let lifted = match &obj {
+                Node::Blank { label, .. } => skolems.get(label),
+                _ => None,
+            };
             constraints.push(Constraint {
                 local: (*local).to_owned(),
-                value: crate::graphutil::atomic_object(&obj)?,
-                is_blank: crate::graphutil::term_is_blank(&obj),
+                value: match lifted {
+                    Some(iri) => AtomicTerm::Iri(iri.clone()),
+                    None => crate::graphutil::atomic_object(&obj)?,
+                },
+                is_blank: crate::graphutil::term_is_blank(&obj) && lifted.is_none(),
             });
         }
     }
@@ -256,6 +251,7 @@ fn collect_constraints(
 pub(crate) fn skolemize_restrictions(
     store: &RdfDataset,
     vocab: &RestrictionVocab,
+    pending: &BTreeMap<String, Subject>,
     diagnostics: &mut Vec<Diagnostic>,
     skolems: &mut BTreeMap<String, String>,
 ) -> Vec<LiftedTriple> {
@@ -264,13 +260,13 @@ pub(crate) fn skolemize_restrictions(
     let equivalent_class_pred = crate::graphutil::nn(&vocab.equivalent_class);
     let mut out: Vec<LiftedTriple> = Vec::new();
 
-    for node in restriction_nodes(store, vocab) {
+    for node in pending.values() {
         let source = crate::frontend::SourceNode {
-            term: crate::graphutil::subject_id(store, &node)
+            term: crate::graphutil::subject_id(store, node)
                 .expect("selected class-expression root"),
             graph: None,
         };
-        let node_label = subject_str(&node);
+        let node_label = subject_str(node);
         let on_properties: Vec<_> = store
             .term_id_by_iri(on_property_pred.as_str())
             .map(|predicate| {
@@ -310,7 +306,7 @@ pub(crate) fn skolemize_restrictions(
             }
             [only] => term_str(only),
         };
-        let constraints = match collect_constraints(store, &node, vocab) {
+        let constraints = match collect_constraints(store, node, vocab, skolems) {
             Ok(constraints) => constraints,
             Err(error) => {
                 diagnostics.push(Diagnostic::error(
@@ -332,10 +328,9 @@ pub(crate) fn skolemize_restrictions(
             ));
             continue;
         }
-        // A filler that is itself an anonymous class / datatype expression has no stable
-        // identity to lift — disclose and skip the whole restriction (the documented
-        // anonymous-nested-filler boundary; nested class expressions are the covering /
-        // datarange machinery's concern, not the property-restriction lift).
+        // A pending anonymous dependency must never enter the restriction key as
+        // a parse-local blank label. The frontend retries after owner progress and
+        // retains this diagnostic only if the dependency remains unresolved.
         if constraints.iter().any(|c| c.is_blank) {
             diagnostics.push(warn(
                 "UNSUPPORTED_NESTED_RESTRICTION",
@@ -378,7 +373,7 @@ pub(crate) fn skolemize_restrictions(
         // Anchor edges (class → restriction), redirected from the blank/IRI node to
         // the skolem node.  A restriction with no anchor is a free-floating class
         // expression (not authored today); it still lifts its internals.
-        let node_term = subject_as_object(&node);
+        let node_term = subject_as_object(node);
         for anchor in subjects_with(store, &sub_class_of_pred, &node_term) {
             out.push(LiftedTriple {
                 source,
