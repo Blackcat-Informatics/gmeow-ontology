@@ -18,6 +18,13 @@ const OWNER: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const GROUNDING: &str = "https://blackcatinformatics.ca/logic/GroundingCorrespondence";
 const SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 const PROJECTION: &str = "https://blackcatinformatics.ca/gmeow/ProjectionMapping";
+const GROUNDING_FIELDS: [&str; 5] = [
+    "sourceEndpoint",
+    "targetEndpoint",
+    "morphismClass",
+    "morphismKind",
+    "preservationKind",
+];
 
 /// Original physical occurrence; unrelated domain documents carry no grounding authority.
 pub(crate) struct OriginalMapping {
@@ -513,7 +520,30 @@ pub(crate) fn check_projection_alternatives(
         analysis.inspect_projection_subjects(&DslView::new(&merged), &structural_subjects)?
     };
     for cell in analysis.projection_cells().iter().chain(&untyped.cells) {
+        let native_intent = cell.grounding.is_some()
+            || originals.iter().any(|original| {
+                let view = DslView::new(&original.dataset);
+                GROUNDING_FIELDS.iter().any(|field| {
+                    !view
+                        .objects_of(
+                            &cell.iri,
+                            &format!("https://blackcatinformatics.ca/logic/{field}"),
+                        )
+                        .is_empty()
+                })
+            });
+        if native_intent && cell.grounding.is_none() {
+            return Err(registry_err(format!(
+                "projection {} has native authoring fields without its grounding marker",
+                cell.iri
+            )));
+        }
         for binding in &cell.bindings {
+            // Ordinary graph transforms consume canonical terms by reference;
+            // their frontend records carry neither endpoints nor grounding credit.
+            if !binding.emit_sssom && !native_intent {
+                continue;
+            }
             let mut pairs = BTreeSet::new();
             if binding.emit_sssom {
                 pairs.extend(sssom::projection_sssom_pairs(cell, binding)?);
@@ -600,15 +630,7 @@ pub(crate) fn check_projection_alternatives(
                                     .objects_of(&cell.iri, &format!("{GMEOW}{field}"))
                                     .is_empty()
                             })
-                            || [
-                                "sourceEndpoint",
-                                "targetEndpoint",
-                                "morphismClass",
-                                "morphismKind",
-                                "preservationKind",
-                            ]
-                            .iter()
-                            .any(|field| {
+                            || GROUNDING_FIELDS.iter().any(|field| {
                                 !view
                                     .objects_of(
                                         &cell.iri,

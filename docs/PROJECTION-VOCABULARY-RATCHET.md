@@ -145,6 +145,11 @@ discriminators, ambiguous ownership and off-owner duplicates refuse. Shared merg
 analysis resolves legal pattern and binding references; it cannot fill missing local
 grounding metadata. Ordinary graph transformations are not classified by every kernel
 property they happen to reference.
+Non-SSSOM consumer bindings without native authoring fields retain the frontend's
+ordinary meaning: their input selectors are not semantic grounding endpoints and
+they grant no native catalog credit. Any explicit or partial native logical
+envelope instead requires its grounding marker and full admission, including when
+an authored field has a malformed value.
 
 Authenticated registry observations carry the declaring artifact role, original
 declaration and mapping paths, declared source types, SHA-256 identities, endpoints

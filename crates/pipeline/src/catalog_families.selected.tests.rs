@@ -291,21 +291,39 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
         g:hasBinding [ g:profile \"prov\" ; g:relation \"<=\" ; g:emitSssom false ;
             g:templateAtoms ( [ g:tSubj \"x\" ; g:tPred rdf:type ; g:tObjValue prov:Entity ] ) ] ."
     );
+    let kernel_transform = transform
+        .replace(
+            "g:anchor \"x\" ;",
+            "g:anchor \"x\" ; g:edoalSource g:Usage1 ;",
+        )
+        .replace(
+            "g:profile \"prov\" ;",
+            "g:profile \"prov\" ; g:toClass prov:Entity ;",
+        );
+    let partial_native = kernel_transform.replace(
+        "g:Export a g:ProjectionMapping ;",
+        "g:Export a g:ProjectionMapping ; logic:sourceEndpoint g:Usage1 ;",
+    );
     for (text, expected) in [
         (transform.clone(), true),
+        (kernel_transform, true),
+        (partial_native.clone(), false),
         (
-            transform.replace(
-                "g:anchor \"x\" ;",
-                "g:anchor \"x\" ; g:edoalSource g:Usage1 ;",
+            partial_native.replace(
+                "logic:sourceEndpoint g:Usage1",
+                "logic:sourceEndpoint \"malformed\"",
             ),
             false,
         ),
     ] {
         let dataset = purrdf::parse_dataset(text.as_bytes(), "text/turtle", None).unwrap();
-        let (_, analysis) = gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
+        let (program, analysis) = gmeow_logic_compile::projections::correspondence_frontend::transpile_correspondences_indexed(
             &gmeow_logic_compile::ingest::DslView::new(&dataset), &ontology, &[],
         ).unwrap();
         if expected {
+            assert!(program.correspondences.iter().all(|row| !row.grounding
+                && row.source_endpoint.is_none()
+                && row.target_endpoint.is_none()));
             let unrelated = format!(
                 "{text}\ng:UnrelatedSelector g:tPredFromCorrespondence <urn:unrelated:alias> ."
             );
@@ -325,8 +343,12 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
                 "production admission still rejects the unrelated orphan selector"
             );
         }
-        let original =
-            native_kernel::OriginalMapping::new(owner, mapping_path, text.as_bytes(), dataset);
+        let original = native_kernel::OriginalMapping::new(
+            "",
+            "dsl/mappings/projections/consumer.ttl",
+            text.as_bytes(),
+            dataset,
+        );
         let mut proof = observations.native_kernel_evidence.clone();
         assert_eq!(
             native_kernel::check_projection_alternatives(
@@ -338,6 +360,11 @@ fn projection_literal_catalog_partitions_seven_procedure_and_two_value_bridges()
             )
             .is_ok(),
             expected
+        );
+        assert_eq!(
+            proof.len(),
+            observations.native_kernel_evidence.len(),
+            "ordinary consumer transforms grant no native floor credit"
         );
     }
     let projection = format!("{prefixes}
