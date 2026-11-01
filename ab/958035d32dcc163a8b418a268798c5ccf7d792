@@ -1,0 +1,19 @@
+ghprsq structured squash audit metadata
+
+parent_hashes: 324e7b50acc2114524e14b7adf4a0566704425f9
+
+GhpRsq-Schema: 1
+GhpRsq-Merge-Style: structured-squash
+GhpRsq-GitHub-Repo: Blackcat-Informatics/gmeow-ontology
+GhpRsq-GitHub-Pull-Request: 2219
+GhpRsq-GitHub-PR-URL: https://github.com/Blackcat-Informatics/gmeow-ontology/pull/2219
+GhpRsq-Base-Ref: main
+GhpRsq-Base-OID: e6bc4845821fa008ee8d383fcb46b14214d5a41c
+GhpRsq-Head-Ref: paudley/1638-term-durable-work-orchestration-plan
+GhpRsq-Head-OID: 324e7b50acc2114524e14b7adf4a0566704425f9
+GhpRsq-Result-Tree: 64bb430b308a2ed472e8df0931238d752647c628
+GhpRsq-Result-Commit: ab958035d32dcc163a8b418a268798c5ccf7d792
+GhpRsq-Parent-Hashes: 324e7b50acc2114524e14b7adf4a0566704425f9
+GhpRsq-Squash-Notes-SHA256: efcf8369913e5aba111c43600cc0bd84545c2e5f9b715ef5c6dfcee4ee15dde1
+GhpRsq-Defect-Class: none
+GhpRsq-Stage-Evidence: none
