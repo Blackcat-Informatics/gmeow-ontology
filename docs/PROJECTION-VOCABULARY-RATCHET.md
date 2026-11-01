@@ -120,20 +120,33 @@ guards may declare their complete owner set initially; no existing configuration
 ceiling changes merely because the reader supports sets. Owner-neutral measurement
 APIs remain explicitly neutral and never choose a preferred owner.
 
-A vocabulary is guarded here only when its selected surface has declared grounding
-authority. Two of the
-process-model surfaces the grounding kernel bridges onto — PROV-O and schema.org —
-do not: they are general publication vocabularies that ~60 domain slices align to as
-ordinary, first-class by-reference correspondence records (Principle 5, "MORE is
-always BETTER"), without a complete kernel-owned publication boundary. The kernel's
-`logic:Plan`/`logic:Enactment` rows onto them are grounding correspondences because
-their SUBJECTS are kernel terms, which is a fact about the source endpoint and does
-not make `logic:` the catalog owner. Registering either as a guarded vocabulary owned
-by `logic:` would reclassify 560 pre-existing, legitimate alignment triples across 65
-`(slice, vocabulary)` cells as off-owner residue needing brand-new ceilings — a
-repo-wide ownership decision, not a ratchet tightening. Both remain registered
-catalog families on the correspondence-law side (a grounding target must belong to
-exactly one registered family) while staying outside this residue ratchet.
+A broad vocabulary guard requires declared grounding authority for its selected
+surface. General publication vocabularies such as PROV-O and schema.org also carry
+ordinary domain alignments by reference (Principle 5). PROV-O uses source-scoped
+native admission for its kernel correspondences. The schema.org HowTo surface
+retains its bounded exemption. Neither route reclassifies ordinary domain alignments
+as off-owner residue.
+
+Every registered catalog family selects exactly one governance regime: an existing
+broad `gmeow:ProjectionVocabulary` guard, a bounded residue exemption, or
+`gmeow:NativeKernelCatalogGuard`. Existing broad guards keep their recognizers and
+owner boundaries. The native regime also covers the previously catalog-only kernel
+families, including OWL and OntoUML, through their existing native frontend forms.
+Canonical source ownership comes from original Module-role declarations and their
+actual physical homes, including retained public IRIs such as `gmeow:used`. Every
+original Mapping occurrence must retain its complete native term-cell or
+projection-binding envelope and catalog-owner home. Missing markers, missing native
+discriminators, ambiguous ownership and off-owner duplicates refuse. Shared merged
+analysis resolves legal pattern and binding references; it cannot fill missing local
+grounding metadata. Ordinary graph transformations are not classified by every kernel
+property they happen to reference.
+
+Authenticated registry observations carry the original module and mapping paths,
+SHA-256 identities, endpoints and complete non-law semantic keys. Shipped-program
+acceptance reconciles those keys and canonical owners; law discharges remain a
+separate certified lane. Empty or stale proof records refuse. PROV-O's five kernel
+rows graduate through this regime and its target minimum rises to five; a sixth
+complete owned correspondence is admitted by the same rule without a row roster.
 
 **The carve-out is a tracked record, not this paragraph.** Prose exempts nothing and
 counts nothing: with only this section, rows could be bridged onto an unguarded
@@ -151,8 +164,8 @@ in the same shape as every other registry commitment here — a typed row naming
 - an exemption for a family that IS guarded — the record may not outlive its reason;
 - an exemption naming no registered family — a dead row exempting nothing.
 
-The current membership is exactly two rows: PROV-O (ceiling 4) and schema.org HowTo
-(ceiling 7). `gmeow:exemptRowCeiling` is LOWER-ONLY, the same polarity as
+The remaining exemption is schema.org HowTo (ceiling 7).
+`gmeow:exemptRowCeiling` is LOWER-ONLY, the same polarity as
 `gmeow:ceilingCount`: it falls as rows are grounded through an owned surface, and
 widening the carve-out means editing the ceiling deliberately, in review, with the
 reason written down.

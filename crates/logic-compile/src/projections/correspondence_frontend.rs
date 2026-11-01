@@ -161,14 +161,27 @@ pub struct CorrespondenceAnalysis {
     /// programs for executed lens-law discharge — the per-profile UNION query is the wrong
     /// unit (a single UNION branch's law must be checked in isolation).
     binding_keys: BTreeMap<String, String>,
-    native_catalog_identity: String,
+    native_catalog: super::grounding_catalog::GroundingCatalog,
 }
 
 impl CorrespondenceAnalysis {
     /// Actual admitted native alignment-program identity, independent of its
     /// derived profile products and therefore free of recursive hashing.
     pub fn native_catalog_identity(&self) -> &str {
-        &self.native_catalog_identity
+        self.native_catalog.identity()
+    }
+
+    /// Inspect structural candidates with the same parser and admitted template authority.
+    /// These validation-only cells do not augment the published correspondence program.
+    ///
+    /// # Errors
+    /// Preserves the shared parser's refusal for malformed patterns or bindings.
+    pub fn inspect_projection_subjects(
+        &self,
+        view: &DslView,
+        subjects: &std::collections::BTreeSet<String>,
+    ) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+        super::get_leg::projection_subjects(view, &self.native_catalog, subjects.iter().cloned())
     }
     /// The exact native alignment cells from which the typed program was admitted.
     pub fn alignment_cells(&self) -> &[super::sssom::EquivalenceCell] {
@@ -552,7 +565,7 @@ pub fn transpile_correspondences_indexed(
     Ok((
         program,
         CorrespondenceAnalysis {
-            native_catalog_identity: catalog.identity().to_owned(),
+            native_catalog: catalog,
             alignment_cells,
             projection_cells,
             by_key,
@@ -565,7 +578,11 @@ pub fn transpile_correspondences_indexed(
 /// binding, reusing [`super::get_leg::ProfileBinding::lattice`] for the relation/class/kind triple — and
 /// return that [`TypedRelation`] alongside it (computed once) so the lookup the dialect
 /// gates consume and the materialized node share one derivation.
-fn correspondence_for_binding(
+///
+/// # Errors
+/// Refuses incomplete grounding envelopes, invalid law-spine values, overclaimed
+/// relations and target endpoints that differ from the actual selected binding.
+pub fn correspondence_for_binding(
     cell: &crate::projections::get_leg::ProjectionCell,
     binding: &ProjectionBinding,
 ) -> gmeow_errors::Result<(Correspondence, TypedRelation)> {

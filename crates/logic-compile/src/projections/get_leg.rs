@@ -449,12 +449,22 @@ pub fn projections(
     view: &DslView,
     catalog: &super::grounding_catalog::GroundingCatalog,
 ) -> gmeow_errors::Result<Vec<ProjectionCell>> {
+    projection_subjects(view, catalog, view.subjects_of_type(GM_PROJECTION_MAPPING))
+}
+
+/// Parse explicitly selected subjects through the shared projection frontend.
+/// Validation callers may inspect structural candidates without publishing them.
+pub(super) fn projection_subjects(
+    view: &DslView,
+    catalog: &super::grounding_catalog::GroundingCatalog,
+    subjects: impl IntoIterator<Item = String>,
+) -> gmeow_errors::Result<Vec<ProjectionCell>> {
     let mut cells = Vec::new();
     let grounding = view
         .subjects_of_type(LOGIC_GROUNDING_CORRESPONDENCE)
         .into_iter()
         .collect::<BTreeSet<_>>();
-    for cell_iri in view.subjects_of_type(GM_PROJECTION_MAPPING) {
+    for cell_iri in subjects {
         let Some(pattern_node) = view.first_object(&cell_iri, GM_HAS_MAPPING_PATTERN) else {
             return Err(Diag::of_kind(crate::error::GetLeg {
                 detail: format!("projection mapping {cell_iri} missing hasMappingPattern"),

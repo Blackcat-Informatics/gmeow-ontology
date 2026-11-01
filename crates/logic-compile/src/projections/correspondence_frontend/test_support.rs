@@ -24,7 +24,7 @@ impl CorrespondenceAnalysis {
         let binding_keys = BTreeMap::from([(correspondence.iri, semantic_key.clone())]);
         by_key.insert(NaturalKey::Binding { semantic_key }, typed);
         Self {
-            native_catalog_identity: catalog.identity().to_owned(),
+            native_catalog: catalog,
             by_key,
             binding_keys,
             alignment_cells: Vec::new(),

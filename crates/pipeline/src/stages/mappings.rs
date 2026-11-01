@@ -269,7 +269,7 @@ fn compile_mappings_with_sources(
     // `gmeow:catalogTargetMinimum`. Admitting a new external surface is therefore an
     // ontology edit, and losing rows from an admitted one is red rather than silent.
     {
-        let registry = crate::catalog_families::load_catalog_registry(root)?;
+        let registry = aligned.catalog_registry.clone();
         let families = &registry.families;
         let targets: Vec<(&str, &str)> = aligned
             .correspondences
@@ -324,7 +324,9 @@ fn compile_mappings_with_sources(
         let observations = crate::catalog_families::RegistryObservations {
             registry,
             guarded_namespaces,
+            native_kernel_evidence: aligned.native_kernel_evidence.clone(),
         };
+        observations.validate()?;
         artifacts.insert(
             crate::catalog_families::REGISTRY_CHANNEL.to_owned(),
             purrdf_lex::json::record::to_vec(&observations),
@@ -1293,6 +1295,8 @@ impl Stage for MappingsStage {
         // feeds the committed audit ledger. Declare them ALL so any edit busts the
         // cache. `consumes() == []` (the leaf reads sources, not upstream products).
         let mut files = Vec::new();
+        // Module/Mapping roles and their physical owners are manifest-selected authority.
+        files.extend(crate::stages::source_load::all_manifest_files(root)?);
         collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
         // Translation and glossary products consume every registered DSL owner,
         // including owners outside the mapping DSL source tree.

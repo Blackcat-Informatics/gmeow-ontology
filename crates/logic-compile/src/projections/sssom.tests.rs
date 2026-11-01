@@ -548,6 +548,13 @@ fn native_alignment_metadata_keeps_scoped_reifiers_and_graph_boundaries() {
 
 #[test]
 fn malformed_native_alignment_fields_fail_instead_of_disappearing() {
+    let spoof = format!(
+        "{NATIVE_PROLOGUE} gmeow:Foo <urn:spoof:closeMatch> schema:Thing {{| gmeow:sssomFile \"a.tsv\" |}} ."
+    );
+    assert!(
+        transpile_and_lower(spoof.as_bytes()).is_err(),
+        "a familiar local name does not admit a foreign relation IRI"
+    );
     for fields in [
         "gmeow:sssomFile <https://example.org/wrong-kind>",
         "gmeow:sssomFile \"a.tsv\", \"b.tsv\"",

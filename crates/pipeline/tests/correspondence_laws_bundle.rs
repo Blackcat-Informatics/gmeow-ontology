@@ -130,10 +130,21 @@ fn shipped_bundle_carries_the_complete_grounding_correspondence_catalog() {
     // number: admitting a new external surface is an ontology edit, reviewable beside the
     // bridge cells it licenses, exactly as `gmeow:ProjectionVocabulary` does for the
     // guarded-residue ratchet.
-    let families = authenticated_registry(&repo_root())
-        .expect("authenticated catalog-family registry")
-        .registry
-        .families;
+    let registry = authenticated_registry(&repo_root())
+        .expect("authenticated catalog-family registry and native kernel proof");
+    let shipped = authenticated_bundle::dataset();
+    let correspondence_graph = shipped
+        .project_graph(Some(&purrdf::RdfTerm::iri(CORRESPONDENCE_LAWS_GRAPH)))
+        .unwrap();
+    let program = gmeow_logic_compile::projections::correspondence::parse_correspondence(
+        &correspondence_graph,
+    )
+    .unwrap();
+    let ontology = shipped.project_graph(None).unwrap();
+    registry
+        .verify_native_kernel_program(&ontology, &program)
+        .expect("complete native kernel source envelopes survive the shipped bundle");
+    let families = registry.registry.families;
     let mut source_namespaces = std::collections::BTreeMap::<&str, usize>::new();
     let mut endpoint_pairs = BTreeSet::new();
     let mut shipped_targets: Vec<(String, String)> = Vec::new();
