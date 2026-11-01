@@ -587,10 +587,11 @@ gmeow:receiptTool
     skos:definition "The source-reported tool name for this artifact operation, verbatim. It does not replace a ToolCall’s usedTool agent."@x-gmeow-english ;
     gmeow:useWhen "Use when an activity receipt supplies a tool name."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid token whitespace normalization or inferred tool identity from this string alone."@x-gmeow-english ;
-    gmeow:howToUse "Preserve the exact string and retain the parent attempt or ToolCall separately."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token tool-name literal and retain the parent attempt or ToolCall separately."@x-gmeow-english ;
     skos:example "ex:record gmeow:receiptTool \"source value\" ."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching tool-name spelling does not establish tool-agent identity."@x-gmeow-english ;
     logic:domain gmeow:ArtifactOperationReceipt ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:resultDigest
     a logic:DatatypeProperty ;
@@ -791,7 +792,7 @@ gmeow:ArtifactOperationReceipt logic:subClassOf
     [ a logic:Restriction ; logic:onProperty gmeow:receiptOperation ; logic:allValuesFrom gmeow:ArtifactOperation ],
     [ a logic:Restriction ; logic:onProperty gmeow:receiptArtifact ; logic:allValuesFrom gmeow:InformationObject ],
     [ a logic:Restriction ; logic:onProperty gmeow:subEventOf ; logic:allValuesFrom gmeow:Event ],
-    [ a logic:Restriction ; logic:onProperty gmeow:receiptTool ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:receiptTool ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:resultDigest ; logic:allValuesFrom rdfs:Literal ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ArtifactOperationReceipt ;
@@ -1169,11 +1170,11 @@ gmeow:verifierKey
     skos:definition "The exact source key naming a checked condition, retained on its Condition occurrence, ConditionVerifier descriptor and reified goal-evaluation evidence citation. Equality is scoped to the containing goal and exact evaluation citation, never global identity or whitespace normalization."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
-    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token key on its actual condition, configured verifier and exact evidence citation. Retain the same complete literal, including datatype, across those scoped bindings."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Key binding remains local to the containing goal and exact evaluation citation; it does not establish global identity."@x-gmeow-english ;
     skos:example "ex:record gmeow:verifierKey \"source-value\" ."@x-gmeow-english ;
     logic:domain gmeow:InformationObject ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:verifierTitle
     a logic:DatatypeProperty ;
@@ -1228,11 +1229,11 @@ gmeow:expectedWorldObject
     skos:definition "The exact unresolved simulated-object identifier supplied by the source. Resolution requires a provider-and-world-scoped WorldObjectRecord; matching text alone never creates an object identity."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
-    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token identifier on ConditionVerifier with its source attribution. Retain provider-and-world context and any separately established object resolution."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching unresolved spelling does not identify objects across providers or worlds."@x-gmeow-english ;
     skos:example "ex:record gmeow:expectedWorldObject \"source-value\" ."@x-gmeow-english ;
     logic:domain gmeow:ConditionVerifier ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:verifierArtifactExists
     a gmeow:VerifierKind ;
@@ -1323,14 +1324,14 @@ gmeow:conditionKey
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "condition key"@x-gmeow-english ;
-    skos:definition "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."@x-gmeow-english ;
+    skos:definition "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original literal and datatype without token normalization."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
-    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token key on the actual GoalEvaluation. Its condition, configured verifier and exact evidence citation retain the same complete literal, including datatype."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Existing same-goal and exact-citation laws remain in force; a matching key alone is not proof that a condition held."@x-gmeow-english ;
     skos:example "ex:record gmeow:conditionKey \"source-value\" ."@x-gmeow-english ;
     logic:domain logic:GoalEvaluation ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:evidenceItem
     a logic:DatatypeProperty ;
@@ -1507,11 +1508,11 @@ gmeow:engineContract
     skos:definition "The exact source engine-contract identifier governing a recorded event. Preserve all code points and spacing; the identifier alone supplies neither an implemented contract nor an execution receipt."@x-gmeow-english ;
     gmeow:useWhen "Use when the source explicitly supplies this relation and its context."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inventing missing source bindings or inferring execution and success from this record alone."@x-gmeow-english ;
-    gmeow:howToUse "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."@x-gmeow-english ;
-    skos:scopeNote "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token engine-contract identifier on the recorded Event with its source attribution. Retain any actual contract artifact or execution evidence separately."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Naming a contract does not authenticate its implementation or establish that an event executed under it."@x-gmeow-english ;
     skos:example "ex:record gmeow:engineContract \"source-value\" ."@x-gmeow-english ;
     logic:domain gmeow:Event ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:auditText
     a logic:DatatypeProperty ;
@@ -1579,7 +1580,7 @@ gmeow:IntentionTenure logic:subClassOf [ a logic:Restriction ; logic:onProperty 
 
 # Configured descriptor fields are mandatory, without manufacturing source values.
 gmeow:ConditionVerifier logic:subClassOf
-    [ a logic:Restriction ; logic:onProperty gmeow:verifierKey ; logic:allValuesFrom xsd:string ],
+    [ a logic:Restriction ; logic:onProperty gmeow:verifierKey ; logic:allValuesFrom [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ],
     [ a logic:Restriction ; logic:onProperty gmeow:conditionVerifierKind ; logic:allValuesFrom gmeow:VerifierKind ] .
 
 [ a logic:ClosureEntry ; logic:onClass gmeow:ConditionVerifier ; logic:closureKey "https://blackcatinformatics.ca/gmeow/verifierKey" ; logic:closureValue logic:ClosedWorldClosure ] .
@@ -1963,14 +1964,14 @@ gmeow:injectionCategory
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agency-records> ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     rdfs:label "injection category code"@x-gmeow-english ;
-    skos:definition "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine string preserves source whitespace and case."@x-gmeow-english ;
+    skos:definition "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine literal preserves source whitespace, case and datatype."@x-gmeow-english ;
     gmeow:useWhen "Use when a retained screening report names a category for a particular outside-answer artifact."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing the injected instruction text as the code, resolving the code into a universal taxonomy, or asserting that the model or sender is globally malicious."@x-gmeow-english ;
-    gmeow:howToUse "Keep the literal as xsd:string on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."@x-gmeow-english ;
-    skos:scopeNote "This is a source classification, not execution of a screen or proof that an attack succeeded. No token datatype admission, normalization, lexical validator or closed category registry follows from the string range."@x-gmeow-english ;
+    gmeow:howToUse "Keep the supplied xsd:string or xsd:token literal on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."@x-gmeow-english ;
+    skos:scopeNote "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. This source classification neither executes a screen, proves attack success nor supplies a closed category registry."@x-gmeow-english ;
     skos:example "Retain the screen's exact code: ex:screenReading gmeow:injectionCategory \" role-override  \" ."@x-gmeow-english ;
     logic:domain gmeow:Observation ;
-    logic:range xsd:string .
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] .
 
 gmeow:InvocationStateEvidenceConstraint
     a logic:Constraint ;

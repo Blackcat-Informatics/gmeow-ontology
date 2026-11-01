@@ -1178,8 +1178,8 @@ msgid "Avoid token whitespace normalization or inferred tool identity from this 
 msgstr "避免 token 空白规范化，或仅从此字符串推断工具身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Preserve the exact string and retain the parent attempt or ToolCall separately."
-msgstr "保留确切字符串，独立保留所属尝试或 ToolCall。"
+msgid "Keep the supplied xsd:string or xsd:token tool-name literal and retain the parent attempt or ToolCall separately."
+msgstr "保留所提供的 xsd:string 或 xsd:token 工具名称字面量，并单独保留父尝试或父 ToolCall。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:receiptTool \"source value\" ."
@@ -1982,12 +1982,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+msgid "Keep the supplied xsd:string or xsd:token key on its actual condition, configured verifier and exact evidence citation. Retain the same complete literal, including datatype, across those scoped bindings."
+msgstr "在实际条件、已配置验证器和确切证据引用上保留所提供的 xsd:string 或 xsd:token 键。在这些有明确作用域的绑定中保留同一完整字面量，包括数据类型。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Key binding remains local to the containing goal and exact evaluation citation; it does not establish global identity."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 键绑定仅限于所属目标和确切的评估引用，不确立全局身份。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/verifierKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:verifierKey \"source-value\" ."
@@ -2094,12 +2094,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+msgid "Keep the supplied xsd:string or xsd:token identifier on ConditionVerifier with its source attribution. Retain provider-and-world context and any separately established object resolution."
+msgstr "在 ConditionVerifier 上保留所提供的 xsd:string 或 xsd:token 标识符及其来源归属。保留提供者和世界上下文，以及任何独立确立的对象解析。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching unresolved spelling does not identify objects across providers or worlds."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 未解析标识符拼写相同并不标识不同提供者或世界之间的同一对象。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/expectedWorldObject|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:expectedWorldObject \"source-value\" ."
@@ -2306,8 +2306,8 @@ msgid "condition key"
 msgstr "条件键"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original string without token normalization."
-msgstr "目标评估上的精确来源条件证据键。它在被评估目标内关联配置的验证描述符和条件，保留原始字符串而不作词元规范化。"
+msgid "The exact source condition-evidence key on a goal evaluation. It joins a configured verifier and condition within the evaluated goal, preserving the original literal and datatype without token normalization."
+msgstr "目标评估上由来源提供的确切条件证据键。它在被评估目标内连接已配置验证器和条件，保留原始字面量及数据类型，不进行 token 归一化。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when the source explicitly supplies this relation and its context."
@@ -2318,12 +2318,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+msgid "Keep the supplied xsd:string or xsd:token key on the actual GoalEvaluation. Its condition, configured verifier and exact evidence citation retain the same complete literal, including datatype."
+msgstr "在实际 GoalEvaluation 上保留所提供的 xsd:string 或 xsd:token 键。对应条件、已配置验证器和确切证据引用保留同一完整字面量，包括数据类型。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Existing same-goal and exact-citation laws remain in force; a matching key alone is not proof that a condition held."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 现有的同一目标和确切引用法则保持有效；键匹配本身并不能证明某条件成立。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/conditionKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:conditionKey \"source-value\" ."
@@ -2654,12 +2654,12 @@ msgid "Avoid inventing missing source bindings or inferring execution and succes
 msgstr "避免虚构缺失的来源绑定，或仅凭此记录推断执行和成功。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain actual source values, identities and attribution; preserve supplied wording, language and direction."
-msgstr "保留实际来源值、身份和归属；保持提供的措辞、语言和方向。"
+msgid "Keep the supplied xsd:string or xsd:token engine-contract identifier on the recorded Event with its source attribution. Retain any actual contract artifact or execution evidence separately."
+msgstr "在所记录的 Event 上保留所提供的 xsd:string 或 xsd:token 引擎契约标识符及其来源归属。另行保留任何实际契约制品或执行证据。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Source evidence and configuration remain distinct. Competing attributed records may coexist without a preferred claim."
-msgstr "来源证据与配置保持区分。相互竞争且注明归属的记录可并存，不设优先主张。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Naming a contract does not authenticate its implementation or establish that an event executed under it."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 指明契约名称不会认证其实现，也不能确立某事件在该契约下执行。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/engineContract|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:record gmeow:engineContract \"source-value\" ."
@@ -3573,8 +3573,8 @@ msgid "injection category code"
 msgstr "注入类别代码"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine string preserves source whitespace and case."
-msgstr "筛查器对外部回答试图注入的指令所报告的精确类别代码，保留在其带归属观察上。机器字符串保留来源空白和大小写。"
+msgid "The exact category code reported by a screen for instructions an outside answer attempted to inject, retained on its attributed observation. The machine literal preserves source whitespace, case and datatype."
+msgstr "筛查器针对外部回答试图注入的指令所报告的确切类别代码，保留在有归属的观察上。机器字面量保留来源空白、大小写及数据类型。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use when a retained screening report names a category for a particular outside-answer artifact."
@@ -3585,12 +3585,12 @@ msgid "Avoid storing the injected instruction text as the code, resolving the co
 msgstr "避免将注入指令文本存为代码、把代码解析成通用分类，或断言模型或发送者在全局上具有恶意。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the literal as xsd:string on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."
-msgstr "将字面量作为 xsd:string 保留在 Observation 上，以实际回答作为 observedFeature，并保留 vantage 及筛查来源。若提供证据片段或报告的方法，应一并保留。"
+msgid "Keep the supplied xsd:string or xsd:token literal on an Observation with the actual answer as observedFeature, its vantage and retained screening source. Preserve evidence spans or the reported method when supplied."
+msgstr "在 Observation 上保留所提供的 xsd:string 或 xsd:token 字面量，并以实际回答作为 observedFeature，保留其观察视角和筛查来源。来源提供证据跨度或报告的方法时，也应保留。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "This is a source classification, not execution of a screen or proof that an attack succeeded. No token datatype admission, normalization, lexical validator or closed category registry follows from the string range."
-msgstr "这是来源分类，不是执行筛查或证明攻击成功。字符串值域不意味着接纳 token 数据类型、执行规范化或词法验证，也不意味着存在封闭类别注册表。"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. This source classification neither executes a screen, proves attack success nor supplies a closed category registry."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 此来源分类不执行筛查、不证明攻击成功，也不提供封闭类别注册表。"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/injectionCategory|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the screen's exact code: ex:screenReading gmeow:injectionCategory \" role-override  \" ."
@@ -5346,3 +5346,7 @@ msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:stri
 msgctxt "https://blackcatinformatics.ca/gmeow/toolCallId|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. This declaration does not install a token lexical checker."
 msgstr "保留所提供的词法形式及数据类型：允许原样的 xsd:string 和明确提供的 xsd:token。不要规范化空白、重新指定字符串类型或推断 token 类型。此声明不安装 token 词法检查器。"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/receiptTool|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. These declarations do not install a token lexical checker. Matching tool-name spelling does not establish tool-agent identity."
+msgstr "保留提供的词法形式和数据类型：接受原样的 xsd:string 及显式提供的 xsd:token。不得归一化空白、重设字符串类型或推断 token 类型。这些声明不安装 token 词法检查器。 工具名称拼写相同并不能确立工具代理身份相同。"
