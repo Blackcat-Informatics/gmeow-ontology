@@ -17,7 +17,8 @@ artifact can retain its source network without becoming another kind of object.
 
 `chatRoom` references a `ChatRoom` entity. That entity retains its network with
 `chatTransport` and its exact source identifier with `chatRoomIdentifier`.
-The identifier is `xsd:string`, preserving case, whitespace and punctuation.
+The identifier retains its supplied `xsd:string` or `xsd:token` datatype,
+preserving case, whitespace and punctuation.
 It is not globally unique, and matching strings on different networks do not
 merge rooms. Direct conversations without a source room can omit `chatRoom`.
 
@@ -115,3 +116,24 @@ evidence. It records a reported verification without executing authentication.
 Matrix and Google Chat are initial ChatTransport members of an open vocabulary.
 See the [source-record scene](examples/source-records.ttl) and the
 [design contract](design/CHAT.md).
+
+## Machinery literals keep their source datatype
+
+The room identifier, reaction key/resource, actor and target identifiers,
+media-refusal code, provider event identifier/type and session identifier/sender
+admit supplied `xsd:string` and `xsd:token` literals. Retain the complete lexical
+form and datatype without whitespace normalization or inferred token typing.
+Reaction emoji keep their exact source code points, including variation selectors.
+Matching spelling does not identify a global actor, room, message or session.
+
+Provider, transport, source context and derivation retain their existing scope
+obligations. A provider event-type code remains separate from canonical event
+classification; a refusal code remains separate from a prose explanation or a
+universal taxonomy. Session evidence records a source verification claim rather
+than performing authentication.
+
+`providerOccurredAt` remains raw source timestamp text carried as `xsd:string`.
+It is not a machinery identifier or a parsed instant. No timezone, precision or
+chronology is inferred. Words in message bodies keep their separate language and
+direction contract. These datatype declarations add no lexical checker or
+source-capture implementation (Principles 2, 4, 7, 9 and 17).

@@ -134,8 +134,8 @@ msgid "chat room identifier"
 msgstr "identifiant de salon de discussion"
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The room identifier exactly as the source network supplied it, represented as xsd:string. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."
-msgstr "Identifiant de salon exactement fourni par le réseau source, représenté comme xsd:string. Casse, espaces et ponctuation sont conservés ; sa portée vient du chatTransport du ChatRoom."
+msgid "The room identifier exactly as the source network supplied it, retaining its xsd:string or xsd:token datatype. Case, whitespace and punctuation are retained; its scope comes from the ChatRoom’s chatTransport."
+msgstr "L’identifiant de salon exactement tel que fourni par le réseau source, conservant son type de données xsd:string ou xsd:token. La casse, les espaces et la ponctuation sont conservés ; sa portée vient du chatTransport du ChatRoom."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/useWhen"
 msgid "Use to preserve opaque source room identifiers without token normalization."
@@ -146,8 +146,8 @@ msgid "Avoid interpreting this string as a global key or putting a normalized re
 msgstr "Éviter d’interpréter cette chaîne comme une clé globale ou de la remplacer par une forme normalisée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Keep the supplied string on the room node and retain the transport that defines its scope."
-msgstr "Conserver la chaîne fournie sur le nœud de salon et garder le transport qui définit sa portée."
+msgid "Keep the supplied xsd:string or xsd:token literal on the ChatRoom and retain the chatTransport that defines its scope."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni sur le ChatRoom et garder le chatTransport qui définit sa portée."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:room gmeow:chatRoomIdentifier \" Room-7 \" ."
@@ -816,12 +816,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token reaction key on its actual ChatReaction, with its source reactionState and attribution. Retain exact emoji code points without normalization."
+msgstr "Conserver la clé de réaction xsd:string ou xsd:token fournie sur son ChatReaction réel, avec son reactionState source et son attribution. Garder les points de code exacts de l’émoji sans normalisation."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionKey|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:reactionKey."
@@ -844,12 +844,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/reactionResource|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:reactionResource."
@@ -984,12 +984,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/actorIdentity|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:actorIdentity."
@@ -1012,12 +1012,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/targetMessage|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:targetMessage."
@@ -1096,12 +1096,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token refusal code on RejectedMediaPart with its retained source record and zero-based source ordinal. Keep any prose explanation separately."
+msgstr "Conserver le code de refus xsd:string ou xsd:token fourni sur RejectedMediaPart avec son enregistrement source conservé et son ordinal source commençant à zéro. Garder toute explication en prose séparément."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/mediaRejectionReason|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:mediaRejectionReason."
@@ -1152,12 +1152,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEvent|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:providerEvent."
@@ -1180,12 +1180,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/providerEventType|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:providerEventType."
@@ -1264,12 +1264,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionIdentity|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:sessionIdentity."
@@ -1292,12 +1292,12 @@ msgid "Avoid inferring identity, delivery, verification or execution from missin
 msgstr "Éviter de déduire identité, livraison, vérification ou exécution de preuves source manquantes."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Retain exact source values, their scope and attribution; preserve supplied language and base direction."
-msgstr "Conserver les valeurs source exactes, leur portée et leur attribution ; préserver la langue et la direction de base fournies."
+msgid "Keep the supplied xsd:string or xsd:token literal with its actual providerProgram, chatTransport, accordingTo and wasDerivedFrom evidence. Preserve its source scope without resolving an identity from spelling alone."
+msgstr "Conserver le littéral xsd:string ou xsd:token fourni avec ses preuves réelles providerProgram, chatTransport, accordingTo et wasDerivedFrom. Préserver sa portée source sans résoudre une identité à partir de la seule graphie."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "Independent source claims coexist. These declarations preserve evidence without authenticating the provider or executing its operation."
-msgstr "Les déclarations source indépendantes coexistent. Ces déclarations conservent les preuves sans authentifier le fournisseur ni exécuter son opération."
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
 
 msgctxt "https://blackcatinformatics.ca/gmeow/sessionSender|http://www.w3.org/2004/02/skos/core#example"
 msgid "Retain the supplied value for gmeow:sessionSender."
@@ -1742,3 +1742,7 @@ msgstr "Conserver cette loi source : gmeow:SessionVerificationEvidenceConstraint
 msgctxt "https://blackcatinformatics.ca/gmeow/SessionVerificationEvidenceConstraint|https://blackcatinformatics.ca/logic/message"
 msgid "Supplied session-verification identifiers belong to an actual Observation retaining both session and sender strings, its feature, observer, method, held result and source evidence. This checks the recorded claim, not cryptographic authenticity."
 msgstr "Les identifiants de vérification de session appartiennent à une Observation réelle conservant les chaînes de session et d’expéditeur, sa caractéristique, son observateur, sa méthode, son résultat tenu et ses preuves source. Ce contrôle porte sur la déclaration, non l’authenticité cryptographique."
+
+msgctxt "https://blackcatinformatics.ca/gmeow/chatRoomIdentifier|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Preserve the supplied lexical form and datatype: verbatim xsd:string and explicitly supplied xsd:token are admitted. Do not normalize whitespace, retype a string or infer token typing. Independent source claims coexist; datatype admission neither authenticates the provider nor executes its operation. These declarations do not install a token lexical checker."
+msgstr "Préserver la forme lexicale et le type de données fournis : les xsd:string verbatim et les xsd:token explicitement fournis sont admis. Ne pas normaliser les espaces, changer le type d’une chaîne ni déduire un type token. Des déclarations de sources indépendantes coexistent ; l’admission du type de données n’authentifie pas le fournisseur et n’exécute pas son opération. Ces déclarations n’installent aucun vérificateur lexical de token."
