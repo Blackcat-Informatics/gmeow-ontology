@@ -30,7 +30,7 @@ ex:chunk-042 a gmeow:Chunk ;
     gmeow:chunkOf ex:handbook ;
     gmeow:spanStart "18200"^^xsd:nonNegativeInteger ;
     gmeow:spanEnd "18950"^^xsd:nonNegativeInteger ;
-    gmeow:contentDigest "blake3:1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809" ;
+    gmeow:contentDigest "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f809"^^gmeow:blake3_256Digest ;
     rdfs:label "handbook chunk 042 (bytes 18200-18950)"@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     skos:definition "The retrieval-sized chunk of ex:handbook that ex:span-close-2200's evidence span lives within."@x-gmeow-english ;
