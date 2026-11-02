@@ -3,7 +3,7 @@
 
 //! The application's sole tool-call RDF owner, shared by both stores and replay.
 
-use std::collections::{BTreeSet, VecDeque};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::sync::Arc;
 
 use gmeow_errors::Result;
@@ -120,17 +120,39 @@ fn text(value: &str) -> RdfTerm {
     RdfTerm::Literal(RdfLiteral::simple(value))
 }
 
-fn objects(rows: &[RdfQuad], subject: &RdfTerm, predicate: &str) -> Vec<RdfTerm> {
-    let mut result = Vec::new();
-    for row in rows {
-        if &row.subject == subject && row.predicate == predicate && !result.contains(&row.object) {
-            result.push(row.object.clone());
-        }
-    }
-    result
+/// Borrow native terms without changing their identity or graph authority.
+struct RowIndex<'a> {
+    by_subject: HashMap<&'a RdfTerm, HashMap<&'a str, Vec<&'a RdfTerm>>>,
 }
 
-fn one(rows: &[RdfQuad], subject: &RdfTerm, predicate: &str) -> Result<Option<RdfTerm>> {
+impl<'a> RowIndex<'a> {
+    fn new(rows: impl IntoIterator<Item = &'a RdfQuad>) -> Self {
+        let mut by_subject: HashMap<&RdfTerm, HashMap<&str, Vec<&RdfTerm>>> = HashMap::new();
+        for row in rows {
+            by_subject
+                .entry(&row.subject)
+                .or_default()
+                .entry(&row.predicate)
+                .or_default()
+                .push(&row.object);
+        }
+        Self { by_subject }
+    }
+}
+
+fn objects(rows: &RowIndex<'_>, subject: &RdfTerm, predicate: &str) -> Vec<RdfTerm> {
+    let mut seen = HashSet::new();
+    rows.by_subject
+        .get(subject)
+        .and_then(|predicates| predicates.get(predicate))
+        .into_iter()
+        .flatten()
+        .filter(|object| seen.insert(**object))
+        .map(|object| (**object).clone())
+        .collect()
+}
+
+fn one(rows: &RowIndex<'_>, subject: &RdfTerm, predicate: &str) -> Result<Option<RdfTerm>> {
     let values = objects(rows, subject, predicate);
     if values.len() > 1 {
         return Err(err(format!(
@@ -200,18 +222,28 @@ impl StructuredPayload {
 
     fn validate(&self) -> Result<()> {
         let rows = purrdf::flat_rdf_quads_from_dataset(&self.graph);
-        let mut pending: VecDeque<RdfTerm> =
-            self.arguments.iter().chain(&self.result).cloned().collect();
-        let mut seen = Vec::new();
+        Self::validate_index(
+            &RowIndex::new(&rows),
+            self.arguments.as_ref(),
+            self.result.as_ref(),
+        )
+    }
+
+    fn validate_index(
+        rows: &RowIndex<'_>,
+        arguments: Option<&RdfTerm>,
+        result: Option<&RdfTerm>,
+    ) -> Result<()> {
+        let mut pending: VecDeque<RdfTerm> = arguments.into_iter().chain(result).cloned().collect();
+        let mut seen = HashSet::new();
         while let Some(node) = pending.pop_front() {
-            if seen.contains(&node) {
+            if !seen.insert(node.clone()) {
                 continue;
             }
             require_resource(&node)?;
-            seen.push(node.clone());
-            let types = objects(&rows, &node, TYPE);
+            let types = objects(rows, &node, TYPE);
             let is = |class: &str| types.contains(&RdfTerm::iri(format!("{G}{class}")));
-            let scalar = one(&rows, &node, &format!("{G}structuredTerm"))?;
+            let scalar = one(rows, &node, &format!("{G}structuredTerm"))?;
             let map = is("StructuredMap");
             let sequence = is("StructuredSequence");
             let null = is("StructuredNull");
@@ -230,17 +262,17 @@ impl StructuredPayload {
                     "tool payload {node:?} requires exactly one scalar/map/sequence/null branch"
                 )));
             }
-            let facets = objects(&rows, &node, &format!("{G}hasFacet"));
-            let items = objects(&rows, &node, &format!("{G}structuredItem"));
+            let facets = objects(rows, &node, &format!("{G}hasFacet"));
+            let items = objects(rows, &node, &format!("{G}structuredItem"));
             if (!map && !facets.is_empty()) || (!sequence && !items.is_empty()) {
                 return Err(err(format!(
                     "tool payload {node:?} has entries outside its branch"
                 )));
             }
-            let mut positions = Vec::new();
+            let mut positions = HashSet::new();
             for entry in facets.iter().chain(&items) {
                 require_resource(entry)?;
-                let ordinals = objects(&rows, entry, &format!("{G}entryOrdinal"));
+                let ordinals = objects(rows, entry, &format!("{G}entryOrdinal"));
                 let mut position = None;
                 for ordinal in ordinals {
                     let RdfTerm::Literal(value) = ordinal else {
@@ -258,43 +290,26 @@ impl StructuredPayload {
                     let Some(parsed) = parsed else {
                         return Err(err("entryOrdinal has no native value"));
                     };
-                    // Native value equality retains lexical aliases without permitting two positions.
-                    if let Some(old) = &position {
-                        match purrdf::xsd::value_equal(old, &parsed) {
-                            Some(true) => {}
-                            Some(false) => {
-                                return Err(err("one entry has distinct numeric ordinals"));
-                            }
-                            None => {
-                                return Err(err(
-                                    "native nonnegative ordinal values could not be compared",
-                                ));
-                            }
-                        }
+                    let purrdf::xsd::XsdValue::Integer { value: parsed, .. } = parsed else {
+                        return Err(err("entryOrdinal has no native integer value"));
+                    };
+                    // Native exact integers identify lexical aliases without
+                    // changing the source RDF literals that carry them.
+                    if position.as_ref().is_some_and(|old| old != &parsed) {
+                        return Err(err("one entry has distinct numeric ordinals"));
                     }
                     position = Some(parsed);
                 }
                 if sequence && position.is_none() {
                     return Err(err("sequence item missing entryOrdinal"));
                 }
-                if let Some(position) = position {
-                    for old in &positions {
-                        match purrdf::xsd::value_equal(old, &position) {
-                            Some(true) => {
-                                return Err(err("distinct entries have the same numeric ordinal"));
-                            }
-                            Some(false) => {}
-                            None => {
-                                return Err(err(
-                                    "native nonnegative ordinal values could not be compared",
-                                ));
-                            }
-                        }
-                    }
-                    positions.push(position);
+                if let Some(position) = position
+                    && !positions.insert(position)
+                {
+                    return Err(err("distinct entries have the same numeric ordinal"));
                 }
                 if map {
-                    let key = one(&rows, entry, &format!("{G}facetLabel"))?
+                    let key = one(rows, entry, &format!("{G}facetLabel"))?
                         .ok_or_else(|| err("map facet missing facetLabel"))?;
                     let RdfTerm::Literal(key) = key else {
                         return Err(err("facetLabel requires a string/token literal"));
@@ -312,9 +327,9 @@ impl StructuredPayload {
                         _ => return Err(err("facetLabel requires xsd:string or xsd:token")),
                     }
                     .map_err(|e| err(format!("facetLabel: {e}")))?;
-                    let nested = one(&rows, entry, &format!("{G}facetStructuredValue"))?;
-                    let plain = one(&rows, entry, &format!("{G}facetText"))?;
-                    let typed = one(&rows, entry, &format!("{G}facetValue"))?;
+                    let nested = one(rows, entry, &format!("{G}facetStructuredValue"))?;
+                    let plain = one(rows, entry, &format!("{G}facetText"))?;
+                    let typed = one(rows, entry, &format!("{G}facetValue"))?;
                     if let Some(plain) = &plain {
                         let RdfTerm::Literal(value) = plain else {
                             return Err(err("facetText requires a prose literal"));
@@ -649,9 +664,8 @@ fn write_payload(
 }
 
 fn read_payload(
-    rows: &[RdfQuad],
-    metadata: &[RdfQuad],
-    metadata_graph: &Arc<RdfDataset>,
+    graphs: &HashMap<&RdfTerm, Vec<&RdfQuad>>,
+    metadata: &RowIndex<'_>,
     subject: &str,
     arguments: Option<RdfTerm>,
     result: Option<RdfTerm>,
@@ -668,9 +682,9 @@ fn read_payload(
     }
     // The envelope itself uses the same canonical branch/facet owner; decoding
     // its source-graph profile never grants a second, weaker map grammar.
-    StructuredPayload::new(Arc::clone(metadata_graph), Some(map.clone()), None)?;
+    StructuredPayload::validate_index(metadata, Some(&map), None)?;
     let mut graph = RdfDatasetBuilder::new();
-    let mut originals = Vec::new();
+    let mut originals = HashSet::new();
     for address in objects(metadata, &map, &format!("{G}hasFacet")) {
         require_resource(&address)?;
         let key = one(metadata, &address, &format!("{G}facetLabel"))?
@@ -696,17 +710,13 @@ fn read_payload(
             let id = graph.intern_owned_term(original)?;
             graph.declare_named_graph(id)?;
         }
-        if originals.contains(&scalar) {
+        if !originals.insert(scalar.clone()) {
             return Err(err(
                 "source graph envelope repeats an original graph identity",
             ));
         }
-        originals.push(scalar.clone());
-        for row in rows
-            .iter()
-            .filter(|row| row.graph_name.as_ref() == Some(&address))
-        {
-            let mut restored = row.clone();
+        for row in graphs.get(&address).into_iter().flatten() {
+            let mut restored = (**row).clone();
             restored.graph_name = scalar.clone();
             graph.push_owned_quad(&restored)?;
         }
@@ -819,25 +829,29 @@ pub(super) fn call_graph(
 /// Read historical opaque and current graph calls without JSON or media inference.
 pub(super) fn read_calls(dataset: &RdfDataset) -> Result<Vec<ToolCallRecord>> {
     let rows = purrdf::flat_rdf_quads_from_dataset(dataset);
-    let metadata: Vec<RdfQuad> = rows
-        .iter()
-        .filter(|row| row.graph_name.is_none())
-        .cloned()
-        .collect();
-    let mut metadata_builder = RdfDatasetBuilder::new();
-    for row in &metadata {
-        metadata_builder.push_owned_quad(row)?;
+    let metadata_rows: Vec<&RdfQuad> = rows.iter().filter(|row| row.graph_name.is_none()).collect();
+    let metadata = RowIndex::new(metadata_rows.iter().copied());
+    let mut graphs: HashMap<&RdfTerm, Vec<&RdfQuad>> = HashMap::new();
+    let mut backlinks: HashMap<&RdfTerm, Vec<&RdfQuad>> = HashMap::new();
+    for row in &rows {
+        if let Some(name) = &row.graph_name {
+            graphs.entry(name).or_default().push(row);
+        } else if row.predicate == format!("{G}wasGeneratedBy")
+            || row.predicate == "https://example.org/memory/wasGeneratedBy"
+        {
+            backlinks.entry(&row.object).or_default().push(row);
+        }
     }
-    let metadata_graph = metadata_builder.freeze()?;
     let mut subjects = Vec::new();
-    for row in &metadata {
+    let mut seen_subjects = HashSet::new();
+    for row in &metadata_rows {
         if row.predicate == TYPE
             && [
                 RdfTerm::iri(format!("{G}ToolCall")),
                 RdfTerm::iri("https://example.org/memory/ToolCall"),
             ]
             .contains(&row.object)
-            && !subjects.contains(&row.subject)
+            && seen_subjects.insert(&row.subject)
         {
             subjects.push(row.subject.clone());
         }
@@ -855,14 +869,7 @@ pub(super) fn read_calls(dataset: &RdfDataset) -> Result<Vec<ToolCallRecord>> {
             };
         let arguments_root = one(&metadata, &subject, &format!("{G}toolArgumentsStructured"))?;
         let result_root = one(&metadata, &subject, &format!("{G}toolResultStructured"))?;
-        let payload = read_payload(
-            &rows,
-            &metadata,
-            &metadata_graph,
-            id,
-            arguments_root,
-            result_root,
-        )?;
+        let payload = read_payload(&graphs, &metadata, id, arguments_root, result_root)?;
         let profile = iri(one(&metadata, &subject, CONFORMS)?, CONFORMS)?
             .map(|profile| match profile.as_str() {
                 "urn:gmeow:mcp:opaque-payload:verbatim-v1" => Ok(OpaquePayloadProfile::Verbatim),
@@ -872,11 +879,11 @@ pub(super) fn read_calls(dataset: &RdfDataset) -> Result<Vec<ToolCallRecord>> {
                 _ => Err(err(format!("unknown tool-call opaque profile {profile}"))),
             })
             .transpose()?;
-        let generated = metadata
-            .iter()
-            .filter(|row| {
-                row.predicate == format!("{namespace}wasGeneratedBy") && row.object == subject
-            })
+        let generated = backlinks
+            .get(&subject)
+            .into_iter()
+            .flatten()
+            .filter(|row| row.predicate == format!("{namespace}wasGeneratedBy"))
             .map(|row| match &row.subject {
                 RdfTerm::Iri(iri) => Ok(iri.clone()),
                 _ => Err(err("generated entity requires an IRI")),

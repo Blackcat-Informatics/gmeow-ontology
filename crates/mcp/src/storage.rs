@@ -700,6 +700,7 @@ pub use native::{fs_claim_store, fs_segment_library};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native {
+    use std::collections::HashMap;
     use std::fs;
     use std::io::{self, Write as _};
     use std::path::{Path, PathBuf};
@@ -740,7 +741,7 @@ mod native {
     }
 
     use super::{
-        ClaimStore, FsStorage, LibraryLock, SegmentLibrary, Storage, ToolCallOptions,
+        ClaimStore, FsStorage, LibraryLock, RDF_TYPE, SegmentLibrary, Storage, ToolCallOptions,
         ToolCallRecord, err, payload,
     };
 
@@ -937,9 +938,11 @@ mod native {
             bytes.extend_from_slice(&emission.bytes);
             bytes.extend_from_slice(&super::call_audit_delta(&bytes, &record, options.audit)?);
             gmeow_gts_profile::validate_mandated_frames(&bytes)?;
-            let admitted = purrdf::import_gts_events(&bytes)
+            // The complete candidate still undergoes strict native admission;
+            // only the new call needs application payload decoding.
+            let _admitted = purrdf::import_gts_events(&bytes)
                 .map_err(|error| err(format!("admit recorded call package: {error}")))?;
-            let _calls = payload::read_calls(&admitted.dataset)?;
+            let _calls = payload::read_calls(&graph)?;
             library.replace_bytes(&bytes)?;
             Ok(record)
         }
@@ -959,7 +962,46 @@ mod native {
             }
             let imported = purrdf::import_gts_events(&bytes)
                 .map_err(|error| err(format!("read call package: {error}")))?;
-            payload::read_calls(&imported.dataset)
+            let mut calls = payload::read_calls(&imported.dataset)?;
+            // Native folds retain physical row order before dataset freezing
+            // canonicalizes it. Historical calls have no authored ordinal.
+            let mut order = HashMap::new();
+            for graph in purrdf::gts::reader::read_file_segments(&bytes).segments {
+                let term_iri = |id: usize| {
+                    let term = &graph.terms[id];
+                    (term.kind == purrdf::gts::model::TermKind::Iri)
+                        .then_some(term.value.as_deref())
+                        .flatten()
+                };
+                for &(subject, predicate, object, name) in &graph.quads {
+                    if name.is_some()
+                        || term_iri(predicate) != Some(RDF_TYPE)
+                        || !matches!(
+                            term_iri(object),
+                            Some(
+                                "https://blackcatinformatics.ca/gmeow/ToolCall"
+                                    | "https://example.org/memory/ToolCall"
+                            )
+                        )
+                    {
+                        continue;
+                    }
+                    let id = term_iri(subject)
+                        .ok_or_else(|| err("native call type row has no IRI identity"))?;
+                    let position = order.len();
+                    order.entry(id.to_owned()).or_insert(position);
+                }
+            }
+            for call in &calls {
+                if !order.contains_key(&call.id) {
+                    return Err(err(format!(
+                        "native call {} has no default-graph append position",
+                        call.id
+                    )));
+                }
+            }
+            calls.sort_by_key(|call| order[&call.id]);
+            Ok(calls)
         }
 
         fn store_bytes(&self) -> Result<Vec<u8>> {
@@ -1349,9 +1391,11 @@ impl ClaimStore for InMemoryClaimStore {
             .ok_or_else(|| err("call sequence overflow"))?;
         let record = payload::make_call(tool, &options, sequence, logical_instant(sequence))?;
         let audit = call_audit_delta(&state.audit, &record, options.audit)?;
-        let mut candidate = state.calls.clone();
-        candidate.push(record.clone());
-        let serialized = claim_segment(&state.claims, &candidate)?;
+        // The transport position is known before publication; exercise its shared
+        // serializer on this call without recanonicalizing the historical store.
+        let node = segment_node("call", state.calls.len());
+        let graph = payload::call_graph(&record, &node, &record.generated)?;
+        let serialized = payload::serialize(&graph)?;
         let admitted = purrdf::parse_dataset(serialized.as_bytes(), "application/n-quads", None)?;
         let _calls = payload::read_calls(&admitted)?;
         state.seq = sequence;

@@ -349,6 +349,32 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
     let claim_text = "the recorded claim stays intact";
     let tool = "urn:gmeow:tool:store_claim";
     let invocation = "urn:gmeow:invocation:synthetic";
+    // Historical calls have no entryOrdinal. A later historical append must
+    // stay after a modern call, independent of canonical term/row sorting.
+    let legacy_path = dir.path().join("legacy-calls.gts");
+    let legacy = purrdf::gts::examples::agent_memory::Memory::new(&legacy_path);
+    let first_legacy = legacy.record_tool_call(tool, Default::default()).unwrap();
+    let mixed_store = fs_claim_store(&legacy_path).unwrap();
+    let modern = mixed_store
+        .record_tool_call(tool, ToolCallOptions::default())
+        .unwrap();
+    let last_legacy = legacy.record_tool_call(tool, Default::default()).unwrap();
+    let cold_mixed = fs_claim_store(&legacy_path).unwrap().tool_calls().unwrap();
+    assert_eq!(
+        cold_mixed
+            .iter()
+            .map(|call| call.id.as_str())
+            .collect::<Vec<_>>(),
+        [
+            first_legacy.id.as_str(),
+            modern.id.as_str(),
+            last_legacy.id.as_str()
+        ],
+        "native calls retain append order across ordinal-free and modern records"
+    );
+    assert!(cold_mixed[0].ordinal.is_none());
+    assert!(cold_mixed[1].ordinal.is_some());
+    assert!(cold_mixed[2].ordinal.is_none());
     let claim = store
         .store_claim(
             claim_text,

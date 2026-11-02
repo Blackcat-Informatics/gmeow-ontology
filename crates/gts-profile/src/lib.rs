@@ -701,6 +701,8 @@ fn checked_term_base(existing: &[u8]) -> gmeow_errors::Result<usize> {
     let _append = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
     let _payload_frames = validate_frame_profile(existing)?;
     let folded = purrdf::gts::reader::read_file_segments(existing);
+    // Match native RDF import: every diagnostic refuses admission. A reader
+    // may continue a damaged chain through opaque nodes without retaining its RDF.
     if let Some(diagnostic) = folded.fatal.as_ref().or_else(|| {
         folded
             .segments
