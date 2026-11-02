@@ -15910,10 +15910,10 @@ logic:integrity
 logic:severity
     a logic:DatatypeProperty ;
     rdfs:domain logic:Constraint ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "severity"@x-gmeow-english ;
-    skos:definition "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."@x-gmeow-english ;
+    skos:definition "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. A supplied severity must be exactly one untagged xsd:string or xsd:token literal whose code matches exactly, including case and whitespace. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:message

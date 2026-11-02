@@ -5316,18 +5316,7 @@ fn read_constraint(
     // and an independent constraint annotation are malformed, each receives its own authoritative
     // diagnostic instead of the formula failure masking the constraint defect.
     // Absent severity ⇒ the SHACL default `Violation`; an unrecognized token is a hard error.
-    let severity = match value(store, node, &nn(&logic_iri("severity"))) {
-        Some(t) => {
-            let token = term_str(&t);
-            ShaclSeverity::from_local(&token).ok_or_else(|| {
-                sugar_err(format!(
-                    "logic:severity '{token}' is not one of Violation/Warning/Info"
-                ))
-                .with_focus(iri.clone())
-            })?
-        }
-        None => ShaclSeverity::Violation,
-    };
+    let severity = sugar_severity(store, node).map_err(|err| err.with_focus(iri.clone()))?;
     let messages = read_messages(store, node)?;
     let formalizes_all = sugar_iri_list(store, node, "formalizes");
     let failure_classes =
@@ -5437,19 +5426,45 @@ fn sugar_optional_target_class(store: &RdfDataset, node: &Subject) -> Option<Str
     value(store, node, &nn(&logic_iri("onClass"))).map(|t| term_str(&t))
 }
 
-/// The `logic:severity` of a sugar record (absent ⇒ the SHACL default `Violation`).
+/// One distinct, untagged string/token severity (absent ⇒ the SHACL default `Violation`).
 fn sugar_severity(store: &RdfDataset, node: &Subject) -> gmeow_errors::Result<ShaclSeverity> {
-    match value(store, node, &nn(&logic_iri("severity"))) {
-        Some(t) => {
-            let token = term_str(&t);
-            ShaclSeverity::from_local(&token).ok_or_else(|| {
-                sugar_err(format!(
-                    "logic:severity '{token}' is not one of Violation/Warning/Info"
-                ))
-            })
-        }
-        None => Ok(ShaclSeverity::Violation),
+    let mut severities = objects(store, node, &nn(&logic_iri("severity"))).into_iter();
+    let Some(term) = severities.next() else {
+        return Ok(ShaclSeverity::Violation);
+    };
+    if severities.any(|other| other != term) {
+        return Err(sugar_err(
+            "logic:severity requires exactly one distinct value",
+        ));
     }
+    // graphutil::node_of represents the native xsd:string datatype as None.
+    let token = match &term {
+        Node::Lit(purrdf::RdfLiteral {
+            lexical_form,
+            datatype,
+            language: None,
+            direction: None,
+        }) if matches!(
+            datatype.as_deref(),
+            None | Some(
+                "http://www.w3.org/2001/XMLSchema#string"
+                    | "http://www.w3.org/2001/XMLSchema#token"
+            )
+        ) =>
+        {
+            lexical_form
+        }
+        _ => {
+            return Err(sugar_err(
+                "logic:severity requires an untagged xsd:string or xsd:token literal",
+            ));
+        }
+    };
+    ShaclSeverity::from_local(token).ok_or_else(|| {
+        sugar_err(format!(
+            "logic:severity '{token}' is not one of Violation/Warning/Info"
+        ))
+    })
 }
 
 /// The ordered, deduped IRI objects of `pred` on `node` (sorted for byte-deterministic expansion
