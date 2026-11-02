@@ -3,7 +3,7 @@
 
 //! Exact owned execution-receipt fields; no semantic reconstruction at decoding.
 
-use std::io::{self, Write};
+use std::io;
 
 use crate::execution_cbor::{ExecutionCbor, Reader, Result, descend};
 use purrdf_lex::cbor::head;
@@ -24,7 +24,10 @@ impl ExecutionCbor for NativeContextualAnalysisStop {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "world")?;
         self.world.write_cbor(out)?;
@@ -81,7 +84,10 @@ impl ExecutionCbor for NativeContextualJudgment {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 13)?;
         head::write_text(out, "request")?;
         self.request.write_cbor(out)?;
@@ -176,7 +182,10 @@ impl ExecutionCbor for NativeContextualReceipt {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
         head::write_text(out, "id")?;
         self.id.write_cbor(out)?;
@@ -242,7 +251,10 @@ impl ExecutionCbor for NativeContextualUpstreamStop {
         }
     }
     /// Preserve the original unit text or externally tagged struct-variant wire.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::InferenceExhausted => head::write_text(out, "InferenceExhausted"),
             Self::AnalysisExhausted { analyses } => {

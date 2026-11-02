@@ -3,7 +3,7 @@
 
 //! Complete potential-writer inventory transport without source recomputation.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -13,7 +13,10 @@ use super::WriterInventory;
 
 impl ExecutionCbor for WriterInventory {
     /// Retain the complete WriterInventory in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 5)?;
         head::write_text(out, "theory")?;
         ExecutionCbor::write_cbor(&self.theory, out)?;

@@ -8,6 +8,8 @@
 
 use crate::graphutil::default_graph_pattern;
 use purrdf::{RdfDataset, TermId, TermRef, TermValue};
+use std::collections::BTreeSet;
+use std::sync::Mutex;
 
 /// The alignment adapter uses PurRDF's complete native value identity, including
 /// blank scope, literal direction and recursively quoted propositions.
@@ -196,6 +198,7 @@ impl<'a> ReifiedStatement<'a> {
 /// A value-space read view over a parsed [`RdfDataset`] (default graph only).
 pub struct DslView<'a> {
     ds: &'a RdfDataset,
+    subject_reads: Option<&'a Mutex<BTreeSet<String>>>,
 }
 
 impl<'a> DslView<'a> {
@@ -206,7 +209,38 @@ impl<'a> DslView<'a> {
 
     /// Wrap a parsed dataset.
     pub fn new(ds: &'a RdfDataset) -> Self {
-        Self { ds }
+        Self {
+            ds,
+            subject_reads: None,
+        }
+    }
+
+    /// Observe definition subjects without changing query or collection semantics.
+    pub(crate) fn recording_named_subjects<'s>(
+        &'s self,
+        reads: &'s Mutex<BTreeSet<String>>,
+    ) -> DslView<'s> {
+        DslView {
+            ds: self.ds,
+            subject_reads: Some(reads),
+        }
+    }
+
+    fn record_named_subject(&self, subject: &str) {
+        if let Some(reads) = self.subject_reads {
+            // Only String allocation/comparison occurs under this invocation-local
+            // lock; allocation failure aborts and no user code can poison it.
+            reads
+                .lock()
+                .expect("INVARIANT: subject-read recorder is not poisoned")
+                .insert(subject.to_owned());
+        }
+    }
+
+    fn record_subject(&self, subject: &DslTerm) {
+        if let DslTerm::Iri(iri) = subject {
+            self.record_named_subject(iri);
+        }
     }
 
     /// The interned id of an IRI, or `None` if the dataset has no such term (an
@@ -249,6 +283,7 @@ impl<'a> DslView<'a> {
 
     /// The first object term of `<subject_iri> <pred> ?o`, or `None`.
     pub fn first_object(&self, subject_iri: &str, pred: &str) -> Option<DslTerm> {
+        self.record_named_subject(subject_iri);
         let subject = self.iri_id(subject_iri)?;
         let predicate = self.iri_id(pred)?;
         default_graph_pattern(self.ds, Some(subject), Some(predicate), None)
@@ -258,6 +293,7 @@ impl<'a> DslView<'a> {
 
     /// All object terms of `<subject_iri> <pred> ?o`, in dataset order.
     pub fn objects_of(&self, subject_iri: &str, pred: &str) -> Vec<DslTerm> {
+        self.record_named_subject(subject_iri);
         let (Some(subject), Some(predicate)) = (self.iri_id(subject_iri), self.iri_id(pred)) else {
             return Vec::new();
         };
@@ -312,6 +348,7 @@ impl<'a> DslView<'a> {
     /// The first object term of `<term> <pred> ?o` where `term` is a (named or blank)
     /// subject, or `None`.
     pub fn first_object_of(&self, subject: &DslTerm, pred: &str) -> Option<DslTerm> {
+        self.record_subject(subject);
         let (Some(subj), Some(p)) = (self.subject_id(subject), self.iri_id(pred)) else {
             return None;
         };
@@ -322,6 +359,7 @@ impl<'a> DslView<'a> {
 
     /// All object terms of `<term> <pred> ?o`, in dataset order.
     pub fn objects_of_term(&self, subject: &DslTerm, pred: &str) -> Vec<DslTerm> {
+        self.record_subject(subject);
         let (Some(subj), Some(p)) = (self.subject_id(subject), self.iri_id(pred)) else {
             return Vec::new();
         };
@@ -433,6 +471,9 @@ impl<'a> DslView<'a> {
         while let Some(current) = node {
             if Some(current) == nil || !seen.insert(current) {
                 break;
+            }
+            if let TermRef::Iri(iri) = self.ds.resolve(current) {
+                self.record_named_subject(iri);
             }
             if let Some(p) = first
                 && let Some(row) =

@@ -3,7 +3,7 @@
 
 //! Committed witness scopes, heads and transparent native frontier values.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -15,7 +15,10 @@ use super::{
 
 impl ExecutionCbor for WitnessOrigin {
     /// Keep rule minting distinct from the explicitly selected nonempty-domain law.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Rule => head::write_text(out, "Rule"),
             Self::NonemptyDomain(world) => {
@@ -47,7 +50,10 @@ impl ExecutionCbor for WitnessOrigin {
 
 impl ExecutionCbor for WitnessPosition {
     /// Retain the original enum variant spelling as a text item.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_text(
             out,
             match self {
@@ -75,7 +81,10 @@ impl ExecutionCbor for WitnessPosition {
 
 impl ExecutionCbor for WitnessScope {
     /// Retain the complete WitnessScope in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "world")?;
         ExecutionCbor::write_cbor(&self.world, out)?;
@@ -124,7 +133,10 @@ impl ExecutionCbor for WitnessScope {
 
 impl ExecutionCbor for WitnessStatement {
     /// Retain the complete WitnessStatement in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "subject")?;
         ExecutionCbor::write_cbor(&self.subject, out)?;
@@ -167,7 +179,10 @@ impl ExecutionCbor for WitnessStatement {
 
 impl ExecutionCbor for WitnessHead {
     /// Retain the complete WitnessHead in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "statement")?;
         ExecutionCbor::write_cbor(&self.statement, out)?;
@@ -218,7 +233,10 @@ impl ExecutionCbor for WitnessDerivation {
     /// Retain the complete witness and its declaration-ordered evidence.
     /// The custom frontier adapter is a transparent vector of retained terms;
     /// it adds neither a wrapper item nor an extra typed visitor.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
         head::write_text(out, "witness")?;
         ExecutionCbor::write_cbor(&self.witness, out)?;

@@ -167,6 +167,31 @@ pub(crate) fn resolve(
     catalog: &GroundingCatalog,
     cells: &mut [ProjectionCell],
 ) -> gmeow_errors::Result<()> {
+    let visited = resolve_members(view, catalog, cells)?;
+    for (node, _) in view.quads_with_predicate(SELECTED_TARGET) {
+        if !visited.contains(&node) {
+            return Err(error(format!(
+                "selected correspondence field on {node:?} is outside a unique admitted template membership"
+            )));
+        }
+    }
+    Ok(())
+}
+
+/// Inspect only supplied cells; the production resolver owns global orphan admission.
+pub(crate) fn resolve_inspected(
+    view: &DslView,
+    catalog: &GroundingCatalog,
+    cells: &mut [ProjectionCell],
+) -> gmeow_errors::Result<()> {
+    resolve_members(view, catalog, cells).map(|_| ())
+}
+
+fn resolve_members(
+    view: &DslView,
+    catalog: &GroundingCatalog,
+    cells: &mut [ProjectionCell],
+) -> gmeow_errors::Result<Vec<DslTerm>> {
     let authored = view.quads_with_predicate(SELECTED_TARGET);
     let mut visited = Vec::new();
     for cell in cells {
@@ -270,12 +295,5 @@ pub(crate) fn resolve(
             }
         }
     }
-    for (node, _) in authored {
-        if !visited.contains(&node) {
-            return Err(error(format!(
-                "selected correspondence field on {node:?} is outside a unique admitted template membership"
-            )));
-        }
-    }
-    Ok(())
+    Ok(visited)
 }

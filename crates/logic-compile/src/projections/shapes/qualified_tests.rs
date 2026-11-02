@@ -40,8 +40,12 @@ fn project(components: Vec<ConstraintComponent>) -> String {
     format!("{SHACL_PREFIXES}{}", project_validation_shape_shacl(&shape))
 }
 
+/// Check projected property validation and retain the owning message, path and failure class.
 fn check(shapes: &str, data: &str, component: Option<&str>) {
-    let shapes = parse_shapes(shapes, None).expect("GMEOW projection is valid SHACL");
+    let document = purrdf::shapes::text_ingest::parse_turtle_document(shapes, None).unwrap();
+    let shapes =
+        purrdf::shapes::shapes::from_dataset_with_prefixes(&document.dataset, &document.prefixes)
+            .expect("GMEOW projection is valid SHACL");
     let data = format!("{PREFIXES}ex:focus a ex:Cell .\n{data}");
     let dataset = purrdf::parse_dataset(data.as_bytes(), "text/turtle", None).unwrap();
     let report = validate_dataset(&dataset, &shapes).unwrap();
@@ -62,6 +66,19 @@ fn check(shapes: &str, data: &str, component: Option<&str>) {
                 .map(purrdf::shapes::term::Literal::value)
                 .collect::<Vec<_>>(),
             ["the qualified requirement must hold"]
+        );
+        let result = &report.results[0];
+        assert_eq!(
+            result.result_path.as_ref().unwrap().to_rdf_term(),
+            purrdf::RdfTerm::Iri("https://example.org/p".into())
+        );
+        assert!(
+            purrdf::native_quads::flat_rdf_quads(&document.dataset).any(|quad| {
+                quad.subject == result.source_shape.to_rdf_term()
+                    && quad.predicate == "https://blackcatinformatics.ca/gmeow/enforcesFailureClass"
+                    && quad.object
+                        == purrdf::RdfTerm::Iri("https://example.org/MissingEvidence".into())
+            })
         );
     }
 }
@@ -117,6 +134,7 @@ fn different_qualifying_classes_keep_independent_counts_and_metadata() {
     );
 }
 
+/// Contradictory bounds and datatype intersections must retain their original count domain.
 #[test]
 fn inconsistent_qualified_bounds_remain_unsatisfiable() {
     let shapes = project(vec![
@@ -133,8 +151,27 @@ fn inconsistent_qualified_bounds_remain_unsatisfiable() {
         "ex:focus ex:p ex:a, ex:b . ex:a a ex:Required . ex:b a ex:Required .",
         Some("QualifiedMaxCountConstraintComponent"),
     );
+
+    // Values satisfying only one datatype must never be counted as satisfying both.
+    for (min, max, component) in [
+        (Some(1), None, Some("QualifiedMinCountConstraintComponent")),
+        (None, Some(0), None),
+    ] {
+        let shapes = project(vec![ConstraintComponent::QualifiedValueShape {
+            shape: vec![
+                ConstraintComponent::Datatype("http://www.w3.org/2001/XMLSchema#string".into()),
+                ConstraintComponent::Datatype("http://www.w3.org/2001/XMLSchema#integer".into()),
+            ],
+            min,
+            max,
+        }]);
+        for value in ["\"text\"", "7"] {
+            check(&shapes, &format!("ex:focus ex:p {value} ."), component);
+        }
+    }
 }
 
+/// Execute authored restrictions through derivation, target admission and conjunctive validation.
 #[test]
 fn canonical_minimum_and_maximum_project_to_an_executable_single_count_domain() {
     let prefixes = "@prefix g: <https://blackcatinformatics.ca/gmeow/> .\n\
@@ -173,5 +210,87 @@ fn canonical_minimum_and_maximum_project_to_an_executable_single_count_domain() 
         let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
         let report = validate_dataset(&dataset, &executable).unwrap();
         assert_eq!(report.conforms, conforms, "{data}: {report:#?}");
+    }
+
+    // Same-path datatype restrictions remain an intersection after the real derive/merge path.
+    let source = format!(
+        "{prefixes}g:Cell a logic:Class ; g:enforcesFailureClass g:ConflictingDatatypes ;\n\
+         logic:subClassOf\n\
+         [ a logic:Restriction ; logic:onProperty g:p ; logic:allValuesFrom xsd:string ],\n\
+         [ a logic:Restriction ; logic:onProperty g:p ; logic:allValuesFrom xsd:integer ] ."
+    );
+    let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+    let shapes = crate::frontend::derive_validation_shapes(&dataset).unwrap();
+    let cell = shapes
+        .iter()
+        .find(|shape| !shape.properties.is_empty())
+        .unwrap();
+    let projected = format!("{SHACL_PREFIXES}{}", project_validation_shape_shacl(cell));
+    let document = purrdf::shapes::text_ingest::parse_turtle_document(&projected, None).unwrap();
+    let executable =
+        purrdf::shapes::shapes::from_dataset_with_prefixes(&document.dataset, &document.prefixes)
+            .unwrap();
+    for value in [None, Some("\"text\""), Some("7")] {
+        let edge = value.map_or_else(String::new, |value| format!("g:focus g:p {value} ."));
+        let source = format!("{prefixes}g:focus a g:Cell . {edge}");
+        let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+        let report = validate_dataset(&dataset, &executable).unwrap();
+        assert_eq!(report.conforms, value.is_none(), "{report:#?}");
+        if value.is_some() {
+            assert_eq!(report.results.len(), 1);
+            let result = &report.results[0];
+            assert!(
+                result
+                    .source_constraint_component
+                    .as_str()
+                    .ends_with("AndConstraintComponent")
+            );
+            assert_eq!(
+                result.result_path.as_ref().unwrap().to_rdf_term(),
+                purrdf::RdfTerm::Iri("https://blackcatinformatics.ca/gmeow/p".into())
+            );
+            assert!(
+                purrdf::native_quads::flat_rdf_quads(&document.dataset).any(|quad| {
+                    quad.subject == result.source_shape.to_rdf_term()
+                        && quad.predicate
+                            == "https://blackcatinformatics.ca/gmeow/enforcesFailureClass"
+                        && quad.object
+                            == purrdf::RdfTerm::Iri(
+                                "https://blackcatinformatics.ca/gmeow/ConflictingDatatypes".into(),
+                            )
+                })
+            );
+        }
+    }
+
+    let range = ValidationShapeIr::new(
+        "https://example.org/range",
+        ShapeTarget::ObjectsOf("https://example.org/p".into()),
+        vec![],
+        None,
+    )
+    .unwrap()
+    .with_node_components(cell.properties[0].components.clone())
+    .unwrap();
+    let projected = format!("{SHACL_PREFIXES}{}", project_validation_shape_shacl(&range));
+    let executable = parse_shapes(&projected, None).unwrap();
+    for value in ["\"text\"", "7"] {
+        let source = format!("{PREFIXES}ex:focus ex:p {value} .");
+        let dataset = purrdf::parse_dataset(source.as_bytes(), "text/turtle", None).unwrap();
+        let report = validate_dataset(&dataset, &executable).unwrap();
+        assert!(!report.conforms);
+        assert_eq!(report.results.len(), 1);
+        let result = &report.results[0];
+        assert_eq!(
+            result.source_shape.to_rdf_term(),
+            purrdf::RdfTerm::Iri("https://example.org/range".into())
+        );
+        assert!(
+            result
+                .source_constraint_component
+                .as_str()
+                .ends_with("AndConstraintComponent")
+        );
+        assert!(result.result_path.is_none());
     }
 }

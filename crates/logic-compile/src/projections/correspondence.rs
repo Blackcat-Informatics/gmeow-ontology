@@ -1438,15 +1438,13 @@ pub fn parse_correspondence(
                         }
                         _ => false,
                     }
-                    && digest.language.is_none()
-                    && digest.direction.is_none()
-                    && digest.datatype_iri()
-                        == "https://blackcatinformatics.ca/gmeow/sha256Digest"
-                    && digest.lexical_form.len() == 64
-                    && digest
-                        .lexical_form
-                        .bytes()
-                        .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte)) =>
+                    && crate::literal_datatypes::Sha256Digest::from_parts(
+                        &digest.lexical_form,
+                        digest.datatype_iri(),
+                        digest.language.as_deref(),
+                        digest.direction,
+                    )
+                    .is_some() =>
             {
                 Some(super::grounding_catalog::GroundingSourceIdentity {
                     owner: (*owner).to_owned(),

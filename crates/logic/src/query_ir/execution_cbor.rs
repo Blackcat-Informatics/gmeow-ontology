@@ -3,7 +3,7 @@
 
 //! Exact governed completion frontier in native execution receipts.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -13,7 +13,10 @@ use super::CompletionFrontier;
 
 impl ExecutionCbor for CompletionFrontier {
     /// Retain the complete CompletionFrontier in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "completed")?;
         ExecutionCbor::write_cbor(&self.completed, out)?;

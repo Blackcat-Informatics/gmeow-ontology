@@ -3,7 +3,7 @@
 
 //! Original logical worlds and explicit caller domain selections.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -13,7 +13,10 @@ use super::{DomainProfile, LogicalGraph, SelectedDomains, SelectedLogicalWorld};
 
 impl ExecutionCbor for LogicalGraph {
     /// Retain the original default graph or complete retained named-graph term.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Default => head::write_text(out, "Default"),
             Self::Named(graph) => {
@@ -45,7 +48,10 @@ impl ExecutionCbor for LogicalGraph {
 
 impl ExecutionCbor for DomainProfile {
     /// Retain the original enum variant spelling as a text item.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_text(
             out,
             match self {
@@ -71,7 +77,10 @@ impl ExecutionCbor for DomainProfile {
 
 impl ExecutionCbor for SelectedLogicalWorld {
     /// Retain the complete SelectedLogicalWorld in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "graph")?;
         ExecutionCbor::write_cbor(&self.graph, out)?;
@@ -120,7 +129,10 @@ impl ExecutionCbor for SelectedLogicalWorld {
 
 impl ExecutionCbor for SelectedDomains {
     /// Retain the complete SelectedDomains in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 1)?;
         head::write_text(out, "worlds")?;
         ExecutionCbor::write_cbor(&self.worlds, out)?;

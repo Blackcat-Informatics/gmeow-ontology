@@ -9,8 +9,8 @@ use std::collections::BTreeSet;
 
 const FAMILY: &str = r#"{"iri":"urn:family:z","name":"zè中😀","namespaces":["urn:namespace:z/","urn:namespace:a/"],"owners":["urn:owner:z","urn:owner:a"],"minimum":7}"#;
 const EXEMPTION: &str = r#"{"iri":"urn:exemption","family_iri":"urn:family:z","rationale":"why\n\t\"\\中😀\u0000","row_ceiling":8}"#;
-const REGISTRY: &str = r#"{"families":[{"iri":"urn:family:z","name":"zè中😀","namespaces":["urn:namespace:z/","urn:namespace:a/"],"owners":["urn:owner:z","urn:owner:a"],"minimum":7},{"iri":"urn:family:a","name":"a","namespaces":["urn:namespace:other/"],"owners":["urn:owner:other"],"minimum":0}],"exemptions":[{"iri":"urn:exemption","family_iri":"urn:family:z","rationale":"why\n\t\"\\中😀\u0000","row_ceiling":8}]}"#;
-const COMPLETE: &str = r#"{"registry":{"families":[{"iri":"urn:family:z","name":"zè中😀","namespaces":["urn:namespace:z/","urn:namespace:a/"],"owners":["urn:owner:z","urn:owner:a"],"minimum":7},{"iri":"urn:family:a","name":"a","namespaces":["urn:namespace:other/"],"owners":["urn:owner:other"],"minimum":0}],"exemptions":[{"iri":"urn:exemption","family_iri":"urn:family:z","rationale":"why\n\t\"\\中😀\u0000","row_ceiling":8}]},"guarded_namespaces":["urn:guard:a","urn:guard:z"]}"#;
+const REGISTRY: &str = r#"{"families":[{"iri":"urn:family:z","name":"zè中😀","namespaces":["urn:namespace:z/","urn:namespace:a/"],"owners":["urn:owner:z","urn:owner:a"],"minimum":7},{"iri":"urn:family:a","name":"a","namespaces":["urn:namespace:other/"],"owners":["urn:owner:other"],"minimum":0}],"exemptions":[{"iri":"urn:exemption","family_iri":"urn:family:z","rationale":"why\n\t\"\\中😀\u0000","row_ceiling":8}],"native_kernel_families":[]}"#;
+const COMPLETE: &str = r#"{"registry":{"families":[{"iri":"urn:family:z","name":"zè中😀","namespaces":["urn:namespace:z/","urn:namespace:a/"],"owners":["urn:owner:z","urn:owner:a"],"minimum":7},{"iri":"urn:family:a","name":"a","namespaces":["urn:namespace:other/"],"owners":["urn:owner:other"],"minimum":0}],"exemptions":[{"iri":"urn:exemption","family_iri":"urn:family:z","rationale":"why\n\t\"\\中😀\u0000","row_ceiling":8}],"native_kernel_families":[]},"guarded_namespaces":["urn:guard:a","urn:guard:z"],"native_kernel_evidence":[]}"#;
 
 fn authored_observations() -> RegistryObservations {
     RegistryObservations {
@@ -37,8 +37,10 @@ fn authored_observations() -> RegistryObservations {
                 rationale: "why\n\t\"\\中😀\0".to_owned(),
                 row_ceiling: 8,
             }],
+            native_kernel_families: BTreeSet::new(),
         },
         guarded_namespaces: BTreeSet::from(["urn:guard:z".to_owned(), "urn:guard:a".to_owned()]),
+        native_kernel_evidence: Vec::new(),
     }
 }
 
@@ -71,10 +73,12 @@ fn json_catalog_observations_empty_collections_and_zero_counts_remain_present() 
         registry: CatalogRegistry {
             families: Vec::new(),
             exemptions: Vec::new(),
+            native_kernel_families: BTreeSet::new(),
         },
         guarded_namespaces: BTreeSet::new(),
+        native_kernel_evidence: Vec::new(),
     };
-    let expected = br#"{"registry":{"families":[],"exemptions":[]},"guarded_namespaces":[]}"#;
+    let expected = br#"{"registry":{"families":[],"exemptions":[],"native_kernel_families":[]},"guarded_namespaces":[],"native_kernel_evidence":[]}"#;
     assert_eq!(to_vec(&observations), expected);
     assert_eq!(to_vec(&decode_observations(expected).unwrap()), expected);
     let family: CatalogFamily =
@@ -122,8 +126,32 @@ fn json_catalog_observations_all_known_fields_require_values_and_refuse_duplicat
         EXEMPTION,
         &["iri", "family_iri", "rationale", "row_ceiling"],
     );
-    record_refusals::<CatalogRegistry>(REGISTRY, &["families", "exemptions"]);
-    record_refusals::<RegistryObservations>(COMPLETE, &["registry", "guarded_namespaces"]);
+    record_refusals::<CatalogRegistry>(
+        REGISTRY,
+        &["families", "exemptions", "native_kernel_families"],
+    );
+    record_refusals::<RegistryObservations>(
+        COMPLETE,
+        &["registry", "guarded_namespaces", "native_kernel_evidence"],
+    );
+    record_refusals::<NativeKernelEvidence>(
+        r#"{"family":"urn:family","correspondence":"urn:correspondence","semantic_key":"complete semantic envelope","source":"urn:source","target":"urn:target","source_owner":"urn:owner","source_role":"module","source_types":[],"source_path":"module.ttl","source_digest":"digest","artifact_owner":"urn:owner","artifact_path":"mappings/native.ttl","artifact_digest":"digest"}"#,
+        &[
+            "family",
+            "correspondence",
+            "semantic_key",
+            "source",
+            "target",
+            "source_owner",
+            "source_role",
+            "source_types",
+            "source_path",
+            "source_digest",
+            "artifact_owner",
+            "artifact_path",
+            "artifact_digest",
+        ],
+    );
 }
 
 #[test]

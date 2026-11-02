@@ -3,7 +3,7 @@
 
 //! Complete owner-local native execution receipt records, without semantic reconstruction.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -14,7 +14,10 @@ use super::{
 };
 
 impl ExecutionCbor for ClassExecutionOutcome {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 6)?;
         head::write_text(out, "world")?;
         ExecutionCbor::write_cbor(&self.world, out)?;
@@ -74,15 +77,13 @@ impl ExecutionCbor for ClassExecutionOutcome {
 // The source-admission profile has a narrower boundary writer. This complete
 // receipt owner retains every represented variant; admission stays elsewhere.
 impl ExecutionCbor for ClassAdmissionObservation {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        head::write_head(out, head::MAP, 3)?;
-        head::write_text(out, "contract")?;
-        ExecutionCbor::write_cbor(&self.contract, out)?;
-        head::write_text(out, "source_worlds")?;
-        ExecutionCbor::write_cbor(&self.source_worlds, out)?;
-        head::write_text(out, "selected_worlds")?;
-        ExecutionCbor::write_cbor(&self.selected_worlds, out)?;
-        Ok(())
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        self.write_fields(out, |world, out| {
+            world.write_fields(out, ExecutionCbor::write_cbor)
+        })
     }
 
     fn check_depth(&self, remaining: usize) -> WireResult<()> {
@@ -114,15 +115,11 @@ impl ExecutionCbor for ClassAdmissionObservation {
 }
 
 impl ExecutionCbor for ClassAdmissionWorld {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        head::write_head(out, head::MAP, 3)?;
-        head::write_text(out, "graph")?;
-        ExecutionCbor::write_cbor(&self.graph, out)?;
-        head::write_text(out, "definitions")?;
-        ExecutionCbor::write_cbor(&self.definitions, out)?;
-        head::write_text(out, "refusal")?;
-        ExecutionCbor::write_cbor(&self.refusal, out)?;
-        Ok(())
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        self.write_fields(out, ExecutionCbor::write_cbor)
     }
 
     fn check_depth(&self, remaining: usize) -> WireResult<()> {
@@ -154,7 +151,10 @@ impl ExecutionCbor for ClassAdmissionWorld {
 }
 
 impl ExecutionCbor for ClassSourceRefusal {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Invalid => head::write_text(out, "Invalid"),
             Self::Unsupported => head::write_text(out, "Unsupported"),
