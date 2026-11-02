@@ -7322,8 +7322,8 @@ msgid "Ring"
 msgstr "Anneau"
 
 msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
-msgstr "Un ensemble muni de deux opérations — un groupe additif abélien et une multiplication associative qui se distribue sur l’addition (∀a,b,c: a·(b+c) = a·b + a·c) — portées par deux math:structureOperation avec l’axiome de distributivité par math:satisfiesAxiom. Il nomme aussi cette loi par math:satisfiesDistributivity, qui affine math:satisfiesAxiom (la distributivité est l’un des axiomes de l’anneau, et le raisonneur entraîne la propriété générale) ; la validation lit les triplets affirmés, donc un anneau bien formé affirme les deux. La distributivité fait d’une structure à deux opérations un anneau plutôt que deux groupes sans lien ; un anneau déclaré sans elle est mal formé (math:NonDistributiveRing). Sous-classe de math:AlgebraicStructure ; un math:CommutativeRing est un anneau dont la multiplication commute."
+msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity ties a ring's additive and multiplicative operations together; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
+msgstr "Un ensemble muni de deux opérations — un groupe additif abélien et une multiplication associative qui se distribue sur l’addition (∀a,b,c: a·(b+c) = a·b + a·c) — portées par deux math:structureOperation avec l’axiome de distributivité par math:satisfiesAxiom. Il nomme aussi cette loi par math:satisfiesDistributivity, qui affine math:satisfiesAxiom (la distributivité est l’un des axiomes de l’anneau, et le raisonneur entraîne la propriété générale) ; la validation lit les triplets affirmés, donc un anneau bien formé affirme les deux. La distributivité relie les opérations additive et multiplicative d’un anneau ; un anneau déclaré sans elle est mal formé (math:NonDistributiveRing). Sous-classe de math:AlgebraicStructure ; un math:CommutativeRing est un anneau dont la multiplication commute."
 
 msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A ring coordinates additive and multiplicative operation roles on one carrier: addition forms an abelian group, multiplication is associative, and distributivity relates them. Two operation roles do not introduce resource-inequality rules, and additive commutativity does not establish multiplicative commutativity."
@@ -7546,8 +7546,8 @@ msgid "satisfies distributivity"
 msgstr "satisfait la distributivité"
 
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
-msgstr "Nomme l’axiome de distributivité satisfait par un math:Ring — la multiplication se distribue sur l’addition (a·(b+c) = a·b + a·c), loi qui fait d’une structure à deux opérations un anneau plutôt que deux groupes sans lien. Domaine math:Ring, portée un math:Axiom dénotant une formule logic: (énoncés en prose). Raffinement de math:satisfiesAxiom : un anneau doit nommer spécifiquement une loi de distributivité, pas seulement un axiome quelconque. Un anneau sans distributivité est mal formé."
+msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), tying its additive and multiplicative operations together. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
+msgstr "Nomme l’axiome de distributivité satisfait par un math:Ring — la multiplication se distribue sur l’addition (a·(b+c) = a·b + a·c), reliant ses opérations additive et multiplicative. Domaine math:Ring, portée un math:Axiom dénotant une formule logic: (énoncés en prose). Raffinement de math:satisfiesAxiom : un anneau doit nommer spécifiquement une loi de distributivité, pas seulement un axiome quelconque. Un anneau sans distributivité est mal formé."
 
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This refinement selects the distributivity axiom relating ring multiplication and addition. It entails the general math:satisfiesAxiom edge through the existing hierarchy, but an asserted-triple consumer does not gain that edge merely by reading the specific assertion."
@@ -8368,3 +8368,171 @@ msgstr "Ne pas traiter le lien comme un composé calculé, déduire automatiquem
 msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the composability edge with both morphisms and their actual endpoint descriptions, using the applicable category’s discipline to explain the claim. Keep any separately described composite, law proof or execution result distinct, without inventing a mandatory result slot or another composition path."
 msgstr "Conserver le lien de composabilité avec les deux morphismes et leurs descriptions réelles d’extrémités, en utilisant la discipline de la catégorie applicable pour expliquer l’affirmation. Distinguer tout composé, preuve de loi ou résultat d’exécution décrit séparément, sans inventer d’emplacement obligatoire de résultat ni une autre voie de composition."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axiom"
+msgstr "Axiome"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A stated law a structure satisfies — associativity, commutativity, an identity or inverse law, distributivity. An axiom denotes a logic: formula (the denotation seam, reached in the worked examples as a resource typed both math:Axiom and logic:Formula), never an opaque string: math: expresses the law and logic: owns reasoning over it. A math:AlgebraicStructure names these law resources through math:satisfiesAxiom."
+msgstr "Une loi énoncée qu’une structure satisfait — associativité, commutativité, loi de neutre ou d’inverse, distributivité. Un axiome dénote une formule logic: (le point de jonction de dénotation, atteint dans les exemples sous forme d’une ressource typée à la fois math:Axiom et logic:Formula), jamais une chaîne opaque : math: exprime la loi et logic: est responsable du raisonnement sur elle. Un math:AlgebraicStructure nomme ces ressources de loi par math:satisfiesAxiom."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An axiom resource identifies a stated law; its formula realization, proof evidence and execution are distinct. A math:Axiom label, type or math:satisfiesAxiom edge alone supplies none of those, and this class is not a superclass declaration for algebraic structures."
+msgstr "Une ressource axiome identifie une loi énoncée ; sa réalisation en formule, ses preuves et son exécution sont distinctes. Un libellé ou type math:Axiom ou un lien math:satisfiesAxiom seuls ne fournissent aucun de ces éléments, et cette classe n’est pas une déclaration de superclasse pour les structures algébriques."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:associativity in algebra-axioms.ttl is typed both math:Axiom and logic:Formula and carries an actual quantified formula tree. A structure’s link to that law remains distinct from the formula and any checked result."
+msgstr "exa:associativity dans algebra-axioms.ttl est typé math:Axiom et logic:Formula et porte un véritable arbre de formule quantifiée. Le lien d’une structure vers cette loi reste distinct de la formule et de tout résultat vérifié."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a stated mathematical law needs an identified resource that structures or other existing law carriers can reference."
+msgstr "Utiliser lorsqu’une loi mathématique énoncée nécessite une ressource identifiée que des structures ou d’autres porteurs de loi existants peuvent référencer."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a type or satisfaction link as a realized formula, proof or evaluator, inferring that math:Axiom is a superclass of algebraic structures from the law role, or excluding existing GroupAction satisfaction uses."
+msgstr "Ne pas traiter un type ou un lien de satisfaction comme une formule réalisée, une preuve ou un évaluateur, déduire du rôle de loi que math:Axiom est une superclasse des structures algébriques ou exclure les usages existants de satisfaction pour GroupAction."
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the law resource, retain its actual logic:Formula realization where authored, and keep evidence or checked results explicit. Use math:satisfiesAxiom from the existing mathematical carrier, including group actions where applicable, without retyping that carrier or inventing a hierarchy edge."
+msgstr "Identifier la ressource loi, conserver sa réalisation réelle en logic:Formula lorsqu’elle est écrite et expliciter les preuves ou résultats vérifiés. Utiliser math:satisfiesAxiom depuis le porteur mathématique existant, y compris les actions de groupe lorsqu’il s’applique, sans retyper ce porteur ni inventer de lien hiérarchique."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Algebraic Structure"
+msgstr "Structure algébrique incomplète"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."
+msgstr "L’échec signalé lorsqu’un math:AlgebraicStructure ne déclare pas ses éléments constitutifs — un math:underlyingSet, au moins une math:structureOperation et au moins une loi math:satisfiesAxiom. Un groupe est un ensemble muni d’une opération satisfaisant des axiomes énoncés ; une structure affirmée sans eux est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the declared carrier, operation and axiom frame, including its existing typed carrier/operation and resource-valued law requirements. A present frame does not establish that the operations satisfy algebraic laws, realize their formulas or execute them."
+msgstr "Cet échec concerne le cadre déclaré de support, d’opération et d’axiome, y compris ses exigences existantes de support et d’opération typés et de loi à valeur de ressource. La présence d’un cadre n’établit pas que les opérations satisfont des lois algébriques, ne réalise pas leurs formules et ne les exécute pas."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "structure-missing-operation.ttl declares ex:operationlessGroup with math:underlyingSet and math:satisfiesAxiom but omits math:structureOperation. This illustrates the missing operation declaration, not a computation disproving a group law."
+msgstr "structure-missing-operation.ttl déclare ex:operationlessGroup avec math:underlyingSet et math:satisfiesAxiom mais omet math:structureOperation. Cela illustre la déclaration d’opération manquante, et non un calcul réfutant une loi de groupe."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the existing algebraic-structure declaration check reports a missing or nonconforming constituting frame."
+msgstr "Utiliser lorsque le contrôle existant de déclaration de structure algébrique signale un cadre constitutif manquant ou non conforme."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading successful frame completion as a proof of algebra, filling the gap with an untyped placeholder, or replacing the actual missing operation with a prose label."
+msgstr "Ne pas interpréter le remplissage réussi du cadre comme une preuve d’algèbre, combler le manque par un substitut non typé ou remplacer l’opération réellement manquante par un libellé en prose."
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the reported structure and supply its actual carrier, required operation resources and declared laws through the existing fields, retaining their types and resource values. Keep any formula realization and evidence separate; do not add requirements or claim that satisfying the declaration check proves the structure."
+msgstr "Examiner la structure signalée et fournir son support réel, ses ressources d’opération requises et ses lois déclarées par les champs existants, en conservant leurs types et leurs valeurs ressources. Distinguer toute réalisation en formule et ses preuves ; ne pas ajouter d’exigences ni prétendre que satisfaire le contrôle de déclaration prouve la structure."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Non-Distributive Ring"
+msgstr "Anneau sans déclaration de distributivité"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Ring does not declare, through math:satisfiesDistributivity, the distributivity law that ties its two operations together. Distributivity (a·(b+c) = a·b + a·c) connects a ring's additive and multiplicative operations; a ring asserted without its distributivity declaration is ill-formed."
+msgstr "L’échec signalé lorsqu’un math:Ring ne déclare pas, par math:satisfiesDistributivity, la loi de distributivité qui relie ses deux opérations. La distributivité (a·(b+c) = a·b + a·c) relie les opérations additive et multiplicative d’un anneau ; un anneau affirmé sans sa déclaration de distributivité est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The failure identifies a missing specific math:satisfiesDistributivity declaration on a ring, not a numerical counterexample to distributivity. The declaration connects additive and multiplicative roles without making multiplication a group operation or establishing every ring law."
+msgstr "Cet échec identifie une déclaration spécifique math:satisfiesDistributivity manquante sur un anneau, et non un contre-exemple numérique à la distributivité. La déclaration relie les rôles additif et multiplicatif sans faire de la multiplication une opération de groupe ni établir toutes les lois d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ring-missing-distributivity.ttl supplies ex:nonDistributiveRing with a carrier, two operations and a general math:satisfiesAxiom link, but no math:satisfiesDistributivity link. The fixture records that omission rather than a failed arithmetic identity."
+msgstr "ring-missing-distributivity.ttl fournit ex:nonDistributiveRing avec un support, deux opérations et un lien général math:satisfiesAxiom, mais aucun lien math:satisfiesDistributivity. Le fichier consigne cette omission plutôt qu’une identité arithmétique fausse."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ring declaration check reports that its specifically named distributivity law is absent."
+msgstr "Utiliser lorsque le contrôle de déclaration d’anneau signale l’absence de sa loi de distributivité spécifiquement nommée."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the failure as computed falsity, substituting any unrelated axiom for distributivity, or assuming that adding a law resource proves distributivity or every other ring condition."
+msgstr "Ne pas interpréter l’échec comme une fausseté calculée, substituer un axiome sans rapport à la distributivité ou supposer qu’ajouter une ressource de loi prouve la distributivité ou toutes les autres conditions d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual distributivity law through math:satisfiesDistributivity and retain math:satisfiesAxiom for that law when asserted-triple consumers require both. Preserve the ring’s other frame fields and the law’s formula and evidence, without adding multiplicative inverse, unit or commutativity obligations."
+msgstr "Nommer la loi réelle de distributivité par math:satisfiesDistributivity et conserver math:satisfiesAxiom pour cette loi lorsque les consommateurs de triplets affirmés exigent les deux. Préserver les autres champs du cadre d’anneau ainsi que la formule et les preuves de la loi, sans ajouter d’obligations d’inverse multiplicatif, de neutre ou de commutativité."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Homomorphism"
+msgstr "Homomorphisme insuffisamment spécifié"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Homomorphism does not declare both the operation it carries (math:preservedOperation) and its preservation law (math:preservationLaw). A map is a homomorphism only by declaring what it preserves and the law of that preservation; a homomorphism asserted without them is ill-formed."
+msgstr "L’échec signalé lorsqu’un math:Homomorphism ne déclare pas à la fois l’opération qu’il transporte (math:preservedOperation) et sa loi de préservation (math:preservationLaw). Une application n’est un homomorphisme qu’en déclarant ce qu’elle préserve et la loi de cette préservation ; un homomorphisme affirmé sans eux est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the preserved-operation and preservation-law declaration frame. Supplying those links does not prove preservation, complete every ring-homomorphism condition or establish an isomorphism theorem."
+msgstr "Cet échec concerne le cadre de déclaration d’opération préservée et de loi de préservation. Fournir ces liens ne prouve pas la préservation, ne remplit pas toutes les conditions d’homomorphisme d’anneaux et n’établit pas un théorème d’isomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "homomorphism-missing-law.ttl gives ex:lawlessHom a math:preservedOperation resource but omits math:preservationLaw. The missing-law record is distinct from any evaluation of the operation or proof of a preservation equation."
+msgstr "homomorphism-missing-law.ttl donne à ex:lawlessHom une ressource math:preservedOperation mais omet math:preservationLaw. Le relevé de loi manquante est distinct de toute évaluation de l’opération ou preuve d’une équation de préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a declared homomorphism lacks the preserved operation or preservation-law resource required by its existing frame."
+msgstr "Utiliser lorsqu’un homomorphisme déclaré est dépourvu de l’opération préservée ou de la ressource de loi de préservation requises par son cadre existant."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid repairing the frame with a prose-only law, treating the minimum link count as proof of all preservation conditions, or claiming the failure itself disproves the intended map."
+msgstr "Ne pas réparer le cadre par une loi uniquement en prose, traiter le nombre minimal de liens comme une preuve de toutes les conditions de préservation ou prétendre que l’échec lui-même réfute l’application voulue."
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the map’s actual preserved operation and attach the intended law resource through math:preservationLaw, keeping the existing endpoint and type information. Preserve the real formula and supporting evidence separately rather than treating completed declarations as a proof or execution result."
+msgstr "Conserver l’opération réelle préservée par l’application et attacher la ressource de loi voulue par math:preservationLaw, en gardant les informations existantes d’extrémités et de types. Préserver séparément la formule réelle et les preuves qui l’étayent plutôt que traiter les déclarations complétées comme une preuve ou un résultat d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "String-Only Preservation Law"
+msgstr "Loi de préservation réduite à une chaîne"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."
+msgstr "L’échec signalé lorsqu’un math:Homomorphism donne son math:preservationLaw sous forme de littéral opaque au lieu de dénoter une formule logic:. La loi de préservation est le point de jonction de dénotation vers le raisonnement logic: ; elle doit dénoter une formule (une ressource), jamais une chaîne."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The implemented Homomorphism check requires math:preservationLaw values to be BlankNodeOrIRI and rejects literals. That node-kind check alone neither requires logic:Formula typing nor inspects a formula tree, proves preservation or executes the law."
+msgstr "Le contrôle implémenté pour Homomorphism exige que les valeurs math:preservationLaw soient BlankNodeOrIRI et rejette les littéraux. Ce seul contrôle de type de nœud ne requiert pas le type logic:Formula, n’examine pas un arbre de formule, ne prouve pas la préservation et n’exécute pas la loi."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "homomorphism-law-string.ttl gives ex:stringLawHom a literal math:preservationLaw. Its conformance cell pins the shared shacl.NodeKindConstraintComponent code and explicitly does not claim isolated StringOnlyPreservationLaw failure; other findings can coexist."
+msgstr "homomorphism-law-string.ttl donne à ex:stringLawHom un math:preservationLaw littéral. Sa cellule de conformité fixe le code partagé shacl.NodeKindConstraintComponent et ne revendique explicitement pas un échec StringOnlyPreservationLaw isolé ; d’autres constats peuvent coexister."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the existing preservation-law node-kind check identifies a literal where a resource node is required."
+msgstr "Utiliser lorsque le contrôle existant de type de nœud de loi de préservation identifie un littéral là où un nœud ressource est requis."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a passing IRI or blank node as a realized or proved formula, claiming this check enforces Formula typing, or describing the law-string fixture as an isolated failure-class witness."
+msgstr "Ne pas interpréter un IRI ou nœud anonyme accepté comme une formule réalisée ou prouvée, prétendre que ce contrôle impose le type Formula ou décrire le fichier de loi en chaîne comme un témoin isolé de classe d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Replace the literal with the actual law resource and retain its separately authored formula and evidence where supplied. Diagnose node kind, formula realization and checked truth as distinct concerns; preserve the conformance cell’s code-only assertion and do not infer failure-class isolation."
+msgstr "Remplacer le littéral par la ressource réelle de loi et conserver sa formule écrite séparément et ses preuves lorsqu’elles sont fournies. Distinguer dans le diagnostic le type de nœud, la réalisation en formule et la vérité vérifiée ; préserver l’affirmation portant uniquement sur le code de la cellule de conformité sans en déduire une isolation de classe d’échec."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unanchored Automorphism Group"
+msgstr "Groupe d’automorphismes sans ancrage"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:AutomorphismGroup does not declare, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure — the invariant that makes E8's Weyl group the symmetry of the E8 root system rather than a free-floating group; an automorphism group asserted without its anchoring structure is ill-formed."
+msgstr "L’échec signalé lorsqu’un math:AutomorphismGroup ne déclare pas, par math:automorphismGroupOf, la structure dont il rassemble les symétries. Tout groupe d’automorphismes est le groupe de symétries d’une certaine structure — l’invariant qui fait du groupe de Weyl d’E8 la symétrie du système de racines E8 plutôt qu’un groupe sans ancrage ; un groupe d’automorphismes affirmé sans sa structure d’ancrage est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the missing math:automorphismGroupOf structure anchor of a full automorphism-group claim. Supplying the anchor identifies the claimed structure but does not prove that the group collects all its automorphisms; the inherited group frame remains independently required."
+msgstr "Cet échec concerne l’ancrage de structure math:automorphismGroupOf manquant dans une affirmation de groupe complet d’automorphismes. Fournir l’ancrage identifie la structure affirmée sans prouver que le groupe rassemble tous ses automorphismes ; le cadre de groupe hérité reste requis indépendamment."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "automorphism-group-unanchored.ttl gives ex:unanchoredAutGroup a carrier, composition operation and axiom but omits math:automorphismGroupOf. It illustrates the missing full-group anchor rather than a proof that the named maps are or are not all automorphisms."
+msgstr "automorphism-group-unanchored.ttl donne à ex:unanchoredAutGroup un support, une opération de composition et un axiome mais omet math:automorphismGroupOf. Il illustre l’ancrage de groupe complet manquant plutôt qu’une preuve que les applications nommées sont ou ne sont pas tous les automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicitly claimed automorphism group lacks the existing required link to the structure whose full automorphisms it collects."
+msgstr "Utiliser lorsqu’un groupe d’automorphismes explicitement affirmé est dépourvu du lien existant requis vers la structure dont il rassemble tous les automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying the anchor with an arbitrary unrelated resource, inferring every Weyl group is a full automorphism group, or excluding function-valued members and an identity function from the inherited group roles."
+msgstr "Ne pas remplir l’ancrage avec une ressource quelconque sans rapport, déduire que tout groupe de Weyl est un groupe complet d’automorphismes ou exclure des membres qui sont des fonctions et une fonction identité des rôles de groupe hérités."
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the actual structure through math:automorphismGroupOf while retaining the carrier, composition and law frame and evidence for the full-group claim. Keep the specific E8 dual typing and any separate math:hasRootSystem anchor intact; adding this anchor neither proves fullness nor changes generic Weyl requirements."
+msgstr "Identifier la structure réelle par math:automorphismGroupOf en conservant le support, la composition, le cadre de lois et les preuves de l’affirmation de groupe complet. Garder intacts les deux types spécifiques à E8 et tout ancrage math:hasRootSystem distinct ; ajouter cet ancrage ne prouve pas le caractère complet et ne change pas les exigences génériques de Weyl."
