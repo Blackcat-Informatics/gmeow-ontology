@@ -626,6 +626,11 @@ math:Set
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set"@x-gmeow-english ;
+    skos:scopeNote "A set collects distinct mathematical elements without assigning them a sequence order. Extensional enumeration and intensional definition are different descriptions; placing both on one resource requires an explicitly declared equality."@x-gmeow-english ;
+    skos:example "The collection of the identified numbers two, three, five and seven can be a math:FiniteSet with four math:hasElement resource links; its label {2, 3, 5, 7} alone does not enumerate those members."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical collection needs its own identity and a stated extent or defining condition, independently of how it is rendered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a list with repeated positions as a set, inferring an empty set from missing triples, or mixing enumeration and a defining condition without the required equality."@x-gmeow-english ;
+    gmeow:howToUse "Choose math:FiniteSet with math:hasElement for an extensional resource-member enumeration, or math:SetBuilderExpression with math:memberCondition for an intensional definition. Keep the set resource separate from its notation and from operations constructing it."@x-gmeow-english ;
     skos:definition "A mathematical set: a collection of distinct elements, given either extensionally (its members enumerated through math:hasElement — see math:FiniteSet) or intensionally (a defining condition through math:memberCondition — see math:SetBuilderExpression). A set is extensional or intensional, not silently both without a declared equality. Anchored externally to the OpenMath set1 content dictionary. The object-layer parent the bedrock builds on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -634,6 +639,11 @@ math:FiniteSet
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Finite Set"@x-gmeow-english ;
+    skos:scopeNote "This class is the extensional finite-set description. Members are resources linked by math:hasElement; an exact count can be carried directly on the set with math:quantityValue alongside math:hasCardinality math:cardinalityFinite."@x-gmeow-english ;
+    skos:example "The existing four-prime set enumerates the resources for 2, 3, 5 and 7, states math:hasCardinality math:cardinalityFinite, and carries math:quantityValue 4 on the set itself."@x-gmeow-english ;
+    gmeow:useWhen "Use for a finite mathematical collection whose members are explicitly enumerated as identified objects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting raw numeric literals in math:hasElement, confusing repeated assertions with extra members, or storing a set-specific exact count on the shared math:cardinalityFinite marker."@x-gmeow-english ;
+    gmeow:howToUse "Type the collection as math:FiniteSet, enumerate its member resources with math:hasElement, and state math:hasCardinality math:cardinalityFinite. When recording the exact count, attach the non-negative integer math:quantityValue to this set and justify it from distinct members."@x-gmeow-english ;
     skos:definition "A set given extensionally by enumerating its finitely many elements through math:hasElement. Its cardinality (math:hasCardinality) is a finite math:Cardinality. The extensional counterpart of the intensional math:SetBuilderExpression."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -642,6 +652,11 @@ math:SetBuilderExpression
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set-Builder Expression"@x-gmeow-english ;
+    skos:scopeNote "This class defines membership intensionally by a condition, even when the described set happens to be finite. math:memberCondition targets a realized logic:Formula tree; a condition’s label is not the condition’s executable structure."@x-gmeow-english ;
+    skos:example "The even-number set {x | x mod 2 = 0} uses math:memberCondition to reference a logic:Formula expressing divisibility by two, rather than storing that displayed condition as a string."@x-gmeow-english ;
+    gmeow:useWhen "Use when membership is specified by a mathematical predicate instead of an explicit enumeration of all members."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the formula with opaque prose, pointing only to a label-only formula shell, or treating a few witnessed members as the complete defining condition."@x-gmeow-english ;
+    gmeow:howToUse "Create the math:SetBuilderExpression and link math:memberCondition to the structured logic:Formula that gives its membership predicate and variable scope. Keep illustrative members separate from the defining condition unless an explicit equality justifies combining the two descriptions."@x-gmeow-english ;
     skos:definition "A set given intensionally by a defining condition — the { x | φ(x) } form. Its condition is named through math:memberCondition and denotes a logic: formula, the denotation seam, never an opaque string. The intensional counterpart of the extensional math:FiniteSet."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -649,6 +664,11 @@ math:Membership
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Membership"@x-gmeow-english ;
+    skos:scopeNote "This class identifies a membership fact as an object that can carry provenance. Its declaration alone supplies no member or set endpoint predicates and does not make an unconnected record a supported membership assertion."@x-gmeow-english ;
+    skos:example "For the claim that the identified number two belongs to a prime set, a math:Membership resource names the claim, while the extensional statement still runs from the set through math:hasElement to the number resource."@x-gmeow-english ;
+    gmeow:useWhen "Use when an individual membership fact needs its own identity for attribution, evidence or justification beyond a bare extensional edge."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inventing endpoint properties on math:Membership, treating its type alone as proof of membership, or confusing x ∈ S with the subset relation A ⊆ S."@x-gmeow-english ;
+    gmeow:howToUse "Give the membership fact a resource identity and type it math:Membership when that record is needed. Preserve the actual set-to-member math:hasElement statement and use native statement metadata for its provenance; the class does not itself encode the two endpoints."@x-gmeow-english ;
     skos:definition "A reified membership fact: that a particular element belongs to a particular set (x ∈ S). Reifying membership lets a claim of membership carry its own provenance or justification, distinct from the bare math:hasElement edge on an extensional set."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -656,6 +676,11 @@ math:SetOperation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Set Operation"@x-gmeow-english ;
+    skos:scopeNote "A math:SetOperation identifies the construction from operand sets, rather than merely the resulting extent. math:setOperationOn names inputs but does not select union, intersection or difference, and does not encode operand order."@x-gmeow-english ;
+    skos:example "A proposed construction A ∪ B can be a math:SetOperation with math:setOperationOn links to A and B; those same operand links alone would not distinguish it from A ∩ B."@x-gmeow-english ;
+    gmeow:useWhen "Use when the identity of a set construction and the sets it depends on must remain explicit, separately from a description of its result."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring an operator from operand count, treating triple order as argument order, or claiming that this class and operand links alone compute or identify the result set."@x-gmeow-english ;
+    gmeow:howToUse "Type the construction math:SetOperation and name its input sets with math:setOperationOn. Preserve any required operator meaning in the mathematical expression representation; keep the constructed set distinct from the construction record rather than inventing a result slot here."@x-gmeow-english ;
     skos:definition "An operation constructing a set from operand sets — union, intersection, difference, or complement. Its operands are named through math:setOperationOn. The complement construction is the distinguished subclass math:Complement, which additionally names its ambient space through math:ambientSpace and its complement-semantics through math:complementSemantics; an unqualified complement is ill-formed. math:PowerSet and math:CartesianProduct are distinguished constructions with their own classes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -672,6 +697,11 @@ math:PowerSet
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Power Set"@x-gmeow-english ;
+    skos:scopeNote "The members of 𝒫(S) are subsets of S, including the empty set and S itself. The math:PowerSet resource is itself a set; its math:setOperationOn link names the base, not one of the power set’s members by that relation alone."@x-gmeow-english ;
+    skos:example "If S has the two distinct resource members a and b, 𝒫(S) has four mathematical members: ∅, {a}, {b} and {a, b}. A math:PowerSet resource points to S through math:setOperationOn."@x-gmeow-english ;
+    gmeow:useWhen "Use when the set of all subsets of an identified base set must be represented as a mathematical object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing a selected subset with the full power set, linking to the base through math:hasElement as a substitute for math:setOperationOn, or assuming the declaration generates all subsets."@x-gmeow-english ;
+    gmeow:howToUse "Type the resulting mathematical set math:PowerSet and point math:setOperationOn to its base set. If members are explicitly represented, use set resources for those subsets and justify their membership separately; the base link alone is not an enumeration."@x-gmeow-english ;
     skos:definition "The power set 𝒫(S): the set of all subsets of a base set, named through math:setOperationOn. Itself a set, so a subclass of math:Set. For a finite base of cardinality n its cardinality is 2ⁿ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -680,6 +710,11 @@ math:CartesianProduct
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cartesian Product"@x-gmeow-english ;
+    skos:scopeNote "A Cartesian product is a set of ordered pairs, but its plain math:setOperationOn edges are unordered operand links. They do not distinguish the first factor from the second or retain repeated-factor multiplicity."@x-gmeow-english ;
+    skos:example "For A = {a} and B = {b}, A × B contains (a, b), whereas B × A contains (b, a). Both constructions can have the same plain math:setOperationOn links to A and B, so those links alone do not preserve coordinate order."@x-gmeow-english ;
+    gmeow:useWhen "Use for the mathematical set of pairs drawn from factor sets, including a product serving as the ambient set for a relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating factor sets as product members, claiming operand triple order defines pair coordinates, or treating A × A as two distinguishable operands after duplicate RDF edges collapse."@x-gmeow-english ;
+    gmeow:howToUse "Type the product resource math:CartesianProduct and name its factor sets with math:setOperationOn. Keep any required factor order and repetition in an explicitly ordered mathematical expression representation; the plain operand links do not provide that structure."@x-gmeow-english ;
     skos:definition "The Cartesian product A × B: the set of ordered pairs drawn from operand sets named through math:setOperationOn. Itself a set, so a subclass of math:Set. A math:Relation is a subset of a Cartesian product."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -687,7 +722,12 @@ math:Cardinality
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cardinality"@x-gmeow-english ;
-    skos:definition "The size of a set: a finite count, ℵ₀ (countably infinite), 𝔠 (the cardinality of the continuum), or a larger cardinal. A set names its size through math:hasCardinality. The distinguished infinite cardinals are the individuals math:cardinalityFinite, math:alephNull, and math:continuum."@x-gmeow-english ;
+    skos:scopeNote "Cardinality describes size, independently of a set’s member ordering or notation. math:cardinalityFinite marks finiteness without fixing one exact count; math:alephNull and math:continuum identify particular infinite cardinalities."@x-gmeow-english ;
+    skos:example "A four-member math:FiniteSet can name math:cardinalityFinite through math:hasCardinality and carry math:quantityValue 4 itself. A countably infinite set instead names math:alephNull."@x-gmeow-english ;
+    gmeow:useWhen "Use when a set’s finite or infinite size must be represented explicitly rather than inferred from a label or partial enumeration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid calling math:cardinalityFinite an infinite cardinal, storing one set’s exact count on that shared marker, or equating equal cardinality with equality of sets."@x-gmeow-english ;
+    gmeow:howToUse "Point math:hasCardinality from the set to the appropriate math:Cardinality individual. For a finite set, use math:cardinalityFinite and retain any exact math:quantityValue count directly on the set; use the distinguished infinite individuals only when their sizes are justified."@x-gmeow-english ;
+    skos:definition "The size of a set: a finite count, ℵ₀ (countably infinite), 𝔠 (the cardinality of the continuum), or a larger cardinal. A set names its size through math:hasCardinality. The individual math:cardinalityFinite indicates finiteness; math:alephNull and math:continuum name the two distinguished infinite cardinalities."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:cardinalityFinite
@@ -1075,6 +1115,11 @@ math:hasElement
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has element"@x-gmeow-english ;
+    skos:scopeNote "The edge runs from the set to an enumerated member resource. As a logic:ObjectProperty it does not take a raw numeric or text literal; a member that is itself a set is still an element, not automatically a subset assertion."@x-gmeow-english ;
+    skos:example "For the identified number two and a finite prime set, assert the set math:hasElement the number resource. The numeric literal 2 is not the object of this membership edge."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate identified mathematical objects as members of an extensional set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the edge, substituting math:subsetOf for element membership, using literal objects, or interpreting duplicate edges as multiple copies of an element."@x-gmeow-english ;
+    gmeow:howToUse "Use the set as subject and the member’s mathematical resource as object of math:hasElement. Keep the member’s own value description on that resource and record finite-set counts separately with math:quantityValue on the set."@x-gmeow-english ;
     skos:definition "The canonical extensional membership carrier: relates a set to one of its enumerated members (x ∈ S). Domain math:Set, range any math:MathematicalObject (stated in prose). A math:FiniteSet is given extensionally by its math:hasElement edges."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1082,6 +1127,11 @@ math:memberCondition
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "member condition"@x-gmeow-english ;
+    skos:scopeNote "This link runs from the intensionally described set to a logic:Formula giving its membership predicate. The formula’s realized structure and variable binding matter; neither a text label nor a bare formula type supplies that condition."@x-gmeow-english ;
+    skos:example "An even-number math:SetBuilderExpression can use math:memberCondition to name a structured logic:Formula for x mod 2 = 0, with the intended variable scope represented in the formula."@x-gmeow-english ;
+    gmeow:useWhen "Use when a set’s membership criterion must be machine-readable as a logical condition rather than stored only as display notation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an opaque string, a formula node containing only a label, a relation to an example member, or a condition whose free variables have no declared interpretation."@x-gmeow-english ;
+    gmeow:howToUse "Build the condition with the existing logic:Formula AST and connect its root from the set by math:memberCondition. Keep labels and rendered notation as annotations, and do not add extensional member edges to that set without the required equality declaration."@x-gmeow-english ;
     skos:definition "Names the defining condition of an intensional set — the φ in { x | φ(x) }. Domain math:Set (in practice a math:SetBuilderExpression), range a logic: formula (stated in prose). The value denotes a logic: formula, the denotation seam, and is never an opaque literal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1089,6 +1139,11 @@ math:subsetOf
     a logic:ObjectProperty , logic:transitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subset of"@x-gmeow-english ;
+    skos:scopeNote "The subject set is contained in the object set, with equality allowed. This is set inclusion rather than element membership; the declared transitive characteristic does not by itself assert every reflexive or antisymmetric consequence."@x-gmeow-english ;
+    skos:example "If A = {2, 3} and B = {2, 3, 5}, A math:subsetOf B expresses inclusion. B math:hasElement A would instead assert that the set A is one member of B, a different claim."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that every element of one identified set belongs to another identified set, including a non-strict inclusion."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this property for x ∈ S, inferring a proper subset from it, or deriving set equality merely from equal counts."@x-gmeow-english ;
+    gmeow:howToUse "Point math:subsetOf from the contained set to the containing set. Preserve intermediate links when recording a transitive chain, and keep element assertions on math:hasElement instead of mixing the two relations."@x-gmeow-english ;
     skos:definition "Relates a set to a set that contains all of its elements (A ⊆ B). Domain and range math:Set (stated in prose). Transitive: A ⊆ B and B ⊆ C entail A ⊆ C. Reflexivity and antisymmetry hold mathematically but are documented in prose, not asserted as OWL characteristics, to keep the term profile-clean."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1096,6 +1151,11 @@ math:setOperationOn
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "set operation on"@x-gmeow-english ;
+    skos:scopeNote "The subject is a set construction and the object is an input set. These plain operand links carry no operator selector, positional index, multiplicity or result designation, even when the construction is itself a set."@x-gmeow-english ;
+    skos:example "A math:PowerSet resource uses math:setOperationOn to point to its base S; a math:CartesianProduct resource can point to factor sets A and B through the same property without recording their order."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which existing sets are operands of a declared set construction."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reversing the operand link, pointing to a member or numeric literal instead of a set, or interpreting repeated identical edges as distinct argument positions."@x-gmeow-english ;
+    gmeow:howToUse "Use the math:SetOperation, math:PowerSet or math:CartesianProduct resource as subject and each operand math:Set as object. Preserve operator meaning and any needed order in the mathematical expression representation; do not claim those details from the operand links alone."@x-gmeow-english ;
     skos:definition "Relates a set-construction (a math:SetOperation, math:PowerSet, or math:CartesianProduct) to an operand set it is built from. Domain math:SetOperation or its siblings, range math:Set (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1154,6 +1214,11 @@ math:hasCardinality
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has cardinality"@x-gmeow-english ;
+    skos:scopeNote "The edge runs from a set to a cardinality individual. math:cardinalityFinite is a shared finiteness marker, while math:alephNull and math:continuum denote particular infinite sizes; an exact finite count can remain directly on the set."@x-gmeow-english ;
+    skos:example "The four-prime math:FiniteSet states math:hasCardinality math:cardinalityFinite and math:quantityValue 4 on the same set resource. The marker does not acquire math:quantityValue 4."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical set must name its finite size category or a justified infinite cardinality as an identified object."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a numeric literal as this object, reversing the set-to-cardinality direction, or inferring the exact size of every finite set from the common math:cardinalityFinite marker."@x-gmeow-english ;
+    gmeow:howToUse "Select the appropriate math:Cardinality individual as the object of math:hasCardinality on the set. For an extensional math:FiniteSet use math:cardinalityFinite, and attach any justified exact math:quantityValue count to that set resource rather than to the shared marker."@x-gmeow-english ;
     skos:definition "Names the size of a set. Domain math:Set, range math:Cardinality (stated in prose). A finite set names math:cardinalityFinite and may additionally carry its exact count as a math:quantityValue."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
