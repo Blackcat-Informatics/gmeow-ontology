@@ -846,6 +846,11 @@ math:Function
     rdfs:subClassOf math:Relation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Function"@x-gmeow-english ;
+    skos:scopeNote "A mathematical function resource is total on its declared domain and has a set-valued frame. A functional RDF predicate instead limits object multiplicity per subject; that predicate characteristic alone does not describe a total mathematical function."@x-gmeow-english ;
+    skos:example "Integer negation n ↦ −n can be a math:Function with math:domain math:integers and math:codomain math:integers. Its input and output roles use the same set without becoming the same role."@x-gmeow-english ;
+    gmeow:useWhen "Use when an identified mathematical map assigns exactly one output to every input in an explicitly declared domain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using math:Function merely to mark an RDF property functional, claiming totality while leaving declared inputs undefined, or inferring injectivity from single-valuedness."@x-gmeow-english ;
+    gmeow:howToUse "Type the map math:Function, name its input and target sets through math:domain and math:codomain, and describe its rule with the existing mathematical representation. Add math:image or the three boolean declarations only when supported; this frame does not evaluate the map."@x-gmeow-english ;
     skos:definition "A function: a relation that assigns to each element of its domain exactly one element of its codomain. Every function declares its math:domain and math:codomain — a function without them is ill-formed — and may declare its math:image. Injectivity, surjectivity, and bijectivity are declared, checkable booleans (math:isInjective, math:isSurjective, math:isBijective), not assumed. Anchored externally to the OpenMath fns1 content dictionary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -862,6 +867,11 @@ math:InjectiveFunction
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Injective Function"@x-gmeow-english ;
+    skos:scopeNote "Injectivity concerns distinct inputs in the declared domain. This convenience class does not by its name certify that an executable class-to-boolean or boolean-to-class conversion has run; retain the justified canonical math:isInjective assertion explicitly."@x-gmeow-english ;
+    skos:example "Doubling n ↦ 2n from ℤ to ℤ is injective because equal outputs force equal inputs, although odd integers are absent from its image."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a framed function whose distinct-input preservation is established, while keeping its canonical injectivity declaration available."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid equating injection with surjection, inferring it from finitely many noncolliding samples, or relying on the convenience type alone as proof that math:isInjective true was emitted."@x-gmeow-english ;
+    gmeow:howToUse "State the function’s math:domain and math:codomain, retain a justified math:isInjective true, and add math:InjectiveFunction when the convenience classification is useful. Preserve the argument establishing injectivity separately from the annotation."@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isInjective true — an injection, mapping distinct domain elements to distinct codomain elements. The canonical checkable bearer is the boolean math:isInjective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -870,6 +880,11 @@ math:SurjectiveFunction
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Surjective Function"@x-gmeow-english ;
+    skos:scopeNote "Surjectivity is relative to the declared codomain: every target element must be attained. The same evaluation rule can be surjective for one target set and not another; the convenience class does not replace an explicit supported boolean declaration."@x-gmeow-english ;
+    skos:example "Squaring x ↦ x² on ℝ is surjective when its codomain is the non-negative reals, but not when the declared codomain is all of ℝ."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a function whose attained image is established to equal its full declared codomain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deducing surjectivity from the function’s formula alone without its target set, from an injectivity claim, or from a class label without the canonical math:isSurjective evidence."@x-gmeow-english ;
+    gmeow:howToUse "Retain the function’s declared frame, record a justified math:isSurjective true, and use math:SurjectiveFunction as its convenience classification. If math:image is supplied, describe the same attained set rather than silently shrinking the codomain to force the claim."@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isSurjective true — a surjection, whose image is the whole codomain. The canonical checkable bearer is the boolean math:isSurjective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -878,6 +893,11 @@ math:BijectiveFunction
     rdfs:subClassOf math:Function ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Bijective Function"@x-gmeow-english ;
+    skos:scopeNote "Bijectivity requires both unique preimages and coverage of the entire declared codomain. It is a claim about a framed function, not a guarantee supplied by the convenience class name or by a missing pair of negative flags."@x-gmeow-english ;
+    skos:example "Negation n ↦ −n from ℤ to ℤ is bijective and is its own inverse. Doubling from ℤ to ℤ is injective but not bijective because it misses every odd target."@x-gmeow-english ;
+    gmeow:useWhen "Use for a function whose injectivity and surjectivity are both justified for the same declared domain and codomain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming a bijection from injectivity alone, changing the frame without recording it, or promising an automatically emitted math:isBijective flag or inverse from this type."@x-gmeow-english ;
+    gmeow:howToUse "Describe the function’s frame and retain a supported math:isBijective true alongside the useful math:BijectiveFunction classification. Link math:inverseFunction only to an identified inverse with the reversed original frame and justified inverse behavior."@x-gmeow-english ;
     skos:definition "A convenience projection of the class of functions with math:isBijective true — a bijection, both injective and surjective, hence invertible through math:inverseFunction. The canonical checkable bearer is the boolean math:isBijective; this subclass is a projection over it, not an independent carrier."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -886,6 +906,11 @@ math:PartialFunction
     rdfs:subClassOf math:Relation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Partial Function"@x-gmeow-english ;
+    skos:scopeNote "The declared source set may contain inputs where the relation is undefined, but no input has two outputs. math:PartialFunction inherits from math:Relation rather than the total math:Function; a lack of recorded output alone does not establish mathematical undefinedness."@x-gmeow-english ;
+    skos:example "The reciprocal rule x ↦ 1/x with declared source ℝ and target ℝ is undefined at zero, so it can be described as a math:PartialFunction on that source."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical relation is single-valued where defined but intentionally not total over its declared source set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing the same partial description as a total math:Function merely to satisfy a frame shape, using missing data as proof of partiality, or allowing multiple values for one input."@x-gmeow-english ;
+    gmeow:howToUse "Type the relation math:PartialFunction, declare its source and target set resources with math:domain and math:codomain, and describe where it is defined in the existing mathematical or logical representation. A restriction to a smaller total domain needs its own explicit frame."@x-gmeow-english ;
     skos:definition "A partial function: a relation that assigns at most one codomain element to each domain element, defined only on a subset of its declared domain. A subclass of math:Relation rather than math:Function, because it is not total on its domain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1334,6 +1359,11 @@ math:domain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "domain"@x-gmeow-english ;
+    skos:scopeNote "This mathematical frame link runs from a function or relation to its source set. It is not the schema-level domain declaration of an RDF property; a source set and target set may be the same resource while serving different roles."@x-gmeow-english ;
+    skos:example "For n ↦ n + 1 on integers, math:domain math:integers records the allowed inputs. The same rule on natural numbers has a different declared domain."@x-gmeow-english ;
+    gmeow:useWhen "Use to state the identified input set of a mathematical relation, including the required source frame of a total function."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a datatype-name string, a function argument occurrence or a single sample input where the source-set resource is required."@x-gmeow-english ;
+    gmeow:howToUse "Point math:domain from the map or relation to the set of declared inputs and retain math:codomain separately. Describe partial definedness separately when using math:PartialFunction rather than silently deleting undefined inputs from the stated source."@x-gmeow-english ;
     skos:definition "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1341,6 +1371,11 @@ math:codomain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "codomain"@x-gmeow-english ;
+    skos:scopeNote "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."@x-gmeow-english ;
+    skos:example "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the intended target set against which output membership and surjectivity are judged."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."@x-gmeow-english ;
+    gmeow:howToUse "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."@x-gmeow-english ;
     skos:definition "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1348,6 +1383,11 @@ math:image
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "image"@x-gmeow-english ;
+    skos:scopeNote "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."@x-gmeow-english ;
+    skos:example "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."@x-gmeow-english ;
+    gmeow:useWhen "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."@x-gmeow-english ;
+    gmeow:howToUse "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."@x-gmeow-english ;
     skos:definition "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1401,6 +1441,11 @@ math:isInjective
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is injective"@x-gmeow-english ;
+    skos:scopeNote "This boolean describes injectivity on the function’s declared domain. Both true and false need mathematical support; an absent statement means no assertion here, not false, and a convenience type does not certify an executed conversion."@x-gmeow-english ;
+    skos:example "For squaring on ℤ, the distinct inputs 2 and −2 both map to 4, justifying math:isInjective false. Integer negation instead supports true."@x-gmeow-english ;
+    gmeow:useWhen "Use to state a supported injectivity result in the canonical boolean field of a framed mathematical function."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid defaulting to false when no proof is supplied, inferring true from totality, or treating noncolliding samples as a universal argument."@x-gmeow-english ;
+    gmeow:howToUse "Attach a justified xsd:boolean true or false to the math:Function and retain its declared frame and supporting argument. Preserve any math:InjectiveFunction convenience typing separately rather than assuming either representation has been generated from the other."@x-gmeow-english ;
     skos:definition "Declares whether a function is injective — distinct inputs map to distinct outputs. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of injectivity, of which math:InjectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1408,6 +1453,11 @@ math:isSurjective
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is surjective"@x-gmeow-english ;
+    skos:scopeNote "This boolean is evaluated against the declared codomain, not just the rule or the observed outputs. Missing math:isSurjective is not false, and equal image/codomain roles may refer to the same set resource."@x-gmeow-english ;
+    skos:example "Doubling n ↦ 2n from ℤ to ℤ supports math:isSurjective false because 1 has no preimage. With the explicitly restricted even-integer target, the corresponding framed map is surjective."@x-gmeow-english ;
+    gmeow:useWhen "Use when it is established whether a function attains every element of its declared target set."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving true from a successful finite sample, recording false merely because outputs have not been observed, or changing the codomain invisibly to validate the flag."@x-gmeow-english ;
+    gmeow:howToUse "Record the supported xsd:boolean value on the framed function, retaining its math:codomain and any justified math:image description. Keep convenience math:SurjectiveFunction typing explicit when used; no automatic class/boolean conversion is claimed by this guidance."@x-gmeow-english ;
     skos:definition "Declares whether a function is surjective — its image is the whole codomain. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of surjectivity, of which math:SurjectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1415,6 +1465,11 @@ math:isBijective
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "is bijective"@x-gmeow-english ;
+    skos:scopeNote "The flag concerns injectivity and surjectivity together for one declared frame. Absence is not false; false may be justified by a failure of either condition, while true needs both."@x-gmeow-english ;
+    skos:example "Integer negation supports math:isBijective true. Doubling with both domain and codomain ℤ supports false because its image excludes odd integers despite being injective."@x-gmeow-english ;
+    gmeow:useWhen "Use for an explicit justified assertion of whether a framed function is both one-to-one and onto."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting an injectivity claim alone to true, inferring false from an absent inverse link, or claiming the flag itself constructs an inverse function."@x-gmeow-english ;
+    gmeow:howToUse "Supply the supported xsd:boolean on the function and preserve the domain, codomain and mathematical argument. Record a math:inverseFunction link only when the inverse’s reversed frame and inverse laws are justified; retain convenience class typing explicitly if desired."@x-gmeow-english ;
     skos:definition "Declares whether a function is bijective — both injective and surjective, hence invertible. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of bijectivity, of which math:BijectiveFunction is a convenience projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1422,6 +1477,11 @@ math:functionComposition
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "function composition"@x-gmeow-english ;
+    skos:scopeNote "The direction is composite-to-component, but the generic link carries no application order. The declared composition frame requires the inner codomain to match the outer domain; component links alone do not prove that match or execute the composition."@x-gmeow-english ;
+    skos:example "For f(n) = n + 1 and g(n) = 2n on ℤ, g ∘ f gives 2n + 2 while f ∘ g gives 2n + 1. Generic links to f and g are the same in both cases and cannot distinguish those orders."@x-gmeow-english ;
+    gmeow:useWhen "Use for the general fact that an identified function is a component of a composite, while retaining ordered refinements when order matters."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading triple serialization order as evaluation order, composing mismatched declared frames silently, or using this edge as an invented result-value slot."@x-gmeow-english ;
+    gmeow:howToUse "Describe the composite and component functions with their frames. Use math:compositionInner for the first-applied function and math:compositionOuter for the second, verifying that the inner codomain is the outer domain; use math:functionComposition only for the order-agnostic component relation."@x-gmeow-english ;
     skos:definition "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is non-commutative (g ∘ f ≠ f ∘ g in general), so this order-agnostic super-property — which holds of either component — is refined by math:compositionOuter and math:compositionInner, through which the order-bearing decomposition is asserted. Composition is well-formed when the codomain of the inner function is the domain of the outer."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1430,6 +1490,11 @@ math:compositionOuter
     rdfs:subPropertyOf math:functionComposition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "composition outer"@x-gmeow-english ;
+    skos:scopeNote "The object is the outer function g in g ∘ f, applied after f. Outer refers to application structure rather than an ambient set; this relation and math:compositionInner identify roles that may refer to the same function in self-composition."@x-gmeow-english ;
+    skos:example "With f(n) = n + 1 and g(n) = 2n from ℤ to ℤ, the composite giving 2n + 2 has math:compositionOuter pointing to g, because doubling happens second."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain which component receives the inner function’s output in an ordered composition."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning the first-applied component here because it appears first in prose, reversing the edge toward the composite, or omitting the required match to the inner codomain."@x-gmeow-english ;
+    gmeow:howToUse "Point math:compositionOuter from the composite to the second-applied math:Function, pair it with math:compositionInner, and retain the outer domain as the same set as the inner codomain. The composite’s target follows the declared outer target."@x-gmeow-english ;
     skos:definition "Relates a composite function g ∘ f to its outer (left) component g — the function applied second, whose math:domain is the math:codomain of the inner component. The order-bearing refinement of math:functionComposition that, together with math:compositionInner, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1438,6 +1503,11 @@ math:compositionInner
     rdfs:subPropertyOf math:functionComposition ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "composition inner"@x-gmeow-english ;
+    skos:scopeNote "The object is the inner function f in g ∘ f, applied first. Right-hand position in the notation corresponds to first application; the plain math:functionComposition link does not preserve this role."@x-gmeow-english ;
+    skos:example "For increment followed by doubling on ℤ, math:compositionInner points to f(n) = n + 1 and math:compositionOuter points to g(n) = 2n, giving g(f(n)) = 2n + 2."@x-gmeow-english ;
+    gmeow:useWhen "Use when the first-applied function must remain identifiable in a composition whose order affects its meaning."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing the notation’s leftmost function with the first-applied one, encoding order only in labels, or silently treating inner image containment as the declared codomain/domain match."@x-gmeow-english ;
+    gmeow:howToUse "Point math:compositionInner from the composite to the first-applied function and state math:compositionOuter separately. Preserve the composite’s source as the inner domain and the inner codomain as the outer domain under this declared composition frame."@x-gmeow-english ;
     skos:definition "Relates a composite function g ∘ f to its inner (right) component f — the function applied first, whose math:codomain is the math:domain of the outer component. The order-bearing refinement of math:functionComposition that, together with math:compositionOuter, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1445,6 +1515,11 @@ math:inverseFunction
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "inverse function"@x-gmeow-english ;
+    skos:scopeNote "An inverse is relative to the original function’s complete domain and codomain, with those roles reversed. It is not the pointwise reciprocal, and an injective map’s inverse on its image requires an explicitly restricted target before claiming a bijective inverse of that framed map."@x-gmeow-english ;
+    skos:example "For f(x) = 2x + 1 from ℝ to ℝ, the inverse is y ↦ (y − 1)/2 from ℝ to ℝ. The reciprocal expression 1/(2x + 1) is a different rule, not that inverse."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a justified bijective function to an identified total inverse on its original declared codomain."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this property for a reciprocal, a merely left inverse or an inverse only on a smaller image without reframing, or expecting the reverse edge to be inferred automatically."@x-gmeow-english ;
+    gmeow:howToUse "Keep the original function’s declared frame, describe the inverse with domain and codomain swapped, and justify both inverse compositions. State math:inverseFunction explicitly for each needed direction; its mathematical symmetry is documented rather than promised as an automatic RDF inference."@x-gmeow-english ;
     skos:definition "Relates a function to its inverse f⁻¹, defined exactly when the function is bijective. Domain and range math:Function (stated in prose). The relation is symmetric mathematically (the inverse of f⁻¹ is f), documented in prose rather than asserted as an OWL characteristic to keep the term profile-clean."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

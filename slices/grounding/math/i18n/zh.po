@@ -5080,3 +5080,423 @@ msgstr "不要将商等价类等同于环境向量，不要从 V/S 推断规范�
 msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select math:quotientComplement on the complement resource, name the total ambient object and the operand subobject, and retain the quotient or cokernel interpretation. Describe any chosen representatives or splitting separately rather than asserting they come from this tag."
 msgstr "在补资源上选择 math:quotientComplement，指定总环境对象及运算对象子对象，并保留商或余核解释。所选代表或分裂应另行描述，不应断言它们来自此标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Function"
+msgstr "函数"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A function: a relation that assigns to each element of its domain exactly one element of its codomain. Every function declares its math:domain and math:codomain — a function without them is ill-formed — and may declare its math:image. Injectivity, surjectivity, and bijectivity are declared, checkable booleans (math:isInjective, math:isSurjective, math:isBijective), not assumed. Anchored externally to the OpenMath fns1 content dictionary."
+msgstr "函数：将定义域中的每个元素恰好映射到陪域中一个元素的关系。每个函数都声明 math:domain 和 math:codomain；缺少它们的函数不合规范。函数还可以声明 math:image。单射性、满射性及双射性是已声明、可检查的布尔值（math:isInjective、math:isSurjective、math:isBijective），不能自行假定。其外部锚点为 OpenMath fns1 内容字典。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical function resource is total on its declared domain and has a set-valued frame. A functional RDF predicate instead limits object multiplicity per subject; that predicate characteristic alone does not describe a total mathematical function."
+msgstr "数学函数资源在其声明的定义域上为全函数，并以集合给出映射框架。函数性 RDF 谓词则限制每个主语所能关联的宾语数量；仅有这种谓词特征并未描述全数学函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#example"
+msgid "Integer negation n ↦ −n can be a math:Function with math:domain math:integers and math:codomain math:integers. Its input and output roles use the same set without becoming the same role."
+msgstr "整数取负 n ↦ −n 可以是 math:Function，具有 math:domain math:integers 及 math:codomain math:integers。输入和输出角色使用同一集合，但仍是不同角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an identified mathematical map assigns exactly one output to every input in an explicitly declared domain."
+msgstr "当有标识的数学映射为显式声明的定义域中每个输入恰好指定一个输出时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using math:Function merely to mark an RDF property functional, claiming totality while leaving declared inputs undefined, or inferring injectivity from single-valuedness."
+msgstr "不要仅为标记 RDF 属性的函数性而使用 math:Function，不要在声明输入未定义时仍声称为全函数，也不要从单值性推断单射性。"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the map math:Function, name its input and target sets through math:domain and math:codomain, and describe its rule with the existing mathematical representation. Add math:image or the three boolean declarations only when supported; this frame does not evaluate the map."
+msgstr "将映射定为 math:Function，通过 math:domain 及 math:codomain 指定输入集合和目标集合，并用现有数学表示描述规则。仅在有依据时添加 math:image 或三种布尔声明；映射框架本身不会计算该映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Injective Function"
+msgstr "单射函数"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isInjective true — an injection, mapping distinct domain elements to distinct codomain elements. The canonical checkable bearer is the boolean math:isInjective; this subclass is a projection over it, not an independent carrier."
+msgstr "具有 math:isInjective true 的函数类的便捷投影，即单射，将互异的定义域元素映射到互异的陪域元素。规范且可检查的载体是布尔值 math:isInjective；此子类是它的投影，而非独立载体。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Injectivity concerns distinct inputs in the declared domain. This convenience class does not by its name certify that an executable class-to-boolean or boolean-to-class conversion has run; retain the justified canonical math:isInjective assertion explicitly."
+msgstr "单射性针对声明定义域中的互异输入。此便捷类的名称并不能证明已执行类到布尔值或布尔值到类的转换；应显式保留有依据的规范 math:isInjective 断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Doubling n ↦ 2n from ℤ to ℤ is injective because equal outputs force equal inputs, although odd integers are absent from its image."
+msgstr "倍增映射 n ↦ 2n 从 ℤ 到 ℤ 是单射，因为输出相等必然导致输入相等，尽管奇整数不在其像中。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a framed function whose distinct-input preservation is established, while keeping its canonical injectivity declaration available."
+msgstr "当已确定某个具有映射框架的函数保持输入的互异性时，用于分类，并保留其规范单射性声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating injection with surjection, inferring it from finitely many noncolliding samples, or relying on the convenience type alone as proof that math:isInjective true was emitted."
+msgstr "不要将单射等同于满射，不要从有限个无碰撞样本推断单射性，也不要仅凭便捷类型就认定 math:isInjective true 已被输出。"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the function’s math:domain and math:codomain, retain a justified math:isInjective true, and add math:InjectiveFunction when the convenience classification is useful. Preserve the argument establishing injectivity separately from the annotation."
+msgstr "声明函数的 math:domain 和 math:codomain，保留有依据的 math:isInjective true，并在便捷分类有用时添加 math:InjectiveFunction。单射性的论证应与注解分开保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Surjective Function"
+msgstr "满射函数"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isSurjective true — a surjection, whose image is the whole codomain. The canonical checkable bearer is the boolean math:isSurjective; this subclass is a projection over it, not an independent carrier."
+msgstr "具有 math:isSurjective true 的函数类的便捷投影，即满射，其像为整个陪域。规范且可检查的载体是布尔值 math:isSurjective；此子类是它的投影，而非独立载体。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Surjectivity is relative to the declared codomain: every target element must be attained. The same evaluation rule can be surjective for one target set and not another; the convenience class does not replace an explicit supported boolean declaration."
+msgstr "满射性取决于声明的陪域：每个目标元素都必须能被取得。同一计算规则对某个目标集合可能是满射，对另一个则不是；便捷类不能替代显式且有依据的布尔声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Squaring x ↦ x² on ℝ is surjective when its codomain is the non-negative reals, but not when the declared codomain is all of ℝ."
+msgstr "平方映射 x ↦ x² 在 ℝ 上、陪域为非负实数集时是满射；若声明的陪域为整个 ℝ，则不是满射。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a function whose attained image is established to equal its full declared codomain."
+msgstr "当已确定函数实际取得的像等于其整个声明陪域时，用于分类。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deducing surjectivity from the function’s formula alone without its target set, from an injectivity claim, or from a class label without the canonical math:isSurjective evidence."
+msgstr "不要在缺少目标集合时仅从函数公式推断满射性，不要从单射声明推断满射性，也不要仅依赖类标签而缺少规范的 math:isSurjective 依据。"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the function’s declared frame, record a justified math:isSurjective true, and use math:SurjectiveFunction as its convenience classification. If math:image is supplied, describe the same attained set rather than silently shrinking the codomain to force the claim."
+msgstr "保留函数已声明的映射框架，记录有依据的 math:isSurjective true，并以 math:SurjectiveFunction 作便捷分类。若提供 math:image，应描述同一个实际取得集合，而非默默缩小陪域来使声明成立。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bijective Function"
+msgstr "双射函数"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isBijective true — a bijection, both injective and surjective, hence invertible through math:inverseFunction. The canonical checkable bearer is the boolean math:isBijective; this subclass is a projection over it, not an independent carrier."
+msgstr "具有 math:isBijective true 的函数类的便捷投影，即同时为单射和满射的双射，因此可通过 math:inverseFunction 表示逆函数。规范且可检查的载体是布尔值 math:isBijective；此子类是它的投影，而非独立载体。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bijectivity requires both unique preimages and coverage of the entire declared codomain. It is a claim about a framed function, not a guarantee supplied by the convenience class name or by a missing pair of negative flags."
+msgstr "双射性要求每个像有唯一原像，并覆盖整个声明陪域。这是关于有映射框架函数的声明，不能由便捷类名称或两个否定标志的缺失来保证。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Negation n ↦ −n from ℤ to ℤ is bijective and is its own inverse. Doubling from ℤ to ℤ is injective but not bijective because it misses every odd target."
+msgstr "取负映射 n ↦ −n 从 ℤ 到 ℤ 是双射，且逆函数就是它自身。从 ℤ 到 ℤ 的倍增映射是单射，但不是双射，因为它无法取得任何奇数目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a function whose injectivity and surjectivity are both justified for the same declared domain and codomain."
+msgstr "当函数的单射性及满射性在同一已声明定义域和陪域下均有依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a bijection from injectivity alone, changing the frame without recording it, or promising an automatically emitted math:isBijective flag or inverse from this type."
+msgstr "不要仅从单射性假定双射，不要更改映射框架而不予记录，也不要声称此类型会自动生成 math:isBijective 标志或逆函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the function’s frame and retain a supported math:isBijective true alongside the useful math:BijectiveFunction classification. Link math:inverseFunction only to an identified inverse with the reversed original frame and justified inverse behavior."
+msgstr "描述函数的映射框架，在有用的 math:BijectiveFunction 分类之外保留有依据的 math:isBijective true。仅将 math:inverseFunction 连接到具有原框架反向定义域和陪域、且逆函数行为有依据的已标识函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Partial Function"
+msgstr "偏函数"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial function: a relation that assigns at most one codomain element to each domain element, defined only on a subset of its declared domain. A subclass of math:Relation rather than math:Function, because it is not total on its domain."
+msgstr "偏函数：对每个定义域元素至多关联一个陪域元素的关系，仅在声明定义域的某个子集上有定义。它是 math:Relation 的子类而非 math:Function 的子类，因为它在其定义域上不为全函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The declared source set may contain inputs where the relation is undefined, but no input has two outputs. math:PartialFunction inherits from math:Relation rather than the total math:Function; a lack of recorded output alone does not establish mathematical undefinedness."
+msgstr "声明的源集合可以包含关系未定义的输入，但任何输入都不能有两个输出。math:PartialFunction 继承 math:Relation，而非全函数 math:Function；仅缺少已记录输出并不能证明数学上未定义。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The reciprocal rule x ↦ 1/x with declared source ℝ and target ℝ is undefined at zero, so it can be described as a math:PartialFunction on that source."
+msgstr "倒数规则 x ↦ 1/x 在声明源集合及目标集合均为 ℝ 时，在零处未定义，因此可描述为该源集合上的 math:PartialFunction。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical relation is single-valued where defined but intentionally not total over its declared source set."
+msgstr "当数学关系在有定义处单值，但明确不在其声明源集合上处处有定义时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the same partial description as a total math:Function merely to satisfy a frame shape, using missing data as proof of partiality, or allowing multiple values for one input."
+msgstr "不要仅为满足映射框架要求就将同一偏函数描述定为全函数 math:Function，不要用数据缺失证明偏性，也不要允许单个输入取多个值。"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the relation math:PartialFunction, declare its source and target set resources with math:domain and math:codomain, and describe where it is defined in the existing mathematical or logical representation. A restriction to a smaller total domain needs its own explicit frame."
+msgstr "将关系定为 math:PartialFunction，用 math:domain 和 math:codomain 声明源集合及目标集合资源，并在现有数学或逻辑表示中描述其有定义范围。限制到较小的全函数定义域时，需要另行显式给出映射框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "domain"
+msgstr "定义域"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."
+msgstr "函数或关系的源集合，即输入所来自的集合。定义域为 math:Relation，值域为 math:Set（以文字说明）。每个 math:Function 都声明一个定义域；缺少定义域的函数不合规范。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This mathematical frame link runs from a function or relation to its source set. It is not the schema-level domain declaration of an RDF property; a source set and target set may be the same resource while serving different roles."
+msgstr "此数学框架链接从函数或关系指向源集合。它不是 RDF 属性在模式层面的定义域声明；源集合与目标集合可以是同一资源，但承担不同角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#example"
+msgid "For n ↦ n + 1 on integers, math:domain math:integers records the allowed inputs. The same rule on natural numbers has a different declared domain."
+msgstr "对于整数上的 n ↦ n + 1，math:domain math:integers 记录允许的输入。同一规则在自然数上具有不同的声明定义域。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the identified input set of a mathematical relation, including the required source frame of a total function."
+msgstr "用于声明数学关系的有标识输入集合，包括全函数所必需的源框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a datatype-name string, a function argument occurrence or a single sample input where the source-set resource is required."
+msgstr "不要在需要源集合资源的位置使用数据类型名称字符串、函数参数出现项或单个样本输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:domain from the map or relation to the set of declared inputs and retain math:codomain separately. Describe partial definedness separately when using math:PartialFunction rather than silently deleting undefined inputs from the stated source."
+msgstr "使 math:domain 从映射或关系指向声明的输入集合，并另行保留 math:codomain。使用 math:PartialFunction 时，应另行描述有定义范围，不要从所声明源集合中默默删除未定义输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "codomain"
+msgstr "陪域"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."
+msgstr "函数或关系的目标集合，即输出所落入的集合。定义域为 math:Relation，值域为 math:Set（以文字说明）。每个 math:Function 都声明一个陪域；缺少陪域的函数不合规范。陪域为声明的目标，其角色不同于实际取得的 math:image。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."
+msgstr "陪域是声明的目标集合，math:image 记录实际取得的集合。函数为满射时，不同角色可以指向同一资源；并不要求资源互异。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."
+msgstr "对于源集合和声明目标均为 ℝ 的 x ↦ x²，math:codomain 指定所有实数，尽管负实数不在其像中。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the intended target set against which output membership and surjectivity are judged."
+msgstr "用于保留预期目标集合，以此判断输出归属及满射性。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."
+msgstr "不要用已观察输出替换声明的陪域，不要将其当作单个结果，也不要通过默默更改此目标强行使满射性成立。"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."
+msgstr "使 math:codomain 从函数或关系指向声明的目标 math:Set。若意图使用受限目标，应显式给出该框架，并针对该框架下的映射论证相关 math:isSurjective 声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image"
+msgstr "像"
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."
+msgstr "函数实际取得的值的集合，即陪域中构成映射值域的子集。定义域为 math:Function，值域为 math:Set（以文字说明）。函数为满射，当且仅当其像等于陪域。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."
+msgstr "像是已声明函数实际取得的完整集合，而不只是有限的输出样本。它包含于陪域，也可以与陪域是同一集合；这一相等关系是满射性的数学判据。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#example"
+msgid "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."
+msgstr "ℝ 上、陪域为 ℝ 的平方函数的像为 {y ∈ ℝ | y ≥ 0}。整数取负函数的像为 ℤ，与其声明陪域相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."
+msgstr "当函数实际取得的完整输出集合已有数学刻画，并需要有标识的集合资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."
+msgstr "不要在此列出单个输出字面量，不要将测试样本与完整的像混淆，也不要假定 math:image 会根据函数标签或映射框架自动计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."
+msgstr "通过 math:image 将 math:Function 连接到有依据的实际取得 math:Set，并保留 math:codomain 作为声明目标。若枚举无法描述该像，应使用现有集合和公式词汇以内涵方式表示。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is injective"
+msgstr "是否单射"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is injective — distinct inputs map to distinct outputs. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of injectivity, of which math:InjectiveFunction is a convenience projection."
+msgstr "声明函数是否为单射，即互异输入映射到互异输出。定义域为 math:Function，值域为 xsd:boolean（以文字说明）。它是单射性的规范可检查载体，math:InjectiveFunction 是其便捷投影。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boolean describes injectivity on the function’s declared domain. Both true and false need mathematical support; an absent statement means no assertion here, not false, and a convenience type does not certify an executed conversion."
+msgstr "此布尔值描述函数在声明定义域上的单射性。true 和 false 都需要数学依据；缺失声明仅表示此处未作断言，不等于 false，便捷类型也不能证明转换已经执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#example"
+msgid "For squaring on ℤ, the distinct inputs 2 and −2 both map to 4, justifying math:isInjective false. Integer negation instead supports true."
+msgstr "对于 ℤ 上的平方函数，互异输入 2 和 −2 都映射到 4，从而支持 math:isInjective false。整数取负则支持 true。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state a supported injectivity result in the canonical boolean field of a framed mathematical function."
+msgstr "用于在具有映射框架的数学函数的规范布尔字段中声明有依据的单射性结论。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting to false when no proof is supplied, inferring true from totality, or treating noncolliding samples as a universal argument."
+msgstr "不要在未提供证明时默认为 false，不要由全函数性质推断 true，也不要将无碰撞样本视为普遍论证。"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a justified xsd:boolean true or false to the math:Function and retain its declared frame and supporting argument. Preserve any math:InjectiveFunction convenience typing separately rather than assuming either representation has been generated from the other."
+msgstr "向 math:Function 附加有依据的 xsd:boolean true 或 false，并保留其声明框架及支撑论证。另行保留 math:InjectiveFunction 便捷类型，不要假定任一表示已从另一表示自动生成。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is surjective"
+msgstr "是否满射"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is surjective — its image is the whole codomain. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of surjectivity, of which math:SurjectiveFunction is a convenience projection."
+msgstr "声明函数是否为满射，即其像为整个陪域。定义域为 math:Function，值域为 xsd:boolean（以文字说明）。它是满射性的规范可检查载体，math:SurjectiveFunction 是其便捷投影。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boolean is evaluated against the declared codomain, not just the rule or the observed outputs. Missing math:isSurjective is not false, and equal image/codomain roles may refer to the same set resource."
+msgstr "此布尔值须相对于声明陪域判断，而不只依据规则或已观察输出。缺少 math:isSurjective 不等于 false；像与陪域相等时，两个角色可以指向同一集合资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#example"
+msgid "Doubling n ↦ 2n from ℤ to ℤ supports math:isSurjective false because 1 has no preimage. With the explicitly restricted even-integer target, the corresponding framed map is surjective."
+msgstr "倍增映射 n ↦ 2n 从 ℤ 到 ℤ 支持 math:isSurjective false，因为 1 没有原像。若目标显式限制为偶整数，采用该框架的对应映射则为满射。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when it is established whether a function attains every element of its declared target set."
+msgstr "当已确定函数是否能取得其声明目标集合中的每个元素时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving true from a successful finite sample, recording false merely because outputs have not been observed, or changing the codomain invisibly to validate the flag."
+msgstr "不要由成功的有限样本推导 true，不要仅因尚未观察到输出便记录 false，也不要隐蔽地更改陪域来使标志成立。"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supported xsd:boolean value on the framed function, retaining its math:codomain and any justified math:image description. Keep convenience math:SurjectiveFunction typing explicit when used; no automatic class/boolean conversion is claimed by this guidance."
+msgstr "在具有映射框架的函数上记录有依据的 xsd:boolean 值，保留 math:codomain 及有依据的 math:image 描述。使用 math:SurjectiveFunction 便捷类型时应显式保留；本指导并不声称类与布尔值会自动转换。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is bijective"
+msgstr "是否双射"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is bijective — both injective and surjective, hence invertible. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of bijectivity, of which math:BijectiveFunction is a convenience projection."
+msgstr "声明函数是否为双射，即同时为单射和满射，因此可逆。定义域为 math:Function，值域为 xsd:boolean（以文字说明）。它是双射性的规范可检查载体，math:BijectiveFunction 是其便捷投影。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag concerns injectivity and surjectivity together for one declared frame. Absence is not false; false may be justified by a failure of either condition, while true needs both."
+msgstr "此标志针对同一声明框架下的单射性与满射性。缺失不等于 false；任一条件不成立即可支持 false，true 则需要两者都成立。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#example"
+msgid "Integer negation supports math:isBijective true. Doubling with both domain and codomain ℤ supports false because its image excludes odd integers despite being injective."
+msgstr "整数取负支持 math:isBijective true。定义域及陪域均为 ℤ 的倍增映射支持 false，因为即使它是单射，其像仍不包含奇整数。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit justified assertion of whether a framed function is both one-to-one and onto."
+msgstr "用于显式且有依据地声明具有映射框架的函数是否同时为单射及满射。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting an injectivity claim alone to true, inferring false from an absent inverse link, or claiming the flag itself constructs an inverse function."
+msgstr "不要仅凭单射声明就设为 true，不要因逆函数链接缺失而推断 false，也不要声称此标志本身会构造逆函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the supported xsd:boolean on the function and preserve the domain, codomain and mathematical argument. Record a math:inverseFunction link only when the inverse’s reversed frame and inverse laws are justified; retain convenience class typing explicitly if desired."
+msgstr "在函数上提供有依据的 xsd:boolean，并保留定义域、陪域及数学论证。仅在逆函数的反向框架及定律有依据时，记录 math:inverseFunction 链接；如需便捷类类型，应显式保留。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "function composition"
+msgstr "函数复合"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is non-commutative (g ∘ f ≠ f ∘ g in general), so this order-agnostic super-property — which holds of either component — is refined by math:compositionOuter and math:compositionInner, through which the order-bearing decomposition is asserted. Composition is well-formed when the codomain of the inner function is the domain of the outer."
+msgstr "将复合函数 g ∘ f 连接到构成它的函数。定义域和值域均为 math:Function（以文字说明）。复合通常不可交换（一般有 g ∘ f ≠ f ∘ g），因此这一不携带顺序、对任一组成函数均成立的上位属性，由 math:compositionOuter 和 math:compositionInner 细化，以声明带顺序的分解。当内层函数的陪域是外层函数的定义域时，复合才符合此处的映射框架要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is composite-to-component, but the generic link carries no application order. The declared composition frame requires the inner codomain to match the outer domain; component links alone do not prove that match or execute the composition."
+msgstr "方向是复合函数到组成函数，但通用链接不携带应用顺序。声明的复合框架要求内层陪域与外层定义域匹配；仅有组成函数链接不能证明此匹配，也不会执行复合计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For f(n) = n + 1 and g(n) = 2n on ℤ, g ∘ f gives 2n + 2 while f ∘ g gives 2n + 1. Generic links to f and g are the same in both cases and cannot distinguish those orders."
+msgstr "对于 ℤ 上的 f(n) = n + 1 及 g(n) = 2n，g ∘ f 得到 2n + 2，f ∘ g 则得到 2n + 1。两者指向 f 和 g 的通用链接相同，无法区分这些顺序。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the general fact that an identified function is a component of a composite, while retaining ordered refinements when order matters."
+msgstr "用于表达有标识函数是某复合函数组成部分这一一般事实；顺序重要时，应保留带顺序的细化属性。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading triple serialization order as evaluation order, composing mismatched declared frames silently, or using this edge as an invented result-value slot."
+msgstr "不要将三元组序列化顺序视为求值顺序，不要默默复合声明框架不匹配的函数，也不要将此边当作臆造的结果值槽位。"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the composite and component functions with their frames. Use math:compositionInner for the first-applied function and math:compositionOuter for the second, verifying that the inner codomain is the outer domain; use math:functionComposition only for the order-agnostic component relation."
+msgstr "用各自框架描述复合函数及组成函数。以 math:compositionInner 指定先应用的函数，以 math:compositionOuter 指定后应用的函数，并验证内层陪域就是外层定义域；math:functionComposition 仅用于不携带顺序的组成关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition outer"
+msgstr "复合的外层函数"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to its outer (left) component g — the function applied second, whose math:domain is the math:codomain of the inner component. The order-bearing refinement of math:functionComposition that, together with math:compositionInner, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."
+msgstr "将复合函数 g ∘ f 连接到其外层（左侧）组成函数 g，即后应用的函数，其 math:domain 是内层组成函数的 math:codomain。它是 math:functionComposition 的带顺序细化，与 math:compositionInner 共同保留复合的不可交换顺序，使 g ∘ f 不与 f ∘ g 混淆。定义域和值域均为 math:Function（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the outer function g in g ∘ f, applied after f. Outer refers to application structure rather than an ambient set; this relation and math:compositionInner identify roles that may refer to the same function in self-composition."
+msgstr "宾语是 g ∘ f 中的外层函数 g，在 f 之后应用。“外层”指应用结构而非环境集合；此关系与 math:compositionInner 标识不同角色，自复合时它们可以指向同一个函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#example"
+msgid "With f(n) = n + 1 and g(n) = 2n from ℤ to ℤ, the composite giving 2n + 2 has math:compositionOuter pointing to g, because doubling happens second."
+msgstr "对于从 ℤ 到 ℤ 的 f(n) = n + 1 和 g(n) = 2n，得到 2n + 2 的复合函数通过 math:compositionOuter 指向 g，因为倍增在第二步发生。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which component receives the inner function’s output in an ordered composition."
+msgstr "用于保留有序复合中接收内层函数输出的是哪个组成函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning the first-applied component here because it appears first in prose, reversing the edge toward the composite, or omitting the required match to the inner codomain."
+msgstr "不要因某组成函数在文字中先出现，就把先应用的函数放在此处；不要将边反转指向复合函数，也不要省略与内层陪域所需的匹配。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:compositionOuter from the composite to the second-applied math:Function, pair it with math:compositionInner, and retain the outer domain as the same set as the inner codomain. The composite’s target follows the declared outer target."
+msgstr "使 math:compositionOuter 从复合函数指向后应用的 math:Function，配合 math:compositionInner，并保留外层定义域与内层陪域为同一集合。复合函数的目标遵循已声明的外层目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition inner"
+msgstr "复合的内层函数"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to its inner (right) component f — the function applied first, whose math:codomain is the math:domain of the outer component. The order-bearing refinement of math:functionComposition that, together with math:compositionOuter, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."
+msgstr "将复合函数 g ∘ f 连接到其内层（右侧）组成函数 f，即先应用的函数，其 math:codomain 是外层组成函数的 math:domain。它是 math:functionComposition 的带顺序细化，与 math:compositionOuter 共同保留复合的不可交换顺序，使 g ∘ f 不与 f ∘ g 混淆。定义域和值域均为 math:Function（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the inner function f in g ∘ f, applied first. Right-hand position in the notation corresponds to first application; the plain math:functionComposition link does not preserve this role."
+msgstr "宾语是 g ∘ f 中的内层函数 f，先被应用。记法中的右侧位置对应先应用；普通 math:functionComposition 链接并不保留该角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#example"
+msgid "For increment followed by doubling on ℤ, math:compositionInner points to f(n) = n + 1 and math:compositionOuter points to g(n) = 2n, giving g(f(n)) = 2n + 2."
+msgstr "对于 ℤ 上先加一后倍增的复合，math:compositionInner 指向 f(n) = n + 1，math:compositionOuter 指向 g(n) = 2n，从而得到 g(f(n)) = 2n + 2。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the first-applied function must remain identifiable in a composition whose order affects its meaning."
+msgstr "当复合顺序影响含义，且先应用的函数需要保持可识别时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing the notation’s leftmost function with the first-applied one, encoding order only in labels, or silently treating inner image containment as the declared codomain/domain match."
+msgstr "不要将记法中最左侧函数与先应用的函数混淆，不要仅在标签中编码顺序，也不要默默把内层像的包含关系当作所声明陪域与定义域的匹配。"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:compositionInner from the composite to the first-applied function and state math:compositionOuter separately. Preserve the composite’s source as the inner domain and the inner codomain as the outer domain under this declared composition frame."
+msgstr "使 math:compositionInner 从复合函数指向先应用的函数，并另行声明 math:compositionOuter。在此声明的复合框架下，保留复合函数的源为内层定义域，内层陪域为外层定义域。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse function"
+msgstr "逆函数"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a function to its inverse f⁻¹, defined exactly when the function is bijective. Domain and range math:Function (stated in prose). The relation is symmetric mathematically (the inverse of f⁻¹ is f), documented in prose rather than asserted as an OWL characteristic to keep the term profile-clean."
+msgstr "将函数连接到其逆函数 f⁻¹，当且仅当该函数为双射时逆函数才有定义。定义域和值域均为 math:Function（以文字说明）。此关系在数学上对称（f⁻¹ 的逆为 f），但仅以文字说明，而不声明为 OWL 特征，以保持该词条符合配置。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An inverse is relative to the original function’s complete domain and codomain, with those roles reversed. It is not the pointwise reciprocal, and an injective map’s inverse on its image requires an explicitly restricted target before claiming a bijective inverse of that framed map."
+msgstr "逆函数相对于原函数完整的定义域和陪域，并将这两个角色反转。它不是逐点倒数；单射在其像上的逆需要先显式限制目标，才能声明该框架下映射的双射逆函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "For f(x) = 2x + 1 from ℝ to ℝ, the inverse is y ↦ (y − 1)/2 from ℝ to ℝ. The reciprocal expression 1/(2x + 1) is a different rule, not that inverse."
+msgstr "对于从 ℝ 到 ℝ 的 f(x) = 2x + 1，逆函数为从 ℝ 到 ℝ 的 y ↦ (y − 1)/2。倒数表达式 1/(2x + 1) 是不同的规则，而不是该逆函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to link a justified bijective function to an identified total inverse on its original declared codomain."
+msgstr "用于将有依据的双射函数连接到其原声明陪域上的、有标识的全逆函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this property for a reciprocal, a merely left inverse or an inverse only on a smaller image without reframing, or expecting the reverse edge to be inferred automatically."
+msgstr "不要将此属性用于倒数、仅左逆，或未重新给出框架便只在较小像上成立的逆，也不要期待反向边会自动推断。"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original function’s declared frame, describe the inverse with domain and codomain swapped, and justify both inverse compositions. State math:inverseFunction explicitly for each needed direction; its mathematical symmetry is documented rather than promised as an automatic RDF inference."
+msgstr "保留原函数的声明框架，为逆函数交换定义域及陪域，并论证两个方向的逆复合。对所需的每个方向显式声明 math:inverseFunction；其数学对称性已有文字说明，并不保证自动的 RDF 推理。"

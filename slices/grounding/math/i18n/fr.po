@@ -5080,3 +5080,423 @@ msgstr "Ne pas identifier les classes du quotient aux vecteurs ambiants, déduir
 msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select math:quotientComplement on the complement resource, name the total ambient object and the operand subobject, and retain the quotient or cokernel interpretation. Describe any chosen representatives or splitting separately rather than asserting they come from this tag."
 msgstr "Sélectionner math:quotientComplement sur la ressource complément, désigner l’objet ambiant total et le sous-objet opérande, puis conserver l’interprétation de quotient ou de conoyau. Décrire séparément les représentants choisis ou le scindement plutôt que prétendre qu’ils proviennent de cette étiquette."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Function"
+msgstr "Fonction"
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A function: a relation that assigns to each element of its domain exactly one element of its codomain. Every function declares its math:domain and math:codomain — a function without them is ill-formed — and may declare its math:image. Injectivity, surjectivity, and bijectivity are declared, checkable booleans (math:isInjective, math:isSurjective, math:isBijective), not assumed. Anchored externally to the OpenMath fns1 content dictionary."
+msgstr "Une fonction : une relation qui associe à chaque élément de son domaine exactement un élément de son codomaine. Toute fonction déclare son math:domain et son math:codomain — une fonction sans eux est mal formée — et peut déclarer son math:image. L’injectivité, la surjectivité et la bijectivité sont des booléens déclarés et vérifiables (math:isInjective, math:isSurjective, math:isBijective), non présumés. Ancrée extérieurement dans le dictionnaire de contenu OpenMath fns1."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical function resource is total on its declared domain and has a set-valued frame. A functional RDF predicate instead limits object multiplicity per subject; that predicate characteristic alone does not describe a total mathematical function."
+msgstr "Une ressource fonction mathématique est totale sur son domaine déclaré et possède un cadre donné par des ensembles. Un prédicat RDF fonctionnel limite plutôt le nombre d’objets par sujet ; cette seule caractéristique du prédicat ne décrit pas une fonction mathématique totale."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|http://www.w3.org/2004/02/skos/core#example"
+msgid "Integer negation n ↦ −n can be a math:Function with math:domain math:integers and math:codomain math:integers. Its input and output roles use the same set without becoming the same role."
+msgstr "La négation entière n ↦ −n peut être un math:Function avec math:domain math:integers et math:codomain math:integers. Ses rôles d’entrée et de sortie utilisent le même ensemble sans devenir le même rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an identified mathematical map assigns exactly one output to every input in an explicitly declared domain."
+msgstr "Utiliser lorsqu’une application mathématique identifiée associe exactement une sortie à toute entrée d’un domaine explicitement déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using math:Function merely to mark an RDF property functional, claiming totality while leaving declared inputs undefined, or inferring injectivity from single-valuedness."
+msgstr "Ne pas employer math:Function uniquement pour marquer une propriété RDF comme fonctionnelle, affirmer la totalité tout en laissant des entrées déclarées sans valeur définie ou déduire l’injectivité du caractère univoque."
+
+msgctxt "https://blackcatinformatics.ca/math/Function|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the map math:Function, name its input and target sets through math:domain and math:codomain, and describe its rule with the existing mathematical representation. Add math:image or the three boolean declarations only when supported; this frame does not evaluate the map."
+msgstr "Typer l’application math:Function, désigner ses ensembles d’entrée et cible par math:domain et math:codomain, puis décrire sa règle avec la représentation mathématique existante. N’ajouter math:image ou les trois déclarations booléennes que lorsqu’elles sont étayées ; ce cadre n’évalue pas l’application."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Injective Function"
+msgstr "Fonction injective"
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isInjective true — an injection, mapping distinct domain elements to distinct codomain elements. The canonical checkable bearer is the boolean math:isInjective; this subclass is a projection over it, not an independent carrier."
+msgstr "Une projection de commodité de la classe des fonctions ayant math:isInjective true — une injection, envoyant des éléments distincts du domaine vers des éléments distincts du codomaine. Le porteur canonique vérifiable est le booléen math:isInjective ; cette sous-classe en est une projection, et non un porteur indépendant."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Injectivity concerns distinct inputs in the declared domain. This convenience class does not by its name certify that an executable class-to-boolean or boolean-to-class conversion has run; retain the justified canonical math:isInjective assertion explicitly."
+msgstr "L’injectivité concerne les entrées distinctes du domaine déclaré. Le nom de cette classe de commodité ne certifie pas qu’une conversion exécutable entre classe et booléen a eu lieu dans l’un ou l’autre sens ; conserver explicitement l’assertion canonique justifiée math:isInjective."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Doubling n ↦ 2n from ℤ to ℤ is injective because equal outputs force equal inputs, although odd integers are absent from its image."
+msgstr "Le doublement n ↦ 2n de ℤ vers ℤ est injectif car des sorties égales imposent des entrées égales, bien que les entiers impairs soient absents de son image."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a framed function whose distinct-input preservation is established, while keeping its canonical injectivity declaration available."
+msgstr "Utiliser pour classer une fonction munie d’un cadre dont la préservation des entrées distinctes est établie, tout en gardant disponible sa déclaration canonique d’injectivité."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating injection with surjection, inferring it from finitely many noncolliding samples, or relying on the convenience type alone as proof that math:isInjective true was emitted."
+msgstr "Ne pas assimiler injection et surjection, déduire l’injectivité d’un nombre fini d’échantillons sans collision ou s’appuyer sur le seul type de commodité comme preuve que math:isInjective true a été produit."
+
+msgctxt "https://blackcatinformatics.ca/math/InjectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the function’s math:domain and math:codomain, retain a justified math:isInjective true, and add math:InjectiveFunction when the convenience classification is useful. Preserve the argument establishing injectivity separately from the annotation."
+msgstr "Déclarer math:domain et math:codomain de la fonction, conserver un math:isInjective true justifié et ajouter math:InjectiveFunction lorsque cette classification de commodité est utile. Conserver l’argument établissant l’injectivité séparément de l’annotation."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Surjective Function"
+msgstr "Fonction surjective"
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isSurjective true — a surjection, whose image is the whole codomain. The canonical checkable bearer is the boolean math:isSurjective; this subclass is a projection over it, not an independent carrier."
+msgstr "Une projection de commodité de la classe des fonctions ayant math:isSurjective true — une surjection, dont l’image est le codomaine entier. Le porteur canonique vérifiable est le booléen math:isSurjective ; cette sous-classe en est une projection, et non un porteur indépendant."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Surjectivity is relative to the declared codomain: every target element must be attained. The same evaluation rule can be surjective for one target set and not another; the convenience class does not replace an explicit supported boolean declaration."
+msgstr "La surjectivité est relative au codomaine déclaré : tout élément cible doit être atteint. Une même règle d’évaluation peut être surjective pour un ensemble cible et non pour un autre ; la classe de commodité ne remplace pas une déclaration booléenne explicite et étayée."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Squaring x ↦ x² on ℝ is surjective when its codomain is the non-negative reals, but not when the declared codomain is all of ℝ."
+msgstr "Le carré x ↦ x² sur ℝ est surjectif lorsque son codomaine est l’ensemble des réels non négatifs, mais pas lorsque le codomaine déclaré est ℝ tout entier."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a function whose attained image is established to equal its full declared codomain."
+msgstr "Utiliser pour classer une fonction dont l’image atteinte est établie comme égale à son codomaine déclaré entier."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deducing surjectivity from the function’s formula alone without its target set, from an injectivity claim, or from a class label without the canonical math:isSurjective evidence."
+msgstr "Ne pas déduire la surjectivité de la seule formule de la fonction sans son ensemble cible, d’une affirmation d’injectivité ou d’un libellé de classe sans les éléments canoniques math:isSurjective."
+
+msgctxt "https://blackcatinformatics.ca/math/SurjectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the function’s declared frame, record a justified math:isSurjective true, and use math:SurjectiveFunction as its convenience classification. If math:image is supplied, describe the same attained set rather than silently shrinking the codomain to force the claim."
+msgstr "Conserver le cadre déclaré de la fonction, consigner un math:isSurjective true justifié et utiliser math:SurjectiveFunction comme classification de commodité. Si math:image est fourni, décrire le même ensemble atteint plutôt que réduire implicitement le codomaine pour forcer l’affirmation."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Bijective Function"
+msgstr "Fonction bijective"
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convenience projection of the class of functions with math:isBijective true — a bijection, both injective and surjective, hence invertible through math:inverseFunction. The canonical checkable bearer is the boolean math:isBijective; this subclass is a projection over it, not an independent carrier."
+msgstr "Une projection de commodité de la classe des fonctions ayant math:isBijective true — une bijection, à la fois injective et surjective, donc inversible par math:inverseFunction. Le porteur canonique vérifiable est le booléen math:isBijective ; cette sous-classe en est une projection, et non un porteur indépendant."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Bijectivity requires both unique preimages and coverage of the entire declared codomain. It is a claim about a framed function, not a guarantee supplied by the convenience class name or by a missing pair of negative flags."
+msgstr "La bijectivité exige à la fois des antécédents uniques et la couverture du codomaine déclaré entier. C’est une affirmation relative à une fonction munie d’un cadre, et non une garantie fournie par le nom de la classe de commodité ou par l’absence de deux indicateurs négatifs."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "Negation n ↦ −n from ℤ to ℤ is bijective and is its own inverse. Doubling from ℤ to ℤ is injective but not bijective because it misses every odd target."
+msgstr "La négation n ↦ −n de ℤ vers ℤ est bijective et est sa propre inverse. Le doublement de ℤ vers ℤ est injectif mais non bijectif car il manque toute cible impaire."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a function whose injectivity and surjectivity are both justified for the same declared domain and codomain."
+msgstr "Utiliser pour une fonction dont l’injectivité et la surjectivité sont toutes deux justifiées pour le même domaine et le même codomaine déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming a bijection from injectivity alone, changing the frame without recording it, or promising an automatically emitted math:isBijective flag or inverse from this type."
+msgstr "Ne pas présumer une bijection de la seule injectivité, changer le cadre sans le consigner ou promettre un indicateur math:isBijective ou une inverse automatiquement produits par ce type."
+
+msgctxt "https://blackcatinformatics.ca/math/BijectiveFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the function’s frame and retain a supported math:isBijective true alongside the useful math:BijectiveFunction classification. Link math:inverseFunction only to an identified inverse with the reversed original frame and justified inverse behavior."
+msgstr "Décrire le cadre de la fonction et conserver un math:isBijective true étayé aux côtés de la classification utile math:BijectiveFunction. Ne relier math:inverseFunction qu’à une inverse identifiée dont le cadre original est inversé et dont le comportement d’inverse est justifié."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Partial Function"
+msgstr "Fonction partielle"
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A partial function: a relation that assigns at most one codomain element to each domain element, defined only on a subset of its declared domain. A subclass of math:Relation rather than math:Function, because it is not total on its domain."
+msgstr "Une fonction partielle : une relation qui associe au plus un élément du codomaine à chaque élément du domaine, définie seulement sur un sous-ensemble de son domaine déclaré. Une sous-classe de math:Relation plutôt que de math:Function, car elle n’est pas totale sur son domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The declared source set may contain inputs where the relation is undefined, but no input has two outputs. math:PartialFunction inherits from math:Relation rather than the total math:Function; a lack of recorded output alone does not establish mathematical undefinedness."
+msgstr "L’ensemble source déclaré peut contenir des entrées où la relation n’est pas définie, mais aucune entrée n’a deux sorties. math:PartialFunction hérite de math:Relation plutôt que de math:Function totale ; la seule absence de sortie enregistrée n’établit pas l’indéfinition mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The reciprocal rule x ↦ 1/x with declared source ℝ and target ℝ is undefined at zero, so it can be described as a math:PartialFunction on that source."
+msgstr "La règle d’inverse multiplicatif x ↦ 1/x avec source déclarée ℝ et cible ℝ n’est pas définie en zéro ; elle peut donc être décrite comme un math:PartialFunction sur cette source."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical relation is single-valued where defined but intentionally not total over its declared source set."
+msgstr "Utiliser lorsqu’une relation mathématique est univoque là où elle est définie, mais intentionnellement non totale sur son ensemble source déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing the same partial description as a total math:Function merely to satisfy a frame shape, using missing data as proof of partiality, or allowing multiple values for one input."
+msgstr "Ne pas typer la même description partielle comme math:Function totale uniquement pour satisfaire une forme de cadre, utiliser des données manquantes comme preuve de partialité ou permettre plusieurs valeurs pour une entrée."
+
+msgctxt "https://blackcatinformatics.ca/math/PartialFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the relation math:PartialFunction, declare its source and target set resources with math:domain and math:codomain, and describe where it is defined in the existing mathematical or logical representation. A restriction to a smaller total domain needs its own explicit frame."
+msgstr "Typer la relation math:PartialFunction, déclarer ses ressources ensembles source et cible avec math:domain et math:codomain, puis décrire où elle est définie dans la représentation mathématique ou logique existante. Une restriction à un domaine plus petit où elle est totale nécessite son propre cadre explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "domain"
+msgstr "domaine"
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."
+msgstr "L’ensemble source d’une fonction ou relation — l’ensemble dont sont tirées ses entrées. Domaine math:Relation, portée math:Set (déclarés en prose). Toute math:Function en déclare un ; une fonction sans domaine est mal formée."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This mathematical frame link runs from a function or relation to its source set. It is not the schema-level domain declaration of an RDF property; a source set and target set may be the same resource while serving different roles."
+msgstr "Ce lien de cadre mathématique va d’une fonction ou relation vers son ensemble source. Ce n’est pas la déclaration de domaine d’une propriété RDF au niveau du schéma ; l’ensemble source et l’ensemble cible peuvent être la même ressource tout en jouant des rôles différents."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|http://www.w3.org/2004/02/skos/core#example"
+msgid "For n ↦ n + 1 on integers, math:domain math:integers records the allowed inputs. The same rule on natural numbers has a different declared domain."
+msgstr "Pour n ↦ n + 1 sur les entiers, math:domain math:integers consigne les entrées permises. La même règle sur les naturels possède un domaine déclaré différent."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the identified input set of a mathematical relation, including the required source frame of a total function."
+msgstr "Utiliser pour déclarer l’ensemble d’entrée identifié d’une relation mathématique, notamment le cadre source requis d’une fonction totale."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a datatype-name string, a function argument occurrence or a single sample input where the source-set resource is required."
+msgstr "Éviter une chaîne nommant un type de données, une occurrence d’argument de fonction ou une seule entrée d’exemple là où la ressource ensemble source est requise."
+
+msgctxt "https://blackcatinformatics.ca/math/domain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:domain from the map or relation to the set of declared inputs and retain math:codomain separately. Describe partial definedness separately when using math:PartialFunction rather than silently deleting undefined inputs from the stated source."
+msgstr "Faire pointer math:domain de l’application ou relation vers l’ensemble des entrées déclarées et conserver math:codomain séparément. Décrire séparément la définition partielle avec math:PartialFunction plutôt que supprimer implicitement les entrées indéfinies de la source déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "codomain"
+msgstr "codomaine"
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."
+msgstr "L’ensemble cible d’une fonction ou relation — l’ensemble dans lequel arrivent ses sorties. Domaine math:Relation, portée math:Set (déclarés en prose). Toute math:Function en déclare un ; une fonction sans codomaine est mal formée. Le codomaine est la cible déclarée, distincte dans son rôle de math:image effectivement atteinte."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."
+msgstr "Le codomaine est l’ensemble cible déclaré, tandis que math:image consigne l’ensemble atteint. Ces rôles différents peuvent désigner la même ressource lorsque la fonction est surjective ; aucune inégalité de ressources n’est exigée."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."
+msgstr "Pour x ↦ x² de source ℝ et de cible déclarée ℝ, math:codomain désigne tous les réels bien que les réels négatifs ne soient pas dans l’image."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the intended target set against which output membership and surjectivity are judged."
+msgstr "Utiliser pour conserver l’ensemble cible voulu par rapport auquel sont jugées l’appartenance des sorties et la surjectivité."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."
+msgstr "Ne pas remplacer le codomaine déclaré par les sorties observées, le traiter comme un résultat individuel ou forcer la surjectivité en changeant implicitement cette cible."
+
+msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."
+msgstr "Faire pointer math:codomain de la fonction ou relation vers son math:Set cible déclaré. Si une cible restreinte est voulue, déclarer ce cadre explicitement et justifier toute déclaration math:isSurjective associée pour cette application ainsi cadrée."
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "image"
+msgstr "ensemble image"
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."
+msgstr "L’ensemble des valeurs qu’une fonction atteint effectivement — le sous-ensemble du codomaine qui constitue l’image de l’application. Domaine math:Function, portée math:Set (déclarés en prose). Une fonction est surjective exactement lorsque son image est égale à son codomaine."
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."
+msgstr "L’image est l’ensemble atteint entier pour la fonction déclarée, et non un simple échantillon fini de sorties. Elle est incluse dans le codomaine et peut être le même ensemble ; cette égalité est le critère mathématique de surjectivité."
+
+msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#example"
+msgid "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."
+msgstr "Le carré sur ℝ de codomaine ℝ a pour image {y ∈ ℝ | y ≥ 0}. La négation entière a pour image ℤ, égale à son codomaine déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."
+msgstr "Utiliser lorsque l’ensemble complet des sorties atteintes par une fonction est caractérisé mathématiquement et nécessite une ressource ensemble identifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."
+msgstr "Ne pas placer ici un seul littéral de sortie, confondre un échantillon de test avec l’image complète ou supposer que math:image est calculé automatiquement à partir d’un libellé ou du cadre d’une fonction."
+
+msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."
+msgstr "Relier le math:Function au math:Set atteint et justifié par math:image, et garder math:codomain comme cible déclarée. Représenter une image en compréhension avec le vocabulaire existant des ensembles et des formules lorsqu’une énumération ne la décrirait pas."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is injective"
+msgstr "est injective"
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is injective — distinct inputs map to distinct outputs. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of injectivity, of which math:InjectiveFunction is a convenience projection."
+msgstr "Déclare si une fonction est injective — des entrées distinctes sont envoyées vers des sorties distinctes. Domaine math:Function, portée xsd:boolean (déclarés en prose). Le porteur canonique vérifiable de l’injectivité, dont math:InjectiveFunction est une projection de commodité."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boolean describes injectivity on the function’s declared domain. Both true and false need mathematical support; an absent statement means no assertion here, not false, and a convenience type does not certify an executed conversion."
+msgstr "Ce booléen décrit l’injectivité sur le domaine déclaré de la fonction. true et false exigent tous deux un fondement mathématique ; une déclaration absente ne constitue aucune assertion ici, et non false, et un type de commodité ne certifie pas une conversion exécutée."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2004/02/skos/core#example"
+msgid "For squaring on ℤ, the distinct inputs 2 and −2 both map to 4, justifying math:isInjective false. Integer negation instead supports true."
+msgstr "Pour le carré sur ℤ, les entrées distinctes 2 et −2 sont toutes deux envoyées vers 4, ce qui justifie math:isInjective false. La négation entière justifie plutôt true."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state a supported injectivity result in the canonical boolean field of a framed mathematical function."
+msgstr "Utiliser pour déclarer un résultat d’injectivité étayé dans le champ booléen canonique d’une fonction mathématique munie d’un cadre."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid defaulting to false when no proof is supplied, inferring true from totality, or treating noncolliding samples as a universal argument."
+msgstr "Ne pas prendre false par défaut lorsqu’aucune preuve n’est fournie, déduire true de la totalité ou traiter des échantillons sans collision comme un argument universel."
+
+msgctxt "https://blackcatinformatics.ca/math/isInjective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach a justified xsd:boolean true or false to the math:Function and retain its declared frame and supporting argument. Preserve any math:InjectiveFunction convenience typing separately rather than assuming either representation has been generated from the other."
+msgstr "Attacher un xsd:boolean true ou false justifié au math:Function et conserver son cadre déclaré ainsi que l’argument qui le soutient. Préserver séparément tout type de commodité math:InjectiveFunction plutôt que supposer qu’une représentation a été générée à partir de l’autre."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is surjective"
+msgstr "est surjective"
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is surjective — its image is the whole codomain. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of surjectivity, of which math:SurjectiveFunction is a convenience projection."
+msgstr "Déclare si une fonction est surjective — son image est le codomaine entier. Domaine math:Function, portée xsd:boolean (déclarés en prose). Le porteur canonique vérifiable de la surjectivité, dont math:SurjectiveFunction est une projection de commodité."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This boolean is evaluated against the declared codomain, not just the rule or the observed outputs. Missing math:isSurjective is not false, and equal image/codomain roles may refer to the same set resource."
+msgstr "Ce booléen est évalué par rapport au codomaine déclaré, et non à la seule règle ou aux sorties observées. L’absence de math:isSurjective ne vaut pas false, et les rôles d’image et de codomaine égaux peuvent renvoyer à la même ressource ensemble."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|http://www.w3.org/2004/02/skos/core#example"
+msgid "Doubling n ↦ 2n from ℤ to ℤ supports math:isSurjective false because 1 has no preimage. With the explicitly restricted even-integer target, the corresponding framed map is surjective."
+msgstr "Le doublement n ↦ 2n de ℤ vers ℤ justifie math:isSurjective false car 1 n’a pas d’antécédent. Avec une cible explicitement restreinte aux entiers pairs, l’application ainsi cadrée est surjective."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when it is established whether a function attains every element of its declared target set."
+msgstr "Utiliser lorsqu’il est établi si une fonction atteint tous les éléments de son ensemble cible déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving true from a successful finite sample, recording false merely because outputs have not been observed, or changing the codomain invisibly to validate the flag."
+msgstr "Ne pas déduire true d’un échantillon fini réussi, consigner false uniquement parce que des sorties n’ont pas été observées ou changer invisiblement le codomaine pour valider l’indicateur."
+
+msgctxt "https://blackcatinformatics.ca/math/isSurjective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Record the supported xsd:boolean value on the framed function, retaining its math:codomain and any justified math:image description. Keep convenience math:SurjectiveFunction typing explicit when used; no automatic class/boolean conversion is claimed by this guidance."
+msgstr "Consigner la valeur xsd:boolean étayée sur la fonction munie de son cadre, en conservant math:codomain et toute description justifiée de math:image. Garder explicite le type de commodité math:SurjectiveFunction lorsqu’il est utilisé ; ces conseils n’affirment aucune conversion automatique entre classe et booléen."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "is bijective"
+msgstr "est bijective"
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Declares whether a function is bijective — both injective and surjective, hence invertible. Domain math:Function, range xsd:boolean (stated in prose). The canonical checkable bearer of bijectivity, of which math:BijectiveFunction is a convenience projection."
+msgstr "Déclare si une fonction est bijective — à la fois injective et surjective, donc inversible. Domaine math:Function, portée xsd:boolean (déclarés en prose). Le porteur canonique vérifiable de la bijectivité, dont math:BijectiveFunction est une projection de commodité."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The flag concerns injectivity and surjectivity together for one declared frame. Absence is not false; false may be justified by a failure of either condition, while true needs both."
+msgstr "L’indicateur concerne conjointement l’injectivité et la surjectivité pour un cadre déclaré. L’absence ne vaut pas false ; false peut être justifié par l’échec d’une des conditions, tandis que true exige les deux."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|http://www.w3.org/2004/02/skos/core#example"
+msgid "Integer negation supports math:isBijective true. Doubling with both domain and codomain ℤ supports false because its image excludes odd integers despite being injective."
+msgstr "La négation entière justifie math:isBijective true. Le doublement dont le domaine et le codomaine sont ℤ justifie false car son image exclut les entiers impairs malgré son injectivité."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an explicit justified assertion of whether a framed function is both one-to-one and onto."
+msgstr "Utiliser pour une assertion explicite et justifiée indiquant si une fonction munie d’un cadre est à la fois injective et surjective."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting an injectivity claim alone to true, inferring false from an absent inverse link, or claiming the flag itself constructs an inverse function."
+msgstr "Ne pas promouvoir la seule injectivité en true, déduire false d’un lien d’inverse absent ou prétendre que l’indicateur construit lui-même une fonction inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/isBijective|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply the supported xsd:boolean on the function and preserve the domain, codomain and mathematical argument. Record a math:inverseFunction link only when the inverse’s reversed frame and inverse laws are justified; retain convenience class typing explicitly if desired."
+msgstr "Fournir le xsd:boolean étayé sur la fonction et préserver le domaine, le codomaine et l’argument mathématique. Ne consigner un lien math:inverseFunction que si le cadre inversé de l’inverse et ses lois sont justifiés ; conserver explicitement le type de commodité si souhaité."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "function composition"
+msgstr "composition de fonctions"
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to a function it is built from. Domain and range math:Function (stated in prose). Composition is non-commutative (g ∘ f ≠ f ∘ g in general), so this order-agnostic super-property — which holds of either component — is refined by math:compositionOuter and math:compositionInner, through which the order-bearing decomposition is asserted. Composition is well-formed when the codomain of the inner function is the domain of the outer."
+msgstr "Relie une fonction composée g ∘ f à une fonction dont elle est construite. Domaine et portée math:Function (déclarés en prose). La composition est non commutative (g ∘ f ≠ f ∘ g en général) ; cette super-propriété indépendante de l’ordre, qui vaut pour chaque composante, est donc affinée par math:compositionOuter et math:compositionInner, par lesquelles la décomposition ordonnée est affirmée. La composition est bien formée lorsque le codomaine de la fonction intérieure est le domaine de la fonction extérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is composite-to-component, but the generic link carries no application order. The declared composition frame requires the inner codomain to match the outer domain; component links alone do not prove that match or execute the composition."
+msgstr "La direction va de la composée vers une composante, mais le lien générique ne porte aucun ordre d’application. Le cadre de composition déclaré exige que le codomaine intérieur corresponde au domaine extérieur ; les seuls liens de composantes ne prouvent pas cette correspondance et n’exécutent pas la composition."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|http://www.w3.org/2004/02/skos/core#example"
+msgid "For f(n) = n + 1 and g(n) = 2n on ℤ, g ∘ f gives 2n + 2 while f ∘ g gives 2n + 1. Generic links to f and g are the same in both cases and cannot distinguish those orders."
+msgstr "Pour f(n) = n + 1 et g(n) = 2n sur ℤ, g ∘ f donne 2n + 2 tandis que f ∘ g donne 2n + 1. Les liens génériques vers f et g sont les mêmes dans les deux cas et ne distinguent pas ces ordres."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the general fact that an identified function is a component of a composite, while retaining ordered refinements when order matters."
+msgstr "Utiliser pour le fait général qu’une fonction identifiée est une composante d’une composée, tout en conservant les raffinements ordonnés lorsque l’ordre importe."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading triple serialization order as evaluation order, composing mismatched declared frames silently, or using this edge as an invented result-value slot."
+msgstr "Ne pas lire l’ordre de sérialisation des triplets comme ordre d’évaluation, composer implicitement des cadres déclarés incompatibles ou employer ce lien comme emplacement inventé de valeur résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/functionComposition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Describe the composite and component functions with their frames. Use math:compositionInner for the first-applied function and math:compositionOuter for the second, verifying that the inner codomain is the outer domain; use math:functionComposition only for the order-agnostic component relation."
+msgstr "Décrire la composée et les fonctions composantes avec leurs cadres. Employer math:compositionInner pour la fonction appliquée en premier et math:compositionOuter pour celle appliquée en second, en vérifiant que le codomaine intérieur est le domaine extérieur ; réserver math:functionComposition à la relation de composante indépendante de l’ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition outer"
+msgstr "composante extérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to its outer (left) component g — the function applied second, whose math:domain is the math:codomain of the inner component. The order-bearing refinement of math:functionComposition that, together with math:compositionInner, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."
+msgstr "Relie une fonction composée g ∘ f à sa composante extérieure (gauche) g — la fonction appliquée en second, dont math:domain est le math:codomain de la composante intérieure. Le raffinement ordonné de math:functionComposition qui, avec math:compositionInner, préserve l’ordre non commutatif de la composition afin de ne jamais confondre g ∘ f et f ∘ g. Domaine et portée math:Function (déclarés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the outer function g in g ∘ f, applied after f. Outer refers to application structure rather than an ambient set; this relation and math:compositionInner identify roles that may refer to the same function in self-composition."
+msgstr "L’objet est la fonction extérieure g de g ∘ f, appliquée après f. Extérieure se rapporte à la structure d’application plutôt qu’à un ensemble ambiant ; cette relation et math:compositionInner identifient des rôles pouvant renvoyer à la même fonction dans une auto-composition."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|http://www.w3.org/2004/02/skos/core#example"
+msgid "With f(n) = n + 1 and g(n) = 2n from ℤ to ℤ, the composite giving 2n + 2 has math:compositionOuter pointing to g, because doubling happens second."
+msgstr "Avec f(n) = n + 1 et g(n) = 2n de ℤ vers ℤ, la composée donnant 2n + 2 a math:compositionOuter qui pointe vers g, car le doublement intervient en second."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which component receives the inner function’s output in an ordered composition."
+msgstr "Utiliser pour conserver quelle composante reçoit la sortie de la fonction intérieure dans une composition ordonnée."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning the first-applied component here because it appears first in prose, reversing the edge toward the composite, or omitting the required match to the inner codomain."
+msgstr "Ne pas attribuer ici la composante appliquée en premier parce qu’elle apparaît d’abord dans la prose, inverser le lien vers la composée ou omettre la correspondance requise avec le codomaine intérieur."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionOuter|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:compositionOuter from the composite to the second-applied math:Function, pair it with math:compositionInner, and retain the outer domain as the same set as the inner codomain. The composite’s target follows the declared outer target."
+msgstr "Faire pointer math:compositionOuter de la composée vers le math:Function appliqué en second, l’associer à math:compositionInner et conserver le domaine extérieur comme le même ensemble que le codomaine intérieur. La cible de la composée suit la cible extérieure déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composition inner"
+msgstr "composante intérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a composite function g ∘ f to its inner (right) component f — the function applied first, whose math:codomain is the math:domain of the outer component. The order-bearing refinement of math:functionComposition that, together with math:compositionOuter, preserves the non-commutative order of composition so g ∘ f is never confused with f ∘ g. Domain and range math:Function (stated in prose)."
+msgstr "Relie une fonction composée g ∘ f à sa composante intérieure (droite) f — la fonction appliquée en premier, dont math:codomain est le math:domain de la composante extérieure. Le raffinement ordonné de math:functionComposition qui, avec math:compositionOuter, préserve l’ordre non commutatif de la composition afin de ne jamais confondre g ∘ f et f ∘ g. Domaine et portée math:Function (déclarés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The object is the inner function f in g ∘ f, applied first. Right-hand position in the notation corresponds to first application; the plain math:functionComposition link does not preserve this role."
+msgstr "L’objet est la fonction intérieure f de g ∘ f, appliquée en premier. La position à droite dans la notation correspond à la première application ; le simple lien math:functionComposition ne préserve pas ce rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|http://www.w3.org/2004/02/skos/core#example"
+msgid "For increment followed by doubling on ℤ, math:compositionInner points to f(n) = n + 1 and math:compositionOuter points to g(n) = 2n, giving g(f(n)) = 2n + 2."
+msgstr "Pour l’incrément suivi du doublement sur ℤ, math:compositionInner pointe vers f(n) = n + 1 et math:compositionOuter vers g(n) = 2n, donnant g(f(n)) = 2n + 2."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the first-applied function must remain identifiable in a composition whose order affects its meaning."
+msgstr "Utiliser lorsque la fonction appliquée en premier doit rester identifiable dans une composition dont l’ordre influe sur le sens."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing the notation’s leftmost function with the first-applied one, encoding order only in labels, or silently treating inner image containment as the declared codomain/domain match."
+msgstr "Ne pas confondre la fonction la plus à gauche dans la notation avec celle appliquée en premier, encoder l’ordre uniquement dans des libellés ou traiter implicitement l’inclusion de l’image intérieure comme la correspondance déclarée entre codomaine et domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/compositionInner|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:compositionInner from the composite to the first-applied function and state math:compositionOuter separately. Preserve the composite’s source as the inner domain and the inner codomain as the outer domain under this declared composition frame."
+msgstr "Faire pointer math:compositionInner de la composée vers la fonction appliquée en premier et déclarer séparément math:compositionOuter. Préserver la source de la composée comme le domaine intérieur et le codomaine intérieur comme le domaine extérieur dans ce cadre de composition déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "inverse function"
+msgstr "fonction inverse"
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a function to its inverse f⁻¹, defined exactly when the function is bijective. Domain and range math:Function (stated in prose). The relation is symmetric mathematically (the inverse of f⁻¹ is f), documented in prose rather than asserted as an OWL characteristic to keep the term profile-clean."
+msgstr "Relie une fonction à son inverse f⁻¹, définie exactement lorsque la fonction est bijective. Domaine et portée math:Function (déclarés en prose). La relation est symétrique mathématiquement (l’inverse de f⁻¹ est f), ce qui est documenté en prose plutôt qu’affirmé comme caractéristique OWL afin de préserver le profil du terme."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An inverse is relative to the original function’s complete domain and codomain, with those roles reversed. It is not the pointwise reciprocal, and an injective map’s inverse on its image requires an explicitly restricted target before claiming a bijective inverse of that framed map."
+msgstr "Une inverse est relative au domaine et au codomaine complets de la fonction originale, avec inversion de ces rôles. Ce n’est pas l’inverse multiplicatif point par point, et l’inverse d’une injection sur son image exige une cible explicitement restreinte avant d’affirmer une inverse bijective de l’application ainsi cadrée."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|http://www.w3.org/2004/02/skos/core#example"
+msgid "For f(x) = 2x + 1 from ℝ to ℝ, the inverse is y ↦ (y − 1)/2 from ℝ to ℝ. The reciprocal expression 1/(2x + 1) is a different rule, not that inverse."
+msgstr "Pour f(x) = 2x + 1 de ℝ vers ℝ, l’inverse est y ↦ (y − 1)/2 de ℝ vers ℝ. L’expression d’inverse multiplicatif 1/(2x + 1) est une autre règle, et non cette inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to link a justified bijective function to an identified total inverse on its original declared codomain."
+msgstr "Utiliser pour relier une fonction bijective justifiée à une inverse totale identifiée sur son codomaine original déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this property for a reciprocal, a merely left inverse or an inverse only on a smaller image without reframing, or expecting the reverse edge to be inferred automatically."
+msgstr "Ne pas employer cette propriété pour un inverse multiplicatif, une simple inverse à gauche ou une inverse limitée à une image plus petite sans recadrage, ni attendre que le lien réciproque soit déduit automatiquement."
+
+msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the original function’s declared frame, describe the inverse with domain and codomain swapped, and justify both inverse compositions. State math:inverseFunction explicitly for each needed direction; its mathematical symmetry is documented rather than promised as an automatic RDF inference."
+msgstr "Garder le cadre déclaré de la fonction originale, décrire l’inverse avec domaine et codomaine échangés et justifier les deux compositions d’inverse. Déclarer explicitement math:inverseFunction dans chaque direction nécessaire ; sa symétrie mathématique est documentée plutôt que promise comme inférence RDF automatique."
