@@ -8200,3 +8200,171 @@ msgstr "不要将此锚点用于任意作用子群，不要从外尔根系锚点
 msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the full math:AutomorphismGroup to its actual structure, preserving the inherited group frame and evidence for the full collection of automorphisms. Retain a separate math:hasRootSystem anchor when Weyl typing also applies; neither edge proves the equality or executes the member maps."
 msgstr "将完整 math:AutomorphismGroup 关联到实际结构，保留继承的群框架及收集全部自同构的证据。在外尔类型也适用时保留单独的 math:hasRootSystem 锚点；任一边都不证明相等关系或执行成员映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Category"
+msgstr "范畴"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A category-theoretic category: mathematical objects together with composable morphisms, identity morphisms, and associative composition. It is a first-class ACT referent for grounding cross-slice constructions, not the foundational metatype logic:Category and not a prose label."
+msgstr "范畴论意义上的范畴：数学对象以及可复合态射、恒等态射和满足结合律的复合。它是用于跨分片构造落地的一等 ACT 指称对象，而非基础元类型 logic:Category 或纯文字标签。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an object-level mathematical referent for a category and its objects, arrows, identities and composition laws. Its role differs from the foundational metatype logic:Category without imposing disjoint resource kinds. Class membership alone proves no category law, correspondence, conformance or optimizer behavior."
+msgstr "这是范畴及其对象、箭头、恒等和复合定律的对象层数学指称。其角色区别于基础元类型 logic:Category，但不施加资源种类不相交要求。单凭类成员资格不能证明范畴定律、对应关系、符合性或优化器行为。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sourceCategory and ex:targetCategory in reference-ast-act.ttl are math:Category resources used as endpoints of ex:freeFunctor. Their declarations identify referents without instantiating every object, arrow or category-law proof."
+msgstr "reference-ast-act.ttl 中 ex:sourceCategory 与 ex:targetCategory 是用作 ex:freeFunctor 端点的 math:Category 资源。其声明标识指称对象，但未实例化每个对象、箭头或范畴定律证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a category must be an identified mathematical object that functors, correspondences or other category constructions can reference."
+msgstr "当范畴需要成为函子、对应关系或其他范畴构造可引用的已标识数学对象时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the category resource by a prose name, conflating its role with logic:Category, or claiming laws and executable correspondence behavior from a type assertion."
+msgstr "不要用文字名称替代范畴资源，不要将其角色与 logic:Category 混淆，也不要从类型断言声称定律或可执行对应行为。"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the category resource and retain its actual mathematical object, arrow and law descriptions where supplied. Use it in the appropriate functor endpoint roles, keeping descriptive membership separate from realized formulas, evidence and any correspondence or optimizer execution."
+msgstr "标识范畴资源，在已提供处保留实际数学对象、箭头及定律描述。在适当函子端点角色中使用它，将描述性成员资格与已实现公式、证据及任何对应或优化器执行区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Functor"
+msgstr "函子"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving morphism between math:Category objects that maps objects and morphisms while preserving identities and composition. Its source and target categories are named through math:sourceObject and math:targetObject; the preserved categorical structure is explicit."
+msgstr "math:Category 对象之间保持结构的态射，映射对象和态射，同时保持恒等与复合。通过 math:sourceObject 和 math:targetObject 指定源及目标范畴；所保持范畴结构是显式的。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A functor maps objects and arrows while preserving identities and composition. An identity functor can have the same category in both endpoint roles; endpoint records alone do not supply all mapping data or prove the functor laws. Existing specializations may retain their own index and structure-map descriptions."
+msgstr "函子映射对象和箭头，并保持恒等与复合。恒等函子可在两个端点角色中使用同一范畴；仅端点记录既不提供全部映射数据，也不证明函子定律。已有特化可保留其自身索引及结构映射描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In reference-ast-act.ttl, ex:freeFunctor goes from ex:sourceCategory to ex:targetCategory, ex:forgetfulFunctor reverses those category endpoints, and ex:alternateFunctor is parallel to ex:freeFunctor. Their type and endpoint records do not prove all functor laws."
+msgstr "在 reference-ast-act.ttl 中，ex:freeFunctor 从 ex:sourceCategory 到 ex:targetCategory，ex:forgetfulFunctor 反转这两个范畴端点，ex:alternateFunctor 与 ex:freeFunctor 平行。其类型和端点记录不能证明全部函子定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between categories must retain its object/arrow interpretation and identity/composition preservation claims."
+msgstr "当范畴间映射需要保留对象及箭头解释、恒等及复合保持主张时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid excluding identity functors, requiring unequal category endpoints, inventing mandatory object-map or arrow-map slots, or inferring a math:Function frame from functor typing."
+msgstr "不要排除恒等函子，不要要求范畴端点不同，不要臆造必填对象映射或箭头映射槽位，也不要从函子类型推断 math:Function 框架。"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the source and target categories with math:sourceObject and math:targetObject and retain actual mapping and law descriptions using existing mathematical representations. Preserve specializations such as math:PersistenceModule with math:moduleIndex and math:structureMap; do not replace their data by an invented generic slot scheme or automatic domain/codomain bridge."
+msgstr "通过 math:sourceObject 和 math:targetObject 指定源及目标范畴，使用已有数学表示保留实际映射及定律描述。保留 math:PersistenceModule 及其 math:moduleIndex 和 math:structureMap 等特化；不要用臆造的通用槽位方案或自动定义域/陪域桥接替代其数据。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Natural Transformation"
+msgstr "自然变换"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A morphism between functors whose component morphisms satisfy the naturality law. Its math:sourceObject and math:targetObject are math:Functor individuals; it is first-class so applied-category-theory correspondences can point to a real mathematical referent."
+msgstr "函子之间的态射，其分量态射满足自然性定律。其 math:sourceObject 和 math:targetObject 是 math:Functor 个体；它是一等对象，使应用范畴论对应关系能够指向真实数学指称对象。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A natural transformation relates parallel functors, with component morphisms satisfying naturality for the relevant arrows. The endpoints are the functor resources themselves, not their endpoint categories. An identity natural transformation may name the same functor in both roles; endpoint declarations alone do not instantiate components or prove naturality."
+msgstr "自然变换关联平行函子，其分量态射对相关箭头满足自然性。端点是函子资源本身，而非它们的端点范畴。恒等自然变换可在两个角色中指定同一函子；仅端点声明不会实例化分量或证明自然性。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:comparisonTransformation in reference-ast-act.ttl names ex:freeFunctor as math:sourceObject and ex:alternateFunctor as math:targetObject. Those parallel functors share category endpoints, but the transformation’s record does not provide its components or a naturality proof."
+msgstr "reference-ast-act.ttl 中 ex:comparisonTransformation 将 ex:freeFunctor 指定为 math:sourceObject，将 ex:alternateFunctor 指定为 math:targetObject。这些平行函子共享范畴端点，但变换记录不提供其分量或自然性证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a family of component morphisms is described as a natural transformation between functors with the same source and target categories."
+msgstr "当分量态射族被描述为具有相同源及目标范畴的函子间自然变换时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting categories for the endpoint functors, treating any pair of unrelated functors as parallel, excluding identity transformations, or reading a proof from type and endpoint links."
+msgstr "不要用范畴替代端点函子，不要将任意无关函子视为平行，不要排除恒等变换，也不要从类型及端点链接读出证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the transformation to its source and target functors and retain their shared category endpoints. Describe any actual components and naturality law with existing mathematical or formula representations where supplied, without inventing mandatory component or law slots or claiming that the endpoint record supplies them."
+msgstr "将变换关联到源及目标函子，并保留它们共同的范畴端点。在已提供处使用已有数学或公式表示描述实际分量和自然性定律，不臆造必填分量或定律槽位，也不声称端点记录已提供这些内容。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source object"
+msgstr "源对象"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the source mathematical object of a math:Morphism. For a math:Functor it is the source math:Category; for a math:NaturalTransformation it is the source math:Functor. Kept distinct from math:domain, whose function framing ranges over sets."
+msgstr "指定 math:Morphism 的源数学对象。对于 math:Functor，它是源 math:Category；对于 math:NaturalTransformation，它是源 math:Functor。它区别于 math:domain，后者的函数框架以集合为值。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source role depends on the morphism specialization: a functor uses a category, a natural transformation a functor, and existing sheaf restriction maps use stalks. These examples do not close the object vocabulary or exclude functions, and the source may coincide with the target without merging their roles."
+msgstr "源角色取决于态射特化：函子使用范畴，自然变换使用函子，已有层限制映射使用茎。这些示例不封闭对象词汇，也不排除函数；源可与目标重合，但角色不合并。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:vertexToEdge in external-concept-coverage.ttl is a math:SheafRestrictionMap with math:sourceObject cov:vertexStalk and math:targetObject cov:edgeStalk. Its source is a stalk, not a mandatory category or functor endpoint."
+msgstr "external-concept-coverage.ttl 中 cov:vertexToEdge 是 math:SheafRestrictionMap，具有 math:sourceObject cov:vertexStalk 和 math:targetObject cov:edgeStalk。其源是茎，并非必须为范畴或函子端点。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source mathematical object of an existing morphism needs an explicit role appropriate to its specialization."
+msgstr "当已有态射的源数学对象需要适合其特化的显式角色时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid forcing every source to be a Category or Functor, requiring a different resource from the target, or copying math:domain automatically into this role."
+msgstr "不要强制每个源都是 Category 或 Functor，不要要求其资源与目标不同，也不要将 math:domain 自动复制到此角色。"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the morphism to its actual source object and retain the corresponding target and specialization data. Keep generic object endpoints separate from function/relation set framing and algebraic structure-valued domain/codomain. For restriction maps, preserve the actual transport record; endpoint links alone do not equate stalk values or execute transport."
+msgstr "从态射指向实际源对象，保留对应目标及特化数据。将通用对象端点与函数/关系的集合框架及代数结构值定义域/陪域区分。对于限制映射，保留实际传输记录；仅端点链接不会使茎值相等或执行传输。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "target object"
+msgstr "目标对象"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the target mathematical object of a math:Morphism. For a math:Functor it is the target math:Category; for a math:NaturalTransformation it is the target math:Functor. Kept distinct from math:codomain, whose function framing ranges over sets."
+msgstr "指定 math:Morphism 的目标数学对象。对于 math:Functor，它是目标 math:Category；对于 math:NaturalTransformation，它是目标 math:Functor。它区别于 math:codomain，后者的函数框架以集合为值。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the target-object role under the morphism’s actual specialization, not a globally restricted Category/Functor slot. A natural transformation targets a functor resource, while a sheaf restriction map can target a stalk. Coincident source and target resources remain valid when the mathematical map permits them."
+msgstr "这是态射实际特化下的目标对象角色，而非全局限制为 Category/Functor 的槽位。自然变换以函子资源为目标，层限制映射则可以茎为目标。当数学映射允许时，源和目标资源重合仍然有效。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:comparisonTransformation targets ex:alternateFunctor in reference-ast-act.ttl; ex:alternateFunctor itself targets ex:targetCategory. These are different levels of endpoint role, not interchangeable targets."
+msgstr "reference-ast-act.ttl 中 ex:comparisonTransformation 以 ex:alternateFunctor 为目标，ex:alternateFunctor 自身以 ex:targetCategory 为目标。这些属于不同层级的端点角色，而非可互换目标。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing morphism must identify its destination mathematical object while retaining the endpoint level required by its specialization."
+msgstr "当已有态射需要标识其到达的数学对象，并保留特化所需端点层级时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a target functor by its target category, narrowing all targets to those two kinds, or interpreting the target link as an attained value or an automatic math:codomain assertion."
+msgstr "不要用目标函子的目标范畴替代该函子，不要将全部目标限制为这两种种类，也不要将目标链接解释为已取得值或自动 math:codomain 断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link to the correct target object and preserve the source, existing specialization fields and actual law or transport descriptions. In a sheaf restriction map, retain any supplied math:restrictionImage data for transported values rather than asserting equality from stalk endpoints alone; add no automatic set-frame bridge or evaluator."
+msgstr "关联到正确目标对象，保留源、已有特化字段及实际定律或传输描述。在层限制映射中，为传输值保留已提供的 math:restrictionImage 数据，而非仅凭茎端点断言相等；不添加自动集合框架桥接或求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composes with"
+msgstr "可与之复合"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Morphism to another morphism with which it is composable under the applicable category's source/target discipline. It records composability, not an unproved equation or an implicit identity morphism."
+msgstr "将 math:Morphism 关联到另一个按适用范畴源/目标规则可与之复合的态射。它记录可复合性，而非未经证明的等式或隐式恒等态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link records composability under the applicable category’s endpoint discipline. It does not name the composite, execute maps, assert an equation or supply an identity, and it introduces no fixed execution-order convention, symmetry or transitivity for the property."
+msgstr "此链接按适用范畴的端点规则记录可复合性。它不指定复合结果、不执行映射、不声明等式或提供恒等，也不为该属性引入固定执行顺序约定、对称性或传递性。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:freeFunctor records math:composesWith ex:forgetfulFunctor in reference-ast-act.ttl. Their category endpoints are reversed, supporting composability, but that edge names no composite result and asserts no equation or reverse edge."
+msgstr "reference-ast-act.ttl 中 ex:freeFunctor 记录 math:composesWith ex:forgetfulFunctor。它们的范畴端点反转，支持可复合性，但该边不指定复合结果，也不声明等式或反向边。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when existing morphisms need an explicit composability claim under their actual category’s source and target requirements."
+msgstr "当已有态射需要按其实际范畴的源和目标要求显式声明可复合性时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the link as a computed composite, inferring a reverse or transitive link automatically, inventing a fixed application order, or assuming an identity morphism has been supplied."
+msgstr "不要将此链接视为已计算复合，不要自动推断反向或传递链接，不要臆造固定应用顺序，也不要假定已提供恒等态射。"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the composability edge with both morphisms and their actual endpoint descriptions, using the applicable category’s discipline to explain the claim. Keep any separately described composite, law proof or execution result distinct, without inventing a mandatory result slot or another composition path."
+msgstr "保留可复合性边、两个态射及其实际端点描述，使用适用范畴规则解释该主张。将另行描述的复合、定律证明或执行结果区分，不臆造必填结果槽位或另一条复合路径。"

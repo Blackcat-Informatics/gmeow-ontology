@@ -1740,6 +1740,11 @@ math:Category
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Category"@x-gmeow-english ;
+    skos:scopeNote "This is an object-level mathematical referent for a category and its objects, arrows, identities and composition laws. Its role differs from the foundational metatype logic:Category without imposing disjoint resource kinds. Class membership alone proves no category law, correspondence, conformance or optimizer behavior."@x-gmeow-english ;
+    skos:example "ex:sourceCategory and ex:targetCategory in reference-ast-act.ttl are math:Category resources used as endpoints of ex:freeFunctor. Their declarations identify referents without instantiating every object, arrow or category-law proof."@x-gmeow-english ;
+    gmeow:useWhen "Use when a category must be an identified mathematical object that functors, correspondences or other category constructions can reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the category resource by a prose name, conflating its role with logic:Category, or claiming laws and executable correspondence behavior from a type assertion."@x-gmeow-english ;
+    gmeow:howToUse "Identify the category resource and retain its actual mathematical object, arrow and law descriptions where supplied. Use it in the appropriate functor endpoint roles, keeping descriptive membership separate from realized formulas, evidence and any correspondence or optimizer execution."@x-gmeow-english ;
     skos:definition "A category-theoretic category: mathematical objects together with composable morphisms, identity morphisms, and associative composition. It is a first-class ACT referent for grounding cross-slice constructions, not the foundational metatype logic:Category and not a prose label."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1748,6 +1753,11 @@ math:Functor
     logic:subClassOf math:Morphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Functor"@x-gmeow-english ;
+    skos:scopeNote "A functor maps objects and arrows while preserving identities and composition. An identity functor can have the same category in both endpoint roles; endpoint records alone do not supply all mapping data or prove the functor laws. Existing specializations may retain their own index and structure-map descriptions."@x-gmeow-english ;
+    skos:example "In reference-ast-act.ttl, ex:freeFunctor goes from ex:sourceCategory to ex:targetCategory, ex:forgetfulFunctor reverses those category endpoints, and ex:alternateFunctor is parallel to ex:freeFunctor. Their type and endpoint records do not prove all functor laws."@x-gmeow-english ;
+    gmeow:useWhen "Use when a map between categories must retain its object/arrow interpretation and identity/composition preservation claims."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid excluding identity functors, requiring unequal category endpoints, inventing mandatory object-map or arrow-map slots, or inferring a math:Function frame from functor typing."@x-gmeow-english ;
+    gmeow:howToUse "Name the source and target categories with math:sourceObject and math:targetObject and retain actual mapping and law descriptions using existing mathematical representations. Preserve specializations such as math:PersistenceModule with math:moduleIndex and math:structureMap; do not replace their data by an invented generic slot scheme or automatic domain/codomain bridge."@x-gmeow-english ;
     skos:definition "A structure-preserving morphism between math:Category objects that maps objects and morphisms while preserving identities and composition. Its source and target categories are named through math:sourceObject and math:targetObject; the preserved categorical structure is explicit."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1756,6 +1766,11 @@ math:NaturalTransformation
     logic:subClassOf math:Morphism ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Natural Transformation"@x-gmeow-english ;
+    skos:scopeNote "A natural transformation relates parallel functors, with component morphisms satisfying naturality for the relevant arrows. The endpoints are the functor resources themselves, not their endpoint categories. An identity natural transformation may name the same functor in both roles; endpoint declarations alone do not instantiate components or prove naturality."@x-gmeow-english ;
+    skos:example "ex:comparisonTransformation in reference-ast-act.ttl names ex:freeFunctor as math:sourceObject and ex:alternateFunctor as math:targetObject. Those parallel functors share category endpoints, but the transformation’s record does not provide its components or a naturality proof."@x-gmeow-english ;
+    gmeow:useWhen "Use when a family of component morphisms is described as a natural transformation between functors with the same source and target categories."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting categories for the endpoint functors, treating any pair of unrelated functors as parallel, excluding identity transformations, or reading a proof from type and endpoint links."@x-gmeow-english ;
+    gmeow:howToUse "Link the transformation to its source and target functors and retain their shared category endpoints. Describe any actual components and naturality law with existing mathematical or formula representations where supplied, without inventing mandatory component or law slots or claiming that the endpoint record supplies them."@x-gmeow-english ;
     skos:definition "A morphism between functors whose component morphisms satisfy the naturality law. Its math:sourceObject and math:targetObject are math:Functor individuals; it is first-class so applied-category-theory correspondences can point to a real mathematical referent."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1763,6 +1778,11 @@ math:sourceObject
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "source object"@x-gmeow-english ;
+    skos:scopeNote "The source role depends on the morphism specialization: a functor uses a category, a natural transformation a functor, and existing sheaf restriction maps use stalks. These examples do not close the object vocabulary or exclude functions, and the source may coincide with the target without merging their roles."@x-gmeow-english ;
+    skos:example "cov:vertexToEdge in external-concept-coverage.ttl is a math:SheafRestrictionMap with math:sourceObject cov:vertexStalk and math:targetObject cov:edgeStalk. Its source is a stalk, not a mandatory category or functor endpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source mathematical object of an existing morphism needs an explicit role appropriate to its specialization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing every source to be a Category or Functor, requiring a different resource from the target, or copying math:domain automatically into this role."@x-gmeow-english ;
+    gmeow:howToUse "Point from the morphism to its actual source object and retain the corresponding target and specialization data. Keep generic object endpoints separate from function/relation set framing and algebraic structure-valued domain/codomain. For restriction maps, preserve the actual transport record; endpoint links alone do not equate stalk values or execute transport."@x-gmeow-english ;
     skos:definition "Names the source mathematical object of a math:Morphism. For a math:Functor it is the source math:Category; for a math:NaturalTransformation it is the source math:Functor. Kept distinct from math:domain, whose function framing ranges over sets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1770,6 +1790,11 @@ math:targetObject
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "target object"@x-gmeow-english ;
+    skos:scopeNote "This is the target-object role under the morphism’s actual specialization, not a globally restricted Category/Functor slot. A natural transformation targets a functor resource, while a sheaf restriction map can target a stalk. Coincident source and target resources remain valid when the mathematical map permits them."@x-gmeow-english ;
+    skos:example "ex:comparisonTransformation targets ex:alternateFunctor in reference-ast-act.ttl; ex:alternateFunctor itself targets ex:targetCategory. These are different levels of endpoint role, not interchangeable targets."@x-gmeow-english ;
+    gmeow:useWhen "Use when an existing morphism must identify its destination mathematical object while retaining the endpoint level required by its specialization."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing a target functor by its target category, narrowing all targets to those two kinds, or interpreting the target link as an attained value or an automatic math:codomain assertion."@x-gmeow-english ;
+    gmeow:howToUse "Link to the correct target object and preserve the source, existing specialization fields and actual law or transport descriptions. In a sheaf restriction map, retain any supplied math:restrictionImage data for transported values rather than asserting equality from stalk endpoints alone; add no automatic set-frame bridge or evaluator."@x-gmeow-english ;
     skos:definition "Names the target mathematical object of a math:Morphism. For a math:Functor it is the target math:Category; for a math:NaturalTransformation it is the target math:Functor. Kept distinct from math:codomain, whose function framing ranges over sets."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1777,6 +1802,11 @@ math:composesWith
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "composes with"@x-gmeow-english ;
+    skos:scopeNote "This link records composability under the applicable category’s endpoint discipline. It does not name the composite, execute maps, assert an equation or supply an identity, and it introduces no fixed execution-order convention, symmetry or transitivity for the property."@x-gmeow-english ;
+    skos:example "ex:freeFunctor records math:composesWith ex:forgetfulFunctor in reference-ast-act.ttl. Their category endpoints are reversed, supporting composability, but that edge names no composite result and asserts no equation or reverse edge."@x-gmeow-english ;
+    gmeow:useWhen "Use when existing morphisms need an explicit composability claim under their actual category’s source and target requirements."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the link as a computed composite, inferring a reverse or transitive link automatically, inventing a fixed application order, or assuming an identity morphism has been supplied."@x-gmeow-english ;
+    gmeow:howToUse "Retain the composability edge with both morphisms and their actual endpoint descriptions, using the applicable category’s discipline to explain the claim. Keep any separately described composite, law proof or execution result distinct, without inventing a mandatory result slot or another composition path."@x-gmeow-english ;
     skos:definition "Relates a math:Morphism to another morphism with which it is composable under the applicable category's source/target discipline. It records composability, not an unproved equation or an implicit identity morphism."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

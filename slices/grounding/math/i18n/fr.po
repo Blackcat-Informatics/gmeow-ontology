@@ -8200,3 +8200,171 @@ msgstr "Ne pas utiliser cet ancrage pour un sous-groupe agissant quelconque, dé
 msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the full math:AutomorphismGroup to its actual structure, preserving the inherited group frame and evidence for the full collection of automorphisms. Retain a separate math:hasRootSystem anchor when Weyl typing also applies; neither edge proves the equality or executes the member maps."
 msgstr "Relier le math:AutomorphismGroup complet à sa structure réelle, en préservant le cadre de groupe hérité et les preuves de la collection complète d’automorphismes. Conserver un ancrage math:hasRootSystem distinct lorsque le type de Weyl s’applique aussi ; aucun des deux liens ne prouve l’égalité ni n’exécute les applications membres."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Category"
+msgstr "Catégorie"
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A category-theoretic category: mathematical objects together with composable morphisms, identity morphisms, and associative composition. It is a first-class ACT referent for grounding cross-slice constructions, not the foundational metatype logic:Category and not a prose label."
+msgstr "Une catégorie au sens de la théorie des catégories : des objets mathématiques avec des morphismes composables, des morphismes identité et une composition associative. C’est un référent ACT de première classe pour ancrer des constructions entre tranches, et non le métatype fondateur logic:Category ni un simple libellé en prose."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an object-level mathematical referent for a category and its objects, arrows, identities and composition laws. Its role differs from the foundational metatype logic:Category without imposing disjoint resource kinds. Class membership alone proves no category law, correspondence, conformance or optimizer behavior."
+msgstr "Il s’agit d’un référent mathématique de couche objet pour une catégorie, ses objets, flèches, identités et lois de composition. Son rôle diffère du métatype fondateur logic:Category sans imposer des types de ressources disjoints. La seule appartenance à la classe ne prouve aucune loi de catégorie, correspondance, conformité ou comportement d’optimiseur."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:sourceCategory and ex:targetCategory in reference-ast-act.ttl are math:Category resources used as endpoints of ex:freeFunctor. Their declarations identify referents without instantiating every object, arrow or category-law proof."
+msgstr "ex:sourceCategory et ex:targetCategory dans reference-ast-act.ttl sont des ressources math:Category utilisées comme extrémités de ex:freeFunctor. Leurs déclarations identifient des référents sans instancier chaque objet, flèche ou preuve de loi de catégorie."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a category must be an identified mathematical object that functors, correspondences or other category constructions can reference."
+msgstr "Utiliser lorsqu’une catégorie doit être un objet mathématique identifié que des foncteurs, correspondances ou autres constructions catégoriques peuvent référencer."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing the category resource by a prose name, conflating its role with logic:Category, or claiming laws and executable correspondence behavior from a type assertion."
+msgstr "Ne pas remplacer la ressource catégorie par un nom en prose, confondre son rôle avec logic:Category ou déduire des lois et un comportement de correspondance exécutable d’une affirmation de type."
+
+msgctxt "https://blackcatinformatics.ca/math/Category|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the category resource and retain its actual mathematical object, arrow and law descriptions where supplied. Use it in the appropriate functor endpoint roles, keeping descriptive membership separate from realized formulas, evidence and any correspondence or optimizer execution."
+msgstr "Identifier la ressource catégorie et conserver ses descriptions mathématiques réelles d’objets, de flèches et de lois lorsqu’elles sont fournies. L’utiliser dans les rôles d’extrémité de foncteur appropriés, en distinguant l’appartenance descriptive des formules réalisées, des preuves et de toute exécution de correspondance ou d’optimiseur."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Functor"
+msgstr "Foncteur"
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving morphism between math:Category objects that maps objects and morphisms while preserving identities and composition. Its source and target categories are named through math:sourceObject and math:targetObject; the preserved categorical structure is explicit."
+msgstr "Un morphisme préservant la structure entre objets math:Category qui envoie les objets et les morphismes en préservant les identités et la composition. Ses catégories source et cible sont nommées par math:sourceObject et math:targetObject ; la structure catégorique préservée est explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A functor maps objects and arrows while preserving identities and composition. An identity functor can have the same category in both endpoint roles; endpoint records alone do not supply all mapping data or prove the functor laws. Existing specializations may retain their own index and structure-map descriptions."
+msgstr "Un foncteur envoie objets et flèches en préservant identités et composition. Un foncteur identité peut avoir la même catégorie dans les deux rôles d’extrémité ; les seuls relevés d’extrémités ne fournissent pas toutes les données d’application et ne prouvent pas les lois de foncteur. Les spécialisations existantes peuvent conserver leurs propres descriptions d’indice et d’applications de structure."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|http://www.w3.org/2004/02/skos/core#example"
+msgid "In reference-ast-act.ttl, ex:freeFunctor goes from ex:sourceCategory to ex:targetCategory, ex:forgetfulFunctor reverses those category endpoints, and ex:alternateFunctor is parallel to ex:freeFunctor. Their type and endpoint records do not prove all functor laws."
+msgstr "Dans reference-ast-act.ttl, ex:freeFunctor va de ex:sourceCategory vers ex:targetCategory, ex:forgetfulFunctor inverse ces extrémités catégoriques, et ex:alternateFunctor est parallèle à ex:freeFunctor. Leurs relevés de type et d’extrémités ne prouvent pas toutes les lois de foncteur."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between categories must retain its object/arrow interpretation and identity/composition preservation claims."
+msgstr "Utiliser lorsqu’une application entre catégories doit conserver son interprétation sur objets et flèches ainsi que ses affirmations de préservation des identités et de la composition."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid excluding identity functors, requiring unequal category endpoints, inventing mandatory object-map or arrow-map slots, or inferring a math:Function frame from functor typing."
+msgstr "Ne pas exclure les foncteurs identité, exiger des extrémités catégoriques inégales, inventer des emplacements obligatoires d’application d’objets ou de flèches, ou déduire un cadre math:Function du type foncteur."
+
+msgctxt "https://blackcatinformatics.ca/math/Functor|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the source and target categories with math:sourceObject and math:targetObject and retain actual mapping and law descriptions using existing mathematical representations. Preserve specializations such as math:PersistenceModule with math:moduleIndex and math:structureMap; do not replace their data by an invented generic slot scheme or automatic domain/codomain bridge."
+msgstr "Nommer les catégories source et cible par math:sourceObject et math:targetObject et conserver les descriptions réelles d’application et de loi avec les représentations mathématiques existantes. Préserver les spécialisations telles que math:PersistenceModule avec math:moduleIndex et math:structureMap ; ne pas remplacer leurs données par un schéma générique d’emplacements inventé ou une liaison automatique domaine/codomaine."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Natural Transformation"
+msgstr "Transformation naturelle"
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A morphism between functors whose component morphisms satisfy the naturality law. Its math:sourceObject and math:targetObject are math:Functor individuals; it is first-class so applied-category-theory correspondences can point to a real mathematical referent."
+msgstr "Un morphisme entre foncteurs dont les morphismes composants satisfont la loi de naturalité. Ses math:sourceObject et math:targetObject sont des individus math:Functor ; elle est de première classe afin que les correspondances de théorie appliquée des catégories puissent pointer vers un référent mathématique réel."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A natural transformation relates parallel functors, with component morphisms satisfying naturality for the relevant arrows. The endpoints are the functor resources themselves, not their endpoint categories. An identity natural transformation may name the same functor in both roles; endpoint declarations alone do not instantiate components or prove naturality."
+msgstr "Une transformation naturelle relie des foncteurs parallèles, avec des morphismes composants satisfaisant la naturalité pour les flèches pertinentes. Les extrémités sont les ressources foncteurs elles-mêmes, et non leurs catégories d’extrémité. Une transformation naturelle identité peut nommer le même foncteur dans les deux rôles ; les seules déclarations d’extrémités n’instancient pas les composants et ne prouvent pas la naturalité."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:comparisonTransformation in reference-ast-act.ttl names ex:freeFunctor as math:sourceObject and ex:alternateFunctor as math:targetObject. Those parallel functors share category endpoints, but the transformation’s record does not provide its components or a naturality proof."
+msgstr "ex:comparisonTransformation dans reference-ast-act.ttl nomme ex:freeFunctor comme math:sourceObject et ex:alternateFunctor comme math:targetObject. Ces foncteurs parallèles partagent leurs extrémités catégoriques, mais le relevé de la transformation ne fournit pas ses composants ni une preuve de naturalité."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a family of component morphisms is described as a natural transformation between functors with the same source and target categories."
+msgstr "Utiliser lorsqu’une famille de morphismes composants est décrite comme une transformation naturelle entre foncteurs ayant les mêmes catégories source et cible."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting categories for the endpoint functors, treating any pair of unrelated functors as parallel, excluding identity transformations, or reading a proof from type and endpoint links."
+msgstr "Ne pas substituer des catégories aux foncteurs aux extrémités, traiter toute paire de foncteurs sans rapport comme parallèle, exclure les transformations identité ou lire une preuve dans les liens de type et d’extrémités."
+
+msgctxt "https://blackcatinformatics.ca/math/NaturalTransformation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the transformation to its source and target functors and retain their shared category endpoints. Describe any actual components and naturality law with existing mathematical or formula representations where supplied, without inventing mandatory component or law slots or claiming that the endpoint record supplies them."
+msgstr "Relier la transformation à ses foncteurs source et cible et conserver leurs extrémités catégoriques communes. Décrire les composants réels et la loi de naturalité par les représentations mathématiques ou de formules existantes lorsqu’ils sont fournis, sans inventer d’emplacements obligatoires de composant ou de loi ni prétendre que le relevé d’extrémités les fournit."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "source object"
+msgstr "objet source"
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the source mathematical object of a math:Morphism. For a math:Functor it is the source math:Category; for a math:NaturalTransformation it is the source math:Functor. Kept distinct from math:domain, whose function framing ranges over sets."
+msgstr "Nomme l’objet mathématique source d’un math:Morphism. Pour un math:Functor, c’est la math:Category source ; pour une math:NaturalTransformation, c’est le math:Functor source. Distinct de math:domain, dont le cadrage de fonction porte sur des ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The source role depends on the morphism specialization: a functor uses a category, a natural transformation a functor, and existing sheaf restriction maps use stalks. These examples do not close the object vocabulary or exclude functions, and the source may coincide with the target without merging their roles."
+msgstr "Le rôle source dépend de la spécialisation du morphisme : un foncteur utilise une catégorie, une transformation naturelle un foncteur, et les applications de restriction de faisceau existantes utilisent des objets locaux de valeurs. Ces exemples ne ferment pas le vocabulaire d’objets et n’excluent pas les fonctions, et la source peut coïncider avec la cible sans fusionner leurs rôles."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:vertexToEdge in external-concept-coverage.ttl is a math:SheafRestrictionMap with math:sourceObject cov:vertexStalk and math:targetObject cov:edgeStalk. Its source is a stalk, not a mandatory category or functor endpoint."
+msgstr "cov:vertexToEdge dans external-concept-coverage.ttl est une math:SheafRestrictionMap avec math:sourceObject cov:vertexStalk et math:targetObject cov:edgeStalk. Sa source est un objet local de valeurs du faisceau, et non une extrémité obligatoirement catégorie ou foncteur."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source mathematical object of an existing morphism needs an explicit role appropriate to its specialization."
+msgstr "Utiliser lorsque l’objet mathématique source d’un morphisme existant nécessite un rôle explicite adapté à sa spécialisation."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid forcing every source to be a Category or Functor, requiring a different resource from the target, or copying math:domain automatically into this role."
+msgstr "Ne pas imposer que toute source soit une Category ou un Functor, exiger une ressource différente de la cible ou copier automatiquement math:domain dans ce rôle."
+
+msgctxt "https://blackcatinformatics.ca/math/sourceObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the morphism to its actual source object and retain the corresponding target and specialization data. Keep generic object endpoints separate from function/relation set framing and algebraic structure-valued domain/codomain. For restriction maps, preserve the actual transport record; endpoint links alone do not equate stalk values or execute transport."
+msgstr "Faire pointer le morphisme vers son objet source réel et conserver la cible correspondante et les données de spécialisation. Distinguer les extrémités d’objet génériques du cadrage en ensembles des fonctions et relations et du domaine/codomaine à valeurs de structure algébrique. Pour les applications de restriction, préserver le relevé réel de transport ; les seuls liens d’extrémités n’égalisent pas les valeurs des objets locaux du faisceau et n’exécutent pas le transport."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "target object"
+msgstr "objet cible"
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the target mathematical object of a math:Morphism. For a math:Functor it is the target math:Category; for a math:NaturalTransformation it is the target math:Functor. Kept distinct from math:codomain, whose function framing ranges over sets."
+msgstr "Nomme l’objet mathématique cible d’un math:Morphism. Pour un math:Functor, c’est la math:Category cible ; pour une math:NaturalTransformation, c’est le math:Functor cible. Distinct de math:codomain, dont le cadrage de fonction porte sur des ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the target-object role under the morphism’s actual specialization, not a globally restricted Category/Functor slot. A natural transformation targets a functor resource, while a sheaf restriction map can target a stalk. Coincident source and target resources remain valid when the mathematical map permits them."
+msgstr "Il s’agit du rôle d’objet cible selon la spécialisation réelle du morphisme, et non d’un emplacement globalement restreint à Category/Functor. Une transformation naturelle cible une ressource foncteur, tandis qu’une application de restriction de faisceau peut cibler un objet local de valeurs du faisceau. Des ressources source et cible coïncidentes restent valides lorsque l’application mathématique les permet."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:comparisonTransformation targets ex:alternateFunctor in reference-ast-act.ttl; ex:alternateFunctor itself targets ex:targetCategory. These are different levels of endpoint role, not interchangeable targets."
+msgstr "ex:comparisonTransformation cible ex:alternateFunctor dans reference-ast-act.ttl ; ex:alternateFunctor cible lui-même ex:targetCategory. Ce sont des niveaux différents de rôle d’extrémité, et non des cibles interchangeables."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing morphism must identify its destination mathematical object while retaining the endpoint level required by its specialization."
+msgstr "Utiliser lorsqu’un morphisme existant doit identifier son objet mathématique destination en conservant le niveau d’extrémité requis par sa spécialisation."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing a target functor by its target category, narrowing all targets to those two kinds, or interpreting the target link as an attained value or an automatic math:codomain assertion."
+msgstr "Ne pas remplacer un foncteur cible par sa catégorie cible, restreindre toutes les cibles à ces deux types ou interpréter le lien cible comme une valeur atteinte ou une affirmation automatique de math:codomain."
+
+msgctxt "https://blackcatinformatics.ca/math/targetObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link to the correct target object and preserve the source, existing specialization fields and actual law or transport descriptions. In a sheaf restriction map, retain any supplied math:restrictionImage data for transported values rather than asserting equality from stalk endpoints alone; add no automatic set-frame bridge or evaluator."
+msgstr "Relier au bon objet cible et préserver la source, les champs de spécialisation existants et les descriptions réelles de loi ou de transport. Dans une application de restriction de faisceau, conserver les données math:restrictionImage fournies pour les valeurs transportées plutôt qu’affirmer l’égalité à partir des seuls objets locaux de valeurs aux extrémités ; n’ajouter aucune liaison automatique vers un cadre en ensembles ni aucun évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "composes with"
+msgstr "se compose avec"
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Morphism to another morphism with which it is composable under the applicable category's source/target discipline. It records composability, not an unproved equation or an implicit identity morphism."
+msgstr "Relie un math:Morphism à un autre morphisme avec lequel il est composable selon la discipline source/cible de la catégorie applicable. Consigne la composabilité, et non une équation non prouvée ou un morphisme identité implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This link records composability under the applicable category’s endpoint discipline. It does not name the composite, execute maps, assert an equation or supply an identity, and it introduces no fixed execution-order convention, symmetry or transitivity for the property."
+msgstr "Ce lien consigne la composabilité selon la discipline d’extrémités de la catégorie applicable. Il ne nomme pas le composé, n’exécute pas les applications, n’affirme pas d’équation et ne fournit pas d’identité, et n’introduit pour la propriété aucune convention fixe d’ordre d’exécution, symétrie ou transitivité."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|http://www.w3.org/2004/02/skos/core#example"
+msgid "ex:freeFunctor records math:composesWith ex:forgetfulFunctor in reference-ast-act.ttl. Their category endpoints are reversed, supporting composability, but that edge names no composite result and asserts no equation or reverse edge."
+msgstr "ex:freeFunctor consigne math:composesWith ex:forgetfulFunctor dans reference-ast-act.ttl. Leurs extrémités catégoriques sont inversées, ce qui permet la composabilité, mais ce lien ne nomme aucun résultat composé et n’affirme ni équation ni lien inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when existing morphisms need an explicit composability claim under their actual category’s source and target requirements."
+msgstr "Utiliser lorsque des morphismes existants nécessitent une affirmation explicite de composabilité selon les exigences source et cible de leur catégorie réelle."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the link as a computed composite, inferring a reverse or transitive link automatically, inventing a fixed application order, or assuming an identity morphism has been supplied."
+msgstr "Ne pas traiter le lien comme un composé calculé, déduire automatiquement un lien inverse ou transitif, inventer un ordre fixe d’application ou présumer qu’un morphisme identité a été fourni."
+
+msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the composability edge with both morphisms and their actual endpoint descriptions, using the applicable category’s discipline to explain the claim. Keep any separately described composite, law proof or execution result distinct, without inventing a mandatory result slot or another composition path."
+msgstr "Conserver le lien de composabilité avec les deux morphismes et leurs descriptions réelles d’extrémités, en utilisant la discipline de la catégorie applicable pour expliquer l’affirmation. Distinguer tout composé, preuve de loi ou résultat d’exécution décrit séparément, sans inventer d’emplacement obligatoire de résultat ni une autre voie de composition."
