@@ -547,6 +547,7 @@ math:operatorDomain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator domain"@x-gmeow-english ;
+    skos:scopeNote "This is the operand-system part of a math:ArithmeticOperation signature, with a math:NumberSystem value, rather than the math:domain frame of a function or relation. The real inputs declared for math:Root and math:Logarithm remain real even when their result system is complex; math:Negation retains its extended-real signature."@x-gmeow-english ;
     skos:definition "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to name the number system a math:ArithmeticOperation's operands are drawn from — the source of its signature over the tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and ℝ̄)."@x-gmeow-english ;
@@ -558,6 +559,7 @@ math:operatorCodomain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator codomain"@x-gmeow-english ;
+    skos:scopeNote "This is the result-system part of a math:ArithmeticOperation signature, distinct from math:codomain on a function or relation. A wider result system does not widen the declared inputs. Authenticating signature metadata alone establishes neither arithmetic execution for every input nor a proof of a result."@x-gmeow-english ;
     skos:definition "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to name the number system a math:ArithmeticOperation's result lies in — the target of its signature, which may be wider than its domain (a real even root lands in ℂ)."@x-gmeow-english ;
@@ -945,6 +947,7 @@ math:Interval
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Interval"@x-gmeow-english ;
+    skos:scopeNote "An interval describes an ordered subset with two endpoint values and two explicit inclusion markers, not a statistical confidence estimator. Finite ends use numeric literals; unbounded ends use math:NegativeInfinity below or math:PositiveInfinity above and are open under this slice’s convention."@x-gmeow-english ;
     skos:definition "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it to name a pure order-theoretic stretch of the extended real line between two ordered endpoints — a domain restriction, a piece-domain, or the region a bound holds on."@x-gmeow-english ;
@@ -956,10 +959,11 @@ math:EndpointInclusion
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Endpoint Inclusion"@x-gmeow-english ;
+    skos:scopeNote "This is an open class with supplied math:closedEndpoint and math:openEndpoint markers, not a closed enumeration. Reuse those markers for ordinary intervals; additional class members do not imply support in every consumer. Under this slice’s interval convention, infinite pole ends use math:openEndpoint."@x-gmeow-english ;
     skos:definition "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:useWhen "Reach for it as the type of the two inclusion markers an interval's ends take — whether each end is a member (closed) or excluded (open)."@x-gmeow-english ;
-    gmeow:avoidWhen "Do not mint fresh inclusion individuals; the vocabulary is exactly math:closedEndpoint and math:openEndpoint, and an infinite pole end is always math:openEndpoint."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a duplicate of the supplied math:closedEndpoint or math:openEndpoint markers, or treating this open value vocabulary as a closed enumeration. An infinite pole end is always math:openEndpoint."@x-gmeow-english ;
     gmeow:howToUse "Fill a math:lowerInclusion or math:upperInclusion slot with one of its two members; it is required on both ends of every math:Interval."@x-gmeow-english ;
     skos:example "exf:closedUnit a math:Interval ; math:lowerInclusion math:closedEndpoint ; math:upperInclusion math:closedEndpoint ."@x-gmeow-english .
 
@@ -967,12 +971,22 @@ math:closedEndpoint
     a logic:NamedIndividual , math:EndpointInclusion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "closed (included)"@x-gmeow-english ;
+    skos:scopeNote "This supplied inclusion marker says that a finite endpoint belongs to the interval. It supplies membership status rather than the endpoint value; under this slice’s interval convention an infinite pole end is never closed."@x-gmeow-english ;
+    skos:example "For [0, 1), math:lowerInclusion points to math:closedEndpoint while math:lowerEndpoint still carries 0. The upper end independently uses math:openEndpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use when the selected finite lower or upper endpoint is included as an interval member."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this marker as a numeric bound, applying it to an infinite pole end, or silently assuming the other end has the same inclusion."@x-gmeow-english ;
+    gmeow:howToUse "Place math:closedEndpoint in the appropriate math:lowerInclusion or math:upperInclusion field and retain the finite numeric endpoint in its separate endpoint field. State the opposite end and its inclusion explicitly rather than copying a bracket convention implicitly."@x-gmeow-english ;
     skos:definition "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."@x-gmeow-english .
 
 math:openEndpoint
     a logic:NamedIndividual , math:EndpointInclusion ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "open (excluded)"@x-gmeow-english ;
+    skos:scopeNote "This supplied marker excludes the endpoint from the interval without changing the endpoint value. It applies to finite open bounds and, by this slice’s convention, every unbounded end at a signed pole."@x-gmeow-english ;
+    skos:example "The positive-real interval (0, +∞) uses math:openEndpoint on both ends, with lower numeric endpoint 0 and upper endpoint math:PositiveInfinity."@x-gmeow-english ;
+    gmeow:useWhen "Use when a finite boundary is excluded, or when an interval end is unbounded under the slice’s pole convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting the numeric or pole endpoint because this marker is present, treating openness as an unknown inclusion, or inventing a closed infinite end."@x-gmeow-english ;
+    gmeow:howToUse "Set the relevant math:lowerInclusion or math:upperInclusion to math:openEndpoint and retain the corresponding endpoint value. For unbounded ends use math:NegativeInfinity only below and math:PositiveInfinity only above, with both inclusion fields explicit."@x-gmeow-english ;
     skos:definition "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."@x-gmeow-english .
 
 # =========================================================================== #
@@ -983,6 +997,11 @@ math:Relation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Relation"@x-gmeow-english ;
+    skos:scopeNote "A mathematical relation need not assign an output to every source element or restrict each source element to one output. It is not automatically a total math:Function or a functional RDF predicate."@x-gmeow-english ;
+    skos:example "The relation ≤ on ℤ relates 0 to both 0 and 1, so it is not a single-valued function from ℤ to ℤ even though it has identified source and target sets."@x-gmeow-english ;
+    gmeow:useWhen "Use when a mathematical association between source and target elements must be represented without assuming totality or single-valuedness."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting a relation to math:Function from its label or frame alone, confusing a relation resource with its RDF predicate encoding, or inventing pair-endpoint slots."@x-gmeow-english ;
+    gmeow:howToUse "Identify the relation with math:Relation, retain its source and target sets through math:domain and math:codomain when describing that frame, and express its content with the existing mathematical or logic representation. Assert function properties only when their stronger conditions are justified."@x-gmeow-english ;
     skos:definition "A mathematical relation: a subset of a Cartesian product of a domain and a codomain. The object-layer parent of math:Function — a function is a relation with the functional property declared. Anchored externally to the OpenMath relation1 content dictionary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1004,6 +1023,11 @@ math:FunctionSpace
     rdfs:subClassOf math:Set ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Function Space"@x-gmeow-english ;
+    skos:scopeNote "A function space is the set of maps between fixed sets, not one of those maps. It inherits math:Set; this vocabulary supplies no dedicated FunctionSpace frame slots, and Function-only frame requirements must not be transferred to the space."@x-gmeow-english ;
+    skos:example "For A = {0, 1} and B = {a, b}, Bᴬ has four total maps, including the two constant maps. Each member map has its own source A and target B; the space is not itself one such map."@x-gmeow-english ;
+    gmeow:useWhen "Use when functions themselves must be collected as mathematical objects in a set for a fixed source and target."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the space as a total function, attaching function-only domain/codomain obligations to it, or assuming its declaration enumerates or executes all member maps."@x-gmeow-english ;
+    gmeow:howToUse "Type the set math:FunctionSpace and describe the fixed source and target through existing mathematical definition or expression vocabulary. Frame individual member functions separately; do not invent specialized frame predicates or automatic function enumeration."@x-gmeow-english ;
     skos:definition "The set of all functions from a fixed domain to a fixed codomain — the exponential object Bᴬ. Itself a set, so a subclass of math:Set."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1458,6 +1482,7 @@ math:lowerEndpoint
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "lower endpoint"@x-gmeow-english ;
+    skos:scopeNote "This field records the lower bound value, separately from math:lowerInclusion. It remains an rdf:Property so a finite numeric literal and the unbounded-below pole math:NegativeInfinity can occupy the value role; math:PositiveInfinity belongs only to the upper endpoint role."@x-gmeow-english ;
     skos:definition "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to name the left end of a math:Interval — a bounded finite literal or, for an unbounded-below interval, the pole math:NegativeInfinity."@x-gmeow-english ;
@@ -1469,6 +1494,7 @@ math:upperEndpoint
     a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "upper endpoint"@x-gmeow-english ;
+    skos:scopeNote "This field records the upper bound value, separately from math:upperInclusion. It remains an rdf:Property so a finite numeric literal and the unbounded-above pole math:PositiveInfinity can occupy the value role; math:NegativeInfinity belongs only to the lower endpoint role."@x-gmeow-english ;
     skos:definition "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to name the right end of a math:Interval — a bounded finite literal or, for an unbounded-above interval, the pole math:PositiveInfinity."@x-gmeow-english ;
@@ -1480,6 +1506,7 @@ math:lowerInclusion
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "lower inclusion"@x-gmeow-english ;
+    skos:scopeNote "This field records lower-end membership, not the lower numeric or pole value. Its role is independent of math:upperInclusion: both ends may reuse the same marker without implying different resources or an implicit inclusion for the other end. An infinite lower end is open under this slice’s convention."@x-gmeow-english ;
     skos:definition "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to declare whether the lower endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1) and (0, 1)."@x-gmeow-english ;
@@ -1491,6 +1518,7 @@ math:upperInclusion
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "upper inclusion"@x-gmeow-english ;
+    skos:scopeNote "This field records upper-end membership, not the upper numeric or pole value. Its role is independent of math:lowerInclusion: both ends may reuse the same marker, and declaring one end does not supply the other end’s inclusion. An infinite upper end is open under this slice’s convention."@x-gmeow-english ;
     skos:definition "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:useWhen "Reach for it to declare whether the upper endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1] and [0, 1)."@x-gmeow-english ;

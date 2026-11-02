@@ -6828,3 +6828,339 @@ msgstr "Éviter une chaîne de nom de rôle ou la classe math:StatementRole comm
 msgctxt "https://blackcatinformatics.ca/math/statementRole|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point math:statementRole from the math:MathematicalStatement to its declared role individual, preserve math:roleInTheory on the statement and retain the actual supporting dependencies and evidence. No automatic truth, proof discharge or flat-type conversion is established by this descriptive link alone."
 msgstr "Faire pointer math:statementRole du math:MathematicalStatement vers son individu de rôle déclaré, préserver math:roleInTheory sur l’énoncé et conserver les dépendances et éléments probants réels. Ce seul lien descriptif n’établit ni vérité automatique, ni décharge de preuve, ni conversion de type plat."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Relation"
+msgstr "relation mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical relation: a subset of a Cartesian product of a domain and a codomain. The object-layer parent of math:Function — a function is a relation with the functional property declared. Anchored externally to the OpenMath relation1 content dictionary."
+msgstr "Une relation mathématique : un sous-ensemble d’un produit cartésien d’un domaine et d’un codomaine. Le parent de la couche objet de math:Function — une fonction est une relation dont le caractère fonctionnel est déclaré. Ancrée extérieurement dans le dictionnaire de contenu OpenMath relation1."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical relation need not assign an output to every source element or restrict each source element to one output. It is not automatically a total math:Function or a functional RDF predicate."
+msgstr "Une relation mathématique n’a pas à attribuer une sortie à chaque élément source ni à limiter chacun à une sortie unique. Elle n’est pas automatiquement un math:Function total ni un prédicat RDF fonctionnel."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The relation ≤ on ℤ relates 0 to both 0 and 1, so it is not a single-valued function from ℤ to ℤ even though it has identified source and target sets."
+msgstr "La relation ≤ sur ℤ relie 0 à 0 ainsi qu’à 1 ; ce n’est donc pas une fonction univoque de ℤ vers ℤ, même si elle possède des ensembles source et cible identifiés."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical association between source and target elements must be represented without assuming totality or single-valuedness."
+msgstr "Utiliser lorsqu’une association mathématique entre éléments source et cible doit être représentée sans présumer totalité ni caractère univoque."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting a relation to math:Function from its label or frame alone, confusing a relation resource with its RDF predicate encoding, or inventing pair-endpoint slots."
+msgstr "Ne pas promouvoir une relation en math:Function à partir de son seul libellé ou cadre, confondre une ressource relation avec son encodage en prédicat RDF ou inventer des emplacements d’extrémités de couples."
+
+msgctxt "https://blackcatinformatics.ca/math/Relation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the relation with math:Relation, retain its source and target sets through math:domain and math:codomain when describing that frame, and express its content with the existing mathematical or logic representation. Assert function properties only when their stronger conditions are justified."
+msgstr "Identifier la relation par math:Relation, conserver ses ensembles source et cible par math:domain et math:codomain lors de la description de ce cadre, puis exprimer son contenu avec la représentation mathématique ou logique existante. N’affirmer les propriétés de fonction que lorsque leurs conditions plus fortes sont justifiées."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Function Space"
+msgstr "Espace de fonctions"
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set of all functions from a fixed domain to a fixed codomain — the exponential object Bᴬ. Itself a set, so a subclass of math:Set."
+msgstr "L’ensemble de toutes les fonctions d’un domaine fixé vers un codomaine fixé — l’objet exponentiel Bᴬ. Il est lui-même un ensemble, donc une sous-classe de math:Set."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A function space is the set of maps between fixed sets, not one of those maps. It inherits math:Set; this vocabulary supplies no dedicated FunctionSpace frame slots, and Function-only frame requirements must not be transferred to the space."
+msgstr "Un espace de fonctions est l’ensemble des applications entre des ensembles fixés, et non l’une de ces applications. Il hérite de math:Set ; ce vocabulaire ne fournit pas d’emplacements de cadre propres à FunctionSpace, et les exigences de cadre propres à Function ne doivent pas être transférées à l’espace."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "For A = {0, 1} and B = {a, b}, Bᴬ has four total maps, including the two constant maps. Each member map has its own source A and target B; the space is not itself one such map."
+msgstr "Pour A = {0, 1} et B = {a, b}, Bᴬ contient quatre applications totales, dont les deux applications constantes. Chaque application membre a sa propre source A et cible B ; l’espace n’est pas lui-même une telle application."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when functions themselves must be collected as mathematical objects in a set for a fixed source and target."
+msgstr "Utiliser lorsque les fonctions elles-mêmes doivent être rassemblées comme objets mathématiques dans un ensemble pour une source et une cible fixées."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the space as a total function, attaching function-only domain/codomain obligations to it, or assuming its declaration enumerates or executes all member maps."
+msgstr "Ne pas traiter l’espace comme une fonction totale, lui attacher les obligations de domaine et codomaine propres aux fonctions ou supposer que sa déclaration énumère ou exécute toutes les applications membres."
+
+msgctxt "https://blackcatinformatics.ca/math/FunctionSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the set math:FunctionSpace and describe the fixed source and target through existing mathematical definition or expression vocabulary. Frame individual member functions separately; do not invent specialized frame predicates or automatic function enumeration."
+msgstr "Typer l’ensemble math:FunctionSpace et décrire la source et la cible fixées par le vocabulaire existant de définition ou d’expression mathématique. Décrire séparément le cadre des fonctions membres ; ne pas inventer de prédicats de cadre spécialisés ni d’énumération automatique de fonctions."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "closed (included)"
+msgstr "fermée (incluse)"
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A closed endpoint: the endpoint is a member of the interval — the square bracket of [a, …) or (…, b]. The case where lower ≤ x (or x ≤ upper) admits equality; only a finite endpoint can be closed, since an infinite pole is never a member of ℝ̄."
+msgstr "Une extrémité fermée : l'extrémité est un membre de l'intervalle — le crochet droit de [a, …) ou (…, b]. Le cas où lower ≤ x (ou x ≤ upper) admet l'égalité ; seule une extrémité finie peut être fermée, car un pôle infini n'est jamais un membre de ℝ̄."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This supplied inclusion marker says that a finite endpoint belongs to the interval. It supplies membership status rather than the endpoint value; under this slice’s interval convention an infinite pole end is never closed."
+msgstr "Ce marqueur d’inclusion fourni indique qu’une extrémité finie appartient à l’intervalle. Il fournit le statut d’appartenance plutôt que la valeur de l’extrémité ; selon la convention d’intervalle de cette tranche, une extrémité à un pôle infini n’est jamais fermée."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "For [0, 1), math:lowerInclusion points to math:closedEndpoint while math:lowerEndpoint still carries 0. The upper end independently uses math:openEndpoint."
+msgstr "Pour [0, 1), math:lowerInclusion pointe vers math:closedEndpoint tandis que math:lowerEndpoint porte toujours 0. L’extrémité supérieure utilise indépendamment math:openEndpoint."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the selected finite lower or upper endpoint is included as an interval member."
+msgstr "Utiliser lorsque l’extrémité finie inférieure ou supérieure choisie est incluse comme membre de l’intervalle."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this marker as a numeric bound, applying it to an infinite pole end, or silently assuming the other end has the same inclusion."
+msgstr "Ne pas employer ce marqueur comme borne numérique, l’appliquer à une extrémité à un pôle infini ou présumer implicitement la même inclusion à l’autre extrémité."
+
+msgctxt "https://blackcatinformatics.ca/math/closedEndpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Place math:closedEndpoint in the appropriate math:lowerInclusion or math:upperInclusion field and retain the finite numeric endpoint in its separate endpoint field. State the opposite end and its inclusion explicitly rather than copying a bracket convention implicitly."
+msgstr "Placer math:closedEndpoint dans le champ math:lowerInclusion ou math:upperInclusion approprié et conserver l’extrémité numérique finie dans son champ séparé. Déclarer explicitement l’autre extrémité et son inclusion plutôt que copier implicitement une convention de crochets."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "open (excluded)"
+msgstr "ouverte (exclue)"
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An open endpoint: the endpoint is excluded from the interval — the round bracket of (a, …) or (…, b). The case where lower < x (or x < upper) is strict. An unbounded end at a pole (math:PositiveInfinity or math:NegativeInfinity) is always open, because the pole is a limit point of the extended real line, never a member."
+msgstr "Une extrémité ouverte : l'extrémité est exclue de l'intervalle — la parenthèse ronde de (a, …) ou (…, b). Le cas où lower < x (ou x < upper) est strict. Un bout non borné à un pôle (math:PositiveInfinity ou math:NegativeInfinity) est toujours ouvert, car le pôle est un point limite de la droite réelle achevée, jamais un membre."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This supplied marker excludes the endpoint from the interval without changing the endpoint value. It applies to finite open bounds and, by this slice’s convention, every unbounded end at a signed pole."
+msgstr "Ce marqueur fourni exclut l’extrémité de l’intervalle sans changer sa valeur. Il s’applique aux bornes finies ouvertes et, par convention de cette tranche, à toute extrémité non bornée à un pôle signé."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "The positive-real interval (0, +∞) uses math:openEndpoint on both ends, with lower numeric endpoint 0 and upper endpoint math:PositiveInfinity."
+msgstr "L’intervalle des réels positifs (0, +∞) utilise math:openEndpoint aux deux extrémités, avec l’extrémité inférieure numérique 0 et l’extrémité supérieure math:PositiveInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a finite boundary is excluded, or when an interval end is unbounded under the slice’s pole convention."
+msgstr "Utiliser lorsqu’une borne finie est exclue ou qu’une extrémité d’intervalle est non bornée selon la convention des pôles de la tranche."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid omitting the numeric or pole endpoint because this marker is present, treating openness as an unknown inclusion, or inventing a closed infinite end."
+msgstr "Ne pas omettre l’extrémité numérique ou le pôle du seul fait de ce marqueur, traiter l’ouverture comme une inclusion inconnue ou inventer une extrémité infinie fermée."
+
+msgctxt "https://blackcatinformatics.ca/math/openEndpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set the relevant math:lowerInclusion or math:upperInclusion to math:openEndpoint and retain the corresponding endpoint value. For unbounded ends use math:NegativeInfinity only below and math:PositiveInfinity only above, with both inclusion fields explicit."
+msgstr "Renseigner math:lowerInclusion ou math:upperInclusion avec math:openEndpoint et conserver la valeur de l’extrémité correspondante. Pour les extrémités non bornées, utiliser math:NegativeInfinity seulement en bas et math:PositiveInfinity seulement en haut, avec les deux champs d’inclusion explicites."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Interval"
+msgstr "Intervalle"
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An ordered real interval: the intensional set { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } of the points of the extended real line between two ordered endpoints. It names BOTH its endpoints — the lower through math:lowerEndpoint and the upper through math:upperEndpoint — and BOTH its endpoint inclusions — whether each end is included (a closed, square-bracket end) or excluded (an open, round-bracket end) — through math:lowerInclusion and math:upperInclusion. A bounded end names a finite numeric literal; an unbounded end names a pole (math:PositiveInfinity or math:NegativeInfinity) as its endpoint, and such an infinite end is always open (∞ is a limit point of ℝ̄, never a member). The inclusion is NEVER silently omitted: [0, 1) is the half-open unit interval and (0, 1) is the open one, and which is meant is data, not convention — an interval missing an endpoint or an inclusion is ill-formed (math:UnderspecifiedInterval). It is NOT the statistics math:ConfidenceInterval, which is a frequentist estimator carrying a coverage level and a point estimate, not an ordered subset of the line; a math:Interval is the pure order-theoretic set, the external anchor being the OpenMath interval1 content dictionary."
+msgstr "Un intervalle réel ordonné : l'ensemble intensionnel { x ∈ ℝ̄ | lower ⋚ x ⋚ upper } des points de la droite réelle achevée compris entre deux extrémités ordonnées. Il nomme SES DEUX extrémités — l'inférieure via math:lowerEndpoint et la supérieure via math:upperEndpoint — et SES DEUX inclusions d'extrémité — selon que chaque bout est inclus (une extrémité fermée, crochet droit) ou exclu (une extrémité ouverte, parenthèse ronde) — via math:lowerInclusion et math:upperInclusion. Un bout borné nomme un littéral numérique fini ; un bout non borné nomme un pôle (math:PositiveInfinity ou math:NegativeInfinity) comme extrémité, et un tel bout infini est toujours ouvert (∞ est un point limite de ℝ̄, jamais un membre). L'inclusion n'est JAMAIS omise en silence : [0, 1) est l'intervalle unité semi-ouvert et (0, 1) est l'ouvert, et lequel est visé est une donnée, non une convention — un intervalle auquel manque une extrémité ou une inclusion est mal formé (math:UnderspecifiedInterval). Ce n'est PAS le math:ConfidenceInterval des statistiques, qui est un estimateur fréquentiste portant un niveau de couverture et une estimation ponctuelle, non un sous-ensemble ordonné de la droite ; un math:Interval est l'ensemble purement ordinal, l'ancre externe étant le dictionnaire de contenu OpenMath interval1."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An interval describes an ordered subset with two endpoint values and two explicit inclusion markers, not a statistical confidence estimator. Finite ends use numeric literals; unbounded ends use math:NegativeInfinity below or math:PositiveInfinity above and are open under this slice’s convention."
+msgstr "Un intervalle décrit un sous-ensemble ordonné avec deux valeurs d’extrémité et deux marqueurs d’inclusion explicites, et non un estimateur de confiance statistique. Les extrémités finies utilisent des littéraux numériques ; les extrémités non bornées utilisent math:NegativeInfinity en bas ou math:PositiveInfinity en haut et sont ouvertes selon la convention de cette tranche."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:halfOpenUnit a math:Interval ; math:lowerEndpoint 0 ; math:lowerInclusion math:closedEndpoint ; math:upperEndpoint 1 ; math:upperInclusion math:openEndpoint ."
+msgstr "Exemple : exf:halfOpenUnit a math:Interval ; math:lowerEndpoint 0 ; math:lowerInclusion math:closedEndpoint ; math:upperEndpoint 1 ; math:upperInclusion math:openEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name a pure order-theoretic stretch of the extended real line between two ordered endpoints — a domain restriction, a piece-domain, or the region a bound holds on."
+msgstr "Utiliser pour nommer une portion purement théorique de l’ordre de la droite réelle étendue entre deux extrémités ordonnées — une restriction de domaine, un domaine par morceaux ou la région sur laquelle une borne s’applique."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use it for a statistics math:ConfidenceInterval (a frequentist estimator with a coverage level and a point estimate), and never omit an endpoint or an inclusion; a half-specified interval is math:UnderspecifiedInterval."
+msgstr "Ne pas l’utiliser pour un math:ConfidenceInterval statistique (un estimateur fréquentiste avec niveau de couverture et estimation ponctuelle), et ne jamais omettre une extrémité ou une inclusion ; un intervalle partiellement spécifié est math:UnderspecifiedInterval."
+
+msgctxt "https://blackcatinformatics.ca/math/Interval|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name all four of math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion, and math:upperInclusion; a bounded end is a finite literal, an unbounded end is a pole with an open inclusion."
+msgstr "Nommer les quatre champs math:lowerEndpoint, math:upperEndpoint, math:lowerInclusion et math:upperInclusion ; une extrémité bornée est un littéral fini, une extrémité non bornée est un pôle avec inclusion ouverte."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Endpoint Inclusion"
+msgstr "Inclusion d'extrémité"
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Whether an endpoint of a math:Interval is included in or excluded from the interval, carried by each end through math:lowerInclusion and math:upperInclusion: one of math:closedEndpoint (the endpoint is a member — the square bracket of [a, …) or (…, b]) or math:openEndpoint (the endpoint is excluded — the round bracket of (a, …) or (…, b)). The inclusion is what distinguishes [0, 1] from [0, 1) from (0, 1), and is required on both ends of every math:Interval."
+msgstr "Le fait qu'une extrémité d'un math:Interval soit incluse dans l'intervalle ou en soit exclue, porté par chaque bout via math:lowerInclusion et math:upperInclusion : l'une de math:closedEndpoint (l'extrémité est un membre — le crochet droit de [a, …) ou (…, b]) ou math:openEndpoint (l'extrémité est exclue — la parenthèse ronde de (a, …) ou (…, b)). L'inclusion est ce qui distingue [0, 1] de [0, 1) de (0, 1), et elle est requise sur les deux bouts de tout math:Interval."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an open class with supplied math:closedEndpoint and math:openEndpoint markers, not a closed enumeration. Reuse those markers for ordinary intervals; additional class members do not imply support in every consumer. Under this slice’s interval convention, infinite pole ends use math:openEndpoint."
+msgstr "Il s’agit d’une classe ouverte avec les marqueurs fournis math:closedEndpoint et math:openEndpoint, et non d’une énumération fermée. Réutiliser ces marqueurs pour les intervalles ordinaires ; des membres supplémentaires de la classe n’impliquent pas leur prise en charge par tous les consommateurs. Selon la convention d’intervalle de cette tranche, les extrémités à un pôle infini utilisent math:openEndpoint."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:closedUnit a math:Interval ; math:lowerInclusion math:closedEndpoint ; math:upperInclusion math:closedEndpoint ."
+msgstr "Exemple : exf:closedUnit a math:Interval ; math:lowerInclusion math:closedEndpoint ; math:upperInclusion math:closedEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it as the type of the two inclusion markers an interval's ends take — whether each end is a member (closed) or excluded (open)."
+msgstr "Utiliser comme type des deux marqueurs d’inclusion que prennent les extrémités d’un intervalle — chaque extrémité étant membre (fermée) ou exclue (ouverte)."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid minting a duplicate of the supplied math:closedEndpoint or math:openEndpoint markers, or treating this open value vocabulary as a closed enumeration. An infinite pole end is always math:openEndpoint."
+msgstr "Éviter de créer un doublon des marqueurs fournis math:closedEndpoint ou math:openEndpoint, ou de traiter ce vocabulaire de valeurs ouvert comme une énumération fermée. Une extrémité à un pôle infini est toujours math:openEndpoint."
+
+msgctxt "https://blackcatinformatics.ca/math/EndpointInclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Fill a math:lowerInclusion or math:upperInclusion slot with one of its two members; it is required on both ends of every math:Interval."
+msgstr "Remplir un emplacement math:lowerInclusion ou math:upperInclusion avec l’un de ses deux membres ; il est requis aux deux extrémités de tout math:Interval."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lower endpoint"
+msgstr "extrémité inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The lower endpoint of a math:Interval — the left end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded lower end) or the pole math:NegativeInfinity (an unbounded-below end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité inférieure d'un math:Interval — le bout gauche de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout inférieur borné) ou le pôle math:NegativeInfinity (un bout non borné inférieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field records the lower bound value, separately from math:lowerInclusion. It remains an rdf:Property so a finite numeric literal and the unbounded-below pole math:NegativeInfinity can occupy the value role; math:PositiveInfinity belongs only to the upper endpoint role."
+msgstr "Ce champ consigne la valeur de la borne inférieure, séparément de math:lowerInclusion. Il reste un rdf:Property afin qu’un littéral numérique fini et le pôle non borné en bas math:NegativeInfinity puissent occuper ce rôle de valeur ; math:PositiveInfinity appartient uniquement au rôle d’extrémité supérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:i math:lowerEndpoint math:NegativeInfinity ; math:lowerInclusion math:openEndpoint ."
+msgstr "Exemple : exf:i math:lowerEndpoint math:NegativeInfinity ; math:lowerInclusion math:openEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the left end of a math:Interval — a bounded finite literal or, for an unbounded-below interval, the pole math:NegativeInfinity."
+msgstr "Utiliser pour nommer le bord gauche d’un math:Interval — un littéral fini borné ou, pour un intervalle non borné en bas, le pôle math:NegativeInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not put math:PositiveInfinity here (that is the upper end's unbounded pole), and do not omit it; an interval without it is math:UnderspecifiedInterval."
+msgstr "Ne pas placer math:PositiveInfinity ici (c’est le pôle non borné de l’extrémité supérieure), et ne pas l’omettre ; un intervalle qui en est dépourvu est math:UnderspecifiedInterval."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerEndpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:Interval to a finite numeric literal or math:NegativeInfinity; pair it with a math:lowerInclusion, always open for an infinite end."
+msgstr "Le renseigner sur un math:Interval avec un littéral numérique fini ou math:NegativeInfinity ; l’associer à math:lowerInclusion, toujours ouverte pour une extrémité infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "upper endpoint"
+msgstr "extrémité supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The upper endpoint of a math:Interval — the right end of { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domain math:Interval, range a finite numeric literal (a bounded upper end) or the pole math:PositiveInfinity (an unbounded-above end) (stated in prose). Like math:totalMass and math:extendedRealValue, it is an rdf:Property, not an OWL ObjectProperty or OWL DatatypeProperty, precisely because its range spans both a datatype literal (the finite endpoint) and an individual (a pole): neither DL property kind admits both, so the honest RDF supertype carries the extended-real range without a DL contradiction. Every math:Interval names exactly one; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "L'extrémité supérieure d'un math:Interval — le bout droit de { x ∈ ℝ̄ | lower ⋚ x ⋚ upper }. Domaine math:Interval, portée un littéral numérique fini (un bout supérieur borné) ou le pôle math:PositiveInfinity (un bout non borné supérieurement) (précisé en prose). Comme math:totalMass et math:extendedRealValue, c'est une rdf:Property, non une OWL ObjectProperty ni une OWL DatatypeProperty, précisément parce que sa portée couvre à la fois un littéral de type de données (l'extrémité finie) et un individu (un pôle) : aucune des deux sortes de propriété DL n'admet les deux, de sorte que l'honnête surtype RDF porte la portée réelle étendue sans contradiction DL. Chaque math:Interval en nomme exactement une ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field records the upper bound value, separately from math:upperInclusion. It remains an rdf:Property so a finite numeric literal and the unbounded-above pole math:PositiveInfinity can occupy the value role; math:NegativeInfinity belongs only to the lower endpoint role."
+msgstr "Ce champ consigne la valeur de la borne supérieure, séparément de math:upperInclusion. Il reste un rdf:Property afin qu’un littéral numérique fini et le pôle non borné en haut math:PositiveInfinity puissent occuper ce rôle de valeur ; math:NegativeInfinity appartient uniquement au rôle d’extrémité inférieure."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:i math:upperEndpoint math:PositiveInfinity ; math:upperInclusion math:openEndpoint ."
+msgstr "Exemple : exf:i math:upperEndpoint math:PositiveInfinity ; math:upperInclusion math:openEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the right end of a math:Interval — a bounded finite literal or, for an unbounded-above interval, the pole math:PositiveInfinity."
+msgstr "Utiliser pour nommer le bord droit d’un math:Interval — un littéral fini borné ou, pour un intervalle non borné en haut, le pôle math:PositiveInfinity."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not put math:NegativeInfinity here (that is the lower end's unbounded pole), and do not omit it; an interval without it is math:UnderspecifiedInterval."
+msgstr "Ne pas placer math:NegativeInfinity ici (c’est le pôle non borné de l’extrémité inférieure), et ne pas l’omettre ; un intervalle qui en est dépourvu est math:UnderspecifiedInterval."
+
+msgctxt "https://blackcatinformatics.ca/math/upperEndpoint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:Interval to a finite numeric literal or math:PositiveInfinity; pair it with a math:upperInclusion, always open for an infinite end."
+msgstr "Le renseigner sur un math:Interval avec un littéral numérique fini ou math:PositiveInfinity ; l’associer à math:upperInclusion, toujours ouverte pour une extrémité infinie."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "lower inclusion"
+msgstr "inclusion inférieure"
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its lower end — math:closedEndpoint (the lower endpoint is a member, the square bracket of [a, …) or math:openEndpoint (the lower endpoint is excluded, the round bracket of (a, …). Domain math:Interval, range math:EndpointInclusion (stated in prose). The lower inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout inférieur — math:closedEndpoint (l'extrémité inférieure est un membre, le crochet droit de [a, …) ou math:openEndpoint (l'extrémité inférieure est exclue, la parenthèse ronde de (a, …). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion inférieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field records lower-end membership, not the lower numeric or pole value. Its role is independent of math:upperInclusion: both ends may reuse the same marker without implying different resources or an implicit inclusion for the other end. An infinite lower end is open under this slice’s convention."
+msgstr "Ce champ consigne l’appartenance de l’extrémité inférieure, et non sa valeur numérique ou son pôle. Son rôle est indépendant de math:upperInclusion : les deux extrémités peuvent réutiliser le même marqueur sans impliquer des ressources différentes ni une inclusion implicite de l’autre extrémité. Une extrémité inférieure infinie est ouverte selon la convention de cette tranche."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:unitClosedLeft math:lowerInclusion math:closedEndpoint ."
+msgstr "Exemple : exf:unitClosedLeft math:lowerInclusion math:closedEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to declare whether the lower endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1) and (0, 1)."
+msgstr "Utiliser pour déclarer si l’extrémité inférieure d’un math:Interval est membre (fermée) ou exclue (ouverte) — la différence entre [0, 1) et (0, 1)."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not silently omit it; the inclusion is data, not convention, and an interval missing it is math:UnderspecifiedInterval. An infinite lower end is always math:openEndpoint."
+msgstr "Ne pas l’omettre implicitement ; l’inclusion est une donnée, pas une convention, et un intervalle qui en est dépourvu est math:UnderspecifiedInterval. Une extrémité inférieure infinie est toujours math:openEndpoint."
+
+msgctxt "https://blackcatinformatics.ca/math/lowerInclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:Interval to a math:EndpointInclusion member matching the lower end's bracket."
+msgstr "Le renseigner sur un math:Interval avec un membre de math:EndpointInclusion correspondant au crochet ou à la parenthèse de l’extrémité inférieure."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "upper inclusion"
+msgstr "inclusion supérieure"
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:Interval to the math:EndpointInclusion of its upper end — math:closedEndpoint (the upper endpoint is a member, the square bracket of …, b]) or math:openEndpoint (the upper endpoint is excluded, the round bracket of …, b). Domain math:Interval, range math:EndpointInclusion (stated in prose). The upper inclusion is required and never silently omitted; an interval without it is ill-formed (math:UnderspecifiedInterval)."
+msgstr "Relie un math:Interval à la math:EndpointInclusion de son bout supérieur — math:closedEndpoint (l'extrémité supérieure est un membre, le crochet droit de …, b]) ou math:openEndpoint (l'extrémité supérieure est exclue, la parenthèse ronde de …, b). Domaine math:Interval, portée math:EndpointInclusion (précisé en prose). L'inclusion supérieure est requise et jamais omise en silence ; un intervalle sans elle est mal formé (math:UnderspecifiedInterval)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This field records upper-end membership, not the upper numeric or pole value. Its role is independent of math:lowerInclusion: both ends may reuse the same marker, and declaring one end does not supply the other end’s inclusion. An infinite upper end is open under this slice’s convention."
+msgstr "Ce champ consigne l’appartenance de l’extrémité supérieure, et non sa valeur numérique ou son pôle. Son rôle est indépendant de math:lowerInclusion : les deux extrémités peuvent réutiliser le même marqueur, et déclarer une extrémité ne fournit pas l’inclusion de l’autre. Une extrémité supérieure infinie est ouverte selon la convention de cette tranche."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:unitOpenRight math:upperInclusion math:openEndpoint ."
+msgstr "Exemple : exf:unitOpenRight math:upperInclusion math:openEndpoint ."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to declare whether the upper endpoint of a math:Interval is a member (closed) or excluded (open) — the difference between [0, 1] and [0, 1)."
+msgstr "Utiliser pour déclarer si l’extrémité supérieure d’un math:Interval est membre (fermée) ou exclue (ouverte) — la différence entre [0, 1] et [0, 1)."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not silently omit it; the inclusion is data, not convention, and an interval missing it is math:UnderspecifiedInterval. An infinite upper end is always math:openEndpoint."
+msgstr "Ne pas l’omettre implicitement ; l’inclusion est une donnée, pas une convention, et un intervalle qui en est dépourvu est math:UnderspecifiedInterval. Une extrémité supérieure infinie est toujours math:openEndpoint."
+
+msgctxt "https://blackcatinformatics.ca/math/upperInclusion|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:Interval to a math:EndpointInclusion member matching the upper end's bracket."
+msgstr "Le renseigner sur un math:Interval avec un membre de math:EndpointInclusion correspondant au crochet ou à la parenthèse de l’extrémité supérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator domain"
+msgstr "domaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The number system an operator's operands are drawn from — the source of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its domain is unframed (math:UnframedOperator). Distinct from math:domain (a function's or relation's source set): math:operatorDomain frames the operator symbol itself, over the number-system tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and the signed extended real line ℝ̄)."
+msgstr "Le système de nombres d'où sont tirés les opérandes d'un opérateur — la source de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son domaine est non cadré (math:UnframedOperator). Distinct de math:domain (l'ensemble source d'une fonction ou d'une relation) : math:operatorDomain cadre le symbole d'opérateur lui-même, sur la tour des systèmes de nombres ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (et la droite réelle achevée signée ℝ̄)."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the operand-system part of a math:ArithmeticOperation signature, with a math:NumberSystem value, rather than the math:domain frame of a function or relation. The real inputs declared for math:Root and math:Logarithm remain real even when their result system is complex; math:Negation retains its extended-real signature."
+msgstr "Il s’agit de la partie système des opérandes de la signature d’un math:ArithmeticOperation, avec une valeur math:NumberSystem, plutôt que du cadre math:domain d’une fonction ou d’une relation. Les entrées réelles déclarées pour math:Root et math:Logarithm restent réelles même si leur système de résultats est complexe ; math:Negation conserve sa signature réelle étendue."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:realRoot math:operatorDomain math:realNumbers ."
+msgstr "Exemple : exf:realRoot math:operatorDomain math:realNumbers ."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the number system a math:ArithmeticOperation's operands are drawn from — the source of its signature over the tower ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (and ℝ̄)."
+msgstr "Utiliser pour nommer le système de nombres dont proviennent les opérandes d’un math:ArithmeticOperation — la source de sa signature sur la tour ℕ ⊂ ℤ ⊂ ℚ ⊂ ℝ ⊂ ℂ (et ℝ̄)."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not confuse it with math:domain (a function's source set); math:operatorDomain frames the operator SYMBOL, and omitting it makes the operator math:UnframedOperator."
+msgstr "Ne pas le confondre avec math:domain (l’ensemble source d’une fonction) ; math:operatorDomain cadre le SYMBOLE opérateur, et l’omettre rend l’opérateur math:UnframedOperator."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, paired with math:operatorCodomain."
+msgstr "Le renseigner sur un math:ArithmeticOperation avec un math:NumberSystem ; exactement un par opération, associé à math:operatorCodomain."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator codomain"
+msgstr "codomaine de l'opérateur"
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The number system an operator's result lies in — the target of its signature. Domain math:ArithmeticOperation, range math:NumberSystem (stated in prose). Every math:ArithmeticOperation names exactly one; an operator without its codomain is unframed (math:UnframedOperator). The declared target may be wider than the operator's domain — a real even root or a real logarithm lands in ℂ, so math:Root and math:Logarithm frame math:realNumbers → math:complexNumbers honestly rather than pretending the result stays real."
+msgstr "Le système de nombres où se trouve le résultat d'un opérateur — la cible de sa signature. Domaine math:ArithmeticOperation, image math:NumberSystem (énoncé en prose). Chaque math:ArithmeticOperation en nomme exactement un ; un opérateur sans son codomaine est non cadré (math:UnframedOperator). La cible déclarée peut être plus large que le domaine de l'opérateur — une racine réelle d'ordre pair ou un logarithme réel aboutit dans ℂ, si bien que math:Root et math:Logarithm cadrent math:realNumbers → math:complexNumbers honnêtement plutôt que de prétendre que le résultat reste réel."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the result-system part of a math:ArithmeticOperation signature, distinct from math:codomain on a function or relation. A wider result system does not widen the declared inputs. Authenticating signature metadata alone establishes neither arithmetic execution for every input nor a proof of a result."
+msgstr "Il s’agit de la partie système des résultats de la signature d’un math:ArithmeticOperation, distincte de math:codomain sur une fonction ou une relation. Un système de résultats plus large n’élargit pas les entrées déclarées. L’authentification des seules métadonnées de signature n’établit ni l’exécution arithmétique pour chaque entrée ni une preuve d’un résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "exf:realRoot math:operatorCodomain math:complexNumbers ."
+msgstr "Exemple : exf:realRoot math:operatorCodomain math:complexNumbers ."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Reach for it to name the number system a math:ArithmeticOperation's result lies in — the target of its signature, which may be wider than its domain (a real even root lands in ℂ)."
+msgstr "Utiliser pour nommer le système de nombres dans lequel se situe le résultat d’un math:ArithmeticOperation — la cible de sa signature, qui peut être plus large que son domaine (une racine réelle d’ordre pair aboutit dans ℂ)."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not confuse it with math:codomain (a function's target set), and do not assume the result stays in the operand system; omitting it makes the operator math:UnframedOperator."
+msgstr "Ne pas le confondre avec math:codomain (l’ensemble cible d’une fonction), et ne pas supposer que le résultat reste dans le système des opérandes ; l’omettre rend l’opérateur math:UnframedOperator."
+
+msgctxt "https://blackcatinformatics.ca/math/operatorCodomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set it on a math:ArithmeticOperation to a math:NumberSystem; exactly one per operation, honestly widening to ℂ where a real root or logarithm requires it."
+msgstr "Le renseigner sur un math:ArithmeticOperation avec un math:NumberSystem ; exactement un par opération, en élargissant honnêtement à ℂ lorsqu’une racine réelle ou un logarithme l’exige."
