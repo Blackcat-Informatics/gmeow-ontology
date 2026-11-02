@@ -3,12 +3,12 @@
 
 //! The application's sole tool-call RDF owner, shared by both stores and replay.
 
-use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
+use std::collections::{BTreeSet, VecDeque};
 use std::sync::Arc;
 
 use gmeow_errors::Result;
 use purrdf::ir::RdfDatasetBuilder;
-use purrdf::{RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
+use purrdf::{FastMap, FastSet, RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
 
 use super::{err, record_id, require_iri};
 
@@ -122,12 +122,12 @@ fn text(value: &str) -> RdfTerm {
 
 /// Borrow native terms without changing their identity or graph authority.
 struct RowIndex<'a> {
-    by_subject: HashMap<&'a RdfTerm, HashMap<&'a str, Vec<&'a RdfTerm>>>,
+    by_subject: FastMap<&'a RdfTerm, FastMap<&'a str, Vec<&'a RdfTerm>>>,
 }
 
 impl<'a> RowIndex<'a> {
     fn new(rows: impl IntoIterator<Item = &'a RdfQuad>) -> Self {
-        let mut by_subject: HashMap<&RdfTerm, HashMap<&str, Vec<&RdfTerm>>> = HashMap::new();
+        let mut by_subject: FastMap<&RdfTerm, FastMap<&str, Vec<&RdfTerm>>> = FastMap::default();
         for row in rows {
             by_subject
                 .entry(&row.subject)
@@ -141,7 +141,7 @@ impl<'a> RowIndex<'a> {
 }
 
 fn objects(rows: &RowIndex<'_>, subject: &RdfTerm, predicate: &str) -> Vec<RdfTerm> {
-    let mut seen = HashSet::new();
+    let mut seen = FastSet::default();
     rows.by_subject
         .get(subject)
         .and_then(|predicates| predicates.get(predicate))
@@ -235,7 +235,7 @@ impl StructuredPayload {
         result: Option<&RdfTerm>,
     ) -> Result<()> {
         let mut pending: VecDeque<RdfTerm> = arguments.into_iter().chain(result).cloned().collect();
-        let mut seen = HashSet::new();
+        let mut seen = FastSet::default();
         while let Some(node) = pending.pop_front() {
             if !seen.insert(node.clone()) {
                 continue;
@@ -269,7 +269,7 @@ impl StructuredPayload {
                     "tool payload {node:?} has entries outside its branch"
                 )));
             }
-            let mut positions = HashSet::new();
+            let mut positions = FastSet::default();
             for entry in facets.iter().chain(&items) {
                 require_resource(entry)?;
                 let ordinals = objects(rows, entry, &format!("{G}entryOrdinal"));
@@ -664,7 +664,7 @@ fn write_payload(
 }
 
 fn read_payload(
-    graphs: &HashMap<&RdfTerm, Vec<&RdfQuad>>,
+    graphs: &FastMap<&RdfTerm, Vec<&RdfQuad>>,
     metadata: &RowIndex<'_>,
     subject: &str,
     arguments: Option<RdfTerm>,
@@ -684,7 +684,7 @@ fn read_payload(
     // its source-graph profile never grants a second, weaker map grammar.
     StructuredPayload::validate_index(metadata, Some(&map), None)?;
     let mut graph = RdfDatasetBuilder::new();
-    let mut originals = HashSet::new();
+    let mut originals = FastSet::default();
     for address in objects(metadata, &map, &format!("{G}hasFacet")) {
         require_resource(&address)?;
         let key = one(metadata, &address, &format!("{G}facetLabel"))?
@@ -831,8 +831,8 @@ pub(super) fn read_calls(dataset: &RdfDataset) -> Result<Vec<ToolCallRecord>> {
     let rows = purrdf::flat_rdf_quads_from_dataset(dataset);
     let metadata_rows: Vec<&RdfQuad> = rows.iter().filter(|row| row.graph_name.is_none()).collect();
     let metadata = RowIndex::new(metadata_rows.iter().copied());
-    let mut graphs: HashMap<&RdfTerm, Vec<&RdfQuad>> = HashMap::new();
-    let mut backlinks: HashMap<&RdfTerm, Vec<&RdfQuad>> = HashMap::new();
+    let mut graphs: FastMap<&RdfTerm, Vec<&RdfQuad>> = FastMap::default();
+    let mut backlinks: FastMap<&RdfTerm, Vec<&RdfQuad>> = FastMap::default();
     for row in &rows {
         if let Some(name) = &row.graph_name {
             graphs.entry(name).or_default().push(row);
@@ -843,7 +843,7 @@ pub(super) fn read_calls(dataset: &RdfDataset) -> Result<Vec<ToolCallRecord>> {
         }
     }
     let mut subjects = Vec::new();
-    let mut seen_subjects = HashSet::new();
+    let mut seen_subjects = FastSet::default();
     for row in &metadata_rows {
         if row.predicate == TYPE
             && [

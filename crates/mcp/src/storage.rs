@@ -700,7 +700,6 @@ pub use native::{fs_claim_store, fs_segment_library};
 
 #[cfg(not(target_arch = "wasm32"))]
 mod native {
-    use std::collections::HashMap;
     use std::fs;
     use std::io::{self, Write as _};
     use std::path::{Path, PathBuf};
@@ -965,7 +964,7 @@ mod native {
             let mut calls = payload::read_calls(&imported.dataset)?;
             // Native folds retain physical row order before dataset freezing
             // canonicalizes it. Historical calls have no authored ordinal.
-            let mut order = HashMap::new();
+            let mut order = purrdf::FastMap::default();
             for graph in purrdf::gts::reader::read_file_segments(&bytes).segments {
                 let term_iri = |id: usize| {
                     let term = &graph.terms[id];
