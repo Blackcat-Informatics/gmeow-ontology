@@ -4744,3 +4744,339 @@ msgstr "Éviter un littéral numérique comme objet, l’inversion de la directi
 msgctxt "https://blackcatinformatics.ca/math/hasCardinality|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Select the appropriate math:Cardinality individual as the object of math:hasCardinality on the set. For an extensional math:FiniteSet use math:cardinalityFinite, and attach any justified exact math:quantityValue count to that set resource rather than to the shared marker."
 msgstr "Sélectionner l’individu math:Cardinality approprié comme objet de math:hasCardinality sur l’ensemble. Pour un math:FiniteSet donné en extension, utiliser math:cardinalityFinite et attacher tout effectif exact justifié math:quantityValue à cette ressource ensemble plutôt qu’au marqueur partagé."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "finite"
+msgstr "fini"
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The shared marker that a set is finite — in bijection with some natural number n. It does not identify one exact cardinality. A finite set names this marker through math:hasCardinality and may carry its own exact count directly as math:quantityValue; that set-specific count does not belong on this shared marker."
+msgstr "Le marqueur partagé indiquant qu’un ensemble est fini — en bijection avec un certain nombre naturel n. Il n’identifie pas une cardinalité exacte unique. Un ensemble fini désigne ce marqueur par math:hasCardinality et peut porter directement son propre effectif exact comme math:quantityValue ; cet effectif propre à l’ensemble n’appartient pas au marqueur partagé."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual marks finiteness across sets of different exact sizes, including the empty set. It is neither an infinite cardinal nor a shared storage node for their individual counts."
+msgstr "Cet individu marque la finitude d’ensembles de tailles exactes différentes, y compris l’ensemble vide. Ce n’est ni un cardinal infini ni un nœud de stockage partagé de leurs effectifs individuels."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|http://www.w3.org/2004/02/skos/core#example"
+msgid "A four-prime set and an empty set can both name math:cardinalityFinite through math:hasCardinality, while carrying their justified math:quantityValue counts 4 and 0 on their own set resources."
+msgstr "Un ensemble de quatre nombres premiers et un ensemble vide peuvent tous deux désigner math:cardinalityFinite par math:hasCardinality, tout en portant leurs effectifs justifiés math:quantityValue 4 et 0 sur leurs propres ressources ensembles."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the cardinality marker when a set is known to be finite, whether or not its exact count is also recorded."
+msgstr "Utiliser comme marqueur de cardinalité lorsqu’un ensemble est connu comme fini, que son effectif exact soit également consigné ou non."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting math:quantityValue 4, 256 or another set-specific count on math:cardinalityFinite, or inferring that all sets pointing to this marker have equal size."
+msgstr "Ne pas placer math:quantityValue 4, 256 ou un autre effectif propre à un ensemble sur math:cardinalityFinite, ni en déduire que tous les ensembles pointant vers ce marqueur ont la même taille."
+
+msgctxt "https://blackcatinformatics.ca/math/cardinalityFinite|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from each finite set to math:cardinalityFinite. Keep any exact non-negative integer math:quantityValue on that set and preserve the shared marker independently of all such counts."
+msgstr "Faire pointer math:hasCardinality de chaque ensemble fini vers math:cardinalityFinite. Garder tout effectif entier exact non négatif math:quantityValue sur cet ensemble et préserver le marqueur partagé indépendamment de tous ces effectifs."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ℵ₀"
+msgstr "infini dénombrable (ℵ₀)"
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cardinality ℵ₀ of a countably infinite set — a set in bijection with ℕ, such as ℤ or ℚ."
+msgstr "Le cardinal ℵ₀ d’un ensemble infini dénombrable — un ensemble en bijection avec ℕ, tel que ℤ ou ℚ."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "ℵ₀ denotes countably infinite size, requiring a bijection with ℕ rather than merely an unbounded sequence of observed members. Equal cardinality does not identify the underlying sets."
+msgstr "ℵ₀ désigne une taille infinie dénombrable, qui exige une bijection avec ℕ plutôt qu’une simple suite non bornée de membres observés. L’égalité des cardinalités n’identifie pas les ensembles sous-jacents."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|http://www.w3.org/2004/02/skos/core#example"
+msgid "The integer and rational systems both have cardinality math:alephNull because each is countably infinite, although ℤ and ℚ are different sets."
+msgstr "Les systèmes des entiers et des rationnels ont tous deux la cardinalité math:alephNull car chacun est infini dénombrable, bien que ℤ et ℚ soient des ensembles différents."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when countable infinitude is mathematically justified for the set whose size is being described."
+msgstr "Utiliser lorsque le caractère infini dénombrable est mathématiquement justifié pour l’ensemble dont la taille est décrite."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting ℵ₀ for every infinite set, treating a long finite enumeration as a proof of infinitude, or equating a set with ℕ solely because their cardinalities agree."
+msgstr "Ne pas choisir ℵ₀ pour tout ensemble infini, traiter une longue énumération finie comme preuve d’infinitude ou identifier un ensemble à ℕ au seul motif que leurs cardinalités concordent."
+
+msgctxt "https://blackcatinformatics.ca/math/alephNull|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:alephNull as the object of math:hasCardinality on a set supported as countably infinite. Retain the bijection or other mathematical justification separately, without assigning a finite math:quantityValue count."
+msgstr "Employer math:alephNull comme objet de math:hasCardinality sur un ensemble dont le caractère infini dénombrable est étayé. Conserver séparément la bijection ou une autre justification mathématique, sans attribuer d’effectif fini math:quantityValue."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "𝔠"
+msgstr "cardinal du continu (𝔠)"
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The cardinality 𝔠 of the continuum — the cardinality of ℝ, equal to 2^ℵ₀."
+msgstr "Le cardinal 𝔠 du continu — le cardinal de ℝ, égal à 2^ℵ₀."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "𝔠 is the cardinality of ℝ, equal to 2^ℵ₀ and greater than ℵ₀. This declaration does not identify it with ℵ₁ or assume the continuum hypothesis."
+msgstr "𝔠 est le cardinal de ℝ, égal à 2^ℵ₀ et supérieur à ℵ₀. Cette déclaration ne l’identifie pas à ℵ₁ et ne suppose pas l’hypothèse du continu."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|http://www.w3.org/2004/02/skos/core#example"
+msgid "The real-number system can state math:hasCardinality math:continuum; the rational-number system has math:alephNull instead, despite both sets being infinite."
+msgstr "Le système des réels peut déclarer math:hasCardinality math:continuum ; celui des rationnels a plutôt math:alephNull, bien que les deux ensembles soient infinis."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a set whose size is established to equal the cardinality of the real line."
+msgstr "Utiliser pour un ensemble dont la taille est établie comme égale au cardinal de la droite réelle."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring continuum size from infinitude or uncountability alone, asserting 𝔠 = ℵ₁ without an explicit additional assumption, or deriving set equality from equal size."
+msgstr "Ne pas déduire la taille du continu de la seule infinitude ou non-dénombrabilité, affirmer 𝔠 = ℵ₁ sans hypothèse supplémentaire explicite ou déduire l’égalité des ensembles de leur taille égale."
+
+msgctxt "https://blackcatinformatics.ca/math/continuum|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasCardinality from the relevant set to math:continuum and retain the mathematical argument establishing that size. Keep any set-theoretic assumptions explicit rather than adding them to the meaning of this individual."
+msgstr "Faire pointer math:hasCardinality de l’ensemble concerné vers math:continuum et conserver l’argument mathématique établissant cette taille. Garder explicites les hypothèses ensemblistes plutôt que les ajouter au sens de cet individu."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement"
+msgstr "Complément"
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complement construction relative to an operand, an ambient space and a declared notion of complement. A subclass of math:SetOperation that names its ambient space through math:ambientSpace and its selected semantics through math:complementSemantics: set-theoretic U ∖ S, orthogonal S⊥, complex-linear, topological, or quotient/cokernel. These notions do not all mean set subtraction. A complement missing its ambient space or selected semantics is ill-formed."
+msgstr "Une construction de complément relative à un opérande, un espace ambiant et une notion de complément déclarée. Une sous-classe de math:SetOperation qui désigne son espace ambiant par math:ambientSpace et sa sémantique choisie par math:complementSemantics : ensembliste U ∖ S, orthogonale S⊥, linéaire complexe, topologique ou quotient/conoyau. Ces notions ne signifient pas toutes une différence ensembliste. Un complément auquel manque l’espace ambiant ou la sémantique choisie est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A complement is qualified by both its ambient space and its selected semantics. Operand and ambient are different roles that may refer to the same resource, as in U ∖ U = ∅. Orthogonal, direct-sum and quotient meanings cannot be read as ordinary set subtraction."
+msgstr "Un complément est qualifié à la fois par son espace ambiant et par sa sémantique choisie. L’opérande et l’espace ambiant sont des rôles différents qui peuvent renvoyer à la même ressource, comme dans U ∖ U = ∅. Les sens orthogonal, de somme directe et de quotient ne se lisent pas comme une simple différence ensembliste."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The existing residualSubspace example is a math:OrthogonalComplement of an embedded subspace within a complex ambient space, with math:complementSemantics math:orthogonalComplement and a named Hermitian inner product."
+msgstr "L’exemple existant residualSubspace est un math:OrthogonalComplement d’un sous-espace plongé dans un espace ambiant complexe, avec math:complementSemantics math:orthogonalComplement et un produit hermitien désigné."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a complement construction must retain what is complemented, the enclosing mathematical space and the intended notion of complement."
+msgstr "Utiliser lorsqu’une construction de complément doit conserver l’objet dont on prend le complément, l’espace mathématique englobant et la notion de complément voulue."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an unqualified complement label, substituting the operand for the ambient space, or applying U ∖ S semantics to every subclass of math:Complement."
+msgstr "Éviter un libellé de complément non qualifié, la substitution de l’opérande à l’espace ambiant ou l’application du sens U ∖ S à toute sous-classe de math:Complement."
+
+msgctxt "https://blackcatinformatics.ca/math/Complement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Declare the complement with one math:ambientSpace and one math:complementSemantics individual. Identify the operand through the applicable relation, such as math:setOperationOn or the specialized math:orthogonalComplementOf, and supply any structure required by that selected semantics."
+msgstr "Déclarer le complément avec un math:ambientSpace et un individu math:complementSemantics. Identifier l’opérande par la relation appropriée, telle que math:setOperationOn ou la relation spécialisée math:orthogonalComplementOf, et fournir toute structure requise par la sémantique choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "ambient space"
+msgstr "espace ambiant"
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the ambient space a math:Complement is taken relative to (the U in a complement of S within U). Domain math:Complement, range a math:Set, math:VectorSpace, math:TopologicalSpace, or math:FunctionSpace (stated in prose) — the ambient space generalizes the set-theoretic case to the orthogonal, complex-linear, topological, and quotient cases the math:complementSemantics distinguishes. A complement without an ambient space is ill-formed (math:UnqualifiedComplement). Generalizes the earlier set-only complement predicate: a complement is relative to an ambient space, and which space and which semantics must both be named."
+msgstr "Désigne l’espace ambiant relativement auquel un math:Complement est pris (le U d’un complément de S dans U). Domaine math:Complement, portée un math:Set, math:VectorSpace, math:TopologicalSpace ou math:FunctionSpace (déclarés en prose) — l’espace ambiant généralise le cas ensembliste aux cas orthogonal, linéaire complexe, topologique et de quotient que math:complementSemantics distingue. Un complément sans espace ambiant est mal formé (math:UnqualifiedComplement). Généralise l’ancien prédicat de complément limité aux ensembles : un complément est relatif à un espace ambiant, et l’espace comme la sémantique doivent être désignés."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is from the complement resource to the enclosing mathematical space. The object identifies the universe or structured total space in the ambient role. The operand role may point to that same resource: in an inner-product space V, the orthogonal complement of V within itself is {0}."
+msgstr "La direction va de la ressource complément vers l’espace mathématique englobant. L’objet identifie l’univers ou l’espace total structuré dans le rôle ambiant. Le rôle d’opérande peut pointer vers cette même ressource : dans un espace à produit intérieur V, le complément orthogonal de V en lui-même est {0}."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "For the orthogonal complement of S in V, math:orthogonalComplementOf points to S and math:ambientSpace points to V. The selected inner product is named separately by math:definedByInnerProduct."
+msgstr "Pour le complément orthogonal de S dans V, math:orthogonalComplementOf pointe vers S et math:ambientSpace vers V. Le produit intérieur choisi est désigné séparément par math:definedByInnerProduct."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use whenever the meaning of a complement depends on the containing set, vector space, topological space or function space."
+msgstr "Utiliser chaque fois que le sens d’un complément dépend de l’ensemble, de l’espace vectoriel, de l’espace topologique ou de l’espace de fonctions qui le contient."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a text label in place of the space resource, reversing the relation, or using the ambient-space link alone to imply orthogonality or a chosen complement semantics."
+msgstr "Ne pas substituer un libellé textuel à la ressource espace, inverser la relation ou utiliser le seul lien d’espace ambiant pour impliquer l’orthogonalité ou une sémantique de complément choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/ambientSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:ambientSpace from the complement to one identified enclosing space and state math:complementSemantics separately. Retain the operand relation and the topology, scalar field or inner product needed to interpret the selected construction."
+msgstr "Faire pointer math:ambientSpace du complément vers un espace englobant identifié et déclarer séparément math:complementSemantics. Conserver la relation à l’opérande ainsi que la topologie, le corps des scalaires ou le produit intérieur nécessaires pour interpréter la construction choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complement semantics"
+msgstr "sémantique de complément"
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names which notion of complement a math:Complement uses: a math:ComplementSemantics individual — set-theoretic (U ∖ S), orthogonal (S⊥ in an inner-product space), complex-linear (a complementary subspace), topological (the closed complement of an open set), or quotient/cokernel. Domain math:Complement, range math:ComplementSemantics (stated in prose). 'The complement of X' without a named semantics is ambiguous and ill-formed (math:UnqualifiedComplement) — the flagship-adjacent 'complex complement' hazard the charter forbids."
+msgstr "Désigne la notion de complément utilisée par un math:Complement : un individu math:ComplementSemantics — ensembliste (U ∖ S), orthogonale (S⊥ dans un espace à produit intérieur), linéaire complexe (un sous-espace supplémentaire), topologique (le complémentaire fermé d’un ouvert) ou quotient/conoyau. Domaine math:Complement, portée math:ComplementSemantics (déclarés en prose). « Le complément de X » sans sémantique désignée est ambigu et mal formé (math:UnqualifiedComplement) — le risque de « complément complexe » adjacent au scénario phare que la charte interdit."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This property selects one notion for a complement resource, separately from its operand and ambient space. The object is a math:ComplementSemantics individual, not the class itself or a string describing a preference."
+msgstr "Cette propriété sélectionne une notion pour une ressource complément, séparément de son opérande et de son espace ambiant. L’objet est un individu math:ComplementSemantics, et non la classe elle-même ou une chaîne décrivant une préférence."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "The residual-subspace complement states math:complementSemantics math:orthogonalComplement; a chosen complex-linear direct complement instead selects math:complexLinearComplement."
+msgstr "Le complément du sous-espace résiduel déclare math:complementSemantics math:orthogonalComplement ; un supplémentaire linéaire complexe choisi sélectionne plutôt math:complexLinearComplement."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to make the intended meaning of complement explicit when several inequivalent constructions are possible in the same ambient object."
+msgstr "Utiliser pour expliciter le sens voulu de complément lorsque plusieurs constructions non équivalentes sont possibles dans le même objet ambiant."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple competing semantics on one complement resource, a display word such as complex instead of a semantics individual, or treating the selected semantics as proof that its mathematical preconditions hold."
+msgstr "Éviter plusieurs sémantiques concurrentes sur une ressource complément, un mot d’affichage tel que complexe à la place d’un individu de sémantique ou le traitement de la sémantique choisie comme preuve que ses conditions mathématiques préalables sont satisfaites."
+
+msgctxt "https://blackcatinformatics.ca/math/complementSemantics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:complementSemantics to exactly one appropriate semantics individual and pair it with math:ambientSpace. Use separate complement resources when comparing different notions for the same operand and ambient space."
+msgstr "Faire pointer math:complementSemantics vers exactement un individu de sémantique approprié et l’associer à math:ambientSpace. Employer des ressources compléments distinctes pour comparer différentes notions relatives au même opérande et au même espace ambiant."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Complement Semantics"
+msgstr "Sémantique de complément"
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The notion of complement a math:Complement uses: one of math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement, or math:quotientComplement. A complement names exactly one through math:complementSemantics; the same ambient object admits several inequivalent complements, so the semantics must be declared."
+msgstr "La notion de complément employée par un math:Complement : l’un de math:setTheoreticComplement, math:orthogonalComplement, math:complexLinearComplement, math:topologicalComplement ou math:quotientComplement. Un complément en désigne exactement une par math:complementSemantics ; un même objet ambiant admet plusieurs compléments non équivalents, la sémantique doit donc être déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class groups the declared meanings of complement, while its named individuals select particular meanings. Selecting an individual does not identify a result subspace, supply an ambient object or establish a decomposition theorem."
+msgstr "Cette classe regroupe les sens déclarés de complément, tandis que ses individus nommés sélectionnent des sens particuliers. Sélectionner un individu n’identifie pas un sous-espace résultat, ne fournit pas d’objet ambiant et n’établit pas de théorème de décomposition."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:orthogonalComplement and math:quotientComplement are math:ComplementSemantics individuals. They distinguish orthogonal vectors from quotient classes even when both refer to the same subspace inside V."
+msgstr "math:orthogonalComplement et math:quotientComplement sont des individus math:ComplementSemantics. Ils distinguent les vecteurs orthogonaux des classes du quotient même lorsque les deux se rapportent au même sous-espace dans V."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the type of an identified complement notion and as the declared range category of math:complementSemantics."
+msgstr "Utiliser comme type d’une notion de complément identifiée et comme catégorie de portée déclarée de math:complementSemantics."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid putting the class IRI itself where a selected semantics individual is needed, or collapsing the five declared notions into one universal subtraction operation."
+msgstr "Ne pas placer l’IRI de la classe elle-même là où un individu de sémantique choisi est requis, ni réduire les cinq notions déclarées à une seule opération universelle de différence."
+
+msgctxt "https://blackcatinformatics.ca/math/ComplementSemantics|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the appropriate existing semantics individual as the object of math:complementSemantics on each complement. Preserve the class-versus-individual distinction and document the assumptions of that notion with the mathematical construction."
+msgstr "Réutiliser l’individu de sémantique existant approprié comme objet de math:complementSemantics sur chaque complément. Préserver la distinction entre classe et individu et documenter les hypothèses de cette notion avec la construction mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "set-theoretic (U ∖ S)"
+msgstr "ensembliste (U ∖ S)"
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The set-theoretic complement Sᶜ = U ∖ S: the elements of the ambient set U not in S. The elementary case; the ambient space is a math:Set."
+msgstr "Le complémentaire ensembliste Sᶜ = U ∖ S : les éléments de l’ensemble ambiant U qui ne sont pas dans S. Le cas élémentaire ; l’espace ambiant est un math:Set."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This semantics means ordinary set subtraction within the named universe U. Changing U can change the complement even when S stays fixed; it does not mean orthogonality or quotienting."
+msgstr "Cette sémantique signifie la différence ensembliste ordinaire dans l’univers U désigné. Changer U peut changer le complément même si S reste fixe ; elle ne signifie ni orthogonalité ni passage au quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For U = {a, b, c} and S = {a}, the set-theoretic complement is {b, c}. The complement construction selects math:setTheoreticComplement and names U through math:ambientSpace."
+msgstr "Pour U = {a, b, c} et S = {a}, le complémentaire ensembliste est {b, c}. La construction de complément sélectionne math:setTheoreticComplement et désigne U par math:ambientSpace."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when complement means the elements of an identified universe that are excluded from the operand subset."
+msgstr "Utiliser lorsque le complément désigne les éléments d’un univers identifié qui sont exclus du sous-ensemble opérande."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid selecting this notion for an orthogonal subspace or a quotient object, or writing an absolute complement without an ambient universe."
+msgstr "Ne pas sélectionner cette notion pour un sous-espace orthogonal ou un objet quotient, ni écrire un complément absolu sans univers ambiant."
+
+msgctxt "https://blackcatinformatics.ca/math/setTheoreticComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set math:complementSemantics math:setTheoreticComplement on the construction, identify S with math:setOperationOn, and name U with math:ambientSpace. Describe the resulting members separately rather than assuming the declaration enumerates them."
+msgstr "Déclarer math:complementSemantics math:setTheoreticComplement sur la construction, identifier S par math:setOperationOn et désigner U par math:ambientSpace. Décrire séparément les membres résultants plutôt que supposer que la déclaration les énumère."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "orthogonal (S⊥)"
+msgstr "complément orthogonal (S⊥)"
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The orthogonal complement S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} in an inner-product space. The ambient space is a math:VectorSpace with an inner product; realized in the linear-algebra charter."
+msgstr "Le complément orthogonal S⊥ = {v : ⟨v, s⟩ = 0 ∀s ∈ S} dans un espace à produit intérieur. L’espace ambiant est un math:VectorSpace muni d’un produit intérieur ; réalisé dans la charte d’algèbre linéaire."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Orthogonality depends on the declared inner product. For a subspace S, the decomposition V = S ⊕ S⊥ holds in a finite-dimensional inner-product space; in a Hilbert space it requires S to be closed. It is not a universal claim for arbitrary infinite-dimensional spaces."
+msgstr "L’orthogonalité dépend du produit intérieur déclaré. Pour un sous-espace S, la décomposition V = S ⊕ S⊥ vaut dans un espace à produit intérieur de dimension finie ; dans un espace de Hilbert, elle exige que S soit fermé. Ce n’est pas une affirmation universelle pour les espaces de dimension infinie arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The worked residualSubspace is a math:OrthogonalComplement with math:orthogonalComplementOf pointing to the embedded subspace, math:ambientSpace to the complex space and math:definedByInnerProduct to the Hermitian inner product."
+msgstr "Le residualSubspace de l’exemple est un math:OrthogonalComplement dont math:orthogonalComplementOf pointe vers le sous-espace plongé, math:ambientSpace vers l’espace complexe et math:definedByInnerProduct vers le produit hermitien."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when complement is defined by vectors having zero inner product with every vector of the specified subspace."
+msgstr "Utiliser lorsque le complément est défini par les vecteurs dont le produit intérieur avec tout vecteur du sous-espace spécifié est nul."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating the orthogonal complement as V ∖ S, omitting the defining inner product, or asserting a direct-sum decomposition in an arbitrary infinite-dimensional space without its needed hypotheses."
+msgstr "Ne pas traiter le complément orthogonal comme V ∖ S, omettre le produit intérieur qui le définit ou affirmer une décomposition en somme directe dans un espace de dimension infinie arbitraire sans les hypothèses nécessaires."
+
+msgctxt "https://blackcatinformatics.ca/math/orthogonalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:OrthogonalComplement for the specialized object, state math:complementSemantics math:orthogonalComplement, and provide math:orthogonalComplementOf, math:ambientSpace and math:definedByInnerProduct. Keep decomposition assumptions explicit instead of deriving them from the semantics tag."
+msgstr "Employer math:OrthogonalComplement pour l’objet spécialisé, déclarer math:complementSemantics math:orthogonalComplement et fournir math:orthogonalComplementOf, math:ambientSpace et math:definedByInnerProduct. Garder explicites les hypothèses de décomposition plutôt que les déduire de l’étiquette de sémantique."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "complex-linear"
+msgstr "linéaire complexe"
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A complex-linear complement: a subspace W with V = S ⊕ W over ℂ, not canonical without further structure. The 'complex complement' hazard — ambiguous unless the ambient space and this semantics are named."
+msgstr "Un supplémentaire linéaire complexe : un sous-espace W tel que V = S ⊕ W sur ℂ, non canonique sans structure supplémentaire. Le risque de « complément complexe » — ambigu si l’espace ambiant et cette sémantique ne sont pas désignés."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notion selects a complex-linear subspace W forming a direct sum V = S ⊕ W. Such a complement is generally a choice rather than a canonical result, and it need not be orthogonal for a separately supplied Hermitian inner product."
+msgstr "Cette notion sélectionne un sous-espace linéaire complexe W formant une somme directe V = S ⊕ W. Un tel supplémentaire relève en général d’un choix plutôt que d’un résultat canonique et n’est pas nécessairement orthogonal pour un produit hermitien fourni séparément."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "In ℂ² with S spanned by (1, 0), both the span of (0, 1) and the span of (1, 1) are direct complements of S. The latter is not its orthogonal complement for the standard Hermitian inner product."
+msgstr "Dans ℂ², si S est engendré par (1, 0), la droite engendrée par (0, 1) et celle engendrée par (1, 1) sont toutes deux des supplémentaires directs de S. La seconde n’est pas son complément orthogonal pour le produit hermitien standard."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended construction chooses a complex-linear complementary subspace, with the direct-sum claim justified in the declared ambient space."
+msgstr "Utiliser lorsque la construction voulue choisit un sous-espace supplémentaire linéaire complexe, avec une affirmation de somme directe justifiée dans l’espace ambiant déclaré."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring a unique complement from the scalar field ℂ alone, equating any direct complement with the orthogonal one, or presenting the quotient V/S as the chosen subspace W."
+msgstr "Ne pas déduire un supplémentaire unique du seul corps scalaire ℂ, identifier tout supplémentaire direct au complément orthogonal ou présenter le quotient V/S comme le sous-espace W choisi."
+
+msgctxt "https://blackcatinformatics.ca/math/complexLinearComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:complexLinearComplement through math:complementSemantics, identify the operand S and ambient V, and describe the chosen W and the justified direct-sum relationship in the mathematical representation. Preserve the choice instead of claiming the tag computes a canonical subspace."
+msgstr "Sélectionner math:complexLinearComplement par math:complementSemantics, identifier l’opérande S et l’espace ambiant V, puis décrire W choisi et la relation de somme directe justifiée dans la représentation mathématique. Préserver le choix plutôt que prétendre que l’étiquette calcule un sous-espace canonique."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "topological (closed complement)"
+msgstr "topologique (complément fermé)"
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The topological complement: the closed complement X ∖ U of an open set U in a math:TopologicalSpace (a math:ClosedSet). Distinct from the set-theoretic complement in carrying the topology."
+msgstr "Le complément topologique : le complémentaire fermé X ∖ U d’un ouvert U dans un math:TopologicalSpace (un math:ClosedSet). Il se distingue du complément ensembliste en conservant la topologie."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This notion retains the topology of X and the fact that the operand U is open, so X ∖ U is closed. The same underlying set subtraction without that structure does not express this topological claim."
+msgstr "Cette notion conserve la topologie de X et le fait que l’opérande U est ouvert, donc que X ∖ U est fermé. La même différence ensembliste sous-jacente, sans cette structure, n’exprime pas cette affirmation topologique."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "In ℝ with its usual topology, the complement of the open set {x | x > 0} is the closed set {x | x ≤ 0}. The ambient topology explains why the complement is closed; zero belongs because it is not in the open set."
+msgstr "Dans ℝ muni de sa topologie usuelle, le complément de l’ouvert {x | x > 0} est le fermé {x | x ≤ 0}. La topologie ambiante explique pourquoi le complément est fermé, tandis que zéro y appartient car il n’est pas dans l’ouvert."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the complement must carry the open-versus-closed relationship inside an identified topological space."
+msgstr "Utiliser lorsque le complément doit conserver la relation entre ouvert et fermé dans un espace topologique identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid calling the complement of an arbitrary subset closed without an openness premise, omitting the ambient topology, or reading topological complement as orthogonal projection."
+msgstr "Ne pas qualifier de fermé le complément d’un sous-ensemble arbitraire sans hypothèse d’ouverture, omettre la topologie ambiante ou lire le complément topologique comme une projection orthogonale."
+
+msgctxt "https://blackcatinformatics.ca/math/topologicalComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Set math:complementSemantics math:topologicalComplement, name X with math:ambientSpace and identify the open operand U. Retain the topology and the mathematical justification for the resulting closed set rather than relying on a closed label."
+msgstr "Déclarer math:complementSemantics math:topologicalComplement, désigner X par math:ambientSpace et identifier l’opérande ouvert U. Conserver la topologie et la justification mathématique de l’ensemble fermé résultant plutôt que s’appuyer sur un libellé affirmant qu’il est fermé."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "quotient / cokernel"
+msgstr "quotient / conoyau"
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A quotient/cokernel complement: the quotient V/S rather than a chosen complementary subspace, canonical where a direct-sum complement is not. The ambient space is the total object; the complement is its cokernel."
+msgstr "Un complément de type quotient/conoyau : le quotient V/S plutôt qu’un sous-espace supplémentaire choisi, canonique là où un supplémentaire en somme directe ne l’est pas. L’espace ambiant est l’objet total ; le complément est son conoyau."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The quotient V/S records equivalence classes modulo S, not a selected subspace W inside V. A direct complement may identify with the quotient only through additional justified choices; this semantics does not supply a splitting or a section."
+msgstr "Le quotient V/S enregistre des classes d’équivalence modulo S, et non un sous-espace W choisi dans V. Un supplémentaire direct ne peut être identifié au quotient qu’au moyen de choix supplémentaires justifiés ; cette sémantique ne fournit ni scindement ni section."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|http://www.w3.org/2004/02/skos/core#example"
+msgid "For V = ℂ² and S the span of (1, 0), V/S consists of cosets v + S. Choosing the span of (0, 1) as representatives is extra structure, not part of math:quotientComplement itself."
+msgstr "Pour V = ℂ² et S la droite engendrée par (1, 0), V/S est constitué des classes v + S. Choisir la droite engendrée par (0, 1) comme représentants ajoute une structure qui ne fait pas partie de math:quotientComplement lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the intended object is a quotient or cokernel relative to a subobject, without claiming a chosen complementary subspace."
+msgstr "Utiliser lorsque l’objet voulu est un quotient ou un conoyau relatif à un sous-objet, sans affirmer l’existence d’un sous-espace supplémentaire choisi."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating quotient classes with ambient vectors, inferring a canonical direct complement from V/S, or confusing quotienting by S with deleting the elements of S."
+msgstr "Ne pas identifier les classes du quotient aux vecteurs ambiants, déduire un supplémentaire direct canonique de V/S ou confondre le quotient par S avec la suppression des éléments de S."
+
+msgctxt "https://blackcatinformatics.ca/math/quotientComplement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:quotientComplement on the complement resource, name the total ambient object and the operand subobject, and retain the quotient or cokernel interpretation. Describe any chosen representatives or splitting separately rather than asserting they come from this tag."
+msgstr "Sélectionner math:quotientComplement sur la ressource complément, désigner l’objet ambiant total et le sous-objet opérande, puis conserver l’interprétation de quotient ou de conoyau. Décrire séparément les représentants choisis ou le scindement plutôt que prétendre qu’ils proviennent de cette étiquette."
