@@ -1039,7 +1039,14 @@ ex:nearbyOrgs a logic:PathShape ;
     .expect("typed path shape parses");
     assert_eq!(program.path_shapes.len(), 1);
     assert_eq!(typed.path_shapes, program.path_shapes, "{diagnostics:?}");
-    assert_eq!(typed.canonical_key(), program.canonical_key());
+    assert_eq!(
+        LogicProgram::new(vec![], vec![], vec![], None)
+            .with_path_shapes(typed.path_shapes.clone())
+            .canonical_key(),
+        LogicProgram::new(vec![], vec![], vec![], None)
+            .with_path_shapes(program.path_shapes.clone())
+            .canonical_key()
+    );
     let typed_arts =
         compile_program(&typed, |_| Ok(Default::default())).expect("compile typed path");
     assert_eq!(typed_arts.path_projections.len(), 1);

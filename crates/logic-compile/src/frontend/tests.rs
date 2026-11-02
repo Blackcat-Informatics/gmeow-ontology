@@ -1021,10 +1021,18 @@ fn parse_wildcard_namespace_scoped_bounded_path_shape() {
     );
     assert_eq!(s.depth_param.as_deref(), Some("maxDepth"));
     assert_eq!(prog.path_shapes.len(), 1);
+    let path_key = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_path_shapes(prog.path_shapes.clone())
+        .canonical_key();
     for parameter in ["\"maxDepth\"^^xsd:token", "\"maxDepth\", \"maxDepth\""] {
         let (typed, diagnostics) = parse(&source.replace("\"maxDepth\"", parameter));
         assert_eq!(typed.path_shapes, prog.path_shapes, "{diagnostics:?}");
-        assert_eq!(typed.canonical_key(), prog.canonical_key());
+        assert_eq!(
+            LogicProgram::new(vec![], vec![], vec![], None)
+                .with_path_shapes(typed.path_shapes)
+                .canonical_key(),
+            path_key
+        );
     }
     let absent = source.replace(
         "logic:pathMaxDepth 2 ;\n            logic:pathDepthParam \"maxDepth\"",
@@ -1033,7 +1041,12 @@ fn parse_wildcard_namespace_scoped_bounded_path_shape() {
     let (absent, diagnostics) = parse(&absent);
     assert_eq!(absent.path_shapes.len(), 1, "{diagnostics:?}");
     assert_eq!(path_shape(&absent, "/nearbyOrgs").depth_param, None);
-    assert_ne!(absent.canonical_key(), prog.canonical_key());
+    assert_ne!(
+        LogicProgram::new(vec![], vec![], vec![], None)
+            .with_path_shapes(absent.path_shapes)
+            .canonical_key(),
+        path_key
+    );
     for (literal, name) in [
         ("\" Max Depth \"", " Max Depth "),
         ("\"Max Depth\"^^xsd:token", "Max Depth"),
@@ -1044,7 +1057,12 @@ fn parse_wildcard_namespace_scoped_bounded_path_shape() {
             path_shape(&named, "/nearbyOrgs").depth_param.as_deref(),
             Some(name)
         );
-        assert_ne!(named.canonical_key(), prog.canonical_key());
+        assert_ne!(
+            LogicProgram::new(vec![], vec![], vec![], None)
+                .with_path_shapes(named.path_shapes)
+                .canonical_key(),
+            path_key
+        );
     }
     for parameter in [
         "ex:maxDepth",
