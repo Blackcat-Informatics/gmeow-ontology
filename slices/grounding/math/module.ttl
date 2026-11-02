@@ -378,6 +378,11 @@ math:Operation
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Operation"@x-gmeow-english ;
+    skos:scopeNote "An operation identifies what an application invokes; it is not the application occurrence or its evaluated result. A framed math:Function is another mathematical description, and this class alone supplies neither a function frame nor an execution capability."@x-gmeow-english ;
+    skos:example "In an expression for 2 + 2, math:Addition is the operation, the math:ApplicationExpression is the application occurrence, and the exact number 4 is the mathematical result rather than the operator resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify a mathematical operator that expressions can invoke while keeping each application and result description separate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an operation label as an expression AST, inferring a total framed function from this class, or assuming every declared operation is executable in every runtime profile."@x-gmeow-english ;
+    gmeow:howToUse "Reuse the applicable operation individual as the object of math:operator on an application, and represent the operands through the existing argument-slot structure. Retain the operator’s declared mathematical scope and select execution only through an admitted runtime profile."@x-gmeow-english ;
     skos:definition "A mathematical operation: a map from operands to a result, applied within an expression. The object-layer parent that math:ArithmeticOperation specializes; richer structure (arity, operand structure preservation) belongs to the mathematical-core surface that this bedrock builds on."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -386,6 +391,11 @@ math:ArithmeticOperation
     rdfs:subClassOf math:Operation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Arithmetic Operation"@x-gmeow-english ;
+    skos:scopeNote "This class groups arithmetic operator individuals with declared number-system signatures. Symbolic availability is broader than the selected exact-decimal scalar profile, which admits only binary Addition, Subtraction, Multiplication and exact Division on its required dimensionless quantities."@x-gmeow-english ;
+    skos:example "math:Root is an arithmetic operator with real input and complex result systems, while math:Negation has the signed extended-real signature. Neither is admitted by the selected four-operator exact-scalar profile."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a declared number operator without conflating the operator individual with a numeric value or an application node."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the number-system signature as proof of totality, extending a complex result signature to arbitrary complex inputs, or claiming a general solver executes every arithmetic individual."@x-gmeow-english ;
+    gmeow:howToUse "Select the existing arithmetic individual, preserve its math:operatorDomain and math:operatorCodomain, and use it through math:operator in a structured application. For selected scalar execution, satisfy that profile’s bindings, dimension and exact numeric requirements; unsupported cases must fail rather than degrade to approximation."@x-gmeow-english ;
     skos:definition "An arithmetic operation over numbers: addition, multiplication, exponentiation, and their inverses. A subclass of math:Operation; the concrete operators are named individuals (math:Addition, math:Multiplication, math:Exponentiation, math:Subtraction, math:Division, math:Root, math:Logarithm). Anchored externally to the OpenMath arith1 and nums1 content dictionaries. An arithmetic expression applies one such operator inside a math:ApplicationExpression."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -432,6 +442,11 @@ math:operator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator"@x-gmeow-english ;
+    skos:scopeNote "The edge runs from an application expression to one operation individual. Operand positions belong to math:ArgumentSlot resources; the operator link itself neither stores argument values nor determines an evaluation result."@x-gmeow-english ;
+    skos:example "An application representing 7 − 2 points through math:operator to math:Subtraction, while its separate indexed slots hold the expressions for 7 and 2 in that order."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the operation invoked at a particular application node in the mathematical expression AST."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an operator glyph string, the class math:ArithmeticOperation itself, multiple operator objects on one application, or raw operand literals in place of the operation individual."@x-gmeow-english ;
+    gmeow:howToUse "Point math:operator from the math:ApplicationExpression to the chosen operation individual. Link each math:ArgumentSlot through math:argumentSlot and give it one math:slotIndex and math:slotExpression; indexes must be unique, non-negative, zero-based and contiguous."@x-gmeow-english ;
     skos:definition "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -471,6 +486,11 @@ math:Addition
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "addition"@x-gmeow-english ;
+    skos:scopeNote "This individual is binary addition over its declared real-number signature. Commutativity of real addition does not erase the ordered AST slots or authorize rewriting the source expression automatically."@x-gmeow-english ;
+    skos:example "A symbolic application for 2 + 2 chooses math:Addition and uses two indexed argument slots, even though both slots may refer to the same operand expression. Its mathematical value is 4."@x-gmeow-english ;
+    gmeow:useWhen "Use for an identified application of binary numeric addition, with the operands’ mathematical or selected execution context retained."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating this operator as string concatenation, omitting a slot because two operand expressions coincide, or assuming arithmetic laws trigger automatic normalization."@x-gmeow-english ;
+    gmeow:howToUse "Use math:operator math:Addition on the application and retain both ordered argument slots. The selected exact-scalar profile can execute it only with its admitted dimensionless integer or decimal quantity bindings; symbolic number expressions do not bypass those requirements."@x-gmeow-english ;
     skos:definition "The binary addition operator (+). Its inverse is math:Subtraction. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 plus."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:realNumbers .
@@ -479,6 +499,11 @@ math:Subtraction
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "subtraction"@x-gmeow-english ;
+    skos:scopeNote "Subtraction takes two ordered operands: the minuend and the subtrahend. Recovering an addend by subtraction holds with the other addend fixed; the generic inverse wording does not make binary addition an unqualified bijective function."@x-gmeow-english ;
+    skos:example "The application 7 − 2 gives 5, whereas 2 − 7 gives −5. A unary expression −2 instead applies math:Negation to one operand."@x-gmeow-english ;
+    gmeow:useWhen "Use for binary numeric difference when the first and second operand roles must remain explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping operands as if subtraction were commutative, confusing it with unary negation, or inferring a function inverse without the fixed operand and frame."@x-gmeow-english ;
+    gmeow:howToUse "Select math:Subtraction and put the minuend in slot 0 and the subtrahend in slot 1 for the selected binary scalar representation. Keep both slot expressions and the operator identity unchanged when retaining source syntax; execute only within an admitted profile."@x-gmeow-english ;
     skos:definition "The binary subtraction operator (−), the inverse of math:Addition. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 minus."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:realNumbers .
@@ -487,6 +512,11 @@ math:Multiplication
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "multiplication"@x-gmeow-english ;
+    skos:scopeNote "This individual names binary multiplication with the declared real signature. Undoing multiplication by division requires a nonzero fixed factor; the operator declaration neither selects matrix multiplication nor performs algebraic cancellation."@x-gmeow-english ;
+    skos:example "The product 3 × 4 has value 12. From x × 4 = 12 one can recover x = 3 by dividing by 4, while multiplication by zero cannot be undone that way."@x-gmeow-english ;
+    gmeow:useWhen "Use for binary multiplication of numbers under the operator’s declared signature, preserving any selected execution restrictions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring dimensional unit algebra from this operator, silently using a noncommutative product interpretation, or cancelling a possibly zero factor."@x-gmeow-english ;
+    gmeow:howToUse "Choose math:Multiplication through math:operator and supply the two indexed operand expressions. For the exact-scalar profile, bind explicit dimensionless quantities with integer or decimal values; preserve the source AST rather than assuming commutativity permits automatic reordering."@x-gmeow-english ;
     skos:definition "The binary multiplication operator (×). Its inverse is math:Division. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 times."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:realNumbers .
@@ -495,6 +525,11 @@ math:Division
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "division"@x-gmeow-english ;
+    skos:scopeNote "Division distinguishes dividend from divisor and is undefined at a zero divisor in this real arithmetic setting. The selected exact-decimal scalar policy also refuses nonterminating decimal results; symbolic representability does not relax that execution policy."@x-gmeow-english ;
+    skos:example "The exact scalar quotient 7/2 terminates as 3.5. The mathematical rational 1/3 is exact, but its nonterminating decimal expansion makes that selected scalar operation fail rather than round."@x-gmeow-english ;
+    gmeow:useWhen "Use for an ordered quotient when the divisor’s admissibility and the chosen exact or symbolic representation are explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid swapping dividend and divisor, converting zero division into an infinity or null result, or silently approximating 1/3 under the no-rounding scalar profile."@x-gmeow-english ;
+    gmeow:howToUse "Select math:Division with dividend in slot 0 and divisor in slot 1 for the selected binary scalar representation. Establish a nonzero divisor and satisfy all explicit bindings and dimension requirements; exact division failure must stop the selected operation without fallback."@x-gmeow-english ;
     skos:definition "The binary division operator (÷), the inverse of math:Multiplication. Signature ℝ → ℝ (real arithmetic; the divide-by-zero partiality is a math: partial-function concern, not a change of number system). OpenMath arith1 divide."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:realNumbers .
@@ -503,6 +538,11 @@ math:Exponentiation
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "exponentiation"@x-gmeow-english ;
+    skos:scopeNote "Exponentiation assigns different roles to base and exponent. Its declared real signature is not a promise that every pair of reals has a real result; domain and inverse identities require their mathematical conditions, and this symbolic operator is outside the selected four-operator scalar executor."@x-gmeow-english ;
+    skos:example "For 2³, the base is 2 and the exponent is 3, giving 8; reversing those roles gives 3² = 9. In x⁻ᵖ, math:Negation applies to p inside the exponent expression."@x-gmeow-english ;
+    gmeow:useWhen "Use to represent a power with explicit base and exponent expressions under the declared number-system signature."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating exponentiation as commutative, assuming negative bases and fractional exponents always remain real, or claiming power/root/logarithm identities without domain and branch restrictions."@x-gmeow-english ;
+    gmeow:howToUse "Use math:operator math:Exponentiation and preserve the base and exponent roles in the application’s indexed slots under the expression convention. Nest math:Negation when the exponent is negated; retain admissibility conditions and do not route this operator into the unsupported exact-scalar lane."@x-gmeow-english ;
     skos:definition "The exponentiation operator (a^b). Its inverses are math:Root (recovering the base) and math:Logarithm (recovering the exponent). Signature ℝ → ℝ (real arithmetic). OpenMath arith1 power."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:realNumbers .
@@ -511,6 +551,11 @@ math:Root
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "root"@x-gmeow-english ;
+    skos:scopeNote "A root recovers a possible base only under an admissible degree and a stated root or branch convention. The real-input/complex-result signature admits complex results from real radicands without making the root single-valued or admitting arbitrary complex inputs."@x-gmeow-english ;
+    skos:example "The equation z² = 4 has roots 2 and −2, so selecting the positive square root is extra convention. The real radicand −1 has complex square roots i and −i."@x-gmeow-english ;
+    gmeow:useWhen "Use to represent recovery of a base from a power when the degree, radicand and any root selection are made explicit."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid dropping a sign or complex branch without a selection rule, assuming a zero degree defines an inverse, or treating the complex codomain as permission to replace the declared real input signature."@x-gmeow-english ;
+    gmeow:howToUse "Select math:Root through math:operator, preserve radicand and degree roles in the ordered expression representation, and state the admissible branch or root choice. Keep the existing real-to-complex signature; the selected exact-scalar profile does not execute this operator."@x-gmeow-english ;
     skos:definition "The root operator (the b-th root of a), an inverse of math:Exponentiation that recovers the base. Signature ℝ → ℂ: an even root of a negative real is complex, so the honest codomain is math:complexNumbers rather than pretending the result stays real. OpenMath arith1 root."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:complexNumbers .
@@ -519,7 +564,12 @@ math:Logarithm
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "logarithm"@x-gmeow-english ;
-    skos:definition "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent. Signature ℝ → ℂ: the logarithm of a non-positive real is complex, so the honest codomain is math:complexNumbers. OpenMath transc1 log."@x-gmeow-english ;
+    skos:scopeNote "The argument and base have different roles, and logarithm inversion needs admissible values and branch choices. Within the declared real input signature, ordinary real values require positive argument and positive base other than 1; complex results do not license complex input resources."@x-gmeow-english ;
+    skos:example "log₂(8) = 3 uses a positive argument and valid real base. For real base e, a selected complex logarithm of −1 can be iπ; the argument 0 has no finite complex logarithm on any branch."@x-gmeow-english ;
+    gmeow:useWhen "Use to represent recovery of an exponent with an explicit base, admissible real argument and any required complex-result branch convention."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assigning a finite logarithm to zero, using base 1 for the ordinary real logarithm, swapping base and argument, or applying power/log inverse identities across incompatible branches."@x-gmeow-english ;
+    gmeow:howToUse "Choose math:Logarithm on the application, retain base and argument roles through the existing ordered AST convention, and state base validity and branch conditions in the mathematical representation. Preserve its real-to-complex signature without claiming execution by the selected exact-scalar profile."@x-gmeow-english ;
+    skos:definition "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent under appropriate base and branch conditions. Signature ℝ → ℂ: the ordinary real logarithm requires a > 0, b > 0 and b ≠ 1. A negative nonzero real argument can require a stated complex branch with a valid real base; zero has no finite complex logarithm. The complex codomain does not extend the declared real input signature. OpenMath transc1 log."@x-gmeow-english ;
     math:operatorDomain math:realNumbers ;
     math:operatorCodomain math:complexNumbers .
 
@@ -527,6 +577,11 @@ math:Negation
     a logic:NamedIndividual , math:ArithmeticOperation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "negation"@x-gmeow-english ;
+    skos:scopeNote "This individual is unary additive inversion on the signed extended real line, including its two poles. It is different from binary math:Subtraction and from logical negation; its extended-real signature does not imply that the exact-decimal scalar executor admits it."@x-gmeow-english ;
+    skos:example "Applying math:Negation to math:PositiveInfinity yields math:NegativeInfinity in the declared extended-real meaning. In x⁻ᵖ, it applies to p as a nested exponent operand, not to x."@x-gmeow-english ;
+    gmeow:useWhen "Use to represent the additive inverse of one real or signed extended-real operand, including a sign change on an exponent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding a unary sign change as a two-operand subtraction by default, confusing it with Boolean negation, or treating the extended-real pole sign flip as an undefined zero division."@x-gmeow-english ;
+    gmeow:howToUse "Use math:operator math:Negation with one indexed argument expression. Preserve the declared math:ExtendedRealLine signature and the identities of any pole operands; keep the unary AST distinct from binary subtraction and do not claim support from the four-operator exact-scalar profile."@x-gmeow-english ;
     skos:definition "The unary additive-inverse operator (−x): the single-operand negation that flips a value's sign, so a term like x⁻ᵖ is math:Exponentiation applied to x and math:Negation applied to p. Distinct from binary math:Subtraction (which takes two operands); −x is math:Negation(x). Signature ℝ̄ → ℝ̄ over the signed extended real line: it carries the two poles, mapping math:PositiveInfinity to math:NegativeInfinity and back, so −(+∞) = −∞ is stated rather than undefined. OpenMath arith1 unary_minus."@x-gmeow-english ;
     math:operatorDomain math:ExtendedRealLine ;
     math:operatorCodomain math:ExtendedRealLine .
