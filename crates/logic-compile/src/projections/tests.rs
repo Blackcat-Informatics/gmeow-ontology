@@ -983,6 +983,7 @@ ex:r a logic:Rule ;
 // entry for every declared `logic:PathShape`.  Uses the same nearbyOrgs fixture
 // the per-function tests in paths/tests.rs use.
 
+/// String/token depth names preserve the actual program-wired path projections and their loss ledger.
 #[test]
 fn compile_program_wires_path_projections_and_ledger() {
     let ttl = "\
@@ -1031,6 +1032,29 @@ ex:nearbyOrgs a logic:PathShape ;
         !ledger_entry.lossy_drops.is_empty(),
         "property-path ledger entry must declare lossy_drops"
     );
+    let (typed, diagnostics) = parse_logic_str(
+        &ttl.replace("\"maxDepth\"", "\"maxDepth\"^^xsd:token"),
+        None,
+    )
+    .expect("typed path shape parses");
+    assert_eq!(program.path_shapes.len(), 1);
+    assert_eq!(typed.path_shapes, program.path_shapes, "{diagnostics:?}");
+    assert_eq!(typed.canonical_key(), program.canonical_key());
+    let typed_arts =
+        compile_program(&typed, |_| Ok(Default::default())).expect("compile typed path");
+    assert_eq!(typed_arts.path_projections.len(), 1);
+    let typed_projection = &typed_arts.path_projections[0];
+    assert_eq!(typed_projection.shape_iri, pp.shape_iri);
+    assert_eq!(typed_projection.property_path, pp.property_path);
+    assert_eq!(typed_projection.datalog, pp.datalog);
+    let typed_ledger = typed_arts
+        .preservation_ledger
+        .iter()
+        .find(|entry| entry.target == expected_key)
+        .expect("typed path projection retains its ledger row");
+    assert_eq!(typed_ledger.preservation, ledger_entry.preservation);
+    assert_eq!(typed_ledger.complexity, ledger_entry.complexity);
+    assert_eq!(typed_ledger.lossy_drops, ledger_entry.lossy_drops);
 }
 
 // ── CR5: the projection report includes the property-path targets ────────────
