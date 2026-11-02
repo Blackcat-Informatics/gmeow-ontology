@@ -85,6 +85,11 @@ math:hasMathematicalSymbol
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has mathematical symbol"@x-gmeow-english ;
+    skos:scopeNote "This property serves concepts, operations and symbol-reference occurrences. Exactly-one resolution applies to each math:SymbolReference; that occurrence-specific rule does not create a global subject-class or exact-one restriction for every other use."@x-gmeow-english ;
+    skos:example "A reference to a local symbol for e uses math:hasMathematicalSymbol to that symbol resource. A concept may also use this property for its symbol associations without becoming a reference occurrence."@x-gmeow-english ;
+    gmeow:useWhen "Use to retain the local mathematical symbol associated with a concept, operation or expression use in its theory or context."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid glyph strings or external vocabulary identifiers instead of the local symbol, or promoting the SymbolReference exact-one rule into a new global domain or cardinality axiom."@x-gmeow-english ;
+    gmeow:howToUse "Link the concept, operation or reference to the appropriate local math:MathematicalSymbol and retain its theory/context interpretation. Check exactly one resolution for a math:SymbolReference, without importing that occurrence-only restriction into other recorded symbol associations."@x-gmeow-english ;
     skos:definition "Relates a mathematical concept, operation, or math:SymbolReference occurrence to the math:MathematicalSymbol that denotes it in the applicable theory or context. A symbol reference resolves through exactly one such edge; the symbol identity is distinct from every glyph or rendering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -403,6 +408,11 @@ math:MathematicalExpression
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Mathematical Expression"@x-gmeow-english ;
+    skos:scopeNote "This abstract class identifies mathematical syntax, not a complete executable node form. A concrete structure must be admitted by the intended consumer; neither the root type nor a display string supplies evaluation, normalization or logic lowering."@x-gmeow-english ;
+    skos:example "The displayed string 7 / 2 can render an application tree with math:Division and two ordered slots. Typing a resource math:MathematicalExpression and giving it that label does not build the tree."@x-gmeow-english ;
+    gmeow:useWhen "Use as the common expression classification when mathematical syntax must remain structured independently of notation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using this abstract type alone instead of a concrete node, storing the whole formula only as text, or assuming every declared expression form works in every consumer profile."@x-gmeow-english ;
+    gmeow:howToUse "Choose a concrete form supported by the intended consumer and supply its declared structure, such as an application’s operator and slots or a reference’s local symbol resolution. Keep renderings separate and retain explicit typing and lowering declarations where required."@x-gmeow-english ;
     skos:definition "The abstract root of the mathematical expression tree: a computable form is an abstract syntax tree, not a display string. Literal, symbol-reference, variable, application, and binding nodes compose through indexed argument slots; expression type and normalization are explicit, while concrete notation remains a separate rendering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -411,6 +421,11 @@ math:LiteralExpression
     logic:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Literal Expression"@x-gmeow-english ;
+    skos:scopeNote "This is a generic value-denoting leaf category. Its type alone supplies neither a concrete value representation nor consumer support; a raw RDF literal is not interchangeable with the expression resource."@x-gmeow-english ;
+    skos:example "A numeric leaf for the exact number two can use math:NumberLiteral and math:literalValue pointing to the situated number object. The numeric literal 2 alone is not that expression node."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a structured leaf that directly denotes a value, retaining the concrete specialization needed to represent that value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid an invented generic value slot, a display label used as the denoted value, or assuming support for one literal specialization covers every generic literal leaf."@x-gmeow-english ;
+    gmeow:howToUse "Select the existing concrete leaf specialization and its declared value relation, then reference the leaf through math:slotExpression where appropriate. Preserve the value’s mathematical identity and check the consumer’s admitted forms rather than relying on generic typing."@x-gmeow-english ;
     skos:definition "A literal leaf in a mathematical expression AST: a syntactic node that denotes a value without applying an operator. math:NumberLiteral is its numeric specialization; the leaf remains a structured expression node rather than a raw RDF literal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -419,6 +434,11 @@ math:ApplicationExpression
     rdfs:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Application Expression"@x-gmeow-english ;
+    skos:scopeNote "An application invokes exactly one operation and carries operand order through typed slots. This class’s operator requirement does not make the sibling binding form a subclass; binding consumers have their own applicable operator checks."@x-gmeow-english ;
+    skos:example "The existing exact-scalar quotient is a math:ApplicationExpression with math:operator math:Division and slots 0 and 1 referencing symbol leaves. Evaluation additionally requires that profile’s explicit admitted bindings."@x-gmeow-english ;
+    gmeow:useWhen "Use when mathematical syntax applies an identified operation to an ordered family of operand expressions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid zero or multiple operator objects, raw literal operands instead of expression nodes, or assuming structurally valid application typing guarantees execution support."@x-gmeow-english ;
+    gmeow:howToUse "Type the node math:ApplicationExpression, link one operation through math:operator and each typed math:ArgumentSlot through math:argumentSlot. Supply each slot’s index and expression, retaining the operator’s arity and the intended consumer’s admission requirements."@x-gmeow-english ;
     skos:definition "The application of an operator to ordered operands. It applies exactly one math:operator — zero operators leave the application undefined and two or more make it ambiguous (math:ApplicationOperatorCardinality) — and carries its operands through unique, strict zero-based contiguous math:ArgumentSlot cells. The sibling math:BindingExpression is not a subclass, so the operator-cardinality obligation targets only true applications."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -427,6 +447,11 @@ math:SymbolReference
     logic:subClassOf math:MathematicalExpression ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Symbol Reference"@x-gmeow-english ;
+    skos:scopeNote "This resource records a symbol use and resolves to one local mathematical symbol. Occurrence and symbol identity play different roles; matching glyphs do not establish resolution, and several references may resolve to the same symbol."@x-gmeow-english ;
+    skos:example "Two math:SymbolReference leaves can both resolve to one local symbol through math:hasMathematicalSymbol. The glyph e alone cannot distinguish Euler’s number from an identity element in another theory."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured symbol occurrence whose meaning must resolve locally rather than be guessed from notation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid unresolved or multiply resolved references, a glyph or external identifier in place of the local symbol, or requiring a new symbol identity for each occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Type the leaf math:SymbolReference and give it exactly one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol, retaining the applicable theory or context. Keep occurrence annotations on the expression use and symbol-level meaning on the resolved symbol."@x-gmeow-english ;
     skos:definition "A symbol-occurrence leaf in a mathematical expression AST. It resolves through exactly one math:hasMathematicalSymbol edge to a local math:MathematicalSymbol whose meaning is scoped by theory/context; a dangling or multiply resolved reference is ill-formed (math:UnresolvedSymbolReference)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -435,6 +460,11 @@ math:ExpressionType
     logic:subClassOf math:MathematicalObject ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Expression Type"@x-gmeow-english ;
+    skos:scopeNote "An expression type is a descriptive mathematical category resource, not the RDF class of an AST node. It is separate from a denotation declaration and from an explicitly authored logic-type lowering."@x-gmeow-english ;
+    skos:example "A matrix-product application can use math:expressionType to name a local matrix-valued expression category while retaining rdf:type math:ApplicationExpression for its structural node class."@x-gmeow-english ;
+    gmeow:useWhen "Use when a theory or context assigns a mathematical expression category independently of the expression’s rendering."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating an ExpressionType label as proof of typing correctness, a denotation declaration or an automatic promotion into the logic: type system."@x-gmeow-english ;
+    gmeow:howToUse "Identify the descriptive category as a math:ExpressionType and link expressions to it through math:expressionType. Preserve the theory or context of the assignment and state any additional denotation or lowering claim separately."@x-gmeow-english ;
     skos:definition "A mathematical type assigned to an expression independently of its rendering — scalar, matrix, proposition, function-space member, or another theory-scoped expression category. It is descriptive mathematical typing, not an undeclared promotion into the logic: type system."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -442,12 +472,12 @@ math:operator
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "operator"@x-gmeow-english ;
-    skos:scopeNote "The edge runs from an application expression to one operation individual. Operand positions belong to math:ArgumentSlot resources; the operator link itself neither stores argument values nor determines an evaluation result."@x-gmeow-english ;
+    skos:scopeNote "The edge runs from an application or binding expression to an operation individual. Applications require exactly one operator; the native binding consumer also checks exactly one binder operator. Typed argument slots carry ordered operands or a binder body independently of this operation link."@x-gmeow-english ;
     skos:example "An application representing 7 − 2 points through math:operator to math:Subtraction, while its separate indexed slots hold the expressions for 7 and 2 in that order."@x-gmeow-english ;
-    gmeow:useWhen "Use to identify the operation invoked at a particular application node in the mathematical expression AST."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the operation invoked by an application or binding expression under its applicable concrete consumer contract."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an operator glyph string, the class math:ArithmeticOperation itself, multiple operator objects on one application, or raw operand literals in place of the operation individual."@x-gmeow-english ;
-    gmeow:howToUse "Point math:operator from the math:ApplicationExpression to the chosen operation individual. Link each math:ArgumentSlot through math:argumentSlot and give it one math:slotIndex and math:slotExpression; indexes must be unique, non-negative, zero-based and contiguous."@x-gmeow-english ;
-    skos:definition "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."@x-gmeow-english ;
+    gmeow:howToUse "Point math:operator from the application or binding expression to the chosen operation individual. Applications and native binding lowering check their required single operator. Use typed math:ArgumentSlot resources with math:slotIndex and math:slotExpression for operands or body, and retain any binding-specific declarations separately."@x-gmeow-english ;
+    skos:definition "The operator a math:ApplicationExpression applies or a math:BindingExpression uses: relates the expression to the math:Operation it invokes, such as an arithmetic or binder operation. Applications and admitted binding forms follow their concrete operator-count requirements. Operand or body structure is carried separately through indexed argument slots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 # --- Operator signature over number systems --------------------------------- #
@@ -616,6 +646,11 @@ math:expressionType
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "expression type"@x-gmeow-english ;
+    skos:scopeNote "The edge runs from an expression to a descriptive math:ExpressionType individual. It is not the node’s rdf:type classification, a math:denotationKind statement or an implicit math:compilesToLogicType declaration."@x-gmeow-english ;
+    skos:example "A matrix-product application can retain rdf:type math:ApplicationExpression while math:expressionType names a theory-scoped matrix-expression category. That annotation alone supplies neither matrix evaluation nor a logic type."@x-gmeow-english ;
+    gmeow:useWhen "Use when a descriptive mathematical type assignment on an expression must be retained as an explicit relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a type-name string as object, replacing structural rdf:type with this edge, or claiming a proposition is true or a lowering complete merely because this annotation exists."@x-gmeow-english ;
+    gmeow:howToUse "Point math:expressionType from the structured expression to the applicable math:ExpressionType and preserve its theory or context. State denotation and actual logic lowering separately; a type-denoting expression needs an explicit math:compilesToLogicType claim when that lowering is authored."@x-gmeow-english ;
     skos:definition "Relates a math:MathematicalExpression to the math:ExpressionType assigned to it in its mathematical theory or context. This is AST-level mathematical typing, kept distinct from math:denotationKind and from an explicit math:compilesToLogicType lowering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -1414,12 +1449,12 @@ math:domain
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "domain"@x-gmeow-english ;
-    skos:scopeNote "This mathematical frame link runs from a function or relation to its source set. It is not the schema-level domain declaration of an RDF property; a source set and target set may be the same resource while serving different roles."@x-gmeow-english ;
+    skos:scopeNote "This property records a function/relation input set and, in selected native binder lowering, an explicit sort on a bound math:VariableDeclaration. Neither use is a schema-level RDF domain axiom or a reason to type the declaration as math:Relation. Source and target sets may coincide while retaining different roles."@x-gmeow-english ;
     skos:example "For n ↦ n + 1 on integers, math:domain math:integers records the allowed inputs. The same rule on natural numbers has a different declared domain."@x-gmeow-english ;
-    gmeow:useWhen "Use to state the identified input set of a mathematical relation, including the required source frame of a total function."@x-gmeow-english ;
+    gmeow:useWhen "Use for a mathematical function or relation’s input set, or to preserve an explicitly supplied bound-declaration sort in the selected native binder consumer."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a datatype-name string, a function argument occurrence or a single sample input where the source-set resource is required."@x-gmeow-english ;
-    gmeow:howToUse "Point math:domain from the map or relation to the set of declared inputs and retain math:codomain separately. Describe partial definedness separately when using math:PartialFunction rather than silently deleting undefined inputs from the stated source."@x-gmeow-english ;
-    skos:definition "The source set of a function or relation — the set its inputs are drawn from. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a domain is ill-formed."@x-gmeow-english ;
+    gmeow:howToUse "For a function or relation, link math:domain to its source set, retain math:codomain and describe partial definedness separately. In selected native binder lowering, retain a supplied math:domain sort reference on the bound math:VariableDeclaration; omission retains that consumer’s existing untyped sort behavior. Do not impose a required bound domain, global cardinality or substitution with math:variableDomain."@x-gmeow-english ;
+    skos:definition "Existing uses include the declared input set of a mathematical function or relation; every math:Function declares one, and a function without it is ill-formed. Selected native binder lowering also reads a math:domain reference on a bound math:VariableDeclaration as its declared sort. These documented carrier uses do not impose a global RDF domain restriction."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:codomain
@@ -3104,6 +3139,11 @@ math:ArgumentSlot
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Argument Slot"@x-gmeow-english ;
+    skos:scopeNote "A slot is a typed position resource with one strict integer index and one structured expression. Positions are checked within each parent; repeated operands may share an expression resource without requiring separate values or expression identities."@x-gmeow-english ;
+    skos:example "For x + x, two math:ArgumentSlot resources at indexes 0 and 1 can both point through math:slotExpression to the same reference expression for x."@x-gmeow-english ;
+    gmeow:useWhen "Use when an application or binding form needs an explicit operand position that survives changes in RDF serialization order."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid untyped slots, multiple indexes or expressions on one slot, duplicate or gapped positions under a parent, or an unsupported global ownership rule on shared expressions."@x-gmeow-english ;
+    gmeow:howToUse "Type each position math:ArgumentSlot, give it one math:slotIndex and one math:slotExpression, and link it from the parent through math:argumentSlot. Ensure positions form 0 through n−1 and preserve repeated operands without inventing inequality constraints."@x-gmeow-english ;
     skos:definition "One indexed operand position of a math:ApplicationExpression or math:BindingExpression: it carries exactly one integer math:slotIndex and exactly one math:slotExpression. Operand order is carried by these slots, not by RDF list ordering — swapping two slots' expressions is a different expression, so non-commutative operators (matrix product, function composition, subtraction, the body of a binder) are order-safe. Slot indexes are unique, non-negative, zero-based, and contiguous within one parent. A slot missing its index or expression, a duplicate index, or a gap is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -3599,6 +3639,11 @@ math:argumentSlot
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "argument slot"@x-gmeow-english ;
+    skos:scopeNote "The edge runs from a parent expression to a typed slot resource, not directly to the operand expression. RDF edge order is immaterial; the slot indexes supply operand order for that parent."@x-gmeow-english ;
+    skos:example "An application for a − b may serialize its math:argumentSlot edges in either order while slot 0 still contains a and slot 1 contains b."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach indexed positions carrying an application’s operands or a binding form’s body."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a raw expression, numeric literal or RDF list in the slot-object position, or treating edge insertion order as operand order."@x-gmeow-english ;
+    gmeow:howToUse "Link each required math:ArgumentSlot from the parent through math:argumentSlot and populate its index and expression. Check the complete index family under that parent; keep operand resources behind math:slotExpression rather than collapsing the two edges."@x-gmeow-english ;
     skos:definition "Relates a math:ApplicationExpression or math:BindingExpression to one math:ArgumentSlot carrying an indexed operand (or, for a binder, the body). Domain a math:ApplicationExpression or math:BindingExpression, range math:ArgumentSlot (stated in prose). Operand order is carried by the slots' math:slotIndex, never by RDF list ordering."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3606,6 +3651,11 @@ math:slotIndex
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "slot index"@x-gmeow-english ;
+    skos:scopeNote "The index is one strict integer literal on a slot, interpreted among its parent’s positions. Positions must be non-negative, zero-based, unique and contiguous; display order or lexical sorting of strings does not replace integer order."@x-gmeow-english ;
+    skos:example "A binary application uses math:slotIndex 0 and math:slotIndex 1 on two slots. An unrelated application also starts at 0 rather than continuing a global counter."@x-gmeow-english ;
+    gmeow:useWhen "Use to make a declared operand position explicit and stable when RDF triples are reordered."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid fractional or string indexes, a one-based convention, duplicate positions, gaps, or deriving the index from a slot identifier’s spelling."@x-gmeow-english ;
+    gmeow:howToUse "Put exactly one non-negative integer math:slotIndex on each typed slot and verify the parent’s complete sequence 0 through n−1. Preserve the explicit literal instead of silently coercing text or decimal values into indexes."@x-gmeow-english ;
     skos:definition "The integer position of a math:ArgumentSlot within its application — the operand order. Domain math:ArgumentSlot, range xsd:nonNegativeInteger (stated in prose). Indexes under one parent are strictly zero-based, unique, and contiguous. A slot without exactly one index is math:MalformedArgumentSlot; two slots sharing an index are math:DuplicateArgumentSlotIndex; a family with a gap is math:NonContiguousArgumentSlots."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -3613,6 +3663,11 @@ math:slotExpression
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "slot expression"@x-gmeow-english ;
+    skos:scopeNote "This link assigns one structured expression to a slot. Position and operand expression are different roles; multiple slots may reference the same expression without requiring different values or imposing a global ownership rule."@x-gmeow-english ;
+    skos:example "In x × x, slots 0 and 1 can both use math:slotExpression to reference one math:SymbolReference for x, preserving two positions and one shared expression resource."@x-gmeow-english ;
+    gmeow:useWhen "Use to identify the expression occupying an indexed operand position, including an admitted nested application or leaf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid numeric or prose literals here, multiple expression objects on one slot, or cloning shared expressions solely to satisfy an undeclared ownership restriction."@x-gmeow-english ;
+    gmeow:howToUse "Point math:slotExpression from each typed math:ArgumentSlot to exactly one structured expression and keep math:slotIndex on the slot. Supply the concrete structure admitted by the intended consumer; this link alone does not make an abstract node executable."@x-gmeow-english ;
     skos:definition "The math:MathematicalExpression filling one math:ArgumentSlot — the operand, or the body of a binder. Domain math:ArgumentSlot, range math:MathematicalExpression (stated in prose). Every slot names exactly one; a slot without an expression is ill-formed (math:MalformedArgumentSlot)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
