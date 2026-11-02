@@ -90,6 +90,7 @@ fn late_native_range_values_wake_authored_consumers_with_actual_source_spellings
     }
 }
 
+/// Property and local restrictions refute literals outside their native value spaces.
 #[test]
 fn datatype_property_literal_domain_and_local_universals_are_actual_clash_producers() {
     for (value, expected) in [

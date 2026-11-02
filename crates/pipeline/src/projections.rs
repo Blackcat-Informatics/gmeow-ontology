@@ -61,6 +61,7 @@ pub(crate) enum DigestAlgorithm {
 }
 
 impl DigestAlgorithm {
+    /// Return the RDF datatype identity owned by the selected digest algorithm.
     pub(crate) fn datatype(self) -> &'static str {
         match self {
             Self::Blake3 => gmeow_logic_compile::literal_datatypes::BLAKE3_256_DIGEST,
@@ -110,6 +111,7 @@ impl DigestAlgorithm {
         Ok(lexical_form)
     }
 
+    /// Reject noncanonical digest lexicals using the selected algorithm's admission rules.
     pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
         let width = if self == Self::Md5 { 32 } else { 64 };
         let valid = match self {

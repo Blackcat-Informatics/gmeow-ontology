@@ -154,6 +154,7 @@ fn is_universe(node: &Node) -> bool {
         || matches!(node, Node::Intersection(members) if members.is_empty())
 }
 
+/// Bound native datatype capacity without treating oversized finite spaces as infinite.
 pub(super) fn named(iri: &str) -> ValueSpaceBounds {
     if matches!(
         iri,

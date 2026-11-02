@@ -171,6 +171,7 @@ fn datatype_cache_capacity_and_payload_misses_preserve_execution() {
     assert_eq!(plan.contains(&large, &mut values), Some(true));
 }
 
+/// Intrinsic datatype membership and finite capacity require no source constructors.
 #[test]
 fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
     // `xsd:anyURI` is an OWL 2 datatype-map primitive. A data range naming it compiles

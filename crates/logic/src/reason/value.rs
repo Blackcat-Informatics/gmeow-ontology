@@ -161,6 +161,7 @@ impl LiteralValue {
         )
     }
 
+    /// Interpret the complete literal while preserving opaque identity on failed admission.
     fn from_parts(
         lexical_form: &str,
         datatype: &str,
