@@ -24174,3 +24174,11 @@ msgstr "所提供字节摘要的准入"
 msgctxt "https://blackcatinformatics.ca/logic/GroundingSourceDigestValueConstraint|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Every supplied byte digest on the selected properties retains an admitted algorithm datatype and its exact lowercase hexadecimal width, without a prefix. This check does not compute a digest or prove that source bytes were verified."
 msgstr "所选属性上的每个所提供字节摘要都保留获准的算法数据类型和精确位数的不带前缀小写十六进制。此检查既不计算摘要，也不证明来源字节已被验证。"
+
+msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "presentation Modality"
+msgstr "呈现模态"
+
+msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The mandatory explicit canonical modality code, supplied as an untagged xsd:string or xsd:token: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. The code must match exactly; whitespace variants and unrecognized selectors are rejected."
+msgstr "必须明确提供的规范模态代码，以不带语言或方向标记的 xsd:string 或 xsd:token 给出：none、alethic、epistemic、doxastic、telic、deontic、representational 或 counterfactual。代码必须完全匹配；含空白的变体和无法识别的选择符均被拒绝。"

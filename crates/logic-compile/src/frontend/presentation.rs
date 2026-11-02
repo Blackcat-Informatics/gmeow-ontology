@@ -270,7 +270,27 @@ impl Reader<'_> {
         let path = self.optional_name(node, "presentationPath")?;
         let module = self.optional_name(node, "presentationModule")?;
         let mode = self.one(node, "presentationModality")?;
-        let mode = self.string(mode, "presentationModality")?;
+        let mode = match self.dataset.term_value(mode) {
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language: None,
+                direction: None,
+            } if matches!(
+                datatype.as_str(),
+                "http://www.w3.org/2001/XMLSchema#string"
+                    | "http://www.w3.org/2001/XMLSchema#token"
+            ) =>
+            {
+                lexical_form
+            }
+            _ => {
+                return Err(self.error(
+                    mode,
+                    "presentationModality requires an untagged xsd:string or xsd:token",
+                ));
+            }
+        };
         let modality = LogicModality::from_str_value(&mode)
             .ok_or_else(|| self.error(node, "unknown presentation modality"))?;
         self.data.contexts.insert(
