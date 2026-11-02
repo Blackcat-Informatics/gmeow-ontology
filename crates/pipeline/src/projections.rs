@@ -112,11 +112,16 @@ impl DigestAlgorithm {
 
     pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
         let width = if self == Self::Md5 { 32 } else { 64 };
-        if lexical.len() != width
-            || !lexical
-                .bytes()
-                .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
-        {
+        let valid = if self == Self::Sha256 {
+            gmeow_logic_compile::literal_datatypes::Sha256Digest::from_canonical_hex(lexical)
+                .is_some()
+        } else {
+            lexical.len() == width
+                && lexical
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+        };
+        if !valid {
             return Err(digest_error(format!(
                 "{} digest requires exactly {width} lowercase hexadecimal digits without a prefix",
                 self.name()

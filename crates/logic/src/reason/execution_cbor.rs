@@ -3,7 +3,7 @@
 
 //! World-scoped native chase certificates in complete execution receipts.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -13,7 +13,10 @@ use super::ChaseCertificate;
 
 impl ExecutionCbor for ChaseCertificate {
     /// Retain the complete ChaseCertificate in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "world")?;
         ExecutionCbor::write_cbor(&self.world, out)?;

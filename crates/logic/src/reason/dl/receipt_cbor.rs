@@ -3,7 +3,7 @@
 
 //! Complete owner-local native execution receipt records, without semantic reconstruction.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -15,7 +15,10 @@ use super::{
 };
 
 impl ExecutionCbor for DlConstructFamily {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::ComplementOf => head::write_text(out, "ComplementOf"),
             Self::SomeValuesFrom => head::write_text(out, "SomeValuesFrom"),
@@ -178,7 +181,10 @@ impl ExecutionCbor for DlConstructFamily {
 }
 
 impl ExecutionCbor for NativeConstructOccurrence {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "family")?;
         ExecutionCbor::write_cbor(&self.family, out)?;
@@ -218,7 +224,10 @@ impl ExecutionCbor for NativeConstructOccurrence {
 }
 
 impl ExecutionCbor for SourceCoverageWorld {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "graph")?;
         ExecutionCbor::write_cbor(&self.graph, out)?;
@@ -258,7 +267,10 @@ impl ExecutionCbor for SourceCoverageWorld {
 }
 
 impl ExecutionCbor for NativeSourceGrammarBasis {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::AwaitingWriters => head::write_text(out, "AwaitingWriters"),
             Self::CompletedWriters => head::write_text(out, "CompletedWriters"),
@@ -327,7 +339,10 @@ impl ExecutionCbor for NativeSourceGrammarBasis {
 }
 
 impl ExecutionCbor for NativeConstructAdmission {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 7)?;
         head::write_text(out, "family")?;
         ExecutionCbor::write_cbor(&self.family, out)?;
@@ -391,7 +406,10 @@ impl ExecutionCbor for NativeConstructAdmission {
 }
 
 impl ExecutionCbor for SourceCoverageObservation {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "input_contract")?;
         ExecutionCbor::write_cbor(&self.input_contract, out)?;

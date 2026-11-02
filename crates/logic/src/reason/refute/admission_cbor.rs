@@ -19,20 +19,32 @@ impl ClassAdmissionObservation {
     /// # Errors
     /// Returns sink failures and refuses non-source boundaries outside this profile.
     pub fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+        self.write_fields(
+            &mut crate::execution_cbor::InlineWriter(out),
+            |world, out| world.write_fields(out, FragmentBoundary::write_admission_cbor),
+        )
+    }
+
+    /// One field owner serves the raw source profile and complete terminal profile.
+    pub(super) fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+        write_world: impl Fn(&ClassAdmissionWorld, &mut W) -> io::Result<()>,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "contract")?;
-        head::write_text(out, &self.contract)?;
+        out.string(&self.contract)?;
         head::write_text(out, "source_worlds")?;
         head::write_head(out, head::MAP, self.source_worlds.len() as u64)?;
         for (world, source) in &self.source_worlds {
-            head::write_text(out, world)?;
-            source.write_cbor(out)?;
+            out.string(world)?;
+            source.write_fields(out)?;
         }
         head::write_text(out, "selected_worlds")?;
         head::write_head(out, head::MAP, self.selected_worlds.len() as u64)?;
         for (world, selected) in &self.selected_worlds {
-            head::write_text(out, world)?;
-            selected.write_cbor(out)?;
+            out.string(world)?;
+            write_world(selected, out)?;
         }
         Ok(())
     }
@@ -40,52 +52,65 @@ impl ClassAdmissionObservation {
 
 impl ClassAdmissionSourceWorld {
     /// Retain nullable graph identity and the complete unsigned assertion census.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "graph")?;
-        crate::term_serde::optional::write_cbor(&self.graph, out)?;
+        ExecutionCbor::write_cbor(&self.graph, out)?;
         head::write_text(out, "assertions")?;
         head::write_head(out, head::UNSIGNED, self.assertions)
     }
 }
 
 impl ClassAdmissionWorld {
-    /// Retain the selected graph, definition order and complete optional refusal.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    /// Select the narrower source boundary or full terminal variants explicitly.
+    pub(super) fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+        write_boundary: impl Fn(&FragmentBoundary, &mut W) -> io::Result<()>,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "graph")?;
-        crate::term_serde::optional::write_cbor(&self.graph, out)?;
+        ExecutionCbor::write_cbor(&self.graph, out)?;
         head::write_text(out, "definitions")?;
         head::write_head(out, head::ARRAY, self.definitions.len() as u64)?;
         for definition in &self.definitions {
-            definition.write_cbor(out)?;
+            definition.write_fields(out)?;
         }
         head::write_text(out, "refusal")?;
         match &self.refusal {
-            Some(boundary) => boundary.write_admission_cbor(out),
+            Some(boundary) => write_boundary(boundary, out),
             None => cbor::write(&Value::Null, out),
         }
     }
 }
 
 impl RefutationPremise {
-    /// Encode the original row, including graph and nested term identities.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    /// The row field owner retains original graph and complete term identity.
+    fn write_fields<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 4)?;
         head::write_text(out, "subject")?;
-        crate::term_serde::write_cbor(&self.subject, out)?;
+        out.term(&self.subject)?;
         head::write_text(out, "predicate")?;
-        head::write_text(out, &self.predicate)?;
+        out.string(&self.predicate)?;
         head::write_text(out, "object")?;
-        crate::term_serde::write_cbor(&self.object, out)?;
+        out.term(&self.object)?;
         head::write_text(out, "graph")?;
-        crate::term_serde::optional::write_cbor(&self.graph, out)
+        ExecutionCbor::write_cbor(&self.graph, out)
     }
 }
 
 impl FragmentBoundary {
     /// Stream source-supported boundary variants in their retained set order.
-    fn write_admission_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_admission_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         let mut pending = vec![self];
         while let Some(boundary) = pending.pop() {
             match boundary {
@@ -98,11 +123,11 @@ impl FragmentBoundary {
                     head::write_text(out, "SourceAdmission")?;
                     head::write_head(out, head::MAP, 3)?;
                     head::write_text(out, "world")?;
-                    head::write_text(out, world)?;
+                    out.string(world)?;
                     head::write_text(out, "premises")?;
                     head::write_head(out, head::ARRAY, premises.len() as u64)?;
                     for premise in premises {
-                        premise.write_cbor(out)?;
+                        premise.write_fields(out)?;
                     }
                     head::write_text(out, "issue")?;
                     issue.write_admission_cbor(out)?;
@@ -128,7 +153,10 @@ impl FragmentBoundary {
 
 impl RefutationSourceIssue {
     /// Preserve every selected source-issue tag and its original payload fields.
-    fn write_admission_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_admission_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::MalformedNil => head::write_text(out, "MalformedNil"),
             Self::ConflictingListField { subject, predicate } => {
@@ -136,27 +164,27 @@ impl RefutationSourceIssue {
                 head::write_text(out, "ConflictingListField")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "subject")?;
-                head::write_text(out, subject)?;
+                out.string(subject)?;
                 head::write_text(out, "predicate")?;
-                head::write_text(out, predicate)
+                out.string(predicate)
             }
             Self::ExpressionMultiplicity { subject, predicate } => {
                 head::write_head(out, head::MAP, 1)?;
                 head::write_text(out, "ExpressionMultiplicity")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "subject")?;
-                head::write_text(out, subject)?;
+                out.string(subject)?;
                 head::write_text(out, "predicate")?;
-                head::write_text(out, predicate)
+                out.string(predicate)
             }
             Self::UnsupportedExpressionOwner { owner, predicate } => {
                 head::write_head(out, head::MAP, 1)?;
                 head::write_text(out, "UnsupportedExpressionOwner")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "owner")?;
-                crate::term_serde::write_cbor(owner, out)?;
+                out.term(owner)?;
                 head::write_text(out, "predicate")?;
-                head::write_text(out, predicate)
+                out.string(predicate)
             }
             Self::UnsupportedExpressionOperand {
                 owner,
@@ -167,11 +195,11 @@ impl RefutationSourceIssue {
                 head::write_text(out, "UnsupportedExpressionOperand")?;
                 head::write_head(out, head::MAP, 3)?;
                 head::write_text(out, "owner")?;
-                head::write_text(out, owner)?;
+                out.string(owner)?;
                 head::write_text(out, "predicate")?;
-                head::write_text(out, predicate)?;
+                out.string(predicate)?;
                 head::write_text(out, "operand")?;
-                crate::term_serde::write_cbor(operand, out)
+                out.term(operand)
             }
             Self::UnsupportedListMember {
                 owner,
@@ -181,9 +209,9 @@ impl RefutationSourceIssue {
                 head::write_text(out, "UnsupportedListMember")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "owner")?;
-                head::write_text(out, owner)?;
+                out.string(owner)?;
                 head::write_text(out, "head")?;
-                head::write_text(out, list_head)
+                out.string(list_head)
             }
             Self::CyclicList {
                 owner,
@@ -193,9 +221,9 @@ impl RefutationSourceIssue {
                 head::write_text(out, "CyclicList")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "owner")?;
-                head::write_text(out, owner)?;
+                out.string(owner)?;
                 head::write_text(out, "head")?;
-                head::write_text(out, list_head)
+                out.string(list_head)
             }
             Self::IncompleteList {
                 owner,
@@ -205,9 +233,9 @@ impl RefutationSourceIssue {
                 head::write_text(out, "IncompleteList")?;
                 head::write_head(out, head::MAP, 2)?;
                 head::write_text(out, "owner")?;
-                head::write_text(out, owner)?;
+                out.string(owner)?;
                 head::write_text(out, "head")?;
-                head::write_text(out, list_head)
+                out.string(list_head)
             }
         }
     }
@@ -218,8 +246,11 @@ impl RefutationSourceIssue {
 use crate::execution_cbor::{ExecutionCbor, Reader, Result as WireResult, descend};
 
 impl ExecutionCbor for RefutationPremise {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        RefutationPremise::write_cbor(self, out)
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        RefutationPremise::write_fields(self, out)
     }
 
     fn check_depth(&self, remaining: usize) -> WireResult<()> {
@@ -255,8 +286,11 @@ impl ExecutionCbor for RefutationPremise {
 }
 
 impl ExecutionCbor for ClassAdmissionSourceWorld {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        ClassAdmissionSourceWorld::write_cbor(self, out)
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        ClassAdmissionSourceWorld::write_fields(self, out)
     }
 
     fn check_depth(&self, remaining: usize) -> WireResult<()> {

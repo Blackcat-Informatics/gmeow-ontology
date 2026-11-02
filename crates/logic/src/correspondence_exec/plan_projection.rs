@@ -10,6 +10,7 @@
 
 mod json;
 
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use purrdf::{CanonHash, RdfDataset, RdfLiteral, RdfQuad, RdfTerm};
@@ -449,19 +450,71 @@ impl Facts {
             .any(|value| iri_value(value) == Some(class))
     }
 
+    /// Admit a bounded native RDF list whose members and links are resources.
+    ///
+    /// # Errors
+    /// Refuses structural faults, non-resource objects and an exceeded item limit.
     fn list(&self, head: &str, limit: usize) -> gmeow_errors::Result<Vec<String>> {
-        let mut node = head.to_owned();
-        let mut seen = BTreeSet::new();
+        use gmeow_errors::DiagKind;
+        use purrdf_core::{ListError, RdfListWalk, SoleObject};
+
+        let head = head.strip_prefix("_:").map_or_else(
+            || RdfTerm::Iri(head.to_owned()),
+            |id| RdfTerm::BlankNode(id.to_owned()),
+        );
+        let nil = RdfTerm::Iri(RDF_NIL.to_owned());
+        let invalid_edge = RefCell::new(None);
+        let edge = |cell: &RdfTerm, predicate: &str| {
+            let objects = SoleObject::of(self.values(&term_key(cell), predicate).iter());
+            if let SoleObject::One(value) = objects
+                && !matches!(value, RdfTerm::Iri(_) | RdfTerm::BlankNode(_))
+            {
+                let mut error = invalid_edge.borrow_mut();
+                if error.is_none() {
+                    *error = Some(exec_error(format!(
+                        "RDF list <{}> requires a resource <{predicate}> object",
+                        term_key(cell)
+                    )));
+                }
+            }
+            objects
+        };
+        let walk = RdfListWalk::new(
+            &head,
+            Some(&nil),
+            |cell| edge(cell, RDF_FIRST),
+            |cell| edge(cell, RDF_REST),
+        );
         let mut values = Vec::new();
-        while node != RDF_NIL {
-            if !seen.insert(node.clone()) {
-                return Err(exec_error("RDF list contains a cycle"));
+        for item in walk {
+            let member = item.map_err(|fault| {
+                let source = ListError {
+                    kind: fault.kind,
+                    members: values
+                        .iter()
+                        .take(fault.members)
+                        .cloned()
+                        .collect::<Vec<String>>(),
+                    node: term_key(fault.node),
+                };
+                let kind = crate::error::Reason {
+                    detail: format!("RDF list admission: {source}"),
+                };
+                let mut diagnostic =
+                    gmeow_errors::Diag::new(kind.code(), kind.grade(), kind.to_string())
+                        .with_source(source);
+                if let Some(class) = kind.failure_class() {
+                    diagnostic = diagnostic.with_failure_class(class);
+                }
+                diagnostic
+            })?;
+            if let Some(error) = invalid_edge.borrow_mut().take() {
+                return Err(error);
             }
             if values.len() >= limit {
                 return Err(exec_error("RDF list admission limit exceeded"));
             }
-            values.push(self.one_resource(&node, RDF_FIRST)?);
-            node = self.one_resource(&node, RDF_REST)?;
+            values.push(term_key(member));
         }
         Ok(values)
     }

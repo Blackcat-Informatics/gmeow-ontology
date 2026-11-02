@@ -63,6 +63,7 @@ pub mod ingest;
 pub mod ir;
 // The single RDF-list lowering shared by every list-valued `logic:` constructor.
 pub mod lists;
+pub mod literal_datatypes;
 pub mod term_serde;
 pub mod tptp;
 // The single loss store: one substrate DiagLedger every loss serialization

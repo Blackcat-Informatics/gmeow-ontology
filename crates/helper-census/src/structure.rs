@@ -242,6 +242,7 @@ impl Structure<'_> {
 }
 
 impl<'ast> Visit<'ast> for Structure<'_> {
+    /// Inspect call structure for forbidden copies and registered native entry points.
     fn visit_expr_call(&mut self, node: &'ast syn::ExprCall) {
         if let syn::Expr::Path(function) = node.func.as_ref() {
             let (before, last) = last_two(&function.path);
@@ -266,7 +267,8 @@ impl<'ast> Visit<'ast> for Structure<'_> {
                 self.hit(DEFAULT_HASHER_NEW, line, HASHER_DETAIL);
             }
             if let (Some(state), Some(name)) = (self.functions.last_mut(), last.as_deref())
-                && LIST_HOME_ENTRY_POINTS.contains(&name)
+                && (LIST_HOME_ENTRY_POINTS.contains(&name)
+                    || (before.as_deref() == Some("RdfListWalk") && name == "new"))
             {
                 state.uses_home = true;
             }

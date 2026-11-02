@@ -25,7 +25,7 @@ use purrdf::{SssomMapping, SssomMappingSet, SssomMeta};
 
 use crate::ingest::DslView;
 use crate::ingest::prefixes::{ns_to_prefix, registry_iri, sssom_id};
-use crate::ir::{CorrespondenceRelation, MorphismClass};
+use crate::ir::{CorrespondenceRelation, LOGIC_NAMESPACE, MorphismClass};
 use crate::projections::correspondence_frontend::CorrespondenceAnalysis;
 use crate::projections::correspondence_gate::assert_relation_no_overclaim;
 use crate::projections::get_leg::{MappingPattern, ProfileBinding, ProjectionCell};
@@ -440,7 +440,12 @@ fn collect_sources<'a>(view: &DslView, analysis: &'a CorrespondenceAnalysis) -> 
     }
 }
 
-fn projection_sssom_pairs(
+/// Exact source/target pairs the SSSOM projection emits for one admitted binding.
+///
+/// # Errors
+/// Refuses a binding without unambiguous SSSOM source and target terms. Callers
+/// select only bindings whose `emit_sssom` profile explicitly requests this view.
+pub fn projection_sssom_pairs(
     cell: &ProjectionCell,
     binding: &ProfileBinding,
 ) -> gmeow_errors::Result<Vec<(String, String)>> {
@@ -540,24 +545,24 @@ fn fixed_template_values(binding: &ProfileBinding) -> Vec<String> {
 /// object-level authored graph (`source_load::authored_files`) never loads, so an asserted
 /// `owl:equivalentClass` here is alignment metadata that never enters OWL closure — and the
 /// `gmeow:sssomFile` annotation remains the authoritative discriminator on top of this check.
-fn is_alignment_predicate(predicate: &str) -> bool {
-    let local = predicate
-        .rsplit(['#', '/', ':'])
-        .next()
-        .unwrap_or(predicate);
-    matches!(
-        local,
-        "exactMatch"
-            | "closeMatch"
-            | "broadMatch"
-            | "narrowMatch"
-            | "relatedMatch"
-            | "equivalentClass"
-            | "equivalentProperty"
-            | "sameAs"
-            | "subClassOf"
-            | "subPropertyOf"
-    )
+pub fn is_alignment_predicate(predicate: &str) -> bool {
+    if let Some(local) = predicate.strip_prefix("http://www.w3.org/2004/02/skos/core#") {
+        matches!(
+            local,
+            "exactMatch" | "closeMatch" | "broadMatch" | "narrowMatch" | "relatedMatch"
+        )
+    } else if let Some(local) = predicate.strip_prefix("http://www.w3.org/2002/07/owl#") {
+        matches!(local, "equivalentClass" | "equivalentProperty" | "sameAs")
+    } else if let Some(local) = predicate.strip_prefix("http://www.w3.org/2000/01/rdf-schema#") {
+        matches!(local, "subClassOf" | "subPropertyOf")
+    } else if let Some(local) = predicate.strip_prefix(LOGIC_NAMESPACE) {
+        matches!(
+            local,
+            "equivalentClass" | "equivalentProperty" | "sameAs" | "subClassOf" | "subPropertyOf"
+        )
+    } else {
+        false
+    }
 }
 
 /// Read every native-form alignment cell: one RDF-1.2 asserting-annotation on a

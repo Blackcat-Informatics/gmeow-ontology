@@ -46,9 +46,9 @@ impl OwnedGroundingSource {
                 "slices/grounding/logic/mappings/"
             }
             _ => {
-                return Err(error(
-                    "selected catalog input requires an actual grounding-slice owner",
-                ));
+                return Err(error(format!(
+                    "selected catalog input requires an actual grounding-slice owner: artifact {path:?}, owner {owner:?}"
+                )));
             }
         };
         let relative = path.strip_prefix(stem).ok_or_else(|| {

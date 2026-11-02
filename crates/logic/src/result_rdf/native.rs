@@ -9,13 +9,17 @@ use std::io::Write;
 use purrdf_lex::cbor::head;
 
 use crate::execution_cbor::{
-    ExecutionCbor, MAX_RECEIPT_BYTES, MAX_RECEIPT_DEPTH, Reader, check_structure, descend,
+    ExecutionCbor, InlineWriter, MAX_RECEIPT_BYTES, MAX_RECEIPT_DEPTH, Reader, Tables,
+    check_structure, descend,
 };
 use crate::result::NativeExecutionEvidence;
 
 use super::result_err;
 
-const SCHEMA: &str = "gmeow-native-execution-v2";
+// V3 bounds compact wire at 256 MiB, separately from the mandatory 512 MiB
+// expanded logical encoding (inline definitions plus every payload occurrence).
+// Neither number claims to be a measured host RSS limit.
+const SCHEMA: &str = "gmeow-native-execution-v3";
 
 /// Preserve the typed projection kind as the direct diagnostic source and retain
 /// the native refusal beneath it, rather than replacing that kind's downcast.
@@ -31,9 +35,12 @@ fn write_envelope<W: Write + ?Sized>(
     execution: &NativeExecutionEvidence,
     output: &mut W,
 ) -> std::io::Result<()> {
-    head::write_head(output, head::ARRAY, 2)?;
+    // Plan tables and both admissions before any publication buffer is written.
+    let tables = Tables::prepare(execution, SCHEMA).map_err(std::io::Error::other)?;
+    head::write_head(output, head::ARRAY, 4)?;
     head::write_text(output, SCHEMA)?;
-    ExecutionCbor::write_cbor(execution, output)
+    tables.write(output)?;
+    tables.write_payload(execution, output)
 }
 
 /// Preserve native terms, proof DAGs and finite u128 cardinalities at the actual
@@ -82,27 +89,35 @@ pub(super) fn decode(text: &str) -> gmeow_errors::Result<Box<NativeExecutionEvid
     let bytes = purrdf_hash::hex::decode_canonical(text).map_err(|_| {
         result_err("native execution receipt requires canonical lowercase hex".into())
     })?;
-    let mut input = Reader::new(&bytes).map_err(|error| {
+    check_structure(&bytes).map_err(|error| {
+        codec_err(
+            format!("native execution receipt exceeds its structural bound: {error}"),
+            error,
+        )
+    })?;
+    let mut input = Reader::for_definitions(&bytes).map_err(|error| {
         codec_err(
             format!("native execution receipt decoding failed: {error}"),
             error,
         )
     })?;
-    let (schema, execution) = <(String, Box<NativeExecutionEvidence>)>::read_cbor(&mut input)
+    let execution = input
+        .array(|input, length| {
+            if length != 4 || input.text()? != SCHEMA {
+                return Err(input.invalid("native execution receipt has the wrong schema"));
+            }
+            input.read_tables()?;
+            Box::<NativeExecutionEvidence>::read_cbor(input)
+        })
         .map_err(|error| {
             codec_err(
                 format!("native execution receipt decoding failed: {error}"),
                 error,
             )
         })?;
-    if schema != SCHEMA {
-        return Err(result_err(
-            "native execution receipt has the wrong schema or trailing bytes".into(),
-        ));
-    }
     input.finish().map_err(|error| {
         codec_err(
-            "native execution receipt has the wrong schema or trailing bytes".into(),
+            format!("native execution receipt final admission failed: {error}"),
             error,
         )
     })?;
@@ -132,14 +147,14 @@ fn receipt_sizes(execution: &NativeExecutionEvidence) -> String {
     fn size_all<'a, T: ExecutionCbor + 'a>(values: impl Iterator<Item = &'a T>) -> String {
         let mut counter = ByteCounter(0);
         for value in values {
-            if let Err(error) = value.write_cbor(&mut counter) {
+            if let Err(error) = value.write_cbor(&mut InlineWriter(&mut counter)) {
                 return format!("unencodable ({error})");
             }
         }
         format!("{} B", counter.0)
     }
     format!(
-        "families {} ({} ledger(s), {} outcome(s), {} proof node(s), {} contextual receipt(s), \
+        "expanded inline fields (table definitions excluded): families {} ({} ledger(s), {} outcome(s), {} proof node(s), {} contextual receipt(s), \
          {} producer obstruction(s); \
          outcomes {}, proofs {} (statements {}, origins {}), \
          contextual_receipts {}, producer_obstructions {}), class_admission {}, source_coverage {}, \

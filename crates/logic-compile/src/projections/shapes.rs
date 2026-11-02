@@ -292,7 +292,7 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         // `owl:qualifiedCardinality` → the count) — the values satisfying the inner shape are
         // counted, NOT all values. The inner shape's own component lines nest in the `[ … ]`.
         ConstraintComponent::QualifiedValueShape { shape, min, max } => {
-            let inner: Vec<String> = shape.iter().flat_map(component_lines).collect();
+            let inner: Vec<String> = component_conjuncts(shape).flatten().collect();
             let mut v = vec![format!("sh:qualifiedValueShape [ {} ]", inner.join(" ; "))];
             if let Some(n) = min {
                 v.push(format!("sh:qualifiedMinCount {n}"));
@@ -340,6 +340,37 @@ fn component_lines(c: &ConstraintComponent) -> Vec<String> {
         // A per-property unique-language facet: at most one value per language tag.
         ConstraintComponent::UniqueLang => vec!["sh:uniqueLang true".to_owned()],
     }
+}
+
+/// Keep distinct datatype requirements conjunctive without repeating SHACL's
+/// singleton datatype parameter on one shape. Other component positions stay intact.
+fn component_conjuncts(
+    components: &[ConstraintComponent],
+) -> impl Iterator<Item = Vec<String>> + '_ {
+    let datatypes: std::collections::BTreeSet<_> = components
+        .iter()
+        .filter_map(|component| match component {
+            ConstraintComponent::Datatype(datatype) => Some(datatype.as_str()),
+            _ => None,
+        })
+        .collect();
+    let mut emitted_datatypes = false;
+    components.iter().map(move |component| {
+        if datatypes.len() > 1 && matches!(component, ConstraintComponent::Datatype(_)) {
+            if emitted_datatypes {
+                return Vec::new();
+            }
+            emitted_datatypes = true;
+            let members = datatypes
+                .iter()
+                .map(|datatype| format!("[ sh:datatype {} ]", iri_term(datatype)))
+                .collect::<Vec<_>>()
+                .join(" ");
+            vec![format!("sh:and ( {members} )")]
+        } else {
+            component_lines(component)
+        }
+    })
 }
 
 /// The `sh:path` term for a property shape — a bare predicate, or an `sh:inversePath` blank
@@ -425,15 +456,13 @@ fn property_shape_block(
         }
     }
     let mut qualified_emitted = false;
-    for c in &p.components {
+    for (c, component_lines) in p.components.iter().zip(component_conjuncts(&p.components)) {
         if matches!(c, ConstraintComponent::QualifiedValueShape { .. }) {
             if let Some(counts) = qualified
                 && !qualified_emitted
             {
-                let inner = counts
-                    .shape
-                    .iter()
-                    .flat_map(component_lines)
+                let inner = component_conjuncts(counts.shape)
+                    .flatten()
                     .collect::<Vec<_>>();
                 lines.push(format!("sh:qualifiedValueShape [ {} ]", inner.join(" ; ")));
                 if let Some(n) = counts.min {
@@ -445,7 +474,7 @@ fn property_shape_block(
                 qualified_emitted = true;
             }
         } else if include_common {
-            lines.extend(component_lines(c));
+            lines.extend(component_lines);
         }
     }
     // RDF-1.2 statement-layer extension: the reifier of each `focus`→`path`→`value` statement must
@@ -505,9 +534,7 @@ pub fn project_validation_shape_shacl(shape: &ValidationShapeIr) -> String {
     }
     // Focus-node-level constraints (domain/range/disjointness) — emitted directly on the node
     // shape, not inside a property block.
-    for c in &shape.node_components {
-        pos.extend(component_lines(c));
-    }
+    pos.extend(component_conjuncts(&shape.node_components).flatten());
     for p in &shape.properties {
         pos.extend(
             property_shape_blocks(p, shape.failure_class.as_deref())

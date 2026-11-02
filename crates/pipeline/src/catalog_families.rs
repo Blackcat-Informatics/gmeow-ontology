@@ -36,6 +36,9 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 mod json;
+pub(crate) mod native_kernel;
+
+pub use native_kernel::NativeKernelEvidence;
 
 /// Repo-relative path of the authored catalog-family registry.
 pub const CATALOG_FAMILIES_PATH: &str = "dsl/mappings/catalog-families.ttl";
@@ -68,7 +71,7 @@ fn registry_err(message: String) -> gmeow_errors::Diag {
     })
 }
 
-/// Both registry views lowered from one original authored document.
+/// Governance registry views lowered from one original authored document.
 ///
 /// Every required binding is mandatory: a family with no name, no namespace stem,
 /// no owner, or no minimum cannot drive the gate, so it is a HARD FAIL rather than
@@ -81,21 +84,25 @@ pub struct CatalogRegistry {
     pub families: Vec<CatalogFamily>,
     /// Declared, bounded residue exemptions.
     pub exemptions: Vec<ResidueExemption>,
+    /// Families whose kernel correspondences require physical native admission.
+    pub native_kernel_families: BTreeSet<String>,
 }
 
 /// Compact production observations shared by registry and bundle consumers.
 #[derive(Debug)]
 pub struct RegistryObservations {
-    /// Both native registry views from the exact original document.
+    /// Governance registry views from the exact original document.
     pub registry: CatalogRegistry,
     /// Guarded namespace authority selected by the producer's rubric gate.
     pub guarded_namespaces: BTreeSet<String>,
+    /// Exact native correspondences admitted from original, physically owned artifacts.
+    pub native_kernel_evidence: Vec<NativeKernelEvidence>,
 }
 
 /// Private pipeline artifact containing the producer's validated registry views.
 pub const REGISTRY_CHANNEL: &str = "pipeline/catalog-family-observations.json";
 
-/// Load both registry views with one source read and parse.
+/// Load all registry views with one source read and parse.
 pub fn load_catalog_registry(root: &Path) -> Result<CatalogRegistry, gmeow_errors::Diag> {
     let path = root.join(CATALOG_FAMILIES_PATH);
     let bytes = std::fs::read(&path)
@@ -105,6 +112,7 @@ pub fn load_catalog_registry(root: &Path) -> Result<CatalogRegistry, gmeow_error
     Ok(CatalogRegistry {
         families: catalog_families_from_dataset(&dataset)?,
         exemptions: residue_exemptions_from_dataset(&dataset)?,
+        native_kernel_families: native_kernel::families_from_dataset(&dataset)?,
     })
 }
 
@@ -112,7 +120,40 @@ pub fn load_catalog_registry(root: &Path) -> Result<CatalogRegistry, gmeow_error
 /// Missing or stale fixture identities fail closed; no loader fallback exists.
 pub fn authenticated_registry(root: &Path) -> Result<RegistryObservations, gmeow_errors::Diag> {
     let bytes = crate::fixture::authenticated_artifact(root, "stage-mappings", REGISTRY_CHANNEL)?;
-    json::decode_observations(&bytes)
+    let observations = json::decode_observations(&bytes)?;
+    observations.validate()?;
+    Ok(observations)
+}
+
+impl RegistryObservations {
+    /// Check required governance and native proof coverage without reopening sources.
+    ///
+    /// # Errors
+    /// Refuses missing or conflicting regimes, malformed proofs and insufficient coverage.
+    pub fn validate(&self) -> gmeow_errors::Result<()> {
+        native_kernel::check_regimes(&self.registry, &self.guarded_namespaces)?;
+        native_kernel::validate_evidence(&self.registry, &self.native_kernel_evidence)
+    }
+
+    /// Reconcile authenticated source admission with a transported correspondence program.
+    /// Canonical ontology ownership identifies the source scope; no marker or namespace
+    /// preference decides whether a program row requires its original native proof.
+    ///
+    /// # Errors
+    /// Refuses missing, extra, retagged or semantically changed kernel correspondences.
+    pub fn verify_native_kernel_program(
+        &self,
+        ontology: &purrdf::RdfDataset,
+        program: &gmeow_logic_compile::projections::correspondence::CorrespondenceProgram,
+    ) -> gmeow_errors::Result<()> {
+        self.validate()?;
+        native_kernel::verify_transport(
+            &self.registry,
+            &self.native_kernel_evidence,
+            ontology,
+            program,
+        )
+    }
 }
 
 /// Lower and validate the family declarations in one original registry document.

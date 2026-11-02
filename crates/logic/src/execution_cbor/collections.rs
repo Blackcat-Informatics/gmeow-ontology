@@ -4,7 +4,7 @@
 //! Shared sequence emission and visitor accounting with distinct collection admission.
 
 use std::collections::BTreeSet;
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -24,7 +24,10 @@ macro_rules! sequence_methods {
         }
 
         /// Stream recorded element order without an intermediate collection.
-        fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+        fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+            &self,
+            out: &mut W,
+        ) -> io::Result<()> {
             head::write_head(out, head::ARRAY, self.len() as u64)?;
             for value in self {
                 value.write_cbor(out)?;

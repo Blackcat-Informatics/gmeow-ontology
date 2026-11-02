@@ -1819,7 +1819,7 @@ impl LawClaimIr {
     }
 }
 
-/// Format a binary64 validation bound for its content key, collapsing `-0.0` to
+/// Format a `binary64` validation bound for its content key, collapsing `-0.0` to
 /// `0.0` (signed-zero determinism) and rendering `None` as the empty string.
 fn opt_axis_key(v: Option<f64>) -> String {
     match v {
@@ -2168,6 +2168,14 @@ impl Correspondence {
         }
         self.recovery_cases = recovery_cases;
         Ok(self)
+    }
+
+    /// Complete non-law semantics using the normal content key. The law-claim lane
+    /// is certified separately after admission and may acquire discharge evidence.
+    pub fn native_admission_key(&self) -> String {
+        let mut admitted = self.clone();
+        admitted.law_claims.clear();
+        admitted.content_key()
     }
 
     /// A deterministic full-content key for canonical equality, folding every field

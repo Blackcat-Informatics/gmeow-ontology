@@ -284,10 +284,11 @@ fn native_obligation_discovery_preserves_independent_document_blank_scopes() {
 
 #[test]
 fn canonical_candidate_typing_reaches_coverage_and_prose_drift_checks() {
+    // The declared digest commits to "Previous source prose.", before the edit.
     let source = "ex:candidate logic:instanceOf logic:FormalizationCandidate ; \
                       logic:candidateFormalizes ex:term ; \
                       logic:candidateSourceField ex:field ; \
-                      logic:candidateSourceHash \"sha256:stale\" .\n\
+                      logic:candidateSourceHash \"3b99e0060c89e4312f9fe633fe9af09d691a68becc2a5f4c06df7569339d54e9\"^^<https://blackcatinformatics.ca/gmeow/sha256Digest> .\n\
                       ex:field logic:proseFieldProperty ex:definition .\n\
                       ex:term ex:definition \"Current source prose.\"@x-gmeow-english .";
     let store = governance_store(source);

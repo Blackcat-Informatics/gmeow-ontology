@@ -172,7 +172,7 @@ fn datatype_cache_capacity_and_payload_misses_preserve_execution() {
 }
 
 #[test]
-fn any_uri_is_an_intrinsic_primitive_datatype() {
+fn native_intrinsic_datatypes_admit_values_without_source_constructors() {
     // `xsd:anyURI` is an OWL 2 datatype-map primitive. A data range naming it compiles
     // without a constructor, admits valid anyURI literals, excludes every interpreted
     // value of another primitive, and leaves an uninterpreted foreign datatype unknown.
@@ -213,6 +213,25 @@ fn any_uri_is_an_intrinsic_primitive_datatype() {
     );
     // Infinite, not unknown: any finite count of distinct anyURI values exists.
     assert_eq!(extent::named(ANY_URI).admits(1_000_000), Some(true));
+
+    let sha_iri = gmeow_logic_compile::literal_datatypes::SHA256_DIGEST;
+    edge(&mut rel, "urn:sha", "urn:range", sha_iri);
+    let digest = literal(&"0".repeat(64), sha_iri);
+    let sha = DatatypeCache::default()
+        .prepare(&rel, &iri(sha_iri), &mut ListCache::default(), &mut values)
+        .unwrap();
+    assert_eq!(sha.contains(&digest, &mut values), Some(true));
+    assert_eq!(
+        sha.contains(&literal("0", INTEGER), &mut values),
+        Some(false)
+    );
+    assert_eq!(sha.contains(&literal("0", sha_iri), &mut values), None);
+    assert_eq!(extent::named(sha_iri).admits(u128::MAX), Some(true));
+    assert_eq!(extent::named(sha_iri).exact_count(), None);
+    assert_eq!(
+        extent::analyze(&[Node::Named(sha_iri.into()), Node::Complement(0)], 1).admits(u128::MAX),
+        Some(true)
+    );
 }
 
 #[test]

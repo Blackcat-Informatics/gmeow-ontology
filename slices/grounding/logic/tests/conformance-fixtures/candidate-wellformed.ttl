@@ -9,6 +9,9 @@
 # Bound by tests/example-conformance.ttl (ex:ecCandidateWellformed,
 # gmeow:conforms). Self-contained: the harness loads logic/module.ttl + ONLY
 # this file against logic/shapes.ttl.
+# The source hash commits to the exact UTF-8 skos:definition lexical text of
+# logic:properPartOf in logic/module.ttl, without a final newline.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -18,7 +21,7 @@ ex:contractEL a logic:ReasoningContract ;
     rdfs:label "EL profile (fixture)"@en .
 
 ex:candidateWellformed a logic:FormalizationCandidate ;
-    logic:candidateSourceHash "sha256:0d1a…properpart"^^xsd:string ;
+    logic:candidateSourceHash "0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "logic-foundation-charter §Greenfield features"^^xsd:string ;
     logic:candidateScope "logic:properPartOf over the endurant spine"^^xsd:string ;
     logic:candidateContract ex:contractEL ;

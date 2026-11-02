@@ -3,7 +3,7 @@
 
 //! Complete declaration-ordered native execution evidence record.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -12,7 +12,10 @@ use crate::result::NativeExecutionEvidence;
 use super::{ExecutionCbor, Reader, Result};
 
 impl ExecutionCbor for NativeExecutionEvidence {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 12)?;
         head::write_text(out, "input_contract")?;
         ExecutionCbor::write_cbor(&self.input_contract, out)?;

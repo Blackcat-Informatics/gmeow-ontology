@@ -8,6 +8,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeKernelCatalogGuard|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native kernel catalog guard"
+msgstr "contrôle natif du catalogue du noyau"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeKernelCatalogGuard|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A catalog family's source-scoped admission regime. Every correspondence from a canonically kernel-owned term into that family requires the complete native term-cell or projection-binding envelope and actual catalog-owner Mapping artifacts, retaining paths and SHA-256 identities. Canonical ownership comes from original Module-role declarations, including retained public IRIs. Every physical defining or metadata occurrence is checked independently of its markers before deduplication; shared analysis resolves references. Ordinary domain publication alignments remain outside this scope. Each family selects exactly one broad guard, bounded exemption or native kernel guard."
+msgstr "Régime d’admission d’une famille de catalogues délimité par la source. Toute correspondance allant d’un terme canoniquement détenu par le noyau vers cette famille exige l’enveloppe native complète de la cellule de terme ou de la liaison de projection ainsi que les véritables artefacts Mapping du propriétaire du catalogue, en conservant leurs chemins et identités SHA-256. La propriété canonique provient des déclarations originales de rôle Module, y compris pour les IRI publiques conservées. Chaque occurrence physique de définition ou de métadonnées est contrôlée indépendamment de ses marqueurs avant dédoublonnage ; l’analyse partagée résout les références. Les alignements ordinaires de publication des domaines restent hors de cette portée. Chaque famille sélectionne exactement un contrôle global, une exemption bornée ou un contrôle natif du noyau."
+
 msgctxt "https://blackcatinformatics.ca/gmeow/fnBirthEventToDate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Extracts a person's birth placement through the principal Participation and eventTime while retaining the source path. The owning target mapping selects its calendar-component projection: schema.org retains a date or natively casts a timestamp to a date; vCard retains a timestamp or year and explicitly coarsens date/month values. The source placement is never padded or rewritten."
 msgstr "Extrait le repérage de naissance d’une personne par la Participation principale et eventTime en conservant le chemin source. Le mapping cible propriétaire sélectionne sa projection de composante calendaire : schema.org conserve une date ou convertit nativement un horodatage en date ; vCard conserve un horodatage ou une année et réduit explicitement la précision des valeurs de date ou de mois. Le repérage source n’est jamais complété ni réécrit."
