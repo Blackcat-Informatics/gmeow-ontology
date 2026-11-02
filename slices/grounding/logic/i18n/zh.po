@@ -8631,8 +8631,8 @@ msgid "The concrete depth bound supplied at a logic:PathInvocation for the named
 msgstr "在 logic:PathInvocation 处为被调用的 logic:PathShape 的具名深度参数（其 logic:pathDepthParam）所提供的具体深度界限：:name(?maxDepth := 2) 中 ?maxDepth 的值。它将本次调用的遍历界定为至多这么多跳，而不改变形状本身。"
 
 msgctxt "https://blackcatinformatics.ca/logic/pathDepthParam|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The name of the depth parameter a logic:PathShape exposes for parametric invocation — 'maxDepth' in :nearbyOrgs(?maxDepth := 2). A logic:PathInvocation binds this parameter with logic:pathDepthArg. Default-absent: a shape with a fixed depth and no exposed parameter carries no logic:pathDepthParam and is invoked without an argument."
-msgstr "logic:PathShape 为参数化调用所暴露的深度参数之名 —— :nearbyOrgs(?maxDepth := 2) 中的 'maxDepth'。logic:PathInvocation 以 logic:pathDepthArg 绑定此参数。默认缺席：具有固定深度且不暴露参数的形状不携带 logic:pathDepthParam，调用时不带实参。"
+msgid "The authored name of the depth parameter exposed by a logic:PathShape, such as 'maxDepth'. Optional: absence declares no exposed parameter. A supplied name must be exactly one untagged xsd:string or xsd:token literal with valid native datatype lexical form and non-blank text. Its exact spelling is preserved without trimming or case folding. A logic:PathInvocation binds this parameter with logic:pathDepthArg."
+msgstr "logic:PathShape 所暴露的深度参数的撰写名称，例如 'maxDepth'。此项可选：缺席表示未暴露参数。提供的名称必须恰好是一个不带语言标签或方向的 xsd:string 或 xsd:token 字面量，其词法形式须符合原生数据类型，文本不得为空或仅含空白。完整保留其原始拼写，不去除首尾空白，也不转换大小写。 logic:PathInvocation 通过 logic:pathDepthArg 绑定此参数。"
 
 msgctxt "https://blackcatinformatics.ca/logic/PathInvocation|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A by-name application of a logic:PathShape with concrete depth arguments — the canonical, reified form of a parametric call such as :nearbyOrgs(?maxDepth := 2). It carries logic:invokesPathShape (the shape applied) and logic:pathDepthArg (the value bound to the shape's logic:pathDepthParam), so a named, reusable traversal is instantiated at a specific bound without rewriting the shape. The surface syntax :name(?param := value) is a rendering of this individual, not a separate construct (Principle 17)."
