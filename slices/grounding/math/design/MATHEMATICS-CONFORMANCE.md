@@ -134,8 +134,10 @@ divergent second source), so none of them carries a backing `logic:Constraint`.
 | A `math:CliffordModuleDecomposition` names both summands and carries a true exact split/join witness | SHACL Core derived from OWL restrictions + native producer test | `math:IncompleteCliffordExtension` |
 
 The Weyl root anchor is authored as canonical `logic:subClassOf` restrictions on
-`math:hasRootSystem`: a minimum of one typed `math:RootSystem` and an `allValuesFrom` restriction,
-with an anonymous `logic:ClosureEntry` selecting `logic:ClosedWorldClosure` for that required path.
+`math:hasRootSystem`: an `allValuesFrom math:RootSystem` restriction with an anonymous
+`logic:ClosureEntry` selecting `logic:ClosedWorldClosure` for that class-local required path.
+The existing validation lowering derives `sh:minCount 1` and `sh:class math:RootSystem` from
+this combination without introducing an existential root witness into the reasoned core.
 It has no maximum root cardinality and preserves the inherited group frame. A Weyl group is not
 universally a full `math:AutomorphismGroup`; E8 explicitly carries both types and both anchors.
 The full automorphism-group restriction, closure policy and failure remain independent.
