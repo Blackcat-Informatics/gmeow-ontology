@@ -90,6 +90,7 @@ fn late_native_range_values_wake_authored_consumers_with_actual_source_spellings
     }
 }
 
+/// Property and local restrictions refute literals outside their native value spaces.
 #[test]
 fn datatype_property_literal_domain_and_local_universals_are_actual_clash_producers() {
     for (value, expected) in [
@@ -109,21 +110,25 @@ fn datatype_property_literal_domain_and_local_universals_are_actual_clash_produc
         literal(SUBJECT, P, "literal", STRING),
     ]);
     assert!(is_done(&run(&program(Vec::new()), &source(facts))));
-    let sha = gmeow_logic_compile::literal_datatypes::SHA256_DIGEST;
-    for (datatype, expected) in [(sha, false), (STRING, true)] {
-        let mut facts = base();
-        facts.extend([
-            fact(P, RANGE, sha),
-            fact(RECORD, ALL, sha),
-            fact(RECORD, SOME, sha),
-            literal(SUBJECT, P, &"0".repeat(64), datatype),
-        ]);
-        let result = run(&program(Vec::new()), &source(facts));
-        assert_eq!(is_done(&result), expected);
-        assert_eq!(
-            result.native_status,
-            crate::reason::refute::NativeClosureStatus::Completed
-        );
+    for (digest_datatype, width) in [
+        (gmeow_logic_compile::literal_datatypes::SHA256_DIGEST, 64),
+        (gmeow_logic_compile::literal_datatypes::MD5_DIGEST, 32),
+    ] {
+        for (datatype, expected) in [(digest_datatype, false), (STRING, true)] {
+            let mut facts = base();
+            facts.extend([
+                fact(P, RANGE, digest_datatype),
+                fact(RECORD, ALL, digest_datatype),
+                fact(RECORD, SOME, digest_datatype),
+                literal(SUBJECT, P, &"0".repeat(width), datatype),
+            ]);
+            let result = run(&program(Vec::new()), &source(facts));
+            assert_eq!(is_done(&result), expected);
+            assert_eq!(
+                result.native_status,
+                crate::reason::refute::NativeClosureStatus::Completed
+            );
+        }
     }
 }
 
