@@ -736,7 +736,7 @@ impl Stage for ReasonStage {
     fn impl_version(&self) -> &str {
         // Retain selected-domain native evidence and each world's independently
         // certified authored program; enforce the demonstrators' declared classes.
-        "reason.v15-program-reachability"
+        "reason.v16-typed-terminal-receipt-v3"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, gmeow_errors::Diag> {
         let mut timings = Vec::with_capacity(3);

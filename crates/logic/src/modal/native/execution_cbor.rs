@@ -3,7 +3,7 @@
 
 //! Exact owned execution-receipt fields; no semantic reconstruction at decoding.
 
-use std::io::{self, Write};
+use std::io;
 
 use crate::execution_cbor::{ExecutionCbor, Reader, Result, descend};
 use purrdf_lex::cbor::head;
@@ -25,7 +25,10 @@ impl ExecutionCbor for NativeModalEvidence {
         Ok(())
     }
     /// Stream every field in this record's serialized declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 3)?;
         head::write_text(out, "input_contract")?;
         self.input_contract.write_cbor(out)?;

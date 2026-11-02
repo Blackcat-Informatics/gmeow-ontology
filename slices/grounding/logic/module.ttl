@@ -17764,7 +17764,7 @@ logic:resultNativeExecution
     logic:domain logic:ReasoningResult ;
     logic:range xsd:hexBinary ;
     rdfs:label "result native execution evidence"@x-gmeow-english ;
-    skos:definition "A bounded terminal CBOR encoding of the complete native execution record under schema gmeow-native-execution-v1. It retains selected worlds, source admission, all family outcomes, complete proof and witness evidence, and the actual governed frontier. The live typed result remains its owner; a digest grants no theorem or rewrite authority."@x-gmeow-english ;
+    skos:definition "A terminal CBOR encoding of the complete native execution record under schema gmeow-native-execution-v3. Deterministic string and complete RDF-term tables preserve every occurrence, order, proof, witness, blank scope and literal facet. Admission requires at most 256 MiB of published wire, 512 MiB of expanded logical encoding including table definitions and every payload occurrence, and the existing typed and structural depth bounds of 64. These are encoding bounds, not measured host RSS or a guarantee that a particular record fits. The live typed result remains the owner; carriage grants no theorem or rewrite authority."@x-gmeow-english ;
     gmeow:useWhen "Use when publishing or validating the provenance scope of a native reasoning result."@x-gmeow-english ;
     gmeow:avoidWhen "Do not treat contextual evidence as a proof of an unrelated proposition or as permission for unrestricted rewrites."@x-gmeow-english ;
     gmeow:howToUse "Bind the selected proposition scope to the complete typed result and preserve its exact world and proof identities."@x-gmeow-english ;

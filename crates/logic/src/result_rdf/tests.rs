@@ -164,7 +164,7 @@ fn native_conflict_result() -> ReasoningResult {
 fn terminal_result_retains_native_execution_and_requires_the_separate_closure() {
     let result = native_conflict_result();
     let projection = ResultProjection::reasoning(&result).unwrap();
-    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v2.txt")
+    let reference: Vec<_> = include_str!("fixtures/native-execution-cbor-v3.txt")
         .lines()
         .next()
         .unwrap()
@@ -259,7 +259,7 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     let purrdf_lex::cbor::Value::Array(fields) = &mut envelope else {
         panic!("native receipt envelope")
     };
-    let purrdf_lex::cbor::Value::Map(execution) = &mut fields[1] else {
+    let purrdf_lex::cbor::Value::Map(execution) = &mut fields[3] else {
         panic!("native execution record")
     };
     execution.push((
@@ -272,6 +272,115 @@ fn native_execution_receipt_refuses_trailing_bytes_and_unknown_fields() {
     assert!(
         native::decode(&changed).is_err(),
         "unknown execution evidence must never disappear during admission"
+    );
+    // Every table definition must be unique, used and in first-occurrence order.
+    use purrdf_lex::cbor::Value;
+    let original: Value =
+        purrdf_lex::cbor::decode(&bytes, purrdf_lex::cbor::Limits::DEFAULT).unwrap();
+    for (table_index, duplicate) in [(1, true), (1, false), (2, true), (2, false)] {
+        let mut altered = original.clone();
+        let Value::Array(fields) = &mut altered else {
+            panic!("receipt envelope")
+        };
+        let Value::Array(table) = &mut fields[table_index] else {
+            panic!("receipt table")
+        };
+        let entry = if duplicate {
+            table
+                .first()
+                .expect("selected conflict uses both table kinds")
+                .clone()
+        } else if table_index == 1 {
+            Value::Text("urn:gmeow:test:unused-receipt-string".into())
+        } else {
+            let mut term = Vec::new();
+            crate::term_serde::write_cbor(
+                &purrdf::TermValue::iri("urn:gmeow:test:unused-receipt-term"),
+                &mut term,
+            )
+            .unwrap();
+            purrdf_lex::cbor::decode(&term, purrdf_lex::cbor::Limits::DEFAULT).unwrap()
+        };
+        table.push(entry);
+        let mut changed = Vec::new();
+        purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
+        let error = native::decode(&purrdf_hash::hex::encode(&changed)).unwrap_err();
+        let kind = error.downcast_ref::<crate::error::Result>().unwrap();
+        let cause = std::error::Error::source(kind)
+            .unwrap()
+            .downcast_ref::<crate::execution_cbor::Error>()
+            .unwrap();
+        assert!(
+            cause
+                .to_string()
+                .contains(if duplicate { "duplicate" } else { "unused" }),
+            "{error}"
+        );
+    }
+    for (path, index, expected) in [
+        (
+            vec!["reachability", "Program", "engine", "name"],
+            usize::MAX as u64,
+            "outside its table",
+        ),
+        (
+            vec!["reachability", "Program", "engine", "name"],
+            1,
+            "noncanonical",
+        ),
+        (
+            vec!["families", "0", "proofs", "0", "statement", "subject"],
+            usize::MAX as u64,
+            "outside its table",
+        ),
+    ] {
+        let mut altered = original.clone();
+        let Value::Array(fields) = &mut altered else {
+            panic!("receipt envelope")
+        };
+        let mut value = &mut fields[3];
+        for segment in path {
+            value = match value {
+                Value::Map(entries) => {
+                    &mut entries
+                        .iter_mut()
+                        .find(|(key, _)| key == &Value::Text(segment.into()))
+                        .unwrap()
+                        .1
+                }
+                Value::Array(values) => &mut values[segment.parse::<usize>().unwrap()],
+                _ => panic!("expected selected receipt path"),
+            };
+        }
+        *value = Value::Integer(index.into());
+        let mut changed = Vec::new();
+        purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
+        let error = native::decode(&purrdf_hash::hex::encode(&changed)).unwrap_err();
+        assert!(error.message().contains(expected), "{error}");
+    }
+    let mut altered = original;
+    let Value::Array(fields) = &mut altered else {
+        panic!("receipt envelope")
+    };
+    let Value::Map(execution) = &mut fields[3] else {
+        panic!("execution record")
+    };
+    let Value::Bytes(digest) = &mut execution
+        .iter_mut()
+        .find(|(key, _)| key == &Value::Text("input_contract".into()))
+        .unwrap()
+        .1
+    else {
+        panic!("fixed input digest")
+    };
+    digest.pop();
+    let mut changed = Vec::new();
+    purrdf_lex::cbor::write(&altered, &mut changed).unwrap();
+    assert!(
+        native::decode(&purrdf_hash::hex::encode(&changed))
+            .unwrap_err()
+            .message()
+            .contains("fixed receipt byte-string length")
     );
 }
 
@@ -287,7 +396,7 @@ fn native_execution_requires_the_selected_program_analysis_and_current_schema() 
             panic!("native receipt envelope");
         };
         if missing_field {
-            let purrdf_lex::cbor::Value::Map(execution) = &mut fields[1] else {
+            let purrdf_lex::cbor::Value::Map(execution) = &mut fields[3] else {
                 panic!("native execution record");
             };
             let before = execution.len();
@@ -295,7 +404,7 @@ fn native_execution_requires_the_selected_program_analysis_and_current_schema() 
                 .retain(|(key, _)| key != &purrdf_lex::cbor::Value::Text("reachability".into()));
             assert_eq!(execution.len() + 1, before);
         } else {
-            fields[0] = purrdf_lex::cbor::Value::Text("gmeow-native-execution-v1".into());
+            fields[0] = purrdf_lex::cbor::Value::Text("gmeow-native-execution-v2".into());
         }
         let mut changed = Vec::new();
         purrdf_lex::cbor::write(&envelope, &mut changed).unwrap();
@@ -328,7 +437,7 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
     // A directional literal adds a typed enum visit without adding a container.
     // These altered evidence packets exercise the codec, not semantic admission;
     // no RDF result identity is claimed for a deliberately modified proof.
-    let mut references = include_str!("fixtures/native-execution-cbor-v2.txt").lines();
+    let mut references = include_str!("fixtures/native-execution-cbor-v3.txt").lines();
     let historical_base =
         native::decode(references.next().unwrap().split('|').nth(1).unwrap()).unwrap();
     for profile in ["ordinary", "directional", "ordinary-u128"] {
@@ -401,22 +510,92 @@ fn native_execution_publication_refuses_an_envelope_its_reader_cannot_admit() {
                     assert_eq!(encoded, reference[4]);
                     assert!(native::decode(&encoded).is_ok());
                 }
-                ("admitted", "refused") => {
-                    // The original directional boundary emitted unreadable bytes.
-                    // Keep its reader refusal, and reject emission before publishing.
-                    let error = native::encode(&packet).unwrap_err();
-                    assert!(error.message().contains("typed admission bound"));
-                    assert!(native::decode(reference[4]).is_err());
-                }
                 ("refused", "not-run") => {
                     let error = native::encode(&packet).unwrap_err();
                     assert!(error.message().contains("typed admission bound"));
+                    assert_eq!(error.message(), reference[5]);
+                    if profile == "directional" && depth == 26 {
+                        // Compact references must not hide the original occurrence depth.
+                        // Construct an adversarial packet below the publication preflight.
+                        let schema = "gmeow-native-execution-v3";
+                        let tables = Tables::prepare(&packet, schema).unwrap();
+                        let mut hostile = Vec::new();
+                        head::write_head(&mut hostile, head::ARRAY, 4).unwrap();
+                        head::write_text(&mut hostile, schema).unwrap();
+                        tables.write(&mut hostile).unwrap();
+                        tables.write_payload(&packet, &mut hostile).unwrap();
+                        assert!(
+                            native::decode(&purrdf_hash::hex::encode(&hostile))
+                                .unwrap_err()
+                                .message()
+                                .contains("occurrence recursion limit")
+                        );
+                    }
                 }
                 _ => panic!("unexpected frozen receipt admission profile"),
             }
         }
     }
     assert!(references.next().is_none());
+    // Amplify logical occurrences while retaining only one small owned source leaf.
+    // Both publication planning and hydration must enforce the same expansion bound.
+    use crate::execution_cbor::{ExecutionCbor, Reader, Tables};
+    use purrdf_lex::cbor::head;
+    let leaf = std::sync::Arc::new("x".repeat(1024 * 1024));
+    for (count, admitted) in [(510, true), (511, false)] {
+        let occurrences = vec![std::sync::Arc::clone(&leaf); count];
+        let planned = Tables::prepare(&occurrences, "gmeow-native-execution-v3");
+        assert_eq!(planned.is_ok(), admitted);
+        if let Err(error) = planned {
+            let cause = std::error::Error::source(&error)
+                .expect("planning retains its native I/O refusal")
+                .downcast_ref::<std::io::Error>()
+                .unwrap();
+            let bound = cause
+                .get_ref()
+                .unwrap()
+                .downcast_ref::<crate::execution_cbor::Error>()
+                .unwrap();
+            assert!(
+                bound
+                    .to_string()
+                    .contains("expanded logical-encoding budget")
+            );
+        }
+        let mut wire = Vec::new();
+        head::write_head(&mut wire, head::ARRAY, 4).unwrap();
+        head::write_text(&mut wire, "gmeow-native-execution-v3").unwrap();
+        head::write_head(&mut wire, head::ARRAY, 1).unwrap();
+        head::write_text(&mut wire, &leaf).unwrap();
+        head::write_head(&mut wire, head::ARRAY, 0).unwrap();
+        head::write_head(&mut wire, head::ARRAY, count as u64).unwrap();
+        for _ in 0..count {
+            head::write_head(&mut wire, head::UNSIGNED, 0).unwrap();
+        }
+        let mut reader = Reader::for_definitions(&wire).unwrap();
+        let decoded = reader.array(|input, length| {
+            assert_eq!(length, 4);
+            assert_eq!(input.text()?, "gmeow-native-execution-v3");
+            input.read_tables()?;
+            input.array(|input, length| {
+                assert_eq!(length, count);
+                for _ in 0..length {
+                    drop(String::read_cbor(input)?);
+                }
+                Ok(())
+            })
+        });
+        assert_eq!(decoded.is_ok(), admitted);
+        if let Err(error) = decoded {
+            assert!(
+                error
+                    .to_string()
+                    .contains("expanded logical-encoding budget")
+            );
+        } else {
+            reader.finish().unwrap();
+        }
+    }
 }
 
 #[test]

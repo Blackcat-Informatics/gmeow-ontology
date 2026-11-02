@@ -3,7 +3,7 @@
 
 //! Complete owner-local native execution receipt records, without semantic reconstruction.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -15,7 +15,10 @@ use super::{
 };
 
 impl ExecutionCbor for RefutationClash {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Bottom => head::write_text(out, "Bottom"),
             Self::OpposedClass(value) => {
@@ -53,7 +56,10 @@ impl ExecutionCbor for RefutationClash {
 }
 
 impl ExecutionCbor for RefutationExpression {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Top => head::write_text(out, "Top"),
             Self::Bottom => head::write_text(out, "Bottom"),
@@ -112,7 +118,10 @@ impl ExecutionCbor for RefutationExpression {
 }
 
 impl ExecutionCbor for RefutationAssumption {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Membership {
                 subject,
@@ -196,7 +205,10 @@ impl ExecutionCbor for RefutationAssumption {
 }
 
 impl ExecutionCbor for RefutationBranch {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "assumption")?;
         ExecutionCbor::write_cbor(&self.assumption, out)?;
@@ -227,7 +239,10 @@ impl ExecutionCbor for RefutationBranch {
 }
 
 impl ExecutionCbor for RefutationSourceIssue {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::MalformedNil => head::write_text(out, "MalformedNil"),
             Self::ConflictingListField { subject, predicate } => {
@@ -415,7 +430,10 @@ impl ExecutionCbor for RefutationSourceIssue {
 }
 
 impl ExecutionCbor for RefutationProof {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Conflict {
                 kind,

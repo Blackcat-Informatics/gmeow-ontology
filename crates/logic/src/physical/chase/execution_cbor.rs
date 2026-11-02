@@ -3,7 +3,7 @@
 
 //! Complete selected chase termination evidence, including uncertified states.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -13,7 +13,10 @@ use super::ChaseAdmission;
 
 impl ExecutionCbor for ChaseAdmission {
     /// Retain the exact certificate variant and its original evidence payload.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 1)?;
         match self {
             Self::WeaklyAcyclic { evidence } => {
