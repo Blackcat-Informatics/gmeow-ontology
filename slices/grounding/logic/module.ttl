@@ -3308,10 +3308,10 @@ logic:pathDepthArg
 logic:pathDepthParam
     a logic:DatatypeProperty ;
     rdfs:domain logic:PathShape ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "path depth parameter"@x-gmeow-english ;
-    skos:definition "The name of the depth parameter a logic:PathShape exposes for parametric invocation — 'maxDepth' in :nearbyOrgs(?maxDepth := 2). A logic:PathInvocation binds this parameter with logic:pathDepthArg. Default-absent: a shape with a fixed depth and no exposed parameter carries no logic:pathDepthParam and is invoked without an argument."@x-gmeow-english ;
+    skos:definition "The authored name of the depth parameter exposed by a logic:PathShape, such as 'maxDepth'. Optional: absence declares no exposed parameter. A supplied name must be exactly one untagged xsd:string or xsd:token literal with valid native datatype lexical form and non-blank text. Its exact spelling is preserved without trimming or case folding. A logic:PathInvocation binds this parameter with logic:pathDepthArg."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:pathMaxDepth

@@ -997,16 +997,16 @@ fn path_shape<'a>(prog: &'a LogicProgram, iri_suffix: &str) -> &'a PathShapeIr {
         })
 }
 
+/// Optional depth names retain exact spelling and reject malformed supplied literals as whole shapes.
 #[test]
 fn parse_wildcard_namespace_scoped_bounded_path_shape() {
-    let (prog, diags) = parse(
-        "ex:nearbyOrgs a logic:PathShape ;
+    let source = "ex:nearbyOrgs a logic:PathShape ;
             logic:pathWildcard true ;
             logic:pathNamespaceScope \"https://example.org/org/\"^^xsd:anyURI ;
             logic:pathMinDepth 1 ;
             logic:pathMaxDepth 2 ;
-            logic:pathDepthParam \"maxDepth\" .",
-    );
+            logic:pathDepthParam \"maxDepth\" .";
+    let (prog, diags) = parse(source);
     assert!(
         diags.iter().all(|d| d.code != "MALFORMED_PATH_SHAPE"),
         "unexpected path-shape diagnostics: {diags:?}"
@@ -1020,6 +1020,78 @@ fn parse_wildcard_namespace_scoped_bounded_path_shape() {
         Some("https://example.org/org/")
     );
     assert_eq!(s.depth_param.as_deref(), Some("maxDepth"));
+    assert_eq!(prog.path_shapes.len(), 1);
+    let path_key = LogicProgram::new(vec![], vec![], vec![], None)
+        .with_path_shapes(prog.path_shapes.clone())
+        .canonical_key();
+    for parameter in ["\"maxDepth\"^^xsd:token", "\"maxDepth\", \"maxDepth\""] {
+        let (typed, diagnostics) = parse(&source.replace("\"maxDepth\"", parameter));
+        assert_eq!(typed.path_shapes, prog.path_shapes, "{diagnostics:?}");
+        assert_eq!(
+            LogicProgram::new(vec![], vec![], vec![], None)
+                .with_path_shapes(typed.path_shapes)
+                .canonical_key(),
+            path_key
+        );
+    }
+    let absent = source.replace(
+        "logic:pathMaxDepth 2 ;\n            logic:pathDepthParam \"maxDepth\"",
+        "logic:pathMaxDepth 2",
+    );
+    let (absent, diagnostics) = parse(&absent);
+    assert_eq!(absent.path_shapes.len(), 1, "{diagnostics:?}");
+    assert_eq!(path_shape(&absent, "/nearbyOrgs").depth_param, None);
+    assert_ne!(
+        LogicProgram::new(vec![], vec![], vec![], None)
+            .with_path_shapes(absent.path_shapes)
+            .canonical_key(),
+        path_key
+    );
+    for (literal, name) in [
+        ("\" Max Depth \"", " Max Depth "),
+        ("\"Max Depth\"^^xsd:token", "Max Depth"),
+    ] {
+        let (named, diagnostics) = parse(&source.replace("\"maxDepth\"", literal));
+        assert_eq!(named.path_shapes.len(), 1, "{diagnostics:?}");
+        assert_eq!(
+            path_shape(&named, "/nearbyOrgs").depth_param.as_deref(),
+            Some(name)
+        );
+        assert_ne!(
+            LogicProgram::new(vec![], vec![], vec![], None)
+                .with_path_shapes(named.path_shapes)
+                .canonical_key(),
+            path_key
+        );
+    }
+    for parameter in [
+        "ex:maxDepth",
+        "_:maxDepth",
+        "\"maxDepth\"^^xsd:normalizedString",
+        "\"maxDepth\"@en",
+        "\"maxDepth\"@en--ltr",
+        "\" maxDepth\"^^xsd:token",
+        "\"\\tmaxDepth\"^^xsd:token",
+        "\"maxDepth\\uFFFF\"^^xsd:token",
+        "\"\"",
+        "\"  \"",
+        "\"\"^^xsd:token",
+        "\"maxDepth\", \"otherDepth\"",
+        "\"maxDepth\", \"maxDepth\"^^xsd:token",
+        "\"maxDepth\"^^xsd:token, \"maxDepth\"",
+    ] {
+        let (malformed, diagnostics) = parse(&source.replace("\"maxDepth\"", parameter));
+        assert!(malformed.path_shapes.is_empty(), "{parameter}");
+        assert!(
+            diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "MALFORMED_PATH_SHAPE"
+                    && diagnostic.subject.as_deref() == Some("https://example.org/test/nearbyOrgs")
+                    && (diagnostic.message.contains("pathDepthParam")
+                        || diagnostic.message.contains("depth_param"))
+            }),
+            "{parameter}: {diagnostics:?}"
+        );
+    }
 }
 
 #[test]

@@ -4344,7 +4344,21 @@ fn extract_path_shapes(
                 };
 
                 let namespace_scope = value(store, &node, &p_ns).map(|t| term_str(&t));
-                let depth_param = value(store, &node, &p_param).map(|t| term_str(&t));
+                let depth_param = if value(store, &node, &p_param).is_some() {
+                    match sugar_selector_literal(store, &node, "pathDepthParam") {
+                        Ok(name) => Some(name),
+                        Err(error) => {
+                            diagnostics.push(Diagnostic::warning(
+                                "MALFORMED_PATH_SHAPE",
+                                error.message().to_owned(),
+                                Some(subj.clone()),
+                            ));
+                            return Err(Vec::new());
+                        }
+                    }
+                } else {
+                    None
+                };
 
                 match PathShapeIr::new(
                     subj.clone(),
