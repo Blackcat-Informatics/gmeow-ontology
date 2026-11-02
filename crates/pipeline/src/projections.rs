@@ -113,10 +113,13 @@ impl DigestAlgorithm {
     pub(crate) fn admit_hex(self, lexical: &str) -> gmeow_errors::Result<()> {
         let width = if self == Self::Md5 { 32 } else { 64 };
         let valid = match self {
-            Self::Blake3 => {
-                gmeow_logic_compile::literal_datatypes::Blake3Digest::from_canonical_hex(lexical)
-                    .is_some()
-            }
+            Self::Blake3 => gmeow_logic_compile::literal_datatypes::Blake3Digest::from_parts(
+                lexical,
+                self.datatype(),
+                None,
+                None,
+            )
+            .is_some(),
             Self::Sha256 => {
                 gmeow_logic_compile::literal_datatypes::Sha256Digest::from_canonical_hex(lexical)
                     .is_some()

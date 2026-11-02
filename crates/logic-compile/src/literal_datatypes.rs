@@ -41,12 +41,6 @@ impl Sha256Digest {
 pub struct Blake3Digest([u8; 32]);
 
 impl Blake3Digest {
-    /// Decode exactly 64 lowercase hexadecimal digits, without normalization.
-    /// An independently selected algorithm (such as SPDX) can use this boundary.
-    pub fn from_canonical_hex(lexical: &str) -> Option<Self> {
-        purrdf_hash::hex::decode_32_canonical(lexical).map(Self)
-    }
-
     /// Admit the complete native literal, preserving its algorithm and facets.
     pub fn from_parts(
         lexical: &str,
@@ -57,6 +51,6 @@ impl Blake3Digest {
         if datatype != BLAKE3_256_DIGEST || language.is_some() || direction.is_some() {
             return None;
         }
-        Self::from_canonical_hex(lexical)
+        purrdf_hash::hex::decode_32_canonical(lexical).map(Self)
     }
 }
