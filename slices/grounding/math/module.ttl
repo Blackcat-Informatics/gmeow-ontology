@@ -1903,6 +1903,11 @@ math:Module
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Module"@x-gmeow-english ;
+    skos:scopeNote "A module combines an abelian additive group with a compatible scalar action by a ring. The scalar ring need not be a field, so general module membership does not require a field-valued math:scalarField assertion or vector-space classification."@x-gmeow-english ;
+    skos:example "The additive integers can be a module over ℤ. The exa:integerAddition example in algebra-structures.ttl supplies the additive frame; a module description must also retain the scalar action and its compatibility laws rather than infer them from that group label."@x-gmeow-english ;
+    gmeow:useWhen "Use when an additive structure has compatible scalars from a ring, including cases where division by arbitrary nonzero scalars is unavailable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating every module as a vector space, requiring a field for all modules, or inferring a scalar action from the carrier set alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the inherited carrier, operations and axiom links, and describe the scalar ring, action and compatibility laws with the existing mathematical definitions and formulas. Keep ring-based module structure explicit without inventing scalar-position predicates or silently replacing the scalar ring with a field."@x-gmeow-english ;
     skos:definition "An abelian group with a compatible scalar action of a math:Ring — the generalization of a vector space to scalars from a ring rather than a field. A subclass of math:AlgebraicStructure; a math:VectorSpace is a module over a field."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1911,6 +1916,11 @@ math:VectorSpace
     rdfs:subClassOf math:Module ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Vector Space"@x-gmeow-english ;
+    skos:scopeNote "A vector space specializes a module by using field scalars. Its additive carrier, scalar action and laws remain part of the structure; a coordinate array, vector label or declared dimension alone does not supply that full frame or prove the laws."@x-gmeow-english ;
+    skos:example "cov:vsaSpace in external-concept-coverage.ttl names a carrier, vector-addition operation and additive-associativity axiom. These explicit frame links retain structure information without by themselves realizing every vector-space law as a formula."@x-gmeow-english ;
+    gmeow:useWhen "Use when the module’s scalar setting is a field and the claimed vector-space structure is justified."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid promoting a general ring module to this class without field scalars, confusing physical units with linear dimension, or treating imported tensor headers as a proof of vector-space axioms."@x-gmeow-english ;
+    gmeow:howToUse "Keep the inherited module frame and the declared field setting, retain the actual scalar-action laws and supporting evidence, and use math:spaceDimension only for the finite linear dimension being asserted. Separate those claims from any importer’s descriptive carrier and named-axiom metadata."@x-gmeow-english ;
     skos:definition "A math:Module whose scalars form a math:Field: an abelian group of vectors with a scalar action satisfying the vector-space axioms. A subclass of math:Module — the setting of linear algebra, on which a math:GroupRepresentation realizes a group as linear maps."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1919,7 +1929,12 @@ math:Algebra
     rdfs:subClassOf math:Module ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Algebra"@x-gmeow-english ;
-    skos:definition "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."@x-gmeow-english ;
+    skos:scopeNote "The extra product is bilinear relative to the module’s scalar action. Associativity and a multiplicative identity depend on the selected algebraic laws; a Lie bracket is not ordinary associative matrix multiplication merely because both are products."@x-gmeow-english ;
+    skos:example "exa:E8LieAlgebra in e8-symmetry.ttl illustrates the Lie-algebra setting, whose bracket obeys the Jacobi identity. Matrix algebras instead use matrix multiplication; neither example licenses transferring one product’s laws to the other."@x-gmeow-english ;
+    gmeow:useWhen "Use when a module also has an identified bilinear product with its own stated laws."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid assuming every algebra is an associative unital ring, replacing a Lie bracket by matrix multiplication, or treating an algebra label as an executable product or a proved law."@x-gmeow-english ;
+    gmeow:howToUse "Retain the module carrier, scalar setting and action, identify the bilinear product through existing operation and definition vocabulary, and preserve the specific axioms and realized formulas for that product. State associativity, identity or Lie-bracket laws only where justified, without changing the class hierarchy."@x-gmeow-english ;
+    skos:definition "A math:Module equipped with a bilinear multiplication of its elements over its base ring. The product need not be associative or have an identity unless the selected laws require them: a math:LieAlgebra uses a Lie bracket satisfying the Jacobi identity, whereas a matrix algebra uses matrix multiplication. A subclass of math:Module; the E8 flagship illustrates the Lie-algebra case."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:PolynomialRing
@@ -1927,6 +1942,11 @@ math:PolynomialRing
     rdfs:subClassOf math:CommutativeRing ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Polynomial Ring"@x-gmeow-english ;
+    skos:scopeNote "This class names the polynomial ring itself, with polynomial addition and multiplication over its declared coefficient setting. A quotient such as R[x]/I is a different construction; its origin in a polynomial ring does not make it that same ring or a contained substructure."@x-gmeow-english ;
+    skos:example "exa:shamirPolyRing in shamir-secret-sharing.ttl is the polynomial ring over GF(2⁸), with exa:polyAdd and exa:polyMul. The plaintext and ciphertext rings in homomorphic-encryption.ttl are instead typed as math:Quotient and math:CommutativeRing."@x-gmeow-english ;
+    gmeow:useWhen "Use when the modeled structure is a polynomial ring over a specified coefficient ring, rather than only an individual polynomial or a quotient."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid typing a quotient as a polynomial ring solely because its representatives are polynomials, confusing the ring with an evaluation function, or omitting its ring operations and laws."@x-gmeow-english ;
+    gmeow:howToUse "Retain the polynomial carrier, coefficient setting and indeterminates in the existing mathematical description, name the addition and multiplication operations, and keep the inherited ring and distributivity laws. Describe any quotient separately without inventing a quotient-parent field or a containment assertion."@x-gmeow-english ;
     skos:definition "The commutative ring R[x] of polynomials in one or more indeterminates over a base ring R. A subclass of math:CommutativeRing; the ring a math:Ideal is taken in, and the ring a lattice-based homomorphic-encryption scheme and Shamir secret sharing operate over."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -1935,6 +1955,11 @@ math:Ideal
     rdfs:subClassOf math:AlgebraicStructure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Ideal"@x-gmeow-english ;
+    skos:scopeNote "An ideal is interpreted inside an ambient ring, using its induced addition and multiplication absorption laws. It need not contain the ambient multiplicative identity and is not required to have the same class type as the containing ring."@x-gmeow-english ;
+    skos:example "The even integers 2ℤ form an ideal in ℤ: addition stays in 2ℤ and multiplication by any integer stays in 2ℤ, although the ambient identity 1 is not in 2ℤ."@x-gmeow-english ;
+    gmeow:useWhen "Use when a ring subset is described with the ideal closure and absorption laws, including a ring-homomorphism kernel or a modulus ideal for a quotient."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid requiring the ambient unit to belong to every ideal, treating an arbitrary subset as an ideal, or identifying the ideal with the quotient formed from it."@x-gmeow-english ;
+    gmeow:howToUse "Keep the ideal’s carrier and operations explicit, connect it to the ambient ring with math:substructureOf when containment and induced-operation compatibility hold, and retain the closure and absorption laws with their formulas and evidence. Describe any resulting quotient separately."@x-gmeow-english ;
     skos:definition "A subset of a math:Ring closed under addition and under multiplication by any ring element — the kernel of a ring homomorphism is an ideal, and quotienting a ring by an ideal yields a math:Quotient ring. A subclass of math:AlgebraicStructure, related to its ambient ring through math:substructureOf; the modulus structure a lattice-based encryption scheme reduces against."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2017,7 +2042,12 @@ math:substructureOf
     a logic:ObjectProperty , logic:transitiveProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "substructure of"@x-gmeow-english ;
-    skos:definition "Relates an algebraic structure to a structure of the same kind that contains it and shares its operations — a subgroup within a group, an ideal within a ring. Domain and range math:AlgebraicStructure (stated in prose). Transitive: a subgroup of a subgroup is a subgroup. The kernel of a homomorphism is a math:substructureOf its domain."@x-gmeow-english ;
+    skos:scopeNote "The link concerns carrier containment with compatible induced operations, not equality of structure labels or operation-resource IRIs. Different class types can participate, such as an ideal and its ambient ring; a quotient construction alone establishes no such containment."@x-gmeow-english ;
+    skos:example "In algebra-homomorphisms.ttl, the special linear subgroup exa:SL2R lies within exa:GL2R, while exa:GL2modSL2 has a coset carrier. Forming that quotient does not assert that its cosets are a contained substructure of exa:GL2R."@x-gmeow-english ;
+    gmeow:useWhen "Use when the source structure’s carrier is contained in the target carrier and its operations agree with the compatible operations induced there."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring containment from a quotient’s origin, requiring identical structure classes or operation IRIs, or using the link solely for an isomorphic copy without an established containment."@x-gmeow-english ;
+    gmeow:howToUse "Point from the contained structure to the ambient structure, retain both carriers and the evidence of induced-operation compatibility, and preserve the existing transitive meaning. Keep quotient and isomorphism descriptions separate from a containment claim, using no new parent or operation-position fields."@x-gmeow-english ;
+    skos:definition "Relates an algebraic structure to an ambient algebraic structure whose carrier contains the source carrier, with compatible operations induced on that contained carrier — a subgroup within a group, or an ideal within a ring. This does not require identical class types or identical operation-resource IRIs. Transitive: a subgroup of a subgroup is a subgroup. A homomorphism kernel can be described this way when containment and operation compatibility hold; forming a quotient from a structure does not by itself make the quotient a contained substructure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:preservesStructure
@@ -5213,6 +5243,11 @@ math:spaceDimension
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "space dimension"@x-gmeow-english ;
+    skos:scopeNote "This is a finite nonnegative integer linear dimension for an explicitly linear object. It is separate from physical math:hasDimension and from the local manifold dimension math:manifoldDimension; matching dimensions alone do not identify spaces or establish their algebraic laws."@x-gmeow-english ;
+    skos:example "The Clifford examples cov:cl120 and cov:cl130 in external-concept-coverage.ttl carry math:spaceDimension values 4096 and 8192 respectively, the carrier dimensions 2^(p+q), rather than the signature entries p and q themselves."@x-gmeow-english ;
+    gmeow:useWhen "Use when the finite linear dimension of a coordinate space, tangent space, algebra carrier or other explicitly linear object must be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting an SI dimension, copying manifoldDimension onto an unrelated object, treating a dimension count as tensor evaluation or law proof, or converting absent importer metadata into an asserted zero-dimensional space."@x-gmeow-english ;
+    gmeow:howToUse "State the nonnegative integer on the identified linear object and preserve the meaning of the counted degrees of freedom. The ONNX importer sums initializer element counts from tensor headers for math:ParameterSpace; that shape metadata neither reads computed tensor values nor supplies a formula or proof of the named vector-space axioms."@x-gmeow-english ;
     skos:definition "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -10958,6 +10993,11 @@ math:hasQuadraticForm
 math:scalarField
     a logic:ObjectProperty ; rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "field of scalars"@x-gmeow-english ;
+    skos:scopeNote "This relation records an explicitly declared scalar setting; it is distinct from the function class math:ScalarField. Current Clifford examples target math:realNumbers, so its use does not impose a global math:Field target type. General modules still admit ring scalars rather than requiring a field."@x-gmeow-english ;
+    skos:example "cov:cl120 and cov:cl130 in external-concept-coverage.ttl both name math:realNumbers through math:scalarField. That declared scalar setting is separate from their carrier, product and linear dimension."@x-gmeow-english ;
+    gmeow:useWhen "Use when a space or algebra description needs to name its explicitly chosen scalar setting through the existing relation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid confusing math:scalarField with math:ScalarField, using a scalar-valued function in place of the intended scalar setting, or requiring every module to use field scalars."@x-gmeow-english ;
+    gmeow:howToUse "Link the modeled space or algebra to its declared scalar setting, following existing uses such as math:realNumbers, and retain its carrier, operations and scalar-action laws separately. Do not turn this descriptive relation into a universal target-type rule, a mandatory field for ring modules or an automatic evaluator."@x-gmeow-english ;
     skos:definition "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 

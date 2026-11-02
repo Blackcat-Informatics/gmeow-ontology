@@ -3121,8 +3121,8 @@ msgid "Algebra"
 msgstr "代数"
 
 msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A math:Module equipped with a bilinear multiplication of its elements — a ring-and-module structure over a base ring, such as a math:LieAlgebra or a matrix algebra. A subclass of math:Module; the vector-space-with-multiplication that carries a Lie bracket in the E8 flagship."
-msgstr "配备其元素之间双线性乘法的 math:Module——基环之上的环兼模结构，例如 math:LieAlgebra 或矩阵代数。math:Module 的子类；在 E8 旗舰中承载李括号的带乘法向量空间。"
+msgid "A math:Module equipped with a bilinear multiplication of its elements over its base ring. The product need not be associative or have an identity unless the selected laws require them: a math:LieAlgebra uses a Lie bracket satisfying the Jacobi identity, whereas a matrix algebra uses matrix multiplication. A subclass of math:Module; the E8 flagship illustrates the Lie-algebra case."
+msgstr "在基环上为其元素配备双线性乘法的 math:Module。除非所选定律要求，否则该乘积不必满足结合律或具有单位元：math:LieAlgebra 使用满足雅可比恒等式的李括号，而矩阵代数使用矩阵乘法。它是 math:Module 的子类；E8 旗舰示例展示李代数情形。"
 
 msgctxt "https://blackcatinformatics.ca/math/AlgebraicNumber|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "Algebraic Number"
@@ -7568,3 +7568,219 @@ msgstr "不要替换成无关的结合律或交换律公理，不要省略直接
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."
 msgstr "通过 math:satisfiesDistributivity 将环关联到分配律 math:Axiom，并在使用路径读取已断言三元组时同时断言 math:satisfiesAxiom。保留两个运算角色、实际定律公式及证据，以及断言与蕴含之间的区别。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Module"
+msgstr "模"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An abelian group with a compatible scalar action of a math:Ring — the generalization of a vector space to scalars from a ring rather than a field. A subclass of math:AlgebraicStructure; a math:VectorSpace is a module over a field."
+msgstr "具有 math:Ring 的相容标量作用的阿贝尔群，即将向量空间推广到标量来自环而非域的情况。它是 math:AlgebraicStructure 的子类；math:VectorSpace 是域上的模。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A module combines an abelian additive group with a compatible scalar action by a ring. The scalar ring need not be a field, so general module membership does not require a field-valued math:scalarField assertion or vector-space classification."
+msgstr "模将阿贝尔加法群与环的相容标量作用结合。标量环不必是域，因此一般模成员资格不要求值为域的 math:scalarField 断言或向量空间分类。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|http://www.w3.org/2004/02/skos/core#example"
+msgid "The additive integers can be a module over ℤ. The exa:integerAddition example in algebra-structures.ttl supplies the additive frame; a module description must also retain the scalar action and its compatibility laws rather than infer them from that group label."
+msgstr "加法整数可构成 ℤ 上的模。algebra-structures.ttl 中 exa:integerAddition 示例提供加法框架；模描述还须保留标量作用及其相容定律，而非从群标签推断它们。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an additive structure has compatible scalars from a ring, including cases where division by arbitrary nonzero scalars is unavailable."
+msgstr "当加法结构具有来自环的相容标量时使用，包括不能除以任意非零标量的情况。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating every module as a vector space, requiring a field for all modules, or inferring a scalar action from the carrier set alone."
+msgstr "不要将每个模都视为向量空间，不要要求所有模都使用域，也不要仅凭载体集合推断标量作用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Module|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited carrier, operations and axiom links, and describe the scalar ring, action and compatibility laws with the existing mathematical definitions and formulas. Keep ring-based module structure explicit without inventing scalar-position predicates or silently replacing the scalar ring with a field."
+msgstr "保留继承的载体、运算和公理链接，使用已有数学定义及公式描述标量环、作用和相容定律。明确基于环的模结构，不臆造标量位置谓词，也不默默将标量环替换为域。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Vector Space"
+msgstr "向量空间"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A math:Module whose scalars form a math:Field: an abelian group of vectors with a scalar action satisfying the vector-space axioms. A subclass of math:Module — the setting of linear algebra, on which a math:GroupRepresentation realizes a group as linear maps."
+msgstr "标量构成 math:Field 的 math:Module，即具有满足向量空间公理的标量作用的向量阿贝尔群。它是 math:Module 的子类，是线性代数的背景，math:GroupRepresentation 在其上将群实现为线性映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A vector space specializes a module by using field scalars. Its additive carrier, scalar action and laws remain part of the structure; a coordinate array, vector label or declared dimension alone does not supply that full frame or prove the laws."
+msgstr "向量空间以域标量特化模。加法载体、标量作用和定律仍是结构组成部分；单凭坐标数组、向量标签或已声明维数既不能提供完整框架，也不能证明定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:vsaSpace in external-concept-coverage.ttl names a carrier, vector-addition operation and additive-associativity axiom. These explicit frame links retain structure information without by themselves realizing every vector-space law as a formula."
+msgstr "external-concept-coverage.ttl 中 cov:vsaSpace 指定载体、向量加法运算及加法结合律公理。这些显式框架链接保留结构信息，但本身不会将全部向量空间定律实现为公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the module’s scalar setting is a field and the claimed vector-space structure is justified."
+msgstr "当模的标量背景为域且向量空间结构声明有依据时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid promoting a general ring module to this class without field scalars, confusing physical units with linear dimension, or treating imported tensor headers as a proof of vector-space axioms."
+msgstr "不要在缺少域标量时将一般环上的模提升到此类，不要混淆物理单位和线性维数，也不要将导入的张量头信息当作向量空间公理的证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/VectorSpace|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the inherited module frame and the declared field setting, retain the actual scalar-action laws and supporting evidence, and use math:spaceDimension only for the finite linear dimension being asserted. Separate those claims from any importer’s descriptive carrier and named-axiom metadata."
+msgstr "保留继承的模框架及已声明域背景，保留实际标量作用定律及支持证据，仅将 math:spaceDimension 用于所声明的有限线性维数。将这些声明与导入器的描述性载体和命名公理元数据区分。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The extra product is bilinear relative to the module’s scalar action. Associativity and a multiplicative identity depend on the selected algebraic laws; a Lie bracket is not ordinary associative matrix multiplication merely because both are products."
+msgstr "额外乘积相对于模的标量作用是双线性的。结合律及乘法单位元取决于所选代数定律；李括号与普通结合矩阵乘法不会仅因同为乘积就相同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:E8LieAlgebra in e8-symmetry.ttl illustrates the Lie-algebra setting, whose bracket obeys the Jacobi identity. Matrix algebras instead use matrix multiplication; neither example licenses transferring one product’s laws to the other."
+msgstr "e8-symmetry.ttl 中 exa:E8LieAlgebra 展示李代数背景，其括号遵循雅可比恒等式。矩阵代数则使用矩阵乘法；任一示例都不允许将一种乘积的定律转移到另一种乘积。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a module also has an identified bilinear product with its own stated laws."
+msgstr "当模还具有已标识的双线性乘积及其自身既定定律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assuming every algebra is an associative unital ring, replacing a Lie bracket by matrix multiplication, or treating an algebra label as an executable product or a proved law."
+msgstr "不要假定每个代数都是结合含幺环，不要用矩阵乘法替代李括号，也不要将代数标签视为可执行乘积或已证明定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/Algebra|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the module carrier, scalar setting and action, identify the bilinear product through existing operation and definition vocabulary, and preserve the specific axioms and realized formulas for that product. State associativity, identity or Lie-bracket laws only where justified, without changing the class hierarchy."
+msgstr "保留模载体、标量背景及作用，通过已有运算和定义词汇标识双线性乘积，保留针对该乘积的特定公理及已实现公式。仅在有依据处陈述结合律、单位元律或李括号定律，不改变类层级。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Polynomial Ring"
+msgstr "多项式环"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The commutative ring R[x] of polynomials in one or more indeterminates over a base ring R. A subclass of math:CommutativeRing; the ring a math:Ideal is taken in, and the ring a lattice-based homomorphic-encryption scheme and Shamir secret sharing operate over."
+msgstr "基环 R 上一个或多个不定元的多项式所构成的交换环 R[x]。它是 math:CommutativeRing 的子类，是 math:Ideal 所处的环，也是基于格的同态加密方案和 Shamir 秘密共享所用的环。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class names the polynomial ring itself, with polynomial addition and multiplication over its declared coefficient setting. A quotient such as R[x]/I is a different construction; its origin in a polynomial ring does not make it that same ring or a contained substructure."
+msgstr "此类指定多项式环本身，在已声明系数背景上具有多项式加法和乘法。R[x]/I 等商是不同构造；源于多项式环不会使其成为同一个环或被包含的子结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:shamirPolyRing in shamir-secret-sharing.ttl is the polynomial ring over GF(2⁸), with exa:polyAdd and exa:polyMul. The plaintext and ciphertext rings in homomorphic-encryption.ttl are instead typed as math:Quotient and math:CommutativeRing."
+msgstr "shamir-secret-sharing.ttl 中 exa:shamirPolyRing 是 GF(2⁸) 上的多项式环，具有 exa:polyAdd 和 exa:polyMul。homomorphic-encryption.ttl 中的明文环和密文环则被定为 math:Quotient 和 math:CommutativeRing。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the modeled structure is a polynomial ring over a specified coefficient ring, rather than only an individual polynomial or a quotient."
+msgstr "当建模结构是指定系数环上的多项式环，而非仅单个多项式或商时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid typing a quotient as a polynomial ring solely because its representatives are polynomials, confusing the ring with an evaluation function, or omitting its ring operations and laws."
+msgstr "不要仅因商的代表元是多项式就将商定为多项式环，不要将环与求值函数混淆，也不要省略环运算及定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/PolynomialRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the polynomial carrier, coefficient setting and indeterminates in the existing mathematical description, name the addition and multiplication operations, and keep the inherited ring and distributivity laws. Describe any quotient separately without inventing a quotient-parent field or a containment assertion."
+msgstr "在已有数学描述中保留多项式载体、系数背景和不定元，指定加法与乘法运算，保留继承的环定律及分配律。另行描述任何商，不臆造商的父对象字段或包含断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ideal"
+msgstr "理想"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A subset of a math:Ring closed under addition and under multiplication by any ring element — the kernel of a ring homomorphism is an ideal, and quotienting a ring by an ideal yields a math:Quotient ring. A subclass of math:AlgebraicStructure, related to its ambient ring through math:substructureOf; the modulus structure a lattice-based encryption scheme reduces against."
+msgstr "在加法和任意环元素相乘下封闭的 math:Ring 子集：环同态的核是理想，环对理想取商得到 math:Quotient 环。它是 math:AlgebraicStructure 的子类，通过 math:substructureOf 关联到其环境环，是基于格的加密方案用于约减的模数结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An ideal is interpreted inside an ambient ring, using its induced addition and multiplication absorption laws. It need not contain the ambient multiplicative identity and is not required to have the same class type as the containing ring."
+msgstr "理想在环境环内解释，使用诱导加法及乘法吸收定律。它不必包含环境环的乘法单位元，也不要求与包含它的环具有相同类类型。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|http://www.w3.org/2004/02/skos/core#example"
+msgid "The even integers 2ℤ form an ideal in ℤ: addition stays in 2ℤ and multiplication by any integer stays in 2ℤ, although the ambient identity 1 is not in 2ℤ."
+msgstr "偶整数 2ℤ 构成 ℤ 中的理想：加法结果仍在 2ℤ 中，与任意整数相乘的结果也仍在 2ℤ 中，尽管环境单位元 1 不属于 2ℤ。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a ring subset is described with the ideal closure and absorption laws, including a ring-homomorphism kernel or a modulus ideal for a quotient."
+msgstr "当环子集具有理想的封闭及吸收定律描述时使用，包括环同态的核或用于取商的理想。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring the ambient unit to belong to every ideal, treating an arbitrary subset as an ideal, or identifying the ideal with the quotient formed from it."
+msgstr "不要要求每个理想都包含环境单位元，不要将任意子集视为理想，也不要将理想与由其形成的商等同。"
+
+msgctxt "https://blackcatinformatics.ca/math/Ideal|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the ideal’s carrier and operations explicit, connect it to the ambient ring with math:substructureOf when containment and induced-operation compatibility hold, and retain the closure and absorption laws with their formulas and evidence. Describe any resulting quotient separately."
+msgstr "明确理想载体及运算，在包含关系和诱导运算相容性成立时通过 math:substructureOf 关联到环境环，并保留封闭及吸收定律的公式与证据。另行描述所得商。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "substructure of"
+msgstr "为其子结构"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an algebraic structure to an ambient algebraic structure whose carrier contains the source carrier, with compatible operations induced on that contained carrier — a subgroup within a group, or an ideal within a ring. This does not require identical class types or identical operation-resource IRIs. Transitive: a subgroup of a subgroup is a subgroup. A homomorphism kernel can be described this way when containment and operation compatibility hold; forming a quotient from a structure does not by itself make the quotient a contained substructure."
+msgstr "将代数结构关联到环境代数结构，后者的载体包含前者载体，且其运算在前者上诱导相容运算，例如群中的子群或环中的理想。这不要求类类型相同或运算资源 IRI 相同。具有传递性：子群的子群仍是子群。当包含关系及运算相容性成立时，可如此描述同态的核；从结构形成商本身不会使该商成为被包含的子结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The link concerns carrier containment with compatible induced operations, not equality of structure labels or operation-resource IRIs. Different class types can participate, such as an ideal and its ambient ring; a quotient construction alone establishes no such containment."
+msgstr "此链接涉及载体包含及相容诱导运算，而非结构标签或运算资源 IRI 相等。不同类类型可以参与，例如理想及其环境环；仅构造商不确立此类包含关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "In algebra-homomorphisms.ttl, the special linear subgroup exa:SL2R lies within exa:GL2R, while exa:GL2modSL2 has a coset carrier. Forming that quotient does not assert that its cosets are a contained substructure of exa:GL2R."
+msgstr "algebra-homomorphisms.ttl 中特殊线性子群 exa:SL2R 位于 exa:GL2R 内，而 exa:GL2modSL2 具有陪集载体。形成该商不会声明其陪集是 exa:GL2R 内被包含的子结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the source structure’s carrier is contained in the target carrier and its operations agree with the compatible operations induced there."
+msgstr "当源结构载体包含于目标载体，且其运算与在其中诱导的相容运算一致时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring containment from a quotient’s origin, requiring identical structure classes or operation IRIs, or using the link solely for an isomorphic copy without an established containment."
+msgstr "不要从商的来源推断包含关系，不要要求结构类或运算 IRI 相同，也不要在未确立包含关系时仅为同构副本使用此链接。"
+
+msgctxt "https://blackcatinformatics.ca/math/substructureOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the contained structure to the ambient structure, retain both carriers and the evidence of induced-operation compatibility, and preserve the existing transitive meaning. Keep quotient and isomorphism descriptions separate from a containment claim, using no new parent or operation-position fields."
+msgstr "从被包含结构指向环境结构，保留两个载体及诱导运算相容性的证据，并保留已有传递含义。将商及同构描述与包含声明区分，不新增父对象或运算位置字段。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "field of scalars"
+msgstr "标量域"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a vector space, quadratic space, module, or algebra to the explicitly declared field of scalars over which its operations are interpreted."
+msgstr "将向量空间、二次空间、模或代数关联到解释其运算的显式标量域。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation records an explicitly declared scalar setting; it is distinct from the function class math:ScalarField. Current Clifford examples target math:realNumbers, so its use does not impose a global math:Field target type. General modules still admit ring scalars rather than requiring a field."
+msgstr "此关系记录显式声明的标量背景，区别于函数类 math:ScalarField。当前 Clifford 示例以 math:realNumbers 为目标，因此其使用不施加全局 math:Field 目标类型。一般模仍允许环标量，而非要求域。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|http://www.w3.org/2004/02/skos/core#example"
+msgid "cov:cl120 and cov:cl130 in external-concept-coverage.ttl both name math:realNumbers through math:scalarField. That declared scalar setting is separate from their carrier, product and linear dimension."
+msgstr "external-concept-coverage.ttl 中 cov:cl120 与 cov:cl130 都通过 math:scalarField 指定 math:realNumbers。该已声明标量背景与其载体、乘积和线性维数分离。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a space or algebra description needs to name its explicitly chosen scalar setting through the existing relation."
+msgstr "当空间或代数描述需要通过已有关系指定显式选择的标量背景时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid confusing math:scalarField with math:ScalarField, using a scalar-valued function in place of the intended scalar setting, or requiring every module to use field scalars."
+msgstr "不要混淆 math:scalarField 与 math:ScalarField，不要用标量值函数替代所需标量背景，也不要要求每个模都使用域标量。"
+
+msgctxt "https://blackcatinformatics.ca/math/scalarField|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the modeled space or algebra to its declared scalar setting, following existing uses such as math:realNumbers, and retain its carrier, operations and scalar-action laws separately. Do not turn this descriptive relation into a universal target-type rule, a mandatory field for ring modules or an automatic evaluator."
+msgstr "按照 math:realNumbers 等已有用法，将建模空间或代数关联到已声明标量背景，并分别保留载体、运算及标量作用定律。不要将此描述关系转变为通用目标类型规则、环上模的强制域要求或自动求值器。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "space dimension"
+msgstr "空间维数"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The non-negative integer vector-space dimension of a coordinate space, tangent space, algebra carrier, or other explicitly linear mathematical object — distinct from the physical math:hasDimension (an SI dimension). A chart target and tangent space use it for manifold consistency; a Clifford algebra uses it for the exact 2^(p+q) carrier dimension."
+msgstr "坐标空间、切空间、代数载体或其他显式线性对象的非负整数向量空间维数；它不同于物理量纲 math:hasDimension。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is a finite nonnegative integer linear dimension for an explicitly linear object. It is separate from physical math:hasDimension and from the local manifold dimension math:manifoldDimension; matching dimensions alone do not identify spaces or establish their algebraic laws."
+msgstr "这是显式线性对象的有限非负整数线性维数。它区别于物理 math:hasDimension 及局部流形维数 math:manifoldDimension；维数相同本身不会使空间相同，也不能确立其代数定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|http://www.w3.org/2004/02/skos/core#example"
+msgid "The Clifford examples cov:cl120 and cov:cl130 in external-concept-coverage.ttl carry math:spaceDimension values 4096 and 8192 respectively, the carrier dimensions 2^(p+q), rather than the signature entries p and q themselves."
+msgstr "external-concept-coverage.ttl 中 Clifford 示例 cov:cl120 和 cov:cl130 分别承载 math:spaceDimension 值 4096 和 8192，即载体维数 2^(p+q)，而非签名条目 p 和 q 本身。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the finite linear dimension of a coordinate space, tangent space, algebra carrier or other explicitly linear object must be recorded."
+msgstr "当需要记录坐标空间、切空间、代数载体或其他显式线性对象的有限线性维数时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid substituting an SI dimension, copying manifoldDimension onto an unrelated object, treating a dimension count as tensor evaluation or law proof, or converting absent importer metadata into an asserted zero-dimensional space."
+msgstr "不要替换成 SI 量纲，不要将 manifoldDimension 复制到无关对象上，不要将维数计数视为张量求值或定律证明，也不要将缺失的导入器元数据转成零维空间断言。"
+
+msgctxt "https://blackcatinformatics.ca/math/spaceDimension|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "State the nonnegative integer on the identified linear object and preserve the meaning of the counted degrees of freedom. The ONNX importer sums initializer element counts from tensor headers for math:ParameterSpace; that shape metadata neither reads computed tensor values nor supplies a formula or proof of the named vector-space axioms."
+msgstr "在已标识线性对象上给出非负整数，并保留所计自由度的含义。ONNX 导入器从张量头信息汇总初始化器元素数以用于 math:ParameterSpace；该形状元数据既不读取已计算张量值，也不提供所命名向量空间公理的公式或证明。"
