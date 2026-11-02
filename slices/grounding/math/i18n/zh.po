@@ -7322,8 +7322,8 @@ msgid "Ring"
 msgstr "环"
 
 msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#definition"
-msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
-msgstr "具有两个运算的集合：加法构成阿贝尔群，乘法满足结合律并对加法满足分配律（∀a,b,c: a·(b+c) = a·b + a·c）。两个运算以两个 math:structureOperation 承载，分配律公理通过 math:satisfiesAxiom 指定。它还通过 math:satisfiesDistributivity 指定该定律，后者细化 math:satisfiesAxiom（分配律是环的公理之一，推理器蕴含一般属性）；验证门读取已断言三元组，因此合式的环同时断言二者。分配律使双运算结构成为环，而非两个无关的群；未声明分配律的环不合式（math:NonDistributiveRing）。它是 math:AlgebraicStructure 的子类；math:CommutativeRing 是乘法满足交换律的环。"
+msgid "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity ties a ring's additive and multiplicative operations together; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."
+msgstr "具有两个运算的集合：加法构成阿贝尔群，乘法满足结合律并对加法满足分配律（∀a,b,c: a·(b+c) = a·b + a·c）。两个运算以两个 math:structureOperation 承载，分配律公理通过 math:satisfiesAxiom 指定。它还通过 math:satisfiesDistributivity 指定该定律，后者细化 math:satisfiesAxiom（分配律是环的公理之一，推理器蕴含一般属性）；验证门读取已断言三元组，因此合式的环同时断言二者。分配律将环的加法和乘法运算关联起来；未声明分配律的环不合式（math:NonDistributiveRing）。它是 math:AlgebraicStructure 的子类；math:CommutativeRing 是乘法满足交换律的环。"
 
 msgctxt "https://blackcatinformatics.ca/math/Ring|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "A ring coordinates additive and multiplicative operation roles on one carrier: addition forms an abelian group, multiplication is associative, and distributivity relates them. Two operation roles do not introduce resource-inequality rules, and additive commutativity does not establish multiplicative commutativity."
@@ -7546,8 +7546,8 @@ msgid "satisfies distributivity"
 msgstr "满足分配律"
 
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
-msgstr "指定 math:Ring 满足的分配律公理：乘法对加法满足分配律（a·(b+c) = a·b + a·c），该定律使双运算结构成为环而非两个无关的群。定义域为 math:Ring，值域为表示 logic: 公式的 math:Axiom，以文字说明。它是 math:satisfiesAxiom 的细化：环必须专门指定分配律，而非仅指定任意公理。没有分配律的环不合式。"
+msgid "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), tying its additive and multiplicative operations together. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."
+msgstr "指定 math:Ring 满足的分配律公理：乘法对加法满足分配律（a·(b+c) = a·b + a·c），将其加法和乘法运算关联起来。定义域为 math:Ring，值域为表示 logic: 公式的 math:Axiom，以文字说明。它是 math:satisfiesAxiom 的细化：环必须专门指定分配律，而非仅指定任意公理。没有分配律的环不合式。"
 
 msgctxt "https://blackcatinformatics.ca/math/satisfiesDistributivity|http://www.w3.org/2004/02/skos/core#scopeNote"
 msgid "This refinement selects the distributivity axiom relating ring multiplication and addition. It entails the general math:satisfiesAxiom edge through the existing hierarchy, but an asserted-triple consumer does not gain that edge merely by reading the specific assertion."
@@ -8368,3 +8368,171 @@ msgstr "不要将此链接视为已计算复合，不要自动推断反向或传
 msgctxt "https://blackcatinformatics.ca/math/composesWith|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Retain the composability edge with both morphisms and their actual endpoint descriptions, using the applicable category’s discipline to explain the claim. Keep any separately described composite, law proof or execution result distinct, without inventing a mandatory result slot or another composition path."
 msgstr "保留可复合性边、两个态射及其实际端点描述，使用适用范畴规则解释该主张。将另行描述的复合、定律证明或执行结果区分，不臆造必填结果槽位或另一条复合路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Axiom"
+msgstr "公理"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A stated law a structure satisfies — associativity, commutativity, an identity or inverse law, distributivity. An axiom denotes a logic: formula (the denotation seam, reached in the worked examples as a resource typed both math:Axiom and logic:Formula), never an opaque string: math: expresses the law and logic: owns reasoning over it. A math:AlgebraicStructure names these law resources through math:satisfiesAxiom."
+msgstr "结构所满足的既定定律，例如结合律、交换律、单位元律、逆元律或分配律。公理表示 logic: 公式（指称衔接，在示例中表现为同时具有 math:Axiom 和 logic:Formula 类型的资源），而非不透明字符串：math: 表达定律，logic: 负责对其推理。math:AlgebraicStructure 通过 math:satisfiesAxiom 指定这些定律资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An axiom resource identifies a stated law; its formula realization, proof evidence and execution are distinct. A math:Axiom label, type or math:satisfiesAxiom edge alone supplies none of those, and this class is not a superclass declaration for algebraic structures."
+msgstr "公理资源标识既定定律；其公式实现、证明证据和执行相互区分。仅 math:Axiom 标签、类型或 math:satisfiesAxiom 边不提供这些内容，此类也不是代数结构的超类声明。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:associativity in algebra-axioms.ttl is typed both math:Axiom and logic:Formula and carries an actual quantified formula tree. A structure’s link to that law remains distinct from the formula and any checked result."
+msgstr "algebra-axioms.ttl 中 exa:associativity 同时具有 math:Axiom 和 logic:Formula 类型，并承载实际量化公式树。结构到该定律的链接仍区别于公式及任何已检查结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a stated mathematical law needs an identified resource that structures or other existing law carriers can reference."
+msgstr "当既定数学定律需要有标识的资源，供结构或其他已有定律承载对象引用时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a type or satisfaction link as a realized formula, proof or evaluator, inferring that math:Axiom is a superclass of algebraic structures from the law role, or excluding existing GroupAction satisfaction uses."
+msgstr "不要将类型或满足链接视为已实现公式、证明或求值器，不要从定律角色推断 math:Axiom 是代数结构的超类，也不要排除已有 GroupAction 满足关系用法。"
+
+msgctxt "https://blackcatinformatics.ca/math/Axiom|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the law resource, retain its actual logic:Formula realization where authored, and keep evidence or checked results explicit. Use math:satisfiesAxiom from the existing mathematical carrier, including group actions where applicable, without retyping that carrier or inventing a hierarchy edge."
+msgstr "标识定律资源，在已编写处保留实际 logic:Formula 实现，并明确证据或已检查结果。从已有数学承载对象使用 math:satisfiesAxiom，包括适用处的群作用，不重定型承载对象，也不臆造层级边。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Incomplete Algebraic Structure"
+msgstr "不完整代数结构"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."
+msgstr "当 math:AlgebraicStructure 未声明其组成部分，即 math:underlyingSet、至少一个 math:structureOperation 和至少一个 math:satisfiesAxiom 定律时引发的失败。群是具有满足既定公理的运算的集合；缺少这些组成部分的结构声明不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the declared carrier, operation and axiom frame, including its existing typed carrier/operation and resource-valued law requirements. A present frame does not establish that the operations satisfy algebraic laws, realize their formulas or execute them."
+msgstr "此失败涉及已声明载体、运算和公理框架，包括已有带类型载体及运算和资源值定律要求。框架存在不确立运算满足代数定律，也不实现或执行其公式。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "structure-missing-operation.ttl declares ex:operationlessGroup with math:underlyingSet and math:satisfiesAxiom but omits math:structureOperation. This illustrates the missing operation declaration, not a computation disproving a group law."
+msgstr "structure-missing-operation.ttl 为 ex:operationlessGroup 声明 math:underlyingSet 和 math:satisfiesAxiom，但省略 math:structureOperation。这展示缺少运算声明，而非通过计算否定群定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the existing algebraic-structure declaration check reports a missing or nonconforming constituting frame."
+msgstr "当已有代数结构声明检查报告组成框架缺失或不符合要求时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading successful frame completion as a proof of algebra, filling the gap with an untyped placeholder, or replacing the actual missing operation with a prose label."
+msgstr "不要将框架补全成功理解为代数证明，不要用无类型占位项填补缺口，也不要用文字标签替代实际缺少的运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/IncompleteAlgebraicStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Inspect the reported structure and supply its actual carrier, required operation resources and declared laws through the existing fields, retaining their types and resource values. Keep any formula realization and evidence separate; do not add requirements or claim that satisfying the declaration check proves the structure."
+msgstr "检查所报告结构，通过已有字段提供实际载体、所需运算资源及已声明定律，保留其类型和资源值。另行保留任何公式实现及证据；不新增要求，也不声称通过声明检查就证明结构。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Non-Distributive Ring"
+msgstr "缺少分配律声明的环"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Ring does not declare, through math:satisfiesDistributivity, the distributivity law that ties its two operations together. Distributivity (a·(b+c) = a·b + a·c) connects a ring's additive and multiplicative operations; a ring asserted without its distributivity declaration is ill-formed."
+msgstr "当 math:Ring 未通过 math:satisfiesDistributivity 声明关联其两个运算的分配律时引发的失败。分配律（a·(b+c) = a·b + a·c）关联环的加法和乘法运算；缺少分配律声明的环声明不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The failure identifies a missing specific math:satisfiesDistributivity declaration on a ring, not a numerical counterexample to distributivity. The declaration connects additive and multiplicative roles without making multiplication a group operation or establishing every ring law."
+msgstr "此失败标识环上缺少专门的 math:satisfiesDistributivity 声明，而非分配律的数值反例。声明关联加法与乘法角色，不将乘法变成群运算，也不确立全部环定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|http://www.w3.org/2004/02/skos/core#example"
+msgid "ring-missing-distributivity.ttl supplies ex:nonDistributiveRing with a carrier, two operations and a general math:satisfiesAxiom link, but no math:satisfiesDistributivity link. The fixture records that omission rather than a failed arithmetic identity."
+msgstr "ring-missing-distributivity.ttl 为 ex:nonDistributiveRing 提供载体、两个运算和一般 math:satisfiesAxiom 链接，但没有 math:satisfiesDistributivity 链接。该测例记录的是此省略，而非某个算术恒等式不成立。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the ring declaration check reports that its specifically named distributivity law is absent."
+msgstr "当环声明检查报告缺少专门指定的分配律时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the failure as computed falsity, substituting any unrelated axiom for distributivity, or assuming that adding a law resource proves distributivity or every other ring condition."
+msgstr "不要将失败解释为已计算出的假值，不要以无关公理替代分配律，也不要假定添加定律资源就证明分配律或全部其他环条件。"
+
+msgctxt "https://blackcatinformatics.ca/math/NonDistributiveRing|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Name the actual distributivity law through math:satisfiesDistributivity and retain math:satisfiesAxiom for that law when asserted-triple consumers require both. Preserve the ring’s other frame fields and the law’s formula and evidence, without adding multiplicative inverse, unit or commutativity obligations."
+msgstr "通过 math:satisfiesDistributivity 指定实际分配律，在已断言三元组使用方要求二者时保留该定律的 math:satisfiesAxiom。保留其他环框架字段及定律公式和证据，不新增乘法逆元、单位元或交换律义务。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Underspecified Homomorphism"
+msgstr "未充分指定的同态"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Homomorphism does not declare both the operation it carries (math:preservedOperation) and its preservation law (math:preservationLaw). A map is a homomorphism only by declaring what it preserves and the law of that preservation; a homomorphism asserted without them is ill-formed."
+msgstr "当 math:Homomorphism 未同时声明所传递运算（math:preservedOperation）和保持定律（math:preservationLaw）时引发的失败。映射需声明所保持内容及保持定律才构成同态；未提供它们的同态声明不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the preserved-operation and preservation-law declaration frame. Supplying those links does not prove preservation, complete every ring-homomorphism condition or establish an isomorphism theorem."
+msgstr "此失败涉及保持运算及保持定律声明框架。提供这些链接不证明保持性，不补全全部环同态条件，也不确立同构定理。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "homomorphism-missing-law.ttl gives ex:lawlessHom a math:preservedOperation resource but omits math:preservationLaw. The missing-law record is distinct from any evaluation of the operation or proof of a preservation equation."
+msgstr "homomorphism-missing-law.ttl 为 ex:lawlessHom 提供 math:preservedOperation 资源，但省略 math:preservationLaw。缺少定律的记录区别于任何运算求值或保持等式证明。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a declared homomorphism lacks the preserved operation or preservation-law resource required by its existing frame."
+msgstr "当已声明同态缺少已有框架要求的保持运算或保持定律资源时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid repairing the frame with a prose-only law, treating the minimum link count as proof of all preservation conditions, or claiming the failure itself disproves the intended map."
+msgstr "不要用纯文字定律修复框架，不要将最少链接数视为全部保持条件的证明，也不要声称失败本身否定所需映射。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnderspecifiedHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the map’s actual preserved operation and attach the intended law resource through math:preservationLaw, keeping the existing endpoint and type information. Preserve the real formula and supporting evidence separately rather than treating completed declarations as a proof or execution result."
+msgstr "保留映射实际保持运算，通过 math:preservationLaw 附上所需定律资源，并保留已有端点及类型信息。另行保留真实公式和支持证据，不将已补全声明视为证明或执行结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "String-Only Preservation Law"
+msgstr "仅字符串保持定律"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."
+msgstr "当 math:Homomorphism 将 math:preservationLaw 给为不透明字面量，而非指称 logic: 公式时引发的失败。保持定律是通向 logic: 推理的指称衔接；它必须表示公式（资源），而非字符串。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The implemented Homomorphism check requires math:preservationLaw values to be BlankNodeOrIRI and rejects literals. That node-kind check alone neither requires logic:Formula typing nor inspects a formula tree, proves preservation or executes the law."
+msgstr "已实现的 Homomorphism 检查要求 math:preservationLaw 值为 BlankNodeOrIRI，并拒绝字面量。仅此节点种类检查既不要求 logic:Formula 类型，也不检查公式树、证明保持性或执行定律。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "homomorphism-law-string.ttl gives ex:stringLawHom a literal math:preservationLaw. Its conformance cell pins the shared shacl.NodeKindConstraintComponent code and explicitly does not claim isolated StringOnlyPreservationLaw failure; other findings can coexist."
+msgstr "homomorphism-law-string.ttl 为 ex:stringLawHom 提供字面量 math:preservationLaw。其符合性条目固定共享 shacl.NodeKindConstraintComponent 代码，并明确不声称仅有 StringOnlyPreservationLaw 失败；其他发现可并存。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the existing preservation-law node-kind check identifies a literal where a resource node is required."
+msgstr "当已有保持定律节点种类检查发现需要资源节点处存在字面量时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting a passing IRI or blank node as a realized or proved formula, claiming this check enforces Formula typing, or describing the law-string fixture as an isolated failure-class witness."
+msgstr "不要将通过检查的 IRI 或空白节点解释为已实现或已证明公式，不要声称此检查强制 Formula 类型，也不要将字符串定律测例描述为单一失败类的见证。"
+
+msgctxt "https://blackcatinformatics.ca/math/StringOnlyPreservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Replace the literal with the actual law resource and retain its separately authored formula and evidence where supplied. Diagnose node kind, formula realization and checked truth as distinct concerns; preserve the conformance cell’s code-only assertion and do not infer failure-class isolation."
+msgstr "以实际定律资源替换字面量，在已提供处保留另行编写的公式及证据。分别诊断节点种类、公式实现及已检查真值；保留符合性条目仅针对代码的断言，不推断失败类隔离。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Unanchored Automorphism Group"
+msgstr "未锚定自同构群"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The failure raised when a math:AutomorphismGroup does not declare, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure — the invariant that makes E8's Weyl group the symmetry of the E8 root system rather than a free-floating group; an automorphism group asserted without its anchoring structure is ill-formed."
+msgstr "当 math:AutomorphismGroup 未通过 math:automorphismGroupOf 声明其收集对称所对应的结构时引发的失败。每个自同构群都是某个结构的对称群；此不变量使 E8 外尔群是 E8 根系的对称群而非无所依附的群。缺少锚定结构的自同构群声明不合式。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This failure concerns the missing math:automorphismGroupOf structure anchor of a full automorphism-group claim. Supplying the anchor identifies the claimed structure but does not prove that the group collects all its automorphisms; the inherited group frame remains independently required."
+msgstr "此失败涉及完整自同构群主张缺少 math:automorphismGroupOf 结构锚点。提供锚点标识所声明结构，但不证明该群收集全部自同构；继承的群框架仍独立要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "automorphism-group-unanchored.ttl gives ex:unanchoredAutGroup a carrier, composition operation and axiom but omits math:automorphismGroupOf. It illustrates the missing full-group anchor rather than a proof that the named maps are or are not all automorphisms."
+msgstr "automorphism-group-unanchored.ttl 为 ex:unanchoredAutGroup 提供载体、复合运算及公理，但省略 math:automorphismGroupOf。它展示完整群锚点缺失，而非证明所指定映射是否为全部自同构。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicitly claimed automorphism group lacks the existing required link to the structure whose full automorphisms it collects."
+msgstr "当显式声明的自同构群缺少已有要求的链接，未指向其收集完整自同构所对应的结构时使用。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid satisfying the anchor with an arbitrary unrelated resource, inferring every Weyl group is a full automorphism group, or excluding function-valued members and an identity function from the inherited group roles."
+msgstr "不要用任意无关资源填充锚点，不要推断每个外尔群都是完整自同构群，也不要从继承群角色中排除函数值成员及恒等函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/UnanchoredAutomorphismGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the actual structure through math:automorphismGroupOf while retaining the carrier, composition and law frame and evidence for the full-group claim. Keep the specific E8 dual typing and any separate math:hasRootSystem anchor intact; adding this anchor neither proves fullness nor changes generic Weyl requirements."
+msgstr "通过 math:automorphismGroupOf 标识实际结构，同时保留载体、复合及定律框架和完整群主张的证据。保留特定 E8 双重类型及任何独立 math:hasRootSystem 锚点；添加此锚点既不证明完整性，也不改变一般外尔要求。"

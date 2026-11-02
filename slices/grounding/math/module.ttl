@@ -1814,7 +1814,12 @@ math:Axiom
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Axiom"@x-gmeow-english ;
-    skos:definition "A stated law a structure satisfies — associativity, commutativity, an identity or inverse law, distributivity. An axiom denotes a logic: formula (the denotation seam, reached in the worked examples as a resource typed both math:Axiom and logic:Formula), never an opaque string: math: expresses the law and logic: owns reasoning over it. A math:AlgebraicStructure names the axioms it satisfies through math:satisfiesAxiom; the object-layer parent the algebra hierarchy builds on."@x-gmeow-english ;
+    skos:scopeNote "An axiom resource identifies a stated law; its formula realization, proof evidence and execution are distinct. A math:Axiom label, type or math:satisfiesAxiom edge alone supplies none of those, and this class is not a superclass declaration for algebraic structures."@x-gmeow-english ;
+    skos:example "exa:associativity in algebra-axioms.ttl is typed both math:Axiom and logic:Formula and carries an actual quantified formula tree. A structure’s link to that law remains distinct from the formula and any checked result."@x-gmeow-english ;
+    gmeow:useWhen "Use when a stated mathematical law needs an identified resource that structures or other existing law carriers can reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating a type or satisfaction link as a realized formula, proof or evaluator, inferring that math:Axiom is a superclass of algebraic structures from the law role, or excluding existing GroupAction satisfaction uses."@x-gmeow-english ;
+    gmeow:howToUse "Identify the law resource, retain its actual logic:Formula realization where authored, and keep evidence or checked results explicit. Use math:satisfiesAxiom from the existing mathematical carrier, including group actions where applicable, without retyping that carrier or inventing a hierarchy edge."@x-gmeow-english ;
+    skos:definition "A stated law a structure satisfies — associativity, commutativity, an identity or inverse law, distributivity. An axiom denotes a logic: formula (the denotation seam, reached in the worked examples as a resource typed both math:Axiom and logic:Formula), never an opaque string: math: expresses the law and logic: owns reasoning over it. A math:AlgebraicStructure names these law resources through math:satisfiesAxiom."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:AlgebraicStructure
@@ -1904,7 +1909,7 @@ math:Ring
     gmeow:useWhen "Use when addition and multiplication on a carrier have the stated ring laws, including the distributive connection between them."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid calling two unrelated operations a ring, assuming multiplicative inverses for every element, or relying only on an entailed general axiom edge for a consumer that reads asserted triples."@x-gmeow-english ;
     gmeow:howToUse "Name the carrier and the two math:structureOperation values, retain their additive and multiplicative meanings in the existing definitions and laws, and link the distributivity axiom through both math:satisfiesDistributivity and math:satisfiesAxiom when asserted-triple consumers require both."@x-gmeow-english ;
-    skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity is what makes a two-operation structure a ring rather than two unrelated groups; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
+    skos:definition "A set with two operations — an abelian additive group and an associative multiplication that distributes over addition (∀a,b,c: a·(b+c) = a·b + a·c) — carried as two math:structureOperation with the distributivity axiom through math:satisfiesAxiom. It also names that law through math:satisfiesDistributivity, which refines math:satisfiesAxiom (the distributivity law is one of the ring's axioms, and the reasoner entails the general property); the validation gate reads asserted triples, so a well-formed ring asserts both. Distributivity ties a ring's additive and multiplicative operations together; a ring declared without it is ill-formed (math:NonDistributiveRing). A subclass of math:AlgebraicStructure; a math:CommutativeRing is a ring whose multiplication commutes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:CommutativeRing
@@ -2070,7 +2075,7 @@ math:satisfiesDistributivity
     gmeow:useWhen "Use when a ring must explicitly identify the distributivity law that connects its additive and multiplicative operations."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid substituting an unrelated associativity or commutativity axiom, omitting the general axiom assertion required by a direct consumer, or treating this edge as proof that the law has executed."@x-gmeow-english ;
     gmeow:howToUse "Link the ring to the distributivity math:Axiom with math:satisfiesDistributivity and also assert math:satisfiesAxiom when the consuming path reads asserted triples. Preserve the two operation roles, the law’s actual formula and evidence, and the distinction between assertion and entailment."@x-gmeow-english ;
-    skos:definition "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), the law that makes a two-operation structure a ring rather than two unrelated groups. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."@x-gmeow-english ;
+    skos:definition "Names the distributivity axiom a math:Ring satisfies — multiplication distributes over addition (a·(b+c) = a·b + a·c), tying its additive and multiplicative operations together. Domain math:Ring, range a math:Axiom denoting a logic: formula (stated in prose). A refinement of math:satisfiesAxiom: a ring must name a distributivity law specifically, not merely some axiom. A ring without distributivity is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 math:substructureOf
@@ -2104,6 +2109,11 @@ math:IncompleteAlgebraicStructure
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Incomplete Algebraic Structure"@x-gmeow-english ;
+    skos:scopeNote "This failure concerns the declared carrier, operation and axiom frame, including its existing typed carrier/operation and resource-valued law requirements. A present frame does not establish that the operations satisfy algebraic laws, realize their formulas or execute them."@x-gmeow-english ;
+    skos:example "structure-missing-operation.ttl declares ex:operationlessGroup with math:underlyingSet and math:satisfiesAxiom but omits math:structureOperation. This illustrates the missing operation declaration, not a computation disproving a group law."@x-gmeow-english ;
+    gmeow:useWhen "Use when the existing algebraic-structure declaration check reports a missing or nonconforming constituting frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading successful frame completion as a proof of algebra, filling the gap with an untyped placeholder, or replacing the actual missing operation with a prose label."@x-gmeow-english ;
+    gmeow:howToUse "Inspect the reported structure and supply its actual carrier, required operation resources and declared laws through the existing fields, retaining their types and resource values. Keep any formula realization and evidence separate; do not add requirements or claim that satisfying the declaration check proves the structure."@x-gmeow-english ;
     skos:definition "The failure raised when a math:AlgebraicStructure does not declare its constituting parts — a math:underlyingSet, at least one math:structureOperation, and at least one math:satisfiesAxiom law. A group is a set with an operation satisfying stated axioms; a structure asserted without them is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2112,7 +2122,12 @@ math:NonDistributiveRing
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Non-Distributive Ring"@x-gmeow-english ;
-    skos:definition "The failure raised when a math:Ring does not declare, through math:satisfiesDistributivity, the distributivity law that ties its two operations together. Distributivity (a·(b+c) = a·b + a·c) is what makes a set with an addition and a multiplication a ring rather than two unrelated groups; a ring asserted without it is ill-formed."@x-gmeow-english ;
+    skos:scopeNote "The failure identifies a missing specific math:satisfiesDistributivity declaration on a ring, not a numerical counterexample to distributivity. The declaration connects additive and multiplicative roles without making multiplication a group operation or establishing every ring law."@x-gmeow-english ;
+    skos:example "ring-missing-distributivity.ttl supplies ex:nonDistributiveRing with a carrier, two operations and a general math:satisfiesAxiom link, but no math:satisfiesDistributivity link. The fixture records that omission rather than a failed arithmetic identity."@x-gmeow-english ;
+    gmeow:useWhen "Use when the ring declaration check reports that its specifically named distributivity law is absent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the failure as computed falsity, substituting any unrelated axiom for distributivity, or assuming that adding a law resource proves distributivity or every other ring condition."@x-gmeow-english ;
+    gmeow:howToUse "Name the actual distributivity law through math:satisfiesDistributivity and retain math:satisfiesAxiom for that law when asserted-triple consumers require both. Preserve the ring’s other frame fields and the law’s formula and evidence, without adding multiplicative inverse, unit or commutativity obligations."@x-gmeow-english ;
+    skos:definition "The failure raised when a math:Ring does not declare, through math:satisfiesDistributivity, the distributivity law that ties its two operations together. Distributivity (a·(b+c) = a·b + a·c) connects a ring's additive and multiplicative operations; a ring asserted without its distributivity declaration is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 # =========================================================================== #
@@ -2274,6 +2289,11 @@ math:UnderspecifiedHomomorphism
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Underspecified Homomorphism"@x-gmeow-english ;
+    skos:scopeNote "This failure concerns the preserved-operation and preservation-law declaration frame. Supplying those links does not prove preservation, complete every ring-homomorphism condition or establish an isomorphism theorem."@x-gmeow-english ;
+    skos:example "homomorphism-missing-law.ttl gives ex:lawlessHom a math:preservedOperation resource but omits math:preservationLaw. The missing-law record is distinct from any evaluation of the operation or proof of a preservation equation."@x-gmeow-english ;
+    gmeow:useWhen "Use when a declared homomorphism lacks the preserved operation or preservation-law resource required by its existing frame."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid repairing the frame with a prose-only law, treating the minimum link count as proof of all preservation conditions, or claiming the failure itself disproves the intended map."@x-gmeow-english ;
+    gmeow:howToUse "Retain the map’s actual preserved operation and attach the intended law resource through math:preservationLaw, keeping the existing endpoint and type information. Preserve the real formula and supporting evidence separately rather than treating completed declarations as a proof or execution result."@x-gmeow-english ;
     skos:definition "The failure raised when a math:Homomorphism does not declare both the operation it carries (math:preservedOperation) and its preservation law (math:preservationLaw). A map is a homomorphism only by declaring what it preserves and the law of that preservation; a homomorphism asserted without them is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2282,6 +2302,11 @@ math:StringOnlyPreservationLaw
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "String-Only Preservation Law"@x-gmeow-english ;
+    skos:scopeNote "The implemented Homomorphism check requires math:preservationLaw values to be BlankNodeOrIRI and rejects literals. That node-kind check alone neither requires logic:Formula typing nor inspects a formula tree, proves preservation or executes the law."@x-gmeow-english ;
+    skos:example "homomorphism-law-string.ttl gives ex:stringLawHom a literal math:preservationLaw. Its conformance cell pins the shared shacl.NodeKindConstraintComponent code and explicitly does not claim isolated StringOnlyPreservationLaw failure; other findings can coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use when the existing preservation-law node-kind check identifies a literal where a resource node is required."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting a passing IRI or blank node as a realized or proved formula, claiming this check enforces Formula typing, or describing the law-string fixture as an isolated failure-class witness."@x-gmeow-english ;
+    gmeow:howToUse "Replace the literal with the actual law resource and retain its separately authored formula and evidence where supplied. Diagnose node kind, formula realization and checked truth as distinct concerns; preserve the conformance cell’s code-only assertion and do not infer failure-class isolation."@x-gmeow-english ;
     skos:definition "The failure raised when a math:Homomorphism gives its math:preservationLaw as an opaque literal instead of denoting a logic: formula. The preservation law is the denotation seam to logic: reasoning; it must denote a formula (a resource), never a string."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2290,6 +2315,11 @@ math:UnanchoredAutomorphismGroup
     rdfs:subClassOf math:MathConformanceFailure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Unanchored Automorphism Group"@x-gmeow-english ;
+    skos:scopeNote "This failure concerns the missing math:automorphismGroupOf structure anchor of a full automorphism-group claim. Supplying the anchor identifies the claimed structure but does not prove that the group collects all its automorphisms; the inherited group frame remains independently required."@x-gmeow-english ;
+    skos:example "automorphism-group-unanchored.ttl gives ex:unanchoredAutGroup a carrier, composition operation and axiom but omits math:automorphismGroupOf. It illustrates the missing full-group anchor rather than a proof that the named maps are or are not all automorphisms."@x-gmeow-english ;
+    gmeow:useWhen "Use when an explicitly claimed automorphism group lacks the existing required link to the structure whose full automorphisms it collects."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid satisfying the anchor with an arbitrary unrelated resource, inferring every Weyl group is a full automorphism group, or excluding function-valued members and an identity function from the inherited group roles."@x-gmeow-english ;
+    gmeow:howToUse "Identify the actual structure through math:automorphismGroupOf while retaining the carrier, composition and law frame and evidence for the full-group claim. Keep the specific E8 dual typing and any separate math:hasRootSystem anchor intact; adding this anchor neither proves fullness nor changes generic Weyl requirements."@x-gmeow-english ;
     skos:definition "The failure raised when a math:AutomorphismGroup does not declare, through math:automorphismGroupOf, the structure whose symmetries it collects. Every automorphism group is the symmetry group OF some structure — the invariant that makes E8's Weyl group the symmetry of the E8 root system rather than a free-floating group; an automorphism group asserted without its anchoring structure is ill-formed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
