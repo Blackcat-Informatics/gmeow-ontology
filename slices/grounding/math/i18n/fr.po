@@ -1716,7 +1716,7 @@ msgstr "Un faisceau sur un complexe cellulaire qui attribue une fibre à chaque 
 
 msgctxt "https://blackcatinformatics.ca/math/SheafStalk|rdfs:label"
 msgid "Sheaf Stalk"
-msgstr "Germe de faisceau"
+msgstr "Fibre de faisceau"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafStalk|skos:definition"
 msgid "The local value object assigned by a sheaf to a point or cell of its base space."
@@ -1736,7 +1736,7 @@ msgstr "Section de faisceau"
 
 msgctxt "https://blackcatinformatics.ca/math/SheafSection|skos:definition"
 msgid "A compatible assignment of local stalk values over a region of a sheaf's base space."
-msgstr "Une attribution compatible de valeurs locales de germes sur une région de l'espace de base d'un faisceau."
+msgstr "Une attribution compatible de valeurs locales des fibres sur une région de l'espace de base d'un faisceau."
 
 msgctxt "https://blackcatinformatics.ca/math/SheafCohomology|rdfs:label"
 msgid "Sheaf Cohomology"
@@ -2496,23 +2496,23 @@ msgstr "complexe de base du faisceau"
 
 msgctxt "https://blackcatinformatics.ca/math/sheafBaseComplex|skos:definition"
 msgid "Relates a cellular sheaf to the cell complex on which its stalks and restriction maps are indexed."
-msgstr "Relie un faisceau cellulaire au complexe qui indexe ses germes et restrictions."
+msgstr "Relie un faisceau cellulaire au complexe qui indexe ses fibres et restrictions."
 
 msgctxt "https://blackcatinformatics.ca/math/hasStalk|rdfs:label"
 msgid "has stalk"
-msgstr "a pour germe"
+msgstr "a pour fibre"
 
 msgctxt "https://blackcatinformatics.ca/math/hasStalk|skos:definition"
 msgid "Relates a sheaf to one of its local stalk objects."
-msgstr "Relie un faisceau à l'un de ses germes locaux."
+msgstr "Relie un faisceau à l'une de ses fibres locales."
 
 msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|rdfs:label"
 msgid "stalk over cell"
-msgstr "germe sur la cellule"
+msgstr "fibre sur la cellule"
 
 msgctxt "https://blackcatinformatics.ca/math/stalkOverCell|skos:definition"
 msgid "Relates a cellular-sheaf stalk to the cell of the base complex to which it is assigned."
-msgstr "Relie un germe à la cellule de base à laquelle il est attribué."
+msgstr "Relie une fibre à la cellule de base à laquelle elle est attribuée."
 
 msgctxt "https://blackcatinformatics.ca/math/restrictionMap|rdfs:label"
 msgid "restriction map"
@@ -2776,7 +2776,7 @@ msgstr "Faisceau cellulaire incomplet"
 
 msgctxt "https://blackcatinformatics.ca/math/IncompleteCellularSheaf|skos:definition"
 msgid "The failure raised when a cellular sheaf lacks its base complex, stalks, or restriction maps."
-msgstr "L'échec levé quand un faisceau manque son complexe de base, ses germes ou ses restrictions."
+msgstr "L'échec levé quand un faisceau manque son complexe de base, ses fibres ou ses restrictions."
 
 msgctxt "https://blackcatinformatics.ca/math/IncompleteCliffordAlgebra|rdfs:label"
 msgid "Incomplete Clifford Algebra"
