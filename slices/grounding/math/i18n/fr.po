@@ -6408,3 +6408,423 @@ msgstr "Éviter une déclaration ou un littéral de glyphe comme objet, plusieur
 msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Give the math:VariableExpression exactly one math:variableOccurrence target and give that occurrence one explicit math:declaredVariable. Keep the body AST placement and any scope metadata coherent; a free target must be an explicit math:FreeVariableDeclaration."
 msgstr "Donner au math:VariableExpression exactement une cible math:variableOccurrence et à cette occurrence un math:declaredVariable explicite. Garder cohérents le placement dans l’AST du corps et les métadonnées de portée ; une cible libre doit être un math:FreeVariableDeclaration explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Object"
+msgstr "Objet mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The universal object-layer root: any object mathematics quantifies, indexes, maps, or measures over — an element, a value, a vector, a decomposition, a learned object. The top type the bedrock ranges over (math:hasElement, math:convergesTo) and the ground the specialized object classes (math:Basis, math:Rank, math:Eigendecomposition, math:PrincipalComponent, math:WeightTensor, and the rest) build on. Distinct from the expression layer (math:MathematicalExpression) and the relation/function layer, which name what denotes or maps rather than what is denoted."
+msgstr "La racine universelle de la couche objet : tout objet sur lequel les mathématiques quantifient, indexent, appliquent des fonctions ou mesurent — un élément, une valeur, un vecteur, une décomposition, un objet appris. Le type supérieur sur lequel porte le socle (math:hasElement, math:convergesTo) et la base des classes d’objets spécialisées (math:Basis, math:Rank, math:Eigendecomposition, math:PrincipalComponent, math:WeightTensor, entre autres). Il se distingue dans son rôle de la couche d’expression (math:MathematicalExpression) et de celle des relations et fonctions, qui nomment ce qui dénote ou applique plutôt que ce qui est dénoté."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This general object type supplies an identified mathematical referent, not its full structure or an execution claim. Object, expression and reference-layer distinctions do not by themselves create global class disjointness or resource-inequality rules."
+msgstr "Ce type général d’objet fournit un référent mathématique identifié, et non sa structure complète ou une affirmation d’exécution. Les distinctions entre objets, expressions et couche de référence ne créent pas à elles seules de règles globales de disjonction de classes ou d’inégalité de ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|http://www.w3.org/2004/02/skos/core#example"
+msgid "The proof importer can type a non-foundational premise math:MathematicalObject and link its conclusion AST with math:formalizesExpression, without promoting that premise to math:Axiom."
+msgstr "L’importateur de preuves peut typer une prémisse non fondatrice math:MathematicalObject et relier l’AST de sa conclusion par math:formalizesExpression, sans promouvoir cette prémisse en math:Axiom."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical referent needs object identity, adding a more specific existing class when its structure or role is established."
+msgstr "Utiliser lorsqu’un référent mathématique nécessite une identité d’objet, en ajoutant une classe existante plus précise lorsque sa structure ou son rôle est établi."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this broad type as proof that an object is an axiom, a computed value or a valid specialized structure, or replacing its identity with a label or external identifier."
+msgstr "Ne pas traiter ce type large comme preuve qu’un objet est un axiome, une valeur calculée ou une structure spécialisée valide, ni remplacer son identité par un libellé ou un identifiant externe."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalObject|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the object locally and retain justified specialized types and descriptive relations. Keep expression syntax, statement roles and evidence explicit through their existing vocabulary rather than inferring them from this root type."
+msgstr "Identifier l’objet localement et conserver les types spécialisés justifiés ainsi que les relations descriptives. Garder explicites la syntaxe d’expression, les rôles d’énoncés et les éléments probants par leur vocabulaire existant plutôt que les déduire de ce type racine."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Concept"
+msgstr "Concept mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A locally identified mathematical concept: the abstract referent a symbol, notation, definition, expression, or external alignment may present, such as matrix multiplication or the Riemann zeta function. Its identity is the math: resource, never a glyph, prose gloss, rendering, Wikidata item, or OpenMath symbol."
+msgstr "Un concept mathématique identifié localement : le référent abstrait qu’un symbole, une notation, une définition, une expression ou un alignement externe peut présenter, tel que la multiplication matricielle ou la fonction zêta de Riemann. Son identité est la ressource math:, jamais un glyphe, une glose, un rendu, un élément Wikidata ou un symbole OpenMath."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A concept is the locally identified mathematical referent behind its symbols, definitions and presentations. Matching names, glyphs or external alignments alone do not establish local concept identity or justify global equality."
+msgstr "Un concept est le référent mathématique identifié localement derrière ses symboles, définitions et présentations. La concordance des noms, glyphes ou alignements externes n’établit pas seule l’identité locale d’un concept et ne justifie pas d’égalité globale."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|http://www.w3.org/2004/02/skos/core#example"
+msgid "The reference example identifies matrix multiplication as a math:MathematicalConcept, associating a local symbol, an infix notation, a definition and a structured expression through separate descriptive links."
+msgstr "L’exemple de référence identifie la multiplication matricielle comme math:MathematicalConcept, en associant un symbole local, une notation infixe, une définition et une expression structurée par des liens descriptifs séparés."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical notion must retain a stable local identity across different notations, explanations or external references."
+msgstr "Utiliser lorsqu’une notion mathématique doit conserver une identité locale stable à travers différentes notations, explications ou références externes."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a rendered formula or Wikidata item as a substitute for the local concept, or minting a new class merely because a named mathematical individual needs description."
+msgstr "Ne pas utiliser une formule rendue ou un élément Wikidata à la place du concept local, ni créer une classe uniquement parce qu’un individu mathématique nommé doit être décrit."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalConcept|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the local referent math:MathematicalConcept and retain its theory, symbol, notation and definition associations with existing properties. Record external correspondences through the owning alignment surface; no descriptive edge alone establishes evaluation or proof."
+msgstr "Typer le référent local math:MathematicalConcept et conserver ses associations de théorie, symbole, notation et définition avec les propriétés existantes. Consigner les correspondances externes dans la surface d’alignement propriétaire ; aucun lien descriptif seul n’établit une évaluation ou une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Symbol"
+msgstr "Symbole mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A symbol identity used to refer to a mathematical concept or operation within a declared theory or context. It is distinct from its visual glyph and from a math:SymbolReference occurrence in an expression; one symbol may have several notations, and the same glyph may realize different symbols in different theories."
+msgstr "Une identité de symbole utilisée pour référencer un concept ou une opération mathématique dans une théorie ou un contexte déclaré. Son rôle se distingue de son glyphe visuel et d’une occurrence math:SymbolReference dans une expression ; un symbole peut avoir plusieurs notations, et le même glyphe peut réaliser des symboles différents dans des théories différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A mathematical symbol carries contextual meaning independently of its glyph and of individual reference occurrences. Several occurrences may resolve to one symbol, and one visual glyph can serve different meanings in different theories."
+msgstr "Un symbole mathématique porte un sens contextuel indépendamment de son glyphe et des occurrences individuelles de référence. Plusieurs occurrences peuvent se résoudre vers un symbole, et un glyphe visuel peut servir des sens différents dans des théories différentes."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|http://www.w3.org/2004/02/skos/core#example"
+msgid "The glyph e can present Euler’s number or an identity element in a different theory. A math:SymbolReference resolves to the intended local math:MathematicalSymbol instead of choosing by that glyph alone."
+msgstr "Le glyphe e peut présenter le nombre d’Euler ou un élément neutre dans une autre théorie. Un math:SymbolReference se résout vers le math:MathematicalSymbol local voulu au lieu de choisir par ce seul glyphe."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a symbol’s mathematical identity and interpretation must survive changes in typography or repeated uses in expression trees."
+msgstr "Utiliser lorsque l’identité et l’interprétation mathématiques d’un symbole doivent résister aux changements typographiques ou aux usages répétés dans des arbres d’expressions."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid equating symbols solely from their glyph, replacing a local symbol with an external symbol IRI, or cloning the symbol identity for every expression occurrence."
+msgstr "Ne pas identifier des symboles à partir du seul glyphe, remplacer un symbole local par un IRI de symbole externe ou cloner l’identité du symbole pour chaque occurrence d’expression."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalSymbol|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the symbol as math:MathematicalSymbol, retain its applicable theory or context and notation, and resolve expression uses through math:hasMathematicalSymbol. Keep occurrence-specific structure on math:SymbolReference rather than treating its glyph as resolution."
+msgstr "Identifier le symbole comme math:MathematicalSymbol, conserver sa théorie ou son contexte applicable et sa notation, puis résoudre les usages d’expression par math:hasMathematicalSymbol. Garder la structure propre à l’occurrence sur math:SymbolReference plutôt que traiter son glyphe comme résolution."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Notation"
+msgstr "Notation mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A convention for presenting mathematical symbols and expressions, such as a conventional infix notation, MathML content notation, or a named diagrammatic calculus. It is the mathematical convention selected by a rendering, not the rendered form and not the concept it presents."
+msgstr "Une convention de présentation des symboles et expressions mathématiques, telle qu’une notation infixe conventionnelle, une notation de contenu MathML ou un calcul diagrammatique nommé. C’est la convention mathématique choisie par un rendu, et non la forme rendue ni le concept présenté."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Notation identifies a presentation convention, not one rendered string or image. The convention can be theory-scoped and reused across many expressions without supplying their mathematical identity or semantics by itself."
+msgstr "La notation identifie une convention de présentation, et non une chaîne ou une image rendue particulière. La convention peut être rattachée à une théorie et réutilisée pour de nombreuses expressions sans fournir à elle seule leur identité ou sémantique mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The reference example’s infix matrix notation is a math:MathematicalNotation under linear algebra. The convention resource is not the concrete rendering of one matrix-product expression."
+msgstr "La notation matricielle infixe de l’exemple de référence est un math:MathematicalNotation en algèbre linéaire. La ressource convention n’est pas le rendu concret d’une expression particulière de produit matriciel."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a concept or symbol needs to name the convention under which it may be presented."
+msgstr "Utiliser lorsqu’un concept ou symbole doit désigner la convention selon laquelle il peut être présenté."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid storing a rendered formula in place of the convention resource, inferring a parser or evaluator from a notation label, or using convention identity as proof of expression equivalence."
+msgstr "Ne pas stocker une formule rendue à la place de la ressource convention, déduire un analyseur ou évaluateur d’un libellé de notation ou utiliser l’identité de convention comme preuve d’équivalence d’expressions."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalNotation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the convention math:MathematicalNotation and associate concepts or symbols through math:hasNotation. Retain any math:definedInTheory scope and carry concrete rendered forms through the existing rendering vocabulary rather than overloading the convention."
+msgstr "Typer la convention math:MathematicalNotation et associer les concepts ou symboles par math:hasNotation. Conserver toute portée math:definedInTheory et porter les formes rendues concrètes par le vocabulaire de rendu existant plutôt que surcharger la convention."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Theory"
+msgstr "Théorie mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A named mathematical theory that scopes concepts, symbols, definitions, axioms, and statement roles. Theory identity is explicit and may be versioned; a statement or symbol meaningful in one theory is never silently globalized to every theory."
+msgstr "Une théorie mathématique nommée qui donne une portée aux concepts, symboles, définitions, axiomes et rôles d’énoncés. L’identité de la théorie est explicite et peut être versionnée ; un énoncé ou symbole significatif dans une théorie n’est jamais implicitement généralisé à toutes les théories."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A theory provides an identified setting for mathematical meaning and assumptions. Naming it scopes a claim; it does not establish that every statement associated with that theory is proved or unconditionally true."
+msgstr "Une théorie fournit un cadre identifié de sens et d’hypothèses mathématiques. La désigner délimite une affirmation ; cela n’établit pas que tout énoncé associé est prouvé ou inconditionnellement vrai."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|http://www.w3.org/2004/02/skos/core#example"
+msgid "The reference example’s linear-algebra theory scopes its matrix context, notation convention and expression-type category, as well as its concept, symbol and definition."
+msgstr "La théorie d’algèbre linéaire de l’exemple de référence délimite son contexte matriciel, sa convention de notation et sa catégorie de type d’expression, ainsi que son concept, symbole et définition."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when mathematical resources need an explicit shared theory identity for their interpretation or statement roles."
+msgstr "Utiliser lorsque des ressources mathématiques nécessitent une identité de théorie partagée explicite pour leur interprétation ou leurs rôles d’énoncés."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating a theory label as a proof, identifying revisions merely because their names match, or silently exporting a theory-relative assertion as global truth."
+msgstr "Ne pas traiter un libellé de théorie comme preuve, identifier des révisions au seul motif que leurs noms concordent ou exporter implicitement une assertion relative à une théorie comme vérité globale."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalTheory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the theory resource and connect scoped resources with math:definedInTheory where applicable. Keep a statement’s math:statementRole and math:roleInTheory explicit on the statement, and preserve revision identity with existing versioning mechanisms rather than inventing theory-version slots."
+msgstr "Identifier la ressource théorie et relier les ressources concernées par math:definedInTheory lorsque cela s’applique. Garder math:statementRole et math:roleInTheory explicites sur l’énoncé et préserver l’identité des révisions par les mécanismes de version existants plutôt qu’inventer des emplacements de version de théorie."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Context"
+msgstr "Contexte mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A local interpretive context within which mathematical symbols, assumptions, and definitions are read. It narrows a theory for a particular construction or discourse so a reused glyph can resolve without being treated as globally unambiguous."
+msgstr "Un contexte interprétatif local dans lequel sont lus les symboles, hypothèses et définitions mathématiques. Il précise une théorie pour une construction ou un discours particulier, de sorte qu’un glyphe réutilisé puisse être résolu sans être considéré comme globalement non ambigu."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A context records local interpretive conditions within a theory. It is not a global truth setting or an automatic scope resolver, and the context-versus-theory distinction alone imposes no resource-inequality rule."
+msgstr "Un contexte consigne des conditions locales d’interprétation dans une théorie. Ce n’est ni un cadre de vérité globale ni un résolveur automatique de portée, et la distinction entre contexte et théorie n’impose pas à elle seule de règle d’inégalité des ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|http://www.w3.org/2004/02/skos/core#example"
+msgid "The matrix context in reference-ast-act.ttl is a math:MathematicalContext with math:definedInTheory pointing to linear algebra. Its label alone does not assign meanings to every symbol in an unrelated expression."
+msgstr "Le contexte matriciel de reference-ast-act.ttl est un math:MathematicalContext dont math:definedInTheory pointe vers l’algèbre linéaire. Son seul libellé n’attribue pas de sens à chaque symbole d’une expression sans rapport."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for a local mathematical interpretation or set of assumptions that must remain identifiable within its broader theory."
+msgstr "Utiliser pour une interprétation mathématique locale ou un ensemble d’hypothèses qui doit rester identifiable au sein de sa théorie plus large."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reducing a context to a display string, inferring symbol resolution from matching labels, or treating contextual assumptions as unconditional facts."
+msgstr "Ne pas réduire un contexte à une chaîne d’affichage, déduire la résolution de symboles de libellés concordants ou traiter des hypothèses contextuelles comme faits inconditionnels."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalContext|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the local context math:MathematicalContext and retain its math:definedInTheory relation. Describe the relevant assumptions with the existing mathematical vocabulary and preserve explicit symbol resolution; do not invent a context-selection predicate or implicit reasoning behavior."
+msgstr "Typer le contexte local math:MathematicalContext et conserver sa relation math:definedInTheory. Décrire les hypothèses pertinentes avec le vocabulaire mathématique existant et préserver la résolution explicite des symboles ; ne pas inventer de prédicat de sélection de contexte ou de raisonnement implicite."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Definition"
+msgstr "Définition mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A first-class, theory-scoped definition of a mathematical concept. It may carry an informal gloss and formalize a structured expression; an evolving definition is versioned rather than overwritten, and it remains distinct from the concept it defines and from a math:DefinitionStatement role projection."
+msgstr "Une définition de concept mathématique identifiée comme ressource et située dans une théorie. Elle peut porter une glose informelle et formaliser une expression structurée ; une définition qui évolue est versionnée plutôt qu’écrasée et garde un rôle distinct du concept défini et d’une projection de rôle math:DefinitionStatement."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A definition is an identified resource carrying a theory-scoped meaning, not just replacement text on a concept. Its resource role, the concept it describes and a definition-statement role must remain explicit without inferring global class disjointness."
+msgstr "Une définition est une ressource identifiée portant un sens délimité par une théorie, et non un simple texte de remplacement sur un concept. Son rôle de ressource, le concept décrit et le rôle d’énoncé de définition doivent rester explicites sans en déduire de disjonction globale de classes."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The matrix-product definition carries an informal explanation and math:formalizesExpression to a structured product AST. Its math:definedInTheory identifies the relevant linear-algebra theory."
+msgstr "La définition du produit matriciel porte une explication informelle et math:formalizesExpression vers un AST structuré de produit. Son math:definedInTheory identifie la théorie d’algèbre linéaire pertinente."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical definition and its revisions must be identifiable and cited independently of the concept’s name or rendering."
+msgstr "Utiliser lorsqu’une définition mathématique et ses révisions doivent être identifiables et citées indépendamment du nom ou du rendu du concept."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid overwriting the meaning of a definition already cited by another resource, treating a gloss as a checked formalization, or deriving a proved theorem role from this class."
+msgstr "Ne pas écraser le sens d’une définition déjà citée par une autre ressource, traiter une glose comme formalisation vérifiée ou déduire un rôle de théorème prouvé de cette classe."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the definition, retain math:definedInTheory and use math:informalGloss or math:formalizesExpression for their respective content. Let dependent resources name it through math:usesDefinition, preserving revisions through existing versioning rather than inventing new version fields."
+msgstr "Identifier la définition, conserver math:definedInTheory et employer math:informalGloss ou math:formalizesExpression pour leurs contenus respectifs. Faire désigner la définition par les ressources dépendantes au moyen de math:usesDefinition, en préservant les révisions par les mécanismes de version existants plutôt qu’inventer de nouveaux champs."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Mathematical Statement"
+msgstr "Énoncé mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The canonical bearer of statement-hood: a mathematical assertion that states a conclusion (math:hasConclusion) under premises (math:hasPremise), depends on axioms (math:dependsOnAxiom) under a named, versioned theory (math:roleInTheory), and is proved by a math:Proof (via math:provesStatement) or backed by a declared external warrant (math:externalWarrant). A subclass of math:MathematicalObject. Its epistemic status is NOT a truth bit read off its type: theorem-hood, lemma-hood, and the rest are carried as a math:statementRole scoped to a theory, never as an unconditional global fact — so a consumer can never read a bare type as 'proved, everywhere, unconditionally'. The flat classes math:Theorem, math:Lemma, math:Corollary, math:Conjecture, and math:DefinitionStatement are convenience projections of this class + its role, retained for consumers wanting a flat type, never the canonical truth bearer."
+msgstr "Le porteur canonique du statut d’énoncé : une assertion mathématique qui énonce une conclusion (math:hasConclusion) sous des prémisses (math:hasPremise), dépend d’axiomes (math:dependsOnAxiom) dans une théorie nommée et versionnée (math:roleInTheory), et est prouvée par un math:Proof (via math:provesStatement) ou appuyée par une garantie externe déclarée (math:externalWarrant). Une sous-classe de math:MathematicalObject. Son statut épistémique n’est PAS un indicateur de vérité lu dans son type : les statuts de théorème, de lemme et autres sont portés comme math:statementRole délimité par une théorie, jamais comme fait global inconditionnel ; un consommateur ne peut donc pas lire un simple type comme « prouvé, partout, inconditionnellement ». Les classes plates math:Theorem, math:Lemma, math:Corollary, math:Conjecture et math:DefinitionStatement sont des projections de commodité de cette classe et de son rôle, conservées pour les consommateurs souhaitant un type plat, jamais le porteur canonique de vérité."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A statement identifies an assertion, while its theory-scoped role and supporting proof or warrant are separate claims. A bare class or descriptive formalization link does not establish theorem status, truth or successful verification."
+msgstr "Un énoncé identifie une assertion, tandis que son rôle délimité par une théorie et sa preuve ou garantie sont des affirmations séparées. Un simple type ou lien descriptif de formalisation n’établit ni statut de théorème, ni vérité, ni vérification réussie."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|http://www.w3.org/2004/02/skos/core#example"
+msgid "The proof importer emits math:statementRole and math:roleInTheory on an identified statement, then keeps its conclusion and proof-step records explicit. A conjecture premise is not made a foundational axiom by being imported."
+msgstr "L’importateur de preuves émet math:statementRole et math:roleInTheory sur un énoncé identifié, puis garde explicites sa conclusion et ses enregistrements d’étapes de preuve. Une prémisse conjecturale ne devient pas un axiome fondateur du seul fait de son importation."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical assertion needs an identified conclusion, dependencies and an explicit theory-relative epistemic role."
+msgstr "Utiliser lorsqu’une assertion mathématique nécessite une conclusion identifiée, des dépendances et un rôle épistémique explicite relatif à une théorie."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid reading a theorem-like type as unconditional truth, dropping premise or theory context, or treating a proof-term AST as a successful proof merely because it exists."
+msgstr "Ne pas lire un type évoquant un théorème comme vérité inconditionnelle, omettre le contexte de prémisses ou de théorie, ni traiter un AST de terme de preuve comme preuve réussie du seul fait de son existence."
+
+msgctxt "https://blackcatinformatics.ca/math/MathematicalStatement|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep math:hasConclusion and dependencies on the statement, and state math:statementRole with math:roleInTheory explicitly. Link an in-graph math:Proof to the statement through math:provesStatement or retain the statement’s declared math:externalWarrant; preserve what that evidence actually establishes."
+msgstr "Garder math:hasConclusion et les dépendances sur l’énoncé, puis déclarer explicitement math:statementRole avec math:roleInTheory. Relier un math:Proof du graphe à l’énoncé par math:provesStatement ou conserver le math:externalWarrant déclaré de l’énoncé ; préserver ce que les éléments probants établissent réellement."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has notation"
+msgstr "a pour notation"
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical concept or symbol to a math:MathematicalNotation convention under which it may be presented. This records the notation system, not a concrete rendered form; expression renderings remain on the lang: rendering seam."
+msgstr "Relie un concept ou symbole mathématique à une convention math:MathematicalNotation selon laquelle il peut être présenté. Cela consigne le système de notation, et non une forme rendue concrète ; les rendus d’expression restent sur l’articulation de rendu lang:."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is from a concept or symbol to a notation convention. The edge does not identify a concrete rendered form, assign a unique glyph or declare that all expressions under the convention have equal meaning."
+msgstr "La direction va d’un concept ou symbole vers une convention de notation. Le lien n’identifie pas une forme rendue concrète, n’attribue pas de glyphe unique et ne déclare pas que toutes les expressions sous cette convention ont le même sens."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|http://www.w3.org/2004/02/skos/core#example"
+msgid "The matrix-multiplication concept and its local symbol can both use math:hasNotation to reference the same infix convention. That shared convention establishes neither resource equality nor one particular rendered formula."
+msgstr "Le concept de multiplication matricielle et son symbole local peuvent tous deux employer math:hasNotation pour référencer la même convention infixe. Cette convention partagée n’établit ni égalité de ressources ni formule rendue particulière."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain which presentation convention is associated with an identified mathematical concept or symbol."
+msgstr "Utiliser pour conserver la convention de présentation associée à un concept ou symbole mathématique identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a raw MathML string or glyph as object, replacing a rendering relation with this edge, or assuming one notation is a universal preferred form."
+msgstr "Éviter une chaîne MathML brute ou un glyphe comme objet, le remplacement d’une relation de rendu par ce lien ou l’hypothèse qu’une notation est une forme préférée universelle."
+
+msgctxt "https://blackcatinformatics.ca/math/hasNotation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:hasNotation to the applicable math:MathematicalNotation resource and preserve any theory scope on that convention. Keep the expression’s concrete rendering and its preservation claims in the existing rendering layer rather than on this association alone."
+msgstr "Faire pointer math:hasNotation vers la ressource math:MathematicalNotation applicable et préserver toute portée de théorie sur cette convention. Garder le rendu concret de l’expression et ses affirmations de préservation dans la couche de rendu existante plutôt que sur cette seule association."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "defined in theory"
+msgstr "défini dans la théorie"
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource to the math:MathematicalTheory that scopes its meaning. Existing uses include concepts, symbols, contexts, definitions, statements, math:MathematicalNotation and math:ExpressionType; these are examples rather than an exhaustive domain. A theory-relative use does not assert unconditional global identity or truth."
+msgstr "Relie une ressource mathématique au math:MathematicalTheory qui délimite son sens. Les usages existants comprennent les concepts, symboles, contextes, définitions, énoncés, math:MathematicalNotation et math:ExpressionType ; ce sont des exemples plutôt qu’un domaine exhaustif. Un usage relatif à une théorie n’affirme ni identité globale ni vérité inconditionnelle."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation scopes a resource’s mathematical meaning to an identified theory. Existing notation and expression-type carriers are valid examples, and the descriptive list of carriers does not impose a global domain class or cardinality restriction."
+msgstr "Cette relation situe le sens mathématique d’une ressource dans une théorie identifiée. Les porteurs existants de notation et de type d’expression sont des exemples valides, et la liste descriptive des porteurs n’impose ni classe globale de domaine ni restriction de cardinalité."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|http://www.w3.org/2004/02/skos/core#example"
+msgid "In reference-ast-act.ttl, both the infix notation convention and the matrix expression-type resource point through math:definedInTheory to linear algebra, alongside the concept and definition."
+msgstr "Dans reference-ast-act.ttl, la convention de notation infixe et la ressource de type d’expression matricielle pointent toutes deux par math:definedInTheory vers l’algèbre linéaire, aux côtés du concept et de la définition."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical resource’s interpretation depends on an explicitly identified theory rather than an assumed universal setting."
+msgstr "Utiliser lorsque l’interprétation d’une ressource mathématique dépend d’une théorie explicitement identifiée plutôt que d’un cadre universel présumé."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using a theory-name string as object, treating theory membership as proof of truth, or narrowing the property to only concepts and symbols despite existing additional carriers."
+msgstr "Éviter une chaîne de nom de théorie comme objet, le traitement de l’appartenance à une théorie comme preuve de vérité ou la limitation de la propriété aux seuls concepts et symboles malgré les porteurs supplémentaires existants."
+
+msgctxt "https://blackcatinformatics.ca/math/definedInTheory|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the relevant resource to its math:MathematicalTheory and retain the intended theory identity or revision. Keep statement-role scope and proof evidence explicit through their own properties; this link does not supply either automatically."
+msgstr "Relier la ressource concernée à son math:MathematicalTheory et conserver l’identité ou la révision de théorie voulue. Garder explicites la portée de rôle d’énoncé et les éléments de preuve par leurs propres propriétés ; ce lien ne fournit automatiquement ni l’une ni les autres."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "uses definition"
+msgstr "utilise la définition"
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical concept, context, expression, or statement to the math:MathematicalDefinition it relies on. The edge makes definitional dependence explicit and version-addressable rather than burying it in prose."
+msgstr "Relie un concept, contexte, expression ou énoncé mathématique au math:MathematicalDefinition dont il dépend. Le lien rend la dépendance définitionnelle explicite et adressable par version plutôt que l’enfouir dans la prose."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge records dependence on an identified definition resource. It does not copy that definition’s text, imply equality with the definition or certify that a consumer has checked or applied it."
+msgstr "Le lien consigne une dépendance envers une ressource définition identifiée. Il ne copie pas son texte, n’implique pas d’égalité avec la définition et ne certifie pas qu’un consommateur l’a vérifiée ou appliquée."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|http://www.w3.org/2004/02/skos/core#example"
+msgid "The matrix-multiplication concept uses math:usesDefinition to reference its identified product definition, while that definition separately supplies its gloss and structured AST."
+msgstr "Le concept de multiplication matricielle utilise math:usesDefinition pour référencer sa définition identifiée de produit, tandis que cette définition fournit séparément sa glose et son AST structuré."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a resource’s mathematical description must retain which definition, including an identified revision, it relies on."
+msgstr "Utiliser lorsque la description mathématique d’une ressource doit conserver la définition, y compris une révision identifiée, dont elle dépend."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a pasted definition string as object, silently redirecting historical references to changed text, or treating definitional dependence as a proof or evaluation result."
+msgstr "Éviter un texte de définition collé comme objet, la redirection implicite de références historiques vers un texte changé ou le traitement de la dépendance définitionnelle comme preuve ou résultat d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/usesDefinition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:usesDefinition from the dependent resource to the intended math:MathematicalDefinition. Preserve that resource’s identity and theory scope, keeping revisions and their dependencies explicit with existing vocabulary rather than overwriting the referenced meaning."
+msgstr "Faire pointer math:usesDefinition de la ressource dépendante vers le math:MathematicalDefinition voulu. Préserver l’identité et la portée de théorie de cette ressource, en gardant explicites les révisions et leurs dépendances par le vocabulaire existant plutôt qu’écraser le sens référencé."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "formalizes expression"
+msgstr "formalise l’expression"
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource to structured math:MathematicalExpression syntax used to formalize it. Existing carriers include concepts and definitions, math:ProofStep records, and math:Axiom or generic math:MathematicalObject premises. A proof step may target its proof-term AST, while a premise targets its asserted conclusion AST; these uses are not an exhaustive domain or a proof-success claim. The target is an AST, never an opaque display string; rendering remains separate."
+msgstr "Relie une ressource mathématique à une syntaxe math:MathematicalExpression structurée utilisée pour la formaliser. Les porteurs existants comprennent les concepts et définitions, les enregistrements math:ProofStep et les prémisses math:Axiom ou math:MathematicalObject génériques. Une étape de preuve peut cibler l’AST de son terme de preuve, tandis qu’une prémisse cible l’AST de sa conclusion affirmée ; ces usages ne constituent ni un domaine exhaustif ni une affirmation de réussite de preuve. La cible est un AST, jamais une chaîne d’affichage opaque ; le rendu reste séparé."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This relation retains structured syntax for the source resource’s role. Existing proof steps can target proof-term ASTs, while imported premises target conclusion ASTs; the relation itself establishes neither truth, proof success nor an exhaustive subject class."
+msgstr "Cette relation conserve une syntaxe structurée pour le rôle de la ressource source. Les étapes de preuve existantes peuvent cibler des AST de termes de preuve, tandis que les prémisses importées ciblent des AST de conclusions ; la relation elle-même n’établit ni vérité, ni réussite de preuve, ni classe exhaustive de sujets."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "The proof importer emits math:formalizesExpression from a math:ProofStep to its proof-term AST, and from an axiom or generic premise to its conclusion AST. The step’s math:hasConclusion link has a separate role."
+msgstr "L’importateur de preuves émet math:formalizesExpression d’un math:ProofStep vers l’AST de son terme de preuve, et d’un axiome ou d’une prémisse générique vers l’AST de sa conclusion. Le lien math:hasConclusion de l’étape a un rôle séparé."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a mathematical resource must retain the actual structured expression that formalizes its concept, definition or proof-related role."
+msgstr "Utiliser lorsqu’une ressource mathématique doit conserver l’expression structurée réelle qui formalise son concept, sa définition ou son rôle relatif à une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a display string as target, assuming every proof-related target is a conclusion rather than a proof term, or claiming a structural matrix AST is executable in the exact-decimal scalar profile."
+msgstr "Éviter une chaîne d’affichage comme cible, l’hypothèse que toute cible relative à une preuve est une conclusion plutôt qu’un terme de preuve ou l’affirmation qu’un AST matriciel structurel est exécutable dans le profil scalaire décimal exact."
+
+msgctxt "https://blackcatinformatics.ca/math/formalizesExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the source carrier to the structured math:MathematicalExpression serving its actual role, distinguishing proof-term and conclusion uses. Preserve rendering, denotation, logic lowering and proof evidence through their existing vocabulary; none is supplied merely by this formalization edge."
+msgstr "Relier le porteur source au math:MathematicalExpression structuré correspondant à son rôle réel, en distinguant les usages de terme de preuve et de conclusion. Préserver le rendu, la dénotation, l’abaissement logique et les éléments de preuve par leur vocabulaire existant ; aucun n’est fourni par le seul lien de formalisation."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "informal gloss"
+msgstr "glose informelle"
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A human-readable informal explanation of a mathematical concept or definition. It aids interpretation but is never the concept's identity and never substitutes for a structured expression when one is intended to be checked or projected."
+msgstr "Une explication informelle lisible par une personne d’un concept ou d’une définition mathématique. Elle aide à l’interprétation, mais n’est jamais l’identité du concept et ne remplace jamais une expression structurée lorsqu’une vérification ou projection est prévue."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A gloss is explanatory prose attached to a mathematical resource. It supports human interpretation without becoming the resource’s identity, a formal AST, an executable rule or a proof of the explanation’s claims."
+msgstr "Une glose est une prose explicative attachée à une ressource mathématique. Elle aide à l’interprétation humaine sans devenir l’identité de la ressource, un AST formel, une règle exécutable ou une preuve des affirmations de l’explication."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|http://www.w3.org/2004/02/skos/core#example"
+msgid "The matrix-product definition says to multiply compatible matrices in the declared order through math:informalGloss, while its separate math:formalizesExpression link retains the ordered AST."
+msgstr "La définition du produit matriciel explique par math:informalGloss qu’il faut multiplier des matrices compatibles dans l’ordre déclaré, tandis que son lien math:formalizesExpression séparé conserve l’AST ordonné."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to add a human-readable explanation that helps interpret an identified mathematical concept or definition."
+msgstr "Utiliser pour ajouter une explication lisible par une personne qui aide à interpréter un concept ou une définition mathématique identifié."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using prose as a substitute for structured syntax when checking or projection is intended, parsing the gloss as an undeclared fallback, or deriving truth from explanatory wording."
+msgstr "Ne pas utiliser la prose à la place d’une syntaxe structurée lorsqu’une vérification ou projection est prévue, analyser la glose comme solution de repli non déclarée ou déduire la vérité d’une formulation explicative."
+
+msgctxt "https://blackcatinformatics.ca/math/informalGloss|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Attach the explanatory literal with math:informalGloss and keep the concept or definition identity explicit. When formal content is needed, author its structured AST separately through math:formalizesExpression and retain the relevant theory rather than treating the gloss as machine semantics."
+msgstr "Attacher le littéral explicatif par math:informalGloss et garder explicite l’identité du concept ou de la définition. Lorsqu’un contenu formel est nécessaire, rédiger séparément son AST structuré par math:formalizesExpression et conserver la théorie pertinente plutôt que traiter la glose comme sémantique machine."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Statement Role"
+msgstr "Rôle d’énoncé"
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The closed value class of the epistemic ROLE a math:MathematicalStatement holds under a theory — theorem-hood as a role, not a truth bit. Its six named individuals are math:roleTheorem (a proved conclusion, held under a theory with a proof or external warrant), math:roleLemma (an auxiliary result proved en route to a larger theorem), math:roleCorollary (a result following readily from a theorem), math:roleConjecture (a candidate held under active test, not yet proved or refuted), math:roleAxiom (a stated law taken as a foundation of the theory rather than derived within it), and math:roleDefinition (a statement introducing a term or notion, true by stipulation). A statement names exactly one through math:statementRole and records its named, versioned theory through math:roleInTheory; the status is theory-relative, so the same statement may carry different roles under different theories. The set is closed; a misspelt role names no declared value and is rejected rather than silently accepted."
+msgstr "La classe fermée de valeurs du RÔLE épistémique qu’un math:MathematicalStatement tient dans une théorie — le statut de théorème comme rôle, et non comme indicateur de vérité. Ses six individus nommés sont math:roleTheorem (une conclusion prouvée, tenue dans une théorie avec une preuve ou garantie externe), math:roleLemma (un résultat auxiliaire prouvé en chemin vers un théorème plus vaste), math:roleCorollary (un résultat découlant aisément d’un théorème), math:roleConjecture (un candidat soumis à examen actif, pas encore prouvé ni réfuté), math:roleAxiom (une loi déclarée prise comme fondement de la théorie plutôt que dérivée en son sein) et math:roleDefinition (un énoncé introduisant un terme ou une notion, vrai par stipulation). Un énoncé en désigne exactement un par math:statementRole et consigne sa théorie nommée et versionnée par math:roleInTheory ; le statut est relatif à une théorie, le même énoncé pouvant donc tenir des rôles différents dans des théories différentes. L’ensemble est fermé ; un rôle mal orthographié ne désigne aucune valeur déclarée et est rejeté plutôt qu’accepté implicitement."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class contains the six declared epistemic role values. A selected role describes a statement’s status under its theory; the shared role value is not a per-statement context record or a proof-success flag."
+msgstr "Cette classe contient les six valeurs de rôle épistémique déclarées. Un rôle choisi décrit le statut d’un énoncé dans sa théorie ; la valeur partagée de rôle n’est ni un enregistrement de contexte propre à l’énoncé ni un indicateur de réussite de preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "The importer can record math:statementRole math:roleConjecture and math:roleInTheory on a statement. The shared math:roleConjecture value does not acquire that individual statement’s theory scope."
+msgstr "L’importateur peut consigner math:statementRole math:roleConjecture et math:roleInTheory sur un énoncé. La valeur partagée math:roleConjecture n’acquiert pas la portée de théorie de cet énoncé individuel."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use as the value category for the explicitly recorded epistemic role of a mathematical statement."
+msgstr "Utiliser comme catégorie de valeurs du rôle épistémique explicitement consigné d’un énoncé mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inventing an undeclared role value, putting a statement’s theory on the shared role individual, or treating the label theorem as sufficient evidence of a proved result."
+msgstr "Ne pas inventer de valeur de rôle non déclarée, placer la théorie d’un énoncé sur l’individu partagé de rôle ou traiter le libellé théorème comme preuve suffisante d’un résultat prouvé."
+
+msgctxt "https://blackcatinformatics.ca/math/StatementRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose an existing math:StatementRole individual through math:statementRole on the statement, and retain math:roleInTheory on that same statement. Keep premises, proof or warrant evidence explicit rather than adding per-statement context to the shared value."
+msgstr "Choisir un individu math:StatementRole existant par math:statementRole sur l’énoncé et conserver math:roleInTheory sur ce même énoncé. Garder explicites les prémisses et les preuves ou garanties plutôt qu’ajouter un contexte propre à l’énoncé sur la valeur partagée."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "statement role"
+msgstr "Rôle d’énoncé"
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:MathematicalStatement to the math:StatementRole it holds — the canonical carrier of theorem-hood, lemma-hood, conjecture-hood, and the rest AS A ROLE rather than a bare class assertion. Domain math:MathematicalStatement, range math:StatementRole (a value individual, stated in prose). The statement records its named, versioned theory through math:roleInTheory, so the status is theory- and standpoint-relative: 'this statement is a theorem in Euclidean geometry v2' is a scoped claim, not a global truth bit. The flat math:Theorem/math:Lemma/… projections are generated from this role, never the other way round."
+msgstr "Relie un math:MathematicalStatement au math:StatementRole qu’il tient — le porteur canonique des statuts de théorème, lemme, conjecture et autres COMME RÔLE plutôt que comme simple assertion de classe. Domaine math:MathematicalStatement, portée math:StatementRole (un individu valeur, déclarés en prose). L’énoncé consigne sa théorie nommée et versionnée par math:roleInTheory ; le statut est ainsi relatif à la théorie et au point de vue : « cet énoncé est un théorème en géométrie euclidienne v2 » est une affirmation située, et non un indicateur global de vérité. Les projections plates math:Theorem/math:Lemma/… sont générées depuis ce rôle, jamais l’inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from a mathematical statement to one declared role value. Its theory context is recorded separately by math:roleInTheory on the statement, not by moving context onto the shared math:StatementRole individual."
+msgstr "Le lien va d’un énoncé mathématique vers une valeur de rôle déclarée. Son contexte théorique est consigné séparément par math:roleInTheory sur l’énoncé, et non en déplaçant le contexte sur l’individu partagé math:StatementRole."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|http://www.w3.org/2004/02/skos/core#example"
+msgid "A statement carrying math:statementRole math:roleTheorem also names its theory with math:roleInTheory and needs the appropriate proof or external warrant. The role edge alone supplies none of that evidence."
+msgstr "Un énoncé portant math:statementRole math:roleTheorem désigne aussi sa théorie par math:roleInTheory et nécessite la preuve ou garantie externe appropriée. Le seul lien de rôle ne fournit aucun de ces éléments probants."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the identified epistemic role under which a mathematical assertion is held in its declared theory."
+msgstr "Utiliser pour déclarer le rôle épistémique identifié sous lequel une assertion mathématique est tenue dans sa théorie déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a role-name string or the class math:StatementRole as object, inferring truth from a convenience type, or assigning theory scope to the shared role value instead of the statement."
+msgstr "Éviter une chaîne de nom de rôle ou la classe math:StatementRole comme objet, la déduction de vérité à partir d’un type de commodité ou l’attribution de la portée de théorie à la valeur partagée plutôt qu’à l’énoncé."
+
+msgctxt "https://blackcatinformatics.ca/math/statementRole|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:statementRole from the math:MathematicalStatement to its declared role individual, preserve math:roleInTheory on the statement and retain the actual supporting dependencies and evidence. No automatic truth, proof discharge or flat-type conversion is established by this descriptive link alone."
+msgstr "Faire pointer math:statementRole du math:MathematicalStatement vers son individu de rôle déclaré, préserver math:roleInTheory sur l’énoncé et conserver les dépendances et éléments probants réels. Ce seul lien descriptif n’établit ni vérité automatique, ni décharge de preuve, ni conversion de type plat."
