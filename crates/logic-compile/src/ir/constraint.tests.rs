@@ -88,6 +88,27 @@ ex:c1_atomB a logic:Formula ;
     // The key is stable across a re-parse of the identical source.
     let again = constraints_of(&guarded("ex:c1", body, "ex:c1_body"));
     assert_eq!(cs[0].content_key(), again[0].content_key());
+    let source = guarded("ex:c1", body, "ex:c1_body");
+    let absent = constraints_of(&source.replace("  logic:severity \"Violation\" ;\n", ""));
+    assert_eq!(absent, cs, "absent severity keeps the Violation default");
+    for code in ["Violation", "Warning", "Info"] {
+        let string_source = source.replace("\"Violation\"", &format!("\"{code}\""));
+        let string = constraints_of(&string_source);
+        let token = constraints_of(
+            &string_source.replace(&format!("\"{code}\""), &format!("\"{code}\"^^xsd:token")),
+        );
+        assert_eq!(string, token);
+        assert_eq!(string[0].content_key(), token[0].content_key());
+        assert!(
+            crate::projections::shapes::project_procedural_constraint(&token[0])
+                .contains(&format!("sh:severity sh:{code}"))
+        );
+    }
+    let repeated = constraints_of(&source.replace(
+        "logic:severity \"Violation\" ;",
+        "logic:severity \"Violation\" ; logic:severity \"Violation\" ;",
+    ));
+    assert_eq!(repeated, cs);
 }
 
 #[test]

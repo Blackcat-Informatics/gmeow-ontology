@@ -9475,8 +9475,8 @@ msgid "A HISTORY-LEVEL finding: a pattern of conflicting operations, read-from e
 msgstr "一个历史级（HISTORY-LEVEL）发现项：事务历史中冲突操作、读自边与先于弧的一种模式，在已声明策略下不容许任何等价的串行执行。丢失更新、写偏斜以及读/写异常都是此类发现项。它与矛盾见证（logic:contradictionWitness，它在单一状态内断言 ⊥）相区别，且不得（NOT）被建模为矛盾见证：一个不可串行化调度之后的最终状态在逻辑上可能完全一致，而该调度仍无任何等价的串行执行，故一个串行化异常是历史的属性，绝非一个状态内部的逻辑矛盾。它作为一个发现项浮现，并描述其依赖环或被违反的隔离级别；一个不可串行化的调度绝不被无声地线性化。"
 
 msgctxt "https://blackcatinformatics.ca/logic/severity|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."
-msgstr "一个 logic:Constraint 违规所报告的严重度，为 SHACL 局部名 'Violation'、'Warning' 或 'Info' 之一。缺席即意味 SHACL 默认的 'Violation'。承载于规范约束上，从而所投影的 sh:SPARQLConstraint 复现所撰写的 sh:severity，而非重新派生一个。"
+msgid "The severity a logic:Constraint violation reports at, as one of the SHACL local names 'Violation', 'Warning', or 'Info'. Absent means the SHACL default 'Violation'. A supplied severity must be exactly one untagged xsd:string or xsd:token literal whose code matches exactly, including case and whitespace. Carried on the canonical constraint so the projected sh:SPARQLConstraint reproduces the authored sh:severity rather than re-deriving one."
+msgstr "一个 logic:Constraint 违规所报告的严重度，为 SHACL 局部名 'Violation'、'Warning' 或 'Info' 之一。缺席即意味 SHACL 默认的 'Violation'。提供的严重度必须恰好是一个不带语言标签或方向的 xsd:string 或 xsd:token 字面量，其代码须完全匹配，包括大小写和空白。承载于规范约束上，从而所投影的 sh:SPARQLConstraint 复现所撰写的 sh:severity，而非重新派生一个。"
 
 msgctxt "https://blackcatinformatics.ca/logic/shapeCardinality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates a logic:ResultShape to the logic:RowCardinality it declares — the row-set contract. Single-valued. Domain logic:ResultShape, range logic:RowCardinality (stated in prose)."

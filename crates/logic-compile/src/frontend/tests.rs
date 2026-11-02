@@ -1471,6 +1471,43 @@ fn independent_constraint_defect_survives_formula_deduplication() {
             && d.subject.as_deref() == Some("https://example.org/test/c")
             && d.message.contains("NotASeverity")
     }));
+    for severity in [
+        "ex:Violation",
+        "_:Violation",
+        "\"Violation\"^^xsd:normalizedString",
+        "\"Violation\"@en",
+        "\"Violation\"@en--ltr",
+        "\" Violation\"^^xsd:token",
+        "\"Violation \"",
+        "\"violation\"",
+        "\"Violation\", \"Info\"",
+        "\"Violation\", \"Violation\"^^xsd:token",
+        "\"Violation\"^^xsd:token, \"Violation\"",
+    ] {
+        let (program, diagnostics) = parse(&format!(
+            "ex:c a logic:Constraint ; logic:integrity ex:integrity ;
+                 logic:severity {severity} .
+             ex:integrity a logic:Formula ; logic:not ex:badChild .
+             ex:badChild a logic:Formula ."
+        ));
+        assert!(program.constraints.is_empty(), "{severity}");
+        assert_eq!(
+            diagnostics
+                .iter()
+                .filter(|d| d.code == "MALFORMED_FORMULA")
+                .count(),
+            1,
+            "{severity}: {diagnostics:?}"
+        );
+        assert!(
+            diagnostics.iter().any(|d| {
+                d.code == "MALFORMED_CONSTRAINT"
+                    && d.subject.as_deref() == Some("https://example.org/test/c")
+                    && d.message.contains("logic:severity")
+            }),
+            "{severity}: {diagnostics:?}"
+        );
+    }
 }
 
 #[test]
@@ -1715,6 +1752,39 @@ fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
         record.properties[0].path,
         "https://blackcatinformatics.ca/gmeow/item"
     );
+    assert_eq!(record.properties[0].severity, None);
+
+    let restriction = "g:Record a logic:Class ; logic:subClassOf
+        [ a logic:Restriction ; logic:onProperty g:item ;
+          logic:allValuesFrom g:Item ; logic:severity \"Warning\" ] .";
+    let string = derive_validation_shapes(shape_dataset(restriction).as_ref()).unwrap();
+    let token = derive_validation_shapes(
+        shape_dataset(&restriction.replace("\"Warning\"", "\"Warning\"^^xsd:token")).as_ref(),
+    )
+    .unwrap();
+    assert_eq!(string, token);
+    let record = token
+        .iter()
+        .find(|shape| shape.iri.ends_with("/Record-shape"))
+        .unwrap();
+    assert_eq!(record.properties[0].severity, Some(ShaclSeverity::Warning));
+    assert!(
+        crate::projections::shapes::project_validation_shape_shacl(record)
+            .contains("sh:severity sh:Warning")
+    );
+    for severity in [
+        "\"Warning\"@en--ltr",
+        "\"Warning\", \"Info\"",
+        "\"Warning\", \"Warning\"^^xsd:token",
+    ] {
+        let malformed = restriction.replace("\"Warning\"", severity);
+        let error = derive_validation_shapes(shape_dataset(&malformed).as_ref())
+            .expect_err("malformed restriction severity must refuse derivation");
+        assert!(
+            error.message().contains("logic:severity"),
+            "{severity}: {error}"
+        );
+    }
 }
 
 #[test]

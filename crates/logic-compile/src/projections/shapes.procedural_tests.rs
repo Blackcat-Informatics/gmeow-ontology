@@ -645,13 +645,12 @@ fn string_pattern_sugar_projects_regex_and_prefix_filters() {
 
 #[test]
 fn p1_choice_group_sugar_expands_and_projects() {
-    let b = project_sugar(
-        "ex:c1 a logic:ChoiceGroupConstraint ;\n\
+    let source = "ex:c1 a logic:ChoiceGroupConstraint ;\n\
              logic:onClass ex:Widget ;\n\
              logic:choicePredicate ex:hasA , ex:hasB ;\n\
              logic:choiceMode \"exactly-one\" ;\n\
-             logic:formalizes ex:Widget .",
-    );
+             logic:formalizes ex:Widget .";
+    let b = project_sugar(source);
     assert!(b.contains("sh:targetClass <https://ex/Widget>"), "{b}");
     assert!(b.contains("logic:formalizes <https://ex/Widget>"), "{b}");
     // exactly-one → a UNION of per-predicate branches under FILTER NOT EXISTS.
@@ -660,6 +659,41 @@ fn p1_choice_group_sugar_expands_and_projects() {
         b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
         "{b}"
     );
+    for code in ["Violation", "Warning", "Info"] {
+        let string = source.replace(
+            "logic:formalizes",
+            &format!("logic:severity \"{code}\" ; logic:formalizes"),
+        );
+        let token = string.replace(&format!("\"{code}\""), &format!("\"{code}\"^^xsd:token"));
+        let projected = project_sugar(&token);
+        assert_eq!(projected, project_sugar(&string));
+        assert!(projected.contains(&format!("sh:severity sh:{code}")));
+        if code == "Violation" {
+            assert_eq!(projected, b, "absence keeps the default severity");
+        }
+    }
+    for severity in [
+        "\"Info\"@en",
+        "\"Info\", \"Violation\"",
+        "\"Info\", \"Info\"^^xsd:token",
+    ] {
+        let malformed = source.replace(
+            "logic:formalizes",
+            &format!("logic:severity {severity} ; logic:formalizes"),
+        );
+        let (program, diagnostics) =
+            crate::frontend::parse_logic_str(&format!("{SUGAR_PREFIXES}{malformed}"), None)
+                .unwrap();
+        assert!(program.constraints.is_empty(), "{severity}");
+        assert!(
+            diagnostics.iter().any(|diagnostic| {
+                diagnostic.code == "MALFORMED_CONSTRAINT"
+                    && diagnostic.subject.as_deref() == Some("https://ex/c1")
+                    && diagnostic.message.contains("logic:severity")
+            }),
+            "{severity}: {diagnostics:?}"
+        );
+    }
 }
 
 #[test]
