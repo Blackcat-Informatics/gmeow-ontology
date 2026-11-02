@@ -264,46 +264,77 @@ ex:subject ex:property ex:object .
 }
 
 #[test]
-/// Closed-world settings remain facts about their configuration, not global NAF.
+/// Closure names share semantic keys while original entry identities and RDF key kinds survive.
 fn closure_entries_retain_blank_identity_keys_and_native_configuration() {
-    let (admission, projection) = project(&format!(
-        r#"{PREFIXES}
+    for (source_key, semantic_key, datatype) in [
+        ("<https://example.org/p>", "https://example.org/p", None),
+        (
+            "\"https://example.org/p\"",
+            "https://example.org/p",
+            Some("string"),
+        ),
+        (
+            "\"https://example.org/p\"^^xsd:token",
+            "https://example.org/p",
+            Some("token"),
+        ),
+        ("\"ex:pred\"", "ex:pred", Some("string")),
+        ("\" p \"", " p ", Some("string")),
+        ("\"\"", "", Some("string")),
+        ("\"\"^^xsd:token", "", Some("token")),
+    ] {
+        let (admission, projection) = project(&format!(
+            r#"{PREFIXES}
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 ex:contract a logic:ReasoningContract ; logic:closureEntry [
-    a logic:ClosureEntry ; logic:closureKey "https://example.org/p" ;
+    a logic:ClosureEntry ; logic:closureKey {source_key} ;
     logic:closureValue logic:ClosedWorldClosure ] .
 ex:subject ex:property ex:object .
 "#
-    ));
-    assert_eq!(
-        projection.status,
-        FofProjectionStatus::Complete,
-        "{:?}",
-        projection.blockers
-    );
-    let declarations = declarations(&admission);
-    assert_eq!(declarations.len(), 1);
-    let declaration = declarations[0];
-    assert_eq!(
-        declaration
-            .configuration
-            .closure_entries
-            .get("https://example.org/p")
-            .map(String::as_str),
-        Some("ClosedWorldClosure")
-    );
-    let link = declaration
-        .facts
-        .iter()
-        .find(|fact| fact.predicate.ends_with("/closureEntry"))
-        .unwrap();
-    assert!(matches!(&link.object, crate::ir::AtomicTerm::Blank(_)));
-    let key = declaration
-        .facts
-        .iter()
-        .find(|fact| fact.predicate.ends_with("/closureKey"))
-        .unwrap();
-    assert_eq!(key.subject, link.object);
-    assert!(!projection.problem.unwrap().contains("ClosedWorldClosure"));
+        ));
+        assert_eq!(
+            projection.status,
+            FofProjectionStatus::Complete,
+            "{:?}",
+            projection.blockers
+        );
+        let declarations = declarations(&admission);
+        assert_eq!(declarations.len(), 1);
+        let declaration = declarations[0];
+        assert_eq!(
+            declaration
+                .configuration
+                .closure_entries
+                .get(semantic_key)
+                .map(String::as_str),
+            Some("ClosedWorldClosure")
+        );
+        let link = declaration
+            .facts
+            .iter()
+            .find(|fact| fact.predicate.ends_with("/closureEntry"))
+            .unwrap();
+        assert!(matches!(&link.object, crate::ir::AtomicTerm::Blank(_)));
+        let key = declaration
+            .facts
+            .iter()
+            .find(|fact| fact.predicate.ends_with("/closureKey"))
+            .unwrap();
+        assert_eq!(key.subject, link.object);
+        match (&key.object, datatype) {
+            (crate::ir::AtomicTerm::Iri(iri), None) => assert_eq!(iri, semantic_key),
+            (crate::ir::AtomicTerm::Literal(literal), Some(datatype)) => {
+                assert_eq!(literal.lexical_form, semantic_key);
+                assert_eq!(
+                    literal.datatype_iri(),
+                    format!("http://www.w3.org/2001/XMLSchema#{datatype}")
+                );
+                assert!(literal.language.is_none() && literal.direction.is_none());
+            }
+            _ => panic!("source key kind changed: {source_key}: {:?}", key.object),
+        }
+        assert!(!projection.problem.unwrap().contains("ClosedWorldClosure"));
+    }
 }
 
 #[test]
@@ -541,11 +572,13 @@ ex:contract a logic:ReasoningContract ; logic:closureEntry
 }
 
 #[test]
-/// Ambiguity inside one entry is rejected before assembling the closure map.
+/// Complete key admission rejects malformed or ambiguous terms before granting contract authority.
 fn closure_entries_cannot_choose_one_of_several_keys_or_values() {
     for fields in [
         "logic:closureKey \"p\", \"q\" ; logic:closureValue logic:OpenWorldClosure",
         "logic:closureKey \"p\" ; logic:closureValue logic:OpenWorldClosure, logic:ClosedWorldClosure",
+        "logic:closureKey <https://example.org/p>, \"https://example.org/p\" ; logic:closureValue logic:OpenWorldClosure",
+        "logic:closureKey \"p\", \"p\"^^<http://www.w3.org/2001/XMLSchema#token> ; logic:closureValue logic:OpenWorldClosure",
     ] {
         let theory = compile(&format!(
             "{PREFIXES}ex:contract a logic:ReasoningContract ; logic:closureEntry [ {fields} ] ."
@@ -556,6 +589,37 @@ fn closure_entries_cannot_choose_one_of_several_keys_or_values() {
                 .iter()
                 .any(|diagnostic| diagnostic.code == "AMBIGUOUS_CLOSURE_ENTRY"
                     && diagnostic.message.contains("multiple distinct"))
+        );
+        let admission =
+            SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));
+        assert_eq!(admission.configuration_declarations().count(), 0);
+        assert_eq!(
+            project_tptp_fof(&theory, &admission).status,
+            FofProjectionStatus::Blocked
+        );
+    }
+    for key in [
+        None,
+        Some("_:key"),
+        Some("<<( ex:s ex:p ex:o )>>"),
+        Some("\"p\"@en"),
+        Some("\"p\"@en--ltr"),
+        Some("\"p\"^^<http://www.w3.org/2001/XMLSchema#anyURI>"),
+        Some("\" p\"^^<http://www.w3.org/2001/XMLSchema#token>"),
+        Some("\"p\\uFFFF\""),
+    ] {
+        let field = key.map_or_else(String::new, |key| format!("logic:closureKey {key} ;"));
+        let theory = compile(&format!(
+            "{PREFIXES}ex:contract a logic:ReasoningContract ; logic:closureEntry [ {field} logic:closureValue logic:OpenWorldClosure ] ."
+        ));
+        assert!(
+            theory
+                .diagnostics()
+                .iter()
+                .any(|diagnostic| diagnostic.code == "MALFORMED_CLOSURE_ENTRY"
+                    && diagnostic.message.contains("closureKey")),
+            "{key:?}: {:?}",
+            theory.diagnostics()
         );
         let admission =
             SourceAdmission::classical_fof(&theory, SourceSelection::all_classical_roots(&theory));

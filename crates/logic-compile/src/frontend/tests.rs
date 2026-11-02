@@ -2030,6 +2030,7 @@ fn derive_canonical_named_datarange_uses_structural_typing() {
     }
 }
 
+/// Both global closure polarities preserve admitted key meanings and reject incomplete authority.
 #[test]
 fn derive_anonymous_closed_range_preserves_optin_and_optout() {
     for range in ["rdfs:range", "logic:range"] {
@@ -2064,6 +2065,43 @@ fn derive_anonymous_closed_range_preserves_optin_and_optout() {
                         .all(|c| matches!(c, ConstraintComponent::Datatype(_)))
                 );
             }
+        }
+    }
+    for closure_value in ["OpenWorldClosure", "ClosedWorldClosure"] {
+        let source = format!(
+            "g:words a logic:DatatypeProperty ; logic:range [ logic:unionOf (rdf:langString rdf:dirLangString) ] .
+             [] a logic:ClosureEntry ; logic:closureKey g:words ; logic:closureValue logic:{closure_value} ."
+        );
+        let expected = derive_validation_shapes(&shape_dataset(&source)).unwrap();
+        for key in [
+            "\"https://blackcatinformatics.ca/gmeow/words\"",
+            "\"https://blackcatinformatics.ca/gmeow/words\"^^xsd:token",
+            "g:words, g:words",
+        ] {
+            let selected = source.replace(
+                "logic:closureKey g:words",
+                &format!("logic:closureKey {key}"),
+            );
+            assert_eq!(
+                derive_validation_shapes(&shape_dataset(&selected)).unwrap(),
+                expected
+            );
+        }
+        for key in [
+            None,
+            Some("_:key"),
+            Some("\"p\"@en--ltr"),
+            Some("\"p\"^^xsd:anyURI"),
+            Some("\" p\"^^xsd:token"),
+            Some("g:words, \"https://blackcatinformatics.ca/gmeow/words\""),
+        ] {
+            let field = key.map_or_else(String::new, |key| format!("logic:closureKey {key} ;"));
+            let selected = source.replace("logic:closureKey g:words ;", &field);
+            let error = derive_validation_shapes(&shape_dataset(&selected)).unwrap_err();
+            assert!(
+                error.message().contains("closureKey"),
+                "{closure_value}: {key:?}: {error}"
+            );
         }
     }
 }
@@ -3817,6 +3855,7 @@ fn derive_closed_world_closure_entry_does_not_suppress() {
     );
 }
 
+/// Complete class-scoped keys require only their own path and never grant global closure.
 #[test]
 fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
     // A ClosedWorldClosure entry carrying logic:onClass is CLASS-SCOPED: it turns the class's
@@ -3825,15 +3864,14 @@ fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
     // sh:targetObjectsOf domain/range shape may be derived from it (closing a predicate on one
     // class asserts nothing about the predicate's other subjects/objects). The closureKey is a
     // string literal here, matching the authored slice form.
-    let ds = shape_dataset_with_logic(
-        "g:Doc a owl:Class . \
+    let source = "g:Doc a owl:Class . \
          g:Article a owl:Class ; rdfs:subClassOf \
          [ a owl:Restriction ; owl:onProperty g:cites ; owl:allValuesFrom g:Doc ] . \
          g:cites a owl:ObjectProperty ; rdfs:domain g:Article ; rdfs:range g:Doc . \
          [] a logic:ClosureEntry ; logic:onClass g:Article ; \
             logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ; \
-            logic:closureValue logic:ClosedWorldClosure .",
-    );
+            logic:closureValue logic:ClosedWorldClosure .";
+    let ds = shape_dataset_with_logic(source);
     let shapes = derive_validation_shapes(ds.as_ref()).expect("derive ok");
     let article = shapes
         .iter()
@@ -3855,6 +3893,29 @@ fn derive_class_scoped_closed_entry_derives_no_global_domain_range_shape() {
         "a class-scoped entry must derive NO global domain/range shape: {:?}",
         shapes.iter().map(|s| &s.target).collect::<Vec<_>>()
     );
+    for key in [
+        "g:cites",
+        "\"https://blackcatinformatics.ca/gmeow/cites\"^^xsd:token",
+    ] {
+        let selected = source.replace("\"https://blackcatinformatics.ca/gmeow/cites\"", key);
+        assert_eq!(
+            derive_validation_shapes(&shape_dataset_with_logic(&selected)).unwrap(),
+            shapes
+        );
+    }
+    for key in [
+        None,
+        Some("<<( g:s g:p g:o )>>"),
+        Some("g:cites, \"https://blackcatinformatics.ca/gmeow/cites\""),
+    ] {
+        let field = key.map_or_else(String::new, |key| format!("logic:closureKey {key} ;"));
+        let selected = source.replace(
+            "logic:closureKey \"https://blackcatinformatics.ca/gmeow/cites\" ;",
+            &field,
+        );
+        let error = derive_validation_shapes(&shape_dataset_with_logic(&selected)).unwrap_err();
+        assert!(error.message().contains("closureKey"), "{key:?}: {error}");
+    }
 }
 
 #[test]

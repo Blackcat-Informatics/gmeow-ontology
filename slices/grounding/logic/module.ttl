@@ -2888,11 +2888,10 @@ logic:closureEntry
     skos:definition "Relates a logic:ReasoningContract to a logic:ClosureEntry — a per-key override of the closure map binding a predicate or context key to an open- or closed-world value. The closure facet is a map, not a global flag: logic:defaultClosure gives the default for unlisted keys, while each logic:closureEntry overrides one key. Domain logic:ReasoningContract, range logic:ClosureEntry (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:closureKey
-    a logic:DatatypeProperty ;
+    a rdf:Property ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "closure key"@x-gmeow-english ;
-    rdfs:range xsd:string ;
-    skos:definition "Relates a logic:ClosureEntry to the predicate-or-context key it scopes: the string key whose closure value the entry fixes. Domain logic:ClosureEntry (stated in prose, matching the module's convention); range xsd:string. The key together with logic:closureValue forms one binding of the closure map."@x-gmeow-english .
+    skos:definition "Relates a logic:ClosureEntry to the exact predicate or context name it scopes. Each entry requires one distinct key term: an IRI or an untagged native-valid xsd:string or xsd:token literal. Identical repetitions are harmless; distinct RDF terms cannot select one key even when their semantic names agree. An IRI contributes its IRI text; a literal contributes its supplied lexical text, including empty text, without trimming, case folding or expanding prefixes inside literal codes. Original RDF terms remain in source evidence; the semantic closure map and its export use text keys. Domain logic:ClosureEntry is stated in prose. The key together with logic:closureValue forms one binding of the closure map."@x-gmeow-english .
 
 logic:closureValue
     a logic:ObjectProperty ;

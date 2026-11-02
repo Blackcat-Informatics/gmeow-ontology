@@ -1545,6 +1545,34 @@ fn closure_field(
     Ok(Some(first))
 }
 
+/// Admit a complete source key before interpreting its exact semantic name.
+fn closure_key(store: &RdfDataset, entry: &Subject, owner: &str) -> Result<String, Diagnostic> {
+    let term = closure_field(store, entry, "closureKey", owner)?.ok_or_else(|| {
+        Diagnostic::error(
+            "MALFORMED_CLOSURE_ENTRY",
+            format!(
+                "closure entry {:?} missing logic:closureKey",
+                subject_str(entry)
+            ),
+            Some(owner.to_owned()),
+        )
+    })?;
+    match term {
+        Node::Iri(iri) => Ok(iri),
+        other => selector_literal_value(other, "closureKey").map_err(|error| {
+            Diagnostic::error(
+                "MALFORMED_CLOSURE_ENTRY",
+                format!(
+                    "closure entry {:?}: {}",
+                    subject_str(entry),
+                    error.message()
+                ),
+                Some(owner.to_owned()),
+            )
+        }),
+    }
+}
+
 /// Extract configuration owners with their source emissions and diagnostic observations.
 /// Invalid facets remain errors on their owner; declarations never become domain axioms.
 fn extract_contracts(
@@ -1637,7 +1665,7 @@ fn extract_contracts(
                 }
 
                 // Closure entries: logic:closureEntry → ClosureEntry node with
-                // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
+                // logic:closureKey (IRI or literal name) + logic:closureValue (ClosureValue individual).
                 for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
                     // HARD verdict: a malformed closure entry — a non-node
                     // object, or a node missing logic:closureKey / logic:closureValue — is a
@@ -1656,8 +1684,8 @@ fn extract_contracts(
                 ));
                         continue;
                     };
-                    let key = match closure_field(store, &entry_node, "closureKey", &iri_str) {
-                        Ok(key) => key.map(|term| term_str(&term)),
+                    let key = match closure_key(store, &entry_node, &iri_str) {
+                        Ok(key) => Some(key),
                         Err(diagnostic) => {
                             diagnostics.push(diagnostic);
                             continue;
@@ -2059,7 +2087,9 @@ fn parse_positive_int(lexical: &str) -> Option<u32> {
 /// with the dataset-derive architecture. Property-GLOBAL entries only: an entry carrying
 /// `logic:onClass` is class-scoped and never suppresses corpus-wide (see
 /// [`closure_keys_with_value`]).
-fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+fn closure_validation_optouts(
+    store: &RdfDataset,
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     closure_keys_with_value(store, "OpenWorldClosure")
 }
 
@@ -2073,20 +2103,23 @@ fn closure_validation_optouts(store: &RdfDataset) -> std::collections::BTreeSet<
 fn closure_keys_with_value(
     store: &RdfDataset,
     value_local: &str,
-) -> std::collections::BTreeSet<String> {
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     let target = Node::iri(logic_iri(value_local));
-    let key_pred = nn(&logic_iri("closureKey"));
     let class_pred = nn(&logic_iri("onClass"));
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &target) {
+        let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
+            Diag::of_kind(crate::error::Frontend {
+                detail: diagnostic.message,
+            })
+            .with_focus(subject_str(&entry))
+        })?;
         if value(store, &entry, &class_pred).is_some() {
             continue;
         }
-        if let Some(key) = value(store, &entry, &key_pred) {
-            set.insert(term_str(&key));
-        }
+        set.insert(key);
     }
-    set
+    Ok(set)
 }
 
 /// The per-property **closed-world-reading opt-IN** set (R3, inverse polarity of
@@ -2102,7 +2135,9 @@ fn closure_keys_with_value(
 /// — it feeds [`closure_validation_closed_requirements`], never this global set, so it derives
 /// no corpus-wide `sh:targetSubjectsOf`/`sh:targetObjectsOf` domain/range shape (see
 /// [`closure_keys_with_value`]).
-fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTreeSet<String> {
+fn closure_validation_closed_optins(
+    store: &RdfDataset,
+) -> gmeow_errors::Result<std::collections::BTreeSet<String>> {
     closure_keys_with_value(store, "ClosedWorldClosure")
 }
 
@@ -2112,20 +2147,22 @@ fn closure_validation_closed_optins(store: &RdfDataset) -> std::collections::BTr
 /// while giving the validation projection an explicit, canonical `sh:minCount 1` authority.
 fn closure_validation_closed_requirements(
     store: &RdfDataset,
-) -> std::collections::BTreeSet<(String, String)> {
+) -> gmeow_errors::Result<std::collections::BTreeSet<(String, String)>> {
     let closed = Node::iri(logic_iri("ClosedWorldClosure"));
-    let key_pred = nn(&logic_iri("closureKey"));
     let class_pred = nn(&logic_iri("onClass"));
     let mut set = std::collections::BTreeSet::new();
     for entry in subjects_with(store, &nn(&logic_iri("closureValue")), &closed) {
-        if let (Some(key), Some(Node::Iri(class))) = (
-            value(store, &entry, &key_pred),
-            value(store, &entry, &class_pred),
-        ) {
-            set.insert((class, term_str(&key)));
+        let key = closure_key(store, &entry, &subject_str(&entry)).map_err(|diagnostic| {
+            Diag::of_kind(crate::error::Frontend {
+                detail: diagnostic.message,
+            })
+            .with_focus(subject_str(&entry))
+        })?;
+        if let Some(Node::Iri(class)) = value(store, &entry, &class_pred) {
+            set.insert((class, key));
         }
     }
-    set
+    Ok(set)
 }
 
 /// Walk an `rdf:first`/`rdf:rest`/`rdf:nil` list from `head`, collecting its IRI members in
@@ -2339,12 +2376,12 @@ pub fn derive_validation_shapes(
 ) -> gmeow_errors::Result<Vec<ValidationShapeIr>> {
     // The per-property/per-class closed-world-reading opt-out (R3). Default is derive-all; a
     // property/class named by an `OpenWorldClosure` closure entry is suppressed below.
-    let optouts = closure_validation_optouts(store);
+    let optouts = closure_validation_optouts(store)?;
     // The per-property closed-world-reading opt-IN (R3, inverse polarity): rdfs:domain/range are
     // open-world by default (they are inference axioms), so a domain/range shape is derived only
     // for a property a `ClosedWorldClosure` closure entry explicitly closes. See FAMILY 3.
-    let closed_optins = closure_validation_closed_optins(store);
-    let closed_requirements = closure_validation_closed_requirements(store);
+    let closed_optins = closure_validation_closed_optins(store)?;
+    let closed_requirements = closure_validation_closed_requirements(store)?;
     let owl = gmeow_ns::OWL_NS;
     let rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     let xsd = "http://www.w3.org/2001/XMLSchema#";
@@ -5527,6 +5564,11 @@ fn sugar_selector_literal(
             "logic:{pred_local} requires exactly one distinct value"
         )));
     }
+    selector_literal_value(term, pred_local)
+}
+
+/// Validate the native string/token carrier without changing its supplied lexical text.
+fn selector_literal_value(term: Node, pred_local: &str) -> gmeow_errors::Result<String> {
     let Node::Lit(purrdf::RdfLiteral {
         lexical_form,
         datatype,
