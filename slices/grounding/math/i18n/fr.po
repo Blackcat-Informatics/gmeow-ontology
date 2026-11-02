@@ -5254,56 +5254,56 @@ msgid "codomain"
 msgstr "codomaine"
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The target set of a function or relation — the set its outputs land in. Domain math:Relation, range math:Set (stated in prose). Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct from the math:image actually attained."
-msgstr "L’ensemble cible d’une fonction ou relation — l’ensemble dans lequel arrivent ses sorties. Domaine math:Relation, portée math:Set (déclarés en prose). Toute math:Function en déclare un ; une fonction sans codomaine est mal formée. Le codomaine est la cible déclarée, distincte dans son rôle de math:image effectivement atteinte."
+msgid "Existing uses include the declared target set of a function or relation and the target algebraic structure of a math:Homomorphism. Every math:Function declares one; a function without a codomain is ill-formed. The codomain is the declared target, distinct in role from the math:image actually attained. These documented carriers do not impose a global RDF domain or range restriction or retype structure-valued targets as sets."
+msgstr "Les usages existants comprennent l’ensemble cible déclaré d’une fonction ou relation et la structure algébrique cible d’un math:Homomorphism. Tout math:Function en déclare un ; une fonction sans codomaine est mal formée. Le codomaine est la cible déclarée, distincte dans son rôle de math:image effectivement atteinte. Ces porteurs documentés n’imposent pas de restriction RDF globale de domaine ou de portée et ne retypent pas en ensembles les cibles à valeurs de structure."
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The codomain is the declared target set, while math:image records the attained set. These are different roles that may name the same resource when the function is surjective; no resource inequality is required."
-msgstr "Le codomaine est l’ensemble cible déclaré, tandis que math:image consigne l’ensemble atteint. Ces rôles différents peuvent désigner la même ressource lorsque la fonction est surjective ; aucune inégalité de ressources n’est exigée."
+msgid "The codomain records a declared target set for a function or relation, or a target algebraic structure for an existing homomorphism. math:image records the attained set or substructure. The roles may name the same resource for a surjective map; neither a resource-inequality requirement nor a proof of preservation or surjectivity follows from the links."
+msgstr "Le codomaine consigne un ensemble cible déclaré pour une fonction ou relation, ou une structure algébrique cible pour un homomorphisme existant. math:image consigne l’ensemble ou la sous-structure atteints. Les rôles peuvent nommer la même ressource pour une application surjective ; ni exigence d’inégalité des ressources ni preuve de préservation ou de surjectivité ne découle des liens."
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|http://www.w3.org/2004/02/skos/core#example"
 msgid "For x ↦ x² with source ℝ and declared target ℝ, math:codomain names all reals although negative reals are not in the image."
 msgstr "Pour x ↦ x² de source ℝ et de cible déclarée ℝ, math:codomain désigne tous les réels bien que les réels négatifs ne soient pas dans l’image."
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use to retain the intended target set against which output membership and surjectivity are judged."
-msgstr "Utiliser pour conserver l’ensemble cible voulu par rapport auquel sont jugées l’appartenance des sorties et la surjectivité."
+msgid "Use to retain the intended target set or algebraic structure against which attained outputs and surjectivity are interpreted, without replacing the target by observed results."
+msgstr "Utiliser pour conserver l’ensemble ou la structure algébrique cible voulus par rapport auxquels les sorties atteintes et la surjectivité sont interprétées, sans remplacer la cible par des résultats observés."
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid replacing the declared codomain with observed outputs, treating it as an individual result, or forcing surjectivity by silently changing this target."
 msgstr "Ne pas remplacer le codomaine déclaré par les sorties observées, le traiter comme un résultat individuel ou forcer la surjectivité en changeant implicitement cette cible."
 
 msgctxt "https://blackcatinformatics.ca/math/codomain|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Point math:codomain from the function or relation to its declared target math:Set. If a restricted target is intended, state that frame explicitly and justify any associated math:isSurjective declaration for that framed map."
-msgstr "Faire pointer math:codomain de la fonction ou relation vers son math:Set cible déclaré. Si une cible restreinte est voulue, déclarer ce cadre explicitement et justifier toute déclaration math:isSurjective associée pour cette application ainsi cadrée."
+msgid "For a function or relation, point math:codomain to its declared target set; for an existing homomorphism, retain its target algebraic structure and that structure’s own carrier. State a restricted target explicitly. For a math:Function, justify any associated math:isSurjective declaration for that frame; a target link alone proves neither preservation nor surjectivity and does not type a structure as math:Set."
+msgstr "Pour une fonction ou relation, faire pointer math:codomain vers son ensemble cible déclaré ; pour un homomorphisme existant, conserver sa structure algébrique cible et le support propre de celle-ci. Déclarer explicitement une cible restreinte. Pour un math:Function, justifier toute déclaration math:isSurjective associée à ce cadre ; un lien cible seul ne prouve ni préservation ni surjectivité et ne type pas une structure comme math:Set."
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "image"
 msgstr "ensemble image"
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The set of values a function actually attains — the subset of the codomain that is the range of the map. Domain math:Function, range math:Set (stated in prose). A function is surjective exactly when its image equals its codomain."
-msgstr "L’ensemble des valeurs qu’une fonction atteint effectivement — le sous-ensemble du codomaine qui constitue l’image de l’application. Domaine math:Function, portée math:Set (déclarés en prose). Une fonction est surjective exactement lorsque son image est égale à son codomaine."
+msgid "Existing uses include the full attained set of a function or relation and the attained algebraic substructure of a math:Homomorphism. The image is contained in the declared codomain, and a function is surjective exactly when its image equals that codomain. These documented uses do not impose a closed global domain or range or retype an algebraic image as math:Set; an image link alone does not compute the image or prove preservation or surjectivity."
+msgstr "Les usages existants comprennent l’ensemble atteint complet d’une fonction ou relation et la sous-structure algébrique atteinte d’un math:Homomorphism. L’image est contenue dans le codomaine déclaré, et une fonction est surjective exactement lorsque son image est égale à ce codomaine. Ces usages documentés n’imposent pas de domaine ou de portée globaux fermés et ne retypent pas une image algébrique en math:Set ; un lien d’image seul ne calcule pas l’image et ne prouve ni préservation ni surjectivité."
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#scopeNote"
-msgid "The image is the full attained set for the declared function, not merely a finite sample of outputs. It is contained in the codomain and may be the same set; that equality is the mathematical criterion for surjectivity."
-msgstr "L’image est l’ensemble atteint entier pour la fonction déclarée, et non un simple échantillon fini de sorties. Elle est incluse dans le codomaine et peut être le même ensemble ; cette égalité est le critère mathématique de surjectivité."
+msgid "The image is the full attained set or algebraic substructure for the declared map, not a finite sample. exa:detHom names exa:RstarMult as both image and codomain in algebra-homomorphisms.ttl. Such role coincidence is allowed; the links alone do not establish the mathematical equality or prove surjectivity."
+msgstr "L’image est l’ensemble ou la sous-structure algébrique atteints complets pour l’application déclarée, et non un échantillon fini. exa:detHom nomme exa:RstarMult à la fois comme image et codomaine dans algebra-homomorphisms.ttl. Cette coïncidence de rôles est permise ; les liens seuls n’établissent pas l’égalité mathématique et ne prouvent pas la surjectivité."
 
 msgctxt "https://blackcatinformatics.ca/math/image|http://www.w3.org/2004/02/skos/core#example"
 msgid "Squaring on ℝ with codomain ℝ has image {y ∈ ℝ | y ≥ 0}. Integer negation has image ℤ, equal to its declared codomain."
 msgstr "Le carré sur ℝ de codomaine ℝ a pour image {y ∈ ℝ | y ≥ 0}. La négation entière a pour image ℤ, égale à son codomaine déclaré."
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/useWhen"
-msgid "Use when the complete set of outputs attained by a function is mathematically characterized and needs an identified set resource."
-msgstr "Utiliser lorsque l’ensemble complet des sorties atteintes par une fonction est caractérisé mathématiquement et nécessite une ressource ensemble identifiée."
+msgid "Use when the complete attained set or algebraic substructure of an existing map is justified and needs an identified resource distinct in role from its declared target."
+msgstr "Utiliser lorsque l’ensemble ou la sous-structure algébrique atteints complets d’une application existante sont justifiés et nécessitent une ressource identifiée dont le rôle diffère de celui de sa cible déclarée."
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/avoidWhen"
 msgid "Avoid listing one output literal here, confusing a test sample with the full image, or assuming math:image is automatically computed from a function label or frame."
 msgstr "Ne pas placer ici un seul littéral de sortie, confondre un échantillon de test avec l’image complète ou supposer que math:image est calculé automatiquement à partir d’un libellé ou du cadre d’une fonction."
 
 msgctxt "https://blackcatinformatics.ca/math/image|https://blackcatinformatics.ca/gmeow/howToUse"
-msgid "Link the math:Function to the justified attained math:Set through math:image and keep math:codomain as its declared target. Represent an intensional image with the existing set-and-formula vocabulary when enumeration would not describe it."
-msgstr "Relier le math:Function au math:Set atteint et justifié par math:image, et garder math:codomain comme cible déclarée. Représenter une image en compréhension avec le vocabulaire existant des ensembles et des formules lorsqu’une énumération ne la décrirait pas."
+msgid "Link the function or relation to its justified attained set, or the existing homomorphism to its justified attained algebraic substructure, through math:image. Keep math:codomain as the declared target and retain the image’s actual carrier, operations or defining formula where applicable. Do not retype structures as math:Set, compute an image from the edge, or infer preservation or surjectivity without supporting evidence."
+msgstr "Relier la fonction ou relation à son ensemble atteint justifié, ou l’homomorphisme existant à sa sous-structure algébrique atteinte justifiée, par math:image. Garder math:codomain comme cible déclarée et conserver le support réel, les opérations ou la formule de définition de l’image lorsqu’ils s’appliquent. Ne pas retyper des structures en math:Set, calculer une image à partir du lien ou déduire préservation ou surjectivité sans preuves à l’appui."
 
 msgctxt "https://blackcatinformatics.ca/math/isInjective|http://www.w3.org/2000/01/rdf-schema#label"
 msgid "is injective"
@@ -7816,3 +7816,387 @@ msgstr "Relie un porteur d’action, tel qu’une math:GroupAction ou un math:Gr
 msgctxt "https://blackcatinformatics.ca/math/IncompleteLieStructure|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The failure raised when a math:LieGroup does not declare its math:hasRootSystem, a math:WeylGroup lacks its required typed math:hasRootSystem anchor, or a math:RootSystem does not declare its math:cartanMatrix, math:weylGroup, and math:rootSystemRank. The root-system data makes the Lie and reflection-group structure explicit; a missing required anchor or root-system field is ill-formed without making every Weyl group a full automorphism group."
 msgstr "L’échec signalé lorsqu’un math:LieGroup ne déclare pas son math:hasRootSystem, qu’un math:WeylGroup est dépourvu de son ancrage math:hasRootSystem typé requis, ou qu’un math:RootSystem ne déclare pas ses math:cartanMatrix, math:weylGroup et math:rootSystemRank. Les données de système de racines explicitent les structures de Lie et de groupe de réflexions ; l’absence d’un ancrage requis ou d’un champ de système de racines est mal formée, sans faire de tout groupe de Weyl un groupe complet d’automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Morphism"
+msgstr "Morphisme"
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving map between mathematical objects: the object-layer parent of math:Homomorphism, math:Functor, and math:NaturalTransformation. Deliberately not a subclass of math:Function — a morphism's math:sourceObject and math:targetObject may be structures, categories, or functors rather than bare sets. What it preserves is declared through math:preservesStructure; composition is stated through math:composesWith."
+msgstr "Une application préservant la structure entre objets mathématiques : le parent de couche objet de math:Homomorphism, math:Functor et math:NaturalTransformation. Délibérément pas une sous-classe de math:Function — les math:sourceObject et math:targetObject d’un morphisme peuvent être des structures, catégories ou foncteurs plutôt que de simples ensembles. Ce qu’il préserve est déclaré par math:preservesStructure ; la composition est énoncée par math:composesWith."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A morphism carries source-object and target-object roles that can be structures or categorical objects. Its hierarchy does not make it a math:Function, and those roles do not automatically bridge to the structure-valued math:domain and math:codomain used by algebraic homomorphisms."
+msgstr "Un morphisme porte des rôles d’objet source et cible qui peuvent être des structures ou des objets catégoriques. Sa hiérarchie n’en fait pas un math:Function, et ces rôles ne sont pas automatiquement reliés aux math:domain et math:codomain à valeurs de structure utilisés par les homomorphismes algébriques."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom in algebra-homomorphisms.ttl is a group homomorphism and hence a morphism; its math:domain and math:codomain name group structures. Those existing fields do not automatically populate math:sourceObject or math:targetObject."
+msgstr "exa:detHom dans algebra-homomorphisms.ttl est un homomorphisme de groupes, donc un morphisme ; ses math:domain et math:codomain nomment des structures de groupe. Ces champs existants ne remplissent pas automatiquement math:sourceObject ou math:targetObject."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between mathematical objects must carry explicit structural preservation beyond a bare input/output rule."
+msgstr "Utiliser lorsqu’une application entre objets mathématiques doit porter une préservation structurelle explicite au-delà d’une simple règle d’entrée et de sortie."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring Function membership, inventing an automatic endpoint bridge, or treating a declared preservation link as a proof or evaluator."
+msgstr "Ne pas déduire l’appartenance à Function, inventer une liaison automatique entre extrémités ou traiter un lien de préservation déclaré comme une preuve ou un évaluateur."
+
+msgctxt "https://blackcatinformatics.ca/math/Morphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the map’s appropriate source and target roles using the existing vocabulary for its specialization, and retain the declared preservation features and actual laws. Keep generic math:sourceObject/math:targetObject distinct from algebraic math:domain/math:codomain unless an explicit supported mapping is present."
+msgstr "Identifier les rôles source et cible appropriés de l’application avec le vocabulaire existant de sa spécialisation, et conserver les caractéristiques de préservation déclarées et les lois réelles. Distinguer les math:sourceObject/math:targetObject génériques des math:domain/math:codomain algébriques, sauf correspondance explicite prise en charge."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Homomorphism"
+msgstr "Homomorphisme"
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A structure-preserving map between algebraic structures of the same kind: it names, through math:preservedOperation, the operation it carries and, through math:preservationLaw, the logic: formula stating that carrying (φ(a·b) = φ(a)·φ(b)). A subclass of math:Morphism; its math:domain and math:codomain are math:AlgebraicStructure. math:kernel and math:image are first-class. A homomorphism asserted without a preserved operation and law is ill-formed."
+msgstr "Une application préservant la structure entre structures algébriques de même nature : elle nomme par math:preservedOperation l’opération qu’elle transporte et par math:preservationLaw la formule logic: énonçant ce transport (φ(a·b) = φ(a)·φ(b)). Sous-classe de math:Morphism ; ses math:domain et math:codomain sont des math:AlgebraicStructure. math:kernel et math:image sont de première classe. Un homomorphisme affirmé sans opération préservée ni loi est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An algebraic homomorphism relates structures, not just their carrier sets. It inherits math:Morphism without math:Function inheritance; its preserved operation and law frame declares a claim whose formula realization and supporting evidence remain separate."
+msgstr "Un homomorphisme algébrique relie des structures, pas seulement leurs ensembles supports. Il hérite de math:Morphism sans héritage de math:Function ; son cadre d’opération et de loi préservées déclare une affirmation dont la réalisation en formule et les preuves restent distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom maps exa:GL2R to exa:RstarMult and names exa:matrixMultiplication plus exa:detProductLaw in algebra-homomorphisms.ttl. The target is a group structure, with its own carrier and operation."
+msgstr "exa:detHom va de exa:GL2R vers exa:RstarMult et nomme exa:matrixMultiplication et exa:detProductLaw dans algebra-homomorphisms.ttl. La cible est une structure de groupe avec son propre support et sa propre opération."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an algebraic map must identify the operations it preserves and the laws describing that preservation."
+msgstr "Utiliser lorsqu’une application algébrique doit identifier les opérations qu’elle préserve et les lois qui décrivent cette préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid replacing structure endpoints by bare sets, inferring all algebraic conditions from the minimum frame, or treating a law-resource count as proof of preservation."
+msgstr "Ne pas remplacer les structures aux extrémités par de simples ensembles, déduire toutes les conditions algébriques du cadre minimal ou traiter un nombre de ressources de loi comme une preuve de préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/Homomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the source and target algebraic structures through math:domain and math:codomain, identify the selected operations with math:preservedOperation, and attach actual preservation formulas with math:preservationLaw. Keep kernel, image and any checked result explicit rather than deriving them from the map label."
+msgstr "Conserver les structures algébriques source et cible par math:domain et math:codomain, identifier les opérations choisies par math:preservedOperation et attacher les formules réelles de préservation par math:preservationLaw. Expliciter noyau, image et tout résultat vérifié plutôt que les déduire du libellé de l’application."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Group Homomorphism"
+msgstr "Homomorphisme de groupes"
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism between groups: it preserves the single group operation (φ(a·b) = φ(a)·φ(b)), and its math:kernel is a normal subgroup of the domain. A subclass of math:Homomorphism; the determinant map det: GLₙ → ℝ* is one."
+msgstr "Un homomorphisme entre groupes : il préserve l’unique opération de groupe (φ(a·b) = φ(a)·φ(b)), et son math:kernel est un sous-groupe normal du domaine. Sous-classe de math:Homomorphism ; l’application déterminant det: GLₙ → ℝ* en est un exemple."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The preservation law relates the source and target group operations. The kernel consists of source elements mapped to the target group identity; that identity need not be numeric zero, and noncommutative groups are allowed."
+msgstr "La loi de préservation relie les opérations des groupes source et cible. Le noyau comprend les éléments source envoyés sur le neutre du groupe cible ; ce neutre n’est pas nécessairement le zéro numérique, et les groupes non commutatifs sont admis."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "For exa:detHom, exa:SL2R is the kernel because determinant-one matrices map to the multiplicative identity in exa:RstarMult. exa:detProductLaw states determinant-product preservation."
+msgstr "Pour exa:detHom, exa:SL2R est le noyau car les matrices de déterminant un sont envoyées sur le neutre multiplicatif de exa:RstarMult. exa:detProductLaw énonce la préservation du produit par le déterminant."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a map between group structures preserves their selected group operation."
+msgstr "Utiliser lorsqu’une application entre structures de groupe préserve leur opération de groupe choisie."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid requiring commutative groups, mapping the kernel to an assumed numeric zero, or inferring normality and all map properties from a bare label."
+msgstr "Ne pas exiger des groupes commutatifs, envoyer le noyau sur un zéro numérique présumé ou déduire normalité et toutes les propriétés de l’application d’un simple libellé."
+
+msgctxt "https://blackcatinformatics.ca/math/GroupHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain group-valued math:domain and math:codomain, the preserved operation and its formula, and the justified kernel and image. Link a kernel subgroup with math:normalSubgroupOf where established, keeping the identity and containment evidence attached to the relevant group structures."
+msgstr "Conserver les math:domain et math:codomain à valeurs de groupe, l’opération préservée et sa formule, ainsi que le noyau et l’image justifiés. Relier un sous-groupe noyau par math:normalSubgroupOf lorsqu’il est établi, en conservant les preuves de neutre et de contenance avec les structures de groupe pertinentes."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Ring Homomorphism"
+msgstr "Homomorphisme d’anneaux"
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A homomorphism between rings: it preserves both addition and multiplication, and its math:kernel is an ideal. Both preservation obligations must be represented, without requiring exactly two law resources or a one-to-one count of operations and laws. A subclass of math:Homomorphism; a selected or partial homomorphic-encryption law does not alone establish all ring-preservation conditions."
+msgstr "Un homomorphisme entre anneaux : il préserve addition et multiplication, et son math:kernel est un idéal. Les deux obligations de préservation doivent être représentées, sans exiger exactement deux ressources de loi ni une correspondance univoque entre nombres d’opérations et de lois. Sous-classe de math:Homomorphism ; une loi de chiffrement homomorphe choisie ou partielle ne suffit pas à établir toutes les conditions de préservation d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Both additive and multiplicative preservation are obligations, but the vocabulary does not assign one law resource per operation. Minimum preserved-operation and law links, or a selected partial homomorphic-encryption law, do not establish every ring condition."
+msgstr "Les préservations additive et multiplicative sont toutes deux des obligations, mais le vocabulaire n’attribue pas une ressource de loi à chaque opération. Des liens minimaux d’opération et de loi préservées, ou une loi partielle choisie de chiffrement homomorphe, n’établissent pas toutes les conditions d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:bfvScheme in homomorphic-encryption.ttl names exa:ctMul and exa:heLaw for its selected encrypted computation. That record does not by itself prove both full ring-preservation obligations."
+msgstr "exa:bfvScheme dans homomorphic-encryption.ttl nomme exa:ctMul et exa:heLaw pour son calcul chiffré choisi. Ce relevé ne prouve pas à lui seul les deux obligations complètes de préservation d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the claimed map between rings has explicit additive and multiplicative preservation conditions."
+msgstr "Utiliser lorsque l’application affirmée entre anneaux possède des conditions explicites de préservation additive et multiplicative."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing exactly two law nodes, equating a partial encrypted operation with a full ring homomorphism, or using the multiplicative identity as the ring-kernel target."
+msgstr "Ne pas imposer exactement deux nœuds de loi, assimiler une opération chiffrée partielle à un homomorphisme d’anneaux complet ou prendre le neutre multiplicatif comme cible du noyau d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/RingHomomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the source and target ring structures, describe preservation of both operation roles through the existing operation and formula vocabulary, and retain the evidence for each claimed condition. Describe the kernel as the ideal mapped to additive zero, without changing law cardinalities or treating selected HE metadata as a universal proof."
+msgstr "Conserver les structures d’anneau source et cible, décrire la préservation des deux rôles d’opération par le vocabulaire existant d’opérations et de formules, et préserver les preuves de chaque condition affirmée. Décrire le noyau comme l’idéal envoyé sur le zéro additif, sans changer les cardinalités de loi ni traiter des métadonnées HE choisies comme une preuve universelle."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Isomorphism"
+msgstr "Isomorphisme"
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A bijective homomorphism — a structure-preserving map with a structure-preserving inverse, so its domain and codomain are the same structure up to relabelling. A subclass of math:Homomorphism; two structures are isomorphic exactly when a declared math:Isomorphism relates them."
+msgstr "Un homomorphisme bijectif — une application préservant la structure avec un inverse qui préserve la structure, de sorte que son domaine et son codomaine sont la même structure à un renommage près. Sous-classe de math:Homomorphism ; deux structures sont isomorphes exactement lorsqu’un math:Isomorphism déclaré les relie."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An isomorphism claims bijectivity and a structure-preserving inverse, not identity of the source and target resources. A declared witness retains that claim but does not itself supply a proof, quotient construction or automatic inverse execution."
+msgstr "Un isomorphisme affirme la bijectivité et un inverse préservant la structure, et non l’identité des ressources source et cible. Un témoin déclaré conserve cette affirmation sans fournir à lui seul une preuve, une construction de quotient ou une exécution automatique de l’inverse."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:firstIsoWitness declares exa:GL2modSL2 isomorphic to exa:RstarMult in algebra-homomorphisms.ttl. Its exa:detProductLaw is the determinant-product formula, not a formula proving the first isomorphism theorem."
+msgstr "exa:firstIsoWitness déclare exa:GL2modSL2 isomorphe à exa:RstarMult dans algebra-homomorphisms.ttl. Son exa:detProductLaw est la formule du produit des déterminants, pas une formule prouvant le premier théorème d’isomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an explicitly identified map is claimed to relate structures bijectively with a structure-preserving inverse."
+msgstr "Utiliser lorsqu’une application explicitement identifiée est affirmée relier des structures bijectivement avec un inverse préservant la structure."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging isomorphic resources, treating equal dimensions as sufficient evidence, or assuming a declared witness proves all inverse and preservation conditions."
+msgstr "Ne pas fusionner des ressources isomorphes, traiter des dimensions égales comme preuve suffisante ou supposer qu’un témoin déclaré prouve toutes les conditions d’inverse et de préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/Isomorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the map’s structure endpoints, preserved operations and actual law formulas, and preserve the evidence for bijectivity and the preserving inverse. Keep any declared isomorphism witness separate from the theorem or construction it illustrates, without inventing an automatic inverse or embedding."
+msgstr "Conserver les structures aux extrémités de l’application, les opérations préservées et les formules réelles des lois, puis préserver les preuves de bijectivité et d’inverse préservant la structure. Distinguer tout témoin d’isomorphisme déclaré du théorème ou de la construction qu’il illustre, sans inventer d’inverse ou de plongement automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Automorphism"
+msgstr "Automorphisme"
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An isomorphism of a structure with itself — a symmetry. A subclass of math:Isomorphism whose math:domain and math:codomain are the same structure. The automorphisms of a structure form a math:AutomorphismGroup under composition."
+msgstr "Un isomorphisme d’une structure avec elle-même — une symétrie. Sous-classe de math:Isomorphism dont math:domain et math:codomain sont la même structure. Les automorphismes d’une structure forment un math:AutomorphismGroup pour la composition."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the individual invertible structure-preserving map from a structure to itself. Source and target may be the identical resource, and the identity function is a valid automorphism under the relevant structure; no resource-inequality rule follows from the two endpoint roles."
+msgstr "Il s’agit de l’application individuelle inversible préservant la structure, d’une structure vers elle-même. Source et cible peuvent être la même ressource, et la fonction identité est un automorphisme valide pour la structure pertinente ; aucune règle d’inégalité des ressources ne découle des deux rôles d’extrémité."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|http://www.w3.org/2004/02/skos/core#example"
+msgid "The identity map on exa:GL2R preserves its group operation and is an automorphism of that same group. It may serve as the identity element of the full automorphism group under composition."
+msgstr "L’application identité sur exa:GL2R préserve son opération de groupe et est un automorphisme de ce même groupe. Elle peut servir d’élément neutre du groupe complet d’automorphismes pour la composition."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a claimed isomorphism is a symmetry of the same declared structure at both endpoints."
+msgstr "Utiliser lorsqu’un isomorphisme affirmé est une symétrie de la même structure déclarée aux deux extrémités."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid forcing distinct source and target resources, excluding identity functions, or treating an invertible map as structure-preserving without the relevant laws."
+msgstr "Ne pas imposer des ressources source et cible distinctes, exclure les fonctions identité ou traiter une application inversible comme préservant la structure sans les lois pertinentes."
+
+msgctxt "https://blackcatinformatics.ca/math/Automorphism|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Keep the same structure in the algebraic source and target roles, retain the preserved operations and actual formulas, and record the preserving inverse and its evidence. Distinguish the map’s role from the group that collects all such maps without imposing disjoint resource kinds."
+msgstr "Garder la même structure dans les rôles algébriques de source et de cible, conserver les opérations préservées et les formules réelles, puis consigner l’inverse préservant la structure et ses preuves. Distinguer le rôle de l’application de celui du groupe qui rassemble toutes ces applications sans imposer des types de ressources disjoints."
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Automorphism Group"
+msgstr "Groupe d’automorphismes"
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This group collects all automorphisms of its declared structure under composition. Its members can be function-valued, and its identity can be the identity function; those carrier-element roles do not exclude functions. A generic Weyl reflection group is not automatically this full group."
+msgstr "Ce groupe rassemble tous les automorphismes de sa structure déclarée pour la composition. Ses membres peuvent être des fonctions, et son neutre peut être la fonction identité ; ces rôles d’éléments du support n’excluent pas les fonctions. Un groupe de réflexions de Weyl générique n’est pas automatiquement ce groupe complet."
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl in e8-symmetry.ttl explicitly has both math:WeylGroup and math:AutomorphismGroup types, with math:hasRootSystem and math:automorphismGroupOf anchors. This E8 equality does not apply to every root system."
+msgstr "exa:e8Weyl dans e8-symmetry.ttl porte explicitement les types math:WeylGroup et math:AutomorphismGroup, avec les ancrages math:hasRootSystem et math:automorphismGroupOf. Cette égalité pour E8 ne s’applique pas à tout système de racines."
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the modeled group is the full automorphism group of an explicitly identified structure."
+msgstr "Utiliser lorsque le groupe modélisé est le groupe complet d’automorphismes d’une structure explicitement identifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using full-group typing for an arbitrary symmetry subgroup, omitting its structure anchor, or rejecting function-valued members and an identity function because they are carrier elements."
+msgstr "Ne pas utiliser le type de groupe complet pour un sous-groupe quelconque de symétries, omettre son ancrage de structure ou rejeter des membres qui sont des fonctions et une fonction identité au motif qu’ils sont des éléments du support."
+
+msgctxt "https://blackcatinformatics.ca/math/AutomorphismGroup|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the inherited group carrier, composition operation, identity and inverse laws, and declare the full group’s structure with math:automorphismGroupOf. Keep any Weyl root anchor separately when that type also applies, and retain evidence for collecting all automorphisms rather than only selected symmetries."
+msgstr "Conserver le support de groupe hérité, l’opération de composition, les lois de neutre et d’inverse, et déclarer la structure du groupe complet par math:automorphismGroupOf. Garder séparément tout ancrage de racines de Weyl lorsque ce type s’applique aussi, et préserver les preuves que tous les automorphismes sont rassemblés plutôt que seulement des symétries choisies."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Quotient"
+msgstr "Structure quotient"
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The quotient structure G/N of a structure by a substructure that is compatible with its operation (a normal subgroup, or an ideal) — the structure whose elements are the cosets of N. A subclass of math:AlgebraicStructure. The first isomorphism theorem states G/ker φ ≅ image φ. The worked determinant example supplies a declared isomorphism witness; its determinant-product preservation formula is not a quotient construction or a proof of the first isomorphism theorem."
+msgstr "La structure quotient G/N d’une structure par une sous-structure compatible avec son opération (un sous-groupe normal ou un idéal) — la structure dont les éléments sont les classes modulo N. Sous-classe de math:AlgebraicStructure. Le premier théorème d’isomorphisme énonce G/ker φ ≅ image φ. L’exemple du déterminant fournit un témoin d’isomorphisme déclaré ; sa formule de préservation du produit des déterminants n’est ni une construction de quotient ni une preuve du premier théorème d’isomorphisme."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A quotient uses a compatible equivalence or coset structure, not a contained copy of its parent. The mathematical first-isomorphism statement G/ker φ ≅ image φ is retained without claiming that a nearby preservation formula constructs the quotient or proves that theorem."
+msgstr "Un quotient utilise une structure compatible d’équivalence ou de classes, et non une copie contenue dans sa structure d’origine. L’énoncé mathématique du premier isomorphisme G/ker φ ≅ image φ est conservé sans prétendre qu’une formule de préservation voisine construit le quotient ou prouve ce théorème."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:GL2modSL2 has exa:cosetSet and exa:cosetMultiplication in algebra-homomorphisms.ttl. exa:firstIsoWitness declares an isomorphism to exa:RstarMult, while exa:detProductLaw remains a determinant-product preservation formula."
+msgstr "exa:GL2modSL2 possède exa:cosetSet et exa:cosetMultiplication dans algebra-homomorphisms.ttl. exa:firstIsoWitness déclare un isomorphisme vers exa:RstarMult, tandis que exa:detProductLaw reste une formule de préservation du produit des déterminants."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a structure is formed modulo a compatible normal subgroup, ideal or other justified equivalence for its operations."
+msgstr "Utiliser lorsqu’une structure est formée modulo un sous-groupe normal, un idéal ou une autre équivalence justifiée compatible avec ses opérations."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid asserting parent containment solely from quotient formation, treating a declared isomorphism witness as a theorem proof, or inventing a quotient-parent predicate or automatic embedding."
+msgstr "Ne pas affirmer la contenance dans la structure d’origine du seul fait de former un quotient, traiter un témoin d’isomorphisme déclaré comme une preuve de théorème ou inventer un prédicat de parent de quotient ou un plongement automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/Quotient|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Identify the quotient as its own structure, retain its carrier, induced operations and actual laws, and describe the compatible relation or quotienting substructure with existing mathematical vocabulary. Preserve any isomorphism witness and its actual formula without claiming an unauthored first-isomorphism proof."
+msgstr "Identifier le quotient comme sa propre structure, conserver son support, ses opérations induites et ses lois réelles, puis décrire la relation compatible ou la sous-structure par laquelle on quotient avec le vocabulaire mathématique existant. Préserver tout témoin d’isomorphisme et sa formule réelle sans revendiquer une preuve du premier isomorphisme qui n’a pas été écrite."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preserves structure"
+msgstr "préserve la structure"
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a mathematical resource to a structural feature or law it declares, with existing subjects including math:Morphism and spaces such as math:CompactSpace. Targets include operations, axioms, realized formulas and honest expressiveness-boundary records; these examples do not impose a closed domain or range. math:preservedOperation refines this primitive. A target such as math:compactnessBoundary records SecondOrder/Unsupported residue rather than a formula, executable rule or proof."
+msgstr "Relie une ressource mathématique à une caractéristique structurelle ou une loi qu’elle déclare, les sujets existants comprenant math:Morphism et des espaces tels que math:CompactSpace. Les cibles comprennent opérations, axiomes, formules réalisées et relevés honnêtes de limites d’expressivité ; ces exemples n’imposent pas de domaine ou de portée fermés. math:preservedOperation affine cette primitive. Une cible telle que math:compactnessBoundary consigne un résidu SecondOrder/Unsupported plutôt qu’une formule, une règle exécutable ou une preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The property supports declared structural features across the existing mathematical carriers. A target may be a realized law or an expressiveness-boundary record; the link does not turn an unsupported higher-order property into a first-order formula, checked result or executable capability."
+msgstr "La propriété permet de déclarer des caractéristiques structurelles sur les porteurs mathématiques existants. Une cible peut être une loi réalisée ou un relevé de limite d’expressivité ; le lien ne transforme pas une propriété d’ordre supérieur non prise en charge en formule du premier ordre, résultat vérifié ou capacité exécutable."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|http://www.w3.org/2004/02/skos/core#example"
+msgid "The compact-space-declared.ttl fixture links its math:CompactSpace to math:compactnessBoundary, recorded as logic:SecondOrder and logic:Unsupported. That target is an honest boundary record, not a compactness formula or proof."
+msgstr "Le fichier compact-space-declared.ttl relie son math:CompactSpace à math:compactnessBoundary, consigné comme logic:SecondOrder et logic:Unsupported. Cette cible est un relevé honnête de limite, et non une formule ou une preuve de compacité."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an existing mathematical resource must explicitly name a structural feature, realized law or disclosed expressiveness boundary."
+msgstr "Utiliser lorsqu’une ressource mathématique existante doit nommer explicitement une caractéristique structurelle, une loi réalisée ou une limite d’expressivité déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid restricting every subject to Morphism or every target to an operation or axiom, retyping a space to fit such restrictions, or presenting Unsupported residue as a proved law."
+msgstr "Ne pas restreindre tout sujet à Morphism ou toute cible à une opération ou un axiome, retyper un espace pour satisfaire ces restrictions ou présenter un résidu Unsupported comme une loi prouvée."
+
+msgctxt "https://blackcatinformatics.ca/math/preservesStructure|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Retain the actual subject and feature resource, and inspect the target’s realized formula or expressivenessBoundary/preservationKind record before describing its capability. Use math:preservedOperation for the existing operation-specific refinement, without inventing global domain or range axioms or hiding unsupported semantics."
+msgstr "Conserver le sujet réel et la ressource de caractéristique, puis examiner la formule réalisée de la cible ou son relevé expressivenessBoundary/preservationKind avant de décrire sa capacité. Utiliser math:preservedOperation pour le raffinement existant propre aux opérations, sans inventer d’axiomes globaux de domaine ou de portée ni masquer une sémantique non prise en charge."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preserved operation"
+msgstr "opération préservée"
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names an operation carried under a declared preservation claim, with existing subjects including math:Homomorphism and math:GroupAction, and operation values such as math:Operation. These examples do not define a closed global domain. A group homomorphism preserves its group operation; a ring homomorphism must preserve addition and multiplication without a fixed one-to-one count of operation and law resources. The order-agnostic refinement of math:preservesStructure. A homomorphism without a preserved operation is ill-formed."
+msgstr "Nomme une opération transportée sous une affirmation de préservation déclarée, les sujets existants comprenant math:Homomorphism et math:GroupAction, et des valeurs d’opération telles que math:Operation. Ces exemples ne définissent pas un domaine global fermé. Un homomorphisme de groupes préserve son opération de groupe ; un homomorphisme d’anneaux doit préserver addition et multiplication sans correspondance fixe entre nombres de ressources d’opération et de loi. Raffinement de math:preservesStructure indifférent à l’ordre. Un homomorphisme sans opération préservée est mal formé."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is an operation-role link, used by existing homomorphisms and group actions without forcing the latter into the former’s class hierarchy. It records what is claimed to be carried; it supplies neither operation positions nor an evaluated result or proof."
+msgstr "Il s’agit d’un lien de rôle d’opération, utilisé par les homomorphismes et actions de groupe existants sans forcer ces dernières dans la hiérarchie des premiers. Il consigne ce qui est affirmé transporté ; il ne fournit ni positions d’opération, ni résultat évalué, ni preuve."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction names exa:rootReflection through math:preservedOperation in e8-symmetry.ttl while remaining a math:GroupAction. exa:detHom separately names exa:matrixMultiplication as a group homomorphism."
+msgstr "exa:e8WeylAction nomme exa:rootReflection par math:preservedOperation dans e8-symmetry.ttl tout en restant une math:GroupAction. exa:detHom nomme séparément exa:matrixMultiplication en tant qu’homomorphisme de groupes."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the operation involved in an existing mathematical preservation claim needs an explicit resource link."
+msgstr "Utiliser lorsque l’opération impliquée dans une affirmation mathématique existante de préservation nécessite un lien explicite vers une ressource."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid imposing Homomorphism membership on every subject, assigning operation order from repeated edges, or counting operation links as proof of every ring-preservation condition."
+msgstr "Ne pas imposer l’appartenance à Homomorphism à tout sujet, attribuer un ordre d’opérations à partir de liens répétés ou compter des liens d’opération comme preuve de toutes les conditions de préservation d’anneau."
+
+msgctxt "https://blackcatinformatics.ca/math/preservedOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point to the actual preserved operation resource and retain the relevant endpoints, operation meanings and math:preservationLaw formula. State both ring-operation obligations where claimed without inventing ordered slots or a fixed operation-to-law count, and retain the subject’s existing type."
+msgstr "Pointer vers la ressource réelle d’opération préservée et conserver les extrémités pertinentes, les sens des opérations et la formule math:preservationLaw. Énoncer les deux obligations d’opération d’anneau lorsqu’elles sont affirmées sans inventer d’emplacements ordonnés ni de nombre fixe d’opérations par loi, et préserver le type existant du sujet."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "preservation law"
+msgstr "loi de préservation"
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names a resource denoting a structured logic: formula for a preservation claim, with existing subjects including math:Homomorphism, homomorphic-encryption schemes and math:GroupAction; these subjects do not define a closed global domain. Examples include φ(a·b) = φ(a)·φ(b), action compatibility and Dec(E(a) ⊗ E(b)) = a ⊕ b. The value is never an opaque string: math: declares the law and logic: owns reasoning over its realized formula. A homomorphism without a preservation law is ill-formed; a descriptive link alone establishes neither checked truth nor execution."
+msgstr "Nomme une ressource dénotant une formule logic: structurée pour une affirmation de préservation, les sujets existants comprenant math:Homomorphism, des schémas de chiffrement homomorphe et math:GroupAction ; ces sujets ne définissent pas un domaine global fermé. Les exemples comprennent φ(a·b) = φ(a)·φ(b), la compatibilité d’action et Dec(E(a) ⊗ E(b)) = a ⊕ b. La valeur n’est jamais une chaîne opaque : math: déclare la loi et logic: est responsable du raisonnement sur sa formule réalisée. Un homomorphisme sans loi de préservation est mal formé ; un lien descriptif seul n’établit ni vérité vérifiée ni exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The value is the law resource with its realized formula, not a statement that the law has been proved or executed. Existing GroupAction use is independent of Homomorphism typing, and an honest unsupported boundary on math:preservesStructure is not thereby a preservation formula."
+msgstr "La valeur est la ressource de loi avec sa formule réalisée, et non une déclaration que la loi a été prouvée ou exécutée. L’usage existant pour GroupAction est indépendant du type Homomorphism, et une limite honnête non prise en charge sur math:preservesStructure n’est pas pour autant une formule de préservation."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8WeylAction points to exa:groupActionLaw in e8-symmetry.ttl, where action compatibility is a logic:Formula tree. exa:detHom points to the separate exa:detProductLaw for determinant-product preservation."
+msgstr "exa:e8WeylAction pointe vers exa:groupActionLaw dans e8-symmetry.ttl, où la compatibilité d’action est un arbre logic:Formula. exa:detHom pointe vers la ressource distincte exa:detProductLaw pour la préservation du produit des déterminants."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a preservation claim needs to retain the actual structured law resource and its formula realization."
+msgstr "Utiliser lorsqu’une affirmation de préservation doit conserver la ressource réelle de loi structurée et sa réalisation en formule."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a prose-only string, retyping an action merely to fit a narrowed subject description, or treating a selected HE formula as proof of all ring laws or a quotient theorem."
+msgstr "Ne pas fournir une simple chaîne en prose, retyper une action pour satisfaire une description de sujet trop étroite ou traiter une formule HE choisie comme une preuve de toutes les lois d’anneau ou d’un théorème de quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/preservationLaw|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the existing subject to its actual law resource, retain the formula tree and operation interpretation, and preserve any separately checked result and evidence. Keep formula realization, truth checking and execution as distinct claims; do not manufacture a law from the link alone."
+msgstr "Relier le sujet existant à sa ressource réelle de loi, conserver l’arbre de formule et l’interprétation de l’opération, puis préserver tout résultat vérifié séparément et ses preuves. Distinguer réalisation en formule, vérification de vérité et exécution ; ne pas fabriquer une loi à partir du seul lien."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "kernel"
+msgstr "noyau"
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Names the kernel of a homomorphism — the substructure of the domain mapped to the identity (for a group homomorphism a normal subgroup, for a ring homomorphism an ideal). Domain math:Homomorphism, range math:AlgebraicStructure (stated in prose). The kernel is a math:substructureOf the domain; the first isomorphism theorem relates it to the math:image through a math:Quotient."
+msgstr "Nomme le noyau d’un homomorphisme — la sous-structure du domaine envoyée sur le neutre (un sous-groupe normal pour un homomorphisme de groupes, un idéal pour un homomorphisme d’anneaux). Domaine math:Homomorphism, portée math:AlgebraicStructure (énoncés en prose). Le noyau est une math:substructureOf du domaine ; le premier théorème d’isomorphisme le relie à math:image par un math:Quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "For a group homomorphism the kernel is mapped to the target group identity; for a ring homomorphism it is mapped to additive zero. The kernel is a source substructure with its own frame, not the target identity element or the quotient itself."
+msgstr "Pour un homomorphisme de groupes, le noyau est envoyé sur le neutre du groupe cible ; pour un homomorphisme d’anneaux, il est envoyé sur le zéro additif. Le noyau est une sous-structure source avec son propre cadre, et non l’élément neutre cible ou le quotient lui-même."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:detHom names exa:SL2R as math:kernel in algebra-homomorphisms.ttl because its determinant-one matrices map to the multiplicative identity of exa:RstarMult."
+msgstr "exa:detHom nomme exa:SL2R comme math:kernel dans algebra-homomorphisms.ttl, car ses matrices de déterminant un sont envoyées sur le neutre multiplicatif de exa:RstarMult."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when the identity-preimage subgroup or additive-zero-preimage ideal of a homomorphism needs an explicit structure resource."
+msgstr "Utiliser lorsque le sous-groupe image réciproque du neutre ou l’idéal image réciproque du zéro additif d’un homomorphisme nécessite une ressource structure explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid placing the target identity value here, using multiplicative one as every ring-kernel target, or inferring a quotient construction or automatic embedding from the kernel edge."
+msgstr "Ne pas placer ici la valeur du neutre cible, utiliser le un multiplicatif comme cible de tout noyau d’anneau ou déduire une construction de quotient ou un plongement automatique du lien de noyau."
+
+msgctxt "https://blackcatinformatics.ca/math/kernel|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the homomorphism to the justified kernel structure, retain its carrier and induced operations, and record its normal-subgroup or ideal relation where established. Keep the identity or additive-zero interpretation explicit, along with any separate image, quotient and isomorphism witness."
+msgstr "Faire pointer l’homomorphisme vers la structure noyau justifiée, conserver son support et ses opérations induites, et consigner sa relation de sous-groupe normal ou d’idéal lorsqu’elle est établie. Expliciter l’interprétation de neutre ou de zéro additif, ainsi que toute image, tout quotient et tout témoin d’isomorphisme distincts."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "normal subgroup of"
+msgstr "sous-groupe normal de"
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a normal subgroup to the group that contains it (gNg⁻¹ = N for all g) — the kind of subgroup one can quotient by. Domain and range math:Group (stated in prose); a refinement of math:substructureOf. Not transitive: A ◁ B and B ◁ C do not imply A ◁ C — in A₄ the Klein four-group V₄ ◁ A₄ and a two-element subgroup H ◁ V₄, yet H is not normal in A₄. The math:kernel of a group homomorphism is a math:normalSubgroupOf its domain."
+msgstr "Relie un sous-groupe normal au groupe qui le contient (gNg⁻¹ = N pour tout g) — le type de sous-groupe par lequel on peut quotienter. Domaine et portée math:Group (énoncés en prose) ; raffinement de math:substructureOf. Non transitive : A ◁ B et B ◁ C n’impliquent pas A ◁ C — dans A₄, le groupe de Klein V₄ ◁ A₄ et un sous-groupe à deux éléments H ◁ V₄, mais H n’est pas normal dans A₄. Le math:kernel d’un homomorphisme de groupes est une math:normalSubgroupOf de son domaine."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Normality is relative to the ambient group and is not transitive. Refining the transitive math:substructureOf relation does not make math:normalSubgroupOf transitive; carrier containment alone is weaker than conjugation invariance."
+msgstr "La normalité est relative au groupe ambiant et n’est pas transitive. Le raffinement de la relation transitive math:substructureOf ne rend pas math:normalSubgroupOf transitive ; la seule contenance des supports est plus faible que l’invariance par conjugaison."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "In A₄, V₄ is normal and a two-element subgroup H is normal in V₄, but H is not normal in A₄. The two normal-subgroup links cannot be chained into a third normality claim."
+msgstr "Dans A₄, V₄ est normal et un sous-groupe à deux éléments H est normal dans V₄, mais H n’est pas normal dans A₄. Les deux liens de sous-groupe normal ne peuvent pas être enchaînés en une troisième affirmation de normalité."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a subgroup’s invariance under conjugation by its declared ambient group is justified."
+msgstr "Utiliser lorsque l’invariance d’un sous-groupe par conjugaison par son groupe ambiant déclaré est justifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid deriving transitive normality, substituting arbitrary containment for conjugation invariance, or assuming every subgroup can define the intended group quotient."
+msgstr "Ne pas déduire une normalité transitive, substituer une contenance quelconque à l’invariance par conjugaison ou présumer que tout sous-groupe définit le quotient de groupes voulu."
+
+msgctxt "https://blackcatinformatics.ca/math/normalSubgroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point from the normal subgroup to its ambient group, retain the subgroup frame and evidence for gNg⁻¹ = N in that ambient group, and describe any quotient separately. Preserve the substructure refinement without adding a transitivity assertion or a new quotient-parent link."
+msgstr "Faire pointer le sous-groupe normal vers son groupe ambiant, conserver le cadre du sous-groupe et les preuves de gNg⁻¹ = N dans ce groupe ambiant, puis décrire tout quotient séparément. Préserver le raffinement de sous-structure sans ajouter d’affirmation de transitivité ni de nouveau lien de parent de quotient."
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "automorphism group of"
+msgstr "groupe d’automorphismes de"
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This anchor identifies the structure whose entire automorphism group is being claimed. It is stronger than a group acting on a structure or a Weyl group naming a root system; existing targets are examples rather than a closed resource-kind restriction."
+msgstr "Cet ancrage identifie la structure dont le groupe entier d’automorphismes est affirmé. Il est plus fort qu’un groupe agissant sur une structure ou qu’un groupe de Weyl nommant un système de racines ; les cibles existantes sont des exemples plutôt qu’une restriction fermée des types de ressources."
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|http://www.w3.org/2004/02/skos/core#example"
+msgid "exa:e8Weyl points to exa:e8Roots through math:automorphismGroupOf and also through math:hasRootSystem in e8-symmetry.ttl, with explicit dual group typing for the justified E8 equality."
+msgstr "exa:e8Weyl pointe vers exa:e8Roots par math:automorphismGroupOf et aussi par math:hasRootSystem dans e8-symmetry.ttl, avec les deux types de groupe explicites pour l’égalité E8 justifiée."
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a full automorphism-group resource must explicitly identify the structure whose automorphisms it collects."
+msgstr "Utiliser lorsqu’une ressource de groupe complet d’automorphismes doit identifier explicitement la structure dont elle rassemble les automorphismes."
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid using this anchor for an arbitrary acting subgroup, inferring full-group equality from a Weyl root anchor, or replacing the structure by one member automorphism."
+msgstr "Ne pas utiliser cet ancrage pour un sous-groupe agissant quelconque, déduire l’égalité avec le groupe complet d’un ancrage de racines de Weyl ou remplacer la structure par un automorphisme membre."
+
+msgctxt "https://blackcatinformatics.ca/math/automorphismGroupOf|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the full math:AutomorphismGroup to its actual structure, preserving the inherited group frame and evidence for the full collection of automorphisms. Retain a separate math:hasRootSystem anchor when Weyl typing also applies; neither edge proves the equality or executes the member maps."
+msgstr "Relier le math:AutomorphismGroup complet à sa structure réelle, en préservant le cadre de groupe hérité et les preuves de la collection complète d’automorphismes. Conserver un ancrage math:hasRootSystem distinct lorsque le type de Weyl s’applique aussi ; aucun des deux liens ne prouve l’égalité ni n’exécute les applications membres."
