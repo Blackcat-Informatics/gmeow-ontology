@@ -6100,3 +6100,311 @@ msgstr "Éviter une chaîne de nom de type comme objet, le remplacement du rdf:t
 msgctxt "https://blackcatinformatics.ca/math/expressionType|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Point math:expressionType from the structured expression to the applicable math:ExpressionType and preserve its theory or context. State denotation and actual logic lowering separately; a type-denoting expression needs an explicit math:compilesToLogicType claim when that lowering is authored."
 msgstr "Faire pointer math:expressionType de l’expression structurée vers le math:ExpressionType applicable et préserver sa théorie ou son contexte. Déclarer séparément la dénotation et l’abaissement logique réel ; une expression dénotant un type exige une affirmation explicite math:compilesToLogicType lorsqu’un tel abaissement est rédigé."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Binding Expression"
+msgstr "Expression de liaison"
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A binder: the expression node that binds a variable over a body. Application-shaped — it names its binder operator through math:operator (a math:Operation individual such as the differentiation, integration, summation, or limit binder), its body through indexed math:argumentSlot cells, and the math:VariableDeclaration it introduces through math:boundVariable. It binds math:VariableOccurrence use sites through math:bindsOccurrence, never glyphs, so nested and shadowed binders are checkable. The single binding form d/dx, ∂, ∫, ∑, and lim all specialize: a math:Derivative, a math:Limit, a math:Series, and a math:Integral are binding expressions, so no per-operator binder machinery is minted. A binder without a bound variable and a body is ill-formed (math:MalformedBindingExpression)."
+msgstr "Un lieur : le nœud d’expression qui lie une variable sur un corps. De forme applicative, il désigne son opérateur de liaison par math:operator (un individu math:Operation tel que le lieur de dérivation, d’intégration, de sommation ou de limite), son corps par des cellules math:argumentSlot indexées et le math:VariableDeclaration qu’il introduit par math:boundVariable. Il lie les sites d’usage math:VariableOccurrence par math:bindsOccurrence, jamais des glyphes, ce qui rend vérifiables les lieurs imbriqués et le masquage. Les formes d/dx, ∂, ∫, ∑ et lim se spécialisent toutes dans cette forme de liaison : math:Derivative, math:Limit, math:Series et math:Integral sont des expressions de liaison, sans mécanisme distinct par opérateur. Un lieur auquel manque une variable liée ou un corps est mal formé (math:MalformedBindingExpression)."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A binder introduces one declaration under one binder operator and has one or more indexed body operands. It is a sibling of math:ApplicationExpression, not its subclass; lexical binding follows the body AST and explicit declaration identities."
+msgstr "Un lieur introduit une déclaration sous un opérateur de liaison et possède un ou plusieurs opérandes de corps indexés. C’est une forme voisine de math:ApplicationExpression, et non sa sous-classe ; la liaison lexicale suit l’AST du corps et les identités explicites des déclarations."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A binder with one body slot lowers that expression as its bare body. With body slots 0 and 1, the native lowerer applies the binder operator to both lowered operands and uses that application as the body."
+msgstr "Un lieur avec un emplacement de corps abaisse cette expression comme corps direct. Avec les emplacements de corps 0 et 1, l’abaissement natif applique l’opérateur de liaison aux deux opérandes abaissés et utilise cette application comme corps."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an expression introduces a variable identity over a structured body, as in a quantifier, integral, derivative or summation."
+msgstr "Utiliser lorsqu’une expression introduit une identité de variable sur un corps structuré, comme un quantificateur, une intégrale, une dérivée ou une sommation."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a single-slot-only rule, multiple binder operators or bound declarations, or expecting scope metadata and repeated glyphs to replace the lexical body structure."
+msgstr "Éviter une règle imposant un seul emplacement, plusieurs opérateurs ou déclarations liés, ou l’attente que les métadonnées de portée et les glyphes répétés remplacent la structure lexicale du corps."
+
+msgctxt "https://blackcatinformatics.ca/math/BindingExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one math:operator, one math:boundVariable declaration and a nonempty contiguous zero-based family of typed argument slots. Resolve body occurrences explicitly to their declarations; retain any math:bindsOccurrence metadata without treating it as a substitute for AST nesting."
+msgstr "Fournir un math:operator, une déclaration math:boundVariable et une famille non vide d’emplacements d’arguments typés, contigus et indexés à partir de zéro. Résoudre explicitement les occurrences du corps vers leurs déclarations ; conserver les métadonnées math:bindsOccurrence sans les substituer à l’imbrication de l’AST."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Expression"
+msgstr "Expression de variable"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A variable used inside an expression: an expression node standing for one math:VariableOccurrence (math:variableOccurrence). Its occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration; there is no implicit free variable. This is the leaf of the AST where a bound or free variable enters a formula."
+msgstr "Une variable utilisée dans une expression : un nœud d’expression représentant un math:VariableOccurrence (math:variableOccurrence). Son occurrence est soit liée par un math:BindingExpression, soit résolue vers un math:FreeVariableDeclaration ; il n’existe aucune variable libre implicite. C’est la feuille de l’AST par laquelle une variable liée ou libre entre dans une formule."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This leaf represents a variable use through an occurrence resource, then an explicit declaration. The expression, occurrence and declaration have different roles; labels do not establish any of the required links."
+msgstr "Cette feuille représente un usage de variable par une ressource occurrence, puis une déclaration explicite. L’expression, l’occurrence et la déclaration ont des rôles différents ; les libellés n’établissent aucun des liens requis."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|http://www.w3.org/2004/02/skos/core#example"
+msgid "A leaf for x points through math:variableOccurrence to its use site, which points through math:declaredVariable to the intended declaration, whether bound in the current AST or explicitly free."
+msgstr "Une feuille pour x pointe par math:variableOccurrence vers son site d’usage, qui pointe par math:declaredVariable vers la déclaration voulue, liée dans l’AST courant ou explicitement libre."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for the structured expression leaf where a bound or explicitly declared free variable enters a mathematical formula."
+msgstr "Utiliser pour la feuille structurée d’expression par laquelle une variable liée ou libre explicitement déclarée entre dans une formule mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid pointing directly to a declaration instead of an occurrence, leaving the use unresolved, or treating a variable-name string as the complete expression leaf."
+msgstr "Ne pas pointer directement vers une déclaration à la place d’une occurrence, laisser l’usage non résolu ou traiter une chaîne de nom de variable comme feuille d’expression complète."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableExpression|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the leaf math:VariableExpression and link one occurrence with math:variableOccurrence. Give that occurrence one math:declaredVariable target and preserve its actual lexical placement; when no enclosing binder supplies that declaration, an explicit math:FreeVariableDeclaration is required by native lowering."
+msgstr "Typer la feuille math:VariableExpression et relier une occurrence par math:variableOccurrence. Donner à cette occurrence une cible math:declaredVariable et préserver son placement lexical réel ; si aucun lieur englobant ne fournit cette déclaration, l’abaissement natif exige un math:FreeVariableDeclaration explicite."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Declaration"
+msgstr "Déclaration de variable"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The identity of a variable within a scope — the binding site's referent. Introduced by a math:BindingExpression through math:boundVariable, or standing alone as a math:FreeVariableDeclaration carrying a declared type/domain context. Every math:VariableOccurrence points at exactly one declaration through math:declaredVariable, so α-equivalence (same structure up to renaming of declarations) is a graph isomorphism over declarations rather than a string comparison. Two binders that reuse the glyph i introduce two distinct declarations."
+msgstr "L’identité d’une variable dans une portée — le référent du site de liaison. Introduite par un math:BindingExpression au moyen de math:boundVariable, ou autonome comme math:FreeVariableDeclaration avec un contexte de type et de domaine déclaré. Chaque math:VariableOccurrence pointe vers exactement une déclaration par math:declaredVariable ; l’α-équivalence (même structure à renommage des déclarations près) est donc un isomorphisme de graphe sur les déclarations plutôt qu’une comparaison de chaînes. Deux lieurs réutilisant le glyphe i introduisent deux déclarations distinctes."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A declaration supplies variable identity rather than a displayed name. Native bound lookup compares the explicit declaration against the enclosing binder stack; bound α-renaming can preserve structure, while free declaration identity remains part of a free term."
+msgstr "Une déclaration fournit l’identité d’une variable plutôt qu’un nom affiché. La recherche native d’une variable liée compare la déclaration explicite à la pile des lieurs englobants ; le renommage α des variables liées peut préserver la structure, tandis que l’identité d’une déclaration libre reste partie du terme libre."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "Two nested binders may both display i but introduce different math:VariableDeclaration resources. A use beneath the inner binder can still name the outer declaration explicitly."
+msgstr "Deux lieurs imbriqués peuvent tous deux afficher i tout en introduisant des ressources math:VariableDeclaration différentes. Un usage sous le lieur intérieur peut encore désigner explicitement la déclaration extérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a variable needs an explicit scoped identity shared by its intended occurrences."
+msgstr "Utiliser lorsqu’une variable nécessite une identité de portée explicite partagée par les occurrences qui s’y réfèrent."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid merging declarations because their labels match, renaming free identities as if they were bound α-variants, or using declaration metadata alone to place an occurrence inside a binder."
+msgstr "Ne pas fusionner des déclarations parce que leurs libellés concordent, renommer les identités libres comme des variantes α liées ou utiliser les seules métadonnées de déclaration pour placer une occurrence dans un lieur."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableDeclaration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Let a binder introduce its declaration through math:boundVariable and let use sites name it through math:declaredVariable. For standalone free declarations, use the explicit free marker and domain context; selected native bound-sort lowering instead reads a supplied math:domain on the bound declaration."
+msgstr "Faire introduire la déclaration par le lieur au moyen de math:boundVariable et la faire désigner par les usages au moyen de math:declaredVariable. Pour les déclarations libres autonomes, utiliser le marqueur explicite et le contexte de domaine ; l’abaissement natif sélectionné des sortes liées lit plutôt un math:domain fourni sur la déclaration liée."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Free Variable Declaration"
+msgstr "Déclaration de variable libre"
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A variable declaration not introduced by a binder: a free variable, standing alone with a declared type and domain context. The explicit marker that a variable occurrence is free — there is no implicit free variable, so an occurrence is either bound by a math:BindingExpression or resolves to a math:FreeVariableDeclaration with its type/domain declared."
+msgstr "Une déclaration de variable non introduite par un lieur : une variable libre, autonome avec un contexte de type et de domaine déclaré. Le marqueur explicite qu’une occurrence de variable est libre — aucune variable libre n’est implicite ; une occurrence est donc soit liée par un math:BindingExpression, soit résolue vers un math:FreeVariableDeclaration dont le type et le domaine sont déclarés."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class explicitly identifies an unbound declaration. A missing binder is not enough: native variable lowering requires the referenced declaration to carry this free marker when it is absent from the enclosing binder stack, and retains its resource identity."
+msgstr "Cette classe identifie explicitement une déclaration non liée. L’absence de lieur ne suffit pas : l’abaissement natif des variables exige ce marqueur libre sur la déclaration référencée lorsqu’elle est absente de la pile englobante, et conserve son identité de ressource."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|http://www.w3.org/2004/02/skos/core#example"
+msgid "A free parameter a has a math:FreeVariableDeclaration with its declared math:variableDomain. An occurrence points to that declaration even inside a body that binds a different declaration with the same displayed name."
+msgstr "Un paramètre libre a possède un math:FreeVariableDeclaration avec son math:variableDomain déclaré. Une occurrence pointe vers cette déclaration même dans un corps qui lie une autre déclaration de même nom affiché."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an intentionally free variable whose declaration and mathematical domain context must remain explicit."
+msgstr "Utiliser pour une variable intentionnellement libre dont la déclaration et le contexte de domaine mathématique doivent rester explicites."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid implicit freedom from an unmatched glyph, marking a dangling occurrence itself instead of its declaration, or assuming free declaration identities disappear under bound-variable α-renaming."
+msgstr "Éviter une liberté implicite due à un glyphe sans correspondance, le marquage de l’occurrence non résolue elle-même plutôt que de sa déclaration ou l’hypothèse que les identités de déclarations libres disparaissent lors du renommage α des variables liées."
+
+msgctxt "https://blackcatinformatics.ca/math/FreeVariableDeclaration|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Type the standalone declaration math:FreeVariableDeclaration, supply its normative math:variableDomain set context and resolve occurrences to it through math:declaredVariable. Preserve its identity; consumer admission and validation of domain context remain distinct from the native bound-sort math:domain path."
+msgstr "Typer la déclaration autonome math:FreeVariableDeclaration, fournir son contexte d’ensemble math:variableDomain prescrit et y résoudre les occurrences par math:declaredVariable. Préserver son identité ; l’admission et la validation du contexte de domaine restent distinctes du chemin natif math:domain de sorte liée."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Variable Occurrence"
+msgstr "Occurrence de variable"
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A use site of a variable within an expression scope: it names the math:VariableDeclaration it refers to through math:declaredVariable and the scope it occurs in through math:occursInScope. A binder binds occurrences (math:bindsOccurrence), not glyphs, so an occurrence in the body of two nested binders that reuse a glyph resolves to exactly one of the two declarations. An occurrence that resolves to no declaration and is not marked free is ill-formed (math:UnscopedVariableOccurrence)."
+msgstr "Un site d’usage d’une variable dans une portée d’expression : il désigne le math:VariableDeclaration auquel il se réfère par math:declaredVariable et la portée où il apparaît par math:occursInScope. Un lieur lie des occurrences (math:bindsOccurrence), et non des glyphes ; une occurrence dans le corps de deux lieurs imbriqués réutilisant un glyphe se résout donc vers exactement une des deux déclarations. Une occurrence ne se résolvant vers aucune déclaration et non marquée libre est mal formée (math:UnscopedVariableOccurrence)."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An occurrence is a use site with one explicit declaration target. Its lexical environment comes from AST traversal; scope and binding metadata describe that use but cannot override declaration-identity lookup."
+msgstr "Une occurrence est un site d’usage avec une cible de déclaration explicite unique. Son environnement lexical vient du parcours de l’AST ; les métadonnées de portée et de liaison décrivent cet usage sans pouvoir remplacer la recherche par identité de déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "Under two binders labelled i, one occurrence can explicitly reference the outer declaration while another references the inner. Their equal displayed glyph does not merge those targets."
+msgstr "Sous deux lieurs libellés i, une occurrence peut référencer explicitement la déclaration extérieure tandis qu’une autre référence l’intérieure. Leur glyphe affiché identique ne fusionne pas ces cibles."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when an individual variable use needs explicit resolution and scope or provenance metadata apart from the declaration’s shared identity."
+msgstr "Utiliser lorsqu’un usage individuel de variable nécessite une résolution explicite et des métadonnées de portée ou de provenance distinctes de l’identité partagée de la déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid resolving by the nearest matching label, using only math:occursInScope to assert binding, or treating an out-of-stack declaration as implicitly free."
+msgstr "Ne pas résoudre par le libellé correspondant le plus proche, utiliser uniquement math:occursInScope pour affirmer une liaison ou traiter une déclaration hors pile comme implicitement libre."
+
+msgctxt "https://blackcatinformatics.ca/math/VariableOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the math:VariableOccurrence one math:declaredVariable edge, connect its expression leaf through math:variableOccurrence and retain accurate scope metadata. Check the explicit declaration against enclosing binders or the free-declaration marker rather than reconstructing binding from glyphs."
+msgstr "Donner au math:VariableOccurrence un lien math:declaredVariable, connecter sa feuille d’expression par math:variableOccurrence et conserver des métadonnées de portée exactes. Vérifier la déclaration explicite par rapport aux lieurs englobants ou au marqueur de déclaration libre plutôt que reconstruire la liaison à partir des glyphes."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "bound variable"
+msgstr "variable liée"
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:BindingExpression to the math:VariableDeclaration it introduces and binds — the variable of differentiation, integration, summation, or the limit. Domain math:BindingExpression, range math:VariableDeclaration (stated in prose). Every binder names exactly one bound variable's declaration; a binder without one is ill-formed (math:MalformedBindingExpression). This is the edge through which a binder introduces its variable's scoped identity, over which its bound math:VariableOccurrence use sites resolve."
+msgstr "Relie un math:BindingExpression au math:VariableDeclaration qu’il introduit et lie — la variable de dérivation, d’intégration, de sommation ou de limite. Domaine math:BindingExpression, portée math:VariableDeclaration (déclarés en prose). Tout lieur désigne exactement une déclaration de variable liée ; un lieur sans elle est mal formé (math:MalformedBindingExpression). Ce lien introduit l’identité de portée de la variable, vers laquelle se résolvent ses sites d’usage math:VariableOccurrence liés."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is binder-to-declaration, introducing one bound variable identity over the indexed body operands. It does not point to a glyph, an occurrence or the body expression itself."
+msgstr "La direction va du lieur vers la déclaration, introduisant une identité de variable liée sur les opérandes de corps indexés. Le lien ne pointe ni vers un glyphe, ni vers une occurrence, ni vers l’expression du corps elle-même."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "An outer summation and an inner summation both displaying i name their own declaration resources with math:boundVariable. A body occurrence selects one through its explicit math:declaredVariable target."
+msgstr "Une sommation extérieure et une sommation intérieure affichant toutes deux i désignent leurs propres ressources déclarations par math:boundVariable. Une occurrence du corps en sélectionne une par sa cible explicite math:declaredVariable."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a binding expression introduces the declaration against which body occurrences are resolved lexically."
+msgstr "Utiliser lorsqu’une expression de liaison introduit la déclaration par rapport à laquelle les occurrences du corps sont résolues lexicalement."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple declaration targets on one binder, an occurrence as object, or rebinding a use merely because its label matches the introduced variable."
+msgstr "Éviter plusieurs cibles de déclaration sur un lieur, une occurrence comme objet ou la nouvelle liaison d’un usage au seul motif que son libellé correspond à la variable introduite."
+
+msgctxt "https://blackcatinformatics.ca/math/boundVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:boundVariable from the binder to its single math:VariableDeclaration and retain the body’s explicit occurrence-to-declaration edges. For selected native bound-sort lowering, preserve a supplied math:domain on that declaration without replacing it with math:variableDomain."
+msgstr "Faire pointer math:boundVariable du lieur vers son unique math:VariableDeclaration et conserver les liens explicites du corps entre occurrences et déclarations. Pour l’abaissement natif sélectionné des sortes liées, préserver un math:domain fourni sur cette déclaration sans le remplacer par math:variableDomain."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "binds occurrence"
+msgstr "lie l’occurrence"
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:BindingExpression to a math:VariableOccurrence it binds — a use site of its bound variable within its body. Domain math:BindingExpression, range math:VariableOccurrence (stated in prose). A binder binds occurrences, not glyphs, so under nesting and shadowing each occurrence resolves to exactly one binder."
+msgstr "Relie un math:BindingExpression à un math:VariableOccurrence qu’il lie — un site d’usage de sa variable liée dans son corps. Domaine math:BindingExpression, portée math:VariableOccurrence (déclarés en prose). Un lieur lie des occurrences, et non des glyphes ; sous imbrication et masquage, chaque occurrence se résout donc vers exactement un lieur."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This binder-to-occurrence relation records a binding claim about a use site. It is metadata alongside the lexical AST and explicit declaration reference; the native lookup does not use it to create or override an enclosing binder environment."
+msgstr "Cette relation du lieur vers l’occurrence consigne une affirmation de liaison sur un site d’usage. C’est une métadonnée associée à l’AST lexical et à la référence explicite de déclaration ; la recherche native ne l’utilise pas pour créer ou remplacer un environnement de lieur englobant."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "An outer binder can record math:bindsOccurrence for a use nested under an inner same-glyph binder when that use’s math:declaredVariable explicitly names the outer declaration."
+msgstr "Un lieur extérieur peut consigner math:bindsOccurrence pour un usage imbriqué sous un lieur intérieur de même glyphe lorsque le math:declaredVariable de cet usage désigne explicitement la déclaration extérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to document which occurrence a binder binds, with the declaration identity and actual body placement preserved."
+msgstr "Utiliser pour documenter quelle occurrence un lieur lie, en préservant l’identité de déclaration et le placement réel dans le corps."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid linking to a declaration instead of a use site, assigning binding by glyph matching, or expecting this metadata edge to repair an occurrence whose declaration is outside the lexical stack."
+msgstr "Ne pas relier une déclaration à la place d’un site d’usage, attribuer une liaison par correspondance de glyphes ou attendre que ce lien de métadonnées répare une occurrence dont la déclaration est hors de la pile lexicale."
+
+msgctxt "https://blackcatinformatics.ca/math/bindsOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Link the binder to the intended math:VariableOccurrence only with a consistent explicit math:declaredVariable target and lexical body path. Keep math:boundVariable and the indexed body structure; do not treat math:bindsOccurrence alone as a lexical binding mechanism."
+msgstr "Relier le lieur au math:VariableOccurrence visé uniquement avec une cible math:declaredVariable explicite cohérente et un chemin lexical dans le corps. Garder math:boundVariable et la structure indexée du corps ; ne pas traiter le seul math:bindsOccurrence comme mécanisme de liaison lexicale."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "declared variable"
+msgstr "variable déclarée"
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableOccurrence to the math:VariableDeclaration it refers to — the binding site or free declaration that gives the occurrence its identity. Domain math:VariableOccurrence, range math:VariableDeclaration (stated in prose). Every occurrence resolves to exactly one declaration; an occurrence resolving to none and not marked free is ill-formed (math:UnscopedVariableOccurrence)."
+msgstr "Relie un math:VariableOccurrence au math:VariableDeclaration auquel il se réfère — le site de liaison ou la déclaration libre qui donne son identité à l’occurrence. Domaine math:VariableOccurrence, portée math:VariableDeclaration (déclarés en prose). Chaque occurrence se résout vers exactement une déclaration ; une occurrence ne se résolvant vers aucune et non marquée libre est mal formée (math:UnscopedVariableOccurrence)."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The occurrence explicitly selects a declaration resource. Native lowering looks for that identity in the enclosing binder stack, including outer frames beneath an inner same-glyph declaration; an unmatched declaration must be explicitly free."
+msgstr "L’occurrence sélectionne explicitement une ressource déclaration. L’abaissement natif recherche cette identité dans la pile englobante, y compris les cadres extérieurs sous une déclaration intérieure de même glyphe ; une déclaration sans correspondance doit être explicitement libre."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|http://www.w3.org/2004/02/skos/core#example"
+msgid "In nested sums both labelled i, a use’s math:declaredVariable can target the outer declaration. The nearer inner declaration does not capture it merely by sharing that label."
+msgstr "Dans des sommes imbriquées toutes deux libellées i, le math:declaredVariable d’un usage peut cibler la déclaration extérieure. La déclaration intérieure plus proche ne le capture pas du seul fait du libellé commun."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to state the single declaration that gives a particular variable occurrence its intended identity."
+msgstr "Utiliser pour déclarer l’unique déclaration qui donne son identité voulue à une occurrence de variable particulière."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid multiple targets, a variable-name literal, a glyph-driven nearest-declaration rule, or treating an unresolved declaration as implicitly free."
+msgstr "Éviter plusieurs cibles, un littéral de nom de variable, une règle de déclaration la plus proche fondée sur le glyphe ou le traitement d’une déclaration non résolue comme implicitement libre."
+
+msgctxt "https://blackcatinformatics.ca/math/declaredVariable|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:declaredVariable from the occurrence to exactly one math:VariableDeclaration. Preserve the AST path that makes a bound target enclosing. For an intentionally free variable, reference an explicit math:FreeVariableDeclaration with its context; an out-of-stack bound declaration must fail rather than be relabelled free."
+msgstr "Faire pointer math:declaredVariable de l’occurrence vers exactement un math:VariableDeclaration. Préserver le chemin d’AST qui rend englobante une cible liée. Pour une variable intentionnellement libre, référencer un math:FreeVariableDeclaration explicite avec son contexte ; une déclaration liée hors pile doit échouer plutôt qu’être requalifiée comme libre."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "variable domain"
+msgstr "domaine de variable"
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The declared type/domain context of a math:FreeVariableDeclaration — the math:Set (a number system or another set) the free variable ranges over. Domain math:FreeVariableDeclaration, range math:Set (stated in prose). Every math:FreeVariableDeclaration names exactly one; a free variable standing alone with no declared domain is untyped (math:UntypedFreeVariable)."
+msgstr "Le contexte de type et de domaine déclaré d’un math:FreeVariableDeclaration — le math:Set (un système de nombres ou un autre ensemble) sur lequel la variable libre varie. Domaine math:FreeVariableDeclaration, portée math:Set (déclarés en prose). Chaque math:FreeVariableDeclaration en désigne exactement un ; une variable libre autonome sans domaine déclaré est non typée (math:UntypedFreeVariable)."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This is the normative set-valued context of a free declaration. It is not the selected native bound-sort input: that path reads math:domain on a bound declaration, and consumers may validate declaration context differently."
+msgstr "Il s’agit du contexte normatif à valeur d’ensemble d’une déclaration libre. Ce n’est pas l’entrée de sorte liée du chemin natif sélectionné : ce chemin lit math:domain sur une déclaration liée, et les consommateurs peuvent valider différemment le contexte de déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|http://www.w3.org/2004/02/skos/core#example"
+msgid "A free declaration for a real parameter can state math:variableDomain math:realNumbers. This contextual statement does not replace math:domain when a selected native binder needs an explicitly declared bound sort."
+msgstr "Une déclaration libre de paramètre réel peut déclarer math:variableDomain math:realNumbers. Cette déclaration contextuelle ne remplace pas math:domain lorsqu’un lieur natif sélectionné nécessite une sorte liée explicitement déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain the declared set over which an explicitly free variable ranges."
+msgstr "Utiliser pour conserver l’ensemble déclaré sur lequel varie une variable explicitement libre."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a domain-name string, an occurrence as the property’s subject, or claiming this free-declaration field automatically supplies native binder sort lowering."
+msgstr "Éviter une chaîne de nom de domaine, une occurrence comme sujet de la propriété ou l’affirmation que ce champ de déclaration libre fournit automatiquement l’abaissement natif de sorte liée."
+
+msgctxt "https://blackcatinformatics.ca/math/variableDomain|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:variableDomain from the math:FreeVariableDeclaration to its declared math:Set, retaining the vocabulary’s exactly-one context requirement. Keep that authored context distinct from the selected bound math:domain path and do not promise every consumer enforces both identically."
+msgstr "Faire pointer math:variableDomain du math:FreeVariableDeclaration vers son math:Set déclaré, en conservant l’exigence d’un contexte unique du vocabulaire. Garder ce contexte rédigé distinct du chemin lié math:domain sélectionné et ne pas promettre que tous les consommateurs imposent les deux de façon identique."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "occurs in scope"
+msgstr "apparaît dans la portée"
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableOccurrence to the math:MathematicalExpression scope it occurs in — the binding expression or sub-expression whose body contains the use site. Domain math:VariableOccurrence, range math:MathematicalExpression (stated in prose). Scope metadata describes the use site; lexical binding follows the occurrence’s explicit math:declaredVariable identity in the AST’s enclosing binder stack, not glyph matching. An occurrence beneath a same-glyph inner binder may still reference an enclosing outer declaration."
+msgstr "Relie un math:VariableOccurrence à la portée math:MathematicalExpression où il apparaît — l’expression de liaison ou sous-expression dont le corps contient le site d’usage. Domaine math:VariableOccurrence, portée math:MathematicalExpression (déclarés en prose). Les métadonnées de portée décrivent le site d’usage ; la liaison lexicale suit l’identité explicite math:declaredVariable de l’occurrence dans la pile des lieurs englobants de l’AST, et non la correspondance des glyphes. Une occurrence sous un lieur intérieur de même glyphe peut encore référencer une déclaration extérieure englobante."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This edge describes the expression scope containing a use site. It does not choose a declaration by glyph or create an enclosing binder; actual bound resolution follows explicit declaration identity along the lexical AST stack."
+msgstr "Ce lien décrit la portée d’expression contenant un site d’usage. Il ne choisit pas de déclaration par glyphe et ne crée pas de lieur englobant ; la résolution liée réelle suit l’identité explicite de déclaration dans la pile lexicale de l’AST."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|http://www.w3.org/2004/02/skos/core#example"
+msgid "An occurrence inside an inner binder displaying i may record that inner expression as its scope while math:declaredVariable explicitly points to the outer i declaration. The metadata does not force capture by the inner declaration."
+msgstr "Une occurrence dans un lieur intérieur affichant i peut consigner cette expression intérieure comme portée tandis que math:declaredVariable pointe explicitement vers la déclaration i extérieure. Les métadonnées n’imposent pas sa capture par la déclaration intérieure."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to retain accurate scope metadata for a variable occurrence without replacing its explicit declaration reference."
+msgstr "Utiliser pour conserver des métadonnées de portée exactes d’une occurrence de variable sans remplacer sa référence explicite de déclaration."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring the nearest same-glyph declaration, using scope metadata alone as proof of binding, or moving an occurrence lexically by changing only this edge."
+msgstr "Ne pas déduire la déclaration de même glyphe la plus proche, utiliser les seules métadonnées de portée comme preuve de liaison ou déplacer lexicalement une occurrence en changeant uniquement ce lien."
+
+msgctxt "https://blackcatinformatics.ca/math/occursInScope|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:occursInScope from the occurrence to the expression scope that actually contains it and preserve math:declaredVariable separately. Validate any bound target against the enclosing binder stack, permitting explicit outer references beneath inner binders rather than re-resolving labels."
+msgstr "Faire pointer math:occursInScope de l’occurrence vers la portée d’expression qui la contient réellement et préserver séparément math:declaredVariable. Valider toute cible liée contre la pile englobante, en permettant les références extérieures explicites sous des lieurs intérieurs plutôt que résoudre à nouveau les libellés."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "variable occurrence"
+msgstr "Occurrence de variable"
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates a math:VariableExpression leaf to the math:VariableOccurrence it stands for. Domain math:VariableExpression, range math:VariableOccurrence (stated in prose)."
+msgstr "Relie une feuille math:VariableExpression au math:VariableOccurrence qu’elle représente. Domaine math:VariableExpression, portée math:VariableOccurrence (déclarés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The direction is from the expression leaf to its use-site occurrence. Declaration resolution is the next math:declaredVariable edge, so this link neither names the declaration directly nor establishes lexical binding by itself."
+msgstr "La direction va de la feuille d’expression vers son occurrence d’usage. La résolution de déclaration est le lien math:declaredVariable suivant ; ce lien ne désigne donc pas directement la déclaration et n’établit pas à lui seul la liaison lexicale."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|http://www.w3.org/2004/02/skos/core#example"
+msgid "A math:VariableExpression for a nested use of i points through math:variableOccurrence to that use site, then through math:declaredVariable to the selected outer or inner declaration."
+msgstr "Un math:VariableExpression pour un usage imbriqué de i pointe par math:variableOccurrence vers ce site d’usage, puis par math:declaredVariable vers la déclaration extérieure ou intérieure sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to preserve the expression-leaf-to-occurrence step separately from the occurrence’s declaration and scope metadata."
+msgstr "Utiliser pour préserver l’étape de la feuille d’expression vers l’occurrence séparément de la déclaration et des métadonnées de portée de l’occurrence."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid a declaration or glyph literal as object, multiple occurrence targets on the leaf, or treating this link as an implicit free-variable marker."
+msgstr "Éviter une déclaration ou un littéral de glyphe comme objet, plusieurs cibles d’occurrences sur la feuille ou le traitement de ce lien comme marqueur implicite de variable libre."
+
+msgctxt "https://blackcatinformatics.ca/math/variableOccurrence|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Give the math:VariableExpression exactly one math:variableOccurrence target and give that occurrence one explicit math:declaredVariable. Keep the body AST placement and any scope metadata coherent; a free target must be an explicit math:FreeVariableDeclaration."
+msgstr "Donner au math:VariableExpression exactement une cible math:variableOccurrence et à cette occurrence un math:declaredVariable explicite. Garder cohérents le placement dans l’AST du corps et les métadonnées de portée ; une cible libre doit être un math:FreeVariableDeclaration explicite."
