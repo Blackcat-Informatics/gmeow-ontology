@@ -2344,27 +2344,47 @@ math:LieGroup
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Lie Group"@x-gmeow-english ;
-    skos:definition "A group that is also a smooth manifold, with smooth group operations (its group-ness stated in prose to keep the profile clean). It carries a math:RootSystem through math:hasRootSystem and a math:LieAlgebra as its infinitesimal structure. The root system is what makes a semisimple Lie group expressible, so a Lie group without one is ill-formed (math:IncompleteLieStructure). E8 is the 248-dimensional exceptional simple Lie group."@x-gmeow-english ;
+    skos:scopeNote "General Lie-group mathematics requires a smooth group, not a semisimple root system for every group. The current GMEOW LieGroup record nevertheless has an existing required root anchor; this modeling contract must be stated without weakening its check or inventing a semisimple classifier or group/algebra link."@x-gmeow-english ;
+    skos:example "exa:E8LieGroup in e8-symmetry.ttl names exa:e8Roots through math:hasRootSystem. Its Lie dimension 248 is distinct from that root system’s rank 8 and root count 240."@x-gmeow-english ;
+    gmeow:useWhen "Use when a smooth group is the mathematical referent and its description can retain the current record’s declared root-system input."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the current required anchor as a theorem that every Lie group is semisimple, dropping that anchor from this record, or equating Lie dimension with root rank or Weyl order."@x-gmeow-english ;
+    gmeow:howToUse "Identify the Lie group and its supplied math:RootSystem through math:hasRootSystem, retaining the source-declared math:IncompleteLieStructure ownership for missing required data. Keep any Lie-algebra description separately grounded in the actual example, without manufacturing a pairing predicate, calculation or proof."@x-gmeow-english ;
+    skos:definition "A group that is also a smooth manifold, with smooth group operations (its group-ness stated in prose to keep the profile clean). Its infinitesimal structure is a math:LieAlgebra. The current GMEOW math:LieGroup record requires a declared math:RootSystem through math:hasRootSystem and reports math:IncompleteLieStructure when that anchor is absent; this declared-input requirement does not make a semisimple root system part of every Lie group's mathematical definition. E8 is the 248-dimensional exceptional simple Lie group."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:LieAlgebra
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Lie Algebra"@x-gmeow-english ;
-    skos:definition "The infinitesimal structure of a math:LieGroup: a vector space with an alternating bilinear bracket satisfying the Jacobi identity (its algebra-ness stated in prose). It carries the same math:RootSystem as its Lie group. The E8 Lie algebra is the 248-dimensional exceptional simple Lie algebra."@x-gmeow-english ;
+    skos:scopeNote "The alternating bilinear bracket and Jacobi identity characterize the Lie-algebra role; it is not ordinary associative matrix multiplication. Shared root identity is bounded to the authored E8 example, and no universal required LieAlgebra root path or inverse/identity rule is introduced."@x-gmeow-english ;
+    skos:example "exa:E8LieAlgebra and exa:E8LieGroup both point to exa:e8Roots in e8-symmetry.ttl. That example’s shared resource does not establish the same-root rule for all group/algebra descriptions."@x-gmeow-english ;
+    gmeow:useWhen "Use when the infinitesimal algebraic structure with an alternating bilinear Lie bracket and Jacobi law is the referent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid replacing the bracket by an assumed associative product, inferring a required shared root system for every Lie algebra, or reading a Jacobi proof from a class label or root link."@x-gmeow-english ;
+    gmeow:howToUse "Retain the Lie-algebra referent and its actual bracket and law descriptions where supplied. Preserve the E8 root link as example data, keep dimension 248 distinct from root rank, and avoid adding a general group/algebra pairing or claiming that the named resource realizes the bracket formula."@x-gmeow-english ;
+    skos:definition "The infinitesimal structure of a math:LieGroup: a vector space with an alternating bilinear bracket satisfying the Jacobi identity (its algebra-ness stated in prose). In e8-symmetry.ttl, exa:E8LieGroup and exa:E8LieAlgebra both reference exa:e8Roots through math:hasRootSystem; that example imposes no general shared-root identity rule or required root path for every Lie algebra. The E8 Lie algebra is the 248-dimensional exceptional simple Lie algebra."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:RootSystem
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Root System"@x-gmeow-english ;
-    skos:definition "A finite configuration of vectors (roots) in a Euclidean space satisfying the root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup (the group generated by root reflections), and may carry its math:hasSimpleRoot base and math:rootCount. The Cartan matrix, Weyl group, and rank make the root-system structure explicit without identifying its reflection group with its full automorphism group; a root system missing them is ill-formed (math:IncompleteLieStructure). E8's root system has 240 roots in rank 8, and a root system carrying that E8 fingerprint MUST declare a math:weylGroup whose math:groupOrder is 696,729,600 — the true order of W(E8) — so the flagship's numbers are a validatable invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not trusted (math:WrongE8WeylOrder)."@x-gmeow-english ;
+    skos:scopeNote "This resource identifies the root-system configuration, distinct in role from its chosen base, Cartan matrix, diagram and reflection group. The existing declaration check requires a Cartan matrix, Weyl group and rank; the E8 example supplies further diagram, simple-root and root-count data without making every supplied field a new universal required path."@x-gmeow-english ;
+    skos:example "exa:e8Roots in e8-symmetry.ttl declares rank 8, root count 240 and a Weyl group of order 696729600. The linked matrix, diagram and simple-root resources have types and labels, not authored matrix entries, diagram edges or root coordinates."@x-gmeow-english ;
+    gmeow:useWhen "Use when a root system must retain its own identity and the actual declared rank, matrix, reflection-group and supplied base/diagram information."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring full automorphism-group equality from a Weyl link, calculating missing matrix or root data from labels, identifying the root system with the separately named E8 lattice, or treating absent E8 order as permitted by the current wrong-value check."@x-gmeow-english ;
+    gmeow:howToUse "Preserve the declared root-system frame and any supplied simple-root, diagram and root-count records without inventing additional data or cardinalities. For the E8 fingerprint retain the required Weyl order; the guarded wrong-value check’s absent-order coverage gap remains a defect, not an authorization to omit the value or a claim of a fresh runtime check."@x-gmeow-english ;
+    skos:definition "A finite configuration of vectors (roots) in a Euclidean space satisfying the root-system axioms — the combinatorial heart of a semisimple Lie group. It declares its math:rootSystemRank, a math:CartanMatrix, a math:DynkinDiagram, and a math:WeylGroup (the group generated by root reflections), and may carry its math:hasSimpleRoot base and math:rootCount. The Cartan matrix, Weyl group, and rank make the root-system structure explicit without identifying its reflection group with its full automorphism group; a root system missing them is ill-formed (math:IncompleteLieStructure). E8's root system has 240 roots in rank 8, and a root system carrying that E8 fingerprint MUST declare a math:weylGroup whose math:groupOrder is 696,729,600 — the true order of W(E8) — so the flagship's numbers are a validatable invariant: a corrupted Weyl order on data claiming to be E8 is rejected by value, not trusted (math:WrongE8WeylOrder). The current guarded wrong-value check does not test for an absent order; that missing enforcement case does not permit omission of the required order."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:SimpleRoot
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Simple Root"@x-gmeow-english ;
+    skos:scopeNote "A simple root is selected relative to a chosen root-system base; a named root resource is not its coordinate tuple or a proof that a complete base has been supplied. The eight simple roots in the E8 example are specific data, not a universal count."@x-gmeow-english ;
+    skos:example "exa:e8SimpleRoot1 through exa:e8SimpleRoot8 in e8-symmetry.ttl have math:SimpleRoot types and α labels. Those records identify the chosen roots without authoring their vector coordinates."@x-gmeow-english ;
+    gmeow:useWhen "Use when a root in a specified simple-root base needs an identified mathematical resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring coordinates or base completeness from an α label, requiring eight roots for every system, or turning the root/base distinction into a resource-inequality axiom."@x-gmeow-english ;
+    gmeow:howToUse "Link the root system to the chosen root with math:hasSimpleRoot and retain the base context and any actual vector or law representation where supplied. Keep the source’s type-and-label records honest about their limits, without manufacturing coordinates or extra required paths."@x-gmeow-english ;
     skos:definition "A root in the chosen base of a math:RootSystem — a basis of positive roots from which every root is a non-negative or non-positive integer combination. Reached through math:hasSimpleRoot. E8 has 8 simple roots, one per node of its Dynkin diagram."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2372,6 +2392,11 @@ math:CartanMatrix
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Cartan Matrix"@x-gmeow-english ;
+    skos:scopeNote "This is the matrix referent for the chosen simple-root context, distinct in role from a diagram or a link naming the matrix. Its mathematical classification meaning does not make a type-and-label resource an authored table of Cartan integers or a computed classification result."@x-gmeow-english ;
+    skos:example "exa:e8Cartan in e8-symmetry.ttl is typed math:CartanMatrix and labelled as E8’s 8×8 matrix. The record contains no matrix entries; the label is not an evaluated matrix or proof of E8 classification."@x-gmeow-english ;
+    gmeow:useWhen "Use when the Cartan matrix associated with a root system and chosen base must have an explicit referent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a diagram label for matrix entries, deriving numeric cells from the matrix’s name, or requiring identical or unequal matrix/diagram resources solely from their role distinction."@x-gmeow-english ;
+    gmeow:howToUse "Retain the matrix resource reached by math:cartanMatrix and the actual base or entry representation where supplied. Keep existing required-link semantics separate from matrix-data completeness or classification evidence, and do not invent entries or an automatic matrix/diagram conversion."@x-gmeow-english ;
     skos:definition "The integer matrix of pairwise Cartan integers of a root system's simple roots — it encodes the whole root system up to isomorphism. Reached through math:cartanMatrix. E8's is the 8×8 Cartan matrix of the E8 Dynkin diagram."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2379,7 +2404,12 @@ math:DynkinDiagram
     a logic:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Dynkin Diagram"@x-gmeow-english ;
-    skos:definition "The graph encoding a root system's simple roots and their angles — the pictorial classification datum of semisimple Lie algebras. Reached through math:dynkinDiagram. E8's is the 8-node Dynkin diagram of the exceptional series."@x-gmeow-english ;
+    skos:scopeNote "The diagram records simple-root incidence together with angle and relative-length information; relative lengths matter outside the simply-laced case. Naming a diagram resource does not supply its edges, determine a Cartan matrix or prove a classification."@x-gmeow-english ;
+    skos:example "exa:e8Dynkin in e8-symmetry.ttl has a math:DynkinDiagram type and an eight-node E8 label. No diagram edges or relative-length data are authored in that record."@x-gmeow-english ;
+    gmeow:useWhen "Use when the diagrammatic root-system datum needs an identified resource with its actual angle and relative-length interpretation."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating node labels as complete diagram data, ignoring relative lengths in non-simply-laced cases, or computing classification or matrix entries from a diagram link alone."@x-gmeow-english ;
+    gmeow:howToUse "Retain the diagram named by math:dynkinDiagram and any actual graph, angle and relative-length descriptions where supplied. Keep its role separate from the matrix and chosen roots without inventing graph edges, classification machinery or a new universal requirement for every root-system fixture."@x-gmeow-english ;
+    skos:definition "The graph encoding a root system's simple roots, their angles and relative root lengths — the pictorial classification datum of semisimple Lie algebras. Reached through math:dynkinDiagram. E8's is the 8-node Dynkin diagram of the exceptional series."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 math:WeylGroup
@@ -2387,6 +2417,11 @@ math:WeylGroup
     logic:subClassOf math:Group ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "Weyl Group"@x-gmeow-english ;
+    skos:scopeNote "A Weyl group is a reflection group inheriting math:Group, with its own typed root anchor and existing class-local closure. It need not be the full root-system automorphism group; E8’s equality is specific, and the root requirement must not be changed into an existential witness-creation rule."@x-gmeow-english ;
+    skos:example "ex:a2Weyl in lie-structure-complete.ttl has order 6, while the full A2 root-system automorphism group has order 12. exa:e8Weyl in e8-symmetry.ttl explicitly carries both WeylGroup and AutomorphismGroup types and both anchors."@x-gmeow-english ;
+    gmeow:useWhen "Use when the group generated by reflections in a specified root system is the mathematical referent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring full automorphism-group status for every Weyl group, dropping the inherited group frame, or manufacturing a root witness merely to satisfy the anchor."@x-gmeow-english ;
+    gmeow:howToUse "Retain the group carrier, operations and declared laws and identify the actual typed root system with math:hasRootSystem. Preserve the universal restriction and class-local closure without adding an existential minimum; add full math:AutomorphismGroup typing and math:automorphismGroupOf only for the independently justified full-group claim."@x-gmeow-english ;
     skos:definition "The group generated by the reflections in the hyperplanes orthogonal to a root system's roots — a math:Group that math:actsOn the roots and declares its root anchor through math:hasRootSystem. It can be a proper subgroup of the full root-system automorphism group: for A2 the Weyl group has order 6 and the full automorphism group has order 12. Reached through math:weylGroup. E8's Weyl group has order 696,729,600 and is also the full automorphism group of the E8 root system; that equality is specific, not a universal superclass rule."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
@@ -2429,6 +2464,11 @@ math:hasRootSystem
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has root system"@x-gmeow-english ;
+    skos:scopeNote "This root-anchor relation has current LieGroup, LieAlgebra and WeylGroup uses without a closed global carrier vocabulary. The existing LieGroup and WeylGroup requirements remain class-local; the E8 LieAlgebra use does not create a mandatory root path for all Lie algebras or a shared-root identity rule."@x-gmeow-english ;
+    skos:example "exa:E8LieGroup, exa:E8LieAlgebra and exa:e8Weyl each use math:hasRootSystem exa:e8Roots in e8-symmetry.ttl. The three source resources retain different roles despite sharing that root resource."@x-gmeow-english ;
+    gmeow:useWhen "Use when an existing mathematical carrier must explicitly name its root-system anchor under its actual modeling requirements."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing every subject into one class, deriving a group/algebra identity or full automorphism claim from a shared target, or treating a root link as an automatic inverse of math:weylGroup."@x-gmeow-english ;
+    gmeow:howToUse "Point from the actual carrier to the supplied math:RootSystem, retaining the applicable typed anchor and failure ownership. Keep source-specific requirements, E8 shared data and any independent full-automorphism anchor distinct; add no global domain, reverse edge, equality rule or witness-generating minimum."@x-gmeow-english ;
     skos:definition "Relates a mathematical carrier, such as a math:LieGroup, math:LieAlgebra or math:WeylGroup, to its math:RootSystem; these carrier examples do not define a closed global domain. A semisimple Lie group without a root system is ill-formed, and a Weyl group requires a typed root-system anchor independently of any full-automorphism-group claim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2436,6 +2476,11 @@ math:hasSimpleRoot
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "has simple root"@x-gmeow-english ;
+    skos:scopeNote "The property records membership in a chosen simple-root base, not coordinates or an automatic completeness certificate. E8’s eight supplied root links do not impose eight values or a new required base path on every root system."@x-gmeow-english ;
+    skos:example "exa:e8Roots names exa:e8SimpleRoot1 through exa:e8SimpleRoot8 with math:hasSimpleRoot in e8-symmetry.ttl. The A2 conformance fixture does not supply a simple-root base in its declared frame."@x-gmeow-english ;
+    gmeow:useWhen "Use when a root system’s explicitly chosen base must retain links to its named simple-root resources."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid inferring coordinates, base completeness or diagram edges from the links, copying E8’s count into all systems, or adding a resource-inequality rule between base-related roles."@x-gmeow-english ;
+    gmeow:howToUse "Keep each link from the root system to the actual math:SimpleRoot in the declared base context, retaining any further mathematical description separately. Preserve source-supplied extras without turning them into new universal cardinalities or deriving absent vector data."@x-gmeow-english ;
     skos:definition "Relates a math:RootSystem to a math:SimpleRoot in its chosen base. Domain math:RootSystem, range math:SimpleRoot (stated in prose). E8 has eight."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2443,6 +2488,11 @@ math:cartanMatrix
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "cartan matrix"@x-gmeow-english ;
+    skos:scopeNote "This is the link naming the root system’s matrix referent, not the matrix’s numeric content. The existing typed required declaration belongs to the root-system frame; its presence does not establish authored entries, a chosen-base proof or a classification result."@x-gmeow-english ;
+    skos:example "exa:e8Roots points to exa:e8Cartan through math:cartanMatrix in e8-symmetry.ttl. ex:a2Roots points to ex:a2Cartan in lie-structure-complete.ttl; neither linked matrix record authors entries."@x-gmeow-english ;
+    gmeow:useWhen "Use when the actual Cartan matrix resource for a root-system description must be named explicitly."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting a matrix label for its entries, deriving a diagram or coordinates from this edge alone, or treating the typed link as complete classification evidence."@x-gmeow-english ;
+    gmeow:howToUse "Point from the root system to the supplied math:CartanMatrix and retain the existing failure ownership for a missing required declaration. Preserve any actual matrix/base representation separately and leave type-and-label-only records at that evidenced level, without inventing entries or extra cardinality rules."@x-gmeow-english ;
     skos:definition "Relates a math:RootSystem to its math:CartanMatrix. Domain math:RootSystem, range math:CartanMatrix (stated in prose). A root system declares one; it encodes the system up to isomorphism."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2450,6 +2500,11 @@ math:dynkinDiagram
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "dynkin diagram"@x-gmeow-english ;
+    skos:scopeNote "The property identifies a supplied diagram role, separate from matrix and base roles without requiring unequal resources. Its interpretation includes angles and relative root lengths, but a link does not author diagram edges or add a universal required path to the current root-system check."@x-gmeow-english ;
+    skos:example "exa:e8Roots names exa:e8Dynkin with math:dynkinDiagram in e8-symmetry.ttl. The A2 conformance frame in lie-structure-complete.ttl supplies no diagram link, and the E8 diagram record itself contains no authored graph edges."@x-gmeow-english ;
+    gmeow:useWhen "Use when a root-system description supplies a named Dynkin diagram as classification data."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid interpreting the edge as a computed diagram, omitting relative-length meaning where it matters, or imposing E8’s eight-node description on every system."@x-gmeow-english ;
+    gmeow:howToUse "Link the root system to its actual math:DynkinDiagram and retain any supplied graph, angle or length data separately. Keep this supplied-extra role distinct from the current required matrix/Weyl/rank frame, preserving existing records without deriving edges, coordinates or classification proofs."@x-gmeow-english ;
     skos:definition "Relates a math:RootSystem to its math:DynkinDiagram. Domain math:RootSystem, range math:DynkinDiagram (stated in prose)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2457,6 +2512,11 @@ math:weylGroup
     a logic:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "weyl group"@x-gmeow-english ;
+    skos:scopeNote "This relation points from the root system to its reflection group. The group’s own math:hasRootSystem anchor is a distinct role that must not be assumed as an automatic inverse edge, and neither role identifies the reflection group with the full automorphism group."@x-gmeow-english ;
+    skos:example "exa:e8Roots names exa:e8Weyl through math:weylGroup, while ex:a2Roots names ex:a2Weyl in the A2 fixture. The E8 group has specific full-automorphism typing; the A2 reflection group does not."@x-gmeow-english ;
+    gmeow:useWhen "Use when a root system must explicitly identify the group generated by its root reflections."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid deriving a full automorphism-group claim or reverse anchor automatically, assigning E8’s order to every system, or treating a group link as computation of the order."@x-gmeow-english ;
+    gmeow:howToUse "Point to the actual math:WeylGroup and preserve its inherited group frame and explicit typed root anchor. Retain the required E8 order when that fingerprint is claimed, without generalizing a group-order obligation to all systems or treating the absent-order enforcement gap as permission to omit it."@x-gmeow-english ;
     skos:definition "Relates a math:RootSystem to its math:WeylGroup — the group generated by root reflections, which need not be the full automorphism group of the roots. Domain math:RootSystem, range math:WeylGroup (stated in prose). A root system declares one."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
@@ -2464,6 +2524,11 @@ math:rootSystemRank
     a logic:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/math> ;
     rdfs:label "root system rank"@x-gmeow-english ;
+    skos:scopeNote "Root rank is the dimension spanned by the root system and the size of a simple-root base, not the total number of roots, Lie dimension or Weyl-group order. A declared integer records that quantity without computing it from named roots or proving their independence."@x-gmeow-english ;
+    skos:example "exa:e8Roots has math:rootSystemRank 8 and math:rootCount 240; its Lie referents have dimension 248 and exa:e8Weyl has order 696729600. The A2 fixture instead declares rank 2 and Weyl order 6."@x-gmeow-english ;
+    gmeow:useWhen "Use when the nonnegative integer rank of an explicitly identified root system must be recorded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid substituting root count, Lie dimension, matrix-entry data or group order for rank, inferring complete base data from the integer, or requiring E8’s rank for all systems."@x-gmeow-english ;
+    gmeow:howToUse "State the actual nonnegative rank on the math:RootSystem, preserving the existing typed declaration and its failure ownership. Keep independently supplied base, matrix, diagram, count and order evidence in their own roles; derive no equality, generic group-order rule or classification proof from this value alone."@x-gmeow-english ;
     skos:definition "The rank of a math:RootSystem — the dimension of the space it spans, equal to the number of simple roots. Domain math:RootSystem, range a non-negative integer (stated in prose). E8 has rank 8."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
