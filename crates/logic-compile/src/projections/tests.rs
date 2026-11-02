@@ -1241,14 +1241,38 @@ fn sample_formulas() -> Vec<Formula> {
     ]
 }
 
+/// Canonical formula emission preserves exact semantic names and distinct variable and marker kinds.
 #[test]
 fn formulas_round_trip_through_canonical_rdf12() {
-    let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(sample_formulas());
+    let mut formulas = sample_formulas();
+    for name in ["?X:中", " x ", "MiXeD"] {
+        formulas.push(Formula::Forall {
+            vars: vec![name.to_owned()],
+            body: Box::new(
+                Formula::atom(
+                    Term::iri(format!("{LOGIC_NS}names")).unwrap(),
+                    vec![
+                        Term::var(name).unwrap(),
+                        Term::sequence_marker(name).unwrap(),
+                    ],
+                )
+                .unwrap(),
+            ),
+        });
+    }
+    let program = LogicProgram::new(vec![], vec![], vec![], None).with_formulas(formulas);
     let reparsed = reparse_canonical(&program);
     assert_eq!(
         reparsed.formulas.len(),
         program.formulas.len(),
         "every formula must survive the round-trip"
+    );
+    assert!(
+        program
+            .formulas
+            .iter()
+            .all(|formula| reparsed.formulas.contains(formula)),
+        "semantic names and term kinds must survive emission"
     );
     assert_eq!(
         reparsed.canonical_key(),

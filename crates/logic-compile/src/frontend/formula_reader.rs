@@ -869,19 +869,19 @@ fn parse_term(
             };
             Term::iri(iri.clone()).map_err(|e| formula_err(formula, e.message()))
         }
-        "termVariable" => {
-            if !term_is_literal(value) {
-                return Err(formula_err(
+        "termVariable" => super::selector_literal_value(value.clone(), "termVariable")
+            .and_then(Term::var)
+            .map_err(|error| {
+                formula_err(
                     formula,
                     format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termVariable name",
+                        "logic:Formula {} logic:TermCarrier {}: {}",
                         subject_str(formula),
-                        subject_str(carrier)
+                        subject_str(carrier),
+                        error.message()
                     ),
-                ));
-            }
-            Term::var(term_str(value)).map_err(|e| formula_err(formula, e.message()))
-        }
+                )
+            }),
         "termLiteral" => {
             if !term_is_literal(value) {
                 return Err(formula_err(
@@ -936,19 +936,19 @@ fn parse_term(
             }
             Term::rdf_literal(literal).map_err(|e| formula_err(formula, e.message()))
         }
-        "termSequenceMarker" => {
-            if !term_is_literal(value) {
-                return Err(formula_err(
+        "termSequenceMarker" => super::selector_literal_value(value.clone(), "termSequenceMarker")
+            .and_then(Term::sequence_marker)
+            .map_err(|error| {
+                formula_err(
                     formula,
                     format!(
-                        "logic:Formula {} logic:TermCarrier {} requires a literal logic:termSequenceMarker name",
+                        "logic:Formula {} logic:TermCarrier {}: {}",
                         subject_str(formula),
-                        subject_str(carrier)
+                        subject_str(carrier),
+                        error.message()
                     ),
-                ));
-            }
-            Term::sequence_marker(term_str(value)).map_err(|e| formula_err(formula, e.message()))
-        }
+                )
+            }),
         "termApplication" => {
             let function_term = term_as_subject(value).ok_or_else(|| {
                 formula_err(
