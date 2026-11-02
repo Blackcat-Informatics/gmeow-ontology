@@ -219,17 +219,13 @@ use gmeow_validate::local_oracle::{self, EntailmentView, FixtureView, LiteralVie
 // `recall` is a core read over the grounded-memory triad; the three WRITE option types
 // belong to the WRITE tools, which are segment tools because their commit gate is a TR
 // transaction.
+#[cfg(feature = "reasoning")]
+use crate::storage::{StructuredPayload, ToolCallAudit, ToolCallOptions};
 use purrdf::gts::examples::agent_memory::RecallOptions;
 #[cfg(feature = "reasoning")]
-use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions, ToolCallOptions};
+use purrdf::gts::examples::agent_memory::{RevisionOptions, StoreOptions};
 // The GTS WRITE side: only the six WRITE tools mint segments, so the writer and its term
 // model travel with the segment their commit gate lives in.
-#[cfg(feature = "reasoning")]
-// The ONE mandated GMEOW GTS authorship door. `purrdf::gts::writer::Writer` is NOT it:
-// its default catalog states no zstd level, so a segment authored through it satisfies the
-// codec-name half of the frame profile while leaving the level unstated — and therefore
-// unverifiable — on the artifact. The repo-static authorship seal enforces this.
-use gmeow_gts_profile::GmeowGtsWriter as GtsWriter;
 #[cfg(feature = "reasoning")]
 use purrdf::TermValue;
 #[cfg(feature = "reasoning")]
@@ -4851,35 +4847,26 @@ impl McpServer {
             },
         )?;
         let response =
-            json!({"ok": true, "claim": claim_json(&claim), "transaction": txn_json(&receipt)})
-                .to_string();
+            json!({"ok": true, "claim": claim_json(&claim), "transaction": txn_json(&receipt)});
         let generated = [claim.id.as_str()];
-        let call = memory.record_tool_call(
+        let arguments = tool_arguments(
+            args,
+            &["text", "source", "confidence", "according_to", "dry_run"],
+        );
+        let payload = StructuredPayload::from_json(Some(&arguments), Some(&response))?;
+        memory.record_tool_call(
             &format!("{TOOL_AGENT_NS}store_claim"),
             ToolCallOptions {
-                arguments: Some(&tool_arguments(
-                    args,
-                    &["text", "source", "confidence", "according_to", "dry_run"],
-                )),
-                result: Some(&response),
-                invocation: None,
+                payload: Some(&payload),
                 generated: &generated,
+                audit: Some(ToolCallAudit {
+                    schema: MCP_STORE_CLAIM_SCHEMA,
+                    obtains: &obtains,
+                }),
+                ..ToolCallOptions::default()
             },
         )?;
-        // Record the trajectory-audit context on the recorded call so the committed turn is cold-auditable.
-        let at_time = call.created.as_deref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "record_tool_call did not stamp a creation time".to_string(),
-            })
-        })?;
-        write_audit_segment(
-            memory.as_ref(),
-            &call.id,
-            MCP_STORE_CLAIM_SCHEMA,
-            &obtains,
-            at_time,
-        )?;
-        Ok(response)
+        Ok(response.to_string())
     }
 
     /// `recall` — the READ half of the grounded-memory triad.
@@ -4975,33 +4962,22 @@ impl McpServer {
             "suppressed": claim_id,
             "superseded_by": optional_str(args, "superseded_by"),
             "transaction": txn_json(&receipt),
-        })
-        .to_string();
-        let call = memory.record_tool_call(
+        });
+        let arguments = tool_arguments(args, &["claim_id", "reason", "superseded_by", "dry_run"]);
+        let payload = StructuredPayload::from_json(Some(&arguments), Some(&response))?;
+        memory.record_tool_call(
             &format!("{TOOL_AGENT_NS}revise_belief"),
             ToolCallOptions {
-                arguments: Some(&tool_arguments(
-                    args,
-                    &["claim_id", "reason", "superseded_by", "dry_run"],
-                )),
-                result: Some(&response),
-                invocation: None,
+                payload: Some(&payload),
                 generated: &[],
+                audit: Some(ToolCallAudit {
+                    schema: MCP_REVISE_BELIEF_SCHEMA,
+                    obtains: &obtains,
+                }),
+                ..ToolCallOptions::default()
             },
         )?;
-        let at_time = call.created.as_deref().ok_or_else(|| {
-            gmeow_errors::Diag::of_kind(crate::error::Mcp {
-                message: "record_tool_call did not stamp a creation time".to_string(),
-            })
-        })?;
-        write_audit_segment(
-            memory.as_ref(),
-            &call.id,
-            MCP_REVISE_BELIEF_SCHEMA,
-            &obtains,
-            at_time,
-        )?;
-        Ok(response)
+        Ok(response.to_string())
     }
 
     /// `conjecture_test` — the issue's "test" leg: a PURE hypothetical evaluation of a
@@ -7796,27 +7772,6 @@ fn push_gts_term(terms: &mut Vec<GtsTerm>, term: GtsTerm) -> usize {
     terms.len() - 1
 }
 
-/// Append the trajectory-audit context segment for a just-recorded `gmeow:ToolCall` to the SAME
-/// `memory.gts`, keyed to `call_id`: the call's `logic:instantiatesSchema`, its single
-/// `logic:properPartOf` turn anchor (one call = one anchor — the stateless server mints no shared
-/// turn state), its `gmeow:atTime` and the single canonical `gmeow:eventTemporalFrame`
-/// (UTC-Gregorian, P11), the anchor's `logic:transitionFromState` start state, and the start's
-/// obtaining situations. This is exactly the shape `emit_trajectory_audits` reads, so a cold trajectory
-/// audit of `memory.gts` (unioned with the canonical action theory) verifies the executed turn.
-#[cfg(feature = "reasoning")]
-fn write_audit_segment(
-    store: &dyn ClaimStore,
-    call_id: &str,
-    schema_iri: &str,
-    obtains: &[&str],
-    at_time: &str,
-) -> gmeow_errors::Result<()> {
-    let existing = store.store_bytes()?;
-    store.append_audit_segment(&build_store_audit_segment(
-        &existing, call_id, schema_iri, obtains, at_time,
-    )?)
-}
-
 /// The medium a store's CURRENT tail was written through, or `None` for a store with no bytes yet.
 ///
 /// A GTS segment declares exactly ONE codec catalog. A record appended to a store whose tail was
@@ -7880,7 +7835,7 @@ fn build_store_audit_segment(
     let (terms, quads) = audit_terms_and_quads(call_id, schema_iri, obtains, at_time);
     let mut writer = match store_tail_medium(existing)? {
         Some(medium) => gmeow_gts_profile::store_writer("ai-package", existing, &medium)?,
-        None => GtsWriter::new("ai-package"),
+        None => gmeow_gts_profile::unprimed_store_writer("ai-package", existing)?,
     };
     writer.add_terms(&terms)?;
     writer.add_quads(&quads)?;
@@ -8339,16 +8294,14 @@ fn read_library(
 }
 
 #[cfg(feature = "reasoning")]
-fn tool_arguments(args: &Value, keys: &[&str]) -> String {
+fn tool_arguments(args: &Value, keys: &[&str]) -> Value {
     let mut out = serde_json::Map::new();
     for key in keys {
-        if let Some(value) = args.get(*key)
-            && !value.is_null()
-        {
+        if let Some(value) = args.get(*key) {
             out.insert((*key).to_string(), value.clone());
         }
     }
-    Value::Object(out).to_string()
+    Value::Object(out)
 }
 
 /// The `recall` tool body against an EXPLICIT claim store.

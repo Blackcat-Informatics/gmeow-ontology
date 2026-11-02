@@ -48,12 +48,24 @@ define_diag_kind! {
     source = failure => Some(failure.cause.as_ref());
 }
 
+define_diag_kind! {
+    /// A native fold rejected existing bytes. Retain the complete original
+    /// diagnostic, including its typed cause and frame identity.
+    pub struct AppendFoldAdmission { diagnostic: std::sync::Arc<purrdf::gts::model::Diagnostic>, detail: String }
+    code = "gts-profile.append-fold-admission";
+    grade = Grade::new(Severity::Error, FindingCategory::ModelingDisciplineViolation, Standpoint::Binding);
+    message = "GTS append fold admission: {}", detail;
+    failure_class = "https://blackcatinformatics.ca/gmeow/GtsFrameProfileViolation";
+    source = failure => failure.diagnostic.native_cause().map(|cause| cause as &(dyn std::error::Error + 'static));
+}
+
 /// The complete GTS-profile diagnostic-code catalog, in registration order.
 pub const GTS_PROFILE_DIAG_CODES: &[&str] = &[
     Profile::CODE,
     Archive::CODE,
     SnapshotAdmission::CODE,
     AppendAdmission::CODE,
+    AppendFoldAdmission::CODE,
 ];
 
 define_diag_kind! {
@@ -72,6 +84,7 @@ pub fn register_all() -> Vec<Code> {
         Archive::register(),
         SnapshotAdmission::register(),
         AppendAdmission::register(),
+        AppendFoldAdmission::register(),
     ]
 }
 

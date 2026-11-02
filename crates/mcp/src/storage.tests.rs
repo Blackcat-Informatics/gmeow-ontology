@@ -154,14 +154,21 @@ fn a_store_seeded_from_a_segment_reserializes_to_the_same_bytes() {
             },
         )
         .expect("revises");
+    let arguments = serde_json::json!({"null": null, "empty": {}, "sequence": [false, false], "iri-looking": "urn:source:value", "number": 1.25});
+    let result = serde_json::json!([]);
+    let payload = StructuredPayload::from_json(Some(&arguments), Some(&result)).unwrap();
     origin
         .record_tool_call(
             "urn:gmeow:tool:store_claim",
             ToolCallOptions {
-                arguments: Some(r#"{"text":"widgets are blue"}"#),
-                result: Some(r#"{"ok":true}"#),
+                arguments: Some(&purrdf::RdfLiteral::simple(
+                    r#"{"text":"widgets are blue"}"#,
+                )),
+                result: Some(&purrdf::RdfLiteral::simple(r#"{"ok":true}"#)),
                 invocation: Some("urn:gmeow:invocation:0"),
                 generated: &[blue.id.as_str()],
+                payload: Some(&payload),
+                ..ToolCallOptions::default()
             },
         )
         .expect("records");
@@ -236,10 +243,11 @@ fn the_segment_parses_and_carries_the_declared_vocabulary() {
         .record_tool_call(
             "urn:gmeow:tool:recall",
             ToolCallOptions {
-                arguments: Some("{}"),
-                result: Some(r#"{"ok":true}"#),
+                arguments: Some(&purrdf::RdfLiteral::simple("{}")),
+                result: Some(&purrdf::RdfLiteral::simple(r#"{"ok":true}"#)),
                 invocation: None,
                 generated: &[],
+                ..ToolCallOptions::default()
             },
         )
         .expect("records");
@@ -258,9 +266,12 @@ fn the_segment_parses_and_carries_the_declared_vocabulary() {
         typed_as(GMEOW_CLAIM_TOKEN),
         "the claim is a gmeow:ClaimToken"
     );
-    assert!(typed_as(GMEOW_TOOL_CALL), "the call is a gmeow:ToolCall");
     assert!(
-        typed_as(GMEOW_SOFTWARE_AGENT),
+        typed_as("https://blackcatinformatics.ca/gmeow/ToolCall"),
+        "the call is a gmeow:ToolCall"
+    );
+    assert!(
+        typed_as("https://blackcatinformatics.ca/gmeow/SoftwareAgent"),
         "the called tool is typed a gmeow:SoftwareAgent, so the segment stands alone"
     );
     assert!(
@@ -316,6 +327,7 @@ fn a_record_the_transport_cannot_carry_fails_naming_the_field() {
         invocation: None,
         created: None,
         generated: Vec::new(),
+        ..ToolCallRecord::default()
     }];
     let diag = claim_segment(&[], &calls).expect_err("a non-IRI tool must be refused");
     let message = format!("{diag:?}");
@@ -360,19 +372,233 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
                 .record_tool_call(
                     tool,
                     ToolCallOptions {
-                        arguments: Some(arguments),
-                        result: Some(result),
+                        arguments: Some(&purrdf::RdfLiteral::simple(arguments)),
+                        result: Some(&purrdf::RdfLiteral::simple(result)),
                         invocation: Some(invocation),
                         generated: &[claim.id.as_str()],
+                        opaque_profile: Some(OpaquePayloadProfile::InlineOrBlake3),
+                        ..ToolCallOptions::default()
                     },
                 )
                 .unwrap(),
         );
     }
-    assert_eq!(written[0].arguments.as_deref(), Some(small));
-    assert_eq!(written[0].result.as_deref(), Some(digest.as_str()));
-    assert_eq!(written[1].arguments.as_deref(), Some(digest.as_str()));
-    assert_eq!(written[1].result.as_deref(), Some(small));
+    assert_eq!(
+        written[0]
+            .arguments
+            .as_ref()
+            .map(|value| value.lexical_form.as_str()),
+        Some(small)
+    );
+    assert_eq!(
+        written[0]
+            .result
+            .as_ref()
+            .map(|value| value.lexical_form.as_str()),
+        Some(digest.as_str())
+    );
+    assert_eq!(
+        written[1]
+            .arguments
+            .as_ref()
+            .map(|value| value.lexical_form.as_str()),
+        Some(digest.as_str())
+    );
+    assert_eq!(
+        written[1]
+            .result
+            .as_ref()
+            .map(|value| value.lexical_form.as_str()),
+        Some(small)
+    );
+
+    // Both roles share one cyclic native graph. Equal blank labels from two
+    // source datasets are distinct, while a blank reused inside a triple stays shared.
+    let first = purrdf::parse_dataset(format!(
+        r#"@prefix g: <https://blackcatinformatics.ca/gmeow/> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+        <urn:root> a g:StructuredValue, g:StructuredMap ; g:hasFacet _:cycle, _:left, _:right, _:quote, _:lang, _:identity, _:plain, _:typed .
+        _:cycle a g:LabelledFacet ; g:facetLabel "same" ; g:facetStructuredValue <urn:root> .
+        _:left a g:LabelledFacet ; g:facetLabel "same" ; g:facetStructuredValue <urn:left> .
+        _:right a g:LabelledFacet ; g:facetLabel "right" ; g:facetStructuredValue <urn:right> .
+        _:quote a g:LabelledFacet ; g:facetLabel "quote" ; g:facetStructuredValue _:quoted .
+        _:lang a g:LabelledFacet ; g:facetLabel " language " ; g:facetStructuredValue _:language .
+        _:identity a g:LabelledFacet ; g:facetLabel "identity" ; g:facetStructuredValue _:id .
+        _:plain a g:LabelledFacet ; g:facetLabel "text" ; g:facetText "prose"@en .
+        _:typed a g:LabelledFacet ; g:facetLabel "number" ; g:facetValue "0007"^^xsd:integer .
+        <urn:left> a g:StructuredValue ; g:structuredTerm _:same .
+        _:quoted a g:StructuredValue ; g:structuredTerm <<( <urn:s> <urn:p> _:same )>> .
+        _:language a g:StructuredValue ; g:structuredTerm "bonjour"@fr--rtl .
+        _:id a g:StructuredValue ; g:structuredTerm <{}> .
+        <urn:source-description> <http://www.w3.org/2000/01/rdf-schema#label> "source description"@en ."#, claim.id
+    ).as_bytes(), "text/turtle", None).unwrap();
+    let second = purrdf::parse_dataset(
+        b"@prefix g: <https://blackcatinformatics.ca/gmeow/> . GRAPH <urn:empty> {} GRAPH <urn:source> { <urn:extra> <http://www.w3.org/2000/01/rdf-schema#label> \"named source description\" . } <urn:right> a g:StructuredValue ; g:structuredTerm _:same .",
+        "application/trig", None,
+    ).unwrap();
+    let graph = Arc::new(purrdf::RdfDataset::union(&[first.as_ref(), second.as_ref()]).unwrap());
+    let root = purrdf::flat_rdf_quads_from_dataset(&graph)
+        .into_iter()
+        .find(|row| {
+            row.predicate == RDF_TYPE
+                && row.object
+                    == purrdf::RdfTerm::iri("https://blackcatinformatics.ca/gmeow/StructuredMap")
+        })
+        .unwrap()
+        .subject;
+    let payload = StructuredPayload::new(graph, Some(root.clone()), Some(root)).unwrap();
+    let before = store.store_bytes().unwrap();
+    assert!(
+        store
+            .record_tool_call(
+                tool,
+                ToolCallOptions {
+                    payload: Some(&payload),
+                    audit: Some(ToolCallAudit {
+                        schema: "not an IRI",
+                        obtains: &[]
+                    }),
+                    ..ToolCallOptions::default()
+                }
+            )
+            .is_err()
+    );
+    assert_eq!(
+        store.store_bytes().unwrap(),
+        before,
+        "selected audit refusal must publish no call prefix"
+    );
+    for channel in [
+        "g:facetText <urn:wrong>",
+        "g:facetText true",
+        "g:facetValue <urn:wrong>",
+    ] {
+        let graph = purrdf::parse_dataset(format!(
+            "@prefix g: <https://blackcatinformatics.ca/gmeow/> . <urn:map> a g:StructuredValue, g:StructuredMap ; g:hasFacet <urn:facet> . <urn:facet> a g:LabelledFacet ; g:facetLabel \"key\" ; {channel} ."
+        ).as_bytes(), "text/turtle", None).unwrap();
+        assert!(
+            StructuredPayload::new(graph, Some(purrdf::RdfTerm::iri("urn:map")), None).is_err(),
+            "{channel}"
+        );
+    }
+    let opaque_arguments = purrdf::RdfLiteral {
+        lexical_form: "bonsoir".to_owned(),
+        datatype: None,
+        language: Some("fr".to_owned()),
+        direction: Some(purrdf::RdfTextDirection::Rtl),
+    };
+    let opaque_result =
+        purrdf::RdfLiteral::typed("0007", "http://www.w3.org/2001/XMLSchema#integer");
+    let recorded = store
+        .record_tool_call(
+            tool,
+            ToolCallOptions {
+                arguments: Some(&opaque_arguments),
+                result: Some(&opaque_result),
+                opaque_profile: Some(OpaquePayloadProfile::Verbatim),
+                payload: Some(&payload),
+                invocation: Some(invocation),
+                generated: &[claim.id.as_str()],
+                ..ToolCallOptions::default()
+            },
+        )
+        .unwrap();
+    assert!(
+        recorded
+            .ingestion
+            .as_ref()
+            .unwrap()
+            .declarations_omitted
+            .is_empty()
+    );
+    assert!(recorded.ingestion.as_ref().unwrap().rows_consumed > 0);
+    assert_ne!(recorded.created.as_deref(), Some("1970-01-01T00:00:00Z"));
+    written.push(recorded);
+    let repeated = store
+        .record_tool_call(
+            tool,
+            ToolCallOptions {
+                arguments: Some(&opaque_arguments),
+                result: Some(&opaque_result),
+                payload: Some(&payload),
+                invocation: Some(invocation),
+                generated: &[claim.id.as_str()],
+                opaque_profile: Some(OpaquePayloadProfile::Verbatim),
+                ..ToolCallOptions::default()
+            },
+        )
+        .expect("repeated explicit occurrence IRI keeps a distinct call-owned graph");
+    written.push(repeated);
+    let browser = InMemoryClaimStore::default();
+    for _ in 0..2 {
+        browser
+            .record_tool_call(
+                tool,
+                ToolCallOptions {
+                    payload: Some(&payload),
+                    ..ToolCallOptions::default()
+                },
+            )
+            .expect("browser and native admit the same repeated IRI-rooted input");
+    }
+    let browser_export = browser.segment_nquads().unwrap();
+    let browser_seeded = InMemoryClaimStore::default();
+    seed_claim_store(&browser_seeded, &browser_export).unwrap();
+    assert_eq!(browser_seeded.segment_nquads().unwrap(), browser_export);
+
+    // Snapshot appends must not poison the delegated memory term/cache lineage.
+    let later = store
+        .store_claim(
+            "after snapshot",
+            StoreOptions {
+                source: None,
+                confidence: Some(0.5),
+                according_to: None,
+            },
+        )
+        .unwrap();
+    store
+        .revise_claim(
+            &later.id,
+            RevisionOptions {
+                reason: Some("revised after snapshot"),
+                superseded_by: None,
+            },
+        )
+        .unwrap();
+
+    let header_path = dir.path().join("header-only.gts");
+    // Consume the header of this already-produced runtime store. Tests do not
+    // construct a writer or invoke any snapshot/corpus producer.
+    let (items, torn) = purrdf::gts::wire::iter_items(&before);
+    assert!(torn.is_none());
+    let header_end = items.get(1).expect("runtime store has payload frames").0;
+    std::fs::write(&header_path, &before[..header_end]).unwrap();
+    let header_store = fs_claim_store(&header_path).unwrap();
+    header_store
+        .record_tool_call(tool, ToolCallOptions::default())
+        .expect("header-only tail admits its first payload");
+    let header_bytes = header_store.store_bytes().unwrap();
+    assert_eq!(
+        purrdf::gts::reader::read_file_segments(&header_bytes)
+            .segments
+            .len(),
+        1,
+        "unprimed continuation must not add per-call headers"
+    );
+    let mut torn = header_bytes.clone();
+    torn.pop();
+    std::fs::write(&header_path, &torn).unwrap();
+    assert!(
+        header_store
+            .record_tool_call(tool, ToolCallOptions::default())
+            .is_err()
+    );
+    assert_eq!(
+        std::fs::read(&header_path).unwrap(),
+        torn,
+        "malformed append input stays untouched"
+    );
     drop(store);
 
     let reopened = fs_claim_store(&path).unwrap();
@@ -386,9 +612,48 @@ fn tool_call_provenance_native_store_preserves_payloads_and_cold_readback() {
         assert_eq!(actual.invocation.as_deref(), Some(invocation));
         assert_eq!(actual.generated, vec![claim.id.clone()]);
         assert_eq!(actual.created, expected.created);
+        if let Some(expected_payload) = &expected.payload {
+            let actual_payload = actual.payload.as_ref().unwrap();
+            assert_eq!(
+                actual_payload.arguments, actual_payload.result,
+                "both roles retain one shared occurrence"
+            );
+            assert_eq!(
+                payload::serialize(&actual_payload.graph).unwrap(),
+                payload::serialize(&expected_payload.graph).unwrap()
+            );
+            assert!(
+                actual_payload
+                    .graph
+                    .owned_named_graphs()
+                    .any(|name| name == purrdf::RdfTerm::iri("urn:empty")),
+                "empty named-graph identity survives the ownership envelope"
+            );
+            let rows = purrdf::flat_rdf_quads_from_dataset(&actual_payload.graph);
+            let blanks: Vec<_> = rows
+                .iter()
+                .filter(|row| {
+                    row.predicate.ends_with("/structuredTerm")
+                        && matches!(row.object, purrdf::RdfTerm::BlankNode(_))
+                })
+                .map(|row| row.object.clone())
+                .collect();
+            assert_eq!(blanks.len(), 2);
+            assert_ne!(
+                blanks[0], blanks[1],
+                "equal labels in different source scopes remain distinct"
+            );
+            assert!(
+                rows.iter()
+                    .any(|row| row.predicate.ends_with("/structuredTerm")
+                        && row.object == purrdf::RdfTerm::iri(&claim.id)),
+                "source scalar identifiers remain data"
+            );
+        }
     }
     let claims = reopened.claims().unwrap();
-    assert_eq!(claims.len(), 1);
+    assert_eq!(claims.len(), 2);
+    assert!(claims[1].suppressed);
     assert_eq!(claims[0].id, claim.id);
     assert_eq!(claims[0].text, claim_text);
 }

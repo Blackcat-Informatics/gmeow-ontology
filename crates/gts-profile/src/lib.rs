@@ -204,6 +204,15 @@ fn mandated_codec_ids(
 /// payload-free frame that nonetheless carries one, or bytes with no payload
 /// frames at all.
 pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
+    let payload_frames = validate_frame_profile(bytes)?;
+    if payload_frames == 0 {
+        return Err(profile_error("GTS bytes carry no payload-bearing frames"));
+    }
+    Ok(())
+}
+
+/// Append preparation permits a header whose first payload has not been authored.
+fn validate_frame_profile(bytes: &[u8]) -> gmeow_errors::Result<usize> {
     let (items, torn) = iter_items(bytes);
     if let Some(offset) = torn {
         return Err(profile_error(format!(
@@ -270,10 +279,7 @@ pub fn validate_mandated_frames(bytes: &[u8]) -> gmeow_errors::Result<()> {
         }
     }
 
-    if payload_frames == 0 {
-        return Err(profile_error("GTS bytes carry no payload-bearing frames"));
-    }
-    Ok(())
+    Ok(payload_frames)
 }
 
 /// The mandated no-dictionary medium: the one permitted transform chain with
@@ -534,6 +540,43 @@ pub struct GmeowGtsWriter {
 }
 
 impl GmeowGtsWriter {
+    /// Consume one complete scoped view as an appended native snapshot frame.
+    ///
+    /// Snapshot rows are rebased by the native reader, including nested triple
+    /// terms. The caller retains the full receipt; declaration-only graphs are
+    /// refused because a runtime call cannot silently omit selected content.
+    ///
+    /// # Errors
+    /// Incomplete ingestion, omitted graph declarations, or frame encoding failure.
+    pub fn finish_view_scoped<D: purrdf::FallibleDatasetView>(
+        mut self,
+        view: &D,
+        scope: &str,
+    ) -> gmeow_errors::Result<GmeowGtsEmission> {
+        let mut builder = SnapshotBuilder::new();
+        let _admission = builder
+            .add_view_scoped(view, None, Some(scope))
+            .map_err(ingestion_error)?;
+        if let Some(cause) = builder.poison() {
+            return Err(ingestion_error(cause.clone()));
+        }
+        let receipt = builder.ingest_totals();
+        if !receipt.declarations_omitted.is_empty() {
+            return Err(profile_error(format!(
+                "call snapshot omitted graph declarations: {:?}",
+                receipt.declarations_omitted
+            )));
+        }
+        let payload = builder.snapshot_payload();
+        drop(builder);
+        self.add_mandated_frame("snapshot", payload)?;
+        Ok(GmeowGtsEmission {
+            bytes: self.into_bytes(),
+            ingestion: receipt,
+            source_receipts: Vec::new(),
+        })
+    }
+
     /// Mint a segment writer for `profile` and emit its header (the chain genesis).
     ///
     /// The header's catalog DECLARES [`GMEOW_GTS_ZSTD_LEVEL`], not merely encodes
@@ -652,6 +695,59 @@ impl GmeowGtsWriter {
     }
 }
 
+/// Admit the complete native fold before exposing a segment-local term base.
+fn checked_term_base(existing: &[u8]) -> gmeow_errors::Result<usize> {
+    // This admission retains the original typed decoder cause on torn input.
+    let _append = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
+    let _payload_frames = validate_frame_profile(existing)?;
+    let folded = purrdf::gts::reader::read_file_segments(existing);
+    if let Some(diagnostic) = folded.fatal.as_ref().or_else(|| {
+        folded
+            .segments
+            .iter()
+            .flat_map(|segment| &segment.diagnostics)
+            .next()
+    }) {
+        return Err(gmeow_errors::Diag::of_kind(error::AppendFoldAdmission {
+            detail: format!("{}: {}", diagnostic.code, diagnostic.detail),
+            diagnostic: std::sync::Arc::new(diagnostic.clone()),
+        }));
+    }
+    if folded.torn.is_some() {
+        return Err(profile_error("native fold refused a torn append"));
+    }
+    folded
+        .segments
+        .last()
+        .map(|segment| segment.terms.len())
+        .ok_or_else(|| profile_error("native append fold has no tail segment"))
+}
+
+/// Continue an explicitly unprimed store without adding a header per record.
+///
+/// # Errors
+/// Refuses a malformed append chain, a primed tail, or a writer failure.
+pub fn unprimed_store_writer(
+    profile: &str,
+    existing: &[u8],
+) -> gmeow_errors::Result<GmeowGtsWriter> {
+    if existing.is_empty() {
+        return Ok(GmeowGtsWriter::new(profile));
+    }
+    let term_base = checked_term_base(existing)?;
+    let state = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
+    if !state.dicts.is_empty() {
+        return Err(profile_error(
+            "unprimed writer selected for a dictionary-primed tail",
+        ));
+    }
+    Ok(GmeowGtsWriter {
+        inner: Writer::appending(existing).map_err(|error| profile_error(error.to_string()))?,
+        dict: None,
+        term_base,
+    })
+}
+
 /// The medium an append-only GMEOW store is written through: the in-band pack
 /// dictionary its segments pin and prime with.
 ///
@@ -693,6 +789,7 @@ pub fn store_writer(
     medium: &StoreMedium,
 ) -> gmeow_errors::Result<GmeowGtsWriter> {
     if !existing.is_empty() {
+        let term_base = checked_term_base(existing)?;
         let state = purrdf::gts::reader::segment_append_state(existing).map_err(append_error)?;
         if state.dicts.contains_key(&medium.dictionary) {
             let inner =
@@ -701,10 +798,6 @@ pub fn store_writer(
             // shifted by. Read off the LAST segment's own fold, never the
             // cross-segment union, whose by-value merge would under-count the ids
             // actually in use.
-            let term_base = purrdf::gts::reader::read_file_segments(existing)
-                .segments
-                .last()
-                .map_or(0, |segment| segment.terms.len());
             return Ok(GmeowGtsWriter {
                 inner,
                 dict: Some(medium.dictionary.clone()),

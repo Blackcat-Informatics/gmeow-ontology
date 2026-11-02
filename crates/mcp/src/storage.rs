@@ -9,7 +9,7 @@
 //! append-only candidate library. Every configuration read is an environment
 //! variable. Before this module those were `std::fs` and `std::env` calls scattered
 //! through `lib.rs`, which pinned the whole engine to a host with a filesystem — a
-//! hard blocker for the wasm32 target the crate's whole boundary discipline exists to
+//! hard blocker for the `wasm32` target the crate's whole boundary discipline exists to
 //! reach.
 //!
 //! # The shape of the seam
@@ -30,8 +30,8 @@
 //! * **Native** ([`FsStorage`], `cfg(not(target_arch = "wasm32"))`) — real files at
 //!   real paths, with the SAME `flock` sidecar, `tempfile` write-then-rename, and
 //!   `GMEOW_*_PATH` / `HOME` / `USERPROFILE` resolution the engine has always used.
-//!   The claim store delegates verbatim to `purrdf`'s `agent_memory::Memory`, so the
-//!   on-disk `memory.gts` and every byte of native behaviour is unchanged.
+//!   Claims and revisions delegate to `purrdf`'s `agent_memory::Memory`;
+//!   GMEOW owns tool-call graphs and their atomic audit publication.
 //! * **Browser** ([`InMemoryStorage`]) — a REAL working store held in process memory.
 //!   It is not a refusal and it is not a `Result::Err` factory: claims are stored,
 //!   recalled with the same relevance ordering, revised, and superseded; tool calls
@@ -39,7 +39,7 @@
 //!   replace. A browser session that stores a claim can recall it, and one that
 //!   submits a candidate can list it.
 //!
-//! [`InMemoryStorage`] is compiled on EVERY target, not just wasm32. That is
+//! [`InMemoryStorage`] is compiled on EVERY target, not just `wasm32`. That is
 //! deliberate: a backend nobody can test is a backend nobody can trust, and
 //! `wasm32-unknown-unknown` has no test harness here. The native test suite exercises
 //! the browser backend directly.
@@ -48,8 +48,8 @@
 //!
 //! `wasm32-unknown-unknown` has no ambient wall clock (`SystemTime::now` is not
 //! implemented there), so the backend owns the timestamp: [`Storage::now_rfc3339`].
-//! The native backend has none of its own — `purrdf`'s memory package stamps real UTC
-//! internally, exactly as before. The browser backend stamps an explicitly LOGICAL
+//! The native backend stamps real UTC for application calls; the delegated claim
+//! package stamps its own UTC. The browser backend stamps an explicitly LOGICAL
 //! clock: a monotone counter rendered as an `xsd:dateTime` anchored at the Unix epoch
 //! (`1970-01-01T00:00:00Z`, `…:01Z`, …). That is honest by construction — a reader
 //! cannot mistake it for a wall time — and it preserves the only property the memory
@@ -59,8 +59,11 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::fmt::Write as _;
 use std::sync::{Arc, Mutex, OnceLock};
 
-use purrdf::gts::examples::agent_memory::{
-    Claim, RecallOptions, RevisionOptions, StoreOptions, ToolCallOptions, ToolCallRecord,
+use purrdf::gts::examples::agent_memory::{Claim, RecallOptions, RevisionOptions, StoreOptions};
+
+mod payload;
+pub use payload::{
+    OpaquePayloadProfile, StructuredPayload, ToolCallAudit, ToolCallOptions, ToolCallRecord,
 };
 
 use gmeow_errors::Result;
@@ -74,6 +77,40 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
     })
 }
 
+/// Build selected audit bytes before publishing any part of a call.
+fn call_audit_delta(
+    existing: &[u8],
+    call: &ToolCallRecord,
+    audit: Option<ToolCallAudit<'_>>,
+) -> Result<Vec<u8>> {
+    let Some(audit) = audit else {
+        return Ok(Vec::new());
+    };
+    require_iri(audit.schema, "audit schema", &call.id)?;
+    for situation in audit.obtains {
+        require_iri(situation, "audit obtaining situation", &call.id)?;
+    }
+    #[cfg(feature = "reasoning")]
+    {
+        crate::build_store_audit_segment(
+            existing,
+            &call.id,
+            audit.schema,
+            audit.obtains,
+            call.created
+                .as_deref()
+                .ok_or_else(|| err("recorded call missing creation time"))?,
+        )
+    }
+    #[cfg(not(feature = "reasoning"))]
+    {
+        let _ = (existing, call, audit);
+        Err(err(
+            "selected tool-call audit requires the reasoning capability",
+        ))
+    }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // The traits
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,9 +118,8 @@ fn err(message: impl Into<String>) -> gmeow_errors::Diag {
 /// The grounded-memory claim package: the append-only store behind `store_claim`,
 /// `recall`, `revise_belief`, and the tool-call trajectory the audit segments key on.
 ///
-/// The option/record types are `purrdf`'s, not redeclared here: the native backend
-/// IS `purrdf`'s memory package, and a parallel set of structs would be a second
-/// vocabulary for the same claims.
+/// Claim and revision types retain their native owner. Tool-call options and
+/// records are GMEOW-owned because their payload graph follows GMEOW semantics.
 pub trait ClaimStore: Send + Sync {
     /// Append one claim, returning the stored record (its minted id and stamp).
     ///
@@ -224,7 +260,9 @@ pub trait Storage: Send + Sync {
 
     /// The instant to stamp on a record the ENGINE mints (the trajectory-audit
     /// segments). See the module docs for the browser backend's logical clock.
-    fn now_rfc3339(&self) -> String;
+    /// # Errors
+    /// A native wall-clock reading before the Unix epoch cannot be stamped.
+    fn now_rfc3339(&self) -> Result<String>;
 
     /// The grounded-memory claim package.
     ///
@@ -330,16 +368,10 @@ const XSD_BOOLEAN: &str = "http://www.w3.org/2001/XMLSchema#boolean";
 // The `gmeow:` predicates the segment writes and reads, spelled out once so the writer and
 // the reader join on the SAME string rather than on two `format!`s that could drift.
 const GMEOW_CLAIM_TOKEN: &str = "https://blackcatinformatics.ca/gmeow/ClaimToken";
-const GMEOW_TOOL_CALL: &str = "https://blackcatinformatics.ca/gmeow/ToolCall";
-const GMEOW_SOFTWARE_AGENT: &str = "https://blackcatinformatics.ca/gmeow/SoftwareAgent";
 const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
 const GMEOW_ACCORDING_TO: &str = "https://blackcatinformatics.ca/gmeow/accordingTo";
 const GMEOW_SOURCE_LOCATION: &str = "https://blackcatinformatics.ca/gmeow/sourceLocation";
 const GMEOW_DISPLAYABLE: &str = "https://blackcatinformatics.ca/gmeow/displayable";
-const GMEOW_USED_TOOL: &str = "https://blackcatinformatics.ca/gmeow/usedTool";
-const GMEOW_TOOL_ARGUMENTS: &str = "https://blackcatinformatics.ca/gmeow/toolArguments";
-const GMEOW_TOOL_RESULT: &str = "https://blackcatinformatics.ca/gmeow/toolResult";
-const GMEOW_CALLED_BY_INVOCATION: &str = "https://blackcatinformatics.ca/gmeow/calledByInvocation";
 const GMEOW_SESSION_STORE_SEGMENT: &str =
     "https://blackcatinformatics.ca/gmeow/sessionStoreSegment";
 const GMEOW_WAS_GENERATED_BY: &str = "https://blackcatinformatics.ca/gmeow/wasGeneratedBy";
@@ -473,62 +505,37 @@ pub fn claim_segment(claims: &[Claim], calls: &[ToolCallRecord]) -> Result<Strin
         node_of.insert(claim.id.as_str(), node);
     }
 
+    let mut builder = purrdf::ir::RdfDatasetBuilder::new();
+    let claims = purrdf::parse_dataset(out.as_bytes(), "application/n-quads", None)?;
+    let mut sources = vec![claims];
     for (ordinal, call) in calls.iter().enumerate() {
         let node = segment_node("call", ordinal);
-        require_iri(&call.tool, "gmeow:usedTool", &node)?;
-        let _ = writeln!(out, "<{node}> <{RDF_TYPE}> <{GMEOW_TOOL_CALL}> .");
-        let _ = writeln!(out, "<{node}> <{GMEOW_USED_TOOL}> <{}> .", call.tool);
-        // gmeow:ToolCall requires its tool to be a gmeow:SoftwareAgent; the type rides with
-        // the edge so the segment stands alone rather than leaning on an outside graph.
-        let _ = writeln!(
-            out,
-            "<{}> <{RDF_TYPE}> <{GMEOW_SOFTWARE_AGENT}> .",
-            call.tool
-        );
-        if let Some(arguments) = call.arguments.as_deref() {
-            let _ = writeln!(
-                out,
-                "<{node}> <{GMEOW_TOOL_ARGUMENTS}> {} .",
-                nq_literal(arguments)
-            );
-        }
-        if let Some(result) = call.result.as_deref() {
-            let _ = writeln!(
-                out,
-                "<{node}> <{GMEOW_TOOL_RESULT}> {} .",
-                nq_literal(result)
-            );
-        }
-        if let Some(invocation) = call.invocation.as_deref() {
-            require_iri(invocation, "gmeow:calledByInvocation", &node)?;
-            let _ = writeln!(
-                out,
-                "<{node}> <{GMEOW_CALLED_BY_INVOCATION}> <{invocation}> ."
-            );
-        }
-        let _ = writeln!(
-            out,
-            "<{node}> <{GMEOW_SESSION_STORE_SEGMENT}> {} .",
-            nq_literal(&segment_label(ordinal))
-        );
-        // The generated set is emitted in ADDRESS order, not in the order the backend
-        // happened to hand it over: `gmeow:wasGeneratedBy` is a set of edges, and a
-        // canonical order is what makes seed → re-serialize land on the same bytes.
-        let targets: BTreeSet<String> = call
+        let generated: Vec<String> = call
             .generated
             .iter()
-            .map(|generated| {
-                require_iri(generated, "gmeow:wasGeneratedBy target", &node)?;
-                Ok(node_of
-                    .get(generated.as_str())
+            .map(|id| {
+                node_of
+                    .get(id.as_str())
                     .cloned()
-                    .unwrap_or_else(|| generated.clone()))
+                    .unwrap_or_else(|| id.clone())
             })
-            .collect::<Result<_>>()?;
-        for target in targets {
-            let _ = writeln!(out, "<{target}> <{GMEOW_WAS_GENERATED_BY}> <{node}> .");
-        }
+            .collect();
+        let mut exported = call.clone();
+        // Transport remints record metadata; it never rewrites scalar source terms.
+        exported.created = None;
+        exported.ordinal =
+            Some(u64::try_from(ordinal).map_err(|_| err("transport call position overflow"))?);
+        let graph = payload::call_graph(&exported, &node, &generated)?;
+        sources.push(graph);
+        builder.push_owned_quad(&purrdf::RdfQuad::new(
+            purrdf::RdfTerm::iri(&node),
+            GMEOW_SESSION_STORE_SEGMENT.to_owned(),
+            purrdf::RdfTerm::Literal(purrdf::RdfLiteral::simple(segment_label(ordinal))),
+        ))?;
     }
+    sources.push(builder.freeze()?);
+    let refs: Vec<_> = sources.iter().map(AsRef::as_ref).collect();
+    let out = payload::serialize(&purrdf::RdfDataset::union(&refs)?)?;
 
     Ok(out)
 }
@@ -543,26 +550,14 @@ struct SeededClaim {
     suppressed: bool,
 }
 
-/// One recorded call read back out of a transport segment.
-#[derive(Default)]
-struct SeededCall {
-    tool: Option<String>,
-    arguments: Option<String>,
-    result: Option<String>,
-    invocation: Option<String>,
-    /// The entities the call generated, by segment address (or verbatim IRI for an entity
-    /// the segment does not itself address).
-    generated: BTreeSet<String>,
-}
-
 /// Replay a session-store transport segment into `store` through the store's PUBLIC write
 /// API — [`ClaimStore::store_claim`], [`ClaimStore::record_tool_call`] and, for a
 /// suppressed claim, [`ClaimStore::revise_claim`].
 ///
 /// The exact inverse of [`claim_segment`]: a store seeded from a segment re-serializes to
 /// the byte-identical segment. Natively that write path IS `purrdf`'s `Memory::store()`, so
-/// the seeded package is a real, cold-auditable `memory.gts` written by its owner — the
-/// on-disk shape stays `purrdf`'s and nothing here reproduces it.
+/// claims retain the native claim algebra; calls replay through the same application
+/// RDF writer as live recording. Supplied payload terms remain data.
 ///
 /// Returns the `(claims, calls)` counts seeded.
 ///
@@ -575,13 +570,20 @@ pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize,
     let dataset = purrdf::parse_dataset(segment.as_bytes(), "application/n-quads", None)
         .map_err(|e| err(format!("session store segment does not parse: {e}")))?;
 
+    let mut decoded_calls = payload::read_calls(&dataset)?;
+    if decoded_calls
+        .iter()
+        .any(|call| segment_ordinal(&call.id, "call").is_none())
+    {
+        return Err(err("session store call has no transport position address"));
+    }
+    decoded_calls.sort_by_key(|call| segment_ordinal(&call.id, "call"));
     let mut claims: BTreeMap<usize, SeededClaim> = BTreeMap::new();
-    let mut calls: BTreeMap<usize, SeededCall> = BTreeMap::new();
-    // `gmeow:wasGeneratedBy` runs from the generated ENTITY to the call, so a call's
-    // generated set is collected by walking that edge backwards.
-    let mut generated: Vec<(usize, String)> = Vec::new();
 
     for quad in purrdf::flat_rdf_quads_from_dataset(&dataset) {
+        if quad.graph_name.is_some() {
+            continue;
+        }
         let purrdf::RdfTerm::Iri(subject) = &quad.subject else {
             continue;
         };
@@ -593,13 +595,11 @@ pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize,
         let predicate = quad.predicate.as_str();
 
         if predicate == GMEOW_WAS_GENERATED_BY {
-            let call = segment_ordinal(&object, "call").ok_or_else(|| {
-                err(format!(
-                    "session store segment: {subject} was generated by {object}, which is not \
-                     a segment call address"
-                ))
-            })?;
-            generated.push((call, subject.clone()));
+            if !decoded_calls.iter().any(|call| call.id == object) {
+                return Err(err(format!(
+                    "session store segment: generated edge targets non-call address {object}"
+                )));
+            }
             continue;
         }
 
@@ -614,20 +614,7 @@ pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize,
                 GMEOW_DISPLAYABLE => claim.suppressed = object == "false",
                 _ => {}
             }
-        } else if let Some(ordinal) = segment_ordinal(subject, "call") {
-            let call = calls.entry(ordinal).or_default();
-            match predicate {
-                GMEOW_USED_TOOL => call.tool = Some(object),
-                GMEOW_TOOL_ARGUMENTS => call.arguments = Some(object),
-                GMEOW_TOOL_RESULT => call.result = Some(object),
-                GMEOW_CALLED_BY_INVOCATION => call.invocation = Some(object),
-                _ => {}
-            }
         }
-    }
-
-    for (call, entity) in generated {
-        calls.entry(call).or_default().generated.insert(entity);
     }
 
     // Replay in append order — the position addresses ARE that order, so a segment whose
@@ -668,14 +655,7 @@ pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize,
         }
     }
 
-    for (ordinal, call) in &calls {
-        let tool = call.tool.as_deref().ok_or_else(|| {
-            err(format!(
-                "session store segment: call {ordinal:04} carries no gmeow:usedTool"
-            ))
-        })?;
-        // A generated entity the segment addresses is re-pointed at the id THIS store just
-        // minted for it; anything else the store recorded rides verbatim.
+    for call in &decoded_calls {
         let generated: Vec<String> = call
             .generated
             .iter()
@@ -689,17 +669,21 @@ pub fn seed_claim_store(store: &dyn ClaimStore, segment: &str) -> Result<(usize,
             .collect();
         let generated: Vec<&str> = generated.iter().map(String::as_str).collect();
         store.record_tool_call(
-            tool,
+            &call.tool,
             ToolCallOptions {
-                arguments: call.arguments.as_deref(),
-                result: call.result.as_deref(),
+                arguments: call.arguments.as_ref(),
+                result: call.result.as_ref(),
                 invocation: call.invocation.as_deref(),
                 generated: &generated,
+                payload: call.payload.as_ref(),
+                // Already-recorded opaque locators/text are retained verbatim during replay.
+                opaque_profile: call.opaque_profile,
+                audit: None,
             },
         )?;
     }
 
-    Ok((claims.len(), calls.len()))
+    Ok((claims.len(), decoded_calls.len()))
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -725,7 +709,6 @@ mod native {
     use gmeow_gts_profile::{StoreMedium, open_store_segment, store_tail_pins};
     use purrdf::gts::examples::agent_memory::{
         Claim, Memory, MemoryOptions, RecallOptions, RevisionOptions, StoreOptions,
-        ToolCallOptions, ToolCallRecord,
     };
 
     /// The GTS profile every GMEOW runtime store declares in its segment headers.
@@ -748,12 +731,18 @@ mod native {
             return Ok(());
         }
         let header = open_store_segment(STORE_PROFILE, medium)?;
-        let mut file = fs::OpenOptions::new().append(true).open(path)?;
-        file.write_all(&header)?;
-        Ok(())
+        let mut bytes = existing;
+        bytes.extend_from_slice(&header);
+        FsSegmentLibrary {
+            path: path.to_owned(),
+        }
+        .replace_bytes(&bytes)
     }
 
-    use super::{ClaimStore, FsStorage, LibraryLock, SegmentLibrary, Storage, err};
+    use super::{
+        ClaimStore, FsStorage, LibraryLock, SegmentLibrary, Storage, ToolCallOptions,
+        ToolCallRecord, err, payload,
+    };
 
     /// A native claim package at an EXPLICIT path, bypassing the environment resolution.
     ///
@@ -837,14 +826,12 @@ mod native {
                 .filter(|value| !value.trim().is_empty())
         }
 
-        fn now_rfc3339(&self) -> String {
-            // The native claim package stamps its own real UTC instant on every record
-            // it mints; the ENGINE-minted audit segment reuses the stamp the package
-            // just produced rather than taking a second, slightly-later reading of the
-            // clock (two stamps for one turn would be a false ordering). Nothing on the
-            // native path calls this, and returning the package's own fallback keeps the
-            // contract total.
-            "1970-01-01T00:00:00Z".to_owned()
+        fn now_rfc3339(&self) -> Result<String> {
+            let seconds = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_err(|error| err(format!("read native UTC clock: {error}")))?
+                .as_secs();
+            Ok(super::logical_instant(seconds))
         }
 
         fn claim_store(&self, snapshot: &[u8]) -> Result<Arc<dyn ClaimStore>> {
@@ -858,6 +845,8 @@ mod native {
             ensure_parent(&path)?;
             // A segment declares ONE codec catalog, so a store whose tail predates this medium
             // gets a fresh segment boundary before anything is appended into it.
+            let library = FsSegmentLibrary { path: path.clone() };
+            let _lock = library.lock()?;
             open_store_segment_if_medium_changed(&path, medium)?;
             Ok(Arc::new(FsClaimStore {
                 memory: Memory::with_options(
@@ -888,9 +877,8 @@ mod native {
 
     /// The native claim store: `purrdf`'s append-only memory package at `path`.
     ///
-    /// Every method delegates, so the on-disk `memory.gts` and the claim algebra
-    /// (content-addressed ids, RDF 1.2 reified annotations, the recall ranking) are the
-    /// upstream implementation, not a copy of it.
+    /// Claims, revisions and recall retain their native implementation. Tool calls
+    /// use the shared application RDF owner and one atomic call/payload/audit append.
     pub(super) struct FsClaimStore {
         pub(super) memory: Memory,
         /// The package path, retained so the audit segment appends to the SAME file the
@@ -900,10 +888,18 @@ mod native {
 
     impl ClaimStore for FsClaimStore {
         fn store_claim(&self, text: &str, options: StoreOptions<'_>) -> Result<Claim> {
+            let library = FsSegmentLibrary {
+                path: self.path.clone(),
+            };
+            let _lock = library.lock()?;
             Ok(self.memory.store(text, options)?)
         }
 
         fn revise_claim(&self, claim_id: &str, options: RevisionOptions<'_>) -> Result<()> {
+            let library = FsSegmentLibrary {
+                path: self.path.clone(),
+            };
+            let _lock = library.lock()?;
             Ok(self.memory.revise(claim_id, options)?)
         }
 
@@ -912,7 +908,40 @@ mod native {
             tool: &str,
             options: ToolCallOptions<'_>,
         ) -> Result<ToolCallRecord> {
-            Ok(self.memory.record_tool_call(tool, options)?)
+            let library = FsSegmentLibrary {
+                path: self.path.clone(),
+            };
+            let _lock = library.lock()?;
+            let mut bytes = library.read_bytes()?;
+            let mut record = payload::make_call(
+                tool,
+                &options,
+                u64::try_from(bytes.len())
+                    .map_err(|_| err("store length exceeds call identity space"))?,
+                FsStorage.now_rfc3339()?,
+            )?;
+            let graph = payload::call_graph(&record, &record.id, &record.generated)?;
+            let emission = match if bytes.is_empty() {
+                None
+            } else {
+                gmeow_gts_profile::segment_dictionaries(&bytes)?
+                    .into_iter()
+                    .next()
+                    .map(|(dictionary, bytes)| StoreMedium { dictionary, bytes })
+            } {
+                Some(medium) => gmeow_gts_profile::store_writer(STORE_PROFILE, &bytes, &medium)?,
+                None => gmeow_gts_profile::unprimed_store_writer(STORE_PROFILE, &bytes)?,
+            }
+            .finish_view_scoped(graph.as_ref(), &record.id)?;
+            record.ingestion = Some(emission.ingestion);
+            bytes.extend_from_slice(&emission.bytes);
+            bytes.extend_from_slice(&super::call_audit_delta(&bytes, &record, options.audit)?);
+            gmeow_gts_profile::validate_mandated_frames(&bytes)?;
+            let admitted = purrdf::import_gts_events(&bytes)
+                .map_err(|error| err(format!("admit recorded call package: {error}")))?;
+            let _calls = payload::read_calls(&admitted.dataset)?;
+            library.replace_bytes(&bytes)?;
+            Ok(record)
         }
 
         fn recall(&self, options: RecallOptions<'_>) -> Result<Vec<Claim>> {
@@ -924,7 +953,13 @@ mod native {
         }
 
         fn tool_calls(&self) -> Result<Vec<ToolCallRecord>> {
-            Ok(self.memory.tool_calls()?)
+            let bytes = self.store_bytes()?;
+            if bytes.is_empty() {
+                return Ok(Vec::new());
+            }
+            let imported = purrdf::import_gts_events(&bytes)
+                .map_err(|error| err(format!("read call package: {error}")))?;
+            payload::read_calls(&imported.dataset)
         }
 
         fn store_bytes(&self) -> Result<Vec<u8>> {
@@ -936,12 +971,14 @@ mod native {
         }
 
         fn append_audit_segment(&self, segment: &[u8]) -> Result<()> {
-            let mut file = fs::OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&self.path)?;
-            file.write_all(segment)?;
-            Ok(())
+            let library = FsSegmentLibrary {
+                path: self.path.clone(),
+            };
+            let _lock = library.lock()?;
+            let mut bytes = library.read_bytes()?;
+            bytes.extend_from_slice(segment);
+            gmeow_gts_profile::validate_mandated_frames(&bytes)?;
+            library.replace_bytes(&bytes)
         }
     }
 
@@ -1083,8 +1120,8 @@ impl Storage for InMemoryStorage {
             .cloned()
     }
 
-    fn now_rfc3339(&self) -> String {
-        self.claims.tick()
+    fn now_rfc3339(&self) -> Result<String> {
+        Ok(self.claims.tick())
     }
 
     fn claim_store(&self, _snapshot: &[u8]) -> Result<Arc<dyn ClaimStore>> {
@@ -1306,30 +1343,20 @@ impl ClaimStore for InMemoryClaimStore {
 
     fn record_tool_call(&self, tool: &str, options: ToolCallOptions<'_>) -> Result<ToolCallRecord> {
         let mut state = self.state.lock().expect("in-memory claim store lock");
-        state.seq += 1;
-        let seq = state.seq;
-        let created = logical_instant(seq);
-        let id = record_id(
-            "call",
-            seq,
-            &[
-                tool,
-                created.as_str(),
-                options.arguments.unwrap_or(""),
-                options.result.unwrap_or(""),
-                options.invocation.unwrap_or(""),
-            ],
-        );
-        let record = ToolCallRecord {
-            id,
-            tool: tool.to_owned(),
-            arguments: options.arguments.map(str::to_owned),
-            result: options.result.map(str::to_owned),
-            invocation: options.invocation.map(str::to_owned),
-            created: Some(created),
-            generated: options.generated.iter().map(|g| (*g).to_owned()).collect(),
-        };
+        let sequence = state
+            .seq
+            .checked_add(1)
+            .ok_or_else(|| err("call sequence overflow"))?;
+        let record = payload::make_call(tool, &options, sequence, logical_instant(sequence))?;
+        let audit = call_audit_delta(&state.audit, &record, options.audit)?;
+        let mut candidate = state.calls.clone();
+        candidate.push(record.clone());
+        let serialized = claim_segment(&state.claims, &candidate)?;
+        let admitted = purrdf::parse_dataset(serialized.as_bytes(), "application/n-quads", None)?;
+        let _calls = payload::read_calls(&admitted)?;
+        state.seq = sequence;
         state.calls.push(record.clone());
+        state.audit.extend_from_slice(&audit);
         Ok(record)
     }
 

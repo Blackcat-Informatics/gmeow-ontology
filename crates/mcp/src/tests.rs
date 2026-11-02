@@ -1242,7 +1242,7 @@ gmeow_test_batch_macros::batch_mcp_items! {
         assert_eq!(revised["ok"], true);
 
         text_payload(server.call_tool_result("recall", &json!({"query": "launch window"})));
-        let calls = Memory::new(memory_path).tool_calls().unwrap();
+        let calls = crate::storage::fs_claim_store(memory_path).unwrap().tool_calls().unwrap();
         assert_eq!(
             calls
                 .iter()
@@ -1255,16 +1255,24 @@ gmeow_test_batch_macros::batch_mcp_items! {
             ]
         );
         assert_eq!(calls[0].generated, vec![canary_id.clone()]);
-        let stored_result: Value =
-            serde_json::from_str(calls[0].result.as_deref().unwrap()).unwrap();
-        assert_eq!(stored_result["ok"], true);
-        assert_eq!(stored_result["claim"]["id"], canary_id);
-        let stored_arguments: Value =
-            serde_json::from_str(calls[0].arguments.as_deref().unwrap()).unwrap();
-        assert_eq!(
-            stored_arguments["text"],
-            "SUPPRESSED-CANARY belief about the launch window"
-        );
+
+        let payload = calls[0].payload.as_ref().unwrap();
+        let substitutions = [
+            ("arguments".to_owned(), purrdf::TermValue::from_rdf_term(payload.arguments.as_ref().unwrap())),
+            ("result".to_owned(), purrdf::TermValue::from_rdf_term(payload.result.as_ref().unwrap())),
+            ("claim".to_owned(), purrdf::TermValue::Literal { lexical_form: canary_id.clone(), datatype: "http://www.w3.org/2001/XMLSchema#string".to_owned(), language: None, direction: None }),
+        ];
+        let query = r#"PREFIX g: <https://blackcatinformatics.ca/gmeow/>
+            ASK {
+                ?arguments g:hasFacet [ g:facetLabel "text"; g:facetStructuredValue [ g:structuredTerm "SUPPRESSED-CANARY belief about the launch window" ] ] .
+                ?result g:hasFacet [ g:facetLabel "ok"; g:facetStructuredValue [ g:structuredTerm true ] ],
+                    [ g:facetLabel "claim"; g:facetStructuredValue [ g:hasFacet [ g:facetLabel "id"; g:facetStructuredValue [ g:structuredTerm ?claim ] ] ] ] .
+            }"#;
+        let stored = purrdf::SparqlEngine::query(
+            &purrdf::sparql::NativeSparqlEngine::new(), &payload.graph,
+            purrdf::SparqlRequest { query, base_iri: None, substitutions: &substitutions },
+        ).unwrap();
+        assert!(matches!(stored, purrdf::SparqlResult::Boolean(true)), "recorded arguments/result keep the text, claim id and ok=true outcomes");
 
         for args in [
             json!({}),
