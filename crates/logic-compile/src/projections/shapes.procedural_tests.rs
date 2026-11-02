@@ -643,6 +643,7 @@ fn string_pattern_sugar_projects_regex_and_prefix_filters() {
     );
 }
 
+/// Choice modes and severities preserve their canonical constraints and executable SHACL projections.
 #[test]
 fn p1_choice_group_sugar_expands_and_projects() {
     let source = "ex:c1 a logic:ChoiceGroupConstraint ;\n\
@@ -658,6 +659,41 @@ fn p1_choice_group_sugar_expands_and_projects() {
     assert!(
         b.contains("<https://ex/hasA>") && b.contains("<https://ex/hasB>"),
         "{b}"
+    );
+    for (mode, canonical) in [
+        ("EXACTLY-ONE-OF-N", "exactly-one"),
+        ("AT-MOST-ONE", "at-most-one"),
+        ("AT-LEAST-ONE", "at-least-one"),
+        ("\u{a0}EXACTLY-ONE\u{a0}", "exactly-one"),
+    ] {
+        let canonical_source = source.replace("\"exactly-one\"", &format!("\"{canonical}\""));
+        let (expected, _) =
+            crate::frontend::parse_logic_str(&format!("{SUGAR_PREFIXES}{canonical_source}"), None)
+                .unwrap();
+        assert_eq!(expected.constraints.len(), 1, "{canonical}");
+        for datatype in ["", "^^xsd:token"] {
+            let selected = source.replace("\"exactly-one\"", &format!("\"{mode}\"{datatype}"));
+            let (program, diagnostics) =
+                crate::frontend::parse_logic_str(&format!("{SUGAR_PREFIXES}{selected}"), None)
+                    .unwrap();
+            assert_eq!(
+                program.constraints, expected.constraints,
+                "{mode}: {diagnostics:?}"
+            );
+            assert_eq!(program.canonical_key(), expected.canonical_key());
+            assert_eq!(
+                project_procedural_constraints(&program),
+                project_procedural_constraints(&expected)
+            );
+        }
+    }
+    assert_eq!(
+        project_sugar(&source.replace("\"exactly-one\"", "\" \\tExAcTlY-OnE\\t \"")),
+        b
+    );
+    assert_eq!(
+        project_sugar(&source.replace("\"exactly-one\"", "\"exactly-one\", \"exactly-one\"")),
+        b
     );
     for code in ["Violation", "Warning", "Info"] {
         let string = source.replace(
@@ -878,21 +914,47 @@ fn p4_path_value_fixed_predicate_value_sugar_expands_and_projects() {
     );
 }
 
+/// Cross-mode aliases retain canonical integrity and SHACL behavior after typed literal admission.
 #[test]
 fn p5_cross_node_co_occur_sugar_expands_and_projects() {
-    let b = project_sugar(
-        "ex:c5 a logic:CrossNodeConstraint ;\n\
+    let source = "ex:c5 a logic:CrossNodeConstraint ;\n\
              logic:onClass ex:Widget ;\n\
              logic:roleA ex:left ;\n\
              logic:roleB ex:right ;\n\
              logic:crossMode \"co-occur\" ;\n\
-             logic:formalizes ex:Widget .",
-    );
+             logic:formalizes ex:Widget .";
+    let b = project_sugar(source);
     assert!(
         b.contains("<https://ex/left>") && b.contains("<https://ex/right>"),
         "{b}"
     );
     assert!(b.contains("UNION"), "{b}");
+    for (mode, canonical) in [("COOCCUR", "co-occur"), ("DISTINCT", "differ")] {
+        let canonical_source = source.replace("\"co-occur\"", &format!("\"{canonical}\""));
+        let (expected, _) =
+            crate::frontend::parse_logic_str(&format!("{SUGAR_PREFIXES}{canonical_source}"), None)
+                .unwrap();
+        assert_eq!(expected.constraints.len(), 1, "{canonical}");
+        for datatype in ["", "^^xsd:token"] {
+            let selected = source.replace("\"co-occur\"", &format!("\"{mode}\"{datatype}"));
+            let (program, diagnostics) =
+                crate::frontend::parse_logic_str(&format!("{SUGAR_PREFIXES}{selected}"), None)
+                    .unwrap();
+            assert_eq!(
+                program.constraints, expected.constraints,
+                "{mode}: {diagnostics:?}"
+            );
+            assert_eq!(program.canonical_key(), expected.canonical_key());
+            assert_eq!(
+                project_procedural_constraints(&program),
+                project_procedural_constraints(&expected)
+            );
+        }
+    }
+    assert_eq!(
+        project_sugar(&source.replace("\"co-occur\"", "\" \\tCo-OcCuR\\t \"")),
+        b
+    );
 }
 
 #[test]

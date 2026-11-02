@@ -128,6 +128,7 @@ ex:r a logic:Rule ; logic:instanceOf logic:Rule ;
     ));
 }
 
+/// Sugar owners reject missing structure and malformed mode literals without emitting weaker constraints.
 #[test]
 fn every_constraint_sugar_reports_malformed_native_typed_records() {
     for class in [
@@ -166,6 +167,54 @@ fn every_constraint_sugar_reports_malformed_native_typed_records() {
                 .iter()
                 .all(|axiom| !axiom.subject.ends_with("/c"))
         );
+    }
+    for (class, predicate, fields, code) in [
+        (
+            "ChoiceGroupConstraint",
+            "choiceMode",
+            "logic:choicePredicate ex:a, ex:b ;",
+            "exactly-one",
+        ),
+        (
+            "CrossNodeConstraint",
+            "crossMode",
+            "logic:roleA ex:a ; logic:roleB ex:b ;",
+            "co-occur",
+        ),
+    ] {
+        for object in [
+            None,
+            Some("ex:CODE"),
+            Some("_:CODE"),
+            Some("\"CODE\"^^xsd:normalizedString"),
+            Some("\"CODE\"@en"),
+            Some("\"CODE\"@en--ltr"),
+            Some("\" CODE\"^^xsd:token"),
+            Some("\"CODE \"^^xsd:token"),
+            Some("\"\\tCODE\"^^xsd:token"),
+            Some("\"CODE\\uFFFF\"^^xsd:token"),
+            Some("\"unknown\""),
+            Some("\"CODE\", \"CODE\"^^xsd:token"),
+            Some("\"CODE\"^^xsd:token, \"CODE\""),
+            Some("\"CODE\", \"unknown\""),
+        ] {
+            let selector = object.map_or_else(String::new, |object| {
+                format!("logic:{predicate} {} ;", object.replace("CODE", code))
+            });
+            let (program, diagnostics) = parse(&format!(
+                "ex:c a logic:{class} ; logic:onClass ex:Widget ;
+                 {fields} {selector} logic:formalizes ex:Widget ."
+            ));
+            assert!(program.constraints.is_empty(), "{predicate}: {object:?}");
+            assert!(
+                diagnostics.iter().any(|diagnostic| {
+                    diagnostic.code == "MALFORMED_CONSTRAINT"
+                        && diagnostic.subject.as_deref() == Some("https://example.org/test/c")
+                        && diagnostic.message.contains(predicate)
+                }),
+                "{predicate}: {object:?}: {diagnostics:?}"
+            );
+        }
     }
 }
 
@@ -1449,6 +1498,7 @@ fn malformed_constraint_integrity_has_one_authoritative_formula_diagnostic() {
     );
 }
 
+/// Malformed severity remains independently attributed when an integrity formula also fails.
 #[test]
 fn independent_constraint_defect_survives_formula_deduplication() {
     let (prog, diags) = parse(
@@ -1619,6 +1669,7 @@ fn all_components(shapes: &[ValidationShapeIr]) -> Vec<ConstraintComponent> {
     out
 }
 
+/// Canonical restrictions retain projection parity and explicit typed severity through derivation.
 #[test]
 fn derive_logic_restrictions_matches_the_lowered_owl_spelling() {
     let cases = [

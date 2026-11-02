@@ -5799,8 +5799,8 @@ msgid "The xsd:dateTime a coherence outcome was issued. INJECTED, never sampled 
 msgstr "Le xsd:dateTime auquel un résultat de cohérence a été émis. INJECTÉ, jamais échantillonné dans le cœur de pliage déterministe, si bien qu'une réexécution aux mêmes entrées et horodatage est identique octet pour octet. À valeur unique. Domaine logic:CoherenceCertificate ou logic:CoherenceCheckAttestation (précisé en prose)."
 
 msgctxt "https://blackcatinformatics.ca/logic/choiceMode|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', or 'exactly-one-of-N' (an alias of 'exactly-one')."
-msgstr "Le mode de cardinalité d'une logic:ChoiceGroupConstraint : 'exactly-one', 'at-most-one' ou 'exactly-one-of-N' (un alias de 'exactly-one')."
+msgid "The cardinality mode of a logic:ChoiceGroupConstraint: 'exactly-one', 'at-most-one', 'at-least-one', or 'exactly-one-of-N' (an alias of 'exactly-one'). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."
+msgstr "Le mode de cardinalité d'une logic:ChoiceGroupConstraint : 'exactly-one', 'at-most-one', 'at-least-one' ou 'exactly-one-of-N' (un alias de 'exactly-one'). Exige exactement un littéral xsd:string ou xsd:token sans étiquette de langue ni direction. La validation lexicale native du type précède la suppression des espaces périphériques et la conversion des lettres ASCII en minuscules ; les espaces mal formés d'un token sont rejetés sans réduction."
 
 msgctxt "https://blackcatinformatics.ca/logic/choicePredicate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "A member predicate of a logic:ChoiceGroupConstraint's choice group. Multi-valued (at least two); the ∃-requiredness of each is combined per logic:choiceMode."
@@ -6455,8 +6455,8 @@ msgid "The target relationship is ontically sharp: the alignment either holds or
 msgstr "La relation cible est ontiquement nette : l'alignement ou bien tient ou bien non, sans cas limites. La détermination d'une équivalence ou d'une subsomption propre."
 
 msgctxt "https://blackcatinformatics.ca/logic/crossMode|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The mode of a logic:CrossNodeConstraint: 'co-occur' (the two roles must be present together) or 'differ' (the two roles must never bind the same value)."
-msgstr "Le mode d'une logic:CrossNodeConstraint : 'co-occur' (les deux rôles doivent être présents ensemble) ou 'differ' (les deux rôles ne doivent jamais lier la même valeur)."
+msgid "The mode of a logic:CrossNodeConstraint: 'co-occur' (alias 'cooccur', the two roles must be present together) or 'differ' (alias 'distinct', the two roles must never bind the same value). Requires exactly one untagged xsd:string or xsd:token literal. Native datatype lexical validation precedes trimming surrounding whitespace and ASCII case folding; malformed token whitespace is rejected without collapse."
+msgstr "Le mode d'une logic:CrossNodeConstraint : 'co-occur' (alias 'cooccur', les deux rôles doivent être présents ensemble) ou 'differ' (alias 'distinct', les deux rôles ne doivent jamais lier la même valeur). Exige exactement un littéral xsd:string ou xsd:token sans étiquette de langue ni direction. La validation lexicale native du type précède la suppression des espaces périphériques et la conversion des lettres ASCII en minuscules ; les espaces mal formés d'un token sont rejetés sans réduction."
 
 msgctxt "https://blackcatinformatics.ca/logic/dagCycleWitness|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Relates an `unsupported` DAG-workflow verdict to a disclosed offending edge or cycle member — the back-edge or logic:Iteration that places a plan outside the certified acyclic fragment — MULTI-valued (a graph may carry several cycles). Mirrors the witness-disclosure discipline of logic:forbiddenViolationWitness: the certifier never silently truncates a cyclic plan, it surfaces exactly which edges break acyclicity while the plan stays valid under a non-DAG contract. Domain a reasoning result or coherence outcome carrying the `unsupported` evaluation status, range a flow edge or process node (stated in prose)."
@@ -10263,8 +10263,12 @@ msgid "Choice Group Constraint"
 msgstr "Contrainte de groupe de choix"
 
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|http://www.w3.org/2004/02/skos/core#definition"
-msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
-msgstr "Sucre syntaxique compact pour une contrainte de cardinalité d'un groupe de choix (P1) : une cible logic:onClass, un ensemble de prédicats logic:choicePredicate et un logic:choiceMode ('exactly-one', 'at-most-one' ou l'alias 'exactly-one-of-N'). Le compilateur le développe en une logic:Constraint canonique dont l'intégrité est la formule XOR ou au-plus portant sur l'exigence existentielle de chaque prédicat. Réservé au frontal : ce n'est pas un nouveau genre de nœud, seulement un raccourci de création."
+msgid "Compact sugar for a choice-group cardinality constraint (P1): a logic:onClass target, a set of logic:choicePredicate predicates, and a logic:choiceMode ('exactly-one', 'at-most-one', 'at-least-one', or the 'exactly-one-of-N' alias of 'exactly-one'). The compiler expands it into a canonical logic:Constraint whose integrity is the XOR / at-most / at-least formula over the ∃-requiredness of each predicate. Frontend-only: it is not a new node kind, only an authoring shortcut."
+msgstr "Sucre syntaxique compact pour une contrainte de cardinalité d'un groupe de choix (P1) : une cible logic:onClass, un ensemble de prédicats logic:choicePredicate et un logic:choiceMode ('exactly-one', 'at-most-one', 'at-least-one' ou l'alias 'exactly-one-of-N'). Le compilateur le développe en une logic:Constraint canonique dont l'intégrité est la formule XOR, au-plus ou au-moins portant sur l'exigence existentielle de chaque prédicat. Réservé au frontal : ce n'est pas un nouveau genre de nœud, seulement un raccourci de création."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Do not use a choice group to count values of one predicate; its modes count the presence of distinct member predicates."
+msgstr "N'utilisez pas un groupe de choix pour compter les valeurs d'un seul prédicat ; ses modes comptent la présence de prédicats membres distincts."
 
 msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|http://www.w3.org/2004/02/skos/core#example"
 msgid "ex:contactChoice a logic:ChoiceGroupConstraint ; logic:onClass ex:Contact ; logic:choicePredicate ex:email, ex:phone ; logic:choiceMode \"exactly-one\" ."
@@ -24182,3 +24186,11 @@ msgstr "modalité de présentation"
 msgctxt "https://blackcatinformatics.ca/logic/presentationModality|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The mandatory explicit canonical modality code, supplied as an untagged xsd:string or xsd:token: none, alethic, epistemic, doxastic, telic, deontic, representational or counterfactual. The code must match exactly; whitespace variants and unrecognized selectors are rejected."
 msgstr "Le code canonique explicite et obligatoire de modalité, fourni sous forme de xsd:string ou de xsd:token sans étiquette de langue ni direction : none, alethic, epistemic, doxastic, telic, deontic, representational ou counterfactual. Le code doit correspondre exactement ; les variantes avec des espaces et les sélecteurs non reconnus sont rejetés."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Supply one target class, at least two choice predicates, and a cardinality mode selecting the compiled exactly-one, at-most-one or at-least-one presence formula."
+msgstr "Fournissez une classe cible, au moins deux prédicats de choix et un mode de cardinalité sélectionnant la formule de présence compilée exactly-one, at-most-one ou at-least-one."
+
+msgctxt "https://blackcatinformatics.ca/logic/ChoiceGroupConstraint|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use when a closed validation boundary requires exactly one, at most one or at least one member predicate of a finite group to be present."
+msgstr "Utilisez lorsqu'un cadre de validation fermé exige la présence d'exactement un, d'au plus un ou d'au moins un prédicat membre d'un groupe fini."

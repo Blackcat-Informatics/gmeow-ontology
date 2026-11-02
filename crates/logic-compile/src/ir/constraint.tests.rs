@@ -52,6 +52,7 @@ fn guarded(iri: &str, body_ttl: &str, body_node: &str) -> String {
     )
 }
 
+/// Plain constraints preserve severity meaning and keys across string/token spellings and defaults.
 #[test]
 fn p1_choice_group_exactly_one_round_trips() {
     // ∀ this. Widget(this) → ((∃a. hasA(this,a) ∧ ¬∃b. hasB(this,b))
