@@ -3,7 +3,7 @@
 
 //! Shared execution identity and declared preservation data without regeneration.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -15,7 +15,10 @@ use super::{EngineId, PreservationClaim};
 
 impl ExecutionCbor for PreservationKind {
     /// Delegate the exact retained variant wire to its compiler owner.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         PreservationKind::write_cbor(self, out)
     }
 
@@ -42,7 +45,10 @@ impl ExecutionCbor for PreservationKind {
 
 impl ExecutionCbor for EngineId {
     /// Retain the complete EngineId in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "name")?;
         ExecutionCbor::write_cbor(&self.name, out)?;
@@ -76,7 +82,10 @@ impl ExecutionCbor for EngineId {
 
 impl ExecutionCbor for PreservationClaim {
     /// Retain the complete PreservationClaim in its original declaration order.
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_head(out, head::MAP, 2)?;
         head::write_text(out, "polarities")?;
         ExecutionCbor::write_cbor(&self.polarities, out)?;

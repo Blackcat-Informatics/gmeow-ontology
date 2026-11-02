@@ -182,6 +182,12 @@ gmeow:CatalogFamily a logic:Class ;
     skos:definition "One registered external target catalog a grounding correspondence may point at — a named external formalism (gUFO, BFO, Wikidata, QUDT, OntoLex, BPMN, …) identified by the IRI stem(s) its terms are minted under, together with the grounding slice(s) that author its bridge cells and the raise-only minimum number of correspondences the shipped catalog must carry. It is NOT a gmeow:MappingSet (that is the per-file SSSOM publication header, several of which may target one family, and one of which may span several) and NOT a gmeow:ProjectionVocabulary (that is the inward-looking guarded surface whose hand-authored constructs the residue counter caps): a catalog family classifies the OUTWARD alignment targets, and the registry of families is the closed set a target endpoint must fall in exactly once."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> .
 
+gmeow:NativeKernelCatalogGuard a logic:Class ;
+    rdfs:label "native kernel catalog guard"@x-gmeow-english ;
+    skos:definition "A catalog family's source-scoped admission regime. Every correspondence from a canonically kernel-owned term into that family requires the complete native term-cell or projection-binding envelope and actual catalog-owner Mapping artifacts, retaining paths and SHA-256 identities. Canonical ownership comes from original Module-role declarations, including retained public IRIs. Every physical defining or metadata occurrence is checked independently of its markers before deduplication; shared analysis resolves references. Ordinary domain publication alignments remain outside this scope. Each family selects exactly one broad guard, bounded exemption or native kernel guard."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/mapping-dsl> ;
+    gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+
 gmeow:catalogFamilyName a logic:DatatypeProperty ;
     rdfs:label "catalog family name"@x-gmeow-english ;
     skos:definition "The stable, human-readable identity of a catalog family (\"gUFO\", \"RDF Data Cube\", \"openEHR Task Planning\"), used as the family's key in the gate's ratchet report. Exactly one per family and unique across the registry: two families sharing a name would collapse in the name-keyed count map and hide one catalog's shrinkage behind the other's growth."@x-gmeow-english ;
@@ -207,12 +213,10 @@ gmeow:catalogTargetMinimum a logic:DatatypeProperty ;
 # --------------------------------------------------------------------------- #
 #
 # The projection-vocabulary residue ratchet (docs/PROJECTION-VOCABULARY-RATCHET.md)
-# guards a vocabulary only when it has ONE grounding slice as its authoring owner.
-# Two registered catalog families the grounding kernel bridges onto — PROV-O and
-# schema.org — are general publication vocabularies that ~60 domain slices align to
-# as ordinary by-reference correspondences, with no single owner, so they carry no
-# `gmeow:ProjectionVocabulary` and their rows enter no residue count, no ceiling,
-# and no monotonicity ratchet.
+# guards a vocabulary only when it has declared grounding-slice authoring owners.
+# General publication vocabularies retain ordinary domain alignments by reference.
+# PROV-O now requires source-scoped native kernel admission; schema.org HowTo retains
+# its bounded exemption. Neither is made a broad projection-vocabulary guard.
 #
 # That carve-out used to be a paragraph of prose: nothing counted it, nothing
 # bounded it, and rows could be added to it silently and indefinitely. These terms

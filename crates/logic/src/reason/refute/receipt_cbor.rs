@@ -3,7 +3,7 @@
 
 //! Complete owner-local native execution receipt records, without semantic reconstruction.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf_lex::cbor::head;
 
@@ -12,7 +12,10 @@ use crate::execution_cbor::{ExecutionCbor, Reader, Result as WireResult, descend
 use super::{BoundKind, FragmentBoundary, FragmentFamily};
 
 impl ExecutionCbor for FragmentFamily {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::DatatypeValueSpace => head::write_text(out, "DatatypeValueSpace"),
             Self::Counting => head::write_text(out, "Counting"),
@@ -38,7 +41,10 @@ impl ExecutionCbor for FragmentFamily {
 }
 
 impl ExecutionCbor for BoundKind {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::Min => head::write_text(out, "Min"),
             Self::Max => head::write_text(out, "Max"),
@@ -64,7 +70,10 @@ impl ExecutionCbor for BoundKind {
 }
 
 impl ExecutionCbor for FragmentBoundary {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         match self {
             Self::SourceAdmission {
                 world,

@@ -4,6 +4,7 @@
 use super::*;
 use crate::ir::CorrespondenceRelation;
 use crate::projections::correspondence::{extract_correspondences, project_correspondence};
+use crate::projections::get_leg::projections;
 
 fn transpile_correspondences(view: &DslView) -> gmeow_errors::Result<CorrespondenceProgram> {
     transpile_correspondences_indexed(view, view, &[]).map(|(program, _)| program)

@@ -8,6 +8,14 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeKernelCatalogGuard|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "native kernel catalog guard"
+msgstr "原生内核目录准入检查"
+
+msgctxt "https://blackcatinformatics.ca/gmeow/NativeKernelCatalogGuard|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A catalog family's source-scoped admission regime. Every correspondence from a canonically kernel-owned term into that family requires the complete native term-cell or projection-binding envelope and actual catalog-owner Mapping artifacts, retaining paths and SHA-256 identities. Canonical ownership comes from original Module-role declarations, including retained public IRIs. Every physical defining or metadata occurrence is checked independently of its markers before deduplication; shared analysis resolves references. Ordinary domain publication alignments remain outside this scope. Each family selects exactly one broad guard, bounded exemption or native kernel guard."
+msgstr "按来源限定的目录族准入制度。凡从规范上归内核所有的术语映射到该目录族，都必须提供完整的原生术语单元或投影绑定封套，以及实际归目录所有者持有的 Mapping 工件，并保留路径和 SHA-256 标识。规范归属来自原始 Module 角色声明，包括保留的公共 IRI。去重前独立检查每个物理定义或元数据出现位置，不以其标记决定是否纳入检查；共享分析负责解析引用。普通领域的发布对齐不在此范围内。每个目录族恰好选择一种广域检查、有界豁免或原生内核检查。"
+
 msgctxt "https://blackcatinformatics.ca/gmeow/fnBirthEventToDate|http://www.w3.org/2004/02/skos/core#definition"
 msgid "Extracts a person's birth placement through the principal Participation and eventTime while retaining the source path. The owning target mapping selects its calendar-component projection: schema.org retains a date or natively casts a timestamp to a date; vCard retains a timestamp or year and explicitly coarsens date/month values. The source placement is never padded or rewritten."
 msgstr "通过主要 Participation 和 eventTime 提取个人出生时间定位，并保留来源路径。所属目标映射选择日历分量投影：schema.org 保留日期或将时间戳原生转换为日期；vCard 保留时间戳或年份，并明确降低日期或月份值的精度。来源定位绝不补全或改写。"

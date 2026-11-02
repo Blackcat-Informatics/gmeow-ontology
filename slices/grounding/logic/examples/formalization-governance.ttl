@@ -42,7 +42,9 @@ ex:reviewerLogicMaintainer
 ex:candidateProperPartOfAsymmetric
     a logic:FormalizationCandidate ;
     rdfs:label "properPartOf is asymmetric"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:0d1a…properpart"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # logic:properPartOf skos:definition in logic/module.ttl.
+    logic:candidateSourceHash "0b42321ddeb1371a834e5063caae94def5bc35c9f7eaef5f91d217185b495621"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "logic-foundation-charter §Greenfield features"^^xsd:string ;
     logic:candidateScope "logic:properPartOf over the endurant spine"^^xsd:string ;
     logic:candidateContract ex:contractEL ;
@@ -58,7 +60,9 @@ ex:candidateProperPartOfAsymmetric
 ex:candidateCounterpartNonTransitive
     a logic:FormalizationCandidate ;
     rdfs:label "counterpart stays non-transitive"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:7c4e…counterpart"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # gmeow:counterpartOf skos:definition in coreference/module.ttl.
+    logic:candidateSourceHash "40dfbdf39dd5a841a551423aeeb06b8cc5a0c78a6a933aba7932484c18440b96"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "logic-foundation-charter §Typed formalization governance"^^xsd:string ;
     logic:candidateScope "gmeow:counterpartOf across realms"^^xsd:string ;
     logic:candidateContract ex:contractEL ;
@@ -73,7 +77,9 @@ ex:candidateCounterpartNonTransitive
 ex:candidateIntentNotEntailed
     a logic:FormalizationCandidate ;
     rdfs:label "deceptive intent is attributed, never entailed"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:b21f…intent"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # gmeow:deceptiveIntentClaim skos:definition in deception/module.ttl.
+    logic:candidateSourceHash "1f9ee468dc9739ba8d33f35e6b49d85bc497e5cd26bfaeaf7607d628f355d57b"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "logic-foundation-charter §Typed formalization governance"^^xsd:string ;
     logic:candidateScope "gmeow:deceptiveIntentClaim over deception events"^^xsd:string ;
     logic:candidateContract ex:contractEL ;
@@ -88,7 +94,9 @@ ex:candidateIntentNotEntailed
 ex:candidateHolonAgencyDerivation
     a logic:FormalizationCandidate ;
     rdfs:label "holon agency verdict from the two Janus tendencies"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:9af0…holon"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # logic:AgencyVerdict skos:definition in logic/module.ttl.
+    logic:candidateSourceHash "20102cb29e9f227a3a19ee5bf623048229e854f54875ccd590bb7565c5adb845"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "llm-extraction:logic-foundation §holons"^^xsd:string ;
     logic:candidateScope "logic:AgencyVerdict under a holonic-agency profile"^^xsd:string ;
     logic:candidateContract ex:contractEL ;
@@ -101,7 +109,9 @@ ex:candidateHolonAgencyDerivation
 ex:candidateTypicalEndurantPersists
     a logic:FormalizationCandidate ;
     rdfs:label "endurants typically persist through change"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:1e77…persist"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # logic:Endurant skos:definition in logic/module.ttl.
+    logic:candidateSourceHash "38eeca57276fd0bd982db498a305d97aa9a19f4549a1b9f5e292136a6cf282ab"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "llm-extraction:logic-foundation §endurants"^^xsd:string ;
     logic:candidateScope "the endurant spine"^^xsd:string ;
     logic:candidateContract ex:contractEL ;
@@ -114,7 +124,9 @@ ex:candidateTypicalEndurantPersists
 ex:candidateIthkuilEthosProse
     a logic:FormalizationCandidate ;
     rdfs:label "the Ithkuil precision ethos paragraph"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:5d3c…ethos"^^xsd:string ;
+    # SHA-256 of the exact UTF-8 source text, without a final newline:
+    # first paragraph under The Ithkuil precision ethos in design/LOGIC-FOUNDATION.md.
+    logic:candidateSourceHash "cd06e20f6ec69e21d0af3490e23ed8a52be1a5d41b23f9385f6c32d43483929a"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "llm-extraction:logic-foundation §Ithkuil"^^xsd:string ;
     logic:candidateScope "charter prose"^^xsd:string ;
     logic:candidateContract ex:contractEL ;

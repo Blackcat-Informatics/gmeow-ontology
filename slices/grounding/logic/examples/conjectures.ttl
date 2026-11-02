@@ -16,6 +16,10 @@
 # the base graph, so they do not enter the reasoned closure; they are here to be read
 # and to be SHACL-validated against logic:ConjectureShape / logic:ContradictionWitnessShape.
 
+# Candidate hashes commit to the exact UTF-8 conjectureFormula lexical text,
+# without quotes, datatype or final newline. The promotion candidate reuses
+# ex:conjAdjacencySymmetric's formula text.
+
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
@@ -38,7 +42,7 @@ ex:standpointEndurantMereology
 ex:conjNearnessTransitive
     a logic:Conjecture ;
     rdfs:label "nearness is transitive (open)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:9f21…nearness-transitive"^^xsd:string ;
+    logic:candidateSourceHash "b143983130b419c71c81cdc016ae436fdd6571d64f8ffcdcdee9d8a8444a3911"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
     logic:candidateScope "transitivity of an example logic:near relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -65,7 +69,7 @@ ex:resultNearnessTransitive
 ex:conjAdjacencySymmetric
     a logic:Conjecture ;
     rdfs:label "adjacency is symmetric (corroborated)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
+    logic:candidateSourceHash "b7e1467f9f3ebbe134043d534731e36cc53d7cfeb6721c6a72023a69e4d8fdf0"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
     logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -90,7 +94,7 @@ ex:resultAdjacencySymmetric
 ex:candidatePromoteAdjacencySymmetry
     a logic:FormalizationCandidate ;
     rdfs:label "promote: adjacency is symmetric"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:4b7c…adjacency-symmetric"^^xsd:string ;
+    logic:candidateSourceHash "b7e1467f9f3ebbe134043d534731e36cc53d7cfeb6721c6a72023a69e4d8fdf0"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "positive promotion leg of ex:conjAdjacencySymmetric (corroborated)"@x-gmeow-english ;
     logic:candidateScope "symmetry of an example logic:adjacent relation over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -108,7 +112,7 @@ ex:candidatePromoteAdjacencySymmetry
 ex:conjParthoodTotallyComparable
     a logic:Conjecture ;
     rdfs:label "parthood is a total order (refuted-in-standpoint)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:c0de…parthood-total"^^xsd:string ;
+    logic:candidateSourceHash "57fc7464a1fa3e78427240243f234cba3c11462d9a4a3e2d9c8799e4173448dd"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
     logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -162,7 +166,7 @@ ex:obligationForbidTotalParthood
 ex:conjParthoodPartiallyOrdered
     a logic:Conjecture ;
     rdfs:label "parthood is a partial order (refined successor)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:d1ff…parthood-partial"^^xsd:string ;
+    logic:candidateSourceHash "222d9447bd1b23c8c2be51754a723ef85e6350f592af4941a78a0d3a824967cf"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "Lakatos refinement of ex:conjParthoodTotallyComparable after refutation"@x-gmeow-english ;
     logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -186,7 +190,7 @@ ex:conjParthoodPartiallyOrdered
 ex:conjGeneralAdjacency
     a logic:Conjecture ;
     rdfs:label "every adjacent pair shares a boundary (general, on the frontier)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:aa11…general-adjacency"^^xsd:string ;
+    logic:candidateSourceHash "31ec0b46e8e97cd23b55e436cd483ad19a8bd685f9e2c86f3e5aa34e91543a6d"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
     logic:candidateScope "boundary-sharing of an example logic:adjacent relation"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -204,7 +208,7 @@ ex:conjGeneralAdjacency
 ex:conjSpecialAdjacency
     a logic:Conjecture ;
     rdfs:label "every adjacent pair shares a UNIQUE boundary (special, refuted)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:bb22…special-adjacency"^^xsd:string ;
+    logic:candidateSourceHash "cb87d1cdd4b0407dd09264c0961bfe28778c6e540ac285e4a7de984acc87e7a8"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"@x-gmeow-english ;
     logic:candidateScope "unique-boundary-sharing of an example logic:adjacent relation"@x-gmeow-english ;
     logic:candidateContract logic:StratifiedNAFProfile ;

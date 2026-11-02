@@ -25,6 +25,9 @@
 # ex:cqConjectureRefinementSurvivesWitness, so it does not perturb the exact row
 # sets of the other conjecture fixture questions.
 
+# Candidate hashes commit to the exact UTF-8 conjectureFormula lexical text,
+# without quotes, datatype or final newline.
+
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
@@ -40,7 +43,7 @@ ex:cxRefineStandpointMereology
 ex:cxRefineTotalParthood
     a logic:Conjecture ;
     rdfs:label "parthood is a total order (refuted predecessor)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:c0de…refine-parthood-total"^^xsd:string ;
+    logic:candidateSourceHash "57fc7464a1fa3e78427240243f234cba3c11462d9a4a3e2d9c8799e4173448dd"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "engine-run conjecture-test cycle over the endurant standpoint"^^xsd:string ;
     logic:candidateScope "total comparability of logic:properPartOf over the endurant spine"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;
@@ -69,7 +72,7 @@ ex:cxRefineWitnessIncomparablePair
 ex:cxRefinePartialParthood
     a logic:Conjecture ;
     rdfs:label "parthood is a partial order (refined successor)"@x-gmeow-english ;
-    logic:candidateSourceHash "sha256:d1ff…refine-parthood-partial"^^xsd:string ;
+    logic:candidateSourceHash "222d9447bd1b23c8c2be51754a723ef85e6350f592af4941a78a0d3a824967cf"^^gmeow:sha256Digest ;
     logic:candidateExtractionProvenance "reviewer-asserted Lakatos refinement of ex:cxRefineTotalParthood after refutation"^^xsd:string ;
     logic:candidateScope "antisymmetry + transitivity of logic:properPartOf over the endurant spine"^^xsd:string ;
     logic:candidateContract logic:StratifiedNAFProfile ;

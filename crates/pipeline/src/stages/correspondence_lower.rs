@@ -69,6 +69,10 @@ pub(crate) fn record_worked_envelope(
 /// All four alignment dialects' outputs, keyed by bare file name within each
 /// generated directory.
 pub struct CorrespondenceArtifacts {
+    /// Same-read governance declarations for the selected native source program.
+    pub catalog_registry: crate::catalog_families::CatalogRegistry,
+    /// Physical source proofs for the source-scoped native catalog families.
+    pub native_kernel_evidence: Vec<crate::catalog_families::NativeKernelEvidence>,
     /// Canonical native catalog and property premises from this exact lowering.
     pub grounding_catalog: gmeow_logic_compile::projections::grounding_catalog::GroundingCatalog,
     /// Required DSL statistics emitted from the same admitted source analysis.
@@ -134,9 +138,7 @@ pub fn lower_all(
     root: &Path,
     catalog: Option<&SliceCatalog>,
 ) -> gmeow_errors::Result<CorrespondenceArtifacts> {
-    let dsl = merge_dsl(root, catalog)?;
-    let onto = merge_ontology(root, catalog)?;
-    let dsl_view = DslView::new(&dsl);
+    let (onto, ownership) = merge_ontology(root, catalog)?;
     let onto_view = DslView::new(&onto);
     let (version, release_date) = read_self_metadata(root)?;
 
@@ -150,9 +152,26 @@ pub fn lower_all(
         None => gmeow_validate::grounding_catalog::discover(root),
     }
     .map_err(|e| crate::error::parse_diag(e.to_string()))?;
+    let catalog_registry = crate::catalog_families::load_catalog_registry(root)?;
+    let (dsl, mut native_kernel_evidence, originals) =
+        merge_dsl(root, catalog, &catalog_registry, &onto_view, &ownership)?;
+    let dsl_view = DslView::new(&dsl);
     let (correspondences, lookup) =
         transpile_correspondences_indexed(&dsl_view, &onto_view, &owned_sources)
             .map_err(|e| crate::error::parse_diag(e.to_string()))?;
+    crate::catalog_families::native_kernel::check_projection_alternatives(
+        &catalog_registry,
+        &ownership,
+        &mut native_kernel_evidence,
+        &lookup,
+        &originals,
+    )?;
+    crate::catalog_families::native_kernel::reconcile(
+        &catalog_registry,
+        &ownership,
+        &native_kernel_evidence,
+        &correspondences,
+    )?;
 
     let sssom = sssom::lower_sssom(&dsl_view, &version, &release_date, &lookup)
         .map_err(|e| crate::error::parse_diag(e.to_string()))?;
@@ -218,6 +237,8 @@ pub fn lower_all(
         .map_err(|error| crate::error::parse_diag(error.to_string()))?;
 
     Ok(CorrespondenceArtifacts {
+        catalog_registry,
+        native_kernel_evidence,
         grounding_catalog,
         dsl_stats,
         sssom: sssom.sets,
@@ -373,50 +394,92 @@ fn collect_ttl_files(dir: &Path, out: &mut Vec<PathBuf>) -> gmeow_errors::Result
     Ok(())
 }
 
-fn merge_slice_artifacts(
+fn slice_artifacts(
     catalog: Option<&SliceCatalog>,
     role: ArtifactRole,
-    b: &mut RdfDatasetBuilder,
-) -> gmeow_errors::Result<()> {
+) -> Vec<(PathBuf, &str, &[u8])> {
     let Some(catalog) = catalog else {
-        return Ok(());
+        return Vec::new();
     };
     // Borrow the artifact bytes (no clone): the catalog outlives this merge.
-    let mut artifacts: Vec<(PathBuf, &[u8])> = Vec::new();
+    let mut artifacts = Vec::new();
     for record in catalog.records() {
         for artifact in &record.artifacts {
             if artifact.role == role {
                 artifacts.push((
                     record.slice_dir.join(&artifact.logical_path),
-                    &artifact.content,
+                    record.manifest.slice_iri.as_str(),
+                    artifact.content.as_slice(),
                 ));
             }
         }
     }
     artifacts.sort_by(|a, c| a.0.cmp(&c.0));
-    for (path, bytes) in &artifacts {
-        let ds = parse_turtle(bytes, &path.display().to_string())?;
-        b.push_dataset(&ds)?;
-    }
-    Ok(())
+    artifacts
 }
 
 /// The DSL source set (functions + cells): the sorted `dsl/mappings/**/*.ttl` tree,
 /// then the sorted slice `Mapping` artifacts — the same order the historical store
 /// loaded them, so collisions resolve identically.
-fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> gmeow_errors::Result<Arc<RdfDataset>> {
+fn merge_dsl(
+    root: &Path,
+    catalog: Option<&SliceCatalog>,
+    registry: &crate::catalog_families::CatalogRegistry,
+    ontology: &DslView<'_>,
+    ownership: &crate::catalog_families::native_kernel::SourceOwnership,
+) -> gmeow_errors::Result<(
+    Arc<RdfDataset>,
+    Vec<crate::catalog_families::NativeKernelEvidence>,
+    Vec<crate::catalog_families::native_kernel::OriginalMapping>,
+)> {
     let mut b = RdfDatasetBuilder::new();
+    let mut evidence = Vec::new();
+    let mut originals = Vec::new();
     let mut files = Vec::new();
     collect_ttl_files(&root.join("dsl").join("mappings"), &mut files)?;
     files.sort();
     for path in &files {
         let bytes = std::fs::read(path).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, &path.display().to_string())?;
+        let relative = path
+            .strip_prefix(root)
+            .map_err(|error| crate::error::parse_diag(error.to_string()))?;
+        let original = crate::catalog_families::native_kernel::OriginalMapping::new(
+            "",
+            &relative.to_string_lossy(),
+            &bytes,
+            ds.clone(),
+        );
+        evidence.extend(crate::catalog_families::native_kernel::admit_source(
+            registry, ontology, ownership, &original,
+        )?);
         b.push_dataset(&ds)?;
+        originals.push(original);
     }
-    merge_slice_artifacts(catalog, ArtifactRole::Mapping, &mut b)?;
-    b.freeze()
-        .map_err(|e| crate::error::parse_diag(e.to_string()))
+    for (path, owner, bytes) in slice_artifacts(catalog, ArtifactRole::Mapping) {
+        let relative = path
+            .strip_prefix(root)
+            .map_err(|error| crate::error::parse_diag(error.to_string()))?;
+        let ds = parse_turtle(bytes, &path.display().to_string())?;
+        let original = crate::catalog_families::native_kernel::OriginalMapping::new(
+            owner,
+            &relative.to_string_lossy(),
+            bytes,
+            ds.clone(),
+        );
+        evidence.extend(crate::catalog_families::native_kernel::admit_source(
+            registry, ontology, ownership, &original,
+        )?);
+        b.push_dataset(&ds)?;
+        originals.push(original);
+    }
+    evidence.sort();
+    Ok((
+        b.freeze()
+            .map_err(|e| crate::error::parse_diag(e.to_string()))?,
+        evidence,
+        originals,
+    ))
 }
 
 /// The ontology source set (`rdfs:range` / suppression vocabulary / language tags):
@@ -424,17 +487,47 @@ fn merge_dsl(root: &Path, catalog: Option<&SliceCatalog>) -> gmeow_errors::Resul
 fn merge_ontology(
     root: &Path,
     catalog: Option<&SliceCatalog>,
-) -> gmeow_errors::Result<Arc<RdfDataset>> {
+) -> gmeow_errors::Result<(
+    Arc<RdfDataset>,
+    crate::catalog_families::native_kernel::SourceOwnership,
+)> {
     let mut b = RdfDatasetBuilder::new();
+    let mut ownership = crate::catalog_families::native_kernel::SourceOwnership::default();
     let onto = root.join("ontology").join("gmeow.ttl");
     if onto.is_file() {
         let bytes = std::fs::read(&onto).map_err(crate::error::io_diag)?;
         let ds = parse_turtle(&bytes, "ontology/gmeow.ttl")?;
+        ownership.record_module(
+            "https://blackcatinformatics.ca/gmeow",
+            "ontology/gmeow.ttl",
+            &bytes,
+            &ds,
+        );
         b.push_dataset(&ds)?;
     }
-    merge_slice_artifacts(catalog, ArtifactRole::Module, &mut b)?;
-    b.freeze()
-        .map_err(|e| crate::error::parse_diag(e.to_string()))
+    for (path, owner, bytes) in slice_artifacts(catalog, ArtifactRole::Module) {
+        let relative = path
+            .strip_prefix(root)
+            .map_err(|error| crate::error::parse_diag(error.to_string()))?;
+        let ds = parse_turtle(bytes, &path.display().to_string())?;
+        ownership.record_module(owner, &relative.to_string_lossy(), bytes, &ds);
+        b.push_dataset(&ds)?;
+    }
+    for (path, owner, bytes) in slice_artifacts(catalog, ArtifactRole::Example) {
+        if !crate::catalog_families::native_kernel::kernel_owner(owner) {
+            continue;
+        }
+        let relative = path
+            .strip_prefix(root)
+            .map_err(|error| crate::error::parse_diag(error.to_string()))?;
+        let ds = parse_turtle(bytes, &path.display().to_string())?;
+        ownership.record_example(owner, &relative.to_string_lossy(), bytes, &ds)?;
+    }
+    Ok((
+        b.freeze()
+            .map_err(|e| crate::error::parse_diag(e.to_string()))?,
+        ownership,
+    ))
 }
 
 /// Read `(version, release_date)` from `metadata/gmeow-self.ttl` (the Manifestation is

@@ -3,7 +3,7 @@
 
 //! Complete retained-term reader for the selected execution receipt wire.
 
-use std::io::{self, Write};
+use std::io;
 
 use purrdf::{BlankScope, RdfTextDirection, TermBox, TermValue};
 use purrdf_lex::cbor::head;
@@ -11,7 +11,10 @@ use purrdf_lex::cbor::head;
 use super::{ExecutionCbor, Reader, Result};
 
 impl ExecutionCbor for RdfTextDirection {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
         head::write_text(
             out,
             match self {
@@ -38,41 +41,21 @@ impl ExecutionCbor for RdfTextDirection {
 }
 
 impl ExecutionCbor for TermValue {
-    fn write_cbor<W: Write + ?Sized>(&self, out: &mut W) -> io::Result<()> {
-        crate::term_serde::write_cbor(self, out)
+    fn write_cbor<W: crate::execution_cbor::LeafWrite + ?Sized>(
+        &self,
+        out: &mut W,
+    ) -> io::Result<()> {
+        out.term(self)
     }
 
     fn check_depth(&self, remaining: usize) -> Result<()> {
-        let remaining = super::descend(remaining)?;
-        match self {
-            Self::Iri(iri) => iri.check_depth(remaining),
-            Self::Blank { label, scope } => {
-                let remaining = super::descend(remaining)?;
-                label.check_depth(remaining)?;
-                scope.0.check_depth(remaining)
-            }
-            Self::Literal {
-                lexical_form,
-                datatype,
-                language,
-                direction,
-            } => {
-                let remaining = super::descend(remaining)?;
-                lexical_form.check_depth(remaining)?;
-                datatype.check_depth(remaining)?;
-                language.check_depth(remaining)?;
-                direction.check_depth(remaining)
-            }
-            Self::Triple { s, p, o } => {
-                let remaining = super::descend(remaining)?;
-                s.as_ref().check_depth(remaining)?;
-                p.as_ref().check_depth(remaining)?;
-                o.as_ref().check_depth(remaining)
-            }
-        }
+        required_depth(self, remaining).map(|_| ())
     }
 
     fn read_cbor(input: &mut Reader<'_>) -> Result<Self> {
+        if !input.definitions() {
+            return input.term_value();
+        }
         input.variant(|input, name, tagged| {
             if !tagged {
                 return Err(input.invalid("expected tagged retained term"));
@@ -124,4 +107,36 @@ impl ExecutionCbor for TermValue {
             }
         })
     }
+}
+
+/// One bounded structural walk supplies both the typed preflight and table metadata.
+/// Depth is semantic visitor depth, independent of the compact reference spelling.
+pub(super) fn required_depth(value: &TermValue, remaining: usize) -> Result<usize> {
+    let own: usize = match value {
+        TermValue::Iri(_) => 1,
+        TermValue::Blank { .. } => 2,
+        TermValue::Literal { direction, .. } => {
+            if direction.is_some() {
+                3
+            } else {
+                2
+            }
+        }
+        TermValue::Triple { .. } => 2,
+    };
+    let children_remaining = remaining.checked_sub(own).ok_or_else(|| {
+        super::Error::invalid(0, "typed receipt term exceeds its recursion limit")
+    })?;
+    let child_depth = match value {
+        TermValue::Triple { s, p, o } => {
+            let mut deepest = 0;
+            for child in [s.as_ref(), p.as_ref(), o.as_ref()] {
+                deepest = deepest.max(required_depth(child, children_remaining)?);
+            }
+            deepest
+        }
+        _ => 0,
+    };
+    own.checked_add(child_depth)
+        .ok_or_else(|| super::Error::invalid(0, "typed receipt term depth overflow"))
 }
