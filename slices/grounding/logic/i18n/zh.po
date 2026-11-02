@@ -5167,8 +5167,8 @@ msgid "The engine-derived outcome of an logic:AgencyAssessment: the four-valued 
 msgstr "一个 logic:AgencyAssessment 的引擎导出结果：基础降级为其蕴涵的四值 logic:AgencyVerdict（logic:HolonIntegral、logic:AutonomyDeficient、logic:IntegrationDeficient 或 logic:AgencyUnknown）。从不由人手断言——它由分层的能动性规则从评估的全子与已声明的 logic:HolonicAgencyProfile 计算得出，是评估的便利、可投影为 OWL 的表面，恰如 logic:assessmentVerdict 之于涌现、logic:constraintVerdict 之于治理。两个病态值通过对两个同等倾向标记的失败即否定而达到，因此每个裁决都真正相对于配置，而非一个赤裸的缺省值（design/LOGIC-FOUNDATION.md，typed-and-contextual-mereology-and-holons 一节）。"
 
 msgctxt "https://blackcatinformatics.ca/logic/aggComparator|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The relational comparator of a logic:AggregateConstraint's invariant (=, !=, <, <=, >, >=; the Unicode ≠/≤/≥ are accepted). The projected sh:SPARQLConstraint HAVING uses the negation of this operator, because a sh:select returns the VIOLATING focus nodes."
-msgstr "一个 logic:AggregateConstraint 不变式的关系比较符（=、!=、<、<=、>、>=；接受 Unicode 的 ≠/≤/≥）。所投影的 sh:SPARQLConstraint 的 HAVING 使用此运算符的否定，因为 sh:select 返回的是违例的焦点节点。"
+msgid "The invariant comparator shared by logic:AggregateConstraint and logic:JoinAggregateConstraint. Exactly one distinct untagged xsd:string or xsd:token literal is required, with its native lexical form validated before interpretation. After trimming surrounding whitespace, accepted symbols are =, !=, <, <=, > and >=; == aliases =, <> aliases !=, and Unicode ≠, ≤ and ≥ alias !=, <= and >=. The projected sh:SPARQLConstraint HAVING negates this operator because sh:select returns violating focus nodes."
+msgstr "logic:AggregateConstraint 与 logic:JoinAggregateConstraint 共用的不变式比较符。必须提供恰好一个不同的、不带语言或方向的 xsd:string 或 xsd:token 字面量，并在解释之前验证其原生词法形式。去除两端空白后，接受 =、!=、<、<=、> 和 >=；== 是 = 的别名，<> 是 != 的别名，Unicode 的 ≠、≤ 和 ≥ 分别是 !=、<= 和 >= 的别名。所投影的 sh:SPARQLConstraint 的 HAVING 对此运算符取反，因为 sh:select 返回违例的焦点节点。"
 
 msgctxt "https://blackcatinformatics.ca/logic/aggCompareTo|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The right-hand side a logic:AggregateConstraint's aggregate is compared to: an IRI object is a compared PROPERTY of the focus ($this <prop> ?rhs), and a literal is a fixed comparison value."
@@ -5179,8 +5179,8 @@ msgid "Whether a logic:AggregateConstraint aggregates over DISTINCT values (COUN
 msgstr "一个 logic:AggregateConstraint 是否在去重（DISTINCT）值上聚合（COUNT(DISTINCT ?x)）。缺省即为假。"
 
 msgctxt "https://blackcatinformatics.ca/logic/aggFunction|http://www.w3.org/2004/02/skos/core#definition"
-msgid "The aggregate function of a logic:AggregateConstraint (COUNT, SUM, MIN, MAX) applied over logic:aggPath. Distinct from logic:aggregateFunction, which carries a reduce RULE's head aggregation; this drives a constraint's GROUP BY/HAVING violation SELECT."
-msgstr "一个 logic:AggregateConstraint 的聚合函数（COUNT、SUM、MIN、MAX），作用于 logic:aggPath。它区别于 logic:aggregateFunction（后者承载归约规则的头部聚合）；它驱动约束的 GROUP BY/HAVING 违例 SELECT。"
+msgid "The aggregate function selector shared by logic:AggregateConstraint and logic:JoinAggregateConstraint. Exactly one distinct untagged xsd:string or xsd:token literal is required, with its native lexical form validated before interpretation. COUNT, SUM, MIN and MAX are accepted after ASCII uppercasing without whitespace trimming. The ordinary constraint aggregates over logic:aggPath; the join constraint aggregates products along its ordered logic:joinPath. Distinct from logic:aggregateFunction, which carries a reduce rule's head aggregation; this selector drives the constraint's canonical integrity and GROUP BY/HAVING violation SELECT."
+msgstr "logic:AggregateConstraint 与 logic:JoinAggregateConstraint 共用的聚合函数选择器。必须提供恰好一个不同的、不带语言或方向的 xsd:string 或 xsd:token 字面量，并在解释之前验证其原生词法形式。仅将 ASCII 字符转为大写而不去除空白后，接受 COUNT、SUM、MIN 和 MAX。普通约束对 logic:aggPath 聚合；连接约束沿有序的 logic:joinPath 对乘积聚合。它区别于承载归约规则头部聚合的 logic:aggregateFunction；此选择器驱动约束的规范完整性及 GROUP BY/HAVING 违例 SELECT。"
 
 msgctxt "https://blackcatinformatics.ca/logic/aggPath|http://www.w3.org/2004/02/skos/core#definition"
 msgid "The predicate a logic:AggregateConstraint aggregates over the focus: the objects of $this <aggPath> ?x are the values logic:aggFunction is applied to."

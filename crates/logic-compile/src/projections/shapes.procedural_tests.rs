@@ -1095,17 +1095,32 @@ ex:iltMatch a logic:Formula ; logic:relation <https://blackcatinformatics.ca/log
     assert!(b.contains("a sh:SPARQLTarget"), "{b}");
 }
 
+/// Typed aggregate selectors preserve the canonical HAVING and literal RHS datatype.
 #[test]
 fn p6_aggregate_sum_literal_rhs_projects_group_by_having() {
-    let b = project_sugar(
-        "ex:agg2 a logic:AggregateConstraint ;\n\
+    let source = "ex:agg2 a logic:AggregateConstraint ;\n\
              logic:onClass ex:Portfolio ;\n\
              logic:aggFunction \"SUM\" ;\n\
              logic:aggPath ex:weight ;\n\
              logic:aggComparator \"=\" ;\n\
              logic:aggCompareTo \"1\"^^xsd:integer ;\n\
-             logic:formalizes ex:Portfolio .",
-    );
+             logic:formalizes ex:Portfolio .";
+    let b = project_sugar(source);
+    for (function, comparator) in [
+        ("\"sum\"^^xsd:token", "\"==\"^^xsd:string"),
+        ("\"sUm\"^^xsd:string", "\" = \""),
+    ] {
+        let selected = source
+            .replace(
+                "logic:aggFunction \"SUM\"",
+                &format!("logic:aggFunction {function}"),
+            )
+            .replace(
+                "logic:aggComparator \"=\"",
+                &format!("logic:aggComparator {comparator}"),
+            );
+        assert_eq!(project_sugar(&selected), b);
+    }
     assert!(b.contains("SUM(?value)"), "{b}");
     assert!(b.contains("$this <https://ex/weight> ?value"), "{b}");
     assert!(b.contains("GROUP BY $this"), "{b}");
@@ -1177,9 +1192,20 @@ const JOIN_AGG_SUGAR: &str = "ex:boundarySquareZero a logic:JoinAggregateConstra
          ) ;\n\
          logic:formalizes ex:BoundaryOperator .";
 
+/// Typed join selectors preserve ordered record joins, the threshold and violation operator.
 #[test]
 fn join_aggregate_multi_hop_projects_deterministic_group_by_having() {
     let b = project_sugar(JOIN_AGG_SUGAR);
+    let selected = JOIN_AGG_SUGAR
+        .replace(
+            "logic:aggFunction \"SUM\"",
+            "logic:aggFunction \"sum\"^^xsd:string",
+        )
+        .replace(
+            "logic:aggComparator \"=\"",
+            "logic:aggComparator \"==\"^^xsd:token",
+        );
+    assert_eq!(project_sugar(&selected), b);
     // The focus is the coface (the top cell); the join is anchored on $this.
     assert!(b.contains("sh:targetClass <https://ex/TopCell>"), "{b}");
     // Leg 1 anchors on the bound focus $this via the source predicate, then binds the

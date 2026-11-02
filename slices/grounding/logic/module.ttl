@@ -16317,10 +16317,10 @@ logic:maxExclusiveBound
 
 logic:aggFunction
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate (constraint) function"@x-gmeow-english ;
-    skos:definition "The aggregate function of a logic:AggregateConstraint (COUNT, SUM, MIN, MAX) applied over logic:aggPath. Distinct from logic:aggregateFunction, which carries a reduce RULE's head aggregation; this drives a constraint's GROUP BY/HAVING violation SELECT."@x-gmeow-english ;
+    skos:definition "The aggregate function selector shared by logic:AggregateConstraint and logic:JoinAggregateConstraint. Exactly one distinct untagged xsd:string or xsd:token literal is required, with its native lexical form validated before interpretation. COUNT, SUM, MIN and MAX are accepted after ASCII uppercasing without whitespace trimming. The ordinary constraint aggregates over logic:aggPath; the join constraint aggregates products along its ordered logic:joinPath. Distinct from logic:aggregateFunction, which carries a reduce rule's head aggregation; this selector drives the constraint's canonical integrity and GROUP BY/HAVING violation SELECT."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:aggDistinct
@@ -16340,10 +16340,10 @@ logic:aggPath
 
 logic:aggComparator
     a logic:DatatypeProperty ;
-    rdfs:range xsd:string ;
+    logic:range [ a rdfs:Datatype ; logic:unionOf ( xsd:string xsd:token ) ] ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "aggregate comparator"@x-gmeow-english ;
-    skos:definition "The relational comparator of a logic:AggregateConstraint's invariant (=, !=, <, <=, >, >=; the Unicode ≠/≤/≥ are accepted). The projected sh:SPARQLConstraint HAVING uses the negation of this operator, because a sh:select returns the VIOLATING focus nodes."@x-gmeow-english ;
+    skos:definition "The invariant comparator shared by logic:AggregateConstraint and logic:JoinAggregateConstraint. Exactly one distinct untagged xsd:string or xsd:token literal is required, with its native lexical form validated before interpretation. After trimming surrounding whitespace, accepted symbols are =, !=, <, <=, > and >=; == aliases =, <> aliases !=, and Unicode ≠, ≤ and ≥ alias !=, <= and >=. The projected sh:SPARQLConstraint HAVING negates this operator because sh:select returns violating focus nodes."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
 logic:aggCompareTo

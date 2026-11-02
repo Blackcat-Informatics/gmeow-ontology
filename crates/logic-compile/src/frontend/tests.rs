@@ -4180,13 +4180,13 @@ fn value_range_record_without_any_bound_is_a_malformed_record() {
     );
 }
 
+/// Aggregate selectors retain canonical meaning while malformed complete terms emit no record.
 #[test]
 fn join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_set() {
     // A well-formed two-leg join-aggregate record expands to exactly one canonical logic:Constraint
     // carrying the JoinAggregate satellite, targets the guarded class, and none of its structural
     // triples (joinPath / leg role predicates / the leg blank nodes) leak into prog.axioms.
-    let (prog, diags) = parse(
-        "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
+    let join_source = "ex:boundarySquareZero a logic:JoinAggregateConstraint ;\n\
            logic:onClass ex:TopCell ;\n\
            logic:aggFunction \"SUM\" ;\n\
            logic:aggComparator \"=\" ;\n\
@@ -4195,8 +4195,8 @@ fn join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_s
              [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
              [ logic:legRecordType ex:Incidence ; logic:legSource ex:incidenceCoface ; logic:legTarget ex:incidenceFace ; logic:legValue ex:incidenceSign ]\n\
            ) ;\n\
-           logic:formalizes ex:BoundaryOperator .",
-    );
+           logic:formalizes ex:BoundaryOperator .";
+    let (prog, diags) = parse(join_source);
     assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
     assert_eq!(prog.constraints.len(), 1, "exactly one constraint expands");
     let c = &prog.constraints[0];
@@ -4223,6 +4223,82 @@ fn join_aggregate_record_expands_and_contributes_nothing_to_the_reasoned_axiom_s
         "no join-aggregate structural triple may leak into prog.axioms; got: {:?}",
         prog.axioms
     );
+    let ordinary_source = "ex:boundarySquareZero a logic:AggregateConstraint ;
+        logic:onClass ex:TopCell ; logic:aggFunction \"SUM\" ;
+        logic:aggPath ex:incidenceSign ; logic:aggComparator \"=\" ;
+        logic:aggCompareTo 0 ; logic:formalizes ex:BoundaryOperator .";
+    for source in [ordinary_source, join_source] {
+        let (baseline, diagnostics) = parse(source);
+        assert!(diagnostics.is_empty(), "{diagnostics:?}");
+        let expected = &baseline.constraints[0];
+        for (function, comparator) in [
+            ("\"sum\"", "\" == \""),
+            ("\"sUm\"^^xsd:string", "\"==\"^^xsd:string"),
+            ("\"sum\"^^xsd:token", "\"=\"^^xsd:token"),
+            ("\"SUM\", \"SUM\"", "\"=\", \"=\""),
+        ] {
+            let selected = source
+                .replace(
+                    "logic:aggFunction \"SUM\"",
+                    &format!("logic:aggFunction {function}"),
+                )
+                .replace(
+                    "logic:aggComparator \"=\"",
+                    &format!("logic:aggComparator {comparator}"),
+                );
+            let (actual, diagnostics) = parse(&selected);
+            assert!(diagnostics.is_empty(), "{diagnostics:?}");
+            assert_eq!(actual.constraints.len(), 1);
+            assert_eq!(actual.constraints[0].integrity, expected.integrity);
+            assert_eq!(actual.constraints[0].content_key(), expected.content_key());
+        }
+        for (predicate, code, alias) in
+            [("aggFunction", "SUM", "sum"), ("aggComparator", "=", "==")]
+        {
+            for object in [
+                None,
+                Some("ex:resource"),
+                Some("_:selector"),
+                Some("<<( ex:s ex:p ex:o )>>"),
+                Some("\"CODE\"^^xsd:normalizedString"),
+                Some("\"CODE\"@en"),
+                Some("\"CODE\"@en--ltr"),
+                Some("\" CODE\"^^xsd:token"),
+                Some("\"\\tCODE\"^^xsd:token"),
+                Some("\"CODE\\uFFFF\""),
+                Some("\"CODE\", \"CODE\"^^xsd:token"),
+                Some("\"CODE\", \"ALIAS\""),
+                Some("\"unknown\""),
+            ] {
+                let selector = object.map_or_else(String::new, |object| {
+                    format!(
+                        "logic:{predicate} {} ;",
+                        object.replace("CODE", code).replace("ALIAS", alias)
+                    )
+                });
+                let selected =
+                    source.replace(&format!("logic:{predicate} \"{code}\" ;"), &selector);
+                let (actual, diagnostics) = parse(&selected);
+                assert!(actual.constraints.is_empty(), "{predicate}: {object:?}");
+                assert!(
+                    diagnostics.iter().any(|diagnostic| {
+                        diagnostic.code == "MALFORMED_CONSTRAINT"
+                            && diagnostic.subject.as_deref()
+                                == Some("https://example.org/test/boundarySquareZero")
+                    }),
+                    "{predicate}: {object:?}: {diagnostics:?}"
+                );
+            }
+        }
+        // Function grammar uppercases without trimming; comparator whitespace above remains valid.
+        let (actual, diagnostics) = parse(&source.replace("\"SUM\"", "\" SUM \""));
+        assert!(actual.constraints.is_empty());
+        assert!(
+            diagnostics
+                .iter()
+                .any(|diagnostic| diagnostic.code == "MALFORMED_CONSTRAINT")
+        );
+    }
 }
 
 #[test]
