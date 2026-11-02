@@ -5500,3 +5500,295 @@ msgstr "不要将此属性用于倒数、仅左逆，或未重新给出框架便
 msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the original function’s declared frame, describe the inverse with domain and codomain swapped, and justify both inverse compositions. State math:inverseFunction explicitly for each needed direction; its mathematical symmetry is documented rather than promised as an automatic RDF inference."
 msgstr "保留原函数的声明框架，为逆函数交换定义域及陪域，并论证两个方向的逆复合。对所需的每个方向显式声明 math:inverseFunction；其数学对称性已有文字说明，并不保证自动的 RDF 推理。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Operation"
+msgstr "数学运算"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical operation: a map from operands to a result, applied within an expression. The object-layer parent that math:ArithmeticOperation specializes; richer structure (arity, operand structure preservation) belongs to the mathematical-core surface that this bedrock builds on."
+msgstr "数学运算：在表达式中应用的、从运算对象到结果的映射。它是 math:ArithmeticOperation 所特化的对象层父类；更丰富的结构（元数、运算对象结构的保持）属于此基础层所依托的数学核心层。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An operation identifies what an application invokes; it is not the application occurrence or its evaluated result. A framed math:Function is another mathematical description, and this class alone supplies neither a function frame nor an execution capability."
+msgstr "运算标识应用所调用的对象，而不是应用出现项或其计算结果。具有映射框架的 math:Function 是另一种数学描述；仅有此类并不提供函数框架或执行能力。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#example"
+msgid "In an expression for 2 + 2, math:Addition is the operation, the math:ApplicationExpression is the application occurrence, and the exact number 4 is the mathematical result rather than the operator resource."
+msgstr "在 2 + 2 的表达式中，math:Addition 是运算，math:ApplicationExpression 是应用出现项，精确数 4 是数学结果，而不是运算符资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a mathematical operator that expressions can invoke while keeping each application and result description separate."
+msgstr "用于标识表达式可调用的数学运算符，同时分开保留每次应用及其结果描述。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an operation label as an expression AST, inferring a total framed function from this class, or assuming every declared operation is executable in every runtime profile."
+msgstr "不要将运算标签当作表达式 AST，不要从此类推断具有框架的全函数，也不要假定每个已声明运算都可在所有运行配置中执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the applicable operation individual as the object of math:operator on an application, and represent the operands through the existing argument-slot structure. Retain the operator’s declared mathematical scope and select execution only through an admitted runtime profile."
+msgstr "将适当的运算个体复用为应用上 math:operator 的宾语，并通过现有参数槽位结构表示运算对象。保留运算符声明的数学适用范围，只有通过已准入的运行配置才选择执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Arithmetic Operation"
+msgstr "算术运算"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arithmetic operation over numbers: addition, multiplication, exponentiation, and their inverses. A subclass of math:Operation; the concrete operators are named individuals (math:Addition, math:Multiplication, math:Exponentiation, math:Subtraction, math:Division, math:Root, math:Logarithm). Anchored externally to the OpenMath arith1 and nums1 content dictionaries. An arithmetic expression applies one such operator inside a math:ApplicationExpression."
+msgstr "数上的算术运算，包括加法、乘法、幂运算及其逆运算。它是 math:Operation 的子类；具体运算符是命名个体（math:Addition、math:Multiplication、math:Exponentiation、math:Subtraction、math:Division、math:Root、math:Logarithm）。其外部锚点为 OpenMath arith1 和 nums1 内容字典。算术表达式在 math:ApplicationExpression 中应用其中一个运算符。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class groups arithmetic operator individuals with declared number-system signatures. Symbolic availability is broader than the selected exact-decimal scalar profile, which admits only binary Addition, Subtraction, Multiplication and exact Division on its required dimensionless quantities."
+msgstr "此类汇集具有声明数系签名的算术运算符个体。符号表示范围大于所选精确十进制标量配置；该配置仅准入作用于所要求的无量纲数量上的二元 Addition、Subtraction、Multiplication 及精确 Division。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:Root is an arithmetic operator with real input and complex result systems, while math:Negation has the signed extended-real signature. Neither is admitted by the selected four-operator exact-scalar profile."
+msgstr "math:Root 是具有实数输入和复数结果数系的算术运算符，math:Negation 则具有带符号扩展实数签名。两者均不被所选的四运算符精确标量配置准入。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a declared number operator without conflating the operator individual with a numeric value or an application node."
+msgstr "用于分类已声明的数值运算符，而不将运算符个体与数值或应用节点混淆。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the number-system signature as proof of totality, extending a complex result signature to arbitrary complex inputs, or claiming a general solver executes every arithmetic individual."
+msgstr "不要将数系签名当作处处有定义的证明，不要因结果签名为复数就扩展到任意复数输入，也不要声称通用求解器会执行每个算术个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the existing arithmetic individual, preserve its math:operatorDomain and math:operatorCodomain, and use it through math:operator in a structured application. For selected scalar execution, satisfy that profile’s bindings, dimension and exact numeric requirements; unsupported cases must fail rather than degrade to approximation."
+msgstr "选择已有算术个体，保留 math:operatorDomain 和 math:operatorCodomain，并通过 math:operator 在结构化应用中使用。选择标量执行时，满足该配置的绑定、量纲及精确数值要求；不支持的情形必须失败，而非退化为近似计算。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator"
+msgstr "应用运算符"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."
+msgstr "math:ApplicationExpression 所应用的唯一运算符：将应用连接到其调用的 math:Operation，例如 math:ArithmeticOperation 个体。定义域为 math:ApplicationExpression，值域为 math:Operation（以文字说明）。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from an application expression to one operation individual. Operand positions belong to math:ArgumentSlot resources; the operator link itself neither stores argument values nor determines an evaluation result."
+msgstr "此边从应用表达式指向一个运算个体。运算对象位置属于 math:ArgumentSlot 资源；运算符链接本身既不存储参数值，也不确定计算结果。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#example"
+msgid "An application representing 7 − 2 points through math:operator to math:Subtraction, while its separate indexed slots hold the expressions for 7 and 2 in that order."
+msgstr "表示 7 − 2 的应用通过 math:operator 指向 math:Subtraction，其独立索引槽位则按该顺序承载 7 和 2 的表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the operation invoked at a particular application node in the mathematical expression AST."
+msgstr "用于标识数学表达式 AST 中某个应用节点所调用的运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an operator glyph string, the class math:ArithmeticOperation itself, multiple operator objects on one application, or raw operand literals in place of the operation individual."
+msgstr "不要使用运算符字形字符串、math:ArithmeticOperation 类本身、同一应用上的多个运算符宾语，也不要以原始运算对象字面量替代运算个体。"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:operator from the math:ApplicationExpression to the chosen operation individual. Link each math:ArgumentSlot through math:argumentSlot and give it one math:slotIndex and math:slotExpression; indexes must be unique, non-negative, zero-based and contiguous."
+msgstr "使 math:operator 从 math:ApplicationExpression 指向选定运算个体。通过 math:argumentSlot 连接各 math:ArgumentSlot，并为其给出一个 math:slotIndex 和一个 math:slotExpression；索引必须唯一、非负、从零开始且连续。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual is binary addition over its declared real-number signature. Commutativity of real addition does not erase the ordered AST slots or authorize rewriting the source expression automatically."
+msgstr "此个体是声明的实数签名上的二元加法。实数加法的交换性不会消除 AST 的有序槽位，也不会授权自动改写源表达式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A symbolic application for 2 + 2 chooses math:Addition and uses two indexed argument slots, even though both slots may refer to the same operand expression. Its mathematical value is 4."
+msgstr "2 + 2 的符号应用选择 math:Addition，并使用两个有索引的参数槽位，即使两个槽位可以引用同一个运算对象表达式。其数学值为 4。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified application of binary numeric addition, with the operands’ mathematical or selected execution context retained."
+msgstr "用于有标识的二元数值加法应用，并保留运算对象的数学上下文或所选执行上下文。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this operator as string concatenation, omitting a slot because two operand expressions coincide, or assuming arithmetic laws trigger automatic normalization."
+msgstr "不要将此运算符当作字符串拼接，不要因两个运算对象表达式相同而省略槽位，也不要假定算术定律会触发自动规范化。"
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Addition on the application and retain both ordered argument slots. The selected exact-scalar profile can execute it only with its admitted dimensionless integer or decimal quantity bindings; symbolic number expressions do not bypass those requirements."
+msgstr "在应用上使用 math:operator math:Addition，并保留两个有序参数槽位。所选精确标量配置仅能以其准入的无量纲整数或十进制数量绑定来执行；符号数表达式不能绕过这些要求。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subtraction"
+msgstr "减法"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary subtraction operator (−), the inverse of math:Addition. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 minus."
+msgstr "二元减法运算符（−），为 math:Addition 的逆运算。签名为 ℝ → ℝ（实数算术）。OpenMath arith1 minus。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Subtraction takes two ordered operands: the minuend and the subtrahend. Recovering an addend by subtraction holds with the other addend fixed; the generic inverse wording does not make binary addition an unqualified bijective function."
+msgstr "减法有两个有序运算对象：被减数和减数。通过减法恢复一个加数时，另一个加数须固定；一般的逆运算说法并不使二元加法成为不加限定的双射函数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application 7 − 2 gives 5, whereas 2 − 7 gives −5. A unary expression −2 instead applies math:Negation to one operand."
+msgstr "应用 7 − 2 得到 5，2 − 7 则得到 −5。一元表达式 −2 则对一个运算对象应用 math:Negation。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for binary numeric difference when the first and second operand roles must remain explicit."
+msgstr "用于需要显式保留第一及第二运算对象角色的二元数值差。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping operands as if subtraction were commutative, confusing it with unary negation, or inferring a function inverse without the fixed operand and frame."
+msgstr "不要像对待可交换运算一样交换减法运算对象，不要将它与一元取反混淆，也不要在缺少固定运算对象及映射框架时推断函数逆。"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Subtraction and put the minuend in slot 0 and the subtrahend in slot 1 for the selected binary scalar representation. Keep both slot expressions and the operator identity unchanged when retaining source syntax; execute only within an admitted profile."
+msgstr "选择 math:Subtraction，在所选二元标量表示中将被减数放入槽位 0，将减数放入槽位 1。保留源语法时，保持两个槽位表达式及运算符标识不变；仅在已准入配置中执行。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "multiplication"
+msgstr "乘法"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary multiplication operator (×). Its inverse is math:Division. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 times."
+msgstr "二元乘法运算符（×），其逆运算为 math:Division。签名为 ℝ → ℝ（实数算术）。OpenMath arith1 times。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual names binary multiplication with the declared real signature. Undoing multiplication by division requires a nonzero fixed factor; the operator declaration neither selects matrix multiplication nor performs algebraic cancellation."
+msgstr "此个体指定具有声明实数签名的二元乘法。用除法撤销乘法要求固定因子非零；运算符声明既不选择矩阵乘法，也不执行代数约消。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The product 3 × 4 has value 12. From x × 4 = 12 one can recover x = 3 by dividing by 4, while multiplication by zero cannot be undone that way."
+msgstr "乘积 3 × 4 的值为 12。从 x × 4 = 12 可通过除以 4 恢复 x = 3，而乘以零则不能这样撤销。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for binary multiplication of numbers under the operator’s declared signature, preserving any selected execution restrictions."
+msgstr "用于运算符声明签名下的二元数乘法，并保留所选执行限制。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring dimensional unit algebra from this operator, silently using a noncommutative product interpretation, or cancelling a possibly zero factor."
+msgstr "不要从此运算符推断量纲单位代数，不要默默采用不可交换乘积解释，也不要约去可能为零的因子。"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:Multiplication through math:operator and supply the two indexed operand expressions. For the exact-scalar profile, bind explicit dimensionless quantities with integer or decimal values; preserve the source AST rather than assuming commutativity permits automatic reordering."
+msgstr "通过 math:operator 选择 math:Multiplication，并提供两个有索引的运算对象表达式。对于精确标量配置，绑定显式无量纲且取整数或十进制值的数量；保留源 AST，不要假定交换性允许自动重新排序。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "division"
+msgstr "除法"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary division operator (÷), the inverse of math:Multiplication. Signature ℝ → ℝ (real arithmetic; the divide-by-zero partiality is a math: partial-function concern, not a change of number system). OpenMath arith1 divide."
+msgstr "二元除法运算符（÷），为 math:Multiplication 的逆运算。签名为 ℝ → ℝ（实数算术；除以零导致的偏性属于 math: 偏函数问题，而非数系变更）。OpenMath arith1 divide。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Division distinguishes dividend from divisor and is undefined at a zero divisor in this real arithmetic setting. The selected exact-decimal scalar policy also refuses nonterminating decimal results; symbolic representability does not relax that execution policy."
+msgstr "除法区分被除数与除数，在此实数算术情形中，除数为零时未定义。所选精确十进制标量策略还拒绝无限小数结果；可进行符号表示并不放宽该执行策略。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact scalar quotient 7/2 terminates as 3.5. The mathematical rational 1/3 is exact, but its nonterminating decimal expansion makes that selected scalar operation fail rather than round."
+msgstr "精确标量商 7/2 具有有限小数 3.5。数学有理数 1/3 是精确的，但其无限小数展开会使该所选标量操作失败，而不是被舍入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an ordered quotient when the divisor’s admissibility and the chosen exact or symbolic representation are explicit."
+msgstr "用于除数准入条件及所选精确或符号表示均明确的有序商运算。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping dividend and divisor, converting zero division into an infinity or null result, or silently approximating 1/3 under the no-rounding scalar profile."
+msgstr "不要交换被除数和除数，不要将除以零转换为无穷或空值结果，也不要在禁止舍入的标量配置中默默近似 1/3。"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Division with dividend in slot 0 and divisor in slot 1 for the selected binary scalar representation. Establish a nonzero divisor and satisfy all explicit bindings and dimension requirements; exact division failure must stop the selected operation without fallback."
+msgstr "在所选二元标量表示中选择 math:Division，将被除数放入槽位 0，将除数放入槽位 1。确定除数非零，并满足所有显式绑定及量纲要求；精确除法失败时必须终止所选操作，不得回退。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponentiation"
+msgstr "幂运算"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exponentiation operator (a^b). Its inverses are math:Root (recovering the base) and math:Logarithm (recovering the exponent). Signature ℝ → ℝ (real arithmetic). OpenMath arith1 power."
+msgstr "幂运算符（a^b）。其逆运算为 math:Root（恢复底数）及 math:Logarithm（恢复指数）。签名为 ℝ → ℝ（实数算术）。OpenMath arith1 power。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exponentiation assigns different roles to base and exponent. Its declared real signature is not a promise that every pair of reals has a real result; domain and inverse identities require their mathematical conditions, and this symbolic operator is outside the selected four-operator scalar executor."
+msgstr "幂运算赋予底数和指数不同角色。声明的实数签名并不保证任意一对实数都有实数结果；定义域及逆运算恒等式须满足各自数学条件，且此符号运算符不属于所选四运算符标量执行器。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#example"
+msgid "For 2³, the base is 2 and the exponent is 3, giving 8; reversing those roles gives 3² = 9. In x⁻ᵖ, math:Negation applies to p inside the exponent expression."
+msgstr "对于 2³，底数为 2、指数为 3，结果为 8；反转角色得到 3² = 9。在 x⁻ᵖ 中，math:Negation 应用于指数表达式内的 p。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent a power with explicit base and exponent expressions under the declared number-system signature."
+msgstr "用于在声明的数系签名下，以显式底数及指数表达式表示幂。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating exponentiation as commutative, assuming negative bases and fractional exponents always remain real, or claiming power/root/logarithm identities without domain and branch restrictions."
+msgstr "不要将幂运算当作可交换运算，不要假定负底数和分数指数总能保持实数结果，也不要在缺少定义域及分支限制时声明幂、根与对数的恒等关系。"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Exponentiation and preserve the base and exponent roles in the application’s indexed slots under the expression convention. Nest math:Negation when the exponent is negated; retain admissibility conditions and do not route this operator into the unsupported exact-scalar lane."
+msgstr "使用 math:operator math:Exponentiation，并按表达式约定在应用的索引槽位中保留底数和指数角色。指数取反时嵌套 math:Negation；保留准入条件，不要将此运算符送入不支持它的精确标量执行路径。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "root"
+msgstr "根运算"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The root operator (the b-th root of a), an inverse of math:Exponentiation that recovers the base. Signature ℝ → ℂ: an even root of a negative real is complex, so the honest codomain is math:complexNumbers rather than pretending the result stays real. OpenMath arith1 root."
+msgstr "根运算符（a 的 b 次根），是恢复底数的 math:Exponentiation 逆运算。签名为 ℝ → ℂ：负实数的偶次根为复数，因此准确的陪域是 math:complexNumbers，而不应假装结果保持为实数。OpenMath arith1 root。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A root recovers a possible base only under an admissible degree and a stated root or branch convention. The real-input/complex-result signature admits complex results from real radicands without making the root single-valued or admitting arbitrary complex inputs."
+msgstr "根仅在次数满足条件且已声明根或分支约定时恢复某个可能底数。实数输入、复数结果的签名允许实数被开方数产生复数结果，但不会使根天然单值，也不准入任意复数输入。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#example"
+msgid "The equation z² = 4 has roots 2 and −2, so selecting the positive square root is extra convention. The real radicand −1 has complex square roots i and −i."
+msgstr "方程 z² = 4 的根有 2 和 −2，因此选择正平方根需要额外约定。实数被开方数 −1 的复平方根有 i 和 −i。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent recovery of a base from a power when the degree, radicand and any root selection are made explicit."
+msgstr "当次数、被开方数及任何选根方式明确时，用于表示从幂恢复底数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping a sign or complex branch without a selection rule, assuming a zero degree defines an inverse, or treating the complex codomain as permission to replace the declared real input signature."
+msgstr "不要在没有选择规则时丢弃符号或复分支，不要假定零次根定义了逆运算，也不要将复数陪域视为可替换已声明实数输入签名的许可。"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Root through math:operator, preserve radicand and degree roles in the ordered expression representation, and state the admissible branch or root choice. Keep the existing real-to-complex signature; the selected exact-scalar profile does not execute this operator."
+msgstr "通过 math:operator 选择 math:Root，在有序表达式表示中保留被开方数及次数角色，并声明可用分支或选根方式。保留已有的实数到复数签名；所选精确标量配置不执行此运算符。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logarithm"
+msgstr "对数"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent under appropriate base and branch conditions. Signature ℝ → ℂ: the ordinary real logarithm requires a > 0, b > 0 and b ≠ 1. A negative nonzero real argument can require a stated complex branch with a valid real base; zero has no finite complex logarithm. The complex codomain does not extend the declared real input signature. OpenMath transc1 log."
+msgstr "对数运算符（a 以 b 为底的对数），是在适当底数及分支条件下恢复指数的 math:Exponentiation 逆运算。签名为 ℝ → ℂ：普通实对数要求 a > 0、b > 0 且 b ≠ 1。非零负实数参数可能需要在有效实底数下声明复分支；零没有有限复对数。复数陪域并不扩展所声明的实数输入签名。OpenMath transc1 log。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The argument and base have different roles, and logarithm inversion needs admissible values and branch choices. Within the declared real input signature, ordinary real values require positive argument and positive base other than 1; complex results do not license complex input resources."
+msgstr "参数和底数具有不同角色，对数逆运算需要满足条件的值及分支选择。在已声明的实数输入签名内，普通实数值要求参数为正且底数为不等于 1 的正数；复数结果并不许可复数输入资源。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "log₂(8) = 3 uses a positive argument and valid real base. For real base e, a selected complex logarithm of −1 can be iπ; the argument 0 has no finite complex logarithm on any branch."
+msgstr "log₂(8) = 3 使用正参数及有效实底数。对于实底数 e，−1 的某个选定复对数可为 iπ；参数 0 在任何分支上都没有有限复对数。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent recovery of an exponent with an explicit base, admissible real argument and any required complex-result branch convention."
+msgstr "用于在底数明确、实参数满足条件且所需复数结果分支约定已声明时表示指数恢复。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning a finite logarithm to zero, using base 1 for the ordinary real logarithm, swapping base and argument, or applying power/log inverse identities across incompatible branches."
+msgstr "不要为零赋予有限对数，不要在普通实对数中使用底数 1，不要交换底数及参数，也不要跨不兼容分支应用幂与对数的逆恒等式。"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:Logarithm on the application, retain base and argument roles through the existing ordered AST convention, and state base validity and branch conditions in the mathematical representation. Preserve its real-to-complex signature without claiming execution by the selected exact-scalar profile."
+msgstr "在应用上选择 math:Logarithm，按已有有序 AST 约定保留底数及参数角色，并在数学表示中声明底数有效性和分支条件。保留其实数到复数签名，不声称所选精确标量配置会执行它。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual is unary additive inversion on the signed extended real line, including its two poles. It is different from binary math:Subtraction and from logical negation; its extended-real signature does not imply that the exact-decimal scalar executor admits it."
+msgstr "此个体是带符号扩展实数轴上的一元加法取反，包括两个无穷极点。它不同于二元 math:Subtraction 及逻辑否定；其扩展实数签名并不意味着精确十进制标量执行器准入它。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Applying math:Negation to math:PositiveInfinity yields math:NegativeInfinity in the declared extended-real meaning. In x⁻ᵖ, it applies to p as a nested exponent operand, not to x."
+msgstr "在声明的扩展实数含义下，对 math:PositiveInfinity 应用 math:Negation 得到 math:NegativeInfinity。在 x⁻ᵖ 中，它应用于作为嵌套指数运算对象的 p，而不是 x。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent the additive inverse of one real or signed extended-real operand, including a sign change on an exponent."
+msgstr "用于表示一个实数或带符号扩展实数运算对象的加法逆元，包括指数的符号变换。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid encoding a unary sign change as a two-operand subtraction by default, confusing it with Boolean negation, or treating the extended-real pole sign flip as an undefined zero division."
+msgstr "不要默认将一元符号变换编码为二元减法，不要将它与布尔否定混淆，也不要将扩展实数极点的符号翻转当作未定义的除以零。"
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Negation with one indexed argument expression. Preserve the declared math:ExtendedRealLine signature and the identities of any pole operands; keep the unary AST distinct from binary subtraction and do not claim support from the four-operator exact-scalar profile."
+msgstr "使用 math:operator math:Negation，并提供一个有索引的参数表达式。保留声明的 math:ExtendedRealLine 签名及极点运算对象的标识；使一元 AST 区别于二元减法，不要声称四运算符精确标量配置支持它。"

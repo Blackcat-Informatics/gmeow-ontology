@@ -5500,3 +5500,295 @@ msgstr "Ne pas employer cette propriété pour un inverse multiplicatif, une sim
 msgctxt "https://blackcatinformatics.ca/math/inverseFunction|https://blackcatinformatics.ca/gmeow/howToUse"
 msgid "Keep the original function’s declared frame, describe the inverse with domain and codomain swapped, and justify both inverse compositions. State math:inverseFunction explicitly for each needed direction; its mathematical symmetry is documented rather than promised as an automatic RDF inference."
 msgstr "Garder le cadre déclaré de la fonction originale, décrire l’inverse avec domaine et codomaine échangés et justifier les deux compositions d’inverse. Déclarer explicitement math:inverseFunction dans chaque direction nécessaire ; sa symétrie mathématique est documentée plutôt que promise comme inférence RDF automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Operation"
+msgstr "Opération mathématique"
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "A mathematical operation: a map from operands to a result, applied within an expression. The object-layer parent that math:ArithmeticOperation specializes; richer structure (arity, operand structure preservation) belongs to the mathematical-core surface that this bedrock builds on."
+msgstr "Une opération mathématique : une application d’opérandes vers un résultat, appliquée dans une expression. Le parent de la couche objet que math:ArithmeticOperation spécialise ; les structures plus riches (arité, préservation de la structure des opérandes) appartiennent à la surface du noyau mathématique sur laquelle ce socle repose."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "An operation identifies what an application invokes; it is not the application occurrence or its evaluated result. A framed math:Function is another mathematical description, and this class alone supplies neither a function frame nor an execution capability."
+msgstr "Une opération identifie ce qu’une application invoque ; ce n’est ni l’occurrence d’application ni son résultat évalué. Un math:Function muni d’un cadre est une autre description mathématique, et cette classe seule ne fournit ni cadre de fonction ni capacité d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|http://www.w3.org/2004/02/skos/core#example"
+msgid "In an expression for 2 + 2, math:Addition is the operation, the math:ApplicationExpression is the application occurrence, and the exact number 4 is the mathematical result rather than the operator resource."
+msgstr "Dans une expression de 2 + 2, math:Addition est l’opération, math:ApplicationExpression est l’occurrence d’application et le nombre exact 4 est le résultat mathématique plutôt que la ressource opérateur."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify a mathematical operator that expressions can invoke while keeping each application and result description separate."
+msgstr "Utiliser pour identifier un opérateur mathématique que les expressions peuvent invoquer, en gardant séparées chaque application et la description de son résultat."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating an operation label as an expression AST, inferring a total framed function from this class, or assuming every declared operation is executable in every runtime profile."
+msgstr "Ne pas traiter un libellé d’opération comme un AST d’expression, déduire une fonction totale munie d’un cadre de cette classe ou supposer que toute opération déclarée est exécutable dans chaque profil d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/Operation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Reuse the applicable operation individual as the object of math:operator on an application, and represent the operands through the existing argument-slot structure. Retain the operator’s declared mathematical scope and select execution only through an admitted runtime profile."
+msgstr "Réutiliser l’individu d’opération approprié comme objet de math:operator sur une application et représenter les opérandes par la structure existante d’emplacements d’arguments. Conserver la portée mathématique déclarée de l’opérateur et ne sélectionner l’exécution que par un profil d’exécution admis."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Arithmetic Operation"
+msgstr "Opération arithmétique"
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "An arithmetic operation over numbers: addition, multiplication, exponentiation, and their inverses. A subclass of math:Operation; the concrete operators are named individuals (math:Addition, math:Multiplication, math:Exponentiation, math:Subtraction, math:Division, math:Root, math:Logarithm). Anchored externally to the OpenMath arith1 and nums1 content dictionaries. An arithmetic expression applies one such operator inside a math:ApplicationExpression."
+msgstr "Une opération arithmétique sur les nombres : addition, multiplication, exponentiation et leurs inverses. Une sous-classe de math:Operation ; les opérateurs concrets sont des individus nommés (math:Addition, math:Multiplication, math:Exponentiation, math:Subtraction, math:Division, math:Root, math:Logarithm). Ancrée extérieurement dans les dictionnaires de contenu OpenMath arith1 et nums1. Une expression arithmétique applique l’un de ces opérateurs dans un math:ApplicationExpression."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This class groups arithmetic operator individuals with declared number-system signatures. Symbolic availability is broader than the selected exact-decimal scalar profile, which admits only binary Addition, Subtraction, Multiplication and exact Division on its required dimensionless quantities."
+msgstr "Cette classe regroupe les individus d’opérateurs arithmétiques munis de signatures déclarées sur les systèmes de nombres. La disponibilité symbolique est plus large que le profil scalaire décimal exact sélectionné, qui n’admet que les opérations binaires Addition, Subtraction, Multiplication et Division exacte sur les quantités sans dimension requises."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|http://www.w3.org/2004/02/skos/core#example"
+msgid "math:Root is an arithmetic operator with real input and complex result systems, while math:Negation has the signed extended-real signature. Neither is admitted by the selected four-operator exact-scalar profile."
+msgstr "math:Root est un opérateur arithmétique de système d’entrée réel et de résultat complexe, tandis que math:Negation possède la signature réelle étendue signée. Aucun des deux n’est admis par le profil scalaire exact sélectionné à quatre opérateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to classify a declared number operator without conflating the operator individual with a numeric value or an application node."
+msgstr "Utiliser pour classer un opérateur numérique déclaré sans confondre l’individu opérateur avec une valeur numérique ou un nœud d’application."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid interpreting the number-system signature as proof of totality, extending a complex result signature to arbitrary complex inputs, or claiming a general solver executes every arithmetic individual."
+msgstr "Ne pas interpréter la signature de systèmes de nombres comme preuve de totalité, étendre une signature de résultat complexe à des entrées complexes arbitraires ou prétendre qu’un solveur général exécute tout individu arithmétique."
+
+msgctxt "https://blackcatinformatics.ca/math/ArithmeticOperation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select the existing arithmetic individual, preserve its math:operatorDomain and math:operatorCodomain, and use it through math:operator in a structured application. For selected scalar execution, satisfy that profile’s bindings, dimension and exact numeric requirements; unsupported cases must fail rather than degrade to approximation."
+msgstr "Sélectionner l’individu arithmétique existant, préserver math:operatorDomain et math:operatorCodomain et l’utiliser par math:operator dans une application structurée. Pour l’exécution scalaire sélectionnée, satisfaire les exigences du profil en matière de liaisons, de dimension et de nombres exacts ; les cas non pris en charge doivent échouer plutôt que se dégrader en approximation."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "operator"
+msgstr "opérateur d’application"
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The single operator a math:ApplicationExpression applies: relates an application to the math:Operation (for example a math:ArithmeticOperation individual) it invokes. Domain math:ApplicationExpression, range math:Operation (stated in prose)."
+msgstr "L’unique opérateur qu’un math:ApplicationExpression applique : relie une application au math:Operation qu’elle invoque (par exemple un individu math:ArithmeticOperation). Domaine math:ApplicationExpression, portée math:Operation (déclarés en prose)."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The edge runs from an application expression to one operation individual. Operand positions belong to math:ArgumentSlot resources; the operator link itself neither stores argument values nor determines an evaluation result."
+msgstr "Le lien va d’une expression d’application vers un individu d’opération. Les positions d’opérandes appartiennent aux ressources math:ArgumentSlot ; le lien d’opérateur lui-même ne stocke pas de valeurs d’arguments et ne détermine pas de résultat d’évaluation."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|http://www.w3.org/2004/02/skos/core#example"
+msgid "An application representing 7 − 2 points through math:operator to math:Subtraction, while its separate indexed slots hold the expressions for 7 and 2 in that order."
+msgstr "Une application représentant 7 − 2 pointe par math:operator vers math:Subtraction, tandis que ses emplacements indexés distincts portent les expressions de 7 et 2 dans cet ordre."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to identify the operation invoked at a particular application node in the mathematical expression AST."
+msgstr "Utiliser pour identifier l’opération invoquée à un nœud d’application particulier dans l’AST d’expression mathématique."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid an operator glyph string, the class math:ArithmeticOperation itself, multiple operator objects on one application, or raw operand literals in place of the operation individual."
+msgstr "Éviter une chaîne de glyphe d’opérateur, la classe math:ArithmeticOperation elle-même, plusieurs objets opérateurs sur une application ou des littéraux d’opérandes bruts à la place de l’individu d’opération."
+
+msgctxt "https://blackcatinformatics.ca/math/operator|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Point math:operator from the math:ApplicationExpression to the chosen operation individual. Link each math:ArgumentSlot through math:argumentSlot and give it one math:slotIndex and math:slotExpression; indexes must be unique, non-negative, zero-based and contiguous."
+msgstr "Faire pointer math:operator du math:ApplicationExpression vers l’individu d’opération choisi. Relier chaque math:ArgumentSlot par math:argumentSlot et lui donner un math:slotIndex et un math:slotExpression ; les indices doivent être uniques, non négatifs, commencer à zéro et être contigus."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual is binary addition over its declared real-number signature. Commutativity of real addition does not erase the ordered AST slots or authorize rewriting the source expression automatically."
+msgstr "Cet individu est l’addition binaire sur sa signature déclarée de nombres réels. La commutativité de l’addition réelle n’efface pas les emplacements ordonnés de l’AST et n’autorise pas la réécriture automatique de l’expression source."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|http://www.w3.org/2004/02/skos/core#example"
+msgid "A symbolic application for 2 + 2 chooses math:Addition and uses two indexed argument slots, even though both slots may refer to the same operand expression. Its mathematical value is 4."
+msgstr "Une application symbolique de 2 + 2 choisit math:Addition et utilise deux emplacements d’arguments indexés, même si les deux peuvent référencer la même expression opérande. Sa valeur mathématique est 4."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an identified application of binary numeric addition, with the operands’ mathematical or selected execution context retained."
+msgstr "Utiliser pour une application identifiée de l’addition numérique binaire, en conservant le contexte mathématique ou d’exécution sélectionnée des opérandes."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating this operator as string concatenation, omitting a slot because two operand expressions coincide, or assuming arithmetic laws trigger automatic normalization."
+msgstr "Ne pas traiter cet opérateur comme une concaténation de chaînes, omettre un emplacement parce que deux expressions opérandes coïncident ou supposer que les lois arithmétiques déclenchent une normalisation automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/Addition|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Addition on the application and retain both ordered argument slots. The selected exact-scalar profile can execute it only with its admitted dimensionless integer or decimal quantity bindings; symbolic number expressions do not bypass those requirements."
+msgstr "Employer math:operator math:Addition sur l’application et conserver les deux emplacements d’arguments ordonnés. Le profil scalaire exact sélectionné ne peut l’exécuter qu’avec ses liaisons admises de quantités entières ou décimales sans dimension ; les expressions numériques symboliques ne contournent pas ces exigences."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "subtraction"
+msgstr "soustraction"
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary subtraction operator (−), the inverse of math:Addition. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 minus."
+msgstr "L’opérateur binaire de soustraction (−), inverse de math:Addition. Signature ℝ → ℝ (arithmétique réelle). OpenMath arith1 minus."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Subtraction takes two ordered operands: the minuend and the subtrahend. Recovering an addend by subtraction holds with the other addend fixed; the generic inverse wording does not make binary addition an unqualified bijective function."
+msgstr "La soustraction prend deux opérandes ordonnés : le nombre dont on soustrait et le nombre soustrait. Retrouver un terme d’une somme par soustraction suppose l’autre terme fixé ; la formulation générique d’inverse ne fait pas de l’addition binaire une fonction bijective sans qualification."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|http://www.w3.org/2004/02/skos/core#example"
+msgid "The application 7 − 2 gives 5, whereas 2 − 7 gives −5. A unary expression −2 instead applies math:Negation to one operand."
+msgstr "L’application 7 − 2 donne 5, tandis que 2 − 7 donne −5. Une expression unaire −2 applique plutôt math:Negation à un opérande."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for binary numeric difference when the first and second operand roles must remain explicit."
+msgstr "Utiliser pour une différence numérique binaire lorsque les rôles du premier et du second opérande doivent rester explicites."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping operands as if subtraction were commutative, confusing it with unary negation, or inferring a function inverse without the fixed operand and frame."
+msgstr "Ne pas permuter les opérandes comme si la soustraction était commutative, la confondre avec la négation unaire ou déduire une inverse de fonction sans l’opérande fixé ni le cadre."
+
+msgctxt "https://blackcatinformatics.ca/math/Subtraction|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Subtraction and put the minuend in slot 0 and the subtrahend in slot 1 for the selected binary scalar representation. Keep both slot expressions and the operator identity unchanged when retaining source syntax; execute only within an admitted profile."
+msgstr "Sélectionner math:Subtraction et placer le nombre dont on soustrait dans l’emplacement 0 et le nombre soustrait dans l’emplacement 1 pour la représentation scalaire binaire sélectionnée. Conserver les deux expressions d’emplacements et l’identité de l’opérateur lors de la préservation de la syntaxe source ; n’exécuter que dans un profil admis."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "multiplication"
+msgstr "opérateur de multiplication"
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary multiplication operator (×). Its inverse is math:Division. Signature ℝ → ℝ (real arithmetic). OpenMath arith1 times."
+msgstr "L’opérateur binaire de multiplication (×). Son inverse est math:Division. Signature ℝ → ℝ (arithmétique réelle). OpenMath arith1 times."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual names binary multiplication with the declared real signature. Undoing multiplication by division requires a nonzero fixed factor; the operator declaration neither selects matrix multiplication nor performs algebraic cancellation."
+msgstr "Cet individu désigne la multiplication binaire avec sa signature réelle déclarée. Annuler une multiplication par division exige un facteur fixé non nul ; la déclaration de l’opérateur ne sélectionne pas la multiplication matricielle et n’effectue pas de simplification algébrique."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|http://www.w3.org/2004/02/skos/core#example"
+msgid "The product 3 × 4 has value 12. From x × 4 = 12 one can recover x = 3 by dividing by 4, while multiplication by zero cannot be undone that way."
+msgstr "Le produit 3 × 4 vaut 12. De x × 4 = 12, on peut retrouver x = 3 en divisant par 4, tandis qu’une multiplication par zéro ne peut être annulée de cette façon."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for binary multiplication of numbers under the operator’s declared signature, preserving any selected execution restrictions."
+msgstr "Utiliser pour la multiplication binaire de nombres sous la signature déclarée de l’opérateur, en préservant les restrictions de l’exécution sélectionnée."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid inferring dimensional unit algebra from this operator, silently using a noncommutative product interpretation, or cancelling a possibly zero factor."
+msgstr "Ne pas déduire une algèbre d’unités dimensionnelles de cet opérateur, utiliser implicitement une interprétation de produit non commutatif ou simplifier un facteur susceptible d’être nul."
+
+msgctxt "https://blackcatinformatics.ca/math/Multiplication|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:Multiplication through math:operator and supply the two indexed operand expressions. For the exact-scalar profile, bind explicit dimensionless quantities with integer or decimal values; preserve the source AST rather than assuming commutativity permits automatic reordering."
+msgstr "Choisir math:Multiplication par math:operator et fournir les deux expressions opérandes indexées. Pour le profil scalaire exact, lier des quantités explicitement sans dimension ayant des valeurs entières ou décimales ; préserver l’AST source plutôt que supposer que la commutativité autorise un réordonnancement automatique."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "division"
+msgstr "opérateur de division"
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The binary division operator (÷), the inverse of math:Multiplication. Signature ℝ → ℝ (real arithmetic; the divide-by-zero partiality is a math: partial-function concern, not a change of number system). OpenMath arith1 divide."
+msgstr "L’opérateur binaire de division (÷), inverse de math:Multiplication. Signature ℝ → ℝ (arithmétique réelle ; la partialité liée à la division par zéro relève d’une fonction partielle math:, et non d’un changement de système de nombres). OpenMath arith1 divide."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Division distinguishes dividend from divisor and is undefined at a zero divisor in this real arithmetic setting. The selected exact-decimal scalar policy also refuses nonterminating decimal results; symbolic representability does not relax that execution policy."
+msgstr "La division distingue le dividende du diviseur et n’est pas définie pour un diviseur nul dans ce cadre arithmétique réel. La politique scalaire décimale exacte sélectionnée refuse aussi les résultats décimaux non terminants ; la représentation symbolique n’assouplit pas cette politique d’exécution."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|http://www.w3.org/2004/02/skos/core#example"
+msgid "The exact scalar quotient 7/2 terminates as 3.5. The mathematical rational 1/3 is exact, but its nonterminating decimal expansion makes that selected scalar operation fail rather than round."
+msgstr "Le quotient scalaire exact 7/2 se termine à 3.5. Le rationnel mathématique 1/3 est exact, mais son développement décimal non terminant fait échouer cette opération scalaire sélectionnée plutôt que l’arrondir."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use for an ordered quotient when the divisor’s admissibility and the chosen exact or symbolic representation are explicit."
+msgstr "Utiliser pour un quotient ordonné lorsque l’admissibilité du diviseur et la représentation exacte ou symbolique choisie sont explicites."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid swapping dividend and divisor, converting zero division into an infinity or null result, or silently approximating 1/3 under the no-rounding scalar profile."
+msgstr "Ne pas permuter dividende et diviseur, convertir une division par zéro en infini ou en valeur null, ni approcher implicitement 1/3 dans le profil scalaire sans arrondi."
+
+msgctxt "https://blackcatinformatics.ca/math/Division|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Division with dividend in slot 0 and divisor in slot 1 for the selected binary scalar representation. Establish a nonzero divisor and satisfy all explicit bindings and dimension requirements; exact division failure must stop the selected operation without fallback."
+msgstr "Sélectionner math:Division avec le dividende dans l’emplacement 0 et le diviseur dans l’emplacement 1 pour la représentation scalaire binaire sélectionnée. Établir que le diviseur est non nul et satisfaire toutes les exigences explicites de liaison et de dimension ; un échec de division exacte doit arrêter l’opération sélectionnée sans solution de repli."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "exponentiation"
+msgstr "élévation à une puissance"
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The exponentiation operator (a^b). Its inverses are math:Root (recovering the base) and math:Logarithm (recovering the exponent). Signature ℝ → ℝ (real arithmetic). OpenMath arith1 power."
+msgstr "L’opérateur d’élévation à une puissance (a^b). Ses inverses sont math:Root (qui retrouve la base) et math:Logarithm (qui retrouve l’exposant). Signature ℝ → ℝ (arithmétique réelle). OpenMath arith1 power."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "Exponentiation assigns different roles to base and exponent. Its declared real signature is not a promise that every pair of reals has a real result; domain and inverse identities require their mathematical conditions, and this symbolic operator is outside the selected four-operator scalar executor."
+msgstr "L’élévation à une puissance attribue des rôles différents à la base et à l’exposant. Sa signature réelle déclarée ne promet pas que toute paire de réels donne un résultat réel ; le domaine et les identités d’inverse exigent leurs conditions mathématiques, et cet opérateur symbolique est hors de l’exécuteur scalaire sélectionné à quatre opérateurs."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|http://www.w3.org/2004/02/skos/core#example"
+msgid "For 2³, the base is 2 and the exponent is 3, giving 8; reversing those roles gives 3² = 9. In x⁻ᵖ, math:Negation applies to p inside the exponent expression."
+msgstr "Pour 2³, la base est 2 et l’exposant 3, ce qui donne 8 ; inverser ces rôles donne 3² = 9. Dans x⁻ᵖ, math:Negation s’applique à p dans l’expression de l’exposant."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent a power with explicit base and exponent expressions under the declared number-system signature."
+msgstr "Utiliser pour représenter une puissance avec des expressions explicites de base et d’exposant sous la signature déclarée de systèmes de nombres."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid treating exponentiation as commutative, assuming negative bases and fractional exponents always remain real, or claiming power/root/logarithm identities without domain and branch restrictions."
+msgstr "Ne pas traiter l’élévation à une puissance comme commutative, supposer que les bases négatives et exposants fractionnaires restent toujours réels ou affirmer des identités puissance/racine/logarithme sans restrictions de domaine et de branche."
+
+msgctxt "https://blackcatinformatics.ca/math/Exponentiation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Exponentiation and preserve the base and exponent roles in the application’s indexed slots under the expression convention. Nest math:Negation when the exponent is negated; retain admissibility conditions and do not route this operator into the unsupported exact-scalar lane."
+msgstr "Employer math:operator math:Exponentiation et préserver les rôles de base et d’exposant dans les emplacements indexés de l’application selon la convention d’expression. Imbriquer math:Negation lorsque l’exposant est opposé ; conserver les conditions d’admissibilité et ne pas envoyer cet opérateur dans la voie scalaire exacte qui ne le prend pas en charge."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "root"
+msgstr "racine"
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The root operator (the b-th root of a), an inverse of math:Exponentiation that recovers the base. Signature ℝ → ℂ: an even root of a negative real is complex, so the honest codomain is math:complexNumbers rather than pretending the result stays real. OpenMath arith1 root."
+msgstr "L’opérateur de racine (la racine b-ième de a), une inverse de math:Exponentiation qui retrouve la base. Signature ℝ → ℂ : une racine paire d’un réel négatif est complexe ; le codomaine honnête est donc math:complexNumbers plutôt que prétendre que le résultat reste réel. OpenMath arith1 root."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "A root recovers a possible base only under an admissible degree and a stated root or branch convention. The real-input/complex-result signature admits complex results from real radicands without making the root single-valued or admitting arbitrary complex inputs."
+msgstr "Une racine ne retrouve une base possible qu’avec un degré admissible et une convention de racine ou de branche déclarée. La signature entrée réelle/résultat complexe admet des résultats complexes à partir de radicandes réels sans rendre la racine univoque ni admettre des entrées complexes arbitraires."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|http://www.w3.org/2004/02/skos/core#example"
+msgid "The equation z² = 4 has roots 2 and −2, so selecting the positive square root is extra convention. The real radicand −1 has complex square roots i and −i."
+msgstr "L’équation z² = 4 a pour racines 2 et −2 ; sélectionner la racine carrée positive est donc une convention supplémentaire. Le radicande réel −1 possède les racines carrées complexes i et −i."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent recovery of a base from a power when the degree, radicand and any root selection are made explicit."
+msgstr "Utiliser pour représenter la recherche d’une base à partir d’une puissance lorsque le degré, le radicande et tout choix de racine sont explicités."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid dropping a sign or complex branch without a selection rule, assuming a zero degree defines an inverse, or treating the complex codomain as permission to replace the declared real input signature."
+msgstr "Ne pas supprimer un signe ou une branche complexe sans règle de sélection, supposer qu’un degré nul définit une inverse ou traiter le codomaine complexe comme une permission de remplacer la signature d’entrée réelle déclarée."
+
+msgctxt "https://blackcatinformatics.ca/math/Root|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Select math:Root through math:operator, preserve radicand and degree roles in the ordered expression representation, and state the admissible branch or root choice. Keep the existing real-to-complex signature; the selected exact-scalar profile does not execute this operator."
+msgstr "Sélectionner math:Root par math:operator, préserver les rôles du radicande et du degré dans la représentation ordonnée de l’expression et déclarer la branche admissible ou le choix de racine. Garder la signature existante du réel vers le complexe ; le profil scalaire exact sélectionné n’exécute pas cet opérateur."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "logarithm"
+msgstr "logarithme"
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#definition"
+msgid "The logarithm operator (log_b of a), an inverse of math:Exponentiation that recovers the exponent under appropriate base and branch conditions. Signature ℝ → ℂ: the ordinary real logarithm requires a > 0, b > 0 and b ≠ 1. A negative nonzero real argument can require a stated complex branch with a valid real base; zero has no finite complex logarithm. The complex codomain does not extend the declared real input signature. OpenMath transc1 log."
+msgstr "L’opérateur logarithme (log_b de a), une inverse de math:Exponentiation qui retrouve l’exposant sous des conditions appropriées de base et de branche. Signature ℝ → ℂ : le logarithme réel ordinaire exige a > 0, b > 0 et b ≠ 1. Un argument réel négatif non nul peut nécessiter une branche complexe déclarée avec une base réelle valide ; zéro n’a pas de logarithme complexe fini. Le codomaine complexe n’étend pas la signature d’entrée réelle déclarée. OpenMath transc1 log."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "The argument and base have different roles, and logarithm inversion needs admissible values and branch choices. Within the declared real input signature, ordinary real values require positive argument and positive base other than 1; complex results do not license complex input resources."
+msgstr "L’argument et la base ont des rôles différents, et l’inversion logarithmique exige des valeurs admissibles et des choix de branche. Dans la signature d’entrée réelle déclarée, les valeurs réelles ordinaires exigent un argument positif et une base positive différente de 1 ; des résultats complexes n’autorisent pas des ressources d’entrée complexes."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|http://www.w3.org/2004/02/skos/core#example"
+msgid "log₂(8) = 3 uses a positive argument and valid real base. For real base e, a selected complex logarithm of −1 can be iπ; the argument 0 has no finite complex logarithm on any branch."
+msgstr "log₂(8) = 3 utilise un argument positif et une base réelle valide. Pour la base réelle e, un logarithme complexe choisi de −1 peut être iπ ; l’argument 0 n’a de logarithme complexe fini sur aucune branche."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent recovery of an exponent with an explicit base, admissible real argument and any required complex-result branch convention."
+msgstr "Utiliser pour représenter la recherche d’un exposant avec une base explicite, un argument réel admissible et toute convention de branche requise pour un résultat complexe."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid assigning a finite logarithm to zero, using base 1 for the ordinary real logarithm, swapping base and argument, or applying power/log inverse identities across incompatible branches."
+msgstr "Ne pas attribuer de logarithme fini à zéro, utiliser la base 1 pour le logarithme réel ordinaire, permuter base et argument ou appliquer des identités inverses puissance/logarithme entre branches incompatibles."
+
+msgctxt "https://blackcatinformatics.ca/math/Logarithm|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Choose math:Logarithm on the application, retain base and argument roles through the existing ordered AST convention, and state base validity and branch conditions in the mathematical representation. Preserve its real-to-complex signature without claiming execution by the selected exact-scalar profile."
+msgstr "Choisir math:Logarithm sur l’application, conserver les rôles de base et d’argument selon la convention ordonnée d’AST existante et déclarer la validité de la base et les conditions de branche dans la représentation mathématique. Préserver sa signature du réel vers le complexe sans affirmer son exécution par le profil scalaire exact sélectionné."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|http://www.w3.org/2004/02/skos/core#scopeNote"
+msgid "This individual is unary additive inversion on the signed extended real line, including its two poles. It is different from binary math:Subtraction and from logical negation; its extended-real signature does not imply that the exact-decimal scalar executor admits it."
+msgstr "Cet individu est l’inversion additive unaire sur la droite réelle achevée signée, y compris ses deux pôles. Il se distingue de la math:Subtraction binaire et de la négation logique ; sa signature réelle étendue n’implique pas que l’exécuteur scalaire décimal exact l’admette."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|http://www.w3.org/2004/02/skos/core#example"
+msgid "Applying math:Negation to math:PositiveInfinity yields math:NegativeInfinity in the declared extended-real meaning. In x⁻ᵖ, it applies to p as a nested exponent operand, not to x."
+msgstr "Appliquer math:Negation à math:PositiveInfinity donne math:NegativeInfinity dans le sens réel étendu déclaré. Dans x⁻ᵖ, il s’applique à p comme opérande imbriqué de l’exposant, et non à x."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/useWhen"
+msgid "Use to represent the additive inverse of one real or signed extended-real operand, including a sign change on an exponent."
+msgstr "Utiliser pour représenter l’opposé additif d’un seul opérande réel ou réel étendu signé, notamment un changement de signe d’un exposant."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/avoidWhen"
+msgid "Avoid encoding a unary sign change as a two-operand subtraction by default, confusing it with Boolean negation, or treating the extended-real pole sign flip as an undefined zero division."
+msgstr "Ne pas encoder par défaut un changement de signe unaire comme une soustraction à deux opérandes, le confondre avec une négation booléenne ou traiter le changement de signe d’un pôle réel étendu comme une division par zéro indéfinie."
+
+msgctxt "https://blackcatinformatics.ca/math/Negation|https://blackcatinformatics.ca/gmeow/howToUse"
+msgid "Use math:operator math:Negation with one indexed argument expression. Preserve the declared math:ExtendedRealLine signature and the identities of any pole operands; keep the unary AST distinct from binary subtraction and do not claim support from the four-operator exact-scalar profile."
+msgstr "Employer math:operator math:Negation avec une expression d’argument indexée. Préserver la signature déclarée math:ExtendedRealLine et les identités de tous les pôles opérandes ; garder l’AST unaire distinct de la soustraction binaire et ne pas affirmer sa prise en charge par le profil scalaire exact à quatre opérateurs."
